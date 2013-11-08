@@ -32,6 +32,9 @@ class Serializer(object):
         return marshal(data, cls.FIELDS)
 
 
+def _is_iterable_but_not_string(obj):
+    return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
+
 
 def marshal(data, fields):
     """Takes raw data (in the form of a dict, list, object) and a dict of
@@ -47,7 +50,7 @@ def marshal(data, fields):
             return cls()
         return cls
 
-    if isinstance(data, (list, tuple)):
+    if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
 
     items = ((k, marshal(data, v) if isinstance(v, dict)

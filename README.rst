@@ -2,7 +2,7 @@
 marshmallow
 ***********
 
-Serialization made simple.
+marshmallow is a Python library for converting complex datatypes, e.g. ORM/ODM objects, into native Python datatypes. The serialized objects can then be rendered to standard formats such as JSON for use in a REST API, for example.
 
 Quickstart
 ==========
@@ -103,6 +103,25 @@ When you serialize the blog, you will see the nested user representation.
     #   'email': u'monty@python.org',
     #   'name': u'Monty'},
     #  'title': u'Something Completely Different'}
+
+
+Serializing Collections Objects
+-------------------------------
+
+You can serialize an iterable collection of objects.
+
+.. code-block:: python
+
+    user1 = User(name="Mick", email="mick@stones.com")
+    user2 = User(name="Keith", email="keith@stones.com")
+    users = [user1, user2]
+    UserSerializer(users).data
+    # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    #   'email': u'mick@stones.com',
+    #   'name': u'Mick'},g
+    #  {'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    #   'email': u'keith@stones.com',
+    #   'name': u'Keith'}]
 
 Requirements
 ============

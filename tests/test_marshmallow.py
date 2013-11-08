@@ -59,15 +59,6 @@ class BlogSerializer(Serializer):
 
 ##### The Tests #####
 
-class TestNestedSerializer(unittest.TestCase):
-
-    def test_nested(self):
-        user = User(name="Monty", age=42)
-        blog = Blog("Monty's blog", user=user)
-        serialized_blog = BlogSerializer(blog)
-        serialized_user = UserSerializer(user)
-        assert_equal(serialized_blog.data['user'], serialized_user.data)
-
 
 class TestSerializer(unittest.TestCase):
 
@@ -85,14 +76,17 @@ class TestSerializer(unittest.TestCase):
         assert_equal(reloaded['age'], '42.3')
 
     def test_naive_datetime_field(self):
-        assert_equal(self.serialized.data['created'], 'Sun, 10 Nov 2013 14:20:58 -0000')
+        assert_equal(self.serialized.data['created'],
+                    'Sun, 10 Nov 2013 14:20:58 -0000')
 
     def test_tz_datetime_field(self):
         # Datetime is corrected back to GMT
-        assert_equal(self.serialized.data['updated'], "Sun, 10 Nov 2013 20:20:58 -0000")
+        assert_equal(self.serialized.data['updated'],
+                    "Sun, 10 Nov 2013 20:20:58 -0000")
 
     def test_local_datetime_field(self):
-        assert_equal(self.serialized.data['updated_local'], 'Sun, 10 Nov 2013 14:20:58 -0600')
+        assert_equal(self.serialized.data['updated_local'],
+                    'Sun, 10 Nov 2013 14:20:58 -0600')
 
     def test_class_variable(self):
         assert_equal(self.serialized.data['species'], 'Homo sapiens')
@@ -101,6 +95,26 @@ class TestSerializer(unittest.TestCase):
         serialized = UserSerializerOrdered(self.obj)
         expected = OrderedDict([("name", "Monty"), ("age", "42.3")])
         assert_equal(serialized.data, expected)
+
+    def test_serialize_many(self):
+        user1 = User(name="Mick", age=123)
+        user2 = User(name="Keith", age=456)
+        users = [user1, user2]
+        serialized = UserSerializer(users)
+        assert_equal(len(serialized.data), 2)
+        assert_equal(serialized.data[0]['name'], "Mick")
+        assert_equal(serialized.data[1]['name'], "Keith")
+
+
+class TestNestedSerializer(unittest.TestCase):
+
+    def test_nested(self):
+        user = User(name="Monty", age=42)
+        blog = Blog("Monty's blog", user=user)
+        serialized_blog = BlogSerializer(blog)
+        serialized_user = UserSerializer(user)
+        assert_equal(serialized_blog.data['user'], serialized_user.data)
+
 
 class TestTypes(unittest.TestCase):
 

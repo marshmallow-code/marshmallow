@@ -64,7 +64,7 @@ def read(fname):
 setup(
     name='marshmallow',
     version=__version__,
-    description='Serialization made simple',
+    description='Serialization made simple.',
     long_description=(read("README.rst") + '\n\n' +
                         read("HISTORY.rst")),
     author='Steven Loria',
