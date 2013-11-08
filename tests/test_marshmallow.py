@@ -4,6 +4,7 @@
 import unittest
 import json
 import datetime as dt
+from collections import OrderedDict
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -43,15 +44,23 @@ class UserSerializer(Serializer):
         'species': fields.String(attribute="SPECIES")
     }
 
+class UserSerializerOrdered(Serializer):
+    FIELDS = OrderedDict([
+        ("name", fields.String),
+        ("age", fields.Float)
+    ])
+
 class BlogSerializer(Serializer):
     FIELDS = {
         "title": fields.String,
         "user": fields.Nested(UserSerializer)
     }
 
+
 ##### The Tests #####
 
 class TestNestedSerializer(unittest.TestCase):
+
     def test_nested(self):
         user = User(name="Monty", age=42)
         blog = Blog("Monty's blog", user=user)
@@ -87,6 +96,11 @@ class TestSerializer(unittest.TestCase):
 
     def test_class_variable(self):
         assert_equal(self.serialized.data['species'], 'Homo sapiens')
+
+    def test_ordered_dict_fields(self):
+        serialized = UserSerializerOrdered(self.obj)
+        expected = OrderedDict([("name", "Monty"), ("age", "42.3")])
+        assert_equal(serialized.data, expected)
 
 class TestTypes(unittest.TestCase):
 

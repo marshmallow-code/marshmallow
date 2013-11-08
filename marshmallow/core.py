@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from collections import OrderedDict
 
 class Serializer(object):
     '''Base serializer class with which to define custom serializers.
@@ -52,4 +53,4 @@ def marshal(data, fields):
     items = ((k, marshal(data, v) if isinstance(v, dict)
                                   else make(v).output(k, data))
                                   for k, v in fields.items())
-    return dict(items)
+    return OrderedDict(items)
