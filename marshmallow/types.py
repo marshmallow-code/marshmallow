@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/types.py
+# See the NOTICE file for more licensing information.
 from datetime import datetime
 from email.utils import formatdate
 import re
@@ -16,6 +19,7 @@ regex = re.compile(
     r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
 
 
 def url(value):
@@ -60,7 +64,7 @@ def boolean(value):
 
 
 def rfc822(dt, localtime=False):
-    '''Return the RFC822-formatted represenation of a datetime object.
+    '''Return the RFC822-formatted represenation of a datetime oect.
 
     :param bool localtime: If ``True``, return the date relative to the local
         timezone instead of UTC, properly taking daylight savings time into account.

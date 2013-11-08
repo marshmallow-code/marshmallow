@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+'''Field classes for formatting the serialized object.
+
+Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
+See the NOTICE file for more licensing information.
+'''
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
