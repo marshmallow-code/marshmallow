@@ -224,11 +224,23 @@ class Arbitrary(Raw):
 
 
 class DateTime(Raw):
-    """Return a RFC822-formatted datetime string in UTC"""
+    """Return a RFC822-formatted datetime string in UTC.
+    """
 
     def format(self, value):
         try:
-            return types.rfc822(value)
+            return types.rfc822(value, localtime=False)
+        except AttributeError as ae:
+            raise MarshallingException(ae)
+
+
+class LocalDateTime(Raw):
+    """Return a RFC822-formatted datetime string in UTC.
+    """
+
+    def format(self, value):
+        try:
+            return types.rfc822(value, localtime=True)
         except AttributeError as ae:
             raise MarshallingException(ae)
 

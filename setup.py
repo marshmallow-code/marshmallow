@@ -26,7 +26,7 @@ __version__ = find_version("marshmallow/__init__.py")
 
 PUBLISH_CMD = "python setup.py register sdist bdist_wheel upload"
 TEST_PUBLISH_CMD = 'python setup.py register -r test sdist bdist_wheel upload -r test'
-TEST_CMD = 'python run_tests.py'
+TEST_CMD = 'nosetests'
 
 if 'publish' in sys.argv:
     try:
@@ -76,6 +76,7 @@ setup(
     install_requires=[
 
     ],
+    tests_require=['nose', 'pytz'],
     license=read("LICENSE"),
     zip_safe=False,
     keywords='marshmallow',
@@ -91,5 +92,4 @@ setup(
         'Programming Language :: Python :: 3.3',
     ],
     test_suite='tests',
-    tests_require=['nose'],
 )

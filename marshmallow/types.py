@@ -59,5 +59,10 @@ def boolean(value):
     raise ValueError("Invalid literal for boolean(): {}".format(value))
 
 
-def rfc822(dt):
-    return formatdate(timegm(dt.utctimetuple()))
+def rfc822(dt, localtime=False):
+    '''Return the RFC822-formatted represenation of a datetime object.
+
+    :param bool localtime: If ``True``, return the date relative to the local
+        timezone instead of UTC, properly taking daylight savings time into account.
+    '''
+    return formatdate(timegm(dt.utctimetuple()), localtime=localtime)

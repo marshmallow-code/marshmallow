@@ -10,4 +10,4 @@ python:
 
 install: pip install -U .
 
-script: python run_tests.py
+script: nosetests
