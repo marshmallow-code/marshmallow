@@ -41,3 +41,6 @@ output/*/index.html
 # Sphinx
 docs/_build
 README.html
+
+sandbox.ipynb
+.ipynb_checkpoints

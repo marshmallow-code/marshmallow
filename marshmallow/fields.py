@@ -4,7 +4,7 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
 
 from marshmallow import types
-from marshmallow.core import marshal
+from marshmallow.core import marshal, Serializer
 from marshmallow.compat import text_type
 
 
@@ -110,8 +110,7 @@ class Raw(object):
 
 
 class Nested(Raw):
-    """Allows you to nest one set of fields inside another.
-    See :ref:`nested-field` for more information
+    """Allows you to nest a ``Serializer`` or set of fields inside a field.
 
     :param dict nested: The dictionary to nest
     :param bool allow_null: Whether to return None instead of a dictionary
@@ -119,7 +118,7 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, allow_null=False, **kwargs):
-        self.nested = nested
+        self.nested =  nested.FIELDS if issubclass(nested, Serializer) else nested
         self.allow_null = allow_null
         super(Nested, self).__init__(**kwargs)
 

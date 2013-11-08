@@ -12,6 +12,8 @@ from marshmallow import Serializer, fields, types
 
 central = pytz.timezone("US/Central")
 
+##### Models #####
+
 class User(object):
     SPECIES = "Homo sapiens"
 
@@ -23,6 +25,13 @@ class User(object):
         # A TZ-aware datetime
         self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58))
 
+class Blog(object):
+
+    def __init__(self, title, user):
+        self.title = title
+        self.user = user
+
+###### Serializers #####
 
 class UserSerializer(Serializer):
     FIELDS = {
@@ -30,8 +39,25 @@ class UserSerializer(Serializer):
         "age": fields.Float,
         "created": fields.DateTime,
         "updated": fields.DateTime,
-        "updated_local": fields.LocalDateTime(attribute="updated")
+        "updated_local": fields.LocalDateTime(attribute="updated"),
+        'species': fields.String(attribute="SPECIES")
     }
+
+class BlogSerializer(Serializer):
+    FIELDS = {
+        "title": fields.String,
+        "user": fields.Nested(UserSerializer)
+    }
+
+##### The Tests #####
+
+class TestNestedSerializer(unittest.TestCase):
+    def test_nested(self):
+        user = User(name="Monty", age=42)
+        blog = Blog("Monty's blog", user=user)
+        serialized_blog = BlogSerializer(blog)
+        serialized_user = UserSerializer(user)
+        assert_equal(serialized_blog.data['user'], serialized_user.data)
 
 
 class TestSerializer(unittest.TestCase):
@@ -58,6 +84,9 @@ class TestSerializer(unittest.TestCase):
 
     def test_local_datetime_field(self):
         assert_equal(self.serialized.data['updated_local'], 'Sun, 10 Nov 2013 14:20:58 -0600')
+
+    def test_class_variable(self):
+        assert_equal(self.serialized.data['species'], 'Homo sapiens')
 
 class TestTypes(unittest.TestCase):
 
