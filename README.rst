@@ -2,7 +2,7 @@
 marshmallow
 ***********
 
-marshmallow is a Python library for converting complex datatypes, e.g. ORM/ODM objects, into native Python datatypes. The serialized objects can then be rendered to standard formats such as JSON for use in a REST API, for example.
+marshmallow is a Python library for converting complex datatypes, e.g. ORM/ODM objects, into native Python datatypes. The serialized objects can then be rendered to standard formats such as JSON for use in a REST API.
 
 Quickstart
 ==========
@@ -23,18 +23,16 @@ Let's start with basic "model".
             self.created_at = dt.datetime.now()
 
 
-Create a serializer by defining a class with a ``FIELDS`` variable, which is a dictionary mapping attribute names to a field class that formats the final output of the serializer.
+Create a serializer by defining a class  which is a dictionary mapping attribute names to a field class that formats the final output of the serializer.
 
 .. code-block:: python
 
     from marshmallow import Serializer, fields
 
     class UserSerializer(Serializer):
-        FIELDS = {
-            "name": fields.String,
-            'email': fields.String,
-            'created_at': fields.DateTime
-        }
+        name = fields.String
+        email = fields.String
+        created_at = fields.DateTime
 
 
 Serializing Objects
@@ -57,16 +55,14 @@ Serialize objects by passing them into your serializers. Onced serialized, you c
 Specifying Attributes
 ---------------------
 
-By default, serializers will marshal the object attributes that have the same name as the keys in ``FIELDS``. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
+By default, serializers will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
 .. code-block:: python
 
     class UserSerializer(Serializer):
-        FIELDS = {
-            "name": fields.String,
-            'email_addr': fields.String(attribute="email"),
-            'date_created': fields.DateTime(attribute="created_at")
-        }
+        name = fields.String
+        email_addr = fields.String(attribute="email")
+        date_created = fields.DateTime(attribute="created_at")
 
 
 Nesting Serializers
@@ -81,15 +77,13 @@ Serializers can be nested to represent hierarchical structures. For example, a `
             self.title = title
             self.author = author  # A User object
 
-Use ``fields.Nested``to represent relationship, passing in the ``UserSerializer`` class.
+Use ``fields.Nested`` to represent the relationship, passing in the ``UserSerializer`` class.
 
 .. code-block:: python
 
     class BlogSerializer(Serializer):
-        FIELDS = {
-            'title': fields.String,
-            'author': fields.Nested(UserSerializer)
-        }
+        title = fields.String
+        author = fields.Nested(UserSerializer)
 
 When you serialize the blog, you will see the nested user representation.
 
@@ -112,19 +106,15 @@ You can explicitly specify which attributes in the nested fields you want to ser
 .. code-block:: python
 
     class BlogSerializer2(Serializer):
-        FIELDS = {
-            'title': fields.String,
-            'author': fields.Nested(UserSerializer, only=["email"])
-        }
+        title = fields.String
+        author = fields.Nested(UserSerializer, only=["email"])
 
     BlogSerializer2(blog).data
     # {'author': {'email': u'monty@python.org'}, 'title': u'Something Completely Different'}
 
 
-
-
-Serializing Collections Objects
--------------------------------
+Serializing Collections of Objects
+----------------------------------
 
 You can serialize an iterable collection of objects.
 
@@ -136,7 +126,7 @@ You can serialize an iterable collection of objects.
     UserSerializer(users).data
     # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
     #   'email': u'mick@stones.com',
-    #   'name': u'Mick'},g
+    #   'name': u'Mick'},
     #  {'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
     #   'email': u'keith@stones.com',
     #   'name': u'Keith'}]

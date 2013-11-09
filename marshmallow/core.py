@@ -1,14 +1,35 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import json
 from collections import OrderedDict
 
-class Serializer(object):
-    '''Base serializer class with which to define custom serializers.
+from marshmallow import base
+from marshmallow.compat import with_metaclass, iteritems
 
-    Must define the ``FIELDS`` class variable, which is a dict mapping
-    attributes to field classes that format and return the value for each field.
-    '''
-    FIELDS = {}
+
+def is_instance_or_subclass(val, class_):
+    try:
+        return issubclass(val, class_)
+    except TypeError:
+        return isinstance(val, class_)
+
+
+def _get_declared_fields(bases, attrs):
+    '''Return the declared fields of a class as an OrderedDict.'''
+    declared = [(field_name, attrs.pop(field_name))
+                for field_name, val in list(iteritems(attrs))
+                if is_instance_or_subclass(val, base.Field)]
+    return OrderedDict(declared)
+
+
+class SerializerMeta(type):
+
+    def __new__(cls, name, bases, attrs):
+        attrs['_base_fields'] = _get_declared_fields(bases, attrs)
+        return super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
+
+
+class BaseSerializer(object):
 
     def __init__(self, data=None):
         self._data = data
@@ -22,14 +43,14 @@ class Serializer(object):
         return self.to_json()
 
     def to_data(self, *args, **kwargs):
-        return marshal(self._data, self.FIELDS)
+        return marshal(self._data, self._base_fields)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
 
     @classmethod
     def marshal(cls, data):
-        return marshal(data, cls.FIELDS)
+        return marshal(data, cls._base_fields)
 
     def __str__(self):
         return str(self.data)
@@ -39,6 +60,15 @@ class Serializer(object):
 
     def __unicode__(self):
         return unicode(self.data)
+
+
+class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
+    '''Base serializer class with which to define custom serializers.
+
+    Must define the ``FIELDS`` class variable, which is a dict mapping
+    attributes to field classes that format and return the value for each field.
+    '''
+    pass
 
 
 def _is_iterable_but_not_string(obj):

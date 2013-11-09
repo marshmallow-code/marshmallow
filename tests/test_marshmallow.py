@@ -4,7 +4,6 @@
 import unittest
 import json
 import datetime as dt
-from collections import OrderedDict
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -38,35 +37,24 @@ class Blog(object):
 ###### Serializers #####
 
 class UserSerializer(Serializer):
-    FIELDS = {
-        "name": fields.String,
-        "age": fields.Float,
-        "created": fields.DateTime,
-        "updated": fields.DateTime,
-        "updated_local": fields.LocalDateTime(attribute="updated"),
-        'species': fields.String(attribute="SPECIES"),
-        "id": fields.String
-    }
+    name = fields.String
+    age = fields.Float
+    created =  fields.DateTime
+    updated = fields.DateTime
+    updated_local = fields.LocalDateTime(attribute="updated")
+    species =  fields.String(attribute="SPECIES")
+    id = fields.String
 
-class UserSerializerOrdered(Serializer):
-    FIELDS = OrderedDict([
-        ("name", fields.String),
-        ("age", fields.Float)
-    ])
 
 class BlogSerializer(Serializer):
-    FIELDS = {
-        "title": fields.String,
-        "user": fields.Nested(UserSerializer),
-        "collaborators": fields.Nested(UserSerializer)
-    }
+    title = fields.String
+    user = fields.Nested(UserSerializer)
+    collaborators = fields.Nested(UserSerializer)
 
 class BlogSerializerOnly(Serializer):
-    FIELDS = {
-        "title": fields.String,
-        "user": fields.Nested(UserSerializer),
-        "collaborators": fields.Nested(UserSerializer, only=("id", ))
-    }
+    title = fields.String
+    user = fields.Nested(UserSerializer)
+    collaborators = fields.Nested(UserSerializer, only=("id", ))
 
 ##### The Tests #####
 
@@ -101,11 +89,6 @@ class TestSerializer(unittest.TestCase):
 
     def test_class_variable(self):
         assert_equal(self.serialized.data['species'], 'Homo sapiens')
-
-    def test_ordered_dict_fields(self):
-        serialized = UserSerializerOrdered(self.obj)
-        expected = OrderedDict([("name", "Monty"), ("age", "42.3")])
-        assert_equal(serialized.data, expected)
 
     def test_serialize_many(self):
         user1 = User(name="Mick", age=123)

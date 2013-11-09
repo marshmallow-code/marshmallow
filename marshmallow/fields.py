@@ -1,26 +1,22 @@
 # -*- coding: utf-8 -*-
 '''Field classes for formatting the serialized object.
-
-Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
-See the NOTICE file for more licensing information.
 '''
 from __future__ import absolute_import
-from collections import OrderedDict
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from collections import OrderedDict
 
-
-from marshmallow import types
-from marshmallow.core import marshal, Serializer
+from marshmallow import core, types
+from marshmallow.base import Field
 from marshmallow.compat import text_type
 
+# Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
+# See the NOTICE file for more licensing information.
 
-__all__ = ["String", "FormattedString", "DateTime", "Float",
+__all__ = ["String", "FormattedString", "DateTime", "LocalDateTime", "Float",
            "Integer", "Arbitrary", "Nested", "List", "Raw"]
 
-
 class MarshallingException(Exception):
-    """
-    This is an encapsulating Exception in case of marshalling error.
+    """Raised in case of a marshalling error.
     """
 
     def __init__(self, underlying_exception):
@@ -75,9 +71,9 @@ def to_marshallable_type(obj):
     return dict(obj.__dict__)
 
 
-class Raw(object):
-    """Raw provides a base field class from which others should extend. It
-    applies no formatting by default, and should only be used in cases where
+class Raw(Field):
+    """Basic field from which other fields should extend. It applies no
+    formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized. Fields should
     throw a MarshallingException in case of parsing problem.
     """
@@ -126,7 +122,7 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, only=None, allow_null=False, **kwargs):
-        self.nested =  nested.FIELDS if issubclass(nested, Serializer) else nested
+        self.nested =  nested._base_fields if issubclass(nested, core.Serializer) else nested
         self.allow_null = allow_null
         self.only = only
         super(Nested, self).__init__(**kwargs)
@@ -140,23 +136,23 @@ class Nested(Raw):
             fields = OrderedDict(filtered)
         else:
             fields = self.nested
-        return marshal(value, fields)
+        return core.marshal(value, fields)
 
 
 class List(Raw):
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):
-            if not issubclass(cls_or_instance, Raw):
+            if not issubclass(cls_or_instance, Field):
                 raise MarshallingException("The type of the list elements "
                                            "must be a subclass of "
-                                           "flask_restful.fields.Raw")
+                                           "marshmallow.base.Field")
             self.container = cls_or_instance()
         else:
-            if not isinstance(cls_or_instance, Raw):
+            if not isinstance(cls_or_instance, Field):
                 raise MarshallingException("The instances of the list "
                                            "elements must be of type "
-                                           "flask_restful.fields.Raw")
+                                           "marshmallow.base.Field")
             self.container = cls_or_instance
 
     def output(self, key, data):
@@ -170,7 +166,7 @@ class List(Raw):
         if value is None:
             return self.default
 
-        return [marshal(value, self.container.nested)]
+        return [core.marshal(value, self.container.nested)]
 
 
 class String(Raw):
