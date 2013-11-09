@@ -10,7 +10,7 @@ Quickstart
 Declaring Serializers
 ---------------------
 
-Let's start with basic "model".
+Let's start with a basic "model".
 
 .. code-block:: python
 

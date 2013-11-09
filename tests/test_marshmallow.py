@@ -27,6 +27,10 @@ class User(object):
         self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58))
         self.id = id_
 
+    @property
+    def is_old(self):
+        return self.age > 80
+
 class Blog(object):
 
     def __init__(self, title, user, collaborators=None):
@@ -39,11 +43,15 @@ class Blog(object):
 class UserSerializer(Serializer):
     name = fields.String
     age = fields.Float
-    created =  fields.DateTime
+    created = fields.DateTime
     updated = fields.DateTime
     updated_local = fields.LocalDateTime(attribute="updated")
-    species =  fields.String(attribute="SPECIES")
+    species = fields.String(attribute="SPECIES")
     id = fields.String
+
+
+class ExtendedUserSerializer(UserSerializer):
+    is_old = fields.Boolean
 
 
 class BlogSerializer(Serializer):
@@ -107,6 +115,11 @@ class TestSerializer(unittest.TestCase):
 
     def test_unicode(self):
         assert_equal(unicode(self.serialized), unicode(self.serialized.data))
+
+    def test_inheriting_serializer(self):
+        serialized = ExtendedUserSerializer(self.obj)
+        assert_equal(serialized.data['name'], self.obj.name)
+        assert_false(serialized.data['is_old'])
 
 
 class TestNestedSerializer(unittest.TestCase):

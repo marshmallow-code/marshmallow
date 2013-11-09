@@ -19,10 +19,19 @@ def _get_declared_fields(bases, attrs):
     declared = [(field_name, attrs.pop(field_name))
                 for field_name, val in list(iteritems(attrs))
                 if is_instance_or_subclass(val, base.Field)]
+    # If subclassing another Serializer, inherit its fields
+    # Loop in reverse to maintain the correct field order
+    for base_class in bases[::-1]:
+        if hasattr(base_class, '_base_fields'):
+            declared = list(base_class._base_fields.items()) + declared
     return OrderedDict(declared)
 
 
 class SerializerMeta(type):
+    '''Metaclass for the Serializer class. Binds the declared fields to
+    a ``_base_fields`` attribute, which is a dictionary mapping attribute
+    names to field classes and instances.
+    '''
 
     def __new__(cls, name, bases, attrs):
         attrs['_base_fields'] = _get_declared_fields(bases, attrs)
@@ -36,10 +45,14 @@ class BaseSerializer(object):
 
     @property
     def data(self):
+        '''The serialized data as an ``OrderedDict``. Fields are in the order
+        in which they are declared.
+        '''
         return self.to_data()
 
     @property
     def json(self):
+        '''The data as a JSON string.'''
         return self.to_json()
 
     def to_data(self, *args, **kwargs):
@@ -47,10 +60,6 @@ class BaseSerializer(object):
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
-
-    @classmethod
-    def marshal(cls, data):
-        return marshal(data, cls._base_fields)
 
     def __str__(self):
         return str(self.data)
@@ -65,8 +74,25 @@ class BaseSerializer(object):
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
     '''Base serializer class with which to define custom serializers.
 
-    Must define the ``FIELDS`` class variable, which is a dict mapping
-    attributes to field classes that format and return the value for each field.
+    Example usage:
+    ::
+
+        from datetime import datetime
+        from marshmallow import Serializer, fields
+
+        class Person(object):
+            def __init__(self, name):
+                self.name = name
+                self.date_born = datetime.now()
+
+        class PersonSerializer(Serializer):
+            name = fields.String
+            date_born = fields.DateTime
+
+        person = Person("Guido van Rossum")
+        serialized = PersonSerializer(person)
+        serialized.data
+        # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
     '''
     pass
 
