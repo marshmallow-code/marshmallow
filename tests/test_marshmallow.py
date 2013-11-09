@@ -18,19 +18,21 @@ central = pytz.timezone("US/Central")
 class User(object):
     SPECIES = "Homo sapiens"
 
-    def __init__(self, name, age):
+    def __init__(self, name, age, id_=None):
         self.name = name
         self.age = age
         # A naive datetime
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
         self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58))
+        self.id = id_
 
 class Blog(object):
 
-    def __init__(self, title, user):
+    def __init__(self, title, user, collaborators=None):
         self.title = title
         self.user = user
+        self.collaborators = collaborators  # List/tuple of users
 
 ###### Serializers #####
 
@@ -41,7 +43,8 @@ class UserSerializer(Serializer):
         "created": fields.DateTime,
         "updated": fields.DateTime,
         "updated_local": fields.LocalDateTime(attribute="updated"),
-        'species': fields.String(attribute="SPECIES")
+        'species': fields.String(attribute="SPECIES"),
+        "id": fields.String
     }
 
 class UserSerializerOrdered(Serializer):
@@ -53,9 +56,16 @@ class UserSerializerOrdered(Serializer):
 class BlogSerializer(Serializer):
     FIELDS = {
         "title": fields.String,
-        "user": fields.Nested(UserSerializer)
+        "user": fields.Nested(UserSerializer),
+        "collaborators": fields.Nested(UserSerializer)
     }
 
+class BlogSerializerOnly(Serializer):
+    FIELDS = {
+        "title": fields.String,
+        "user": fields.Nested(UserSerializer),
+        "collaborators": fields.Nested(UserSerializer, only=("id", ))
+    }
 
 ##### The Tests #####
 
@@ -108,12 +118,30 @@ class TestSerializer(unittest.TestCase):
 
 class TestNestedSerializer(unittest.TestCase):
 
+    def setUp(self):
+        self.user = User(name="Monty", age=42)
+        self.blog = Blog("Monty's blog", user=self.user)
+
+
     def test_nested(self):
-        user = User(name="Monty", age=42)
-        blog = Blog("Monty's blog", user=user)
-        serialized_blog = BlogSerializer(blog)
-        serialized_user = UserSerializer(user)
+        serialized_blog = BlogSerializer(self.blog)
+        serialized_user = UserSerializer(self.user)
         assert_equal(serialized_blog.data['user'], serialized_user.data)
+
+    def test_nested_many_fields(self):
+        col1 = User(name="Mick", age=123)
+        col2 = User(name="Keith", age=456)
+        self.blog.collaborators =[col1, col2]
+        serialized_blog = BlogSerializer(self.blog)
+        assert_equal(serialized_blog.data['collaborators'],
+            [UserSerializer(col1).data, UserSerializer(col2).data])
+
+    def test_nested_only(self):
+        col1 = User(name="Mick", age=123, id_="abc")
+        col2 = User(name="Keith", age=456, id_="def")
+        self.blog.collaborators = [col1, col2]
+        serialized_blog = BlogSerializerOnly(self.blog)
+        assert_equal(serialized_blog.data['collaborators'], [{"id": "abc"}, {"id": "def"}])
 
 
 class TestTypes(unittest.TestCase):

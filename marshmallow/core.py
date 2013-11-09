@@ -49,7 +49,6 @@ def marshal(data, fields):
         if isinstance(cls, type):
             return cls()
         return cls
-
     if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
 

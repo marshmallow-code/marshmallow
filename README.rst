@@ -104,6 +104,24 @@ When you serialize the blog, you will see the nested user representation.
     #   'name': u'Monty'},
     #  'title': u'Something Completely Different'}
 
+Specifying Nested Attributes
+++++++++++++++++++++++++++++
+
+You can explicitly specify which attributes in the nested fields you want to serialize in the ``only`` argument.
+
+.. code-block:: python
+
+    class BlogSerializer2(Serializer):
+        FIELDS = {
+            'title': fields.String,
+            'author': fields.Nested(UserSerializer, only=["email"])
+        }
+
+    BlogSerializer2(blog).data
+    # {'author': {'email': u'monty@python.org'}, 'title': u'Something Completely Different'}
+
+
+
 
 Serializing Collections Objects
 -------------------------------

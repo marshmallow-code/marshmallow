@@ -5,6 +5,7 @@ Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/f
 See the NOTICE file for more licensing information.
 '''
 from __future__ import absolute_import
+from collections import OrderedDict
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
 
@@ -117,22 +118,29 @@ class Raw(object):
 class Nested(Raw):
     """Allows you to nest a ``Serializer`` or set of fields inside a field.
 
-    :param dict nested: The dictionary to nest
+    :param Serializer nested: The Serializer class or dictionary to nest.
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
+    :param only: A list or tuple of fields to marshal. If ``None``, all fields
+        will be marshalled.
     """
 
-    def __init__(self, nested, allow_null=False, **kwargs):
+    def __init__(self, nested, only=None, allow_null=False, **kwargs):
         self.nested =  nested.FIELDS if issubclass(nested, Serializer) else nested
         self.allow_null = allow_null
+        self.only = only
         super(Nested, self).__init__(**kwargs)
 
     def output(self, key, obj):
         value = get_value(key if self.attribute is None else self.attribute, obj)
         if self.allow_null and value is None:
             return None
-
-        return marshal(value, self.nested)
+        if self.only:
+            filtered = ((k, v) for k, v in self.nested.items() if k in self.only)
+            fields = OrderedDict(filtered)
+        else:
+            fields = self.nested
+        return marshal(value, fields)
 
 
 class List(Raw):
