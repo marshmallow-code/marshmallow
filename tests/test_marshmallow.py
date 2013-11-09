@@ -41,13 +41,16 @@ class Blog(object):
 ###### Serializers #####
 
 class UserSerializer(Serializer):
-    name = fields.String
-    age = fields.Float
-    created = fields.DateTime
-    updated = fields.DateTime
+    name = fields.String()
+    age = fields.Float()
+    created = fields.DateTime()
+    updated = fields.DateTime()
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
-    id = fields.String
+    id = fields.String()
+
+    def get_uppercased(self, obj):
+        return obj.name.upper()
 
     # uppername = fields.Method("get_uppercased")
 
@@ -56,16 +59,16 @@ class UserSerializer(Serializer):
 
 
 class ExtendedUserSerializer(UserSerializer):
-    is_old = fields.Boolean
+    is_old = fields.Boolean()
 
 
 class BlogSerializer(Serializer):
-    title = fields.String
+    title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer)
 
 class BlogSerializerOnly(Serializer):
-    title = fields.String
+    title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer, only=("id", ))
 

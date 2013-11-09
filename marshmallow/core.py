@@ -122,14 +122,10 @@ def marshal(data, fields):
     :param data: the actual object(s) from which the fields are taken from
 
     """
-    def make(cls):
-        if isinstance(cls, type):
-            return cls()
-        return cls
     if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
 
     items = ((k, marshal(data, v) if isinstance(v, dict)
-                                  else make(v).output(k, data))
+                                  else v.output(k, data))
                                   for k, v in fields.items())
     return OrderedDict(items)

@@ -30,9 +30,9 @@ Create a serializer by defining a class  which is a dictionary mapping attribute
     from marshmallow import Serializer, fields
 
     class UserSerializer(Serializer):
-        name = fields.String
-        email = fields.String
-        created_at = fields.DateTime
+        name = fields.String()
+        email = fields.String()
+        created_at = fields.DateTime()
 
 
 Serializing Objects
@@ -60,7 +60,7 @@ By default, serializers will marshal the object attributes that have the same na
 .. code-block:: python
 
     class UserSerializer(Serializer):
-        name = fields.String
+        name = fields.String()
         email_addr = fields.String(attribute="email")
         date_created = fields.DateTime(attribute="created_at")
 
@@ -82,7 +82,7 @@ Use ``fields.Nested`` to represent the relationship, passing in the ``UserSerial
 .. code-block:: python
 
     class BlogSerializer(Serializer):
-        title = fields.String
+        title = fields.String()
         author = fields.Nested(UserSerializer)
 
 When you serialize the blog, you will see the nested user representation.
@@ -106,7 +106,7 @@ You can explicitly specify which attributes in the nested fields you want to ser
 .. code-block:: python
 
     class BlogSerializer2(Serializer):
-        title = fields.String
+        title = fields.String()
         author = fields.Nested(UserSerializer, only=["email"])
 
     BlogSerializer2(blog).data
