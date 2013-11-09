@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import json
 from collections import OrderedDict
+import copy
 
 from marshmallow import base
 from marshmallow.compat import with_metaclass, iteritems
@@ -39,9 +40,20 @@ class SerializerMeta(type):
 
 
 class BaseSerializer(object):
+    '''Base serializer class which defines the interface for a serializer.
+
+    :param data: The object, dict, or list to be serialized.
+    '''
 
     def __init__(self, data=None):
         self._data = data
+        self.fields = self.get_fields()
+
+    def get_fields(self):
+        '''Return the declared fields for the object as an OrderedDict.'''
+        base_fields = copy.deepcopy(self._base_fields)
+        return base_fields
+
 
     @property
     def data(self):
@@ -56,7 +68,7 @@ class BaseSerializer(object):
         return self.to_json()
 
     def to_data(self, *args, **kwargs):
-        return marshal(self._data, self._base_fields)
+        return marshal(self._data, self.fields)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)

@@ -77,6 +77,11 @@ class TestSerializer(unittest.TestCase):
         assert_equal(self.serialized.data['name'], "Monty")
         assert_equal(self.serialized.data['age'], "42.3")
 
+    def test_fields_are_copies(self):
+        s = UserSerializer(User("Monty", age=42))
+        s2 = UserSerializer(User("Monty", age=43))
+        assert_true(s.fields is not s2.fields)
+
     def test_json(self):
         json_data = self.serialized.json
         reloaded = json.loads(json_data)
