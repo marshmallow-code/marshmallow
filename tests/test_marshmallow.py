@@ -10,6 +10,7 @@ from nose.tools import *  # PEP8 asserts
 import pytz
 
 from marshmallow import Serializer, fields, types
+from marshmallow.compat import unicode
 
 central = pytz.timezone("US/Central")
 
@@ -114,6 +115,15 @@ class TestSerializer(unittest.TestCase):
         assert_equal(len(serialized.data), 2)
         assert_equal(serialized.data[0]['name'], "Mick")
         assert_equal(serialized.data[1]['name'], "Keith")
+
+    def test_str(self):
+        assert_equal(str(self.serialized), str(self.serialized.data))
+
+    def test_repr(self):
+        assert_equal(repr(self.serialized), repr(self.serialized.data))
+
+    def test_unicode(self):
+        assert_equal(unicode(self.serialized), unicode(self.serialized.data))
 
 
 class TestNestedSerializer(unittest.TestCase):

@@ -31,6 +31,15 @@ class Serializer(object):
     def marshal(cls, data):
         return marshal(data, cls.FIELDS)
 
+    def __str__(self):
+        return str(self.data)
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __unicode__(self):
+        return unicode(self.data)
+
 
 def _is_iterable_but_not_string(obj):
     return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
