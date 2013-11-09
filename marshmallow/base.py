@@ -11,3 +11,8 @@ class Field(object):
 
     def output(self, value):
         raise NotImplementedError
+
+    def __repr__(self):
+        return "<{0} Field>".format(self.__class__.__name__)
+
+    __str__ = __repr__

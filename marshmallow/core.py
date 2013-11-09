@@ -74,13 +74,6 @@ class BaseSerializer(object):
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
 
-    def __repr__(self):
-        return "<{0}: {1}>".format(self.__class__.__name__, self.json)
-
-    __str__ = __repr__
-
-    def __unicode__(self):
-        return unicode(self.data)
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
@@ -124,7 +117,7 @@ def marshal(data, fields):
     """
     if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
-
+    print fields.items()
     items = ((k, marshal(data, v) if isinstance(v, dict)
                                   else v.output(k, data))
                                   for k, v in fields.items())

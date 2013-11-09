@@ -122,7 +122,7 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, only=None, allow_null=False, **kwargs):
-        self.nested =  nested._base_fields if issubclass(nested, core.Serializer) else nested
+        self.nested =  nested().fields if issubclass(nested, core.Serializer) else nested
         self.allow_null = allow_null
         self.only = only
         super(Nested, self).__init__(**kwargs)
@@ -232,7 +232,7 @@ class Arbitrary(Raw):
 
 
 class DateTime(Raw):
-    """A RFC822-formatted datetime string in UTC.
+    """A RFC822-form`atted datetime string in UTC.
     """
 
     def format(self, value):
