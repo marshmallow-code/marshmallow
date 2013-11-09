@@ -49,6 +49,11 @@ class UserSerializer(Serializer):
     species = fields.String(attribute="SPECIES")
     id = fields.String
 
+    # uppername = fields.Method("get_uppercased")
+
+    def get_uppercased(self, obj):
+        return obj.name.upper()
+
 
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean
@@ -72,6 +77,9 @@ class TestSerializer(unittest.TestCase):
     def setUp(self):
         self.obj = User(name="Monty", age=42.3)
         self.serialized = UserSerializer(self.obj)
+
+    def test_method_fields(self):
+        assert_equal(self.serialized.data['uppername'], "MONTY")
 
     def test_serializing_basic_object(self):
         assert_equal(self.serialized.data['name'], "Monty")
@@ -113,10 +121,10 @@ class TestSerializer(unittest.TestCase):
         assert_equal(serialized.data[1]['name'], "Keith")
 
     def test_str(self):
-        assert_equal(str(self.serialized), str(self.serialized.data))
+        assert_equal(str(self.serialized), "<UserSerializer: {0}>".format(self.serialized.json))
 
     def test_repr(self):
-        assert_equal(repr(self.serialized), repr(self.serialized.data))
+        assert_equal(repr(self.serialized), "<UserSerializer: {0}>".format(self.serialized.json))
 
     def test_unicode(self):
         assert_equal(unicode(self.serialized), unicode(self.serialized.data))

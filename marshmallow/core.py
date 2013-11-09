@@ -52,8 +52,9 @@ class BaseSerializer(object):
     def get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
         base_fields = copy.deepcopy(self._base_fields)
+        for field_name, field_obj in iteritems(base_fields):
+            field_obj.parent = self
         return base_fields
-
 
     @property
     def data(self):
@@ -73,11 +74,10 @@ class BaseSerializer(object):
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
 
-    def __str__(self):
-        return str(self.data)
-
     def __repr__(self):
-        return repr(self.data)
+        return "<{0}: {1}>".format(self.__class__.__name__, self.json)
+
+    __str__ = __repr__
 
     def __unicode__(self):
         return unicode(self.data)

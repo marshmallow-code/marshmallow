@@ -232,7 +232,7 @@ class Arbitrary(Raw):
 
 
 class DateTime(Raw):
-    """Return a RFC822-formatted datetime string in UTC.
+    """A RFC822-formatted datetime string in UTC.
     """
 
     def format(self, value):
@@ -243,7 +243,7 @@ class DateTime(Raw):
 
 
 class LocalDateTime(Raw):
-    """Return a RFC822-formatted datetime string in UTC.
+    """A RFC822-formatted datetime string in localized time, relative to UTC.
     """
 
     def format(self, value):
@@ -267,3 +267,13 @@ class Fixed(Raw):
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
 Price = Fixed
+
+class Method(Raw):
+    '''Field that gets its value from a method on the serializer class.'''
+
+    def __init__(self, method_name):
+        self.method_name = method_name
+        return super(Method, self).__init__()
+
+    def output(self, key, obj):
+        return getattr(self.parent, self.method_name)(obj)
