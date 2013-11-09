@@ -41,26 +41,29 @@ class Blog(object):
 ###### Serializers #####
 
 class UserSerializer(Serializer):
-    name = fields.String
-    age = fields.Float
-    created = fields.DateTime
-    updated = fields.DateTime
+    name = fields.String()
+    age = fields.Float()
+    created = fields.DateTime()
+    updated = fields.DateTime()
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
-    id = fields.String
+    id = fields.String()
+
+    def get_uppercased(self, obj):
+        return obj.name.upper()
 
 
 class ExtendedUserSerializer(UserSerializer):
-    is_old = fields.Boolean
+    is_old = fields.Boolean()
 
 
 class BlogSerializer(Serializer):
-    title = fields.String
+    title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer)
 
 class BlogSerializerOnly(Serializer):
-    title = fields.String
+    title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer, only=("id", ))
 
@@ -113,10 +116,10 @@ class TestSerializer(unittest.TestCase):
         assert_equal(serialized.data[1]['name'], "Keith")
 
     def test_str(self):
-        assert_equal(str(self.serialized), str(self.serialized.data))
+        assert_equal(str(self.serialized), "<UserSerializer: {0}>".format(self.serialized.json))
 
     def test_repr(self):
-        assert_equal(repr(self.serialized), repr(self.serialized.data))
+        assert_equal(repr(self.serialized), "<UserSerializer: {0}>".format(self.serialized.json))
 
     def test_unicode(self):
         assert_equal(unicode(self.serialized), unicode(self.serialized.data))
