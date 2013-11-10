@@ -64,7 +64,8 @@ def read(fname):
 setup(
     name='marshmallow',
     version=__version__,
-    description='Serialization made simple.',
+    description=('An ORM/ODM/framework-agnostic library for converting complex '
+                'datatypes, such as objects, into native Python datatypes.'),
     long_description=(read("README.rst") + '\n\n' +
                         read("HISTORY.rst")),
     author='Steven Loria',
