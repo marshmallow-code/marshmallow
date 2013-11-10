@@ -8,28 +8,17 @@ from collections import OrderedDict
 from marshmallow import core, types
 from marshmallow.base import Field
 from marshmallow.compat import text_type
+from marshmallow.exceptions import MarshallingException
 
 # Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
 # See the NOTICE file for more licensing information.
 
-__all__ = ["String", "FormattedString", "DateTime", "LocalDateTime", "Float",
-           "Integer", "Arbitrary", "Nested", "List", "Raw"]
 
-class MarshallingException(Exception):
-    """Raised in case of a marshalling error.
-    """
-
-    def __init__(self, underlying_exception):
-        # just put the contextual representation of the error to hint on what
-        # went wrong without exposing internals
-        super(MarshallingException, self).__init__(text_type(underlying_exception))
-
-
-def is_indexable_but_not_string(obj):
+def _is_indexable_but_not_string(obj):
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
 
-def get_value(key, obj, default=None):
+def _get_value(key, obj, default=None):
     """Helper for pulling a keyed value off various types of objects"""
     if type(key) == int:
         return _get_value_for_key(key, obj, default)
@@ -46,7 +35,7 @@ def _get_value_for_keys(keys, obj, default):
 
 
 def _get_value_for_key(key, obj, default):
-    if is_indexable_but_not_string(obj):
+    if _is_indexable_but_not_string(obj):
         try:
             return obj[key]
         except KeyError:
@@ -82,6 +71,10 @@ class Raw(Field):
         self.attribute = attribute
         self.default = default
 
+    def get_value(self, key, obj):
+        '''Return the value for a given key from an object.'''
+        return _get_value(key if self.attribute is None else self.attribute, obj)
+
     def format(self, value):
         """Formats a field's value. No-op by default, concrete fields should
         override this and apply the appropriate formatting.
@@ -102,12 +95,9 @@ class Raw(Field):
         field's formatting and returns the result.
         :exception MarshallingException: In case of formatting problem
         """
-
-        value = get_value(key if self.attribute is None else self.attribute, obj)
-
+        value = self.get_value(key, obj)
         if value is None:
             return self.default
-
         return self.format(value)
 
 
@@ -129,7 +119,7 @@ class Nested(Raw):
         super(Nested, self).__init__(**kwargs)
 
     def output(self, key, obj):
-        value = get_value(key if self.attribute is None else self.attribute, obj)
+        value = self.get_value(key, obj)
         if self.allow_null and value is None:
             return None
         if self.only:
@@ -157,9 +147,9 @@ class List(Raw):
             self.container = cls_or_instance
 
     def output(self, key, data):
-        value = get_value(key if self.attribute is None else self.attribute, data)
+        value = self.get_value(key, data)
         # we cannot really test for external dict behavior
-        if is_indexable_but_not_string(value) and not isinstance(value, dict):
+        if _is_indexable_but_not_string(value) and not isinstance(value, dict):
             # Convert all instances in typed list to container type
             return [self.container.output(idx, value) for idx, val
                     in enumerate(value)]

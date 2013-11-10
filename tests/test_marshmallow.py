@@ -33,10 +33,11 @@ class User(object):
 
 class Blog(object):
 
-    def __init__(self, title, user, collaborators=None):
+    def __init__(self, title, user, collaborators=None, categories=None):
         self.title = title
         self.user = user
         self.collaborators = collaborators  # List/tuple of users
+        self.categories = categories
 
 ###### Serializers #####
 
@@ -56,8 +57,6 @@ class UserSerializer(Serializer):
     id = fields.String()
     uppername = Uppercased(attribute='name')
 
-
-
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
 
@@ -66,6 +65,8 @@ class BlogSerializer(Serializer):
     title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer)
+    categories = fields.List(fields.String)
+
 
 class BlogSerializerOnly(Serializer):
     title = fields.String()
@@ -133,7 +134,7 @@ class TestNestedSerializer(unittest.TestCase):
 
     def setUp(self):
         self.user = User(name="Monty", age=42)
-        self.blog = Blog("Monty's blog", user=self.user)
+        self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"])
 
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)
@@ -155,6 +156,9 @@ class TestNestedSerializer(unittest.TestCase):
         serialized_blog = BlogSerializerOnly(self.blog)
         assert_equal(serialized_blog.data['collaborators'], [{"id": "abc"}, {"id": "def"}])
 
+    def test_list_field(self):
+        serialized = BlogSerializer(self.blog)
+        assert_equal(serialized.data['categories'], ["humor", "violence"])
 
 class TestTypes(unittest.TestCase):
 
