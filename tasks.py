@@ -26,7 +26,7 @@ def browse_docs():
     run("open %s" % os.path.join(build_dir, 'index.html'))
 
 @task
-def build_docs(clean=False, browse=False):
+def docs(clean=False, browse=False):
     if clean:
         clean_docs()
     run("sphinx-build %s %s" % (docs_dir, build_dir), pty=True)
@@ -34,6 +34,6 @@ def build_docs(clean=False, browse=False):
         browse_docs()
 
 @task
-def build_readme():
+def readme():
     run("rst2html.py README.rst > README.html", pty=True)
     run("open README.html")
