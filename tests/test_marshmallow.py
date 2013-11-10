@@ -24,7 +24,7 @@ class User(object):
         # A naive datetime
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
-        self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58))
+        self.updated = dt.datetime(2013, 11, 10, 14, 20, 58, tzinfo=pytz.utc).astimezone(central)
         self.id = id_
 
     @property
@@ -103,11 +103,11 @@ class TestSerializer(unittest.TestCase):
     def test_tz_datetime_field(self):
         # Datetime is corrected back to GMT
         assert_equal(self.serialized.data['updated'],
-                    "Sun, 10 Nov 2013 20:20:58 -0000")
+                    'Sun, 10 Nov 2013 14:20:58 -0000')
 
     def test_local_datetime_field(self):
         assert_equal(self.serialized.data['updated_local'],
-                    'Sun, 10 Nov 2013 14:20:58 -0600')
+                    'Sun, 10 Nov 2013 08:20:58 -0600')
 
     def test_class_variable(self):
         assert_equal(self.serialized.data['species'], 'Homo sapiens')
@@ -166,13 +166,13 @@ class TestTypes(unittest.TestCase):
         d = dt.datetime(2013, 11, 10, 1, 23, 45)
         assert_equal(types.rfc822(d), "Sun, 10 Nov 2013 01:23:45 -0000")
 
-    def test_rfc822_cental(self):
-        d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45))
-        assert_equal(types.rfc822(d), "Sun, 10 Nov 2013 07:23:45 -0000")
+    def test_rfc822_central(self):
+        d = dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=pytz.utc).astimezone(central)
+        assert_equal(types.rfc822(d), 'Sun, 10 Nov 2013 01:23:45 -0000')
 
     def test_rfc822_cental_localized(self):
-        d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45))
-        assert_equal(types.rfc822(d, localtime=True), "Sun, 10 Nov 2013 01:23:45 -0600")
+        d = dt.datetime(2013, 11, 10, 8, 23, 45, tzinfo=pytz.utc).astimezone(central)
+        assert_equal(types.rfc822(d, localtime=True), "Sun, 10 Nov 2013 02:23:45 -0600")
 
 
 if __name__ == '__main__':
