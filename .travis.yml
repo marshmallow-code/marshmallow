@@ -7,6 +7,8 @@ python:
   - "2.7"
   - "pypy"
 
-install: pip install -U .
+install:
+  - pip install pytz
+  - pip install -U .
 
 script: nosetests
