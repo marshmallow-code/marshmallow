@@ -49,9 +49,9 @@ class BaseSerializer(object):
 
     def __init__(self, data=None):
         self._data = data
-        self.fields = self.get_fields()
+        self.fields = self.__get_fields()
 
-    def get_fields(self):
+    def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
         base_fields = copy.deepcopy(self._base_fields)
         for field_name, field_obj in iteritems(base_fields):
@@ -101,6 +101,8 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized = PersonSerializer(person)
         serialized.data
         # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
+
+    :param data: The object, dict, or list to be serialized.
     '''
     pass
 

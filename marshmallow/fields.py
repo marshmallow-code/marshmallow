@@ -47,7 +47,7 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
-def to_marshallable_type(obj):
+def _to_marshallable_type(obj):
     """Helper for converting an object to a dictionary only if it is not
     dictionary already or an indexable object nor a simple type"""
     if obj is None:
@@ -195,7 +195,7 @@ class FormattedString(Raw):
 
     def output(self, key, obj):
         try:
-            data = to_marshallable_type(obj)
+            data = _to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
             raise MarshallingException(error)
