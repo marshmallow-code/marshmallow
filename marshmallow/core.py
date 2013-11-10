@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import json
-from collections import OrderedDict
 import copy
+from pprint import pprint as py_pprint
+from collections import OrderedDict
+
 
 from marshmallow import base
 from marshmallow.compat import with_metaclass, iteritems
@@ -122,3 +124,13 @@ def marshal(data, fields):
                                   else v.output(k, data))
                                   for k, v in fields.items())
     return OrderedDict(items)
+
+
+def pprint(obj, *args, **kwargs):
+    '''Pretty-printing function that can pretty-print OrderedDicts
+    like regular dictionaries.
+    '''
+    if isinstance(obj, OrderedDict):
+        print(json.dumps(obj, *args, **kwargs))
+    else:
+        py_pprint(obj, *args, **kwargs)
