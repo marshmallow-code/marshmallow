@@ -40,6 +40,12 @@ class Blog(object):
 
 ###### Serializers #####
 
+class Uppercased(fields.Raw):
+    '''Custom field formatting example.'''
+    def format(self, value):
+        return value.upper()
+
+
 class UserSerializer(Serializer):
     name = fields.String()
     age = fields.Float()
@@ -48,10 +54,8 @@ class UserSerializer(Serializer):
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
     id = fields.String()
-    uppername = fields.Method("get_uppercased")
+    uppername = Uppercased(attribute='name')
 
-    def get_uppercased(self, obj):
-        return obj.name.upper()
 
 
 class ExtendedUserSerializer(UserSerializer):
@@ -121,7 +125,7 @@ class TestSerializer(unittest.TestCase):
         assert_equal(serialized.data['name'], self.obj.name)
         assert_false(serialized.data['is_old'])
 
-    def test_method_fields(self):
+    def test_custom_field(self):
         assert_equal(self.serialized.data['uppername'], "MONTY")
 
 
@@ -130,7 +134,6 @@ class TestNestedSerializer(unittest.TestCase):
     def setUp(self):
         self.user = User(name="Monty", age=42)
         self.blog = Blog("Monty's blog", user=self.user)
-
 
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)

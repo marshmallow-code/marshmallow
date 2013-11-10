@@ -53,7 +53,8 @@ class BaseSerializer(object):
         '''Return the declared fields for the object as an OrderedDict.'''
         base_fields = copy.deepcopy(self._base_fields)
         for field_name, field_obj in iteritems(base_fields):
-            field_obj.parent = self
+            if not field_obj.parent:
+                field_obj.parent = self
         return base_fields
 
     @property
@@ -91,8 +92,8 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
                 self.date_born = datetime.now()
 
         class PersonSerializer(Serializer):
-            name = fields.String
-            date_born = fields.DateTime
+            name = fields.String()
+            date_born = fields.DateTime()
 
         person = Person("Guido van Rossum")
         serialized = PersonSerializer(person)
@@ -117,7 +118,6 @@ def marshal(data, fields):
     """
     if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
-    print fields.items()
     items = ((k, marshal(data, v) if isinstance(v, dict)
                                   else v.output(k, data))
                                   for k, v in fields.items())

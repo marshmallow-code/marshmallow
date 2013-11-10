@@ -122,7 +122,8 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, only=None, allow_null=False, **kwargs):
-        self.nested =  nested().fields if issubclass(nested, core.Serializer) else nested
+        nested_obj = nested() if isinstance(nested, type) else nested
+        self.nested =  nested_obj.fields if issubclass(nested, core.Serializer) else nested_obj
         self.allow_null = allow_null
         self.only = only
         super(Nested, self).__init__(**kwargs)
@@ -232,7 +233,7 @@ class Arbitrary(Raw):
 
 
 class DateTime(Raw):
-    """A RFC822-form`atted datetime string in UTC.
+    """A RFC822-formatted datetime string in UTC.
     """
 
     def format(self, value):
@@ -267,13 +268,3 @@ class Fixed(Raw):
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
 Price = Fixed
-
-class Method(Raw):
-    '''Field that gets its value from a method on the serializer class.'''
-
-    def __init__(self, method_name):
-        self.method_name = method_name
-        return super(Method, self).__init__()
-
-    def output(self, key, obj):
-        return getattr(self.parent, self.method_name)(obj)
