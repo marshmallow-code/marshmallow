@@ -4,6 +4,8 @@
 Quickstart
 ==========
 
+This guide will walk you through the basics of creating an object serializer.
+
 Declaring Serializers
 ---------------------
 
@@ -49,6 +51,17 @@ Serialize objects by passing them into your serializers. Onced serialized, you c
     #  'name': u'Monty'}
     serialized.json
     # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
+
+Validation
+----------
+
+To validate the data passed to a serializer, call the ``is_valid()`` method.
+
+.. code-block:: python
+
+    invalid = User("Foo Bar", email="foo")
+    UserSerializer(invalid).is_valid()
+    # False
 
 
 Specifying Attributes

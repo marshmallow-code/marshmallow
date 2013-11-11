@@ -6,7 +6,7 @@ from pprint import pprint as py_pprint
 from collections import OrderedDict
 
 
-from marshmallow import base
+from marshmallow import base, exceptions
 from marshmallow.compat import with_metaclass, iteritems
 
 
@@ -49,7 +49,7 @@ class BaseSerializer(object):
 
     def __init__(self, data=None):
         self._data = data
-        self.fields = self.__get_fields()
+        self.fields = self.__get_fields()  # Dict of fields
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
@@ -76,6 +76,18 @@ class BaseSerializer(object):
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
+
+    def is_valid(self):
+        """Return ``True`` if all data is valid, ``False`` otherwise.
+        """
+        for field_name, field_obj in iteritems(self.fields):
+            try:
+                self.data[field_name]
+            except exceptions.MarshallingException:
+                return False
+        return True
+
+    # TODO: field-level validation
 
 
 

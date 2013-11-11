@@ -210,6 +210,12 @@ class TestSerializer(unittest.TestCase):
     def test_price_field(self):
         assert_equal(self.serialized.data['balance'], "100.00")
 
+    def test_validate(self):
+        valid = User("Joe", email="joe@foo.com")
+        invalid = User("John", email="johnexample.com")
+        assert_true(UserSerializer(valid).is_valid())
+        assert_false(UserSerializer(invalid).is_valid())
+
 
 class TestNestedSerializer(unittest.TestCase):
 
