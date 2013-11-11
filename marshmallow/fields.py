@@ -107,7 +107,8 @@ class Raw(Field):
 
 
 class Nested(Raw):
-    """Allows you to nest a ``Serializer`` or set of fields inside a field.
+    """Allows you to nest a :class:`Serializer <marshmallow.core.Serializer>`
+    or set of fields inside a field.
 
     :param Serializer nested: The Serializer class or dictionary to nest.
     :param bool exclude: A list or tuple of fields to exclude.
@@ -245,8 +246,11 @@ class Float(NumberField):
 class Arbitrary(NumberField):
     """A floating point number with an arbitrary precision,
     formatted as as string.
-        ex: 634271127864378216478362784632784678324.23432
+    ex: 634271127864378216478362784632784678324.23432
     """
+    # No as_string param
+    def __init__(self, default=0, attribute=None):
+        super(Arbitrary, self).__init__(default=default, attribute=attribute)
 
     def format(self, value):
         try:
@@ -290,8 +294,8 @@ class Fixed(NumberField):
     """A fixed-precision number as a string.
     """
 
-    def __init__(self, decimals=5, **kwargs):
-        super(Fixed, self).__init__(**kwargs)
+    def __init__(self, decimals=5, default=0, attribute=None):
+        super(Fixed, self).__init__(default=default, attribute=attribute)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
     def format(self, value):
