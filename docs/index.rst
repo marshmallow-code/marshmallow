@@ -17,7 +17,7 @@ Guide
    license
    install
    quickstart
-
+   examples
 
 
 API Reference
