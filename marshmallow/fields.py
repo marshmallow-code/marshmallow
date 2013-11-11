@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''Field classes for formatting the serialized object.
+'''Field classes for formatting and validating the serialized object.
 
 Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
 See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
@@ -277,8 +277,7 @@ Price = Fixed
 
 
 class Url(Raw):
-    """
-    A string representation of a URL.
+    """A validated URL field.
     """
 
     def output(self, key, obj):
@@ -287,5 +286,18 @@ class Url(Raw):
             return self.default
         try:
             return types.url(value)
+        except Exception as err:
+            raise MarshallingException(err)
+
+
+class Email(Raw):
+    """A validated email field.
+    """
+    def output(self, key, obj):
+        value = self.get_value(key, obj)
+        if value is None:
+            return self.default
+        try:
+            return types.email(value)
         except Exception as err:
             raise MarshallingException(err)

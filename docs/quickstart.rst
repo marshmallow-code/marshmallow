@@ -28,7 +28,7 @@ Create a serializer by defining a class  which is a dictionary mapping attribute
 
     class UserSerializer(Serializer):
         name = fields.String()
-        email = fields.String()
+        email = fields.Email()
         created_at = fields.DateTime()
 
 For a full reference on the field classes, see the :ref:`API Docs <api_fields>`.
@@ -143,3 +143,19 @@ To create custom formatted fields, create a subclass of :class:`marshmallow.fiel
         def format(self, value):
             return value.upper()
 
+Printing Serialized Data
+------------------------
+
+Marshmallow provides a ``pprint`` function for pretty-printing the OrderedDicts returned by ``Serialize.data``.
+
+.. code-block:: python
+
+    >>> from marshmallow import pprint
+    >>> u = User("Monty Python", email="monty@python.org")
+    >>> serialized = UserSerializer(u)
+    >>> pprint(serialized.data, indent=4)
+    {
+        "created_at": "Sun, 10 Nov 2013 20:31:36 -0000",
+        "name": "Monty Python",
+        "email": "monty@python.org"
+    }

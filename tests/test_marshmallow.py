@@ -19,7 +19,7 @@ central = pytz.timezone("US/Central")
 class User(object):
     SPECIES = "Homo sapiens"
 
-    def __init__(self, name, age=0, id_=None, homepage=None):
+    def __init__(self, name, age=0, id_=None, homepage=None, email=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -28,6 +28,7 @@ class User(object):
         self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False)
         self.id = id_
         self.homepage = homepage
+        self.email = email
 
     @property
     def is_old(self):
@@ -59,6 +60,7 @@ class UserSerializer(Serializer):
     id = fields.String(default="no-id")
     uppername = Uppercased(attribute='name')
     homepage = fields.Url()
+    email = fields.Email()
 
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
@@ -153,6 +155,21 @@ class TestSerializer(unittest.TestCase):
         serialized = UserSerializer(user)
         assert_equal(serialized.data['id'], "no-id")
 
+    def test_email_field(self):
+        u = User("John", email="john@example.com")
+        s = UserSerializer(u)
+        assert_equal(s.data['email'], "john@example.com")
+
+    def test_invalid_email_raises_exception(self):
+        with assert_raises(MarshallingException):
+            u = User("John", email="johnexample.com")
+            s = UserSerializer(u)
+            s.data
+        with assert_raises(MarshallingException):
+            u = User("John", email="john@examplecom")
+            s = UserSerializer(u)
+            s.data
+
 
 class TestNestedSerializer(unittest.TestCase):
 
@@ -192,6 +209,7 @@ class TestNestedSerializer(unittest.TestCase):
     def test_list_field(self):
         serialized = BlogSerializer(self.blog)
         assert_equal(serialized.data['categories'], ["humor", "violence"])
+
 
 class TestTypes(unittest.TestCase):
 
