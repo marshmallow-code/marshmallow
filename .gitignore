@@ -44,3 +44,6 @@ README.html
 
 sandbox.ipynb
 .ipynb_checkpoints
+
+Vagrantfile
+.vagrant
