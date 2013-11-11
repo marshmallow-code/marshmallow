@@ -64,8 +64,8 @@ def read(fname):
 setup(
     name='marshmallow',
     version=__version__,
-    description=('An ORM/ODM/framework-agnostic library for converting complex '
-                'datatypes, such as objects, into native Python datatypes.'),
+    description=('A simple library for converting complex '
+                'datatypes into native Python datatypes.'),
     long_description=(read("README.rst") + '\n\n' +
                         read("HISTORY.rst")),
     author='Steven Loria',
@@ -77,7 +77,7 @@ setup(
     tests_require=['nose', 'pytz'],
     license=read("LICENSE"),
     zip_safe=False,
-    keywords='marshmallow',
+    keywords=('serialization', "rest", "json", "api"),
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

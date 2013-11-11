@@ -78,7 +78,7 @@ class BaseSerializer(object):
         return json.dumps(self.data, *args, **kwargs)
 
     def is_valid(self):
-        """Return ``True`` if all data is valid, ``False`` otherwise.
+        """Return ``True`` if all data are valid, ``False`` otherwise.
         """
         for field_name, field_obj in iteritems(self.fields):
             try:

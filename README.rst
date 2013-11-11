@@ -38,9 +38,9 @@ Homepage: http://marshmallow.readthedocs.org/
 
 
 Get It Now
-----------
+==========
 
-.. code-block:: bash
+::
 
     $ pip install -U marshmallow
 
