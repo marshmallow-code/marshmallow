@@ -102,12 +102,7 @@ class BaseSerializer(object):
         if fields is not None and type(fields) not in (list, tuple):
             raise ValueError("fields param must be a list or tuple")
         fields_to_validate = fields or self.fields.keys()
-        for field_name in fields_to_validate:
-            if field_name in self.errors:
-                return False
-        return True
-
-    # TODO: field-level validation
+        return all([fname not in self.errors for fname in fields_to_validate])
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
