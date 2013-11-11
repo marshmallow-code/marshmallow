@@ -10,6 +10,7 @@ import pytz
 
 from marshmallow import Serializer, fields, types
 from marshmallow.compat import LINUX
+from marshmallow.exceptions import MarshallingException
 
 central = pytz.timezone("US/Central")
 
@@ -18,7 +19,7 @@ central = pytz.timezone("US/Central")
 class User(object):
     SPECIES = "Homo sapiens"
 
-    def __init__(self, name, age, id_=None):
+    def __init__(self, name, age=0, id_=None, homepage=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -26,6 +27,7 @@ class User(object):
         # A TZ-aware datetime
         self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False)
         self.id = id_
+        self.homepage = homepage
 
     @property
     def is_old(self):
@@ -54,8 +56,9 @@ class UserSerializer(Serializer):
     updated = fields.DateTime()
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
-    id = fields.String()
+    id = fields.String(default="no-id")
     uppername = Uppercased(attribute='name')
+    homepage = fields.Url()
 
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
@@ -85,7 +88,7 @@ class BlogSerializerOnlyExclude(BlogSerializer):
 class TestSerializer(unittest.TestCase):
 
     def setUp(self):
-        self.obj = User(name="Monty", age=42.3)
+        self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
         self.serialized = UserSerializer(self.obj)
 
     def test_serializing_basic_object(self):
@@ -136,6 +139,20 @@ class TestSerializer(unittest.TestCase):
     def test_custom_field(self):
         assert_equal(self.serialized.data['uppername'], "MONTY")
 
+    def test_url_field(self):
+        assert_equal(self.serialized.data['homepage'], "http://monty.python.org/")
+
+    def test_incomplete_url_raises_exception(self):
+        with assert_raises(MarshallingException):
+            user = User(name="John Doe", homepage="www.foo.com")
+            serialized = UserSerializer(user)
+            serialized.data
+
+    def test_default(self):
+        user = User("John")  # No ID set
+        serialized = UserSerializer(user)
+        assert_equal(serialized.data['id'], "no-id")
+
 
 class TestNestedSerializer(unittest.TestCase):
 
@@ -151,7 +168,7 @@ class TestNestedSerializer(unittest.TestCase):
     def test_nested_many_fields(self):
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
-        self.blog.collaborators =[col1, col2]
+        self.blog.collaborators = [col1, col2]
         serialized_blog = BlogSerializer(self.blog)
         assert_equal(serialized_blog.data['collaborators'],
             [UserSerializer(col1).data, UserSerializer(col2).data])
@@ -161,7 +178,8 @@ class TestNestedSerializer(unittest.TestCase):
         col2 = User(name="Keith", age=456, id_="def")
         self.blog.collaborators = [col1, col2]
         serialized_blog = BlogSerializerOnly(self.blog)
-        assert_equal(serialized_blog.data['collaborators'], [{"id": "abc"}, {"id": "def"}])
+        assert_equal(serialized_blog.data['collaborators'],
+                    [{"id": col1.id}, {"id": col2.id}])
 
     def test_exclude(self):
         serialized = BlogSerializerExclude(self.blog)

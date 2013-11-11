@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 from marshmallow import core, types
 from marshmallow.base import Field
-from marshmallow.compat import text_type
+from marshmallow.compat import text_type, urlparse
 from marshmallow.exceptions import MarshallingException
 
 
@@ -67,6 +67,10 @@ class Raw(Field):
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized. Fields should
     throw a MarshallingException in case of parsing problem.
+
+    :param default: Default value for the field if the attribute is not set.
+    :param str attribute: The name of the attribute to get the value from. If
+        ``None``, assumes the attribute has the same name as the field.
     """
 
     def __init__(self, default=None, attribute=None):
@@ -208,7 +212,7 @@ class FormattedString(Raw):
 
 class Float(Raw):
     """
-    A double as IEEE-754 double precision.
+    A double as IEEE-754 double precision string.
     ex : 3.141592653589793 3.1415926535897933e-06 3.141592653589793e+24 nan inf -inf
     """
 
@@ -242,6 +246,11 @@ class DateTime(Raw):
 
 class LocalDateTime(Raw):
     """A RFC822-formatted datetime string in localized time, relative to UTC.
+
+    .. warning::
+        Output may be different on different operating systems due to variations
+        in how localtimes are handled. When in doubt, use the
+        :class:`DateTime <marshmallow.fields.DateTime>` field.
     """
 
     def format(self, value):
@@ -265,3 +274,18 @@ class Fixed(Raw):
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
 Price = Fixed
+
+
+class Url(Raw):
+    """
+    A string representation of a URL.
+    """
+
+    def output(self, key, obj):
+        value = self.get_value(key, obj)
+        if value is None:
+            return self.default
+        try:
+            return types.url(value)
+        except Exception as err:
+            raise MarshallingException(err)

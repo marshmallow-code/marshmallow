@@ -9,7 +9,7 @@ import re
 # basic auth added by frank
 from calendar import timegm
 
-regex = re.compile(
+URL_REGEX = re.compile(
     r'^(?:http|ftp)s?://'  # http:// or https://
     r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
     r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
@@ -21,7 +21,6 @@ regex = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 
-
 def url(value):
     """Validate a URL.
 
@@ -29,10 +28,10 @@ def url(value):
     :returns: The URL if valid.
     :raises: ValueError
     """
-    if not regex.search(value):
+    if not URL_REGEX.search(value):
         message = u"{0} is not a valid URL".format(value)
-        if regex.search('http://' + value):
-            message += u". Did you mean: http://{0}".format(value)
+        if URL_REGEX.search('http://' + value):
+            message += u'. Did you mean: "http://{0}"?'.format(value)
         raise ValueError(message)
     return value
 

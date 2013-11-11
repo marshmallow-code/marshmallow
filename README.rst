@@ -2,6 +2,14 @@
 marshmallow: Simplified Object Serialization
 ********************************************
 
+.. image:: https://badge.fury.io/py/marshmallow.png
+    :target: http://badge.fury.io/py/marshmallow
+    :alt: Latest version
+
+.. image:: https://travis-ci.org/sloria/marshmallow.png?branch=master
+    :target: https://travis-ci.org/sloria/marshmallow
+    :alt: Travis-CI
+
 Homepage: http://marshmallow.readthedocs.org/
 
 
