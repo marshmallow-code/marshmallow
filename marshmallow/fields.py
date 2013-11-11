@@ -11,9 +11,8 @@ from collections import OrderedDict
 
 from marshmallow import core, types
 from marshmallow.base import Field
-from marshmallow.compat import text_type, urlparse
+from marshmallow.compat import text_type
 from marshmallow.exceptions import MarshallingException
-
 
 
 def _is_indexable_but_not_string(obj):
