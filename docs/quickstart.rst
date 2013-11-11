@@ -60,12 +60,20 @@ To validate the data passed to a serializer, call the ``is_valid()`` method.
 .. code-block:: python
 
     invalid = User("Foo Bar", email="foo")
-    UserSerializer(invalid).is_valid()
+    s = UserSerializer(invalid)
+    s.is_valid()
     # False
 
+You can get a dictionary of validation errors via the ``errors`` property.
 
-Specifying Attributes
----------------------
+.. code-block:: python
+
+    s.errors
+    # {'email': u'foo is not a valid email address.'}
+
+
+Specifying Attribute Names
+--------------------------
 
 By default, serializers will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
@@ -123,6 +131,8 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
     BlogSerializer2(blog).data
     # {'author': {'email': u'monty@python.org'}, 'title': u'Something Completely Different'}
+
+You can also exclude fields by passing in an ``exclude`` list.
 
 
 Serializing Collections of Objects

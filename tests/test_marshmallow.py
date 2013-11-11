@@ -9,7 +9,7 @@ from decimal import Decimal
 from nose.tools import *  # PEP8 asserts
 import pytz
 
-from marshmallow import Serializer, fields, types
+from marshmallow import Serializer, fields, types, pprint
 from marshmallow.compat import LINUX, unicode
 from marshmallow.exceptions import MarshallingException
 
@@ -159,11 +159,12 @@ class TestSerializer(unittest.TestCase):
     def test_url_field(self):
         assert_equal(self.serialized.data['homepage'], "http://monty.python.org/")
 
-    def test_incomplete_url_raises_exception(self):
-        with assert_raises(MarshallingException):
-            user = User(name="John Doe", homepage="www.foo.com")
-            serialized = UserSerializer(user)
-            serialized.data
+    def test_stores_invalid_url_error(self):
+        user = User(name="John Doe", homepage="www.foo.com")
+        serialized = UserSerializer(user)
+        assert_in("homepage", serialized.errors)
+        assert_equal(serialized.errors['homepage'],
+            'www.foo.com is not a valid URL. Did you mean: "http://www.foo.com"?')
 
     def test_default(self):
         user = User("John")  # No ID set
@@ -175,15 +176,11 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(u)
         assert_equal(s.data['email'], "john@example.com")
 
-    def test_invalid_email_raises_exception(self):
-        with assert_raises(MarshallingException):
-            u = User("John", email="johnexample.com")
-            s = UserSerializer(u)
-            s.data
-        with assert_raises(MarshallingException):
-            u = User("John", email="john@examplecom")
-            s = UserSerializer(u)
-            s.data
+    def test_stored_invalid_email(self):
+        u = User("John", email="johnexample.com")
+        s = UserSerializer(u)
+        assert_in("email", s.errors)
+        assert_equal(s.errors['email'], "johnexample.com is not a valid email address.")
 
     def test_integer_field(self):
         u = User("John", age=42.3)
@@ -213,8 +210,19 @@ class TestSerializer(unittest.TestCase):
     def test_validate(self):
         valid = User("Joe", email="joe@foo.com")
         invalid = User("John", email="johnexample.com")
+        pprint(UserSerializer(invalid).data)
         assert_true(UserSerializer(valid).is_valid())
         assert_false(UserSerializer(invalid).is_valid())
+
+    def test_validate_field(self):
+        invalid = User("John", email="johnexample.com")
+        assert_true(UserSerializer(invalid).is_valid(["name"]))
+        assert_false(UserSerializer(invalid).is_valid(["email"]))
+
+    def test_fields_param_must_be_list_or_tuple(self):
+        with assert_raises(ValueError):
+            invalid = User("John", email="johnexample.com")
+            UserSerializer(invalid).is_valid("name")
 
 
 class TestNestedSerializer(unittest.TestCase):
@@ -255,6 +263,18 @@ class TestNestedSerializer(unittest.TestCase):
     def test_list_field(self):
         serialized = BlogSerializer(self.blog)
         assert_equal(serialized.data['categories'], ["humor", "violence"])
+
+    def test_nested_errors(self):
+        invalid_user = User("Monty", email="foo")
+        blog = Blog("Monty's blog", user=invalid_user)
+        serialized_blog = BlogSerializer(blog)
+        assert_false(serialized_blog.is_valid())
+
+class TestFields(unittest.TestCase):
+
+    def test_repr(self):
+        field = fields.String()
+        assert_equal(repr(field), "<String Field>")
 
 
 class TestTypes(unittest.TestCase):

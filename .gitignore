@@ -34,9 +34,9 @@ nosetests.xml
 .project
 .pydevproject
 
-# Complexity
-output/*.html
-output/*/index.html
+# Coverage
+cover
+.coveragerc
 
 # Sphinx
 docs/_build

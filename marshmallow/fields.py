@@ -216,6 +216,7 @@ class Integer(NumberField):
 
 
 class Boolean(Raw):
+    '''A boolean field.'''
     def format(self, value):
         return bool(value)
 

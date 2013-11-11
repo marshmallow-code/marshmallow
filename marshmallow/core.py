@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 
 from marshmallow import base, exceptions
-from marshmallow.compat import with_metaclass, iteritems
+from marshmallow.compat import with_metaclass, iteritems, text_type
 
 
 def is_instance_or_subclass(val, class_):
@@ -50,6 +50,8 @@ class BaseSerializer(object):
     def __init__(self, data=None):
         self._data = data
         self.fields = self.__get_fields()  # Dict of fields
+        self.errors = {}
+        self.data = self.to_data()
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
@@ -60,35 +62,52 @@ class BaseSerializer(object):
         return base_fields
 
     @property
-    def data(self):
-        '''The serialized data as an ``OrderedDict``. Fields are in the order
-        in which they are declared.
-        '''
-        return self.to_data()
-
-    @property
     def json(self):
         '''The data as a JSON string.'''
         return self.to_json()
 
+    def marshal(self, data, fields):
+        """Takes the data (a dict, list, or object) and a dict of fields.
+        Stores any errors that occur.
+
+        :param data: The actual object(s) from which the fields are taken from
+        :param dict fields: A dict whose keys will make up the final serialized
+                       response output
+        """
+        if _is_iterable_but_not_string(data):
+            return [self.marshal(d, fields) for d in data]
+        items = []
+        for k, v in iteritems(fields):
+            try:
+                item = (k, self.marshal(data, v) if isinstance(v, dict)
+                                            else v.output(k, data))
+            except exceptions.MarshallingException as err: # Store errors
+                self.errors[k] = text_type(err)
+                item = (k, None)
+            items.append(item)
+        return OrderedDict(items)
+
     def to_data(self, *args, **kwargs):
-        return marshal(self._data, self.fields)
+        return self.marshal(self._data, self.fields)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
 
-    def is_valid(self):
+    def is_valid(self, fields=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
+
+        :param list or tuple fields: List of field names (strings) to validate.
+            If ``None``, all fields will be validated.
         """
-        for field_name, field_obj in iteritems(self.fields):
-            try:
-                self.data[field_name]
-            except exceptions.MarshallingException:
+        if fields is not None and type(fields) not in (list, tuple):
+            raise ValueError("fields param must be a list or tuple")
+        fields_to_validate = fields or self.fields.keys()
+        for field_name in fields_to_validate:
+            if field_name in self.errors:
                 return False
         return True
 
     # TODO: field-level validation
-
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
@@ -127,10 +146,9 @@ def marshal(data, fields):
     """Takes raw data (in the form of a dict, list, object) and a dict of
     fields to output and filters the data based on those fields.
 
-    :param fields: a dict of whose keys will make up the final serialized
+    :param data: The actual object(s) from which the fields are taken from
+    :param dict fields: A dict whose keys will make up the final serialized
                    response output
-    :param data: the actual object(s) from which the fields are taken from
-
     """
     if _is_iterable_but_not_string(data):
         return [marshal(d, fields) for d in data]
@@ -138,7 +156,6 @@ def marshal(data, fields):
                                   else v.output(k, data))
                                   for k, v in fields.items())
     return OrderedDict(items)
-
 
 def pprint(obj, *args, **kwargs):
     '''Pretty-printing function that can pretty-print OrderedDicts
