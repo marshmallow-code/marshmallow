@@ -107,28 +107,33 @@ class Nested(Raw):
     """Allows you to nest a ``Serializer`` or set of fields inside a field.
 
     :param Serializer nested: The Serializer class or dictionary to nest.
+    :param bool exclude: A list or tuple of fields to exclude.
+    :param bool only: A list or tuple of fields to marshal. If ``None``, all fields
+        will be marshalled. Takes precedence over ``exclude``.
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
-    :param only: A list or tuple of fields to marshal. If ``None``, all fields
-        will be marshalled.
     """
 
-    def __init__(self, nested, only=None, allow_null=False, **kwargs):
+    def __init__(self, nested, exclude=None, only=None, allow_null=False, **kwargs):
         nested_obj = nested() if isinstance(nested, type) else nested
         self.nested =  nested_obj.fields if issubclass(nested, core.Serializer) else nested_obj
         self.allow_null = allow_null
-        self.only = only
+        # Marshall all fields by default
+        self.only = set(self.nested) if only is None else set(only)
+        if exclude and only:
+            # Make sure the only takes precedence
+            self.exclude = set(exclude) - self.only
+        else:
+            self.exclude = set([]) if exclude is None else set(exclude)
         super(Nested, self).__init__(**kwargs)
 
     def output(self, key, obj):
         value = self.get_value(key, obj)
         if self.allow_null and value is None:
             return None
-        if self.only:
-            filtered = ((k, v) for k, v in self.nested.items() if k in self.only)
-            fields = OrderedDict(filtered)
-        else:
-            fields = self.nested
+        filtered = ((k, v) for k, v in self.nested.items()
+                    if k in self.only and k not in self.exclude)
+        fields = OrderedDict(filtered)
         return core.marshal(value, fields)
 
 
