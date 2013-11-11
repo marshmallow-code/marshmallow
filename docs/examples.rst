@@ -99,14 +99,17 @@ Below is a full example of a REST API for a quotes app using Flask and SQL-Alche
             if serialized.is_valid():  # Validate the POSTed data
                 author = Author(request.json['first_name'], request.json['last_name'])
                 success = True
+                errors = {}
                 try:
                     db.session.add(author)
                     db.session.commit()
                 except IntegrityError:
+                    errors['author'] = "Author already exists."
                     success = False
             else:
+                errors.update(serialized.errors)
                 success = False
-            return jsonify({"success": success})
+            return jsonify({"success": success, "errors": errors})
         else:  # For GET requests, just return all the users
             authors = Author.query.all()
             return AuthorSerializer(authors).json

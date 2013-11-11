@@ -83,6 +83,8 @@ class UserDecimalSerializer(UserSerializer):
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
 
+class UserRelativeUrlSerializer(UserSerializer):
+    homepage = fields.Url(relative=True)
 
 class BlogSerializer(Serializer):
     title = fields.String()
@@ -161,6 +163,16 @@ class TestSerializer(unittest.TestCase):
 
     def test_url_field(self):
         assert_equal(self.serialized.data['homepage'], "http://monty.python.org/")
+
+    def test_url_field_validation(self):
+        invalid = User("John", age=42, homepage="/john")
+        s = UserSerializer(invalid)
+        assert_false(s.is_valid(["homepage"]))
+
+    def test_relative_url_field(self):
+        u = User("John", age=42, homepage="/john")
+        serialized = UserRelativeUrlSerializer(u)
+        assert_true(serialized.is_valid())
 
     def test_stores_invalid_url_error(self):
         user = User(name="John Doe", homepage="www.foo.com")

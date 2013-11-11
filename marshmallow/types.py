@@ -20,17 +20,29 @@ URL_REGEX = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
+RELATIVE_URL_REGEX = re.compile(
+        r'^((?:http|ftp)s?://' # http:// or https://
+        r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
+        r'(?::\d+)?)?' # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE) # host is optional, allow for relative URLs
 
-def url(value):
+
+def url(value, relative=False):
     """Validate a URL.
 
     :param string value: The URL to validate
     :returns: The URL if valid.
     :raises: ValueError
     """
-    if not URL_REGEX.search(value):
+    regex = RELATIVE_URL_REGEX if relative else URL_REGEX
+    if not regex.search(value):
         message = u"{0} is not a valid URL".format(value)
-        if URL_REGEX.search('http://' + value):
+        if regex.search('http://' + value):
             message += u'. Did you mean: "http://{0}"?'.format(value)
         raise ValueError(message)
     return value

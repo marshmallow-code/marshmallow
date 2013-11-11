@@ -316,14 +316,22 @@ class Price(Fixed):
 
 class Url(Raw):
     """A validated URL field.
+
+    :param default: Default value for the field if the attribute is not set.
+    :param str attribute: The name of the attribute to get the value from. If
+        ``None``, assumes the attribute has the same name as the field.
+    :param bool relative: Allow relative URLs.
     """
+    def __init__(self, default=None, attribute=None, relative=False):
+        super(Url, self).__init__(default=default, attribute=attribute)
+        self.relative = relative
 
     def output(self, key, obj):
         value = self.get_value(key, obj)
         if value is None:
             return self.default
         try:
-            return types.url(value)
+            return types.url(value, relative=self.relative)
         except Exception as err:
             raise MarshallingException(err)
 
