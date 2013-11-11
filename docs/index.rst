@@ -26,4 +26,12 @@ API Reference
 .. toctree::
     :maxdepth: 2
 
-   api_reference
+    api_reference
+
+Project Info
+============
+
+.. toctree::
+    :maxdepth: 1
+
+    changelog

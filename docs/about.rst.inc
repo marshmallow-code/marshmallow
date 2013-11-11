@@ -23,7 +23,7 @@
 
 
 Get It Now
-----------
+==========
 
 .. code-block:: bash
 

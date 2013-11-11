@@ -22,7 +22,7 @@ Let's start with a basic user model.
             self.created_at = dt.datetime.now()
 
 
-Create a serializer by defining a class  which is a dictionary mapping attribute names to a field class that formats the final output of the serializer.
+Create a serializer by defining a class with variables mapping attribute names to a field class object that formats the final output of the serializer.
 
 .. code-block:: python
 
@@ -39,7 +39,7 @@ For a full reference on the field classes, see the :ref:`API Docs <api_fields>`.
 Serializing Objects
 -------------------
 
-Serialize objects by passing them into your serializers. Onced serialized, you can get the dictionary representation via the `data` property and the JSON representation via the `json` property.
+Serialize objects by passing them into your serializers. Onced serialized, you can get the dictionary representation via the ``data`` property and the JSON representation via the ``json`` property.
 
 .. code-block:: python
 
@@ -159,7 +159,7 @@ To create custom formatted fields, create a subclass of :class:`marshmallow.fiel
 Printing Serialized Data
 ------------------------
 
-Marshmallow provides a ``pprint`` function for pretty-printing the OrderedDicts returned by ``Serialize.data``.
+Marshmallow provides a ``pprint`` function for pretty-printing the OrderedDicts returned by ``Serializer.data``.
 
 .. code-block:: python
 
