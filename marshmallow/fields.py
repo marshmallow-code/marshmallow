@@ -339,3 +339,16 @@ class Email(Raw):
             return types.email(value)
         except Exception as err:
             raise MarshallingException(err)
+
+class Method(Raw):
+    """A field that takes the value returned by a Serializer method."""
+
+    def __init__(self, method_name):
+        self.method_name = method_name
+        super(Method, self).__init__()
+
+    def output(self, key, obj):
+        try:
+            return getattr(self.parent, self.method_name)(obj)
+        except AttributeError:
+            pass

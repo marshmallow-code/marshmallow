@@ -166,6 +166,23 @@ To create custom formatted fields, create a subclass of :class:`marshmallow.fiel
         def format(self, value):
             return value.upper()
 
+Method Fields
+-------------
+
+Another way to create a custom field is to use a :class:`Method <marshmallow.fields.Method` field. The field will take the value returned by a method of the Serializer. The method must take an ``obj`` parameter which is the object to be serialized.
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        name = fields.String()
+        email_addr = fields.String(attribute="email")
+        date_created = fields.DateTime(attribute="created_at")
+        titlename = fields.Method("get_titlecased_name")
+
+        def get_titlecased_name(self, obj):
+            return obj.name.title()
+
+
 Printing Serialized Data
 ------------------------
 

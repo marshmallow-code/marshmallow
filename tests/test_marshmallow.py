@@ -4,14 +4,12 @@
 import unittest
 import json
 import datetime as dt
-from decimal import Decimal
 
 from nose.tools import *  # PEP8 asserts
 import pytz
 
 from marshmallow import Serializer, fields, types, pprint
 from marshmallow.compat import LINUX, unicode
-from marshmallow.exceptions import MarshallingException
 
 central = pytz.timezone("US/Central")
 
@@ -64,6 +62,11 @@ class UserSerializer(Serializer):
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Price()
+
+    is_old = fields.Method("get_is_old")
+
+    def get_is_old(self, obj):
+        return obj.age > 80
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
@@ -210,7 +213,6 @@ class TestSerializer(unittest.TestCase):
     def test_validate(self):
         valid = User("Joe", email="joe@foo.com")
         invalid = User("John", email="johnexample.com")
-        pprint(UserSerializer(invalid).data)
         assert_true(UserSerializer(valid).is_valid())
         assert_false(UserSerializer(invalid).is_valid())
 
@@ -229,11 +231,16 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(user, extra={"fav_color": "blue"})
         assert_equal(s.data['fav_color'], "blue")
 
+    def test_method_field(self):
+        assert_false(self.serialized.data['is_old'])
+        u = User("Joe", age=81)
+        assert_true(UserSerializer(u).data['is_old'])
+
 
 class TestNestedSerializer(unittest.TestCase):
 
     def setUp(self):
-        self.user = User(name="Monty", age=42)
+        self.user = User(name="Monty", age=81)
         self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"])
 
     def test_nested(self):
@@ -274,6 +281,10 @@ class TestNestedSerializer(unittest.TestCase):
         blog = Blog("Monty's blog", user=invalid_user)
         serialized_blog = BlogSerializer(blog)
         assert_false(serialized_blog.is_valid())
+
+    def test_nested_method_field(self):
+        s = BlogSerializer(self.blog)
+        assert_true(s.data['user']['is_old'])
 
 class TestFields(unittest.TestCase):
 
