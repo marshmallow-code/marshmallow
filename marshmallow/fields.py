@@ -181,19 +181,38 @@ class String(Raw):
 
 class NumberField(Raw):
     '''Base class for number fields.'''
-    def __init__(self, default=0, attribute=None):
+
+    num_type = int
+
+    def __init__(self, default=0, attribute=None, as_string=False):
+        self.as_string = as_string
         super(NumberField, self).__init__(default=default, attribute=attribute)
 
-
-class Integer(NumberField):
+    def _format_num(self, value):
+        '''Return the correct value for a number, given the passed in
+        arguments to __init__.
+        '''
+        if self.as_string:
+            return repr(self.num_type(value))
+        else:
+            return self.num_type(value)
 
     def format(self, value):
         try:
             if value is None:
-                return self.default
-            return int(value)
+                return self._format_num(self.default)
+            return self._format_num(value)
         except ValueError as ve:
             raise MarshallingException(ve)
+
+
+class Integer(NumberField):
+    """An integer field.
+
+    :param bool as_string: If True, format the value as a string.
+    """
+
+    num_type = int
 
 
 class Boolean(Raw):
@@ -217,29 +236,24 @@ class FormattedString(Raw):
 class Float(NumberField):
     """
     A double as IEEE-754 double precision string.
-    ex : 3.141592653589793 3.1415926535897933e-06 3.141592653589793e+24 nan inf -inf
+
+    :param bool as_string: If True, format the value as a string.
+    """
+
+    num_type = float
+
+
+class Arbitrary(NumberField):
+    """A floating point number with an arbitrary precision,
+    formatted as as string.
+        ex: 634271127864378216478362784632784678324.23432
     """
 
     def format(self, value):
         try:
             if value is None:
-                return self.default
-            return float(value)
-        except ValueError as ve:
-            raise MarshallingException(ve)
-
-
-class Arbitrary(Raw):
-    """
-        A floating point number with an arbitrary precision
-          ex: 634271127864378216478362784632784678324.23432
-    """
-
-    def format(self, value):
-        try:
-            if value is None:
-                return MyDecimal(self.default)
-            return MyDecimal(value)
+                return text_type(MyDecimal(self.default))
+            return text_type(MyDecimal(value))
         except ValueError as ve:
             raise MarshallingException(ve)
 
@@ -274,7 +288,8 @@ ZERO = MyDecimal()
 
 
 class Fixed(NumberField):
-    """A fixed-precision number as a string."""
+    """A fixed-precision number as a string.
+    """
 
     def __init__(self, decimals=5, **kwargs):
         super(Fixed, self).__init__(**kwargs)
@@ -289,7 +304,10 @@ class Fixed(NumberField):
             raise MarshallingException('Invalid Fixed precision number.')
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
-Price = Fixed
+
+class Price(Fixed):
+    def __init__(self, decimals=2, **kwargs):
+        super(Price, self).__init__(decimals=decimals, **kwargs)
 
 
 class Url(Raw):

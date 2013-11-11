@@ -10,7 +10,7 @@ from nose.tools import *  # PEP8 asserts
 import pytz
 
 from marshmallow import Serializer, fields, types
-from marshmallow.compat import LINUX
+from marshmallow.compat import LINUX, unicode
 from marshmallow.exceptions import MarshallingException
 
 central = pytz.timezone("US/Central")
@@ -30,6 +30,7 @@ class User(object):
         self.id = id_
         self.homepage = homepage
         self.email = email
+        self.balance = 100
 
     @property
     def is_old(self):
@@ -62,12 +63,19 @@ class UserSerializer(Serializer):
     uppername = Uppercased(attribute='name')
     homepage = fields.Url()
     email = fields.Email()
+    balance = fields.Price()
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
 
 class UserFixedSerializer(UserSerializer):
     age = fields.Fixed(decimals=2)
+
+class UserFloatStringSerializer(UserSerializer):
+    age = fields.Float(as_string=True)
+
+class UserDecimalSerializer(UserSerializer):
+    age = fields.Arbitrary()
 
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
@@ -187,6 +195,21 @@ class TestSerializer(unittest.TestCase):
         u = User("John", age=42.3)
         serialized = UserFixedSerializer(u)
         assert_equal(serialized.data['age'], "42.30")
+
+    def test_as_string(self):
+        u = User("John", age=42.3)
+        serialized = UserFloatStringSerializer(u)
+        assert_equal(serialized.data['age'], "42.3")
+
+    def test_decimal_field(self):
+        u = User("John", age=42.3)
+        s = UserDecimalSerializer(u)
+        assert_equal(type(s.data['age']), unicode)
+        assert_almost_equal(float(s.data['age']), 42.3)
+
+    def test_price_field(self):
+        assert_equal(self.serialized.data['balance'], "100.00")
+
 
 class TestNestedSerializer(unittest.TestCase):
 
