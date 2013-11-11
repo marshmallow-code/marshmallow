@@ -45,13 +45,16 @@ class BaseSerializer(object):
     '''Base serializer class which defines the interface for a serializer.
 
     :param data: The object, dict, or list to be serialized.
+    :param dict extra: A dict of extra attributes to bind to the serialized result.
     '''
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, extra=None):
         self._data = data
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
         self.data = self.to_data()
+        if extra:
+            self.data.update(extra)
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''

@@ -224,6 +224,11 @@ class TestSerializer(unittest.TestCase):
             invalid = User("John", email="johnexample.com")
             UserSerializer(invalid).is_valid("name")
 
+    def test_extra(self):
+        user = User("Joe", email="joe@foo.com")
+        s = UserSerializer(user, extra={"fav_color": "blue"})
+        assert_equal(s.data['fav_color'], "blue")
+
 
 class TestNestedSerializer(unittest.TestCase):
 
