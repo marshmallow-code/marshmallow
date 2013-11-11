@@ -179,9 +179,13 @@ class String(Raw):
             raise MarshallingException(ve)
 
 
-class Integer(Raw):
+class NumberField(Raw):
+    '''Base class for number fields.'''
     def __init__(self, default=0, attribute=None):
-        super(Integer, self).__init__(default, attribute)
+        super(NumberField, self).__init__(default=default, attribute=attribute)
+
+
+class Integer(NumberField):
 
     def format(self, value):
         try:
@@ -210,7 +214,7 @@ class FormattedString(Raw):
             raise MarshallingException(error)
 
 
-class Float(Raw):
+class Float(NumberField):
     """
     A double as IEEE-754 double precision string.
     ex : 3.141592653589793 3.1415926535897933e-06 3.141592653589793e+24 nan inf -inf
@@ -218,7 +222,9 @@ class Float(Raw):
 
     def format(self, value):
         try:
-            return repr(float(value))
+            if value is None:
+                return self.default
+            return float(value)
         except ValueError as ve:
             raise MarshallingException(ve)
 
@@ -230,7 +236,12 @@ class Arbitrary(Raw):
     """
 
     def format(self, value):
-        return text_type(MyDecimal(value))
+        try:
+            if value is None:
+                return MyDecimal(self.default)
+            return MyDecimal(value)
+        except ValueError as ve:
+            raise MarshallingException(ve)
 
 
 class DateTime(Raw):
@@ -262,13 +273,18 @@ class LocalDateTime(Raw):
 ZERO = MyDecimal()
 
 
-class Fixed(Raw):
+class Fixed(NumberField):
+    """A fixed-precision number as a string."""
+
     def __init__(self, decimals=5, **kwargs):
         super(Fixed, self).__init__(**kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
     def format(self, value):
-        dvalue = MyDecimal(value)
+        try:
+            dvalue = MyDecimal(value)
+        except ValueError as ve:
+            raise MarshallingException(ve)
         if not dvalue.is_normal() and dvalue != ZERO:
             raise MarshallingException('Invalid Fixed precision number.')
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))

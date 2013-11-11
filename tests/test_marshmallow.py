@@ -4,6 +4,7 @@
 import unittest
 import json
 import datetime as dt
+from decimal import Decimal
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -62,6 +63,12 @@ class UserSerializer(Serializer):
     homepage = fields.Url()
     email = fields.Email()
 
+class UserIntSerializer(UserSerializer):
+    age = fields.Integer()
+
+class UserFixedSerializer(UserSerializer):
+    age = fields.Fixed(decimals=2)
+
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
 
@@ -95,7 +102,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_serializing_basic_object(self):
         assert_equal(self.serialized.data['name'], "Monty")
-        assert_equal(self.serialized.data['age'], "42.3")
+        assert_almost_equal(self.serialized.data['age'], 42.3)
 
     def test_fields_are_copies(self):
         s = UserSerializer(User("Monty", age=42))
@@ -105,7 +112,7 @@ class TestSerializer(unittest.TestCase):
     def test_json(self):
         json_data = self.serialized.json
         reloaded = json.loads(json_data)
-        assert_equal(reloaded['age'], '42.3')
+        assert_almost_equal(reloaded['age'], 42.3)
 
     def test_naive_datetime_field(self):
         assert_equal(self.serialized.data['created'],
@@ -170,6 +177,16 @@ class TestSerializer(unittest.TestCase):
             s = UserSerializer(u)
             s.data
 
+    def test_integer_field(self):
+        u = User("John", age=42.3)
+        serialized = UserIntSerializer(u)
+        assert_equal(type(serialized.data['age']), int)
+        assert_equal(serialized.data['age'], 42)
+
+    def test_fixed_field(self):
+        u = User("John", age=42.3)
+        serialized = UserFixedSerializer(u)
+        assert_equal(serialized.data['age'], "42.30")
 
 class TestNestedSerializer(unittest.TestCase):
 
