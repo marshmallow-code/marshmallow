@@ -169,7 +169,7 @@ To create custom formatted fields, create a subclass of :class:`marshmallow.fiel
 Method Fields
 -------------
 
-Another way to create a custom field is to use a :class:`Method <marshmallow.fields.Method` field. The field will take the value returned by a method of the Serializer. The method must take an ``obj`` parameter which is the object to be serialized.
+Another way to create a custom field is to use a :class:`Method <marshmallow.fields.Method>` field. The field will take the value returned by a method of the Serializer. The method must take an ``obj`` parameter which is the object to be serialized.
 
 .. code-block:: python
 

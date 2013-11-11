@@ -221,6 +221,10 @@ class TestSerializer(unittest.TestCase):
         assert_true(UserSerializer(invalid).is_valid(["name"]))
         assert_false(UserSerializer(invalid).is_valid(["email"]))
 
+    def test_validating_nonexistent_field_raises_error(self):
+        with assert_raises(KeyError):
+            self.serialized.is_valid(["foobar"])
+
     def test_fields_param_must_be_list_or_tuple(self):
         with assert_raises(ValueError):
             invalid = User("John", email="johnexample.com")

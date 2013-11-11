@@ -84,7 +84,7 @@ class BaseSerializer(object):
             try:
                 item = (k, self.marshal(data, v) if isinstance(v, dict)
                                             else v.output(k, data))
-            except exceptions.MarshallingException as err: # Store errors
+            except exceptions.MarshallingException as err:  # Store errors
                 self.errors[k] = text_type(err)
                 item = (k, None)
             items.append(item)
@@ -105,7 +105,12 @@ class BaseSerializer(object):
         if fields is not None and type(fields) not in (list, tuple):
             raise ValueError("fields param must be a list or tuple")
         fields_to_validate = fields or self.fields.keys()
-        return all([fname not in self.errors for fname in fields_to_validate])
+        for fname in fields_to_validate:
+            if fname not in self.fields:
+                raise KeyError('"{0}" is not a valid field name.'.format(fname))
+            if fname in self.errors:
+                return False
+        return True
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
