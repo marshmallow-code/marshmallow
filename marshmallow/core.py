@@ -46,10 +46,13 @@ class BaseSerializer(object):
 
     :param data: The object, dict, or list to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
+    :param str prefix: Optional prefix that will be prepended to all the
+        serialized field names.
     '''
 
-    def __init__(self, data=None, extra=None):
+    def __init__(self, data=None, extra=None, prefix=''):
         self._data = data
+        self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
         self.data = self.to_data()
@@ -58,7 +61,8 @@ class BaseSerializer(object):
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
-        base_fields = copy.deepcopy(self._base_fields)
+        base_fields = copy.deepcopy(self._base_fields)  # Copy _base_fields
+                                                        # from metaclass
         for field_name, field_obj in iteritems(base_fields):
             if not field_obj.parent:
                 field_obj.parent = self
@@ -81,12 +85,13 @@ class BaseSerializer(object):
             return [self.marshal(d, fields) for d in data]
         items = []
         for k, v in iteritems(fields):
+            key = self.prefix + k
             try:
-                item = (k, self.marshal(data, v) if isinstance(v, dict)
+                item = (key, self.marshal(data, v) if isinstance(v, dict)
                                             else v.output(k, data))
             except exceptions.MarshallingException as err:  # Store errors
-                self.errors[k] = text_type(err)
-                item = (k, None)
+                self.errors[key] = text_type(err)
+                item = (key, None)
             items.append(item)
         return OrderedDict(items)
 
