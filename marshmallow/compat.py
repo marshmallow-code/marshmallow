@@ -16,6 +16,11 @@ if PY2:
     iterkeys = lambda d: d.iterkeys()
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
+    if PY26:
+        from .ordereddict import OrderedDict
+    else:
+        from collections import OrderedDict
+    OrderedDict = OrderedDict
 else:
     import urllib.parse
     urlparse = urllib.parse
@@ -27,6 +32,8 @@ else:
     iterkeys = lambda d: iter(d.keys())
     itervalues = lambda d: iter(d.values())
     iteritems = lambda d: iter(d.items())
+    from collections import OrderedDict
+    OrderedDict = OrderedDict
 
 def with_metaclass(meta, *bases):
     '''Defines a metaclass.

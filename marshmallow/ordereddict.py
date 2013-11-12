@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from decimal import Decimal, Inexact, Context
-
+'''A Python 2.6-compatible ordered dictionary.'''
 # OrderedDict
 # Copyright (c) 2009 Raymond Hettinger
 #
@@ -129,15 +128,3 @@ class OrderedDict(dict, DictMixin):
 
     def __ne__(self, other):
         return not self == other
-
-def float_to_decimal(f):
-    "Convert a floating point number to a Decimal with no loss of information"
-    n, d = f.as_integer_ratio()
-    numerator, denominator = Decimal(n), Decimal(d)
-    ctx = Context(prec=60)
-    result = ctx.divide(numerator, denominator)
-    while ctx.flags[Inexact]:
-        ctx.flags[Inexact] = False
-        ctx.prec *= 2
-        result = ctx.divide(numerator, denominator)
-    return result

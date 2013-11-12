@@ -6,8 +6,7 @@ from pprint import pprint as py_pprint
 
 
 from marshmallow import base, exceptions
-from marshmallow.utils import OrderedDict
-from marshmallow.compat import with_metaclass, iteritems, text_type
+from marshmallow.compat import with_metaclass, iteritems, text_type, OrderedDict
 
 
 def is_instance_or_subclass(val, class_):

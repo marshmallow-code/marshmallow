@@ -6,12 +6,11 @@ See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
 file for more licensing information.
 '''
 from __future__ import absolute_import
-from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN, Inexact, Context
 
-from marshmallow.utils import OrderedDict, float_to_decimal
 from marshmallow import core, types
 from marshmallow.base import Field
-from marshmallow.compat import text_type
+from marshmallow.compat import text_type, OrderedDict
 from marshmallow.exceptions import MarshallingException
 
 
@@ -59,6 +58,19 @@ def _to_marshallable_type(obj):
         return obj.__marshallable__()
 
     return dict(obj.__dict__)
+
+
+def float_to_decimal(f):
+    "Convert a floating point number to a Decimal with no loss of information"
+    n, d = f.as_integer_ratio()
+    numerator, denominator = MyDecimal(n), MyDecimal(d)
+    ctx = Context(prec=60)
+    result = ctx.divide(numerator, denominator)
+    while ctx.flags[Inexact]:
+        ctx.flags[Inexact] = False
+        ctx.prec *= 2
+        result = ctx.divide(numerator, denominator)
+    return result
 
 
 class Raw(Field):
