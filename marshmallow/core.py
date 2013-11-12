@@ -3,10 +3,10 @@ from __future__ import absolute_import, print_function
 import json
 import copy
 from pprint import pprint as py_pprint
-from collections import OrderedDict
 
 
 from marshmallow import base, exceptions
+from marshmallow.utils import OrderedDict
 from marshmallow.compat import with_metaclass, iteritems, text_type
 
 

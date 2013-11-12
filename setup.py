@@ -74,7 +74,7 @@ setup(
     packages=find_packages(exclude=("test*", )),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
-    tests_require=['nose', 'pytz'],
+    tests_require=['unittest2', 'nose', 'pytz'],
     license=read("LICENSE"),
     zip_safe=False,
     keywords=('serialization', "rest", "json", "api"),

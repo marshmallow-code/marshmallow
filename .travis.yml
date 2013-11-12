@@ -5,10 +5,11 @@ language: python
 python:
   - "3.3"
   - "2.7"
+  - "2.6"
   - "pypy"
 
 install:
-  - pip install pytz
+  - pip install pytz unittest2
   - pip install -U .
 
 script: nosetests

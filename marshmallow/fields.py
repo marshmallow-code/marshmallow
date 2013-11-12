@@ -7,8 +7,8 @@ file for more licensing information.
 '''
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
-from collections import OrderedDict
 
+from marshmallow.utils import OrderedDict, float_to_decimal
 from marshmallow import core, types
 from marshmallow.base import Field
 from marshmallow.compat import text_type
@@ -278,8 +278,8 @@ class Arbitrary(NumberField):
     def format(self, value):
         try:
             if value is None:
-                return text_type(MyDecimal(self.default))
-            return text_type(MyDecimal(value))
+                return text_type(float_to_decimal(float(self.default)))
+            return text_type(float_to_decimal(float(value)))
         except ValueError as ve:
             raise MarshallingException(ve)
 
@@ -323,7 +323,7 @@ class Fixed(NumberField):
 
     def format(self, value):
         try:
-            dvalue = MyDecimal(value)
+            dvalue = float_to_decimal(float(value))
         except ValueError as ve:
             raise MarshallingException(ve)
         if not dvalue.is_normal() and dvalue != ZERO:
