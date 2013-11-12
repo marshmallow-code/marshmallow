@@ -6,6 +6,7 @@ Changelog
 
 * Allow prefixing field names.
 * Fix storing of errors on Nested Serializers.
+* Python 2.6 support.
 
 0.2.0 (2013-11-11)
 ++++++++++++++++++

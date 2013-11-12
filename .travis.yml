@@ -8,8 +8,13 @@ python:
   - "2.6"
   - "pypy"
 
+before_install:
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install unittest2; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.3' ]]; then pip install unittest2py3k; fi
+
 install:
-  - pip install pytz unittest2
+  - pip install pytz
   - pip install -U .
 
 script: nosetests

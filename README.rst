@@ -54,7 +54,7 @@ Full documentation is available at http://marshmallow.rtfd.org/ .
 Requirements
 ============
 
-- Python >= 2.7 or >= 3.3
+- Python >= 2.6 or >= 3.3
 
 
 License

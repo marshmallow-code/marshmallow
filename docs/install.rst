@@ -3,6 +3,8 @@
 Installation
 ============
 
+**marshmallow** requires Python >= 2.6 or >= 3.3.
+
 To install from the PyPI:
 
 ::
@@ -13,7 +15,7 @@ Alternatively, you can install marshmallow from source.
 
 You can clone the public repo: ::
 
-    git clone https://github.com/sloria/marshmallow.git
+    $ git clone https://github.com/sloria/marshmallow.git
 
 Or download one of the following:
 

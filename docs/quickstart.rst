@@ -63,6 +63,8 @@ To validate the data passed to a serializer, call the ``is_valid()`` method.
     s = UserSerializer(invalid)
     s.is_valid()
     # False
+    s.is_valid(["email"])
+    # False
 
 You can get a dictionary of validation errors via the ``errors`` property.
 
@@ -227,5 +229,7 @@ Marshmallow provides a ``pprint`` function for pretty-printing the OrderedDicts 
 
 Next Steps
 ----------
+
+Check out the :ref:`API Reference <api>` for a full listing of available fields.
 
 For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
