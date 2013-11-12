@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.2.1 (unreleased)
+0.2.1 (2013-11-12)
 ++++++++++++++++++
 
 * Allow prefixing field names.

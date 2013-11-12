@@ -1,6 +1,6 @@
-********************************************
-marshmallow: Simplified Object Serialization
-********************************************
+**********************************************************
+marshmallow: simplified object serialization for REST APIs
+**********************************************************
 
 .. image:: https://badge.fury.io/py/marshmallow.png
     :target: http://badge.fury.io/py/marshmallow
