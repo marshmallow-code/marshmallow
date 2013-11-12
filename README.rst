@@ -10,7 +10,7 @@ marshmallow: Simplified Object Serialization
     :target: https://travis-ci.org/sloria/marshmallow
     :alt: Travis-CI
 
-Homepage: http://marshmallow.readthedocs.org/
+Homepage: http://marshmallow.rtfd.org/
 
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, into native Python datatypes. The serialized objects can then be rendered to standard formats such as JSON for use in a REST API.
@@ -48,7 +48,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at http://marshmallow.readthedocs.org/ .
+Full documentation is available at http://marshmallow.rtfd.org/ .
 
 
 Requirements

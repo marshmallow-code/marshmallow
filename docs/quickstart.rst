@@ -153,34 +153,59 @@ Iterable collections of objects are also serializable.
     #   'email': u'keith@stones.com',
     #   'name': u'Keith'}]
 
-Creating Custom Fields
-----------------------
+Custom Fields
+-------------
 
-To create custom formatted fields, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its ``format`` and or ``output`` methods.
+There are three ways to create a custom-formatted field for a serializer:
+
+- Create a custom field class
+- Use a :class:`Method <marshmallow.fields.Method>` field
+- Use a :class:`Function <marshmallow.fields.Function>` field
+
+The method you choose will depend on personal preference and the manner in which you will reuse the field.
+
+Creating A Field Class
+++++++++++++++++++++++
+
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its ``format`` and/or ``output`` methods.
 
 .. code-block:: python
 
     from marshmallow import fields
 
-    class Uppercased(fields.Raw):
+    class Titlecased(fields.Raw):
         def format(self, value):
-            return value.upper()
+            return value.title()
 
 Method Fields
--------------
++++++++++++++
 
-Another way to create a custom field is to use a :class:`Method <marshmallow.fields.Method>` field. The field will take the value returned by a method of the Serializer. The method must take an ``obj`` parameter which is the object to be serialized.
+A :class:`Method <marshmallow.fields.Method>` field will take the value returned by a method of the Serializer. The method must take an ``obj`` parameter which is the object to be serialized.
 
 .. code-block:: python
 
     class UserSerializer(Serializer):
         name = fields.String()
-        email_addr = fields.String(attribute="email")
-        date_created = fields.DateTime(attribute="created_at")
-        titlename = fields.Method("get_titlecased_name")
+        email = fields.String()
+        created_at = fields.DateTime()
+        since_created = fields.Method("get_days_since_created")
 
-        def get_titlecased_name(self, obj):
-            return obj.name.title()
+        def get_days_since_created(self, obj):
+            return dt.datetime.now().day - obj.created_at.day
+
+Function Fields
++++++++++++++++
+
+A :class:`Function <marshmallow.fields.Function>` field will take the value of a function that is passed directly to it. Like a :class:`Method <marshmallow.fields.Method>` field, the function must take a single argument ``obj``.
+
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        name = fields.String()
+        email = fields.String()
+        created_at = fields.DateTime()
+        uppername = fields.Function(lambda obj: obj.name.upper())
 
 
 Printing Serialized Data

@@ -62,8 +62,8 @@ class UserSerializer(Serializer):
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Price()
-
     is_old = fields.Method("get_is_old")
+    lowername = fields.Function(lambda obj: obj.name.lower())
 
     def get_is_old(self, obj):
         return obj.age > 80
@@ -85,6 +85,7 @@ class ExtendedUserSerializer(UserSerializer):
 
 class UserRelativeUrlSerializer(UserSerializer):
     homepage = fields.Url(relative=True)
+
 
 class BlogSerializer(Serializer):
     title = fields.String()
@@ -252,12 +253,18 @@ class TestSerializer(unittest.TestCase):
         u = User("Joe", age=81)
         assert_true(UserSerializer(u).data['is_old'])
 
+    def test_function_field(self):
+        assert_equal(self.serialized.data['lowername'], self.obj.name.lower())
+
 
 class TestNestedSerializer(unittest.TestCase):
 
     def setUp(self):
         self.user = User(name="Monty", age=81)
-        self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"])
+        col1 = User(name="Mick", age=123)
+        col2 = User(name="Keith", age=456)
+        self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"],
+                        collaborators=[col1 ,col2])
 
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)
@@ -265,12 +272,9 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(serialized_blog.data['user'], serialized_user.data)
 
     def test_nested_many_fields(self):
-        col1 = User(name="Mick", age=123)
-        col2 = User(name="Keith", age=456)
-        self.blog.collaborators = [col1, col2]
         serialized_blog = BlogSerializer(self.blog)
         assert_equal(serialized_blog.data['collaborators'],
-            [UserSerializer(col1).data, UserSerializer(col2).data])
+            [UserSerializer(col).data for col in self.blog.collaborators])
 
     def test_nested_only(self):
         col1 = User(name="Mick", age=123, id_="abc")
@@ -301,6 +305,13 @@ class TestNestedSerializer(unittest.TestCase):
     def test_nested_method_field(self):
         s = BlogSerializer(self.blog)
         assert_true(s.data['user']['is_old'])
+        assert_true(s.data['collaborators'][0]['is_old'])
+
+    def test_nested_function_field(self):
+        s = BlogSerializer(self.blog)
+        assert_equal(s.data['user']['lowername'], self.user.name.lower())
+        assert_equal(s.data['collaborators'][0]['lowername'],
+                    self.blog.collaborators[0].name.lower())
 
 class TestFields(unittest.TestCase):
 

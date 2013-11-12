@@ -110,6 +110,10 @@ class Nested(Raw):
     """Allows you to nest a :class:`Serializer <marshmallow.core.Serializer>`
     or set of fields inside a field.
 
+    Example: ::
+
+        user = fields.Nested(UserSerializer)
+
     :param Serializer nested: The Serializer class or dictionary to nest.
     :param bool exclude: A list or tuple of fields to exclude.
     :param bool only: A list or tuple of fields to marshal. If ``None``, all fields
@@ -142,6 +146,14 @@ class Nested(Raw):
 
 
 class List(Raw):
+    '''A list field.
+
+    Example: ::
+
+        numbers = fields.List(fields.Float)
+
+    :param cls_or_instance: A field class or instance.
+    '''
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):
@@ -348,8 +360,14 @@ class Email(Raw):
         except Exception as err:
             raise MarshallingException(err)
 
+
 class Method(Raw):
-    """A field that takes the value returned by a Serializer method."""
+    """A field that takes the value returned by a Serializer method.
+
+    :param str method_name: The name of the Serializer method from which
+        to retrieve the value. The method must take a single argument ``obj``
+        (in addition to self) that is the object to be serialized.
+    """
 
     def __init__(self, method_name):
         self.method_name = method_name
@@ -358,5 +376,25 @@ class Method(Raw):
     def output(self, key, obj):
         try:
             return getattr(self.parent, self.method_name)(obj)
+        except AttributeError:
+            pass
+
+
+class Function(Raw):
+    '''A field that takes the value returned by a function.
+
+    :param function func: A callable function from which to retrieve the value.
+        The function must take a single argument ``obj`` which is the object
+        to be serialized.
+    '''
+
+    def __init__(self, func):
+        self.func = func
+
+    def output(self, key, obj):
+        try:
+            return self.func(obj)
+        except TypeError as te:  # Function is not callable
+            raise MarshallingException(te)
         except AttributeError:
             pass
