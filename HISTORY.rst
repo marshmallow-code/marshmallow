@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+0.2.1 (unreleased)
+++++++++++++++++++
+
+* Allow prefixing field names.
+* Fix storing of errors on Nested Serializers.
+
 0.2.0 (2013-11-11)
 ++++++++++++++++++
 

@@ -106,6 +106,9 @@ class BlogSerializerExclude(BlogSerializer):
 class BlogSerializerOnlyExclude(BlogSerializer):
     user = fields.Nested(UserSerializer, only=("name", ), exclude=("name", "species"))
 
+class BlogSerializerPrefixedUser(BlogSerializer):
+    user = fields.Nested(UserSerializer(prefix="usr_"))
+
 ##### The Tests #####
 
 
@@ -255,6 +258,10 @@ class TestSerializer(unittest.TestCase):
     def test_function_field(self):
         assert_equal(self.serialized.data['lowername'], self.obj.name.lower())
 
+    def test_prefix(self):
+        s = UserSerializer(self.obj, prefix="usr_")
+        assert_equal(s.data['usr_name'], self.obj.name)
+
 
 class TestNestedSerializer(unittest.TestCase):
 
@@ -300,6 +307,11 @@ class TestNestedSerializer(unittest.TestCase):
         blog = Blog("Monty's blog", user=invalid_user)
         serialized_blog = BlogSerializer(blog)
         assert_false(serialized_blog.is_valid())
+        assert_in("email", serialized_blog.errors['user'])
+        assert_equal(serialized_blog.errors['user']['email'],
+            "{0} is not a valid email address.".format(invalid_user.email))
+        # No problems with collaborators
+        assert_not_in("collaborators", serialized_blog.errors)
 
     def test_nested_method_field(self):
         s = BlogSerializer(self.blog)
@@ -311,6 +323,11 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(s.data['user']['lowername'], self.user.name.lower())
         assert_equal(s.data['collaborators'][0]['lowername'],
                     self.blog.collaborators[0].name.lower())
+
+    def test_nested_prefixed_field(self):
+        s = BlogSerializerPrefixedUser(self.blog)
+        assert_equal(s.data['user']['usr_name'], self.user.name)
+        assert_equal(s.data['user']['usr_lowername'], self.user.name.lower())
 
 class TestFields(unittest.TestCase):
 

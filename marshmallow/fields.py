@@ -114,7 +114,7 @@ class Nested(Raw):
 
         user = fields.Nested(UserSerializer)
 
-    :param Serializer nested: The Serializer class or dictionary to nest.
+    :param Serializer nested: The Serializer class or instance to nest.
     :param bool exclude: A list or tuple of fields to exclude.
     :param bool only: A list or tuple of fields to marshal. If ``None``, all fields
         will be marshalled. Takes precedence over ``exclude``.
@@ -123,8 +123,14 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, exclude=None, only=None, allow_null=False, **kwargs):
-        nested_obj = nested() if isinstance(nested, type) else nested
-        self.nested =  nested_obj.fields if issubclass(nested, core.Serializer) else nested_obj
+        try:
+            if issubclass(nested, core.Serializer):
+                self.serializer = nested()
+        except TypeError:
+            if isinstance(nested, core.Serializer):
+                self.serializer = nested
+
+        self.nested =  self.serializer.fields
         self.allow_null = allow_null
         # Marshall all fields by default
         self.only = set(self.nested) if only is None else set(only)
@@ -142,7 +148,11 @@ class Nested(Raw):
         filtered = ((k, v) for k, v in self.nested.items()
                     if k in self.only and k not in self.exclude)
         fields = OrderedDict(filtered)
-        return core.marshal(value, fields)
+        ret = self.serializer.marshal(value, fields)
+        # Parent should get any errors stored after marshalling
+        if self.serializer.errors:
+            self.parent.errors[key] = self.serializer.errors
+        return ret
 
 
 class List(Raw):
