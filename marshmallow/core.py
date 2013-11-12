@@ -99,7 +99,7 @@ class BaseSerializer(object):
     def is_valid(self, fields=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
 
-        :param list or tuple fields: List of field names (strings) to validate.
+        :param fields: List of field names (strings) to validate.
             If ``None``, all fields will be validated.
         """
         if fields is not None and type(fields) not in (list, tuple):

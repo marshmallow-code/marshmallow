@@ -97,7 +97,7 @@ Serializers can be nested to represent hierarchical structures. For example, a `
             self.title = title
             self.author = author  # A User object
 
-Use ``fields.Nested`` to represent the relationship, passing in the ``UserSerializer`` class.
+Use :class:`Nested <marshmallow.fields.Nested>` fields to represent the relationship, passing in the ``UserSerializer`` class.
 
 .. code-block:: python
 
@@ -121,7 +121,7 @@ When you serialize the blog, you will see the nested user representation.
 Specifying Nested Attributes
 ++++++++++++++++++++++++++++
 
-You can explicitly specify which attributes in the nested fields you want to serialize in the ``only`` argument.
+You can explicitly specify which attributes in the nested fields you intend to serialize in the ``only`` argument.
 
 .. code-block:: python
 

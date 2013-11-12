@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/types.py
 # See the NOTICE file for more licensing information.
-from datetime import datetime
 from email.utils import formatdate
 import re
 

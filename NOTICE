@@ -1,4 +1,4 @@
-marshamallow includes code from other Python libraries, including Flask-RESTful and Django.
+marshamallow includes code adapted from other Python libraries, including Flask-RESTful and Django.
 
 
 Flask-RESTful License
