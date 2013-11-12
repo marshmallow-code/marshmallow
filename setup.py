@@ -64,7 +64,7 @@ def read(fname):
 setup(
     name='marshmallow',
     version=__version__,
-    description=('A simple library for converting complex '
+    description=('A lightweight library for converting complex '
                 'datatypes into native Python datatypes.'),
     long_description=(read("README.rst") + '\n\n' +
                         read("HISTORY.rst")),
