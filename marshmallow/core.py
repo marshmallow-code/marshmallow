@@ -54,6 +54,7 @@ class BaseSerializer(object):
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
+        #: The serialized data as an ``OrderedDict``
         self.data = self.to_data()
         if extra:
             self.data.update(extra)

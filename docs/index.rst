@@ -1,8 +1,8 @@
 .. marshmallow documentation master file
 
-********************************************
-marshmallow: Simplified Object Serialization
-********************************************
+**********************************************************
+marshmallow: simplified object serialization for REST APIs
+**********************************************************
 
 Release v\ |version|. (:ref:`Installation <install>`)
 
@@ -35,3 +35,4 @@ Project Info
     :maxdepth: 1
 
     changelog
+    contributing

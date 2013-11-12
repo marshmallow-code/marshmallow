@@ -119,7 +119,7 @@ class Raw(Field):
 
 
 class Nested(Raw):
-    """Allows you to nest a :class:`Serializer <marshmallow.core.Serializer>`
+    """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
     or set of fields inside a field.
 
     Example: ::

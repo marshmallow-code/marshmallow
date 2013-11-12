@@ -252,6 +252,10 @@ p.admonition-title:after {
 
 pre, tt {
     font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 17px;
+}
+
+.highlight pre {
     font-size: 0.8em;
 }
 

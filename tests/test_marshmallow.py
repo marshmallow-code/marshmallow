@@ -39,7 +39,7 @@ class User(object):
 
     @property
     def is_old(self):
-        return self.age > 80
+        self.age > 80
 
 class Blog(object):
 
@@ -73,7 +73,10 @@ class UserSerializer(Serializer):
     lowername = fields.Function(lambda obj: obj.name.lower())
 
     def get_is_old(self, obj):
-        return obj.age > 80
+        try:
+            return obj.age > 80
+        except TypeError as te:
+            raise MarshallingException(te)
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
@@ -336,6 +339,13 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(s.data['user']['usr_name'], self.user.name)
         assert_equal(s.data['user']['usr_lowername'], self.user.name.lower())
 
+    def test_invalid_float_field(self):
+        user = User("Joe", age="1b2")
+        s = UserSerializer(user)
+        assert_false(s.is_valid(["age"]))
+        assert_in("age", s.errors)
+
+
 class TestFields(unittest.TestCase):
 
     def test_repr(self):
@@ -351,6 +361,10 @@ class TestFields(unittest.TestCase):
         u =  User("Foo", "foo@bar.com")
         field = fields.Function("uncallable")
         assert_raises(MarshallingException, lambda: field.output("key", u))
+
+    def test_to_marshallable_type(self):
+        u = User("Foo", "foo@bar.com")
+        assert_equal(fields._to_marshallable_type(u), u.__dict__)
 
 
 class TestTypes(unittest.TestCase):
