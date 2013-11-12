@@ -66,7 +66,7 @@ def email(value):
 
     :param string value: The email address to validate.
     :returns: The email address if valid.
-    :raises: ValueError
+    :raises: ValueError if email is invalid
     """
     error_message = "{0} is not a valid email address.".format(value)
     if not value or '@' not in value:
@@ -88,31 +88,6 @@ def email(value):
             pass
         raise ValueError(error_message)
     return value
-
-def date(value):
-    """Parse a valid looking date in the format YYYY-mm-dd"""
-    date = datetime.strptime(value, "%Y-%m-%d")
-    if date.year < 1900:
-        raise ValueError(u"Year must be >= 1900")
-    return date
-
-
-def natural(value):
-    """Parse a non-negative integer value"""
-    value = int(value)
-    if value < 0:
-        raise ValueError("Invalid literal for natural(): '{}'".format(value))
-    return value
-
-
-def boolean(value):
-    """Parse the string "true" or "false" as a boolean (case insensitive)"""
-    value = value.lower()
-    if value == 'true':
-        return True
-    if value == 'false':
-        return False
-    raise ValueError("Invalid literal for boolean(): {}".format(value))
 
 
 def rfc822(dt, localtime=False):

@@ -9,6 +9,7 @@ from nose.tools import *  # PEP8 asserts
 import pytz
 
 from marshmallow import Serializer, fields, types, pprint
+from marshmallow.exceptions import MarshallingException
 from marshmallow.compat import LINUX, unicode
 
 central = pytz.timezone("US/Central")
@@ -235,13 +236,11 @@ class TestSerializer(unittest.TestCase):
         assert_false(UserSerializer(invalid).is_valid(["email"]))
 
     def test_validating_nonexistent_field_raises_error(self):
-        with assert_raises(KeyError):
-            self.serialized.is_valid(["foobar"])
+        assert_raises(KeyError, lambda: self.serialized.is_valid(["foobar"]))
 
     def test_fields_param_must_be_list_or_tuple(self):
-        with assert_raises(ValueError):
-            invalid = User("John", email="johnexample.com")
-            UserSerializer(invalid).is_valid("name")
+        invalid = User("John", email="johnexample.com")
+        assert_raises(ValueError, lambda: UserSerializer(invalid).is_valid("name"))
 
     def test_extra(self):
         user = User("Joe", email="joe@foo.com")
@@ -264,7 +263,7 @@ class TestNestedSerializer(unittest.TestCase):
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
         self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"],
-                        collaborators=[col1 ,col2])
+                        collaborators=[col1, col2])
 
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)
@@ -319,6 +318,16 @@ class TestFields(unittest.TestCase):
         field = fields.String()
         assert_equal(repr(field), "<String Field>")
 
+    def test_function_field(self):
+        u =  User("Foo", "foo@bar.com")
+        field = fields.Function(lambda obj: obj.name.upper())
+        assert_equal("FOO", field.output("key", u))
+
+    def test_function_with_uncallable_param(self):
+        u =  User("Foo", "foo@bar.com")
+        field = fields.Function("uncallable")
+        assert_raises(MarshallingException, lambda: field.output("key", u))
+
 
 class TestTypes(unittest.TestCase):
 
@@ -335,6 +344,14 @@ class TestTypes(unittest.TestCase):
     def test_rfc822_central_localized(self):
         d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
         assert_equal(types.rfc822(d, localtime=True), "Sun, 10 Nov 2013 08:23:45 -0600")
+
+    def test_invalid_email(self):
+        invalid1 = "user@example"
+        assert_raises(ValueError, lambda: types.email(invalid1))
+        invalid2 = "example.com"
+        assert_raises(ValueError, lambda: types.email(invalid2))
+        invalid3 = "user"
+        assert_raises(ValueError, lambda: types.email(invalid3))
 
 
 if __name__ == '__main__':
