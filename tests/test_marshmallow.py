@@ -10,7 +10,13 @@ import pytz
 
 from marshmallow import Serializer, fields, types, pprint
 from marshmallow.exceptions import MarshallingException
-from marshmallow.compat import LINUX, unicode
+from marshmallow.compat import LINUX, unicode, PY26
+
+if PY26:
+    def assert_in(obj, cont):
+        assert obj in cont, "{0} not in {1}".format(obj, cont)
+    def assert_not_in(obj, cont):
+        assert obj not in cont, "{0} found in {1}".format(obj, cont)
 
 central = pytz.timezone("US/Central")
 
@@ -216,7 +222,8 @@ class TestSerializer(unittest.TestCase):
     def test_as_string(self):
         u = User("John", age=42.3)
         serialized = UserFloatStringSerializer(u)
-        assert_equal(serialized.data['age'], "42.3")
+        assert_equal(type(serialized.data['age']), str)
+        assert_almost_equal(float(serialized.data['age']), 42.3)
 
     def test_decimal_field(self):
         u = User("John", age=42.3)
