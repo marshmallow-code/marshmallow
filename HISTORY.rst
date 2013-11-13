@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * *class Meta* paradigm allows you to specify fields more concisely.
+* More useful error message when declaring fields as classes (instead of instance, which is correct).
 
 0.2.1 (2013-11-12)
 ++++++++++++++++++

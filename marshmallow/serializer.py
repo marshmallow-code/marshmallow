@@ -126,11 +126,24 @@ class BaseSerializer(base.SerializerABC):
         if utils.is_iterable_but_not_string(data):
             return [self.marshal(d, fields) for d in data]
         items = []
-        for k, v in iteritems(fields):
-            key = self.prefix + k
+        for attr_name, field_obj in iteritems(fields):
+            key = self.prefix + attr_name
             try:
-                item = (key, self.marshal(data, v) if isinstance(v, dict)
-                                            else v.output(k, data))
+                if isinstance(field_obj, dict):
+                    item = (key, self.marshal(data, field_obj))
+                else:
+                    try:
+                        item = (key, field_obj.output(attr_name, data))
+                    except TypeError:
+                        # field declared as a class, not an instance
+                        if issubclass(field_obj, base.FieldABC):
+                            msg = ('Field for "{0}" must be declared as a '
+                                            "Field instance, not a class. "
+                                            'Did you mean "fields.{1}()"?'
+                                            .format(attr_name, field_obj.__name__))
+                            raise TypeError(msg)
+                        raise
+
             except exceptions.MarshallingException as err:  # Store errors
                 self.errors[key] = text_type(err)
                 item = (key, None)

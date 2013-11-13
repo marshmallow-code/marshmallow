@@ -342,6 +342,11 @@ class TestSerializer(unittest.TestCase):
                 fields = ('name', 'notfound')
         assert_raises(AttributeError, lambda: BadUserSerializer(self.obj))
 
+    def test_fields_must_be_declared_as_instances(self):
+        class BadUserSerializer(Serializer):
+            name = fields.String
+        assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
+
 
 class TestNestedSerializer(unittest.TestCase):
 
