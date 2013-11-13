@@ -37,15 +37,11 @@ class SerializerOpts(object):
 
     def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
+        self.exclude = getattr(meta, 'exclude', ())
 
 
 class BaseSerializer(base.SerializerABC):
     '''Base serializer class which defines the interface for a serializer.
-
-    :param data: The object, dict, or list to be serialized.
-    :param dict extra: A dict of extra attributes to bind to the serialized result.
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
     '''
     type_mapping = {
         str: fields.String,
@@ -59,6 +55,14 @@ class BaseSerializer(base.SerializerABC):
     }
 
     class Meta(object):
+        '''Options object for a Serializer.
+
+        Example usage: ::
+
+            class Meta:
+                fields = ("id", "email", "date_created")
+                exclude = ("password", "secret_attribute")
+        '''
         pass
 
     def __init__(self, data=None, extra=None, prefix=''):
@@ -84,9 +88,9 @@ class BaseSerializer(base.SerializerABC):
         # If "fields" option is specified, use those fields
         if self.opts.fields:
             # Convert obj to a dict
-            obj_dict = utils.to_marshallable_type(self._data)
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
+            obj_dict = utils.to_marshallable_type(self._data)
             new = OrderedDict()
             for key in self.opts.fields:
                 if key in ret:
@@ -104,6 +108,14 @@ class BaseSerializer(base.SerializerABC):
                     else:
                         new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
             ret = new
+
+        # If "exclude" option is specified, remove those fields
+        if self.opts.exclude:
+            if not isinstance(self.opts.exclude, (list, tuple)):
+                raise ValueError("`exclude` option must be a list or tuple.")
+            for field_name in self.opts.exclude:
+                ret.pop(field_name, None)
+
         # Set parents
         for field_name, field_obj in iteritems(ret):
             if not field_obj.parent:
@@ -202,5 +214,8 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
 
     :param data: The object, dict, or list to be serialized.
+    :param dict extra: A dict of extra attributes to bind to the serialized result.
+    :param str prefix: Optional prefix that will be prepended to all the
+        serialized field names.
     '''
     pass

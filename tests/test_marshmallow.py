@@ -109,6 +109,11 @@ class UserMetaSerializer(Serializer):
                    "updated_local", "species", 'registered', 'hair_colors',
                    'sex_choices', "finger_count")
 
+
+class UserExcludeSerializer(UserSerializer):
+    class Meta:
+        exclude = ("created", "updated", "field_not_found_but_thats_ok")
+
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
 
@@ -311,6 +316,17 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(self.obj, prefix="usr_")
         assert_equal(s.data['usr_name'], self.obj.name)
 
+    def test_fields_must_be_declared_as_instances(self):
+        class BadUserSerializer(Serializer):
+            name = fields.String
+        assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
+
+
+class TestMetaOptions(unittest.TestCase):
+    def setUp(self):
+        self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
+        self.serialized = UserSerializer(self.obj)
+
     def test_meta_serializer_fields(self):
         u = User("John", age=42.3, email="john@example.com",
                 homepage="http://john.com")
@@ -342,10 +358,23 @@ class TestSerializer(unittest.TestCase):
                 fields = ('name', 'notfound')
         assert_raises(AttributeError, lambda: BadUserSerializer(self.obj))
 
-    def test_fields_must_be_declared_as_instances(self):
-        class BadUserSerializer(Serializer):
-            name = fields.String
-        assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
+    def test_exclude_fields(self):
+        s = UserExcludeSerializer(self.obj)
+        assert_not_in("created", s.data)
+        assert_not_in("updated", s.data)
+        assert_in("name", s.data)
+
+    def test_fields_option_must_be_list_or_tuple(self):
+        class BadFields(Serializer):
+            class Meta:
+                fields = "name"
+        assert_raises(ValueError, lambda: BadFields(self.obj))
+
+    def test_exclude_option_must_be_list_or_tuple(self):
+        class BadExclude(Serializer):
+            class Meta:
+                exclude = "name"
+        assert_raises(ValueError, lambda: BadExclude(self.obj))
 
 
 class TestNestedSerializer(unittest.TestCase):
