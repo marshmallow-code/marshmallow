@@ -4,9 +4,92 @@
 Examples
 ********
 
+The examples below will use `httpie <http://github.com/jkbr/httpie>`_ (a curl-like tool) for testing the APIs.
 
-With Flask
-==========
+Text Analysis API (Bottle + TextBlob)
+=====================================
+
+Here is a very simple text analysis API using `bottle <http://bottlepy.org>`_ and `TextBlob <http://textblob.readthedocs.org/>`_ that demonstrates how to declare an object serializer.
+
+.. code-block:: python
+
+    from bottle import route, request, run
+    from textblob import TextBlob, Word
+    from marshmallow import Serializer, fields
+
+
+    class BlobSerializer(Serializer):
+        polarity = fields.Float()
+        subjectivity = fields.Float()
+        chunks = fields.List(fields.String, attribute="noun_phrases")
+        tags = fields.Raw()
+        discrete_sentiment = fields.Method("get_discrete_sentiment")
+        word_count = fields.Function(lambda obj: len(obj.words))
+
+        def get_discrete_sentiment(self, obj):
+            if obj.polarity > 0.1:
+                return 'positive'
+            elif obj.polarity < -0.1:
+                return 'negative'
+            else:
+                return 'neutral'
+
+
+    @route("/api/v1/analyze", method="POST")
+    def analyze():
+        blob = TextBlob(request.json['text'])
+        return BlobSerializer(blob).data
+
+
+    run(port=5000)
+
+Using The API
+-------------
+
+First, run the app.
+
+.. code-block:: bash
+
+    $ python textblob_example.py
+
+Then send a POST request with some text.
+
+.. code-block:: bash
+
+    $ http POST localhost:5000/api/v1/analyze text="Simple is better"
+    HTTP/1.0 200 OK
+    Content-Length: 189
+    Content-Type: application/json
+    Date: Wed, 13 Nov 2013 08:58:40 GMT
+    Server: WSGIServer/0.1 Python/2.7.5
+
+    {
+        "chunks": [
+            "simple"
+        ],
+        "discrete_sentiment": "positive",
+        "polarity": 0.25,
+        "subjectivity": 0.4285714285714286,
+        "tags": [
+            [
+                "Simple",
+                "NN"
+            ],
+            [
+                "is",
+                "VBZ"
+            ],
+            [
+                "better",
+                "JJR"
+            ]
+        ],
+        "word_count": 3
+    }
+
+
+Quotes API (Flask + SQL-Alchemy)
+================================
 
 Below is a full example of a REST API for a quotes app using Flask and SQL-Alchemy with marshmallow.
 
@@ -14,7 +97,7 @@ Below is a full example of a REST API for a quotes app using Flask and SQL-Alche
 
     from datetime import datetime
 
-    from flask import Flask, jsonify, request
+    from flask import Flask, jsonify, request, Response
     from sqlalchemy.exc import IntegrityError
     from flask.ext.sqlalchemy import SQLAlchemy
     from marshmallow import Serializer, fields
@@ -91,30 +174,27 @@ Below is a full example of a REST API for a quotes app using Flask and SQL-Alche
         else:  # For GET requests, just return all the quotes
             quotes = Quote.query.all()
             serialized = QuoteSerializer(quotes)
-            return serialized.json
+            return Response(serialized.json, mimetype="application/json")
 
     @app.route("/authors", methods=["GET", "POST"])
     def authors():
         # On POST requests, create a new author
         if request.method == "POST":
             serialized = AuthorSerializer(request.json)
-            if serialized.is_valid():  # Validate the POSTed data
+            if serialized.is_valid():
                 author = Author(request.json['first_name'], request.json['last_name'])
                 success = True
-                errors = {}
                 try:
                     db.session.add(author)
                     db.session.commit()
                 except IntegrityError:
-                    errors['author'] = "Author already exists."
                     success = False
             else:
-                errors.update(serialized.errors)
                 success = False
-            return jsonify({"success": success, "errors": errors})
+            return jsonify({"success": success})
         else:  # For GET requests, just return all the users
             authors = Author.query.all()
-            return AuthorSerializer(authors).json
+            return Response(AuthorSerializer(authors).json, mimetype="application/json")
 
 
     if __name__ == '__main__':
@@ -122,33 +202,58 @@ Below is a full example of a REST API for a quotes app using Flask and SQL-Alche
         app.run(port=5000)
 
 
+
 Using the API
 -------------
 
-We'll use `requests <http://python-requests.org>`_ to test our API.
+Run the app.
 
-First, we'll send a POST request to ``/authors`` to create a new author.
+.. code-block:: bash
 
-.. code-block:: python
+    $ python flask_example.py
 
-    >>> import requests
-    >>> import json
-    >>> headers = {"Content-Type": "application/json"}
-    >>> base = "http://localhost:5000"
-    >>> r = requests.post(base + "/authors", json.dumps({"first_name": "Tim", "last_name": "Peters"}), headers=headers)
-    >>> r = requests.get(base + "/authors")
-    >>> r.json()
-    [{u'first_name': u'Tim', u'last_name': u'Peters', u'formatted': u'Peters, Tim', u'id': 1}]
+Send a POST request to ``/authors`` to create a new author.
+
+.. code-block:: bash
+
+    $ http POST localhost:5000/authors first_name="Tim" last_name="Peters"
+    HTTP/1.0 200 OK
+    Content-Length: 21
+    Content-Type: application/json
+    Date: Wed, 13 Nov 2013 08:40:51 GMT
+    Server: Werkzeug/0.9.4 Python/2.7.5
+
+    {
+        "success": true
+    }
 
 Next we'll create a new quote by sending a POST request to ``/quotes``.
 
-.. code-block:: python
+.. code-block:: bash
 
-    >>> payload = json.dumps({"author": "Tim Peters", "quote": "Simple is better than complex"})
-    >>> r = requests.post(base + "/quotes", payload, headers=headers)
+    $ http POST localhost:5000/quotes author="Tim Peters" quote="Simple is better than complex."
 
 We can get the serialized quotes by sending a GET request to ``/quotes``.
 
-    >>> r = requests.get(base + "/quotes")
-    >>> r.json()
-    [{u'content': u'Simple is better than complex', u'posted_at': u'Mon, 11 Nov 2013 21:37:19 -0000', u'author': {u'first_name': u'Tim', u'last_name': u'Peters', u'formatted': u'Peters, Tim', u'id': 1}}]
+.. code-block:: bash
+
+    $ http GET localhost:5000/quotes
+    HTTP/1.0 200 OK
+    Content-Length: 188
+    Content-Type: application/json
+    Date: Wed, 13 Nov 2013 09:04:33 GMT
+    Server: Werkzeug/0.9.4 Python/2.7.5
+
+    [
+        {
+            "author": {
+                "first_name": "Tim",
+                "formatted": "Peters, Tim",
+                "id": 1,
+                "last_name": "Peters"
+            },
+            "content": "Simple is better than complex.",
+            "posted_at": "Wed, 13 Nov 2013 08:41:58 -0000"
+        }
+    ]
+
