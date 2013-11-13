@@ -5,4 +5,5 @@ __version__ = '0.2.1'
 __author__ = 'Steven Loria'
 __license__ = "MIT"
 
-from marshmallow.core import Serializer, pprint
+from marshmallow.serializer import Serializer
+from marshmallow.utils import pprint

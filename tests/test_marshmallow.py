@@ -8,7 +8,7 @@ import datetime as dt
 from nose.tools import *  # PEP8 asserts
 import pytz
 
-from marshmallow import Serializer, fields, types, pprint
+from marshmallow import Serializer, fields, types, pprint, utils
 from marshmallow.exceptions import MarshallingException
 from marshmallow.compat import LINUX, unicode, PY26
 
@@ -77,6 +77,24 @@ class UserSerializer(Serializer):
             return obj.age > 80
         except TypeError as te:
             raise MarshallingException(te)
+
+class UserMetaSerializer(Serializer):
+
+    uppername = Uppercased(attribute='name')
+    balance = fields.Price()
+    is_old = fields.Method("get_is_old")
+    lowername = fields.Function(lambda obj: obj.name.lower())
+
+
+    def get_is_old(self, obj):
+        try:
+            return obj.age > 80
+        except TypeError as te:
+            raise MarshallingException(te)
+
+    class Meta:
+        fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
+                   'uppername', 'email', 'balance', 'is_old', 'lowername')
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
@@ -362,9 +380,12 @@ class TestFields(unittest.TestCase):
         field = fields.Function("uncallable")
         assert_raises(MarshallingException, lambda: field.output("key", u))
 
+
+class TestUtils(unittest.TestCase):
+
     def test_to_marshallable_type(self):
         u = User("Foo", "foo@bar.com")
-        assert_equal(fields._to_marshallable_type(u), u.__dict__)
+        assert_equal(utils.to_marshallable_type(u), u.__dict__)
 
 
 class TestTypes(unittest.TestCase):

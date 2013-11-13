@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.3.0 (unreleased)
+++++++++++++++++++
+
+* *class Meta* paradigm allows you to specify fields more concisely.
+
 0.2.1 (2013-11-12)
 ++++++++++++++++++
 

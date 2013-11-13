@@ -6,16 +6,28 @@ See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
 file for more licensing information.
 '''
 from __future__ import absolute_import
-from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN, Inexact, Context
+from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
-from marshmallow import core, types
-from marshmallow.base import Field
+from marshmallow import types, utils
+from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import text_type, OrderedDict
 from marshmallow.exceptions import MarshallingException
 
 
-def _is_indexable_but_not_string(obj):
-    return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
+def marshal(data, fields):
+    """Takes raw data (in the form of a dict, list, object) and a dict of
+    fields to output and filters the data based on those fields.
+
+    :param data: The actual object(s) from which the fields are taken from
+    :param dict fields: A dict whose keys will make up the final serialized
+                   response output
+    """
+    if utils.is_iterable_but_not_string(data):
+        return [marshal(d, fields) for d in data]
+    items = ((k, marshal(data, v) if isinstance(v, dict)
+                                  else v.output(k, data))
+                                  for k, v in fields.items())
+    return OrderedDict(items)
 
 
 def _get_value(key, obj, default=None):
@@ -35,7 +47,7 @@ def _get_value_for_keys(keys, obj, default):
 
 
 def _get_value_for_key(key, obj, default):
-    if _is_indexable_but_not_string(obj):
+    if utils.is_indexable_but_not_string(obj):
         try:
             return obj[key]
         except KeyError:
@@ -45,35 +57,7 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
-def _to_marshallable_type(obj):
-    """Helper for converting an object to a dictionary only if it is not
-    dictionary already or an indexable object nor a simple type"""
-    if obj is None:
-        return None  # make it idempotent for None
-
-    if hasattr(obj, '__getitem__'):
-        return obj  # it is indexable it is ok
-
-    if hasattr(obj, '__marshallable__'):
-        return obj.__marshallable__()
-
-    return dict(obj.__dict__)
-
-
-def float_to_decimal(f):
-    "Convert a floating point number to a Decimal with no loss of information"
-    n, d = f.as_integer_ratio()
-    numerator, denominator = MyDecimal(n), MyDecimal(d)
-    ctx = Context(prec=60)
-    result = ctx.divide(numerator, denominator)
-    while ctx.flags[Inexact]:
-        ctx.flags[Inexact] = False
-        ctx.prec *= 2
-        result = ctx.divide(numerator, denominator)
-    return result
-
-
-class Raw(Field):
+class Raw(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized. Fields should
@@ -136,10 +120,10 @@ class Nested(Raw):
 
     def __init__(self, nested, exclude=None, only=None, allow_null=False, **kwargs):
         try:
-            if issubclass(nested, core.Serializer):
+            if issubclass(nested, SerializerABC):
                 self.serializer = nested()
         except TypeError:
-            if isinstance(nested, core.Serializer):
+            if isinstance(nested, SerializerABC):
                 self.serializer = nested
 
         self.nested =  self.serializer.fields
@@ -179,13 +163,13 @@ class List(Raw):
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):
-            if not issubclass(cls_or_instance, Field):
+            if not issubclass(cls_or_instance, FieldABC):
                 raise MarshallingException("The type of the list elements "
                                            "must be a subclass of "
                                            "marshmallow.base.Field")
             self.container = cls_or_instance()
         else:
-            if not isinstance(cls_or_instance, Field):
+            if not isinstance(cls_or_instance, FieldABC):
                 raise MarshallingException("The instances of the list "
                                            "elements must be of type "
                                            "marshmallow.base.Field")
@@ -194,7 +178,7 @@ class List(Raw):
     def output(self, key, data):
         value = self.get_value(key, data)
         # we cannot really test for external dict behavior
-        if _is_indexable_but_not_string(value) and not isinstance(value, dict):
+        if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
             # Convert all instances in typed list to container type
             return [self.container.output(idx, value) for idx, val
                     in enumerate(value)]
@@ -202,7 +186,7 @@ class List(Raw):
         if value is None:
             return self.default
 
-        return [core.marshal(value, self.container.nested)]
+        return [marshal(value, self.container.nested)]
 
 
 class String(Raw):
@@ -262,7 +246,7 @@ class FormattedString(Raw):
 
     def output(self, key, obj):
         try:
-            data = _to_marshallable_type(obj)
+            data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
             raise MarshallingException(error)
@@ -290,8 +274,8 @@ class Arbitrary(NumberField):
     def format(self, value):
         try:
             if value is None:
-                return text_type(float_to_decimal(float(self.default)))
-            return text_type(float_to_decimal(float(value)))
+                return text_type(utils.float_to_decimal(float(self.default)))
+            return text_type(utils.float_to_decimal(float(value)))
         except ValueError as ve:
             raise MarshallingException(ve)
 
@@ -335,7 +319,7 @@ class Fixed(NumberField):
 
     def format(self, value):
         try:
-            dvalue = float_to_decimal(float(value))
+            dvalue = utils.float_to_decimal(float(value))
         except ValueError as ve:
             raise MarshallingException(ve)
         if not dvalue.is_normal() and dvalue != ZERO:

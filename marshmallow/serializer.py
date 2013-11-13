@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, print_function
+import datetime as dt
 import json
 import copy
 
@@ -7,18 +8,11 @@ from marshmallow import base, exceptions, fields, utils
 from marshmallow.compat import with_metaclass, iteritems, text_type, OrderedDict
 
 
-def is_instance_or_subclass(val, class_):
-    try:
-        return issubclass(val, class_)
-    except TypeError:
-        return isinstance(val, class_)
-
-
 def _get_declared_fields(bases, attrs):
     '''Return the declared fields of a class as an OrderedDict.'''
     declared = [(field_name, attrs.pop(field_name))
                 for field_name, val in list(iteritems(attrs))
-                if is_instance_or_subclass(val, base.FieldABC)]
+                if utils.is_instance_or_subclass(val, base.FieldABC)]
     # If subclassing another Serializer, inherit its fields
     # Loop in reverse to maintain the correct field order
     for base_class in bases[::-1]:
@@ -38,6 +32,13 @@ class SerializerMeta(type):
         return super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
 
+class SerializerOpts(object):
+    """class Meta options for the Serializer. Defines default options."""
+
+    def __init__(self, meta):
+        self.fields = getattr(meta, 'fields', ())
+
+
 class BaseSerializer(base.SerializerABC):
     '''Base serializer class which defines the interface for a serializer.
 
@@ -46,8 +47,22 @@ class BaseSerializer(base.SerializerABC):
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     '''
+    type_mapping = {
+        str: fields.String,
+        dt.datetime: fields.DateTime,
+        float: fields.Float,
+        bool: fields.Boolean,
+        tuple: fields.List,
+        list: fields.List,
+        set: fields.List,
+        int: fields.Integer,
+    }
+
+    class Meta(object):
+        pass
 
     def __init__(self, data=None, extra=None, prefix=''):
+        self.opts = SerializerOpts(self.Meta)
         self._data = data
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
@@ -59,12 +74,41 @@ class BaseSerializer(base.SerializerABC):
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
+        ret = OrderedDict()
         base_fields = copy.deepcopy(self._base_fields)  # Copy _base_fields
                                                         # from metaclass
+        # Explicitly declared fields
         for field_name, field_obj in iteritems(base_fields):
+            ret[field_name] = field_obj
+
+        # If "fields" option is specified, use those fields
+        if self.opts.fields:
+            # Convert obj to a dict
+            obj_dict = utils.to_marshallable_type(self._data)
+            if not isinstance(self.opts.fields, (list, tuple)):
+                raise ValueError("`fields` option must be a list or tuple.")
+            new = OrderedDict()
+            for key in self.opts.fields:
+                if key in ret:
+                    new[key] = ret[key]
+                else:
+                    try:
+                        attribute_type = type(obj_dict[key])
+                    except KeyError:
+                        raise AttributeError(
+                            '"{0}" is not a valid field for the object.'.format(key))
+                    # map key -> field (default to Raw)
+                    if self.type_mapping.get(attribute_type) == fields.List:
+                        # Iterables are mapped to Raw Lists
+                        new[key] = fields.List(fields.Raw)
+                    else:
+                        new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
+            ret = new
+        # Set parents
+        for field_name, field_obj in iteritems(ret):
             if not field_obj.parent:
                 field_obj.parent = self
-        return base_fields
+        return ret
 
     @property
     def json(self):
@@ -133,6 +177,11 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         class PersonSerializer(Serializer):
             name = fields.String()
             date_born = fields.DateTime()
+
+        # Or, equivalently
+        class PersonSerializer2(Serializer):
+            class Meta:
+                fields = ("name", "date_born")
 
         person = Person("Guido van Rossum")
         serialized = PersonSerializer(person)
