@@ -140,6 +140,9 @@ class BlogSerializer(Serializer):
     collaborators = fields.Nested(UserSerializer)
     categories = fields.List(fields.String)
 
+class BlogUserMetaSerializer(Serializer):
+    user = fields.Nested(UserMetaSerializer)
+
 
 class BlogSerializerMeta(Serializer):
     '''Same as BlogSerializer but using ``fields`` options.'''
@@ -466,6 +469,12 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(s.data['collaborators'], [UserSerializer(c).data
                                                 for c in self.blog.collaborators])
         assert_equal(s.data['categories'], self.blog.categories)
+
+    def test_serializer_with_nested_meta_fields(self):
+        # Serializer has user = fields.Nested(UserMetaSerializer)
+        s = BlogUserMetaSerializer(self.blog)
+        pprint(s.data['user'])
+        assert_equal(s.data['user'], UserMetaSerializer(self.blog.user).data)
 
 
 class TestFields(unittest.TestCase):

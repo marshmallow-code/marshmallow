@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 '''Field classes for formatting and validating the serialized object.
-
-Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
-See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
-file for more licensing information.
 '''
+# Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
+# See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
+# file for more licensing information.
+
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
@@ -12,6 +12,8 @@ from marshmallow import types, utils
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import text_type, OrderedDict
 from marshmallow.exceptions import MarshallingException
+
+
 
 
 def marshal(data, fields):
@@ -119,32 +121,39 @@ class Nested(Raw):
     """
 
     def __init__(self, nested, exclude=None, only=None, allow_null=False, **kwargs):
-        try:
-            if issubclass(nested, SerializerABC):
-                self.serializer = nested()
-        except TypeError:
-            if isinstance(nested, SerializerABC):
-                self.serializer = nested
-
-        self.nested =  self.serializer.fields
+        self.nested = nested
         self.allow_null = allow_null
-        # Marshall all fields by default
-        self.only = set(self.nested) if only is None else set(only)
-        if exclude and only:
-            # Make sure the only takes precedence
-            self.exclude = set(exclude) - self.only
-        else:
-            self.exclude = set([]) if exclude is None else set(exclude)
+        self.only = only
+        self.exclude = exclude
         super(Nested, self).__init__(**kwargs)
 
+    def __get_fields_to_marshal(self, all_fields):
+        '''Filter the all_fields based on self.only and self.exclude.'''
+        # Default 'only' to all the nested fields
+        only = set(all_fields) if self.only is None else set(self.only)
+        if self.exclude and self.only:
+            # Make sure that only takes precedence
+            exclude = set(self.exclude) - only
+        else:
+            exclude = set([]) if self.exclude is None else set(self.exclude)
+        filtered = ((k, v) for k, v in all_fields.items()
+                    if k in only and k not in exclude)
+        return OrderedDict(filtered)
+
     def output(self, key, obj):
-        value = self.get_value(key, obj)
-        if self.allow_null and value is None:
+        nested_obj = self.get_value(key, obj)
+        if self.allow_null and nested_obj is None:
             return None
-        filtered = ((k, v) for k, v in self.nested.items()
-                    if k in self.only and k not in self.exclude)
-        fields = OrderedDict(filtered)
-        ret = self.serializer.marshal(value, fields)
+        try:
+            if issubclass(self.nested, SerializerABC):
+                self.serializer = self.nested(nested_obj)
+            else:
+                self.serializer = self.nested(nested_obj)
+        except TypeError:
+            if isinstance(self.nested, SerializerABC):
+                self.serializer = self.nested
+        fields = self.__get_fields_to_marshal(self.serializer.fields)
+        ret = self.serializer.marshal(nested_obj, fields)
         # Parent should get any errors stored after marshalling
         if self.serializer.errors:
             self.parent.errors[key] = self.serializer.errors
