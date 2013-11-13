@@ -4,8 +4,9 @@ Changelog
 0.3.0 (unreleased)
 ++++++++++++++++++
 
-* *class Meta* paradigm allows you to specify fields more concisely.
-* More useful error message when declaring fields as classes (instead of instance, which is correct).
+* *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
+* Allow date formats to be changed by passing ``format`` parameter to ``DateTime``. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
+* More useful error message when declaring fields as classes (instead of instance, which is the correct usage).
 
 0.2.1 (2013-11-12)
 ++++++++++++++++++

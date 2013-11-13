@@ -64,6 +64,8 @@ class UserSerializer(Serializer):
     name = fields.String()
     age = fields.Float()
     created = fields.DateTime()
+    created_formatted = fields.DateTime(format="%Y-%m-%d", attribute="created")
+    created_iso = fields.DateTime(format="iso", attribute="created")
     updated = fields.DateTime()
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
@@ -188,6 +190,14 @@ class TestSerializer(unittest.TestCase):
     def test_naive_datetime_field(self):
         assert_equal(self.serialized.data['created'],
                     'Sun, 10 Nov 2013 14:20:58 -0000')
+
+    def test_datetime_formatted_field(self):
+        assert_equal(self.serialized.data['created_formatted'],
+            self.obj.created.strftime("%Y-%m-%d"))
+
+    def test_datetime_iso_field(self):
+        assert_equal(self.serialized.data['created_iso'],
+            types.isoformat(self.obj.created))
 
     def test_tz_datetime_field(self):
         # Datetime is corrected back to GMT
@@ -335,8 +345,8 @@ class TestMetaOptions(unittest.TestCase):
         assert_equal(s.data['balance'], "100.00")
         assert_equal(s.data['uppername'], "JOHN")
         assert_false(s.data['is_old'])
-        assert_equal(s.data['created'], types.rfc822(u.created))
-        assert_equal(s.data['updated_local'], types.rfc822(u.updated, localtime=True))
+        assert_equal(s.data['created'], types.rfcformat(u.created))
+        assert_equal(s.data['updated_local'], types.rfcformat(u.updated, localtime=True))
         assert_equal(s.data['finger_count'], 10)
 
     def test_meta_fields_mapping(self):
@@ -460,19 +470,46 @@ class TestNestedSerializer(unittest.TestCase):
 
 class TestFields(unittest.TestCase):
 
+    def setUp(self):
+        self.user = User("Foo", "foo@bar.com")
+
     def test_repr(self):
         field = fields.String()
         assert_equal(repr(field), "<String Field>")
 
     def test_function_field(self):
-        u =  User("Foo", "foo@bar.com")
         field = fields.Function(lambda obj: obj.name.upper())
-        assert_equal("FOO", field.output("key", u))
+        assert_equal("FOO", field.output("key", self.user))
 
     def test_function_with_uncallable_param(self):
-        u =  User("Foo", "foo@bar.com")
         field = fields.Function("uncallable")
-        assert_raises(MarshallingException, lambda: field.output("key", u))
+        assert_raises(MarshallingException, lambda: field.output("key", self.user))
+
+    def test_datetime_field(self):
+        field = fields.DateTime()
+        assert_equal(field.output("created", self.user),
+            types.rfcformat(self.user.created, localtime=False))
+
+    def test_localdatetime_field(self):
+        field = fields.LocalDateTime()
+        assert_equal(field.output("created", self.user),
+            types.rfcformat(self.user.created, localtime=True))
+
+    def test_datetime_iso8601(self):
+        field = fields.DateTime(format="iso")
+        assert_equal(field.output("created", self.user),
+            types.isoformat(self.user.created, localtime=False))
+
+    def test_localdatetime_iso(self):
+        field = fields.LocalDateTime(format="iso")
+        assert_equal(field.output("created", self.user),
+            types.isoformat(self.user.created, localtime=True))
+
+    def test_datetime_format(self):
+        format = "%Y-%m-%d"
+        field = fields.DateTime(format=format)
+        assert_equal(field.output("created", self.user),
+            self.user.created.strftime(format))
 
 
 class TestUtils(unittest.TestCase):
@@ -484,19 +521,19 @@ class TestUtils(unittest.TestCase):
 
 class TestTypes(unittest.TestCase):
 
-    def test_rfc822_gmt_naive(self):
+    def test_rfcformat_gmt_naive(self):
         d = dt.datetime(2013, 11, 10, 1, 23, 45)
-        assert_equal(types.rfc822(d), "Sun, 10 Nov 2013 01:23:45 -0000")
+        assert_equal(types.rfcformat(d), "Sun, 10 Nov 2013 01:23:45 -0000")
 
     @unittest.skipIf(LINUX, "Skip due to different localtime behavior on Linux")
-    def test_rfc822_central(self):
+    def test_rfcformat_central(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        assert_equal(types.rfc822(d), 'Sun, 10 Nov 2013 07:23:45 -0000')
+        assert_equal(types.rfcformat(d), 'Sun, 10 Nov 2013 07:23:45 -0000')
 
     @unittest.skipIf(LINUX, "Skip due to different localtime behavior on Linux")
-    def test_rfc822_central_localized(self):
+    def test_rfcformat_central_localized(self):
         d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
-        assert_equal(types.rfc822(d, localtime=True), "Sun, 10 Nov 2013 08:23:45 -0600")
+        assert_equal(types.rfcformat(d, localtime=True), "Sun, 10 Nov 2013 08:23:45 -0600")
 
     def test_invalid_email(self):
         invalid1 = "user@example"
@@ -505,6 +542,19 @@ class TestTypes(unittest.TestCase):
         assert_raises(ValueError, lambda: types.email(invalid2))
         invalid3 = "user"
         assert_raises(ValueError, lambda: types.email(invalid3))
+
+    def test_isoformat(self):
+        d = dt.datetime(2013, 11, 10, 1, 23, 45)
+        assert_equal(types.isoformat(d), '2013-11-10T01:23:45+00:00')
+
+    def test_isoformat_tzaware(self):
+        d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
+        assert_equal(types.isoformat(d), "2013-11-10T07:23:45+00:00")
+
+    def test_isoformat_localtime(self):
+        d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
+        assert_equal(types.isoformat(d, localtime=True), "2013-11-10T01:23:45-06:00")
+
 
 
 if __name__ == '__main__':

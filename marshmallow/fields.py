@@ -280,32 +280,49 @@ class Arbitrary(NumberField):
         except ValueError as ve:
             raise MarshallingException(ve)
 
+dateformat_functions = {
+    "iso": types.isoformat,
+    "rfc": types.rfcformat,
+}
+
 
 class DateTime(Raw):
-    """A RFC822-formatted datetime string in UTC.
+    """A formatted datetime string in UTC.
+
+    :param default: Default value for the field if the attribute is not set.
+    :param str attribute: The name of the attribute to get the value from. If
+        ``None``, assumes the attribute has the same name as the field.
+    :param str format: Either a date format string, ``"rfc"`` (for RFC822),
+        or ``"iso"`` (for ISO8601).
     """
+    localtime = False
+
+    def __init__(self, default=None, attribute=None, format="rfc"):
+        super(DateTime, self).__init__(default=default, attribute=attribute)
+        self.dateformat = format
 
     def format(self, value):
         try:
-            return types.rfc822(value, localtime=False)
+            format_func = dateformat_functions.get(self.dateformat, None)
+            if format_func:
+                return format_func(value, localtime=self.localtime)
+            else:
+                return value.strftime(self.dateformat)
         except AttributeError as ae:
             raise MarshallingException(ae)
 
 
-class LocalDateTime(Raw):
-    """A RFC822-formatted datetime string in localized time, relative to UTC.
+class LocalDateTime(DateTime):
+    """A formatted datetime string in localized time, relative to UTC.
+    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
 
     .. warning::
         Output may be different on different operating systems due to variations
         in how localtimes are handled. When in doubt, use the
         :class:`DateTime <marshmallow.fields.DateTime>` field.
     """
+    localtime = True
 
-    def format(self, value):
-        try:
-            return types.rfc822(value, localtime=True)
-        except AttributeError as ae:
-            raise MarshallingException(ae)
 
 ZERO = MyDecimal()
 
