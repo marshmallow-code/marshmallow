@@ -5,7 +5,8 @@ import json
 import copy
 
 from marshmallow import base, exceptions, fields, utils
-from marshmallow.compat import with_metaclass, iteritems, text_type, OrderedDict
+from marshmallow.compat import (with_metaclass, iteritems, text_type,
+                                binary_type, OrderedDict)
 
 
 def _get_declared_fields(bases, attrs, field_class):
@@ -44,7 +45,8 @@ class BaseSerializer(base.SerializerABC):
     '''Base serializer class which defines the interface for a serializer.
     '''
     type_mapping = {
-        str: fields.String,
+        text_type: fields.String,
+        binary_type: fields.String,
         dt.datetime: fields.DateTime,
         float: fields.Float,
         bool: fields.Boolean,
