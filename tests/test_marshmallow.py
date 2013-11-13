@@ -25,7 +25,9 @@ central = pytz.timezone("US/Central")
 class User(object):
     SPECIES = "Homo sapiens"
 
-    def __init__(self, name, age=0, id_=None, homepage=None, email=None):
+
+    def __init__(self, name, age=0, id_=None, homepage=None,
+                email=None, registered=True):
         self.name = name
         self.age = age
         # A naive datetime
@@ -36,10 +38,11 @@ class User(object):
         self.homepage = homepage
         self.email = email
         self.balance = 100
+        self.registered = True
+        self.hair_colors = ['black', 'brown', 'blond', 'redhead']
+        self.sex_choices = ('male', 'female')
+        self.finger_count = 10
 
-    @property
-    def is_old(self):
-        self.age > 80
 
 class Blog(object):
 
@@ -71,6 +74,10 @@ class UserSerializer(Serializer):
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
     lowername = fields.Function(lambda obj: obj.name.lower())
+    registered = fields.Boolean()
+    hair_colors = fields.List(fields.Raw)
+    sex_choices = fields.List(fields.Raw)
+    finger_count = fields.Integer()
 
     def get_is_old(self, obj):
         try:
@@ -79,12 +86,16 @@ class UserSerializer(Serializer):
             raise MarshallingException(te)
 
 class UserMetaSerializer(Serializer):
+    '''The equivalent of the UserSerializer, using the ``fields`` option.'''
 
     uppername = Uppercased(attribute='name')
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
     lowername = fields.Function(lambda obj: obj.name.lower())
-
+    updated_local = fields.LocalDateTime(attribute="updated")
+    species = fields.String(attribute="SPECIES")
+    homepage = fields.Url()
+    email = fields.Email()
 
     def get_is_old(self, obj):
         try:
@@ -94,7 +105,9 @@ class UserMetaSerializer(Serializer):
 
     class Meta:
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
-                   'uppername', 'email', 'balance', 'is_old', 'lowername')
+                   'uppername', 'email', 'balance', 'is_old', 'lowername',
+                   "updated_local", "species", 'registered', 'hair_colors',
+                   'sex_choices', "finger_count")
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
@@ -114,13 +127,20 @@ class ExtendedUserSerializer(UserSerializer):
 class UserRelativeUrlSerializer(UserSerializer):
     homepage = fields.Url(relative=True)
 
-
 class BlogSerializer(Serializer):
     title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer)
     categories = fields.List(fields.String)
 
+
+class BlogSerializerMeta(Serializer):
+    '''Same as BlogSerializer but using ``fields`` options.'''
+    user = fields.Nested(UserSerializer)
+    collaborators = fields.Nested(UserSerializer)
+
+    class Meta:
+        fields = ('title', 'user', 'collaborators', 'categories')
 
 class BlogSerializerOnly(Serializer):
     title = fields.String()
@@ -148,6 +168,7 @@ class TestSerializer(unittest.TestCase):
     def test_serializing_basic_object(self):
         assert_equal(self.serialized.data['name'], "Monty")
         assert_almost_equal(self.serialized.data['age'], 42.3)
+        assert_true(self.serialized.data['registered'])
 
     def test_fields_are_copies(self):
         s = UserSerializer(User("Monty", age=42))
@@ -290,6 +311,37 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(self.obj, prefix="usr_")
         assert_equal(s.data['usr_name'], self.obj.name)
 
+    def test_meta_serializer_fields(self):
+        u = User("John", age=42.3, email="john@example.com",
+                homepage="http://john.com")
+        s = UserMetaSerializer(u)
+        assert_equal(s.data['name'], u.name)
+        assert_equal(s.data['balance'], "100.00")
+        assert_equal(s.data['uppername'], "JOHN")
+        assert_false(s.data['is_old'])
+        assert_equal(s.data['created'], types.rfc822(u.created))
+        assert_equal(s.data['updated_local'], types.rfc822(u.updated, localtime=True))
+        assert_equal(s.data['finger_count'], 10)
+
+    def test_meta_fields_mapping(self):
+        s = UserMetaSerializer(self.obj)
+        assert_equal(type(s.fields['name']), fields.String)
+        assert_equal(type(s.fields['created']), fields.DateTime)
+        assert_equal(type(s.fields['updated']), fields.DateTime)
+        assert_equal(type(s.fields['updated_local']), fields.LocalDateTime)
+        assert_equal(type(s.fields['age']), fields.Float)
+        assert_equal(type(s.fields['balance']), fields.Price)
+        assert_equal(type(s.fields['registered']), fields.Boolean)
+        assert_equal(type(s.fields['sex_choices']), fields.List)
+        assert_equal(type(s.fields['hair_colors']), fields.List)
+        assert_equal(type(s.fields['finger_count']), fields.Integer)
+
+    def test_meta_field_not_on_obj_raises_attribute_error(self):
+        class BadUserSerializer(Serializer):
+            class Meta:
+                fields = ('name', 'notfound')
+        assert_raises(AttributeError, lambda: BadUserSerializer(self.obj))
+
 
 class TestNestedSerializer(unittest.TestCase):
 
@@ -362,6 +414,14 @@ class TestNestedSerializer(unittest.TestCase):
         s = UserSerializer(user)
         assert_false(s.is_valid(["age"]))
         assert_in("age", s.errors)
+
+    def test_serializer_meta_with_nested_fields(self):
+        s = BlogSerializerMeta(self.blog)
+        assert_equal(s.data['title'], self.blog.title)
+        assert_equal(s.data['user'], UserSerializer(self.user).data)
+        assert_equal(s.data['collaborators'], [UserSerializer(c).data
+                                                for c in self.blog.collaborators])
+        assert_equal(s.data['categories'], self.blog.categories)
 
 
 class TestFields(unittest.TestCase):

@@ -190,6 +190,7 @@ class List(Raw):
 
 
 class String(Raw):
+    """A string field."""
     def format(self, value):
         try:
             return text_type(value)

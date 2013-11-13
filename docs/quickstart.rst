@@ -209,6 +209,24 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
 
+Refactoring (Meta Options)
+--------------------------
+
+When your model has many attributes, it can get tedious to specify the field type for every attribute, especially when many of the attributes are already native Python datatypes.
+
+The *class Meta* paradigm allows you to specify which attributes you want to serialize and automatically chooses an appropriate field type based on the attribute's type.
+
+Let's refactor our User serializer to be more concise.
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        uppername = fields.Function(lambda obj: obj.name.upper())
+        class Meta:
+            fields = ("name", "email", "created_at", "uppername")
+
+Note that ``name`` will be automatically formatted as a :class:`String <marshmallow.fields.String>` and ``created_at`` will be formatted as a :class:`DateTime <marshmallow.fields.DateTime>`.
+
 
 Printing Serialized Data
 ------------------------
