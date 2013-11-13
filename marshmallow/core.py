@@ -2,10 +2,8 @@
 from __future__ import absolute_import, print_function
 import json
 import copy
-from pprint import pprint as py_pprint
 
-
-from marshmallow import base, exceptions
+from marshmallow import base, exceptions, fields, utils
 from marshmallow.compat import with_metaclass, iteritems, text_type, OrderedDict
 
 
@@ -20,7 +18,7 @@ def _get_declared_fields(bases, attrs):
     '''Return the declared fields of a class as an OrderedDict.'''
     declared = [(field_name, attrs.pop(field_name))
                 for field_name, val in list(iteritems(attrs))
-                if is_instance_or_subclass(val, base.Field)]
+                if is_instance_or_subclass(val, base.FieldABC)]
     # If subclassing another Serializer, inherit its fields
     # Loop in reverse to maintain the correct field order
     for base_class in bases[::-1]:
@@ -40,7 +38,7 @@ class SerializerMeta(type):
         return super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
 
-class BaseSerializer(object):
+class BaseSerializer(base.SerializerABC):
     '''Base serializer class which defines the interface for a serializer.
 
     :param data: The object, dict, or list to be serialized.
@@ -81,7 +79,7 @@ class BaseSerializer(object):
         :param dict fields: A dict whose keys will make up the final serialized
                        response output
         """
-        if _is_iterable_but_not_string(data):
+        if utils.is_iterable_but_not_string(data):
             return [self.marshal(d, fields) for d in data]
         items = []
         for k, v in iteritems(fields):
@@ -144,32 +142,3 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
     :param data: The object, dict, or list to be serialized.
     '''
     pass
-
-
-def _is_iterable_but_not_string(obj):
-    return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
-
-
-def marshal(data, fields):
-    """Takes raw data (in the form of a dict, list, object) and a dict of
-    fields to output and filters the data based on those fields.
-
-    :param data: The actual object(s) from which the fields are taken from
-    :param dict fields: A dict whose keys will make up the final serialized
-                   response output
-    """
-    if _is_iterable_but_not_string(data):
-        return [marshal(d, fields) for d in data]
-    items = ((k, marshal(data, v) if isinstance(v, dict)
-                                  else v.output(k, data))
-                                  for k, v in fields.items())
-    return OrderedDict(items)
-
-def pprint(obj, *args, **kwargs):
-    '''Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries.
-    '''
-    if isinstance(obj, OrderedDict):
-        print(json.dumps(obj, *args, **kwargs))
-    else:
-        py_pprint(obj, *args, **kwargs)
