@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import json
 from decimal import Decimal, Context, Inexact
-from .compat import OrderedDict
 from pprint import pprint as py_pprint
+
+from marshmallow.compat import OrderedDict
 
 def is_iterable_but_not_string(obj):
     return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
@@ -11,6 +13,12 @@ def is_iterable_but_not_string(obj):
 def is_indexable_but_not_string(obj):
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
+
+def is_instance_or_subclass(val, class_):
+    try:
+        return issubclass(val, class_)
+    except TypeError:
+        return isinstance(val, class_)
 
 def float_to_decimal(f):
     "Convert a floating point number to a Decimal with no loss of information"
