@@ -14,8 +14,6 @@ from marshmallow.compat import text_type, OrderedDict
 from marshmallow.exceptions import MarshallingException
 
 
-
-
 def marshal(data, fields):
     """Takes raw data (in the form of a dict, list, object) and a dict of
     fields to output and filters the data based on those fields.
@@ -144,14 +142,13 @@ class Nested(Raw):
         nested_obj = self.get_value(key, obj)
         if self.allow_null and nested_obj is None:
             return None
-        try:
-            if issubclass(self.nested, SerializerABC):
-                self.serializer = self.nested(nested_obj)
-            else:
-                self.serializer = self.nested(nested_obj)
-        except TypeError:
-            if isinstance(self.nested, SerializerABC):
-                self.serializer = self.nested
+        if isinstance(self.nested, SerializerABC):
+            self.serializer = self.nested
+        elif isinstance(self.nested, type) and \
+                issubclass(self.nested, SerializerABC):
+            self.serializer = self.nested(nested_obj)
+        else:
+            raise ValueError("Nested obj must be a Serializer.")
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         ret = self.serializer.marshal(nested_obj, fields)
         # Parent should get any errors stored after marshalling

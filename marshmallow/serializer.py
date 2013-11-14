@@ -50,9 +50,9 @@ class BaseSerializer(base.SerializerABC):
         dt.datetime: fields.DateTime,
         float: fields.Float,
         bool: fields.Boolean,
-        tuple: fields.List,
-        list: fields.List,
-        set: fields.List,
+        tuple: fields.Raw,
+        list: fields.Raw,
+        set: fields.Raw,
         int: fields.Integer,
     }
 
@@ -92,7 +92,11 @@ class BaseSerializer(base.SerializerABC):
             # Convert obj to a dict
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
-            obj_dict = utils.to_marshallable_type(self._data)
+            obj_marshallable = utils.to_marshallable_type(self._data)
+            if isinstance(obj_marshallable, (list, tuple)):  # Homogeneous list of objects
+                obj_dict = utils.to_marshallable_type(obj_marshallable[0])
+            else:
+                obj_dict = obj_marshallable
             new = OrderedDict()
             for key in self.opts.fields:
                 if key in ret:

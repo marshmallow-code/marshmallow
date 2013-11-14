@@ -375,8 +375,8 @@ class TestMetaOptions(unittest.TestCase):
         assert_equal(type(s.fields['age']), fields.Float)
         assert_equal(type(s.fields['balance']), fields.Price)
         assert_equal(type(s.fields['registered']), fields.Boolean)
-        assert_equal(type(s.fields['sex_choices']), fields.List)
-        assert_equal(type(s.fields['hair_colors']), fields.List)
+        assert_equal(type(s.fields['sex_choices']), fields.Raw)
+        assert_equal(type(s.fields['hair_colors']), fields.Raw)
         assert_equal(type(s.fields['finger_count']), fields.Integer)
 
     def test_meta_field_not_on_obj_raises_attribute_error(self):
