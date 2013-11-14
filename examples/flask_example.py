@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from flask import Flask, jsonify, request, Response
-from sqlalchemy.exc import IntegrityError
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from marshmallow import Serializer, fields
 
 app = Flask(__name__)
@@ -40,21 +40,22 @@ class Quote(db.Model):
     def __repr__(self):
         return '<Quote "{0}">'.format(self.content)
 
-##### Serializers #####
+##### SERIALIZERS #####
 
 class AuthorSerializer(Serializer):
-    id = fields.Integer()
-    first_name = fields.String()
-    last_name = fields.String()
     formatted = fields.Method("get_formatted_name")
 
     def get_formatted_name(self, obj):
         return "{last}, {first}".format(last=obj.last_name, first=obj.first_name)
 
+    class Meta:
+        fields = ("id", "first_name", "last_name", 'formatted')
+
 class QuoteSerializer(Serializer):
-    content = fields.String()
     author = fields.Nested(AuthorSerializer)
-    posted_at = fields.DateTime()
+
+    class Meta:
+        fields = ("content", "posted_at", 'author')
 
 ##### API #####
 

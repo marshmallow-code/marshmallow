@@ -4,15 +4,15 @@ Changelog
 0.3.0 (unreleased)
 ++++++++++++++++++
 
-* *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
-* Allow date formats to be changed by passing ``format`` parameter to ``DateTime``. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
-* More useful error message when declaring fields as classes (instead of instance, which is the correct usage).
+* Declaring Serializers just got even easier! The *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
+* Allow date formats to be changed by passing ``format`` parameter to ``DateTime`` field constructor. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
+* More useful error message when declaring fields as classes (instead of an instance, which is the correct usage).
 
 0.2.1 (2013-11-12)
 ++++++++++++++++++
 
 * Allow prefixing field names.
-* Fix storing of errors on Nested Serializers.
+* Fix storing errors on Nested Serializers.
 * Python 2.6 support.
 
 0.2.0 (2013-11-11)

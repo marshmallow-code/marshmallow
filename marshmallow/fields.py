@@ -296,12 +296,13 @@ dateformat_functions = {
 
 class DateTime(Raw):
     """A formatted datetime string in UTC.
+        ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
-    :param str format: Either a date format string, ``"rfc"`` (for RFC822),
-        or ``"iso"`` (for ISO8601).
+    :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
+        or a date format string.
     """
     localtime = False
 
@@ -322,6 +323,7 @@ class DateTime(Raw):
 
 class LocalDateTime(DateTime):
     """A formatted datetime string in localized time, relative to UTC.
+        ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
     Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
 
     .. warning::

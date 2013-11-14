@@ -99,7 +99,7 @@ Serializers can be nested to represent hierarchical structures. For example, a `
             self.title = title
             self.author = author  # A User object
 
-Use :class:`Nested <marshmallow.fields.Nested>` fields to represent the relationship, passing in the ``UserSerializer`` class.
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in the ``UserSerializer`` class.
 
 .. code-block:: python
 
@@ -116,14 +116,14 @@ When you serialize the blog, you will see the nested user representation.
     serialized = BlogSerializer(blog)
     serialized.data
     # {'author': {'created_at': 'Sun, 10 Nov 2013 16:10:57 -0000',
-    #   'email': u'monty@python.org',
-    #   'name': u'Monty'},
+    #               'email': u'monty@python.org',
+    #               'name': u'Monty'},
     #  'title': u'Something Completely Different'}
 
 Specifying Nested Attributes
 ++++++++++++++++++++++++++++
 
-You can explicitly specify which attributes in the nested fields you intend to serialize in the ``only`` argument.
+You can explicitly specify which attributes in the nested fields you want to serialize with the ``only`` argument.
 
 .. code-block:: python
 
@@ -179,6 +179,12 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
         def format(self, value):
             return value.title()
 
+    class UserSerializer(Serializer):
+        name = fields.String()
+        email = fields.String()
+        created_at = fields.DateTime()
+        titlename = TitleCased(attribute="name")
+
 Method Fields
 +++++++++++++
 
@@ -212,9 +218,9 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
 Refactoring (Meta Options)
 --------------------------
 
-When your model has many attributes, it can get tedious to specify the field type for every attribute, especially when many of the attributes are already native Python datatypes.
+When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
 
-The *class Meta* paradigm allows you to specify which attributes you want to serialize and automatically chooses an appropriate field type based on the attribute's type.
+The *class Meta* paradigm allows you to specify which attributes you want to serialize. **marshmallow** will choose an appropriate field type based on the attribute's type.
 
 Let's refactor our User serializer to be more concise.
 
