@@ -67,9 +67,9 @@ class BaseSerializer(base.SerializerABC):
         '''
         pass
 
-    def __init__(self, data=None, extra=None, prefix=''):
+    def __init__(self, obj=None, extra=None, prefix=''):
         self.opts = SerializerOpts(self.Meta)
-        self._data = data
+        self.obj = obj
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
@@ -92,7 +92,7 @@ class BaseSerializer(base.SerializerABC):
             # Convert obj to a dict
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
-            obj_marshallable = utils.to_marshallable_type(self._data)
+            obj_marshallable = utils.to_marshallable_type(self.obj)
             if isinstance(obj_marshallable, (list, tuple)):  # Homogeneous list of objects
                 obj_dict = utils.to_marshallable_type(obj_marshallable[0])
             else:
@@ -169,7 +169,7 @@ class BaseSerializer(base.SerializerABC):
         return OrderedDict(items)
 
     def to_data(self, *args, **kwargs):
-        return self.marshal(self._data, self.fields)
+        return self.marshal(self.obj, self.fields)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
@@ -219,7 +219,7 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized.data
         # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
 
-    :param data: The object, dict, or list to be serialized.
+    :param obj: The object or list or objects to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.

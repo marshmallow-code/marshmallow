@@ -169,6 +169,7 @@ class BlogSerializerOnlyExclude(BlogSerializer):
 
 class BlogSerializerPrefixedUser(BlogSerializer):
     user = fields.Nested(UserSerializer(prefix="usr_"))
+    collaborators = fields.Nested(UserSerializer(prefix="usr_"))
 
 ##### The Tests #####
 
@@ -476,6 +477,11 @@ class TestNestedSerializer(unittest.TestCase):
         s = BlogSerializerPrefixedUser(self.blog)
         assert_equal(s.data['user']['usr_name'], self.user.name)
         assert_equal(s.data['user']['usr_lowername'], self.user.name.lower())
+
+    def test_nested_prefixed_many_field(self):
+        s = BlogSerializerPrefixedUser(self.blog)
+        assert_equal(s.data['collaborators'][0]['usr_name'],
+                     self.blog.collaborators[0].name)
 
     def test_invalid_float_field(self):
         user = User("Joe", age="1b2")
