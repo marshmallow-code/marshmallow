@@ -496,6 +496,11 @@ class TestNestedSerializer(unittest.TestCase):
         s = BlogUserMetaSerializer(self.blog)
         assert_equal(s.data['user'], UserMetaSerializer(self.blog.user).data)
 
+    def test_nested_fields_must_be_passed_a_serializer(self):
+        class BadNestedFieldSerializer(BlogSerializer):
+            user = fields.Nested(fields.String)
+        assert_raises(ValueError, lambda: BadNestedFieldSerializer(self.blog))
+
 
 class TestFields(unittest.TestCase):
 

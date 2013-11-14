@@ -144,11 +144,13 @@ class Nested(Raw):
             return None
         if isinstance(self.nested, SerializerABC):
             self.serializer = self.nested
+            self.nested._data = nested_obj
         elif isinstance(self.nested, type) and \
                 issubclass(self.nested, SerializerABC):
             self.serializer = self.nested(nested_obj)
         else:
-            raise ValueError("Nested obj must be a Serializer.")
+            raise ValueError("Nested fields must be passed a Serializer, not {0}."
+                            .format(self.nested.__class__))
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         ret = self.serializer.marshal(nested_obj, fields)
         # Parent should get any errors stored after marshalling
