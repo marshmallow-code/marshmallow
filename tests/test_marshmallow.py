@@ -43,6 +43,9 @@ class User(object):
         self.sex_choices = ('male', 'female')
         self.finger_count = 10
 
+    def __repr__(self):
+        return "<User {0}>".format(self.name)
+
 
 class Blog(object):
 
@@ -142,6 +145,7 @@ class BlogSerializer(Serializer):
 
 class BlogUserMetaSerializer(Serializer):
     user = fields.Nested(UserMetaSerializer)
+    collaborators = fields.Nested(UserMetaSerializer)
 
 
 class BlogSerializerMeta(Serializer):
@@ -223,6 +227,16 @@ class TestSerializer(unittest.TestCase):
         assert_equal(len(serialized.data), 2)
         assert_equal(serialized.data[0]['name'], "Mick")
         assert_equal(serialized.data[1]['name'], "Keith")
+
+    def test_serialize_many_with_meta(self):
+        user1 = User(name="Mick", age=123)
+        user2 = User(name="Keith", age=456)
+        users = [user1, user2]
+        s = UserMetaSerializer(users)
+        assert_equal(len(s.data), 2)
+        assert_equal(s.data[0]['name'], "Mick")
+        assert_equal(s.data[0]['created'], types.rfcformat(user1.created))
+        assert_equal(s.data[1]['name'], "Keith")
 
     def test_inheriting_serializer(self):
         serialized = ExtendedUserSerializer(self.obj)
@@ -409,6 +423,13 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(serialized_blog.data['collaborators'],
             [UserSerializer(col).data for col in self.blog.collaborators])
 
+    def test_nested_meta_many(self):
+        serialized_blog = BlogUserMetaSerializer(self.blog)
+        assert_equal(len(serialized_blog.data['collaborators']), 2)
+        pprint(serialized_blog.data['collaborators'][0])
+        assert_equal(serialized_blog.data['collaborators'],
+            [UserMetaSerializer(col).data for col in self.blog.collaborators])
+
     def test_nested_only(self):
         col1 = User(name="Mick", age=123, id_="abc")
         col2 = User(name="Keith", age=456, id_="def")
@@ -473,7 +494,6 @@ class TestNestedSerializer(unittest.TestCase):
     def test_serializer_with_nested_meta_fields(self):
         # Serializer has user = fields.Nested(UserMetaSerializer)
         s = BlogUserMetaSerializer(self.blog)
-        pprint(s.data['user'])
         assert_equal(s.data['user'], UserMetaSerializer(self.blog.user).data)
 
 
