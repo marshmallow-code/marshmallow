@@ -11,7 +11,7 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 from marshmallow import types, utils
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import text_type, OrderedDict
-from marshmallow.exceptions import MarshallingException
+from marshmallow.exceptions import MarshallingError
 
 
 def marshal(data, fields):
@@ -61,7 +61,7 @@ class Raw(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized. Fields should
-    throw a MarshallingException in case of parsing problem.
+    throw a MarshallingError in case of parsing problem.
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
@@ -81,7 +81,7 @@ class Raw(FieldABC):
         override this and apply the appropriate formatting.
 
         :param value: The value to format
-        :exception MarshallingException: In case of formatting problem
+        :exception MarshallingError: In case of formatting problem
 
         Ex::
 
@@ -94,7 +94,7 @@ class Raw(FieldABC):
     def output(self, key, obj):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
-        :exception MarshallingException: In case of formatting problem
+        :exception MarshallingError: In case of formatting problem
         """
         value = self.get_value(key, obj)
         if value is None:
@@ -172,13 +172,13 @@ class List(Raw):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise MarshallingException("The type of the list elements "
+                raise MarshallingError("The type of the list elements "
                                            "must be a subclass of "
                                            "marshmallow.base.Field")
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise MarshallingException("The instances of the list "
+                raise MarshallingError("The instances of the list "
                                            "elements must be of type "
                                            "marshmallow.base.Field")
             self.container = cls_or_instance
@@ -203,7 +203,7 @@ class String(Raw):
         try:
             return text_type(value)
         except ValueError as ve:
-            raise MarshallingException(ve)
+            raise MarshallingError(ve)
 
 
 class NumberField(Raw):
@@ -230,7 +230,7 @@ class NumberField(Raw):
                 return self._format_num(self.default)
             return self._format_num(value)
         except ValueError as ve:
-            raise MarshallingException(ve)
+            raise MarshallingError(ve)
 
 
 class Integer(NumberField):
@@ -258,7 +258,7 @@ class FormattedString(Raw):
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
-            raise MarshallingException(error)
+            raise MarshallingError(error)
 
 
 class Float(NumberField):
@@ -286,7 +286,7 @@ class Arbitrary(NumberField):
                 return text_type(utils.float_to_decimal(float(self.default)))
             return text_type(utils.float_to_decimal(float(value)))
         except ValueError as ve:
-            raise MarshallingException(ve)
+            raise MarshallingError(ve)
 
 dateformat_functions = {
     "iso": types.isoformat,
@@ -318,7 +318,7 @@ class DateTime(Raw):
             else:
                 return value.strftime(self.dateformat)
         except AttributeError as ae:
-            raise MarshallingException(ae)
+            raise MarshallingError(ae)
 
 
 class LocalDateTime(DateTime):
@@ -349,9 +349,9 @@ class Fixed(NumberField):
         try:
             dvalue = utils.float_to_decimal(float(value))
         except ValueError as ve:
-            raise MarshallingException(ve)
+            raise MarshallingError(ve)
         if not dvalue.is_normal() and dvalue != ZERO:
-            raise MarshallingException('Invalid Fixed precision number.')
+            raise MarshallingError('Invalid Fixed precision number.')
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
 
@@ -379,7 +379,7 @@ class Url(Raw):
         try:
             return types.url(value, relative=self.relative)
         except Exception as err:
-            raise MarshallingException(err)
+            raise MarshallingError(err)
 
 
 class Email(Raw):
@@ -392,7 +392,7 @@ class Email(Raw):
         try:
             return types.email(value)
         except Exception as err:
-            raise MarshallingException(err)
+            raise MarshallingError(err)
 
 
 class Method(Raw):
@@ -429,6 +429,6 @@ class Function(Raw):
         try:
             return self.func(obj)
         except TypeError as te:  # Function is not callable
-            raise MarshallingException(te)
+            raise MarshallingError(te)
         except AttributeError:
             pass

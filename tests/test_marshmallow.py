@@ -9,7 +9,7 @@ from nose.tools import *  # PEP8 asserts
 import pytz
 
 from marshmallow import Serializer, fields, types, pprint, utils
-from marshmallow.exceptions import MarshallingException
+from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import LINUX, unicode, PY26
 
 if PY26:
@@ -88,7 +88,7 @@ class UserSerializer(Serializer):
         try:
             return obj.age > 80
         except TypeError as te:
-            raise MarshallingException(te)
+            raise MarshallingError(te)
 
 class UserMetaSerializer(Serializer):
     '''The equivalent of the UserSerializer, using the ``fields`` option.'''
@@ -106,7 +106,7 @@ class UserMetaSerializer(Serializer):
         try:
             return obj.age > 80
         except TypeError as te:
-            raise MarshallingException(te)
+            raise MarshallingError(te)
 
     class Meta:
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
@@ -523,7 +523,7 @@ class TestFields(unittest.TestCase):
 
     def test_function_with_uncallable_param(self):
         field = fields.Function("uncallable")
-        assert_raises(MarshallingException, lambda: field.output("key", self.user))
+        assert_raises(MarshallingError, lambda: field.output("key", self.user))
 
     def test_datetime_field(self):
         field = fields.DateTime()

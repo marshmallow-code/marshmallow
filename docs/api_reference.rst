@@ -28,6 +28,6 @@ Exceptions
 
 .. module:: marshmallow.exceptions
 
-.. autoexception:: MarshmallowException
-.. autoexception:: MarshallingException
+.. autoexception:: MarshmallowError
+.. autoexception:: MarshallingError
 

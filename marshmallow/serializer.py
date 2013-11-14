@@ -162,7 +162,7 @@ class BaseSerializer(base.SerializerABC):
                             raise TypeError(msg)
                         raise
 
-            except exceptions.MarshallingException as err:  # Store errors
+            except exceptions.MarshallingError as err:  # Store errors
                 self.errors[key] = text_type(err)
                 item = (key, None)
             items.append(item)
