@@ -47,3 +47,6 @@ sandbox.ipynb
 
 Vagrantfile
 .vagrant
+
+*.db
+*.ai
