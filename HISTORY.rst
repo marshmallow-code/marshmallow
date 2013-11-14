@@ -4,7 +4,7 @@ Changelog
 0.3.0 (unreleased)
 ++++++++++++++++++
 
-* Declaring Serializers just got even easier! The *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
+* Declaring Serializers just got easier. The *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
 * Allow date formats to be changed by passing ``format`` parameter to ``DateTime`` field constructor. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
 * More useful error message when declaring fields as classes (instead of an instance, which is the correct usage).
 

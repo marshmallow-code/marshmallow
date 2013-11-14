@@ -14,7 +14,6 @@ Guide
 .. toctree::
    :maxdepth: 2
 
-   license
    install
    quickstart
    examples
@@ -34,5 +33,6 @@ Project Info
 .. toctree::
     :maxdepth: 1
 
+    license
     changelog
     contributing
