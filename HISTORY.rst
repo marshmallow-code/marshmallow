@@ -1,12 +1,14 @@
 Changelog
 ---------
 
-0.3.0 (unreleased)
+0.3.0 (2013-11-14)
 ++++++++++++++++++
 
 * Declaring Serializers just got easier. The *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
 * Allow date formats to be changed by passing ``format`` parameter to ``DateTime`` field constructor. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
 * More useful error message when declaring fields as classes (instead of an instance, which is the correct usage).
+* Rename MarshallingException -> MarshallingError.
+* Rename marshmallow.core -> marshmallow.serializer.
 
 0.2.1 (2013-11-12)
 ++++++++++++++++++

@@ -55,7 +55,7 @@ Serialize objects by passing them into your serializers. Onced serialized, you c
 Validation
 ----------
 
-To validate the data passed to a serializer, call the ``is_valid()`` method.
+To validate the data passed to a serializer, call the ``is_valid()`` method, optionally passing in a list of fields to validate.
 
 .. code-block:: python
 
@@ -164,7 +164,7 @@ There are three ways to create a custom-formatted field for a serializer:
 - Use a :class:`Method <marshmallow.fields.Method>` field
 - Use a :class:`Function <marshmallow.fields.Function>` field
 
-The method you choose will depend on personal preference and the manner in which you will reuse the field.
+The method you choose will depend on personal preference and the manner in which you intend to reuse the field.
 
 Creating A Field Class
 ++++++++++++++++++++++
