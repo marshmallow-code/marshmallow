@@ -7,6 +7,7 @@ Changelog
 * Fix bug with serializing dictionaries.
 * Fix error raised when serializing empty list.
 * Add ``only`` and ``exclude`` parameters to Serializer constructor.
+* Improved Flask example in docs.
 
 0.3.0 (2013-11-14)
 ++++++++++++++++++

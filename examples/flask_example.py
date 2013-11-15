@@ -1,28 +1,24 @@
 from datetime import datetime
 
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from marshmallow import Serializer, fields
 
 app = Flask(__name__)
-app.debug = True
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/test.db'
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/quotes.db'
 db = SQLAlchemy(app)
 
 ##### MODELS #####
 
 class Author(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(80))
-    last_name = db.Column(db.String(80))
+    first = db.Column(db.String(80))
+    last = db.Column(db.String(80))
 
-    def __init__(self, first_name, last_name):
-        self.first_name = first_name
-        self.last_name = last_name
-
-    def __repr__(self):
-        return '<Author "{0} {1}">'.format(self.first_name, self.last_name)
+    def __init__(self, first, last):
+        self.first = first
+        self.last = last
 
 class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,70 +33,71 @@ class Quote(db.Model):
         self.content = content
         self.posted_at = datetime.utcnow()
 
-    def __repr__(self):
-        return '<Quote "{0}">'.format(self.content)
-
 ##### SERIALIZERS #####
 
 class AuthorSerializer(Serializer):
-    formatted = fields.Method("get_formatted_name")
+    formatted_name = fields.Method("format_name")
 
-    def get_formatted_name(self, obj):
-        return "{last}, {first}".format(last=obj.last_name, first=obj.first_name)
+    def format_name(self, author):
+        return "%s, %s" % (author.last, author.first)
 
     class Meta:
-        fields = ("id", "first_name", "last_name", 'formatted')
+        fields = ('id', 'first', 'last', "formatted_name")
 
 class QuoteSerializer(Serializer):
     author = fields.Nested(AuthorSerializer)
 
     class Meta:
-        fields = ("content", "posted_at", 'author')
+        fields = ("id", "content", "posted_at", 'author')
 
 ##### API #####
 
-@app.route("/quotes", methods=["GET", "POST"])
-def quotes():
-    # On POST requests, add a new quote to the database
-    if request.method == "POST":
-        first, last = request.json['author'].split(" ")
-        quote = request.json['quote']
-        author = Author.query.filter_by(first_name=first, last_name=last).first()
-        if author is None:
-            # Create a new author
-            author = Author(first, last)
-            db.session.add(author)
-        # Create new quote
-        quote = Quote(quote, author)
-        db.session.add(quote)
-        db.session.commit()
-        return jsonify({"success": True})
-    else:  # For GET requests, just return all the quotes
-        quotes = Quote.query.all()
-        serialized = QuoteSerializer(quotes)
-        return Response(serialized.json, mimetype="application/json")
+@app.route("/api/v1/authors")
+def get_authors():
+    authors = Author.query.all()
+    # Serialize the queryset
+    return jsonify({"authors": AuthorSerializer(authors).data})
 
-@app.route("/authors", methods=["GET", "POST"])
-def authors():
-    # On POST requests, create a new author
-    if request.method == "POST":
-        serialized = AuthorSerializer(request.json)
-        if serialized.is_valid():
-            author = Author(request.json['first_name'], request.json['last_name'])
-            success = True
-            try:
-                db.session.add(author)
-                db.session.commit()
-            except IntegrityError:
-                success = False
-        else:
-            success = False
-        return jsonify({"success": success})
-    else:  # For GET requests, just return all the users
-        authors = Author.query.all()
-        return Response(AuthorSerializer(authors).json, mimetype="application/json")
+@app.route("/api/v1/authors/<int:pk>")
+def get_author(pk):
+    try:
+        author = Author.query.get(pk)
+    except IntegrityError:
+        return jsonify({"message": "Author could not be found."}), 400
+    return jsonify({"author": AuthorSerializer(author).data,
+                    "quotes": QuoteSerializer(author.quotes.all(),
+                                                only=('id', 'content')).data})
 
+@app.route("/api/v1/quotes", methods=["GET"])
+def get_quotes():
+    quotes = Quote.query.all()
+    serialized = QuoteSerializer(quotes, only=("id", "content"))
+    return jsonify({"quotes": serialized.data})
+
+@app.route("/api/v1/quotes/<int:pk>")
+def get_quote(pk):
+    try:
+        quote = Quote.query.get(pk)
+    except IntegrityError:
+        return jsonify({"message": "Quote could not be found."}), 400
+    return jsonify({"quote": QuoteSerializer(quote).data})
+
+@app.route("/api/v1/quotes/new", methods=["POST"])
+def new_quote():
+    first, last = request.json['author'].split(" ")
+    content = request.json['quote']
+    author = Author.query.filter_by(first=first, last=last).first()
+    if author is None:
+        # Create a new author
+        author = Author(first, last)
+        db.session.add(author)
+    # Create new quote
+    quote = Quote(content, author)
+    db.session.add(quote)
+    db.session.commit()
+    return jsonify({"message": "Created new quote.",
+                    "quote": QuoteSerializer(Quote.query.get(quote.id)).data})
 
 if __name__ == '__main__':
     db.create_all()
-    app.run(port=5000)
+    app.run(debug=True, port=5000)

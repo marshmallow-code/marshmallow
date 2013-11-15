@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 from bottle import route, request, run
-from textblob import TextBlob, Word
+from textblob import TextBlob
 from marshmallow import Serializer, fields
-
 
 class BlobSerializer(Serializer):
     polarity = fields.Float()
@@ -20,22 +18,10 @@ class BlobSerializer(Serializer):
         else:
             return 'neutral'
 
-
-class WordSerializer(Serializer):
-    lemma = fields.String()
-    definitions = fields.List(fields.String)
-    singular = fields.Function(lambda obj: obj.singularize())
-    plural = fields.Function(lambda obj: obj.pluralize())
-
-
 @route("/api/v1/analyze", method="POST")
 def analyze():
     blob = TextBlob(request.json['text'])
     return BlobSerializer(blob).data
 
-@route("/api/v1/word/<word>", method="POST")
-def analyze_word(word):
-    w = Word(word)
-    return WordSerializer(w).data
 
-run(port=5000)
+run(reloader=True, port=5000)
