@@ -361,6 +361,22 @@ class TestSerializer(unittest.TestCase):
         assert_equal(s.data['age'], 42.3)
         assert_false(s.is_valid(['email']))
 
+    def test_exclude_in_init(self):
+        s = UserSerializer(self.obj, exclude=('age', 'homepage'))
+        assert_not_in('homepage', s.data)
+        assert_not_in('age', s.data)
+        assert_in('name', s.data)
+
+    def test_only_in_init(self):
+        s = UserSerializer(self.obj, only=('name', 'age'))
+        assert_not_in('homepage', s.data)
+        assert_in('name', s.data)
+        assert_in('age', s.data)
+
+    def test_invalid_only_param(self):
+        assert_raises(AttributeError,
+            lambda: UserSerializer(self.obj, only=("_invalid", "name")))
+
 
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):

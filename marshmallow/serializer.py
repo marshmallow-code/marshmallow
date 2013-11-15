@@ -17,19 +17,19 @@ def _get_declared_fields(bases, attrs, field_class):
     # If subclassing another Serializer, inherit its fields
     # Loop in reverse to maintain the correct field order
     for base_class in bases[::-1]:
-        if hasattr(base_class, '_base_fields'):
-            declared = list(base_class._base_fields.items()) + declared
+        if hasattr(base_class, '_declared_fields'):
+            declared = list(base_class._declared_fields.items()) + declared
     return OrderedDict(declared)
 
 
 class SerializerMeta(type):
     '''Metaclass for the Serializer class. Binds the declared fields to
-    a ``_base_fields`` attribute, which is a dictionary mapping attribute
+    a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field classes and instances.
     '''
 
     def __new__(cls, name, bases, attrs):
-        attrs['_base_fields'] = _get_declared_fields(bases, attrs, base.FieldABC)
+        attrs['_declared_fields'] = _get_declared_fields(bases, attrs, base.FieldABC)
         return super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
 
 
@@ -67,9 +67,11 @@ class BaseSerializer(base.SerializerABC):
         '''
         pass
 
-    def __init__(self, obj=None, extra=None, prefix=''):
+    def __init__(self, obj=None, extra=None, only=None, exclude=None, prefix=''):
         self.opts = SerializerOpts(self.Meta)
         self.obj = obj
+        self.only = only or ()
+        self.exclude = exclude or ()
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
@@ -81,10 +83,10 @@ class BaseSerializer(base.SerializerABC):
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
         ret = OrderedDict()
-        base_fields = copy.deepcopy(self._base_fields)  # Copy _base_fields
-                                                        # from metaclass
+        declared_fields = copy.deepcopy(self._declared_fields)  # Copy _declared_fields
+                                                                # from metaclass
         # Explicitly declared fields
-        for field_name, field_obj in iteritems(base_fields):
+        for field_name, field_obj in iteritems(declared_fields):
             ret[field_name] = field_obj
 
         # If "fields" option is specified, use those fields
@@ -118,18 +120,35 @@ class BaseSerializer(base.SerializerABC):
                         new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
             ret = new
 
-        # If "exclude" option is specified, remove those fields
-        if self.opts.exclude:
-            if not isinstance(self.opts.exclude, (list, tuple)):
-                raise ValueError("`exclude` option must be a list or tuple.")
-            for field_name in self.opts.exclude:
-                ret.pop(field_name, None)
+        # if only __init__ param is specified, only return those fields
+        if self.only:
+            filtered = OrderedDict()
+            for field_name in self.only:
+                if field_name not in ret:
+                    raise AttributeError(
+                        '"{0}" is not a valid field for {1}.'.format(field_name, self.obj))
+                filtered[field_name] = ret[field_name]
+            self.__set_parents(filtered)
+            return filtered
 
+        # If "exclude" option or param is specified, remove those fields
+        if not isinstance(self.opts.exclude, (list, tuple)) or \
+                            not isinstance(self.exclude, (list, tuple)):
+            raise ValueError("`exclude` must be a list or tuple.")
+        excludes = set(self.opts.exclude + self.exclude)
+        if excludes:
+            for field_name in excludes:
+                ret.pop(field_name, None)
         # Set parents
-        for field_name, field_obj in iteritems(ret):
+        self.__set_parents(ret)
+        return ret
+
+    def __set_parents(self, fields_dict):
+        '''Set the parents of all field objects in fields_dict to self.'''
+        for field_name, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
                 field_obj.parent = self
-        return ret
+        return fields_dict
 
     @property
     def json(self):
@@ -222,8 +241,12 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized.data
         # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
 
-    :param obj: The object or list or objects to be serialized.
+    :param obj: The object or collection of objects to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
+    :param tuple only: A list or tuple of fields to serialize. If ``None``, all
+        fields will be serialized.
+    :param tuple exclude: A list or tuple of fields to exclude from the
+        serialized result.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     '''
