@@ -141,7 +141,7 @@ class BaseSerializer(base.SerializerABC):
         :param dict fields: A dict whose keys will make up the final serialized
                        response output
         """
-        if utils.is_iterable_but_not_string(data):
+        if utils.is_iterable_but_not_string(data) and not isinstance(data, dict):
             return [self.marshal(d, fields) for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields):

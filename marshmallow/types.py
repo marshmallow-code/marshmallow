@@ -156,7 +156,6 @@ def rfcformat(dt, localtime=False):
 
 def isoformat(dt, localtime=False, *args, **kwargs):
     '''Return the ISO8601-formatted UTC representation of a datetime object.
-    return dt.isoformat(*args, **kwargs)
     '''
     if localtime and dt.tzinfo is not None:
         localized = dt

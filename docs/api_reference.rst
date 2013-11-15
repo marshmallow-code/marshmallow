@@ -23,6 +23,12 @@ Fields
 .. automodule:: marshmallow.fields
     :members:
 
+Utility Methods
+===============
+
+.. automodule:: marshmallow.utils
+    :members:
+
 Exceptions
 ==========
 

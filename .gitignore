@@ -42,7 +42,7 @@ cover
 docs/_build
 README.html
 
-sandbox.ipynb
+*.ipynb
 .ipynb_checkpoints
 
 Vagrantfile

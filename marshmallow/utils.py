@@ -21,7 +21,9 @@ def is_instance_or_subclass(val, class_):
         return isinstance(val, class_)
 
 def float_to_decimal(f):
-    "Convert a floating point number to a Decimal with no loss of information"
+    """Convert a floating point number to a Decimal with no loss of information.
+        See: http://docs.python.org/release/2.6.7/library/decimal.html#decimal-faq
+    """
     n, d = f.as_integer_ratio()
     numerator, denominator = Decimal(n), Decimal(d)
     ctx = Context(prec=60)
