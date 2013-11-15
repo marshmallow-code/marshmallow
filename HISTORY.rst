@@ -7,7 +7,8 @@ Changelog
 * Fix bug with serializing dictionaries.
 * Fix error raised when serializing empty list.
 * Add ``only`` and ``exclude`` parameters to Serializer constructor.
-* Improved Flask example in docs.
+* Add ``strict`` parameter and option: causes Serializer to raise an error if invalid data are passed in, rather than storing errors.
+* Updated Flask + SQLA example in docs.
 
 0.3.0 (2013-11-14)
 ++++++++++++++++++

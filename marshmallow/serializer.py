@@ -34,11 +34,12 @@ class SerializerMeta(type):
 
 
 class SerializerOpts(object):
-    """class Meta options for the Serializer. Defines default options."""
+    """class Meta options for the Serializer. Defines defaults."""
 
     def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
         self.exclude = getattr(meta, 'exclude', ())
+        self.strict = getattr(meta, 'strict', False)
 
 
 class BaseSerializer(base.SerializerABC):
@@ -64,10 +65,12 @@ class BaseSerializer(base.SerializerABC):
             class Meta:
                 fields = ("id", "email", "date_created")
                 exclude = ("password", "secret_attribute")
+                strict = False
         '''
         pass
 
-    def __init__(self, obj=None, extra=None, only=None, exclude=None, prefix=''):
+    def __init__(self, obj=None, extra=None, only=None,
+                exclude=None, prefix='', strict=False):
         self.opts = SerializerOpts(self.Meta)
         self.obj = obj
         self.only = only or ()
@@ -75,6 +78,7 @@ class BaseSerializer(base.SerializerABC):
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
         self.errors = {}
+        self.strict = strict
         #: The serialized data as an ``OrderedDict``
         self.data = self.to_data()
         if extra:
@@ -113,11 +117,7 @@ class BaseSerializer(base.SerializerABC):
                         raise AttributeError(
                             '"{0}" is not a valid field for {1}.'.format(key, self.obj))
                     # map key -> field (default to Raw)
-                    if self.type_mapping.get(attribute_type) == fields.List:
-                        # Iterables are mapped to Raw Lists
-                        new[key] = fields.List(fields.Raw)
-                    else:
-                        new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
+                    new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
             ret = new
 
         # if only __init__ param is specified, only return those fields
@@ -183,8 +183,9 @@ class BaseSerializer(base.SerializerABC):
                                             .format(attr_name, field_obj.__name__))
                             raise TypeError(msg)
                         raise
-
             except exceptions.MarshallingError as err:  # Store errors
+                if self.strict or self.opts.strict:
+                    raise err
                 self.errors[key] = text_type(err)
                 item = (key, None)
             items.append(item)
@@ -249,5 +250,7 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized result.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
+    :param bool strict: If ``True``, raise errors if invalid data are passed in
+        instead of failing silently and storing the errors.
     '''
     pass

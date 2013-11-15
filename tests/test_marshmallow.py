@@ -377,6 +377,17 @@ class TestSerializer(unittest.TestCase):
         assert_raises(AttributeError,
             lambda: UserSerializer(self.obj, only=("_invalid", "name")))
 
+    def test_strict_init(self):
+        invalid = User("Foo", email="foo.com")
+        assert_raises(MarshallingError, lambda: UserSerializer(invalid, strict=True))
+
+    def test_strict_meta_option(self):
+        class StrictUserSerializer(UserSerializer):
+            class Meta:
+                strict = True
+        invalid = User("Foo", email="foo.com")
+        assert_raises(MarshallingError, lambda: StrictUserSerializer(invalid))
+
 
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
