@@ -94,7 +94,10 @@ class BaseSerializer(base.SerializerABC):
                 raise ValueError("`fields` option must be a list or tuple.")
             obj_marshallable = utils.to_marshallable_type(self.obj)
             if isinstance(obj_marshallable, (list, tuple)):  # Homogeneous list of objects
-                obj_dict = utils.to_marshallable_type(obj_marshallable[0])
+                if len(obj_marshallable) > 0:
+                    obj_dict = utils.to_marshallable_type(obj_marshallable[0])
+                else:  # Nothing to serialize
+                    return ret
             else:
                 obj_dict = obj_marshallable
             new = OrderedDict()
@@ -106,7 +109,7 @@ class BaseSerializer(base.SerializerABC):
                         attribute_type = type(obj_dict[key])
                     except KeyError:
                         raise AttributeError(
-                            '"{0}" is not a valid field for the object.'.format(key))
+                            '"{0}" is not a valid field for {1}.'.format(key, self.obj))
                     # map key -> field (default to Raw)
                     if self.type_mapping.get(attribute_type) == fields.List:
                         # Iterables are mapped to Raw Lists

@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Fix bug with serializing dictionaries.
+* Fix error raised when serializing empty list.
 
 0.3.0 (2013-11-14)
 ++++++++++++++++++

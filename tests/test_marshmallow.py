@@ -49,11 +49,12 @@ class User(object):
 
 class Blog(object):
 
-    def __init__(self, title, user, collaborators=None, categories=None):
+    def __init__(self, title, user, collaborators=None, categories=None, id_=None):
         self.title = title
         self.user = user
         self.collaborators = collaborators  # List/tuple of users
         self.categories = categories
+        self.id = id_
 
 ###### Serializers #####
 
@@ -92,7 +93,6 @@ class UserSerializer(Serializer):
 
 class UserMetaSerializer(Serializer):
     '''The equivalent of the UserSerializer, using the ``fields`` option.'''
-
     uppername = Uppercased(attribute='name')
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
@@ -142,6 +142,7 @@ class BlogSerializer(Serializer):
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer)
     categories = fields.List(fields.String)
+    id = fields.String()
 
 class BlogUserMetaSerializer(Serializer):
     user = fields.Nested(UserMetaSerializer)
@@ -154,7 +155,7 @@ class BlogSerializerMeta(Serializer):
     collaborators = fields.Nested(UserSerializer)
 
     class Meta:
-        fields = ('title', 'user', 'collaborators', 'categories')
+        fields = ('title', 'user', 'collaborators', 'categories', "id")
 
 class BlogSerializerOnly(Serializer):
     title = fields.String()
@@ -348,6 +349,17 @@ class TestSerializer(unittest.TestCase):
         class BadUserSerializer(Serializer):
             name = fields.String
         assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
+
+    def test_serializing_empty_list_returns_empty_list(self):
+        assert_equal(UserSerializer([]).data, [])
+        assert_equal(UserMetaSerializer([]).data, [])
+
+    def test_serializing_dict(self):
+        user = {"name": "foo", "email": "foo", "age": 42.3}
+        s = UserSerializer(user)
+        assert_equal(s.data['name'], "foo")
+        assert_equal(s.data['age'], 42.3)
+        assert_false(s.is_valid(['email']))
 
 
 class TestMetaOptions(unittest.TestCase):

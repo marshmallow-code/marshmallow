@@ -22,7 +22,7 @@ def marshal(data, fields):
     :param dict fields: A dict whose keys will make up the final serialized
                    response output
     """
-    if utils.is_iterable_but_not_string(data):
+    if utils.is_iterable_but_not_string(data) and not isinstance(data, dict):
         return [marshal(d, fields) for d in data]
     items = ((k, marshal(data, v) if isinstance(v, dict)
                                   else v.output(k, data))
