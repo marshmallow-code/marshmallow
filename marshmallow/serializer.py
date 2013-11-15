@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+'''The Serializer class, including its metaclass and options (class Meta).'''
 from __future__ import absolute_import, print_function
 import datetime as dt
 import json
@@ -28,9 +29,9 @@ class SerializerMeta(type):
     names to field classes and instances.
     '''
 
-    def __new__(cls, name, bases, attrs):
+    def __new__(mcs, name, bases, attrs):
         attrs['_declared_fields'] = _get_declared_fields(bases, attrs, base.FieldABC)
-        return super(SerializerMeta, cls).__new__(cls, name, bases, attrs)
+        return super(SerializerMeta, mcs).__new__(mcs, name, bases, attrs)
 
 
 class SerializerOpts(object):
@@ -95,30 +96,7 @@ class BaseSerializer(base.SerializerABC):
 
         # If "fields" option is specified, use those fields
         if self.opts.fields:
-            # Convert obj to a dict
-            if not isinstance(self.opts.fields, (list, tuple)):
-                raise ValueError("`fields` option must be a list or tuple.")
-            obj_marshallable = utils.to_marshallable_type(self.obj)
-            if isinstance(obj_marshallable, (list, tuple)):  # Homogeneous list of objects
-                if len(obj_marshallable) > 0:
-                    obj_dict = utils.to_marshallable_type(obj_marshallable[0])
-                else:  # Nothing to serialize
-                    return ret
-            else:
-                obj_dict = obj_marshallable
-            new = OrderedDict()
-            for key in self.opts.fields:
-                if key in ret:
-                    new[key] = ret[key]
-                else:
-                    try:
-                        attribute_type = type(obj_dict[key])
-                    except KeyError:
-                        raise AttributeError(
-                            '"{0}" is not a valid field for {1}.'.format(key, self.obj))
-                    # map key -> field (default to Raw)
-                    new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
-            ret = new
+            ret = self.__get_opts_fields(ret)
 
         # if only __init__ param is specified, only return those fields
         if self.only:
@@ -126,7 +104,8 @@ class BaseSerializer(base.SerializerABC):
             for field_name in self.only:
                 if field_name not in ret:
                     raise AttributeError(
-                        '"{0}" is not a valid field for {1}.'.format(field_name, self.obj))
+                        '"{0}" is not a valid field for {1}.'
+                            .format(field_name, self.obj))
                 filtered[field_name] = ret[field_name]
             self.__set_parents(filtered)
             return filtered
@@ -145,28 +124,58 @@ class BaseSerializer(base.SerializerABC):
 
     def __set_parents(self, fields_dict):
         '''Set the parents of all field objects in fields_dict to self.'''
-        for field_name, field_obj in iteritems(fields_dict):
+        for _, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
                 field_obj.parent = self
         return fields_dict
+
+    def __get_opts_fields(self, declared_fields):
+        '''Return only those field_name:field_obj pairs specified in the fields
+        option of class Meta.
+        '''
+        # Convert obj to a dict
+        if not isinstance(self.opts.fields, (list, tuple)):
+            raise ValueError("`fields` option must be a list or tuple.")
+        obj_marshallable = utils.to_marshallable_type(self.obj)
+        if isinstance(obj_marshallable, (list, tuple)):  # Homogeneous list
+            if len(obj_marshallable) > 0:
+                obj_dict = utils.to_marshallable_type(obj_marshallable[0])
+            else:  # Nothing to serialize
+                return declared_fields
+        else:
+            obj_dict = obj_marshallable
+        new = OrderedDict()
+        for key in self.opts.fields:
+            if key in declared_fields:
+                new[key] = declared_fields[key]
+            else:
+                try:
+                    attribute_type = type(obj_dict[key])
+                except KeyError:
+                    raise AttributeError(
+                        '"{0}" is not a valid field for {1}.'.format(key, self.obj))
+                # map key -> field (default to Raw)
+                new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
+        return new
+
 
     @property
     def json(self):
         '''The data as a JSON string.'''
         return self.to_json()
 
-    def marshal(self, data, fields):
+    def marshal(self, data, fields_dict):
         """Takes the data (a dict, list, or object) and a dict of fields.
         Stores any errors that occur.
 
         :param data: The actual object(s) from which the fields are taken from
-        :param dict fields: A dict whose keys will make up the final serialized
+        :param dict fields_dict: A dict whose keys will make up the final serialized
                        response output
         """
-        if utils.is_iterable_but_not_string(data) and not isinstance(data, dict):
-            return [self.marshal(d, fields) for d in data]
+        if utils.is_collection(data):
+            return [self.marshal(d, fields_dict) for d in data]
         items = []
-        for attr_name, field_obj in iteritems(fields):
+        for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
             try:
                 if isinstance(field_obj, dict):
@@ -192,20 +201,20 @@ class BaseSerializer(base.SerializerABC):
         return OrderedDict(items)
 
     def to_data(self, *args, **kwargs):
-        return self.marshal(self.obj, self.fields)
+        return self.marshal(self.obj, self.fields, *args, **kwargs)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self.data, *args, **kwargs)
 
-    def is_valid(self, fields=None):
+    def is_valid(self, field_names=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
 
-        :param fields: List of field names (strings) to validate.
+        :param field_names: List of field names (strings) to validate.
             If ``None``, all fields will be validated.
         """
-        if fields is not None and type(fields) not in (list, tuple):
-            raise ValueError("fields param must be a list or tuple")
-        fields_to_validate = fields or self.fields.keys()
+        if field_names is not None and type(field_names) not in (list, tuple):
+            raise ValueError("field_names param must be a list or tuple")
+        fields_to_validate = field_names or self.fields.keys()
         for fname in fields_to_validate:
             if fname not in self.fields:
                 raise KeyError('"{0}" is not a valid field name.'.format(fname))
@@ -240,7 +249,8 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         person = Person("Guido van Rossum")
         serialized = PersonSerializer(person)
         serialized.data
-        # OrderedDict([('name', u'Guido van Rossum'), ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
+        # OrderedDict([('name', u'Guido van Rossum'),
+                        ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
 
     :param obj: The object or collection of objects to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.

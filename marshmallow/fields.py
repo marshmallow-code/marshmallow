@@ -20,9 +20,9 @@ def marshal(data, fields):
 
     :param data: The actual object(s) from which the fields are taken from
     :param dict fields: A dict whose keys will make up the final serialized
-                   response output
+                   response output.
     """
-    if utils.is_iterable_but_not_string(data) and not isinstance(data, dict):
+    if utils.is_collection(data):
         return [marshal(d, fields) for d in data]
     items = ((k, marshal(data, v) if isinstance(v, dict)
                                   else v.output(k, data))
@@ -123,6 +123,7 @@ class Nested(Raw):
         self.allow_null = allow_null
         self.only = only
         self.exclude = exclude
+        self.serializer = None
         super(Nested, self).__init__(**kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
@@ -188,8 +189,8 @@ class List(Raw):
         # we cannot really test for external dict behavior
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
             # Convert all instances in typed list to container type
-            return [self.container.output(idx, value) for idx, val
-                    in enumerate(value)]
+            return [self.container.output(idx, value) for idx
+                    in range(len(value))]
 
         if value is None:
             return self.default
@@ -288,7 +289,7 @@ class Arbitrary(NumberField):
         except ValueError as ve:
             raise MarshallingError(ve)
 
-dateformat_functions = {
+DATEFORMAT_FUNCTIONS = {
     "iso": types.isoformat,
     "rfc": types.rfcformat,
 }
@@ -312,7 +313,7 @@ class DateTime(Raw):
 
     def format(self, value):
         try:
-            format_func = dateformat_functions.get(self.dateformat, None)
+            format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
             if format_func:
                 return format_func(value, localtime=self.localtime)
             else:

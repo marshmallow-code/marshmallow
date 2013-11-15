@@ -13,7 +13,7 @@ class FieldABC(object):
     def format(self, value):
         raise NotImplementedError
 
-    def output(self, value):
+    def output(self, key, obj):
         raise NotImplementedError
 
     def __repr__(self):

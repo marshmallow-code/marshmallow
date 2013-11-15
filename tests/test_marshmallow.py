@@ -597,6 +597,11 @@ class TestUtils(unittest.TestCase):
         u = User("Foo", "foo@bar.com")
         assert_equal(utils.to_marshallable_type(u), u.__dict__)
 
+    def test_is_collection(self):
+        assert_true(utils.is_collection([1, 'foo', {}]))
+        assert_true(utils.is_collection(('foo', 2.3)))
+        assert_false(utils.is_collection({'foo': 'bar'}))
+
 
 class TestTypes(unittest.TestCase):
 

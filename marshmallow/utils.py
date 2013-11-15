@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Utility methods for marshmallow."""
 from __future__ import absolute_import
 import json
 from decimal import Decimal, Context, Inexact
@@ -6,15 +7,26 @@ from pprint import pprint as py_pprint
 
 from marshmallow.compat import OrderedDict
 
+
 def is_iterable_but_not_string(obj):
+    '''Return True if ``obj`` is an iterable object that isn't a string.'''
     return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
 
 
 def is_indexable_but_not_string(obj):
+    '''Return True if ``obj`` is indexable but isn't a string.'''
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
 
+def is_collection(obj):
+    '''Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
+    '''
+    return is_iterable_but_not_string(obj) and not isinstance(obj, dict)
+
+
 def is_instance_or_subclass(val, class_):
+    '''Return True if ``val`` is either a subclass or instance of ``class_``.
+    '''
     try:
         return issubclass(val, class_)
     except TypeError:
