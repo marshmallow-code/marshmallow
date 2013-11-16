@@ -73,6 +73,22 @@ You can get a dictionary of validation errors via the ``errors`` property.
     s.errors
     # {'email': u'foo is not a valid email address.'}
 
+.. note::
+    If you set ``strict=True`` in either the Serializer constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in.
+
+    .. code-block:: python
+
+        >>> UserSerializer(invalid, strict=True)
+        Traceback (most recent call last):
+          File "<input>", line 1, in <module>
+          File "marshmallow/serializer.py", line 90, in __init__
+            self.data = self.to_data()
+          File "marshmallow/serializer.py", line 210, in to_data
+            return self.marshal(self.obj, self.fields, *args, **kwargs)
+          File "marshmallow/serializer.py", line 203, in marshal
+            raise err
+        MarshallingError: "foo" is not a valid email address.
+
 
 Specifying Attribute Names
 --------------------------

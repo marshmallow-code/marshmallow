@@ -40,7 +40,7 @@ def url(value, relative=False):
     """
     regex = RELATIVE_URL_REGEX if relative else URL_REGEX
     if not regex.search(value):
-        message = u"{0} is not a valid URL".format(value)
+        message = u'"{0}" is not a valid URL'.format(value)
         if regex.search('http://' + value):
             message += u'. Did you mean: "http://{0}"?'.format(value)
         raise ValueError(message)
@@ -67,7 +67,7 @@ def email(value):
     :returns: The email address if valid.
     :raises: ValueError if email is invalid
     """
-    error_message = "{0} is not a valid email address.".format(value)
+    error_message = '"{0}" is not a valid email address.'.format(value)
     if not value or '@' not in value:
         raise ValueError(error_message)
 

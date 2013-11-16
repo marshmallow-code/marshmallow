@@ -10,19 +10,6 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
-def _get_declared_fields(bases, attrs, field_class):
-    '''Return the declared fields of a class as an OrderedDict.'''
-    declared = [(field_name, attrs.pop(field_name))
-                for field_name, val in list(iteritems(attrs))
-                if utils.is_instance_or_subclass(val, field_class)]
-    # If subclassing another Serializer, inherit its fields
-    # Loop in reverse to maintain the correct field order
-    for base_class in bases[::-1]:
-        if hasattr(base_class, '_declared_fields'):
-            declared = list(base_class._declared_fields.items()) + declared
-    return OrderedDict(declared)
-
-
 class SerializerMeta(type):
     '''Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -30,8 +17,27 @@ class SerializerMeta(type):
     '''
 
     def __new__(mcs, name, bases, attrs):
-        attrs['_declared_fields'] = _get_declared_fields(bases, attrs, base.FieldABC)
+        attrs['_declared_fields'] = mcs.get_declared_fields(bases, attrs, base.FieldABC)
         return super(SerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+
+    @classmethod
+    def get_declared_fields(mcs, bases, attrs, field_class):
+        '''Return the declared fields of a class as an OrderedDict.
+
+        :param tuple bases: Tuple of classes the class is subclassing.
+        :param dict attrs: Dictionary of class attributes.
+        :param type field_class: The base field class. Any class attribute that
+            is of this type will be be returned
+        '''
+        declared = [(field_name, attrs.pop(field_name))
+                    for field_name, val in list(iteritems(attrs))
+                    if utils.is_instance_or_subclass(val, field_class)]
+        # If subclassing another Serializer, inherit its fields
+        # Loop in reverse to maintain the correct field order
+        for base_class in bases[::-1]:
+            if hasattr(base_class, '_declared_fields'):
+                declared = list(base_class._declared_fields.items()) + declared
+        return OrderedDict(declared)
 
 
 class SerializerOpts(object):
@@ -46,7 +52,7 @@ class SerializerOpts(object):
 class BaseSerializer(base.SerializerABC):
     '''Base serializer class which defines the interface for a serializer.
     '''
-    type_mapping = {
+    TYPE_MAPPING = {
         text_type: fields.String,
         binary_type: fields.String,
         dt.datetime: fields.DateTime,
@@ -155,7 +161,7 @@ class BaseSerializer(base.SerializerABC):
                     raise AttributeError(
                         '"{0}" is not a valid field for {1}.'.format(key, self.obj))
                 # map key -> field (default to Raw)
-                new[key] = self.type_mapping.get(attribute_type, fields.Raw)()
+                new[key] = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
         return new
 
 

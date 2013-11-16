@@ -266,7 +266,7 @@ class TestSerializer(unittest.TestCase):
         serialized = UserSerializer(user)
         assert_in("homepage", serialized.errors)
         assert_equal(serialized.errors['homepage'],
-            'www.foo.com is not a valid URL. Did you mean: "http://www.foo.com"?')
+            '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?')
 
     def test_default(self):
         user = User("John")  # No ID set
@@ -282,7 +282,7 @@ class TestSerializer(unittest.TestCase):
         u = User("John", email="johnexample.com")
         s = UserSerializer(u)
         assert_in("email", s.errors)
-        assert_equal(s.errors['email'], "johnexample.com is not a valid email address.")
+        assert_equal(s.errors['email'], '"johnexample.com" is not a valid email address.')
 
     def test_integer_field(self):
         u = User("John", age=42.3)
@@ -497,7 +497,7 @@ class TestNestedSerializer(unittest.TestCase):
         assert_false(serialized_blog.is_valid())
         assert_in("email", serialized_blog.errors['user'])
         assert_equal(serialized_blog.errors['user']['email'],
-            "{0} is not a valid email address.".format(invalid_user.email))
+            "\"{0}\" is not a valid email address.".format(invalid_user.email))
         # No problems with collaborators
         assert_not_in("collaborators", serialized_blog.errors)
 
