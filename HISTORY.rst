@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.3.1 (unreleased)
+0.3.1 (2013-11-16)
 ++++++++++++++++++
 
 * Fix bug with serializing dictionaries.
