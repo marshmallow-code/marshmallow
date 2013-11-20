@@ -111,8 +111,8 @@ class Nested(Raw):
         user = fields.Nested(UserSerializer)
 
     :param Serializer nested: The Serializer class or instance to nest.
-    :param bool exclude: A list or tuple of fields to exclude.
-    :param bool only: A list or tuple of fields to marshal. If ``None``, all fields
+    :param iterable exclude: A list or tuple of fields to exclude.
+    :param iterable only: A list or tuple of fields to marshal. If ``None``, all fields
         will be marshalled. Takes precedence over ``exclude``.
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
