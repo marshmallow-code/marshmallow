@@ -79,13 +79,13 @@ class UserSerializer(Serializer):
     email = fields.Email()
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
-    lowername = fields.Function(lambda obj: obj.name.lower())
+    lowername = fields.Function(lambda name, obj: obj.name.lower())
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)
     sex_choices = fields.List(fields.Raw)
     finger_count = fields.Integer()
 
-    def get_is_old(self, obj):
+    def get_is_old(self, name, obj):
         try:
             return obj.age > 80
         except TypeError as te:
@@ -96,13 +96,13 @@ class UserMetaSerializer(Serializer):
     uppername = Uppercased(attribute='name')
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
-    lowername = fields.Function(lambda obj: obj.name.lower())
+    lowername = fields.Function(lambda name, obj: obj.name.lower())
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
     homepage = fields.Url()
     email = fields.Email()
 
-    def get_is_old(self, obj):
+    def get_is_old(self, name, obj):
         try:
             return obj.age > 80
         except TypeError as te:
@@ -557,7 +557,7 @@ class TestFields(unittest.TestCase):
         assert_equal(repr(field), "<String Field>")
 
     def test_function_field(self):
-        field = fields.Function(lambda obj: obj.name.upper())
+        field = fields.Function(lambda name, obj: obj.name.upper())
         assert_equal("FOO", field.output("key", self.user))
 
     def test_function_with_uncallable_param(self):
