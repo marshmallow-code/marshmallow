@@ -25,7 +25,6 @@ central = pytz.timezone("US/Central")
 class User(object):
     SPECIES = "Homo sapiens"
 
-
     def __init__(self, name, age=0, id_=None, homepage=None,
                 email=None, registered=True):
         self.name = name
@@ -465,7 +464,6 @@ class TestNestedSerializer(unittest.TestCase):
     def test_nested_meta_many(self):
         serialized_blog = BlogUserMetaSerializer(self.blog)
         assert_equal(len(serialized_blog.data['collaborators']), 2)
-        pprint(serialized_blog.data['collaborators'][0])
         assert_equal(serialized_blog.data['collaborators'],
             [UserMetaSerializer(col).data for col in self.blog.collaborators])
 
@@ -595,6 +593,17 @@ class TestUtils(unittest.TestCase):
     def test_to_marshallable_type(self):
         u = User("Foo", "foo@bar.com")
         assert_equal(utils.to_marshallable_type(u), u.__dict__)
+        assert_equal(utils.to_marshallable_type(None), None)
+
+    def test_marshallable(self):
+        class ObjContainer(object):
+            contained = {"foo": 1}
+            def __marshallable__(self):
+                return self.contained
+
+        obj = ObjContainer()
+        assert_equal(utils.to_marshallable_type(obj), {"foo": 1})
+
 
     def test_is_collection(self):
         assert_true(utils.is_collection([1, 'foo', {}]))

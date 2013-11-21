@@ -25,10 +25,8 @@ class FieldABC(object):
 class SerializerABC(object):
     '''Abstract base class from which all Serializers inherit.'''
 
-    def to_data(self):
-        raise NotImplementedError
-
-    def to_json(self):
+    @property
+    def errors(self):
         raise NotImplementedError
 
     def is_valid(self, fields=None):
