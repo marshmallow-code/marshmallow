@@ -193,8 +193,7 @@ class TestSerializer(unittest.TestCase):
 
     def test_json(self):
         json_data = self.serialized.json
-        reloaded = json.loads(json_data)
-        assert_almost_equal(reloaded['age'], 42.3)
+        assert_equal(json_data, json.dumps(self.serialized.data))
 
     def test_naive_datetime_field(self):
         assert_equal(self.serialized.data['created'],

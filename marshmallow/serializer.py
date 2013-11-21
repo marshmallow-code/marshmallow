@@ -90,10 +90,12 @@ class BaseSerializer(base.SerializerABC):
             self.strict = False
         #: Callable marshalling object
         self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
-        #: The serialized data as an ``OrderedDict``
-        self.data = self.to_data()
+        # Store the marshalled data
+        # MUST occur upon initialization
+        self._data = self.marshal(self.obj, self.fields)
         if extra:
-            self.data.update(extra)
+            self._data.update(extra)
+
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
@@ -168,12 +170,6 @@ class BaseSerializer(base.SerializerABC):
                 new[key] = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
         return new
 
-
-    @property
-    def json(self):
-        '''The data as a JSON string.'''
-        return self.to_json()
-
     def marshal(self, data, fields_dict):
         """Takes the data (a dict, list, or object) and a dict of fields.
         Stores any errors that occur.
@@ -185,14 +181,25 @@ class BaseSerializer(base.SerializerABC):
         return self._marshal(data, fields_dict)
 
     @property
+    def data(self):
+        '''The serialized data as an ``OrderedDict``.
+        '''
+        return self._data
+
+    @property
+    def json(self):
+        '''The data as a JSON string.'''
+        return self.to_json()
+
+    @property
     def errors(self):
         '''Dictionary of errors raised during serialization.'''
         return self._marshal.errors
 
-    def to_data(self, *args, **kwargs):
-        return self.marshal(self.obj, self.fields, *args, **kwargs)
-
     def to_json(self, *args, **kwargs):
+        '''Return the JSON representation of the data. Takes the same arguments
+        as Pythons built-in ``json.dumps``.
+        '''
         return json.dumps(self.data, *args, **kwargs)
 
     def is_valid(self, field_names=None):
