@@ -10,24 +10,61 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
 from marshmallow import types, utils
 from marshmallow.base import FieldABC, SerializerABC
-from marshmallow.compat import text_type, OrderedDict
+from marshmallow.compat import text_type, OrderedDict, iteritems
 from marshmallow.exceptions import MarshallingError
 
 
-def marshal(data, fields):
-    """Takes raw data (in the form of a dict, list, object) and a dict of
-    fields to output and filters the data based on those fields.
+class Marshaller(object):
+    '''Callable class responsible for marshalling data and storing errors.
 
-    :param data: The actual object(s) from which the fields are taken from
-    :param dict fields: A dict whose keys will make up the final serialized
-                   response output.
-    """
-    if utils.is_collection(data):
-        return [marshal(d, fields) for d in data]
-    items = ((k, marshal(data, v) if isinstance(v, dict)
-                                  else v.output(k, data))
-                                  for k, v in fields.items())
-    return OrderedDict(items)
+    :param str prefix: Optional prefix that will be prepended to all the
+        serialized field names.
+    :param bool strict: If ``True``, raise errors if invalid data are passed in
+        instead of failing silently and storing the errors.
+    '''
+    def __init__(self, prefix='', strict=False):
+        self.prefix = prefix
+        self.strict = strict
+        self.errors = {}
+
+    def __call__(self, data, fields_dict):
+        """Takes raw data (in the form of a dict, list, object) and a dict of
+        fields to output and filters the data based on those fields.
+
+        :param data: The actual object(s) from which the fields are taken from
+        :param dict fields: A dict whose keys will make up the final serialized
+                       response output.
+        """
+        if utils.is_collection(data):
+            return [self.__call__(d, fields_dict) for d in data]
+        items = []
+        for attr_name, field_obj in iteritems(fields_dict):
+            key = self.prefix + attr_name
+            try:
+                if isinstance(field_obj, dict):
+                    item = (key, self.__call__(data, field_obj))
+                else:
+                    try:
+                        item = (key, field_obj.output(attr_name, data))
+                    except TypeError:
+                        # field declared as a class, not an instance
+                        if issubclass(field_obj, FieldABC):
+                            msg = ('Field for "{0}" must be declared as a '
+                                            "Field instance, not a class. "
+                                            'Did you mean "fields.{1}()"?'
+                                            .format(attr_name, field_obj.__name__))
+                            raise TypeError(msg)
+                        raise
+            except MarshallingError as err:  # Store errors
+                if self.strict:
+                    raise err
+                self.errors[key] = text_type(err)
+                item = (key, None)
+            items.append(item)
+        return OrderedDict(items)
+
+# Singleton marshaller method for use only in this module
+_marshal = Marshaller(strict=True)
 
 
 def _get_value(key, obj, default=None):
@@ -175,13 +212,13 @@ class List(Raw):
             if not issubclass(cls_or_instance, FieldABC):
                 raise MarshallingError("The type of the list elements "
                                            "must be a subclass of "
-                                           "marshmallow.base.Field")
+                                           "marshmallow.base.FieldABC")
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
                 raise MarshallingError("The instances of the list "
                                            "elements must be of type "
-                                           "marshmallow.base.Field")
+                                           "marshmallow.base.FieldABC")
             self.container = cls_or_instance
 
     def output(self, key, data):
@@ -195,7 +232,7 @@ class List(Raw):
         if value is None:
             return self.default
 
-        return [marshal(value, self.container.nested)]
+        return [_marshal(value, self.container.nested)]
 
 
 class String(Raw):

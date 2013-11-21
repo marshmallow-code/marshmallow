@@ -5,7 +5,7 @@ import datetime as dt
 import json
 import copy
 
-from marshmallow import base, exceptions, fields, utils
+from marshmallow import base, fields, utils
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
@@ -84,8 +84,12 @@ class BaseSerializer(base.SerializerABC):
         self.exclude = exclude or ()
         self.prefix = prefix
         self.fields = self.__get_fields()  # Dict of fields
-        self.errors = {}
-        self.strict = strict
+        if strict or self.opts.strict:
+            self.strict = True
+        else:
+            self.strict = False
+        #: Callable marshalling object
+        self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
         #: The serialized data as an ``OrderedDict``
         self.data = self.to_data()
         if extra:
@@ -178,33 +182,12 @@ class BaseSerializer(base.SerializerABC):
         :param dict fields_dict: A dict whose keys will make up the final serialized
                        response output
         """
-        if utils.is_collection(data):
-            return [self.marshal(d, fields_dict) for d in data]
-        items = []
-        for attr_name, field_obj in iteritems(fields_dict):
-            key = self.prefix + attr_name
-            try:
-                if isinstance(field_obj, dict):
-                    item = (key, self.marshal(data, field_obj))
-                else:
-                    try:
-                        item = (key, field_obj.output(attr_name, data))
-                    except TypeError:
-                        # field declared as a class, not an instance
-                        if issubclass(field_obj, base.FieldABC):
-                            msg = ('Field for "{0}" must be declared as a '
-                                            "Field instance, not a class. "
-                                            'Did you mean "fields.{1}()"?'
-                                            .format(attr_name, field_obj.__name__))
-                            raise TypeError(msg)
-                        raise
-            except exceptions.MarshallingError as err:  # Store errors
-                if self.strict or self.opts.strict:
-                    raise err
-                self.errors[key] = text_type(err)
-                item = (key, None)
-            items.append(item)
-        return OrderedDict(items)
+        return self._marshal(data, fields_dict)
+
+    @property
+    def errors(self):
+        '''Dictionary of errors raised during serialization.'''
+        return self._marshal.errors
 
     def to_data(self, *args, **kwargs):
         return self.marshal(self.obj, self.fields, *args, **kwargs)

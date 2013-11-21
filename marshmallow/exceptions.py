@@ -7,7 +7,10 @@ class MarshmallowError(Exception):
 
 
 class MarshallingError(MarshmallowError):
-    """Raised in case of a marshalling error.
+    """Raised in case of a marshalling error. If a MarshallingError is raised
+    during serialization, the error is caught and the error message
+    is stored in the Serializer's ``error`` dictionary (unless ``strict`` mode
+    is turned on).
     """
 
     def __init__(self, underlying_exception):

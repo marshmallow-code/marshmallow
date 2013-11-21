@@ -639,6 +639,26 @@ class TestTypes(unittest.TestCase):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
         assert_equal(types.isoformat(d, localtime=True), "2013-11-10T01:23:45-06:00")
 
+class TestMarshaller(unittest.TestCase):
+
+    def test_stores_errors(self):
+        u = User("Foo", email="foobar")
+        marshal = fields.Marshaller()
+        marshal(u, {"email": fields.Email()})
+        assert_in("email", marshal.errors)
+
+    def test_strict_mode_raises_errors(self):
+        u = User("Foo", email="foobar")
+        marshal = fields.Marshaller(strict=True)
+        assert_raises(MarshallingError,
+            lambda: marshal(u, {"email": fields.Email()}))
+
+    def test_prefix(self):
+        u = User("Foo", email="foo@bar.com")
+        marshal = fields.Marshaller(prefix='usr_')
+        result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
+        assert_equal(result['usr_name'], u.name)
+        assert_equal(result['usr_email'], u.email)
 
 
 if __name__ == '__main__':
