@@ -340,15 +340,16 @@ class DateTime(Raw):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string.
+        or a date format string. If ``None``, defaults to "rfc".
     """
     localtime = False
 
-    def __init__(self, default=None, attribute=None, format="rfc"):
+    def __init__(self, default=None, attribute=None, format=None):
         super(DateTime, self).__init__(default=default, attribute=attribute)
         self.dateformat = format
 
     def format(self, value):
+        self.dateformat = self.dateformat or 'rfc'
         try:
             format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
             if format_func:

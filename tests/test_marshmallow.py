@@ -441,6 +441,26 @@ class TestMetaOptions(unittest.TestCase):
                 exclude = "name"
         assert_raises(ValueError, lambda: BadExclude(self.obj))
 
+    def test_dateformat_option(self):
+        format = '%Y-%m'
+        class DateFormatSerializer(Serializer):
+            updated = fields.DateTime(format="%m-%d")
+            class Meta:
+                fields = ('created', 'updated')
+                dateformat = format
+        serialized = DateFormatSerializer(self.obj)
+        assert_equal(serialized.data['created'], self.obj.created.strftime(format))
+        assert_equal(serialized.data['updated'], self.obj.updated.strftime("%m-%d"))
+
+    def test_default_dateformat(self):
+        class DateFormatSerializer(Serializer):
+            updated = fields.DateTime(format="%m-%d")
+            class Meta:
+                fields = ('created', 'updated')
+        serialized = DateFormatSerializer(self.obj)
+        assert_equal(serialized.data['created'], types.rfcformat(self.obj.created))
+        assert_equal(serialized.data['updated'], self.obj.updated.strftime("%m-%d"))
+
 
 class TestNestedSerializer(unittest.TestCase):
 

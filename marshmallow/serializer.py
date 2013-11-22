@@ -10,6 +10,7 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
+
 class SerializerMeta(type):
     '''Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -47,6 +48,7 @@ class SerializerOpts(object):
         self.fields = getattr(meta, 'fields', ())
         self.exclude = getattr(meta, 'exclude', ())
         self.strict = getattr(meta, 'strict', False)
+        self.dateformat = getattr(meta, 'dateformat', None)
 
 
 class BaseSerializer(base.SerializerABC):
@@ -72,7 +74,15 @@ class BaseSerializer(base.SerializerABC):
             class Meta:
                 fields = ("id", "email", "date_created")
                 exclude = ("password", "secret_attribute")
-                strict = False
+
+        Available options:
+
+        - ``fields``: Tuple or list of fields to include in the serialized result.
+        - ``exclude``: Tuple or list of fields to exclude in the serialized result.
+        - ``dateformat``: Date format for all DateTime fields that do not have their
+            date format explicitly specified.
+        - ``strict``: If ``True``, raise errors during marshalling rather than
+            storing them.
         '''
         pass
 
@@ -96,7 +106,6 @@ class BaseSerializer(base.SerializerABC):
         if extra:
             self._data.update(extra)
 
-
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
         ret = OrderedDict()
@@ -119,7 +128,7 @@ class BaseSerializer(base.SerializerABC):
                         '"{0}" is not a valid field for {1}.'
                             .format(field_name, self.obj))
                 filtered[field_name] = ret[field_name]
-            self.__set_parents(filtered)
+            self.__initialize_fields(filtered)
             return filtered
 
         # If "exclude" option or param is specified, remove those fields
@@ -131,14 +140,19 @@ class BaseSerializer(base.SerializerABC):
             for field_name in excludes:
                 ret.pop(field_name, None)
         # Set parents
-        self.__set_parents(ret)
+        self.__initialize_fields(ret)
         return ret
 
-    def __set_parents(self, fields_dict):
-        '''Set the parents of all field objects in fields_dict to self.'''
+    def __initialize_fields(self, fields_dict):
+        '''Set the parents of all field objects in fields_dict to self, and
+        set the dateformat specified in ``class Meta``, if necessary.
+        '''
         for _, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
                 field_obj.parent = self
+            if isinstance(field_obj, fields.DateTime):
+                if field_obj.dateformat is None:
+                    field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
     def __get_opts_fields(self, declared_fields):
