@@ -237,6 +237,10 @@ class List(Raw):
 
 class String(Raw):
     """A string field."""
+
+    def __init__(self, default='', attribute=None):
+        return super(String, self).__init__(default, attribute)
+
     def format(self, value):
         try:
             return text_type(value)
@@ -332,8 +336,8 @@ class Arbitrary(NumberField):
             raise MarshallingError(ve)
 
 DATEFORMAT_FUNCTIONS = {
-    "iso": types.isoformat,
-    "rfc": types.rfcformat,
+    "iso": utils.isoformat,
+    "rfc": utils.rfcformat,
 }
 
 
