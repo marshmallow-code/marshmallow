@@ -1,14 +1,16 @@
 Changelog
 ---------
 
-0.3.2 (unreleased)
+0.4.0 (unreleased)
 ++++++++++++++++++
 
 * Add ``dateformat`` `class Meta` option.
 * Support for serializing UUID objects.
-* Remove ``Serialize.to_data`` method.
+* Remove ``Serializer.to_data`` method. Just use ``Serialize.data`` property.
 * String field defaults to empty string instead of ``None``.
-* *Backwards-compatible*: ``isoformat`` and ``rfcformat`` functions moved to utils.py.
+* *Backwards-incompatible*: ``isoformat`` and ``rfcformat`` functions moved to utils.py.
+* *Backwards-incompatible*: Validation functions moved to validate.py.
+* *Backwards-incompatible*: Remove types.py.
 
 0.3.1 (2013-11-16)
 ++++++++++++++++++

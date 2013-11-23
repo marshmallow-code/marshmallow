@@ -23,11 +23,19 @@ Fields
 .. automodule:: marshmallow.fields
     :members:
 
-Utility Methods
-===============
+Validators
+==========
+
+.. automodule:: marshmallow.validate
+    :members:
+
+Utility Functions
+=================
 
 .. automodule:: marshmallow.utils
     :members:
+
+
 
 Exceptions
 ==========

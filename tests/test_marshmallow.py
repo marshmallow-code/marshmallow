@@ -9,7 +9,7 @@ import uuid
 from nose.tools import *  # PEP8 asserts
 import pytz
 
-from marshmallow import Serializer, fields, types, pprint, utils
+from marshmallow import Serializer, fields, validate, pprint, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import LINUX, unicode, PY26
 
@@ -674,15 +674,15 @@ class TestUtils(unittest.TestCase):
         assert_equal(utils.isoformat(d, localtime=True), "2013-11-10T01:23:45-06:00")
 
 
-class TestTypes(unittest.TestCase):
+class TestValidators(unittest.TestCase):
 
     def test_invalid_email(self):
         invalid1 = "user@example"
-        assert_raises(ValueError, lambda: types.email(invalid1))
+        assert_raises(ValueError, lambda: validate.email(invalid1))
         invalid2 = "example.com"
-        assert_raises(ValueError, lambda: types.email(invalid2))
+        assert_raises(ValueError, lambda: validate.email(invalid2))
         invalid3 = "user"
-        assert_raises(ValueError, lambda: types.email(invalid3))
+        assert_raises(ValueError, lambda: validate.email(invalid3))
 
 
 class TestMarshaller(unittest.TestCase):

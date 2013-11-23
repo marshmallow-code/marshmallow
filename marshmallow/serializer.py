@@ -11,7 +11,6 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
-
 class SerializerMeta(type):
     '''Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -239,7 +238,8 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
     '''Base serializer class with which to define custom serializers.
 
     Example usage:
-    ::
+
+    .. code-block:: python
 
         from datetime import datetime
         from marshmallow import Serializer, fields
@@ -262,7 +262,7 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized = PersonSerializer(person)
         serialized.data
         # OrderedDict([('name', u'Guido van Rossum'),
-                        ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
+        #                ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
 
     :param obj: The object or collection of objects to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.

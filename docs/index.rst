@@ -4,7 +4,7 @@
 marshmallow: simplified object serialization for REST APIs
 **********************************************************
 
-Release v\ |version|. (:ref:`Installation <install>`)
+Release v\ |version|. (:ref:`Changelog <changelog>`)
 
 .. include:: about.rst.inc
 

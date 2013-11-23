@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+'''Validation functions for various types of data.'''
 import re
 
 
@@ -29,8 +30,9 @@ def url(value, relative=False):
     """Validate a URL.
 
     :param string value: The URL to validate
+    :param bool relative: Whether to allow relative URLs.
     :returns: The URL if valid.
-    :raises: ValueError
+    :raises: ValueError if url is invalid.
     """
     regex = RELATIVE_URL_REGEX if relative else URL_REGEX
     if not regex.search(value):

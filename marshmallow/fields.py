@@ -8,7 +8,7 @@
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
-from marshmallow import types, utils
+from marshmallow import validate, utils
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import text_type, OrderedDict, iteritems
 from marshmallow.exceptions import MarshallingError
@@ -425,7 +425,7 @@ class Url(Raw):
         if value is None:
             return self.default
         try:
-            return types.url(value, relative=self.relative)
+            return validate.url(value, relative=self.relative)
         except Exception as err:
             raise MarshallingError(err)
 
@@ -438,7 +438,7 @@ class Email(Raw):
         if value is None:
             return self.default
         try:
-            return types.email(value)
+            return validate.email(value)
         except Exception as err:
             raise MarshallingError(err)
 
