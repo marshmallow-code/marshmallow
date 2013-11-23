@@ -52,6 +52,20 @@ Serialize objects by passing them into your serializers. Onced serialized, you c
     serialized.json
     # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
 
+
+Filtering output
+++++++++++++++++
+
+You may not need to output all declared fields every time you use a serializer. You can specify which fields to output with the ``only`` parameter.
+
+.. code-block:: python
+
+    UserSerializer(user, only=('name', 'email'))
+    # {"name": "Monty Python", "email": "monty@python.org"}
+
+You can also exlude fields by passing in the ``exclude`` parameter.
+
+
 Validation
 ----------
 

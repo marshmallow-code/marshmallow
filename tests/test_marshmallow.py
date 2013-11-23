@@ -450,7 +450,7 @@ class TestMetaOptions(unittest.TestCase):
     def test_dateformat_option(self):
         format = '%Y-%m'
         class DateFormatSerializer(Serializer):
-            updated = fields.DateTime(format="%m-%d")
+            updated = fields.DateTime("%m-%d")
             class Meta:
                 fields = ('created', 'updated')
                 dateformat = format

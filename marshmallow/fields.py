@@ -353,7 +353,7 @@ class DateTime(Raw):
     """
     localtime = False
 
-    def __init__(self, default=None, attribute=None, format=None):
+    def __init__(self, format=None, default=None, attribute=None):
         super(DateTime, self).__init__(default=default, attribute=attribute)
         self.dateformat = format
 
