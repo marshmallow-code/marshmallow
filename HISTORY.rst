@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Add ``dateformat`` `class Meta` option.
+* Support for serializing UUID objects.
 * Remove ``Serialize.to_data`` method.
 
 0.3.1 (2013-11-16)

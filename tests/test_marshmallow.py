@@ -4,6 +4,7 @@
 import unittest2 as unittest
 import json
 import datetime as dt
+import uuid
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -41,6 +42,7 @@ class User(object):
         self.hair_colors = ['black', 'brown', 'blond', 'redhead']
         self.sex_choices = ('male', 'female')
         self.finger_count = 10
+        self.uid = uuid.uuid1()
 
     def __repr__(self):
         return "<User {0}>".format(self.name)
@@ -83,6 +85,7 @@ class UserSerializer(Serializer):
     hair_colors = fields.List(fields.Raw)
     sex_choices = fields.List(fields.Raw)
     finger_count = fields.Integer()
+    uid  = fields.UUID()
 
     def get_is_old(self, obj):
         try:
@@ -111,7 +114,7 @@ class UserMetaSerializer(Serializer):
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
                    'uppername', 'email', 'balance', 'is_old', 'lowername',
                    "updated_local", "species", 'registered', 'hair_colors',
-                   'sex_choices', "finger_count")
+                   'sex_choices', "finger_count", 'uid')
 
 
 class UserExcludeSerializer(UserSerializer):
@@ -386,6 +389,8 @@ class TestSerializer(unittest.TestCase):
         invalid = User("Foo", email="foo.com")
         assert_raises(MarshallingError, lambda: StrictUserSerializer(invalid))
 
+    def test_can_serialize_uuid(self):
+        assert_equal(self.serialized.data['uid'], str(self.obj.uid))
 
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
@@ -416,6 +421,7 @@ class TestMetaOptions(unittest.TestCase):
         assert_equal(type(s.fields['sex_choices']), fields.Raw)
         assert_equal(type(s.fields['hair_colors']), fields.Raw)
         assert_equal(type(s.fields['finger_count']), fields.Integer)
+        assert_equal(type(s.fields['uid']), fields.UUID)
 
     def test_meta_field_not_on_obj_raises_attribute_error(self):
         class BadUserSerializer(Serializer):

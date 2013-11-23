@@ -244,6 +244,11 @@ class String(Raw):
             raise MarshallingError(ve)
 
 
+class UUID(String):
+    """A UUID field."""
+    pass
+
+
 class NumberField(Raw):
     '''Base class for number fields.'''
 

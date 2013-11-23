@@ -4,6 +4,7 @@ from __future__ import absolute_import, print_function
 import datetime as dt
 import json
 import copy
+import uuid
 
 from marshmallow import base, fields, utils
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -64,6 +65,7 @@ class BaseSerializer(base.SerializerABC):
         list: fields.Raw,
         set: fields.Raw,
         int: fields.Integer,
+        uuid.UUID: fields.UUID
     }
 
     class Meta(object):
