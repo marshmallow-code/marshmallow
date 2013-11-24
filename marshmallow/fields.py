@@ -10,7 +10,7 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 
 from marshmallow import validate, utils
 from marshmallow.base import FieldABC, SerializerABC
-from marshmallow.compat import text_type, OrderedDict, iteritems
+from marshmallow.compat import text_type, OrderedDict, iteritems, total_seconds
 from marshmallow.exceptions import MarshallingError
 
 
@@ -418,7 +418,7 @@ class TimeDelta(Raw):
 
     def format(self, value):
         try:
-            return value.total_seconds()
+            return total_seconds(value)
         except AttributeError:
             raise MarshallingError('{0} cannot be formatted as a timedelta.'
                                     .format(repr(value)))

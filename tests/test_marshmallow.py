@@ -11,7 +11,7 @@ import pytz
 
 from marshmallow import Serializer, fields, validate, pprint, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import LINUX, unicode, PY26, binary_type
+from marshmallow.compat import LINUX, unicode, PY26, binary_type, total_seconds
 
 if PY26:
     def assert_in(obj, cont):
@@ -671,7 +671,7 @@ class TestFields(unittest.TestCase):
     def test_timedelta_field(self):
         field = fields.TimeDelta()
         assert_equal(field.output("since_created", self.user),
-            self.user.since_created.total_seconds())
+            total_seconds(self.user.since_created))
 
 
 class TestUtils(unittest.TestCase):
