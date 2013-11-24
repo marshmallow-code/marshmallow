@@ -132,6 +132,11 @@ class UserExcludeSerializer(UserSerializer):
     class Meta:
         exclude = ("created", "updated", "field_not_found_but_thats_ok")
 
+class UserAdditionalSerializer(Serializer):
+    lowername = fields.Function(lambda obj: obj.name.lower())
+    class Meta:
+        additional = ("name", "age", "created", "email")
+
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
 
@@ -510,6 +515,19 @@ class TestMetaOptions(unittest.TestCase):
 
         assert_equal(InheritedMetaSerializer(self.obj).data,
                     UserMetaSerializer(self.obj).data)
+
+    def test_additional(self):
+        s = UserAdditionalSerializer(self.obj)
+        assert_equal(s.data['lowername'], self.obj.name.lower())
+        assert_equal(s.data['name'], self.obj.name)
+
+    def test_cant_set_both_additional_and_fields(self):
+        class BadSerializer(Serializer):
+            name = fields.String()
+            class Meta:
+                fields = ("name", 'email')
+                additional = ('email', 'homepage')
+        assert_raises(ValueError, lambda: BadSerializer(self.obj))
 
 
 class TestNestedSerializer(unittest.TestCase):

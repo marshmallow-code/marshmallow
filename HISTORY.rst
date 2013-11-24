@@ -4,6 +4,7 @@ Changelog
 0.4.0 (unreleased)
 ++++++++++++++++++
 
+* Add ``additional`` `clas Meta` option.
 * Add ``dateformat`` `class Meta` option.
 * Support for serializing UUID, date, time, and timedelta objects.
 * Remove ``Serializer.to_data`` method. Just use ``Serialize.data`` property.

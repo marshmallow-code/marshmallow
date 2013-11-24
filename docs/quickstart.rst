@@ -263,6 +263,18 @@ Let's refactor our User serializer to be more concise.
 
 Note that ``name`` will be automatically formatted as a :class:`String <marshmallow.fields.String>` and ``created_at`` will be formatted as a :class:`DateTime <marshmallow.fields.DateTime>`.
 
+.. note::
+    If instead you want to specify which field names to include *in addition* to the explicitly declared fields, you can use the ``additional`` option.
+
+    The serializer below is equivalent to above:
+
+    .. code-block:: python
+
+        class UserSerializer(Serializer):
+            uppername = fields.Function(lambda obj: obj.name.upper())
+            class Meta:
+                additional = ("name", "email", "created_at")
+
 
 Printing Serialized Data
 ------------------------

@@ -46,6 +46,10 @@ class SerializerOpts(object):
 
     def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
+        self.additional = getattr(meta, 'additional', ())
+        if self.fields and self.additional:
+            raise ValueError("Cannot set both `fields` and `additional` options"
+                            " for the same serializer.")
         self.exclude = getattr(meta, 'exclude', ())
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
@@ -82,6 +86,9 @@ class BaseSerializer(base.SerializerABC):
         Available options:
 
         - ``fields``: Tuple or list of fields to include in the serialized result.
+        - ``additional``: Tuple or list of fields to include *in addition* to the
+            explicitly declared fields. ``additional`` and ``fields`` are
+            mutually-exclusive options.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
@@ -119,9 +126,13 @@ class BaseSerializer(base.SerializerABC):
         for field_name, field_obj in iteritems(declared_fields):
             ret[field_name] = field_obj
 
-        # If "fields" option is specified, use those fields
         if self.opts.fields:
-            ret = self.__get_opts_fields(ret)
+            # Return only fields specified in fields option
+            ret = self.__get_opts_fields(ret, self.opts.fields)
+        elif self.opts.additional:
+            # Return declared fields + additional fields
+            field_names = tuple(ret.keys()) + tuple(self.opts.additional)
+            ret = self.__get_opts_fields(ret, field_names)
 
         # if only __init__ param is specified, only return those fields
         if self.only:
@@ -159,9 +170,14 @@ class BaseSerializer(base.SerializerABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __get_opts_fields(self, declared_fields):
-        '''Return only those field_name:field_obj pairs specified in the fields
-        option of class Meta.
+    def __get_opts_fields(self, declared_fields, field_names):
+        '''Return only those field_name:field_obj pairs specified by
+        ``field_names``.
+
+        :param dict declared_fields: The original dictionary of explicitly
+            declared fields.
+        :param tuple field_names: List of field names to include in the final
+            return dictionary.
         '''
         # Convert obj to a dict
         if not isinstance(self.opts.fields, (list, tuple)):
@@ -174,10 +190,10 @@ class BaseSerializer(base.SerializerABC):
                 return declared_fields
         else:
             obj_dict = obj_marshallable
-        new = OrderedDict()
-        for key in self.opts.fields:
+        ret = OrderedDict()
+        for key in field_names:
             if key in declared_fields:
-                new[key] = declared_fields[key]
+                ret[key] = declared_fields[key]
             else:
                 try:
                     attribute_type = type(obj_dict[key])
@@ -185,8 +201,8 @@ class BaseSerializer(base.SerializerABC):
                     raise AttributeError(
                         '"{0}" is not a valid field for {1}.'.format(key, self.obj))
                 # map key -> field (default to Raw)
-                new[key] = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
-        return new
+                ret[key] = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
+        return ret
 
     def marshal(self, data, fields_dict):
         """Takes the data (a dict, list, or object) and a dict of fields.
