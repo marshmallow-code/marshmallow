@@ -398,6 +398,18 @@ class Time(Raw):
             return ret[:12]
         return ret
 
+
+class Date(Raw):
+    """ISO8601-formatted date string."""
+
+    def format(self, value):
+        try:
+            return value.isoformat()
+        except AttributeError:
+            raise MarshallingError('{0} cannot be formatted as a date.'
+                                    .format(repr(value)))
+        return value
+
 ZERO = MyDecimal()
 
 
