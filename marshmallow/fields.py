@@ -48,7 +48,8 @@ class Marshaller(object):
                         item = (key, field_obj.output(attr_name, data))
                     except TypeError:
                         # field declared as a class, not an instance
-                        if issubclass(field_obj, FieldABC):
+                        if isinstance(field_obj, type) and \
+                            issubclass(field_obj, FieldABC):
                             msg = ('Field for "{0}" must be declared as a '
                                             "Field instance, not a class. "
                                             'Did you mean "fields.{1}()"?'
