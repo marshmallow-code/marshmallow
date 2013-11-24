@@ -67,6 +67,7 @@ class BaseSerializer(base.SerializerABC):
         uuid.UUID: fields.UUID,
         dt.time: fields.Time,
         dt.date: fields.Date,
+        dt.timedelta: fields.TimeDelta,
     }
 
     class Meta(object):

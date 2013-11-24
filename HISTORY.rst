@@ -5,7 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Add ``dateformat`` `class Meta` option.
-* Support for serializing UUID, date, and time objects.
+* Support for serializing UUID, date, time, and timedelta objects.
 * Remove ``Serializer.to_data`` method. Just use ``Serialize.data`` property.
 * String field defaults to empty string instead of ``None``.
 * *Backwards-incompatible*: ``isoformat`` and ``rfcformat`` functions moved to utils.py.

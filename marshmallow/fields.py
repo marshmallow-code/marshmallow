@@ -410,6 +410,21 @@ class Date(Raw):
                                     .format(repr(value)))
         return value
 
+
+class TimeDelta(Raw):
+    '''Formats time delta objects, returning the total number of seconds
+    as a float.
+    '''
+
+    def format(self, value):
+        try:
+            return value.total_seconds()
+        except AttributeError:
+            raise MarshallingError('{0} cannot be formatted as a timedelta.'
+                                    .format(repr(value)))
+        return value
+
+
 ZERO = MyDecimal()
 
 

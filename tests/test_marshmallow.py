@@ -46,6 +46,7 @@ class User(object):
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
+        self.since_created = dt.datetime(2013, 11, 24) - self.created
 
     def __repr__(self):
         return "<User {0}>".format(self.name)
@@ -91,6 +92,7 @@ class UserSerializer(Serializer):
     uid  = fields.UUID()
     time_registered = fields.Time()
     birthdate = fields.Date()
+    since_created = fields.TimeDelta()
 
     def get_is_old(self, obj):
         try:
@@ -120,7 +122,7 @@ class UserMetaSerializer(Serializer):
                    'uppername', 'email', 'balance', 'is_old', 'lowername',
                    "updated_local", "species", 'registered', 'hair_colors',
                    'sex_choices', "finger_count", 'uid', 'time_registered',
-                   'birthdate')
+                   'birthdate', 'since_created')
 
 
 class UserExcludeSerializer(UserSerializer):
@@ -453,6 +455,7 @@ class TestMetaOptions(unittest.TestCase):
         assert_equal(type(s.fields['uid']), fields.UUID)
         assert_equal(type(s.fields['time_registered']), fields.Time)
         assert_equal(type(s.fields['birthdate']), fields.Date)
+        assert_equal(type(s.fields['since_created']), fields.TimeDelta)
 
     def test_meta_field_not_on_obj_raises_attribute_error(self):
         class BadUserSerializer(Serializer):
@@ -664,6 +667,11 @@ class TestFields(unittest.TestCase):
         field = fields.Date()
         assert_equal(field.output('birthdate', self.user),
             self.user.birthdate.isoformat())
+
+    def test_timedelta_field(self):
+        field = fields.TimeDelta()
+        assert_equal(field.output("since_created", self.user),
+            self.user.since_created.total_seconds())
 
 
 class TestUtils(unittest.TestCase):
