@@ -385,6 +385,19 @@ class LocalDateTime(DateTime):
     localtime = True
 
 
+class Time(Raw):
+    """ISO8601-formatted time string."""
+
+    def format(self, value):
+        try:
+            ret = value.isoformat()
+        except AttributeError:
+            raise MarshallingError('{0} cannot be formatted as a time.'
+                                    .format(repr(value)))
+        if value.microsecond:
+            return ret[:12]
+        return ret
+
 ZERO = MyDecimal()
 
 

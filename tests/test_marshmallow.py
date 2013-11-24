@@ -27,7 +27,7 @@ class User(object):
     SPECIES = "Homo sapiens"
 
     def __init__(self, name, age=0, id_=None, homepage=None,
-                email=None, registered=True):
+                email=None, registered=True, time_registered=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -43,6 +43,7 @@ class User(object):
         self.sex_choices = ('male', 'female')
         self.finger_count = 10
         self.uid = uuid.uuid1()
+        self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
 
     def __repr__(self):
         return "<User {0}>".format(self.name)
@@ -86,6 +87,7 @@ class UserSerializer(Serializer):
     sex_choices = fields.List(fields.Raw)
     finger_count = fields.Integer()
     uid  = fields.UUID()
+    time_registered = fields.Time()
 
     def get_is_old(self, obj):
         try:
@@ -114,7 +116,7 @@ class UserMetaSerializer(Serializer):
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
                    'uppername', 'email', 'balance', 'is_old', 'lowername',
                    "updated_local", "species", 'registered', 'hair_colors',
-                   'sex_choices', "finger_count", 'uid')
+                   'sex_choices', "finger_count", 'uid', 'time_registered')
 
 
 class UserExcludeSerializer(UserSerializer):
@@ -396,6 +398,17 @@ class TestSerializer(unittest.TestCase):
     def test_can_serialize_uuid(self):
         assert_equal(self.serialized.data['uid'], str(self.obj.uid))
 
+    def test_can_serialize_time(self):
+        assert_equal(self.serialized.data['time_registered'],
+            self.obj.time_registered.isoformat()[:12])
+
+    def test_invalid_time(self):
+        u = User('Joe', time_registered='foo')
+        s = UserSerializer(u)
+        assert_false(s.is_valid(['time_registered']))
+        assert_equal(s.errors['time_registered'],
+            "'foo' cannot be formatted as a time.")
+
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
         self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
@@ -426,6 +439,7 @@ class TestMetaOptions(unittest.TestCase):
         assert_equal(type(s.fields['hair_colors']), fields.Raw)
         assert_equal(type(s.fields['finger_count']), fields.Integer)
         assert_equal(type(s.fields['uid']), fields.UUID)
+        assert_equal(type(s.fields['time_registered']), fields.Time)
 
     def test_meta_field_not_on_obj_raises_attribute_error(self):
         class BadUserSerializer(Serializer):
@@ -627,6 +641,11 @@ class TestFields(unittest.TestCase):
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()
         assert_equal(field.output("notfound", self.user), '')
+
+    def test_time_field(self):
+        field = fields.Time()
+        assert_equal(field.output("time_registered", self.user),
+                self.user.time_registered.isoformat()[:12])
 
 
 class TestUtils(unittest.TestCase):
