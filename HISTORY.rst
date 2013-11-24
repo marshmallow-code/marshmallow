@@ -12,6 +12,7 @@ Changelog
 * *Backwards-incompatible*: Validation functions moved to validate.py.
 * *Backwards-incompatible*: Remove types.py.
 * Reorder parameters to ``DateTime`` field (first parameter is dateformat).
+* Ensure that ``to_json`` returns bytestrings.
 
 0.3.1 (2013-11-16)
 ++++++++++++++++++

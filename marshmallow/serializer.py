@@ -215,7 +215,13 @@ class BaseSerializer(base.SerializerABC):
         '''Return the JSON representation of the data. Takes the same arguments
         as Pythons built-in ``json.dumps``.
         '''
-        return json.dumps(self.data, *args, **kwargs)
+        ret = json.dumps(self.data, *args, **kwargs)
+        # On Python 2, json.dumps returns bytestrings
+        # On Python 3, json.dumps returns unicode
+        # Ensure that a bytestring is returned
+        if isinstance(ret, text_type):
+            return binary_type(ret.encode('utf-8'))
+        return ret
 
     def is_valid(self, field_names=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.

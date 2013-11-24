@@ -11,7 +11,7 @@ import pytz
 
 from marshmallow import Serializer, fields, validate, pprint, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import LINUX, unicode, PY26
+from marshmallow.compat import LINUX, unicode, PY26, binary_type
 
 if PY26:
     def assert_in(obj, cont):
@@ -195,7 +195,11 @@ class TestSerializer(unittest.TestCase):
 
     def test_json(self):
         json_data = self.serialized.json
-        assert_equal(json_data, json.dumps(self.serialized.data))
+        expected = binary_type(json.dumps(self.serialized.data).encode("utf-8"))
+        assert_equal(json_data, expected)
+
+    def test_to_json_returns_bytestring(self):
+        assert_true(isinstance(self.serialized.to_json(), binary_type))
 
     def test_naive_datetime_field(self):
         assert_equal(self.serialized.data['created'],
