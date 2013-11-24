@@ -11,6 +11,7 @@ Changelog
 * *Backwards-incompatible*: ``isoformat`` and ``rfcformat`` functions moved to utils.py.
 * *Backwards-incompatible*: Validation functions moved to validate.py.
 * *Backwards-incompatible*: Remove types.py.
+* Reorder parameters to ``DateTime`` field (first parameter is dateformat).
 
 0.3.1 (2013-11-16)
 ++++++++++++++++++

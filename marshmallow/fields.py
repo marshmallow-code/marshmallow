@@ -27,7 +27,7 @@ class Marshaller(object):
         self.strict = strict
         self.errors = {}
 
-    def __call__(self, data, fields_dict):
+    def marshal(self, data, fields_dict):
         """Takes raw data (in the form of a dict, list, object) and a dict of
         fields to output and filters the data based on those fields.
 
@@ -36,13 +36,13 @@ class Marshaller(object):
                        response output.
         """
         if utils.is_collection(data):
-            return [self.__call__(d, fields_dict) for d in data]
+            return [self.marshal(d, fields_dict) for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
             try:
                 if isinstance(field_obj, dict):
-                    item = (key, self.__call__(data, field_obj))
+                    item = (key, self.marshal(data, field_obj))
                 else:
                     try:
                         item = (key, field_obj.output(attr_name, data))
@@ -63,8 +63,11 @@ class Marshaller(object):
             items.append(item)
         return OrderedDict(items)
 
-# Singleton marshaller method for use only in this module
-_marshal = Marshaller(strict=True)
+    # Make an instance callable
+    __call__ = marshal
+
+# Singleton marshaller method for use in this module
+marshal = Marshaller(strict=True)
 
 
 def _get_value(key, obj, default=None):
@@ -232,7 +235,7 @@ class List(Raw):
         if value is None:
             return self.default
 
-        return [_marshal(value, self.container.nested)]
+        return [marshal(value, self.container.nested)]
 
 
 class String(Raw):
@@ -345,11 +348,11 @@ class DateTime(Raw):
     """A formatted datetime string in UTC.
         ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
+    :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
+        or a date format string. If ``None``, defaults to "rfc".
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
-    :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If ``None``, defaults to "rfc".
     """
     localtime = False
 
