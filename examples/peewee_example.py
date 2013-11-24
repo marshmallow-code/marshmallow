@@ -51,7 +51,7 @@ class TodoSerializer(Serializer):
     done = fields.Boolean(attribute='is_done')
     user = fields.Nested(UserSerializer)
     class Meta:
-        fields = ('id', 'content', 'done', 'user', 'posted_on')
+        additional = ('id', 'content', 'posted_on')
 
 ###### HELPERS ######
 

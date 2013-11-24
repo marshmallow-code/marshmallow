@@ -67,8 +67,7 @@ Quotes API (Flask + SQL-Alchemy)
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
     - *class Meta* to specify which fields to serialize
-    - Field validation
-    - Output filtering using ``only`` and ``exclude``
+    - Output filtering using ``only`` param
 
 
 .. literalinclude:: ../examples/flask_example.py
