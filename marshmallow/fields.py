@@ -491,8 +491,10 @@ class Method(Raw):
     """A field that takes the value returned by a Serializer method.
 
     :param str method_name: The name of the Serializer method from which
-        to retrieve the value. The method must take a single argument ``obj``
-        (in addition to self) that is the object to be serialized.
+        to retrieve the value. The method must take two arguments, the first is
+        ``key`` identifying the name of the attribute to be serialised and the
+        second is ``obj`` which is the object (in addition to self) that is the
+        object to be serialized.
     """
 
     def __init__(self, method_name):
@@ -501,7 +503,7 @@ class Method(Raw):
 
     def output(self, key, obj):
         try:
-            return getattr(self.parent, self.method_name)(obj)
+            return getattr(self.parent, self.method_name)(key, obj)
         except AttributeError:
             pass
 
@@ -510,8 +512,9 @@ class Function(Raw):
     '''A field that takes the value returned by a function.
 
     :param function func: A callable function from which to retrieve the value.
-        The function must take a single argument ``obj`` which is the object
-        to be serialized.
+        The function must take two arguments, the first is ``key`` identifying
+        the name of the attribute to be serialised and the second is ``obj``
+        which is the object to be serialized.
     '''
 
     def __init__(self, func):
@@ -519,7 +522,7 @@ class Function(Raw):
 
     def output(self, key, obj):
         try:
-            return self.func(obj)
+            return self.func(key, obj)
         except TypeError as te:  # Function is not callable
             raise MarshallingError(te)
         except AttributeError:
