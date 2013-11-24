@@ -46,7 +46,10 @@ class User(object):
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
-        self.since_created = dt.datetime(2013, 11, 24) - self.created
+
+    @property
+    def since_created(self):
+        return dt.datetime(2013, 11, 24) - self.created
 
     def __repr__(self):
         return "<User {0}>".format(self.name)
@@ -677,8 +680,20 @@ class TestFields(unittest.TestCase):
 class TestUtils(unittest.TestCase):
 
     def test_to_marshallable_type(self):
-        u = User("Foo", "foo@bar.com")
-        assert_equal(utils.to_marshallable_type(u), u.__dict__)
+        class Foo(object):
+            CLASS_VAR = 'bar'
+            def __init__(self):
+                self.attribute = 'baz'
+            @property
+            def prop(self):
+                return 42
+        obj = Foo()
+        u_dict = utils.to_marshallable_type(obj)
+        assert_equal(u_dict['CLASS_VAR'], Foo.CLASS_VAR)
+        assert_equal(u_dict['attribute'], obj.attribute)
+        assert_equal(u_dict['prop'], obj.prop)
+
+    def test_to_marshallable_type_none(self):
         assert_equal(utils.to_marshallable_type(None), None)
 
     def test_marshallable(self):

@@ -13,6 +13,7 @@ Changelog
 * *Backwards-incompatible*: Remove types.py.
 * Reorder parameters to ``DateTime`` field (first parameter is dateformat).
 * Ensure that ``to_json`` returns bytestrings.
+* Fix bug with including an object property in ``fields`` Meta option.
 
 0.3.1 (2013-11-16)
 ++++++++++++++++++

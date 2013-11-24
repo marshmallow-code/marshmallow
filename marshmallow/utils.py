@@ -62,8 +62,9 @@ def to_marshallable_type(obj):
 
     if hasattr(obj, '__marshallable__'):
         return obj.__marshallable__()
+    return dict([(name, getattr(obj, name, None))  for name in dir(obj)
+                if not name.startswith("__") and not name.endswith("__")])
 
-    return dict(obj.__dict__)
 
 
 def pprint(obj, *args, **kwargs):
