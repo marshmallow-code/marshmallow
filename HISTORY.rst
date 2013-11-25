@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.4.0 (unreleased)
+0.4.0 (2013-11-24)
 ++++++++++++++++++
 
 * Add ``additional`` `clas Meta` option.
