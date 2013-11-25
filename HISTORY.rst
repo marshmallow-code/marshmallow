@@ -15,6 +15,7 @@ Changelog
 * Reorder parameters to ``DateTime`` field (first parameter is dateformat).
 * Ensure that ``to_json`` returns bytestrings.
 * Fix bug with including an object property in ``fields`` Meta option.
+* Fix bug with passing ``None`` to a serializer.
 
 0.3.1 (2013-11-16)
 ++++++++++++++++++

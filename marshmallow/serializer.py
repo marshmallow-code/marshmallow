@@ -196,12 +196,16 @@ class BaseSerializer(base.SerializerABC):
                 ret[key] = declared_fields[key]
             else:
                 try:
-                    attribute_type = type(obj_dict[key])
+                    if obj_dict:
+                        attribute_type = type(obj_dict[key])
+                        field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
+                    else:  # Object is None
+                        field_obj = fields.Raw()
                 except KeyError:
                     raise AttributeError(
                         '"{0}" is not a valid field for {1}.'.format(key, self.obj))
                 # map key -> field (default to Raw)
-                ret[key] = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
+                ret[key] = field_obj
         return ret
 
     def marshal(self, data, fields_dict):

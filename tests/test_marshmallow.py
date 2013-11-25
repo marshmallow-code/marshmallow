@@ -529,6 +529,11 @@ class TestMetaOptions(unittest.TestCase):
                 additional = ('email', 'homepage')
         assert_raises(ValueError, lambda: BadSerializer(self.obj))
 
+    def test_serializing_none(self):
+        s = UserMetaSerializer(None)
+        assert_equal(s.data['name'], None)
+        assert_equal(s.data['email'], None)
+
 
 class TestNestedSerializer(unittest.TestCase):
 
