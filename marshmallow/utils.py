@@ -5,6 +5,7 @@ import json
 import datetime
 from email.utils import formatdate
 from calendar import timegm
+import types
 
 from decimal import Decimal, Context, Inexact
 from pprint import pprint as py_pprint
@@ -62,6 +63,9 @@ def to_marshallable_type(obj):
 
     if hasattr(obj, '__getitem__'):
         return obj  # it is indexable it is ok
+
+    if isinstance(obj, types.GeneratorType):
+        return list(obj)
 
     return dict([(name, getattr(obj, name, None))  for name in dir(obj)
                 if not name.startswith("__") and not name.endswith("__")])

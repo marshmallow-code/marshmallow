@@ -371,6 +371,20 @@ class TestSerializer(unittest.TestCase):
             name = fields.String
         assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
 
+    def test_serializing_generator(self):
+        users = [User("Foo"), User("Bar")]
+        user_gen = (u for u in users)
+        s = UserSerializer(user_gen)
+        assert_equal(len(s.data), 2)
+        assert_equal(s.data[0], UserSerializer(users[0]).data)
+
+    def test_serializing_generator_with_meta_fields(self):
+        users = [User("Foo"), User("Bar")]
+        user_gen = (u for u in users)
+        s = UserMetaSerializer(user_gen)
+        assert_equal(len(s.data), 2)
+        assert_equal(s.data[0], UserMetaSerializer(users[0]).data)
+
     def test_serializing_empty_list_returns_empty_list(self):
         assert_equal(UserSerializer([]).data, [])
         assert_equal(UserMetaSerializer([]).data, [])
@@ -718,6 +732,13 @@ class TestUtils(unittest.TestCase):
 
     def test_to_marshallable_type_none(self):
         assert_equal(utils.to_marshallable_type(None), None)
+
+    def test_to_marshallable_type_list(self):
+        assert_equal(utils.to_marshallable_type(['foo', 'bar']), ['foo', 'bar'])
+
+    def test_to_marshallable_type_generator(self):
+        gen = (e for e in ['foo', 'bar'])
+        assert_equal(utils.to_marshallable_type(gen), ['foo', 'bar'])
 
     def test_marshallable(self):
         class ObjContainer(object):

@@ -5,6 +5,7 @@ import datetime as dt
 import json
 import copy
 import uuid
+import types
 
 from marshmallow import base, fields, utils
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -100,7 +101,10 @@ class BaseSerializer(base.SerializerABC):
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False):
         self.opts = SerializerOpts(self.Meta)
-        self.obj = obj
+        if isinstance(obj, types.GeneratorType):
+            self.obj = list(obj)
+        else:
+            self.obj = obj
         self.only = only or ()
         self.exclude = exclude or ()
         self.prefix = prefix
