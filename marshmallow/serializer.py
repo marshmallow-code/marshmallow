@@ -188,7 +188,7 @@ class BaseSerializer(base.SerializerABC):
             raise ValueError("`fields` option must be a list or tuple.")
         obj_marshallable = utils.to_marshallable_type(self.obj)
         if utils.is_collection(obj_marshallable):  # Homogeneous collection
-            if len(obj_marshallable) > 0:
+            if utils.get_length(obj_marshallable) > 0:
                 obj_dict = utils.to_marshallable_type(obj_marshallable[0])
             else:  # Nothing to serialize
                 return declared_fields
