@@ -29,23 +29,6 @@ def is_collection(obj):
     return is_iterable_but_not_string(obj) and not isinstance(obj, dict)
 
 
-def get_length(collection):
-    '''Helper for returning the length of list-like collections, e.g. querysets.
-    '''
-    # Use __len__ if implemented
-    if hasattr(collection, "__len__"):
-        return len(collection)
-    # Use count() if implemented
-    elif hasattr(collection, "count") \
-                and callable(getattr(collection, "count")):
-        try:
-            return collection.count()
-        except Exception:
-            pass
-    # Otherwise, just cast to list
-    return len(list(collection))
-
-
 def is_instance_or_subclass(val, class_):
     '''Return True if ``val`` is either a subclass or instance of ``class_``.
     '''
@@ -53,6 +36,7 @@ def is_instance_or_subclass(val, class_):
         return issubclass(val, class_)
     except TypeError:
         return isinstance(val, class_)
+
 
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
