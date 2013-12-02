@@ -1,10 +1,10 @@
 Changelog
 ---------
 
-0.4.1 (unreleased)
+0.4.1 (2013-12-01)
 ++++++++++++++++++
 
-* An object's ``__marshallable__`` method--if defined--takes precedence over ``__getitem__``.
+* An object's ``__marshallable__`` method, if defined, takes precedence over ``__getitem__``.
 * Generator expressions can be passed to a serializer.
 * Better support for serializing list-like collections (e.g. ORM querysets).
 * Other minor bugfixes.
