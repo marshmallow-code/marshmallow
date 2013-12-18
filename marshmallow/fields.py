@@ -275,14 +275,14 @@ class UUID(String):
     pass
 
 
-class NumberField(Raw):
+class Number(Raw):
     '''Base class for number fields.'''
 
     num_type = int
 
     def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
         self.as_string = as_string
-        super(NumberField, self).__init__(default=default, attribute=attribute,
+        super(Number, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
 
     def _format_num(self, value):
@@ -303,7 +303,7 @@ class NumberField(Raw):
             raise MarshallingError(ve)
 
 
-class Integer(NumberField):
+class Integer(Number):
     """An integer field.
 
     :param bool as_string: If True, format the value as a string.
@@ -331,7 +331,7 @@ class FormattedString(Raw):
             raise MarshallingError(error)
 
 
-class Float(NumberField):
+class Float(Number):
     """
     A double as IEEE-754 double precision string.
 
@@ -341,7 +341,7 @@ class Float(NumberField):
     num_type = float
 
 
-class Arbitrary(NumberField):
+class Arbitrary(Number):
     """A floating point number with an arbitrary precision,
     formatted as as string.
     ex: 634271127864378216478362784632784678324.23432
@@ -446,7 +446,7 @@ class TimeDelta(Raw):
 ZERO = MyDecimal()
 
 
-class Fixed(NumberField):
+class Fixed(Number):
     """A fixed-precision number as a string.
     """
 
