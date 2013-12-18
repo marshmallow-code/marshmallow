@@ -280,10 +280,10 @@ class NumberField(Raw):
 
     num_type = int
 
-    def __init__(self, default=0, attribute=None, as_string=False, **kwargs):
+    def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
         self.as_string = as_string
         super(NumberField, self).__init__(default=default, attribute=attribute,
-            **kwargs)
+            error=error, **kwargs)
 
     def _format_num(self, value):
         '''Return the correct value for a number, given the passed in
@@ -450,8 +450,10 @@ class Fixed(NumberField):
     """A fixed-precision number as a string.
     """
 
-    def __init__(self, decimals=5, default=0, attribute=None, *args, **kwargs):
-        super(Fixed, self).__init__(default=default, attribute=attribute, *args, **kwargs)
+    def __init__(self, decimals=5, default=0, attribute=None, error=None,
+                 *args, **kwargs):
+        super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
+                            *args, **kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
     @validated

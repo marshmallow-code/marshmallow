@@ -103,6 +103,9 @@ You can get a dictionary of validation errors via the ``errors`` property.
             raise err
         MarshallingError: "foo" is not a valid email address.
 
+.. note::
+    You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
+
 
 Specifying Attribute Names
 --------------------------
