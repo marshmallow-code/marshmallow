@@ -7,11 +7,27 @@
 
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from functools import wraps
 
 from marshmallow import validate, utils
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import text_type, OrderedDict, iteritems, total_seconds
 from marshmallow.exceptions import MarshallingError
+
+
+def validated(f):
+    """Decorator that wraps a field's ``format` or ``output`` method. If an
+    exception is raised during the execution of the wrapped method, a
+    MarshallingError is raised instead with the underlying exception's
+    error message or the user-defined error message (if defined).
+    """
+    @wraps(f)
+    def decorated(self, *args, **kwargs):
+        try:
+            return f(self, *args, **kwargs)
+        except Exception as error:
+            raise MarshallingError(getattr(self, "error", None) or error)
+    return decorated
 
 
 class Marshaller(object):
@@ -264,9 +280,10 @@ class NumberField(Raw):
 
     num_type = int
 
-    def __init__(self, default=0, attribute=None, as_string=False):
+    def __init__(self, default=0, attribute=None, as_string=False, **kwargs):
         self.as_string = as_string
-        super(NumberField, self).__init__(default=default, attribute=attribute)
+        super(NumberField, self).__init__(default=default, attribute=attribute,
+            **kwargs)
 
     def _format_num(self, value):
         '''Return the correct value for a number, given the passed in
@@ -363,16 +380,14 @@ class DateTime(Raw):
         super(DateTime, self).__init__(default=default, attribute=attribute)
         self.dateformat = format
 
+    @validated
     def format(self, value):
         self.dateformat = self.dateformat or 'rfc'
-        try:
-            format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
-            if format_func:
-                return format_func(value, localtime=self.localtime)
-            else:
-                return value.strftime(self.dateformat)
-        except AttributeError as ae:
-            raise MarshallingError(ae)
+        format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
+        if format_func:
+            return format_func(value, localtime=self.localtime)
+        else:
+            return value.strftime(self.dateformat)
 
 
 class LocalDateTime(DateTime):
@@ -435,15 +450,13 @@ class Fixed(NumberField):
     """A fixed-precision number as a string.
     """
 
-    def __init__(self, decimals=5, default=0, attribute=None):
-        super(Fixed, self).__init__(default=default, attribute=attribute)
+    def __init__(self, decimals=5, default=0, attribute=None, *args, **kwargs):
+        super(Fixed, self).__init__(default=default, attribute=attribute, *args, **kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
+    @validated
     def format(self, value):
-        try:
-            dvalue = utils.float_to_decimal(float(value))
-        except ValueError as ve:
-            raise MarshallingError(ve)
+        dvalue = utils.float_to_decimal(float(value))
         if not dvalue.is_normal() and dvalue != ZERO:
             raise MarshallingError('Invalid Fixed precision number.')
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
@@ -467,27 +480,24 @@ class Url(Raw):
                 *args, **kwargs)
         self.relative = relative
 
+    @validated
     def output(self, key, obj):
         value = self.get_value(key, obj)
         if value is None:
             return self.default
-        try:
-            return validate.url(value, relative=self.relative)
-        except Exception as err:
-            raise MarshallingError(self.error or err)
+        return validate.url(value, relative=self.relative)
 
 
 class Email(Raw):
     """A validated email field.
     """
+
+    @validated
     def output(self, key, obj):
         value = self.get_value(key, obj)
         if value is None:
             return self.default
-        try:
-            return validate.email(value)
-        except Exception as err:
-            raise MarshallingError(self.error or err)
+        return validate.email(value)
 
 
 class Method(Raw):

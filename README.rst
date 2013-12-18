@@ -56,6 +56,8 @@ Requirements
 
 - Python >= 2.6 or >= 3.3
 
+marshmallow has no external dependencies outside of the Python standard library.
+
 
 License
 =======

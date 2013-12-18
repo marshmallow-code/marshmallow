@@ -28,7 +28,7 @@ class User(object):
 
     def __init__(self, name, age=0, id_=None, homepage=None,
                 email=None, registered=True, time_registered=None,
-                birthdate=None):
+                birthdate=None, balance=100):
         self.name = name
         self.age = age
         # A naive datetime
@@ -38,7 +38,7 @@ class User(object):
         self.id = id_
         self.homepage = homepage
         self.email = email
-        self.balance = 100
+        self.balance = balance
         self.registered = True
         self.hair_colors = ['black', 'brown', 'blond', 'redhead']
         self.sex_choices = ('male', 'female')
@@ -449,12 +449,15 @@ def test_custom_error_message():
     class ErrorSerializer(Serializer):
         email = fields.Email(error="Invalid email")
         homepage = fields.Url(error="Bad homepage.")
+        balance = fields.Fixed(error="Bad balance.")
 
-    u = User("Joe", email="joe.net", homepage="joe@example.com")
+
+    u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
     s = ErrorSerializer(u)
     assert_false(s.is_valid())
     assert_equal(s.errors['email'], "Invalid email")
     assert_equal(s.errors['homepage'], "Bad homepage.")
+    assert_equal(s.errors['balance'], "Bad balance.")
 
 
 class TestMetaOptions(unittest.TestCase):
