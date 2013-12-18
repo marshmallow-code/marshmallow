@@ -107,11 +107,13 @@ class Raw(FieldABC):
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
+    :param str error: Error message stored upon validation failure.
     """
 
-    def __init__(self, default=None, attribute=None):
+    def __init__(self, default=None, attribute=None, error=None):
         self.attribute = attribute
         self.default = default
+        self.error = error
 
     def get_value(self, key, obj):
         '''Return the value for a given key from an object.'''
@@ -242,14 +244,14 @@ class List(Raw):
 class String(Raw):
     """A string field."""
 
-    def __init__(self, default='', attribute=None):
-        return super(String, self).__init__(default, attribute)
+    def __init__(self, default='', attribute=None, *args, **kwargs):
+        return super(String, self).__init__(default, attribute, *args, **kwargs)
 
     def format(self, value):
         try:
             return text_type(value)
         except ValueError as ve:
-            raise MarshallingError(ve)
+            raise MarshallingError(self.error or ve)
 
 
 class UUID(String):
@@ -460,8 +462,9 @@ class Url(Raw):
         ``None``, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
     """
-    def __init__(self, default=None, attribute=None, relative=False):
-        super(Url, self).__init__(default=default, attribute=attribute)
+    def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
+        super(Url, self).__init__(default=default, attribute=attribute,
+                *args, **kwargs)
         self.relative = relative
 
     def output(self, key, obj):
@@ -471,7 +474,7 @@ class Url(Raw):
         try:
             return validate.url(value, relative=self.relative)
         except Exception as err:
-            raise MarshallingError(err)
+            raise MarshallingError(self.error or err)
 
 
 class Email(Raw):
@@ -484,7 +487,7 @@ class Email(Raw):
         try:
             return validate.email(value)
         except Exception as err:
-            raise MarshallingError(err)
+            raise MarshallingError(self.error or err)
 
 
 class Method(Raw):

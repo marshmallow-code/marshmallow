@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.4.2 (unreleased)
+++++++++++++++++++
+
+* Can customize validation error messages.
+
 0.4.1 (2013-12-01)
 ++++++++++++++++++
 

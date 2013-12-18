@@ -445,6 +445,18 @@ class TestSerializer(unittest.TestCase):
             "'foo' cannot be formatted as a date.")
 
 
+def test_custom_error_message():
+    class ErrorSerializer(Serializer):
+        email = fields.Email(error="Invalid email")
+        homepage = fields.Url(error="Bad homepage.")
+
+    u = User("Joe", email="joe.net", homepage="joe@example.com")
+    s = ErrorSerializer(u)
+    assert_false(s.is_valid())
+    assert_equal(s.errors['email'], "Invalid email")
+    assert_equal(s.errors['homepage'], "Bad homepage.")
+
+
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
         self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
