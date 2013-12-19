@@ -539,3 +539,13 @@ class Function(Raw):
             raise MarshallingError(te)
         except AttributeError:
             pass
+
+
+class Selection(Raw):
+    def __init__(self,  selection, default=None, attribute=None, error=None):
+        self.selection = selection
+        return super(Selection, self).__init__(default, attribute, error)
+
+    def format(self, value):
+        if value not in self.selection:
+            raise MarshallingError('%s is not in the selection' % value)
