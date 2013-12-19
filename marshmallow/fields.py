@@ -542,6 +542,14 @@ class Function(Raw):
 
 
 class Selection(Raw):
+    """A field that only lets you set values in the selection.
+
+    :param selection: A list of valid values.
+    :param default: Default value for the field if the attribute is not set.
+    :param str attribute: The name of the attribute to get the value from. If
+        ``None``, assumes the attribute has the same name as the field.
+    :param str error: Error message stored upon validation failure.
+    """
     def __init__(self,  selection, default=None, attribute=None, error=None):
         self.selection = selection
         return super(Selection, self).__init__(default, attribute, error)
