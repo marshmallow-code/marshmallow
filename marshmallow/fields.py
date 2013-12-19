@@ -541,20 +541,20 @@ class Function(Raw):
             pass
 
 
-class Selection(Raw):
+class Select(Raw):
     """A field that only lets you set values in the selection.
 
-    :param selection: A list of valid values.
+    :param choices: A list of valid values.
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
     """
-    def __init__(self,  selection, default=None, attribute=None, error=None):
-        self.selection = selection
-        return super(Selection, self).__init__(default, attribute, error)
+    def __init__(self,  choices, default=None, attribute=None, error=None):
+        self.choices = choices
+        return super(Select, self).__init__(default, attribute, error)
 
     def format(self, value):
-        if value not in self.selection:
-            raise MarshallingError("'%s' is not in the selection" % value)
+        if value not in self.choices:
+            raise MarshallingError("'%s' is not a valid choice for this field." % value)
         return value

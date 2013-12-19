@@ -28,7 +28,7 @@ class User(object):
 
     def __init__(self, name, age=0, id_=None, homepage=None,
                 email=None, registered=True, time_registered=None,
-                birthdate=None, balance=100):
+                birthdate=None, balance=100, sex='male'):
         self.name = name
         self.age = age
         # A naive datetime
@@ -46,7 +46,7 @@ class User(object):
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
-        self.sex = 'male'
+        self.sex = sex
 
 
     @property
@@ -98,7 +98,7 @@ class UserSerializer(Serializer):
     time_registered = fields.Time()
     birthdate = fields.Date()
     since_created = fields.TimeDelta()
-    sex = fields.Selection(['male', 'female'])
+    sex = fields.Select(['male', 'female'])
 
 
     def get_is_old(self, obj):
@@ -454,7 +454,7 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(u)
         assert_false(s.is_valid(['sex']))
         assert_equal(s.errors['sex'],
-            "'hybrid' is not in the selection")
+            "'hybrid' is not a valid choice for this field.")
 
 
 def test_custom_error_message():
@@ -740,8 +740,8 @@ class TestFields(unittest.TestCase):
         assert_equal(field.output("since_created", self.user),
             total_seconds(self.user.since_created))
 
-    def test_selection_field(self):
-        field = fields.Selection(['male', 'female'])
+    def test_select_field(self):
+        field = fields.Select(['male', 'female'])
         assert_equal(field.output("sex", self.user),
                      "male")
 

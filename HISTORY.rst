@@ -6,6 +6,7 @@ Changelog
 
 * Can customize validation error messages.
 * Rename ``fields.NumberField`` -> ``fields.Number``.
+* Add ``fields.Select``. Thanks @ecarreras.
 
 0.4.1 (2013-12-01)
 ++++++++++++++++++
