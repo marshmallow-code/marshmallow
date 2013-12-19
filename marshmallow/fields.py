@@ -556,4 +556,5 @@ class Selection(Raw):
 
     def format(self, value):
         if value not in self.selection:
-            raise MarshallingError('%s is not in the selection' % value)
+            raise MarshallingError("'%s' is not in the selection" % value)
+        return value
