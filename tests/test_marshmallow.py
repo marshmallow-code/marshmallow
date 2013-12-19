@@ -46,6 +46,8 @@ class User(object):
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
+        self.sex = 'male'
+
 
     @property
     def since_created(self):
@@ -96,6 +98,8 @@ class UserSerializer(Serializer):
     time_registered = fields.Time()
     birthdate = fields.Date()
     since_created = fields.TimeDelta()
+    sex = fields.Selection(['male', 'female'])
+
 
     def get_is_old(self, obj):
         try:
@@ -444,6 +448,14 @@ class TestSerializer(unittest.TestCase):
         assert_equal(s.errors['birthdate'],
             "'foo' cannot be formatted as a date.")
 
+    def test_invalid_selection(self):
+        u = User('Jonhy')
+        u.sex = 'hybrid'
+        s = UserSerializer(u)
+        assert_false(s.is_valid(['sex']))
+        assert_equal(s.errors['sex'],
+            "'hybrid' is not in the selection")
+
 
 def test_custom_error_message():
     class ErrorSerializer(Serializer):
@@ -727,6 +739,11 @@ class TestFields(unittest.TestCase):
         field = fields.TimeDelta()
         assert_equal(field.output("since_created", self.user),
             total_seconds(self.user.since_created))
+
+    def test_selection_field(self):
+        field = fields.Selection(['male', 'female'])
+        assert_equal(field.output("sex", self.user),
+                     "male")
 
 
 class TestUtils(unittest.TestCase):
