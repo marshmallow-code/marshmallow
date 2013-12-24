@@ -678,19 +678,49 @@ class TestNestedSerializer(unittest.TestCase):
             user = fields.Nested(fields.String)
         assert_raises(ValueError, lambda: BadNestedFieldSerializer(self.blog))
 
+
+
+class TestSelfReference(unittest.TestCase):
+
+    def setUp(self):
+        self.employer = User(name="Joe", age=59)
+        self.user = User(name="Tom", employer=self.employer, age=28)
+
     def test_nesting_serializer_within_itself(self):
         class SelfSerializer(Serializer):
             name = fields.String()
             age = fields.Integer()
             employer = fields.Nested("self")
 
-        employer = User(name="Joe", age=59)
-        user = User(name="Tom", employer=employer, age=28)
-        s = SelfSerializer(user)
+        s = SelfSerializer(self.user)
         assert_true(s.is_valid())
-        assert_equal(s.data['name'], user.name)
-        assert_equal(s.data['employer']['name'], employer.name)
-        assert_equal(s.data['employer']['age'], employer.age)
+        assert_equal(s.data['name'], self.user.name)
+        assert_equal(s.data['employer']['name'], self.employer.name)
+        assert_equal(s.data['employer']['age'], self.employer.age)
+
+    def test_nesting_within_itself_meta(self):
+        class SelfSerializer(Serializer):
+            employer = fields.Nested("self")
+            class Meta:
+                additional = ('name', 'age')
+
+        s = SelfSerializer(self.user)
+        assert_true(s.is_valid())
+        assert_equal(s.data['name'], self.user.name)
+        assert_equal(s.data['age'], self.user.age)
+        assert_equal(s.data['employer']['name'], self.employer.name)
+        assert_equal(s.data['employer']['age'], self.employer.age)
+
+    def test_nested_self_with_only_param(self):
+        class SelfSerializer(Serializer):
+            employer = fields.Nested('self', only=('name', ))
+            class Meta:
+                fields = ('name', 'employer')
+
+        s = SelfSerializer(self.user)
+        assert_equal(s.data['name'], self.user.name)
+        assert_equal(s.data['employer']['name'], self.employer.name)
+        assert_not_in('age', s.data['employer'])
 
 
 class TestFields(unittest.TestCase):
