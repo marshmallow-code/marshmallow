@@ -166,9 +166,11 @@ class BaseSerializer(base.SerializerABC):
         '''Set the parents of all field objects in fields_dict to self, and
         set the dateformat specified in ``class Meta``, if necessary.
         '''
-        for _, field_obj in iteritems(fields_dict):
+        for field_name, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
                 field_obj.parent = self
+            if not field_obj.name:
+                field_obj.name = field_name
             if isinstance(field_obj, fields.DateTime):
                 if field_obj.dateformat is None:
                     field_obj.dateformat = self.opts.dateformat

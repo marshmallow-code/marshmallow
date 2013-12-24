@@ -9,6 +9,7 @@ class FieldABC(object):
     '''Abstract base class from which all Field classes inherit.
     '''
     parent = None
+    name = None
 
     def format(self, value):
         raise NotImplementedError

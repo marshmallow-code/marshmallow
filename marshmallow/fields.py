@@ -208,6 +208,10 @@ class Nested(Raw):
         elif isinstance(self.nested, type) and \
                 issubclass(self.nested, SerializerABC):
             self.serializer = self.nested(nested_obj)
+        elif self.nested == 'self':
+            self.serializer = self.parent
+            # For now, don't allow nesting of depth > 1
+            del self.serializer.fields[self.name]
         else:
             raise ValueError("Nested fields must be passed a Serializer, not {0}."
                             .format(self.nested.__class__))

@@ -28,7 +28,7 @@ class User(object):
 
     def __init__(self, name, age=0, id_=None, homepage=None,
                 email=None, registered=True, time_registered=None,
-                birthdate=None, balance=100, sex='male'):
+                birthdate=None, balance=100, sex='male', employer=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -47,6 +47,7 @@ class User(object):
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
         self.sex = sex
+        self.employer = employer
 
 
     @property
@@ -676,6 +677,20 @@ class TestNestedSerializer(unittest.TestCase):
         class BadNestedFieldSerializer(BlogSerializer):
             user = fields.Nested(fields.String)
         assert_raises(ValueError, lambda: BadNestedFieldSerializer(self.blog))
+
+    def test_nesting_serializer_within_itself(self):
+        class SelfSerializer(Serializer):
+            name = fields.String()
+            age = fields.Integer()
+            employer = fields.Nested("self")
+
+        employer = User(name="Joe", age=59)
+        user = User(name="Tom", employer=employer, age=28)
+        s = SelfSerializer(user)
+        assert_true(s.is_valid())
+        assert_equal(s.data['name'], user.name)
+        assert_equal(s.data['employer']['name'], employer.name)
+        assert_equal(s.data['employer']['age'], employer.age)
 
 
 class TestFields(unittest.TestCase):
