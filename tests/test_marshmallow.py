@@ -48,6 +48,7 @@ class User(object):
         self.birthdate = birthdate or dt.date(2013, 1, 23)
         self.sex = sex
         self.employer = employer
+        self.relatives = []
 
 
     @property
@@ -722,6 +723,20 @@ class TestSelfReference(unittest.TestCase):
         assert_equal(s.data['employer']['name'], self.employer.name)
         assert_not_in('age', s.data['employer'])
 
+    def test_nested_many(self):
+        class SelfManySerializer(Serializer):
+            relatives = fields.Nested('self')
+            class Meta:
+                additional = ('name', 'age')
+
+        person = User(name='Foo')
+        person.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
+        s = SelfManySerializer(person)
+        assert_equal(s.data['name'], person.name)
+        assert_equal(len(s.data['relatives']), len(person.relatives))
+        assert_equal(s.data['relatives'][0]['name'], person.relatives[0].name)
+        assert_equal(s.data['relatives'][0]['age'], person.relatives[0].age)
+
 
 class TestFields(unittest.TestCase):
 
@@ -789,6 +804,10 @@ class TestFields(unittest.TestCase):
         field = fields.Select(['male', 'female'])
         assert_equal(field.output("sex", self.user),
                      "male")
+
+    def test_bad_list_field(self):
+        assert_raises(MarshallingError, lambda: fields.List("string"))
+        assert_raises(MarshallingError, lambda: fields.List(UserSerializer))
 
 
 class TestUtils(unittest.TestCase):
