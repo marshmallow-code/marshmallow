@@ -4,9 +4,10 @@ Changelog
 0.4.2 (unreleased)
 ++++++++++++++++++
 
-* Can customize validation error messages.
+* Can customize validation error messages by passing the ``error`` parameter to a field.
 * Rename ``fields.NumberField`` -> ``fields.Number``.
 * Add ``fields.Select``. Thanks @ecarreras.
+* Support nesting a Serializer within itself (only up to depth=1).
 
 0.4.1 (2013-12-01)
 ++++++++++++++++++

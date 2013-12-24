@@ -20,6 +20,7 @@ Let's start with a basic user model.
             self.name = name
             self.email = email
             self.created_at = dt.datetime.now()
+            self.friends = []
 
 
 Create a serializer by defining a class with variables mapping attribute names to a field class object that formats the final output of the serializer.
@@ -53,6 +54,7 @@ Serialize objects by passing them into your serializers. Onced serialized, you c
     # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
 
 
+
 Filtering output
 ++++++++++++++++
 
@@ -63,8 +65,25 @@ You may not need to output all declared fields every time you use a serializer. 
     UserSerializer(user, only=('name', 'email'))
     # {"name": "Monty Python", "email": "monty@python.org"}
 
-You can also exlude fields by passing in the ``exclude`` parameter.
+You can also exclude fields by passing in the ``exclude`` parameter.
 
+Serializing Collections of Objects
+++++++++++++++++++++++++++++++++++
+
+Iterable collections of objects are also serializable.
+
+.. code-block:: python
+
+    user1 = User(name="Mick", email="mick@stones.com")
+    user2 = User(name="Keith", email="keith@stones.com")
+    users = [user1, user2]
+    UserSerializer(users).data
+    # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    #   'email': u'mick@stones.com',
+    #   'name': u'Mick'},
+    #  {'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    #   'email': u'keith@stones.com',
+    #   'name': u'Keith'}]
 
 Validation
 ----------
@@ -87,6 +106,13 @@ You can get a dictionary of validation errors via the ``errors`` property.
     s.errors
     # {'email': u'foo is not a valid email address.'}
 
+You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
+
+.. code-block:: python
+
+    email = fields.Email(error='Invalid email address. Try again.')
+
+
 .. note::
     If you set ``strict=True`` in either the Serializer constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in.
 
@@ -103,8 +129,7 @@ You can get a dictionary of validation errors via the ``errors`` property.
             raise err
         MarshallingError: "foo" is not a valid email address.
 
-.. note::
-    You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
+
 
 
 Specifying Attribute Names
@@ -123,7 +148,7 @@ By default, serializers will marshal the object attributes that have the same na
 Nesting Serializers
 -------------------
 
-Serializers can be nested to represent hierarchical structures. For example, a ``Blog`` may have an author represented by a User object.
+Serializers can be nested to represent relationships between objects (e.g. foreign key relationships). For example, a ``Blog`` may have an author represented by a User object.
 
 .. code-block:: python
 
@@ -153,6 +178,32 @@ When you serialize the blog, you will see the nested user representation.
     #               'name': u'Monty'},
     #  'title': u'Something Completely Different'}
 
+Nesting A Serializer Within Itself
+++++++++++++++++++++++++++++++++++
+
+If the object to be serialized has a relationship to an object of the same type, you can nest the serializer within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        name = fields.String()
+        email = fields.Email()
+        friends = fields.Nested('self')  # Handles collections like a charm
+
+    user = User("Steve", 'steve@example.com')
+    user.friends.append(User("Mike", 'mike@example.com'))
+    user.friends.append(User('Joe', 'joe@example.com'))
+    serialized = UserSerializer(user)
+    serialized.data
+    # {
+    #     "friends": [
+    #         {"name": "Mike","email": "mike@example.com"},
+    #         {"name": "Joe","email": "joe@example.com"},
+    #     ],
+    #     "name": "Steve",
+    #     "email": "steve@example.com"
+    # }
+
 Specifying Nested Attributes
 ++++++++++++++++++++++++++++
 
@@ -169,24 +220,6 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
 You can also exclude fields by passing in an ``exclude`` list.
 
-
-Serializing Collections of Objects
-----------------------------------
-
-Iterable collections of objects are also serializable.
-
-.. code-block:: python
-
-    user1 = User(name="Mick", email="mick@stones.com")
-    user2 = User(name="Keith", email="keith@stones.com")
-    users = [user1, user2]
-    UserSerializer(users).data
-    # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
-    #   'email': u'mick@stones.com',
-    #   'name': u'Mick'},
-    #  {'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
-    #   'email': u'keith@stones.com',
-    #   'name': u'Keith'}]
 
 Custom Fields
 -------------
@@ -276,7 +309,7 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
         class UserSerializer(Serializer):
             uppername = fields.Function(lambda obj: obj.name.upper())
             class Meta:
-                additional = ("name", "email", "created_at")
+                additional = ("name", "email", "created_at")  # No need to include 'uppername'
 
 
 Printing Serialized Data
