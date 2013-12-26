@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 '''The Serializer class, including its metaclass and options (class Meta).'''
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 import datetime as dt
 import json
 import copy
 import uuid
 import types
+import warnings
 
 from marshmallow import base, fields, utils
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -99,7 +100,12 @@ class BaseSerializer(base.SerializerABC):
         pass
 
     def __init__(self, obj=None, extra=None, only=None,
-                exclude=None, prefix='', strict=False):
+                exclude=None, prefix='', strict=False, many=False):
+        if not many and utils.is_collection(obj):
+            warnings.warn('Implicit collection handling is deprecated. Set '
+                            'many=True to serialize a collection.',
+                            category=DeprecationWarning)
+        self.many = many
         self.opts = SerializerOpts(self.Meta)
         if isinstance(obj, types.GeneratorType):
             self.obj = list(obj)
@@ -117,7 +123,7 @@ class BaseSerializer(base.SerializerABC):
         self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
         # Store the marshalled data
         # MUST occur upon initialization
-        self._data = self.marshal(self.obj, self.fields)
+        self._data = self.marshal(self.obj, self.fields, many=self.many)
         if extra:
             self._data.update(extra)
 
@@ -189,8 +195,8 @@ class BaseSerializer(base.SerializerABC):
         if not isinstance(self.opts.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
         obj_marshallable = utils.to_marshallable_type(self.obj)
-        if utils.is_collection(obj_marshallable):  # Homogeneous collection
-            try:
+        if self.many:
+            try:  # Homogeneous collection
                 obj_dict = utils.to_marshallable_type(obj_marshallable[0])
             except IndexError:  # Nothing to serialize
                 return declared_fields
@@ -214,7 +220,7 @@ class BaseSerializer(base.SerializerABC):
                 ret[key] = field_obj
         return ret
 
-    def marshal(self, data, fields_dict):
+    def marshal(self, data, fields_dict, many=False):
         """Takes the data (a dict, list, or object) and a dict of fields.
         Stores any errors that occur.
 
@@ -222,7 +228,7 @@ class BaseSerializer(base.SerializerABC):
         :param dict fields_dict: A dict whose keys will make up the final serialized
                        response output
         """
-        return self._marshal(data, fields_dict)
+        return self._marshal(data, fields_dict, many=many)
 
     @property
     def data(self):
@@ -309,5 +315,7 @@ class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
         serialized field names.
     :param bool strict: If ``True``, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
+    :param bool many: Should be set to ``True`` if ``obj`` is a collection
+        so that the object will be serialized to a list.
     '''
     pass

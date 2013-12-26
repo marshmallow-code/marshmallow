@@ -5,6 +5,7 @@ import unittest2 as unittest
 import json
 import datetime as dt
 import uuid
+import warnings
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -164,19 +165,19 @@ class UserRelativeUrlSerializer(UserSerializer):
 class BlogSerializer(Serializer):
     title = fields.String()
     user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer)
+    collaborators = fields.Nested(UserSerializer, many=True)
     categories = fields.List(fields.String)
     id = fields.String()
 
 class BlogUserMetaSerializer(Serializer):
     user = fields.Nested(UserMetaSerializer)
-    collaborators = fields.Nested(UserMetaSerializer)
+    collaborators = fields.Nested(UserMetaSerializer, many=True)
 
 
 class BlogSerializerMeta(Serializer):
     '''Same as BlogSerializer but using ``fields`` options.'''
     user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer)
+    collaborators = fields.Nested(UserSerializer, many=True)
 
     class Meta:
         fields = ('title', 'user', 'collaborators', 'categories', "id")
@@ -184,7 +185,7 @@ class BlogSerializerMeta(Serializer):
 class BlogSerializerOnly(Serializer):
     title = fields.String()
     user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer, only=("id", ))
+    collaborators = fields.Nested(UserSerializer, only=("id", ), many=True)
 
 class BlogSerializerExclude(BlogSerializer):
     user = fields.Nested(UserSerializer, exclude=("uppername", "species"))
@@ -194,7 +195,7 @@ class BlogSerializerOnlyExclude(BlogSerializer):
 
 class BlogSerializerPrefixedUser(BlogSerializer):
     user = fields.Nested(UserSerializer(prefix="usr_"))
-    collaborators = fields.Nested(UserSerializer(prefix="usr_"))
+    collaborators = fields.Nested(UserSerializer(prefix="usr_"), many=True)
 
 ##### The Tests #####
 
@@ -252,16 +253,23 @@ class TestSerializer(unittest.TestCase):
         user1 = User(name="Mick", age=123)
         user2 = User(name="Keith", age=456)
         users = [user1, user2]
-        serialized = UserSerializer(users)
+        serialized = UserSerializer(users, many=True)
         assert_equal(len(serialized.data), 2)
         assert_equal(serialized.data[0]['name'], "Mick")
         assert_equal(serialized.data[1]['name'], "Keith")
+
+    def test_no_implicit_list_handling(self):
+        users = [User(name='Mick'), User(name='Keith')]
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            assert_raises(TypeError, lambda: UserSerializer(users))
+        assert_true(issubclass(w[-1].category, DeprecationWarning))
 
     def test_serialize_many_with_meta(self):
         user1 = User(name="Mick", age=123)
         user2 = User(name="Keith", age=456)
         users = [user1, user2]
-        s = UserMetaSerializer(users)
+        s = UserMetaSerializer(users, many=True)
         assert_equal(len(s.data), 2)
         assert_equal(s.data[0]['name'], "Mick")
         assert_equal(s.data[0]['created'], utils.rfcformat(user1.created))
@@ -380,20 +388,20 @@ class TestSerializer(unittest.TestCase):
     def test_serializing_generator(self):
         users = [User("Foo"), User("Bar")]
         user_gen = (u for u in users)
-        s = UserSerializer(user_gen)
+        s = UserSerializer(user_gen, many=True)
         assert_equal(len(s.data), 2)
         assert_equal(s.data[0], UserSerializer(users[0]).data)
 
     def test_serializing_generator_with_meta_fields(self):
         users = [User("Foo"), User("Bar")]
         user_gen = (u for u in users)
-        s = UserMetaSerializer(user_gen)
+        s = UserMetaSerializer(user_gen, many=True)
         assert_equal(len(s.data), 2)
         assert_equal(s.data[0], UserMetaSerializer(users[0]).data)
 
     def test_serializing_empty_list_returns_empty_list(self):
-        assert_equal(UserSerializer([]).data, [])
-        assert_equal(UserMetaSerializer([]).data, [])
+        assert_equal(UserSerializer([], many=True).data, [])
+        assert_equal(UserMetaSerializer([], many=True).data, [])
 
     def test_serializing_dict(self):
         user = {"name": "foo", "email": "foo", "age": 42.3}
@@ -725,7 +733,7 @@ class TestSelfReference(unittest.TestCase):
 
     def test_nested_many(self):
         class SelfManySerializer(Serializer):
-            relatives = fields.Nested('self')
+            relatives = fields.Nested('self', many=True)
             class Meta:
                 additional = ('name', 'age')
 

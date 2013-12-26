@@ -43,15 +43,18 @@ class Marshaller(object):
         self.strict = strict
         self.errors = {}
 
-    def marshal(self, data, fields_dict):
-        """Takes raw data (in the form of a dict, list, object) and a dict of
+    def marshal(self, data, fields_dict, many=False):
+        """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and filters the data based on those fields.
 
         :param data: The actual object(s) from which the fields are taken from
         :param dict fields: A dict whose keys will make up the final serialized
                        response output.
+        :param bool many: Set to ``True`` if ``data`` is a collection object
+                        that is iterable.
+        :returns: An OrderedDict of the marshalled data
         """
-        if utils.is_collection(data):
+        if many and data is not None:
             return [self.marshal(d, fields_dict) for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -175,13 +178,16 @@ class Nested(Raw):
         will be marshalled. Takes precedence over ``exclude``.
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
+    :param bool many: Whether the field is a collection of objects.
     """
 
-    def __init__(self, nested, exclude=None, only=None, allow_null=False, **kwargs):
+    def __init__(self, nested, exclude=None, only=None, allow_null=False,
+                many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
         self.only = only
         self.exclude = exclude or ()
+        self.many = many
         self.serializer = None
         super(Nested, self).__init__(**kwargs)
 
@@ -205,18 +211,20 @@ class Nested(Raw):
         if isinstance(self.nested, SerializerABC):
             self.serializer = self.nested
             self.nested._data = nested_obj
+            self.serializer.many = self.many
         elif isinstance(self.nested, type) and \
                 issubclass(self.nested, SerializerABC):
-            self.serializer = self.nested(nested_obj)
+            self.serializer = self.nested(nested_obj, many=self.many)
         elif self.nested == 'self':
             self.serializer = self.parent  # The serializer this fields belongs to
+            self.serializer.many = self.many
             # For now, don't allow nesting of depth > 1
             self.exclude += (self.name, )  # Exclude this field
         else:
             raise ValueError("Nested fields must be passed a Serializer, not {0}."
                             .format(self.nested.__class__))
         fields = self.__get_fields_to_marshal(self.serializer.fields)
-        ret = self.serializer.marshal(nested_obj, fields)
+        ret = self.serializer.marshal(nested_obj, fields, many=self.many)
         # Parent should get any errors stored after marshalling
         if self.serializer.errors:
             self.parent.errors[key] = self.serializer.errors
