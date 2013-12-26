@@ -595,6 +595,23 @@ class TestNestedSerializer(unittest.TestCase):
         self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"],
                         collaborators=[col1, col2])
 
+    def test_flat_nested(self):
+        class FlatBlogSerializer(Serializer):
+            name = fields.String()
+            user = fields.Nested(UserSerializer, only='name')
+            collaborators = fields.Nested(UserSerializer, only='name', many=True)
+        s = FlatBlogSerializer(self.blog)
+        assert_equal(s.data['user'], self.blog.user.name)
+        assert_equal(s.data['collaborators'][0], self.blog.collaborators[0].name)
+
+    def test_flat_nested2(self):
+        class FlatBlogSerializer(Serializer):
+            name = fields.String()
+            collaborators = fields.Nested(UserSerializer, many=True, only='uid')
+
+        s = FlatBlogSerializer(self.blog)
+        assert_equal(s.data['collaborators'][0], str(self.blog.collaborators[0].uid))
+
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)
         serialized_user = UserSerializer(self.user)

@@ -130,8 +130,6 @@ You can give fields a custom error message by passing the ``error`` parameter to
         MarshallingError: "foo" is not a valid email address.
 
 
-
-
 Specifying Attribute Names
 --------------------------
 
@@ -226,6 +224,26 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
     BlogSerializer2(blog).data
     # {'author': {'email': u'monty@python.org'}, 'title': u'Something Completely Different'}
+
+.. note::
+
+    If you pass in a field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
+
+    .. code-block:: python
+
+        class UserSerializer(Serializer):
+            name = fields.String()
+            email = fields.Email()
+            friends = fields.Nested('self', only='name', many=True)
+        ...
+        UserSerializer(user).data
+        # {
+        #     "friends": ["Mike", "Joe"],
+        #     "name": "Steve",
+        #     "email": "steve@example.com"
+        # }
+
+
 
 You can also exclude fields by passing in an ``exclude`` list.
 

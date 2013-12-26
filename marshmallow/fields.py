@@ -172,10 +172,13 @@ class Nested(Raw):
 
         user = fields.Nested(UserSerializer)
 
-    :param Serializer nested: The Serializer class or instance to nest.
-    :param iterable exclude: A list or tuple of fields to exclude.
-    :param iterable only: A list or tuple of fields to marshal. If ``None``, all fields
-        will be marshalled. Takes precedence over ``exclude``.
+    :param Serializer nested: The Serializer class or instance to nest, or
+        "self" to nest the serializer within itself.
+    :param tuple exclude: A list or tuple of fields to exclude.
+    :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields
+        will be marshalled. If a field name (string) is given, only a single
+        value will be returned as output instead of a dictionary.
+        This parameter takes precedence over ``exclude``.
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
     :param bool many: Whether the field is a collection of objects.
@@ -192,9 +195,12 @@ class Nested(Raw):
         super(Nested, self).__init__(**kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
-        '''Filter the all_fields based on self.only and self.exclude.'''
+        '''Filter all_fields based on self.only and self.exclude.'''
         # Default 'only' to all the nested fields
-        only = set(all_fields) if self.only is None else set(self.only)
+        if isinstance(self.only, basestring):
+            only = set([self.only])
+        else:
+            only = set(all_fields) if self.only is None else set(self.only)
         if self.exclude and self.only:
             # Make sure that only takes precedence
             exclude = set(self.exclude) - only
@@ -211,25 +217,39 @@ class Nested(Raw):
         if isinstance(self.nested, SerializerABC):
             self.serializer = self.nested
             self.nested._data = nested_obj
-            self.serializer.many = self.many
         elif isinstance(self.nested, type) and \
                 issubclass(self.nested, SerializerABC):
             self.serializer = self.nested(nested_obj, many=self.many)
         elif self.nested == 'self':
             self.serializer = self.parent  # The serializer this fields belongs to
-            self.serializer.many = self.many
             # For now, don't allow nesting of depth > 1
             self.exclude += (self.name, )  # Exclude this field
         else:
             raise ValueError("Nested fields must be passed a Serializer, not {0}."
                             .format(self.nested.__class__))
+        self.serializer.many = self.many
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         ret = self.serializer.marshal(nested_obj, fields, many=self.many)
         # Parent should get any errors stored after marshalling
         if self.serializer.errors:
             self.parent.errors[key] = self.serializer.errors
+        if isinstance(self.only, basestring):  # self.only is a field name
+            if self.many:
+                return flatten(ret, key=self.only)
+            else:
+                return ret[self.only]
         return ret
 
+
+def flatten(dictlist, key):
+    """Flattens a list of dicts into just a list of values.
+    ::
+
+        >>> d = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
+        >>> flatten(d, 'id')
+        [1, 2]
+    """
+    return [d[key] for d in dictlist]
 
 class List(Raw):
     '''A list field.
