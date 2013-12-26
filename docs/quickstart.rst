@@ -70,14 +70,14 @@ You can also exclude fields by passing in the ``exclude`` parameter.
 Serializing Collections of Objects
 ++++++++++++++++++++++++++++++++++
 
-Iterable collections of objects are also serializable.
+Iterable collections of objects are also serializable. Just set ``many=True``.
 
 .. code-block:: python
 
     user1 = User(name="Mick", email="mick@stones.com")
     user2 = User(name="Keith", email="keith@stones.com")
     users = [user1, user2]
-    UserSerializer(users).data
+    UserSerializer(users, many=True).data
     # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
     #   'email': u'mick@stones.com',
     #   'name': u'Mick'},
@@ -178,6 +178,15 @@ When you serialize the blog, you will see the nested user representation.
     #               'name': u'Monty'},
     #  'title': u'Something Completely Different'}
 
+.. note::
+    If the field is a collection of nested objects, you must set ``many=True``.
+
+    .. code-block:: python
+
+        collaborators = fields.Nested(UserSerializer, many=True)
+
+
+
 Nesting A Serializer Within Itself
 ++++++++++++++++++++++++++++++++++
 
@@ -188,7 +197,7 @@ If the object to be serialized has a relationship to an object of the same type,
     class UserSerializer(Serializer):
         name = fields.String()
         email = fields.Email()
-        friends = fields.Nested('self')  # Handles collections like a charm
+        friends = fields.Nested('self', many=True)
 
     user = User("Steve", 'steve@example.com')
     user.friends.append(User("Mike", 'mike@example.com'))
