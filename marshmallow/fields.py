@@ -168,9 +168,11 @@ class Nested(Raw):
     """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
     or set of fields inside a field.
 
-    Example: ::
+    Examples: ::
 
         user = fields.Nested(UserSerializer)
+        collaborators = fields.Nested(UserSerializer, many=True, only='id')
+        parent = fields.Nested('self')
 
     :param Serializer nested: The Serializer class or instance to nest, or
         "self" to nest the serializer within itself.

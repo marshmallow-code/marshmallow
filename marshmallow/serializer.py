@@ -58,7 +58,47 @@ class SerializerOpts(object):
 
 
 class BaseSerializer(base.SerializerABC):
-    '''Base serializer class which defines the interface for a serializer.
+    '''Base serializer class with which to define custom serializers.
+
+    Example usage:
+
+    .. code-block:: python
+
+        from datetime import datetime
+        from marshmallow import Serializer, fields
+
+        class Person(object):
+            def __init__(self, name):
+                self.name = name
+                self.date_born = datetime.now()
+
+        class PersonSerializer(Serializer):
+            name = fields.String()
+            date_born = fields.DateTime()
+
+        # Or, equivalently
+        class PersonSerializer2(Serializer):
+            class Meta:
+                fields = ("name", "date_born")
+
+        person = Person("Guido van Rossum")
+        serialized = PersonSerializer(person)
+        serialized.data
+        # OrderedDict([('name', u'Guido van Rossum'),
+        #                ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
+
+    :param obj: The object or collection of objects to be serialized.
+    :param dict extra: A dict of extra attributes to bind to the serialized result.
+    :param tuple only: A list or tuple of fields to serialize. If ``None``, all
+        fields will be serialized.
+    :param tuple exclude: A list or tuple of fields to exclude from the
+        serialized result.
+    :param str prefix: Optional prefix that will be prepended to all the
+        serialized field names.
+    :param bool strict: If ``True``, raise errors if invalid data are passed in
+        instead of failing silently and storing the errors.
+    :param bool many: Should be set to ``True`` if ``obj`` is a collection
+        so that the object will be serialized to a list.
     '''
     TYPE_MAPPING = {
         text_type: fields.String,
@@ -276,46 +316,4 @@ class BaseSerializer(base.SerializerABC):
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
-    '''Base serializer class with which to define custom serializers.
-
-    Example usage:
-
-    .. code-block:: python
-
-        from datetime import datetime
-        from marshmallow import Serializer, fields
-
-        class Person(object):
-            def __init__(self, name):
-                self.name = name
-                self.date_born = datetime.now()
-
-        class PersonSerializer(Serializer):
-            name = fields.String()
-            date_born = fields.DateTime()
-
-        # Or, equivalently
-        class PersonSerializer2(Serializer):
-            class Meta:
-                fields = ("name", "date_born")
-
-        person = Person("Guido van Rossum")
-        serialized = PersonSerializer(person)
-        serialized.data
-        # OrderedDict([('name', u'Guido van Rossum'),
-        #                ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
-
-    :param obj: The object or collection of objects to be serialized.
-    :param dict extra: A dict of extra attributes to bind to the serialized result.
-    :param tuple only: A list or tuple of fields to serialize. If ``None``, all
-        fields will be serialized.
-    :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result.
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
-    :param bool strict: If ``True``, raise errors if invalid data are passed in
-        instead of failing silently and storing the errors.
-    :param bool many: Should be set to ``True`` if ``obj`` is a collection
-        so that the object will be serialized to a list.
-    '''
-    pass
+    __doc__ = BaseSerializer.__doc__
