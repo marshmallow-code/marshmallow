@@ -11,7 +11,8 @@ from functools import wraps
 
 from marshmallow import validate, utils
 from marshmallow.base import FieldABC, SerializerABC
-from marshmallow.compat import text_type, OrderedDict, iteritems, total_seconds
+from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
+                                basestring)
 from marshmallow.exceptions import MarshallingError
 
 
