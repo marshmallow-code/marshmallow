@@ -103,7 +103,7 @@ def register():
 @app.route("/api/v1/todos")
 def get_todos():
     todos = Todo.select()  # Get all todos
-    serialized = TodoSerializer(list(todos))
+    serialized = TodoSerializer(list(todos), many=True)
     return jsonify({"todos": serialized.data})
 
 @app.route("/api/v1/todos/<int:pk>")

@@ -56,7 +56,7 @@ class QuoteSerializer(Serializer):
 def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
-    return jsonify({"authors": AuthorSerializer(authors).data})
+    return jsonify({"authors": AuthorSerializer(authors, many=True).data})
 
 @app.route("/api/v1/authors/<int:pk>")
 def get_author(pk):
@@ -71,7 +71,7 @@ def get_author(pk):
 @app.route("/api/v1/quotes", methods=["GET"])
 def get_quotes():
     quotes = Quote.query.all()
-    serialized = QuoteSerializer(quotes, only=("id", "content"))
+    serialized = QuoteSerializer(quotes, only=("id", "content"), many=True)
     return jsonify({"quotes": serialized.data})
 
 @app.route("/api/v1/quotes/<int:pk>")
