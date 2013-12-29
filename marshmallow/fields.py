@@ -61,26 +61,22 @@ class Marshaller(object):
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
             try:
-                if isinstance(field_obj, dict):
-                    item = (key, self.marshal(data, field_obj))
-                else:
-                    try:
-                        item = (key, field_obj.output(attr_name, data))
-                    except TypeError:
-                        # field declared as a class, not an instance
-                        if isinstance(field_obj, type) and \
-                            issubclass(field_obj, FieldABC):
-                            msg = ('Field for "{0}" must be declared as a '
-                                            "Field instance, not a class. "
-                                            'Did you mean "fields.{1}()"?'
-                                            .format(attr_name, field_obj.__name__))
-                            raise TypeError(msg)
-                        raise
+                item = (key, field_obj.output(attr_name, data))
             except MarshallingError as err:  # Store errors
                 if self.strict:
                     raise err
                 self.errors[key] = text_type(err)
                 item = (key, None)
+            except TypeError:
+                # field declared as a class, not an instance
+                if isinstance(field_obj, type) and \
+                    issubclass(field_obj, FieldABC):
+                    msg = ('Field for "{0}" must be declared as a '
+                                    "Field instance, not a class. "
+                                    'Did you mean "fields.{1}()"?'
+                                    .format(attr_name, field_obj.__name__))
+                    raise TypeError(msg)
+                raise
             items.append(item)
         return OrderedDict(items)
 
