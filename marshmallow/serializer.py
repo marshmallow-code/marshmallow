@@ -48,11 +48,17 @@ class SerializerOpts(object):
 
     def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
+        if not isinstance(self.fields, (list, tuple)):
+            raise ValueError("`fields` option must be a list or tuple.")
         self.additional = getattr(meta, 'additional', ())
+        if not isinstance(self.additional, (list, tuple)):
+            raise ValueError("`additional` option must be a list or tuple.")
         if self.fields and self.additional:
             raise ValueError("Cannot set both `fields` and `additional` options"
                             " for the same serializer.")
         self.exclude = getattr(meta, 'exclude', ())
+        if not isinstance(self.exclude, (list, tuple)):
+            raise ValueError("`exclude` must be a list or tuple.")
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
 
@@ -180,23 +186,16 @@ class BaseSerializer(base.SerializerABC):
             return self.fields
 
         if self.opts.fields:
-            if not isinstance(self.opts.fields, (list, tuple)):
-                raise ValueError("`fields` option must be a list or tuple.")
             # Return only fields specified in fields option
             field_names = set(self.opts.fields)
         elif self.opts.additional:
-            if not isinstance(self.opts.additional, (list, tuple)):
-                raise ValueError("`additional` option must be a list or tuple.")
             # Return declared fields + additional fields
-            field_names = set(tuple(self.declared_fields.keys()) + tuple(self.opts.additional))
+            field_names = set(self.declared_fields.keys()) | set(self.opts.additional)
         else:
             field_names = set(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
-        if not isinstance(self.opts.exclude, (list, tuple)) or \
-                            not isinstance(self.exclude, (list, tuple)):
-            raise ValueError("`exclude` must be a list or tuple.")
-        excludes = set(self.opts.exclude + self.exclude)
+        excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
         ret = self.__filter_fields(field_names)
@@ -223,9 +222,9 @@ class BaseSerializer(base.SerializerABC):
         '''Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
-        :param dict declared_fields: The original dictionary of explicitly
-            declared fields.
-        :param tuple field_names: List of field names to include in the final
+        :returns: An OrderedDict of field_name:field_obj pairs.
+
+        :param set field_names: Field names to include in the final
             return dictionary.
         '''
         # Convert obj to a dict
