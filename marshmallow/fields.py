@@ -191,7 +191,8 @@ class Nested(Raw):
         self.exclude = exclude or ()
         self.many = many
         self.__serializer = None
-        self.__updated_fields = False
+        self.__updated_fields = False  # ensures serializer fields are updated
+                                        # only once
         super(Nested, self).__init__(**kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
@@ -215,19 +216,18 @@ class Nested(Raw):
     @property
     def serializer(self):
         """The nested Serializer object."""
+        # Cache the serializer instance
         if not self.__serializer:
             if isinstance(self.nested, SerializerABC):
                 self.__serializer = self.nested
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SerializerABC):
-                # FIXME: Initialization will result in an extra call to
-                # __update_fields
                 self.__serializer = self.nested(None, many=self.many)
             elif self.nested == 'self':
                 self.__serializer = self.parent  # The serializer this fields belongs to
                 # For now, don't allow nesting of depth > 1
                 self.exclude += (self.name, )  # Exclude this field
-            elif not self.__serializer:
+            else:
                 raise ValueError("Nested fields must be passed a Serializer, not {0}."
                                 .format(self.nested.__class__))
         return self.__serializer

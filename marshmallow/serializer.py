@@ -155,19 +155,16 @@ class BaseSerializer(base.SerializerABC):
         self.only = only or ()
         self.exclude = exclude or ()
         self.prefix = prefix
-        if strict or self.opts.strict:
-            self.strict = True
-        else:
-            self.strict = False
+        self.strict = strict or self.opts.strict
         #: Callable marshalling object
-        self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
+        self.marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
         self.extra = extra
         if isinstance(obj, types.GeneratorType):
             self.obj = list(obj)
         else:
             self.obj = obj
         self._update_fields(obj)
-        # If object is passed in, marshal it so that errors can be stored
+        # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             self.__data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
@@ -262,21 +259,11 @@ class BaseSerializer(base.SerializerABC):
                 ret[key] = field_obj
         return ret
 
-    def marshal(self, data, fields_dict, many=False):
-        """Takes the data (a dict, list, or object) and a dict of fields.
-        Stores any errors that occur.
-
-        :param data: The actual object(s) from which the fields are taken from
-        :param dict fields_dict: A dict whose keys will make up the final serialized
-                       response output
-        """
-        return self._marshal(data, fields_dict, many=many)
-
     @property
     def data(self):
         '''The serialized data as an ``OrderedDict``.
         '''
-        if not self.__data:
+        if not self.__data:  # Cache the data
             self.__data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 self.__data.update(self.extra)
@@ -290,7 +277,7 @@ class BaseSerializer(base.SerializerABC):
     @property
     def errors(self):
         '''Dictionary of errors raised during serialization.'''
-        return self._marshal.errors
+        return self.marshal.errors
 
     def to_json(self, *args, **kwargs):
         '''Return the JSON representation of the data. Takes the same arguments

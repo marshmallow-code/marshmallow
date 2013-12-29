@@ -10,6 +10,7 @@ Changelog
 * Support nesting a Serializer within itself (only up to depth=1).
 * *Backwards-incompatible*: No implicit serializing of collections. Must set ``many=True`` if serializing to a list. This ensures that marshmallow handles singular objects correctly, even if they are iterable.
 * If Nested field ``only`` parameter is a field name, only return a single value for the nested object (instead of a dict) or a flat list of values.
+* Improved performance and stability.
 
 0.4.1 (2013-12-01)
 ++++++++++++++++++
