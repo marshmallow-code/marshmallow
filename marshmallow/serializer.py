@@ -172,6 +172,13 @@ class BaseSerializer(base.SerializerABC):
 
     def _update_fields(self, obj):
         '''Update fields based on the passed in object.'''
+        # if only __init__ param is specified, only return those fields
+        if self.only:
+            ret = self.__get_opts_fields(self.only)
+            self.__set_field_attrs(ret)
+            self.fields = ret
+            return self.fields
+
         if self.opts.fields:
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
@@ -185,19 +192,6 @@ class BaseSerializer(base.SerializerABC):
             ret = self.__get_opts_fields(field_names)
         else:
             ret = self.declared_fields
-
-        # if only __init__ param is specified, only return those fields
-        if self.only:
-            filtered = OrderedDict()
-            for field_name in self.only:
-                if field_name not in ret:
-                    raise AttributeError(
-                        '"{0}" is not a valid field for {1}.'
-                            .format(field_name, obj))
-                filtered[field_name] = ret[field_name]
-            self.__set_field_attrs(filtered)
-            self.fields = filtered
-            return self.fields
 
         # If "exclude" option or param is specified, remove those fields
         if not isinstance(self.opts.exclude, (list, tuple)) or \
