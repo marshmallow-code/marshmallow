@@ -145,7 +145,7 @@ class BaseSerializer(base.SerializerABC):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
-        self.fields = None
+        self.fields = None  # Fields are updated whenever obj is set
         self.__data = None
         self.__obj = None
         self.many = many
@@ -160,16 +160,15 @@ class BaseSerializer(base.SerializerABC):
         #: Callable marshalling object
         self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
         self.extra = extra
-        if obj is not None:
-            if isinstance(obj, types.GeneratorType):
-                self.obj = list(obj)
-            else:
-                self.obj = obj
+        if isinstance(obj, types.GeneratorType):
+            self.obj = list(obj)
+        else:
+            self.obj = obj
+        # If object is passed in, marshal it so that errors can be stored
+        if self.obj is not None:
             self.__data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 self.__data.update(self.extra)
-        else:
-            self.obj = obj
 
     @property
     def obj(self):
@@ -178,13 +177,12 @@ class BaseSerializer(base.SerializerABC):
     @obj.setter
     def obj(self, value):
         self.__obj = value
-        # Now that obj is set, we can get the fields and infer the fields
-        # types from the object, if necessary
-        if value:
-            self.fields = self.__get_fields()
+        # Now that obj is set, the fields need to be updated for the new object
+        # in order to get the correct type mappings for the Meta options
+        self.fields = self.__update_fields(value)
 
-    def __get_fields(self):
-        '''Return the declared fields for the object as an OrderedDict.'''
+    def __update_fields(self, obj):
+        '''Return the appropriate fields for ``obj`` as an OrderedDict.'''
         # Explicitly declared fields
         ret = copy.deepcopy(self._declared_fields)  # Copy _declared_fields
                                                     # from metaclass
@@ -203,7 +201,7 @@ class BaseSerializer(base.SerializerABC):
                 if field_name not in ret:
                     raise AttributeError(
                         '"{0}" is not a valid field for {1}.'
-                            .format(field_name, self.obj))
+                            .format(field_name, obj))
                 filtered[field_name] = ret[field_name]
             self.__initialize_fields(filtered)
             return filtered

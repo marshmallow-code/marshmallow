@@ -211,6 +211,11 @@ class TestSerializer(unittest.TestCase):
         assert_almost_equal(self.serialized.data['age'], 42.3)
         assert_true(self.serialized.data['registered'])
 
+    def test_serializing_none(self):
+        s = UserSerializer(None)
+        assert_equal(s.data['name'], '')
+        assert_equal(s.data['age'], 0)
+
     def test_fields_are_copies(self):
         s = UserSerializer(User("Monty", age=42))
         s2 = UserSerializer(User("Monty", age=43))
@@ -582,6 +587,7 @@ class TestMetaOptions(unittest.TestCase):
 
     def test_serializing_none(self):
         s = UserMetaSerializer(None)
+        # Since meta fields are used, defaults to None
         assert_equal(s.data['name'], None)
         assert_equal(s.data['email'], None)
 

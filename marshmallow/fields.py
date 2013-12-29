@@ -56,7 +56,7 @@ class Marshaller(object):
         :returns: An OrderedDict of the marshalled data
         """
         if many and data is not None:
-            return [self.marshal(d, fields_dict) for d in data]
+            return [self.marshal(d, fields_dict, many=False) for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
