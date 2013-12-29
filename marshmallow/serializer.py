@@ -16,7 +16,7 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
 class SerializerMeta(type):
     '''Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
-    names to field classes and instances.
+    names to field objects.
     '''
 
     def __new__(mcs, name, bases, attrs):
