@@ -169,13 +169,9 @@ class BaseSerializer(base.SerializerABC):
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
-        ret = OrderedDict()
-        declared_fields = copy.deepcopy(self._declared_fields)  # Copy _declared_fields
-                                                                # from metaclass
         # Explicitly declared fields
-        for field_name, field_obj in iteritems(declared_fields):
-            ret[field_name] = field_obj
-
+        ret = copy.deepcopy(self._declared_fields)  # Copy _declared_fields
+                                                    # from metaclass
         if self.opts.fields:
             # Return only fields specified in fields option
             ret = self.__get_opts_fields(ret, self.opts.fields)
