@@ -323,9 +323,9 @@ class UUID(String):
 class Number(Raw):
     '''Base class for number fields.'''
 
-    num_type = int
+    num_type = float
 
-    def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
+    def __init__(self, default=0.0, attribute=None, as_string=False, error=None, **kwargs):
         self.as_string = as_string
         super(Number, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
