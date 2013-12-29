@@ -170,7 +170,7 @@ class BlogSerializer(Serializer):
     id = fields.String()
 
 class BlogUserMetaSerializer(Serializer):
-    user = fields.Nested(UserMetaSerializer)
+    user = fields.Nested(UserMetaSerializer())
     collaborators = fields.Nested(UserMetaSerializer, many=True)
 
 
@@ -703,7 +703,6 @@ class TestNestedSerializer(unittest.TestCase):
         class BadNestedFieldSerializer(BlogSerializer):
             user = fields.Nested(fields.String)
         assert_raises(ValueError, lambda: BadNestedFieldSerializer(self.blog))
-
 
 
 class TestSelfReference(unittest.TestCase):
