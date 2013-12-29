@@ -193,7 +193,7 @@ class BaseSerializer(base.SerializerABC):
                         '"{0}" is not a valid field for {1}.'
                             .format(field_name, obj))
                 filtered[field_name] = ret[field_name]
-            self.__initialize_fields(filtered)
+            self.__set_field_attrs(filtered)
             self.fields = filtered
             return self.fields
 
@@ -206,11 +206,11 @@ class BaseSerializer(base.SerializerABC):
             for field_name in excludes:
                 ret.pop(field_name, None)
         # Set parents
-        self.__initialize_fields(ret)
+        self.__set_field_attrs(ret)
         self.fields = ret
         return self.fields
 
-    def __initialize_fields(self, fields_dict):
+    def __set_field_attrs(self, fields_dict):
         '''Set the parents of all field objects in fields_dict to self, and
         set the dateformat specified in ``class Meta``, if necessary.
         '''
