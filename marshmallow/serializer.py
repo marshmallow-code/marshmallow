@@ -174,7 +174,7 @@ class BaseSerializer(base.SerializerABC):
         '''Update fields based on the passed in object.'''
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__get_opts_fields(self.only)
+            ret = self.__filter_fields(self.only)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -183,15 +183,14 @@ class BaseSerializer(base.SerializerABC):
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
             # Return only fields specified in fields option
-            ret = self.__get_opts_fields(self.opts.fields)
+            field_names = set(self.opts.fields)
         elif self.opts.additional:
             if not isinstance(self.opts.additional, (list, tuple)):
                 raise ValueError("`additional` option must be a list or tuple.")
             # Return declared fields + additional fields
-            field_names = tuple(self.declared_fields.keys()) + tuple(self.opts.additional)
-            ret = self.__get_opts_fields(field_names)
+            field_names = set(tuple(self.declared_fields.keys()) + tuple(self.opts.additional))
         else:
-            ret = self.declared_fields
+            field_names = set(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
         if not isinstance(self.opts.exclude, (list, tuple)) or \
@@ -199,8 +198,8 @@ class BaseSerializer(base.SerializerABC):
             raise ValueError("`exclude` must be a list or tuple.")
         excludes = set(self.opts.exclude + self.exclude)
         if excludes:
-            for field_name in excludes:
-                ret.pop(field_name, None)
+            field_names = field_names - excludes
+        ret = self.__filter_fields(field_names)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -220,7 +219,7 @@ class BaseSerializer(base.SerializerABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __get_opts_fields(self, field_names):
+    def __filter_fields(self, field_names):
         '''Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
