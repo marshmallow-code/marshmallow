@@ -172,18 +172,19 @@ class BaseSerializer(base.SerializerABC):
 
     def _update_fields(self, obj):
         '''Update fields based on the passed in object.'''
-        ret = self.declared_fields  # Explicitly declared fields
         if self.opts.fields:
             if not isinstance(self.opts.fields, (list, tuple)):
                 raise ValueError("`fields` option must be a list or tuple.")
             # Return only fields specified in fields option
-            ret = self.__get_opts_fields(ret, self.opts.fields)
+            ret = self.__get_opts_fields(self.opts.fields)
         elif self.opts.additional:
             if not isinstance(self.opts.additional, (list, tuple)):
                 raise ValueError("`additional` option must be a list or tuple.")
             # Return declared fields + additional fields
-            field_names = tuple(ret.keys()) + tuple(self.opts.additional)
-            ret = self.__get_opts_fields(ret, field_names)
+            field_names = tuple(self.declared_fields.keys()) + tuple(self.opts.additional)
+            ret = self.__get_opts_fields(field_names)
+        else:
+            ret = self.declared_fields
 
         # if only __init__ param is specified, only return those fields
         if self.only:
@@ -225,7 +226,7 @@ class BaseSerializer(base.SerializerABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __get_opts_fields(self, declared_fields, field_names):
+    def __get_opts_fields(self, field_names):
         '''Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
@@ -240,13 +241,13 @@ class BaseSerializer(base.SerializerABC):
             try:  # Homogeneous collection
                 obj_dict = utils.to_marshallable_type(obj_marshallable[0])
             except IndexError:  # Nothing to serialize
-                return declared_fields
+                return self.declared_fields
         else:
             obj_dict = obj_marshallable
         ret = OrderedDict()
         for key in field_names:
-            if key in declared_fields:
-                ret[key] = declared_fields[key]
+            if key in self.declared_fields:
+                ret[key] = self.declared_fields[key]
             else:
                 if obj_dict:
                     try:
