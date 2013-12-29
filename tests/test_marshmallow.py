@@ -940,6 +940,12 @@ class TestMarshaller(unittest.TestCase):
         assert_equal(result['usr_name'], u.name)
         assert_equal(result['usr_email'], u.email)
 
+    def test_marshalling_generator(self):
+        gen = (u for u in [User("Foo"), User("Bar")])
+        marshal = fields.Marshaller()
+        res = marshal(gen, {"name": fields.String()}, many=True)
+        assert_equal(len(res), 2)
+
 
 if __name__ == '__main__':
     unittest.main()

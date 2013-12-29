@@ -145,7 +145,9 @@ class BaseSerializer(base.SerializerABC):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
-        self.fields = None  # Fields are updated whenever obj is set
+        # copy declared fields from metaclass
+        self.declared_fields = copy.deepcopy(self._declared_fields)
+        self.fields = OrderedDict()  # Fields are updated whenever obj is set
         self.__data = None
         self.__obj = None
         self.many = many
@@ -183,9 +185,7 @@ class BaseSerializer(base.SerializerABC):
 
     def __update_fields(self, obj):
         '''Return the appropriate fields for ``obj`` as an OrderedDict.'''
-        # Explicitly declared fields
-        ret = copy.deepcopy(self._declared_fields)  # Copy _declared_fields
-                                                    # from metaclass
+        ret = self.declared_fields  # Explicitly declared fields
         if self.opts.fields:
             # Return only fields specified in fields option
             ret = self.__get_opts_fields(ret, self.opts.fields)

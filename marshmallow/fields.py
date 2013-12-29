@@ -215,7 +215,7 @@ class Nested(Raw):
         nested_obj = self.get_value(key, obj)
         if self.allow_null and nested_obj is None:
             return None
-        if isinstance(self.nested, SerializerABC):
+        if isinstance(self.nested, SerializerABC) and not self.serializer:
             self.serializer = self.nested
             self.serializer.obj = nested_obj
         elif isinstance(self.nested, type) and \
