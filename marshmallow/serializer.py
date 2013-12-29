@@ -174,9 +174,13 @@ class BaseSerializer(base.SerializerABC):
         '''Update fields based on the passed in object.'''
         ret = self.declared_fields  # Explicitly declared fields
         if self.opts.fields:
+            if not isinstance(self.opts.fields, (list, tuple)):
+                raise ValueError("`fields` option must be a list or tuple.")
             # Return only fields specified in fields option
             ret = self.__get_opts_fields(ret, self.opts.fields)
         elif self.opts.additional:
+            if not isinstance(self.opts.additional, (list, tuple)):
+                raise ValueError("`additional` option must be a list or tuple.")
             # Return declared fields + additional fields
             field_names = tuple(ret.keys()) + tuple(self.opts.additional)
             ret = self.__get_opts_fields(ret, field_names)
@@ -231,8 +235,6 @@ class BaseSerializer(base.SerializerABC):
             return dictionary.
         '''
         # Convert obj to a dict
-        if not isinstance(self.opts.fields, (list, tuple)):
-            raise ValueError("`fields` option must be a list or tuple.")
         obj_marshallable = utils.to_marshallable_type(self.obj)
         if obj_marshallable and self.many:
             try:  # Homogeneous collection

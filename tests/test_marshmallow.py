@@ -486,6 +486,23 @@ def test_custom_error_message():
     assert_equal(s.errors['homepage'], "Bad homepage.")
     assert_equal(s.errors['balance'], "Bad balance.")
 
+def test_error_raised_if_fields_option_is_not_list():
+    class BadSerializer(Serializer):
+        name = fields.String()
+        class Meta:
+            fields = 'name'
+    u = User('Joe')
+    assert_raises(ValueError, lambda: BadSerializer(u))
+
+
+def test_error_raised_if_additional_option_is_not_list():
+    class BadSerializer(Serializer):
+        name = fields.String()
+        class Meta:
+            additional = 'email'
+    u = User('Joe')
+    assert_raises(ValueError, lambda: BadSerializer(u))
+
 
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
