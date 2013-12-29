@@ -249,15 +249,15 @@ class BaseSerializer(base.SerializerABC):
             if key in declared_fields:
                 ret[key] = declared_fields[key]
             else:
-                try:
-                    if obj_dict:
+                if obj_dict:
+                    try:
                         attribute_type = type(obj_dict[key])
-                        field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
-                    else:  # Object is None
-                        field_obj = fields.Raw()
-                except KeyError:
-                    raise AttributeError(
-                        '"{0}" is not a valid field for {1}.'.format(key, self.obj))
+                    except KeyError:
+                        raise AttributeError(
+                            '"{0}" is not a valid field for {1}.'.format(key, self.obj))
+                    field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
+                else:  # Object is None
+                    field_obj = fields.Raw()
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret
