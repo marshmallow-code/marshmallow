@@ -147,7 +147,7 @@ class BaseSerializer(base.SerializerABC):
                             category=DeprecationWarning)
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
-        self.fields = OrderedDict()  # Fields are updated whenever obj is set
+        self.fields = OrderedDict()
         self.__data = None
         self.obj = obj
         self.many = many
@@ -174,7 +174,7 @@ class BaseSerializer(base.SerializerABC):
                 self.__data.update(self.extra)
 
     def _update_fields(self, obj):
-        '''Return the appropriate fields for ``obj`` as an OrderedDict.'''
+        '''Update fields based on the passed in object.'''
         ret = self.declared_fields  # Explicitly declared fields
         if self.opts.fields:
             # Return only fields specified in fields option
