@@ -198,10 +198,12 @@ class Nested(Raw):
     def __get_fields_to_marshal(self, all_fields):
         '''Filter all_fields based on self.only and self.exclude.'''
         # Default 'only' to all the nested fields
+        ret = OrderedDict()
         if all_fields is None:
-            return OrderedDict()
+            return ret
         elif isinstance(self.only, basestring):
-            only = set([self.only])
+            ret[self.only] = all_fields[self.only]
+            return ret
         else:
             only = set(all_fields) if self.only is None else set(self.only)
         if self.exclude and self.only:
