@@ -149,7 +149,7 @@ class BaseSerializer(base.SerializerABC):
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.fields = OrderedDict()  # Fields are updated whenever obj is set
         self.__data = None
-        self.__obj = None
+        self.obj = obj
         self.many = many
         self.opts = SerializerOpts(self.Meta)
         self.only = only or ()
@@ -166,24 +166,14 @@ class BaseSerializer(base.SerializerABC):
             self.obj = list(obj)
         else:
             self.obj = obj
+        self._update_fields(obj)
         # If object is passed in, marshal it so that errors can be stored
         if self.obj is not None:
             self.__data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 self.__data.update(self.extra)
 
-    @property
-    def obj(self):
-        return self.__obj
-
-    @obj.setter
-    def obj(self, value):
-        self.__obj = value
-        # Now that obj is set, the fields need to be updated for the new object
-        # in order to get the correct type mappings for the Meta options
-        self.fields = self.__update_fields(value)
-
-    def __update_fields(self, obj):
+    def _update_fields(self, obj):
         '''Return the appropriate fields for ``obj`` as an OrderedDict.'''
         ret = self.declared_fields  # Explicitly declared fields
         if self.opts.fields:
@@ -204,7 +194,8 @@ class BaseSerializer(base.SerializerABC):
                             .format(field_name, obj))
                 filtered[field_name] = ret[field_name]
             self.__initialize_fields(filtered)
-            return filtered
+            self.fields = filtered
+            return self.fields
 
         # If "exclude" option or param is specified, remove those fields
         if not isinstance(self.opts.exclude, (list, tuple)) or \
@@ -216,7 +207,8 @@ class BaseSerializer(base.SerializerABC):
                 ret.pop(field_name, None)
         # Set parents
         self.__initialize_fields(ret)
-        return ret
+        self.fields = ret
+        return self.fields
 
     def __initialize_fields(self, fields_dict):
         '''Set the parents of all field objects in fields_dict to self, and
@@ -245,7 +237,7 @@ class BaseSerializer(base.SerializerABC):
         if not isinstance(self.opts.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
         obj_marshallable = utils.to_marshallable_type(self.obj)
-        if self.many:
+        if obj_marshallable and self.many:
             try:  # Homogeneous collection
                 obj_dict = utils.to_marshallable_type(obj_marshallable[0])
             except IndexError:  # Nothing to serialize
