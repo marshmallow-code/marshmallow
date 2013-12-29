@@ -477,8 +477,6 @@ def test_custom_error_message():
         email = fields.Email(error="Invalid email")
         homepage = fields.Url(error="Bad homepage.")
         balance = fields.Fixed(error="Bad balance.")
-
-
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
     s = ErrorSerializer(u)
     assert_false(s.is_valid())

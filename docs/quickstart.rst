@@ -223,7 +223,10 @@ You can explicitly specify which attributes in the nested fields you want to ser
         author = fields.Nested(UserSerializer, only=["email"])
 
     BlogSerializer2(blog).data
-    # {'author': {'email': u'monty@python.org'}, 'title': u'Something Completely Different'}
+    # {
+    #     'author': {'email': u'monty@python.org'},
+    #     'title': u'Something Completely Different'
+    # }
 
 .. note::
 

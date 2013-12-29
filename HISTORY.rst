@@ -1,13 +1,13 @@
 Changelog
 ---------
 
-0.5.0 (unreleased)
+0.5.0 (2013-12-29)
 ++++++++++++++++++
 
 * Can customize validation error messages by passing the ``error`` parameter to a field.
-* Rename ``fields.NumberField`` -> ``fields.Number``.
+* *Backwards-incompatible*: Rename ``fields.NumberField`` -> ``fields.Number``.
 * Add ``fields.Select``. Thanks @ecarreras.
-* Support nesting a Serializer within itself (only up to depth=1).
+* Support nesting a Serializer within itself by passing ``"self"`` into ``fields.Nested`` (only up to depth=1).
 * *Backwards-incompatible*: No implicit serializing of collections. Must set ``many=True`` if serializing to a list. This ensures that marshmallow handles singular objects correctly, even if they are iterable.
 * If Nested field ``only`` parameter is a field name, only return a single value for the nested object (instead of a dict) or a flat list of values.
 * Improved performance and stability.

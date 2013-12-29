@@ -17,7 +17,7 @@ from marshmallow.exceptions import MarshallingError
 
 
 def validated(f):
-    """Decorator that wraps a field's ``format` or ``output`` method. If an
+    """Decorator that wraps a field's ``format`` or ``output`` method. If an
     exception is raised during the execution of the wrapped method, a
     MarshallingError is raised instead with the underlying exception's
     error message or the user-defined error message (if defined).
@@ -163,7 +163,7 @@ class Raw(FieldABC):
 
 class Nested(Raw):
     """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
-    or set of fields inside a field.
+    inside a field.
 
     Examples: ::
 

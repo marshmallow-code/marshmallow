@@ -36,3 +36,4 @@ Project Info
     license
     changelog
     contributing
+    kudos
