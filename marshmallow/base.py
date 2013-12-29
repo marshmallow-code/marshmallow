@@ -3,6 +3,7 @@
 
 These are necessary to avoid circular imports between core.py and fields.py.
 '''
+import copy
 
 
 class FieldABC(object):
@@ -16,6 +17,10 @@ class FieldABC(object):
 
     def output(self, key, obj):
         raise NotImplementedError
+
+    def __deepcopy__(self, memo):
+        ret = copy.copy(self)
+        return ret
 
     def __repr__(self):
         return "<{0} Field>".format(self.__class__.__name__)
