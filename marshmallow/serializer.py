@@ -145,27 +145,43 @@ class BaseSerializer(base.SerializerABC):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
+        self.fields = None
+        self.__data = None
+        self.__obj = None
         self.many = many
         self.opts = SerializerOpts(self.Meta)
-        if isinstance(obj, types.GeneratorType):
-            self.obj = list(obj)
-        else:
-            self.obj = obj
         self.only = only or ()
         self.exclude = exclude or ()
         self.prefix = prefix
-        self.fields = self.__get_fields()  # Dict of fields
         if strict or self.opts.strict:
             self.strict = True
         else:
             self.strict = False
         #: Callable marshalling object
         self._marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
-        # Store the marshalled data
-        # MUST occur upon initialization
-        self._data = self.marshal(self.obj, self.fields, many=self.many)
-        if extra:
-            self._data.update(extra)
+        self.extra = extra
+        if obj is not None:
+            if isinstance(obj, types.GeneratorType):
+                self.obj = list(obj)
+            else:
+                self.obj = obj
+            self.__data = self.marshal(self.obj, self.fields, many=self.many)
+            if self.extra:
+                self.__data.update(self.extra)
+        else:
+            self.obj = obj
+
+    @property
+    def obj(self):
+        return self.__obj
+
+    @obj.setter
+    def obj(self, value):
+        self.__obj = value
+        # Now that obj is set, we can get the fields and infer the fields
+        # types from the object, if necessary
+        if value:
+            self.fields = self.__get_fields()
 
     def __get_fields(self):
         '''Return the declared fields for the object as an OrderedDict.'''
@@ -270,7 +286,11 @@ class BaseSerializer(base.SerializerABC):
     def data(self):
         '''The serialized data as an ``OrderedDict``.
         '''
-        return self._data
+        if not self.__data:
+            self.__data = self.marshal(self.obj, self.fields, many=self.many)
+            if self.extra:
+                self.__data.update(self.extra)
+        return self.__data
 
     @property
     def json(self):

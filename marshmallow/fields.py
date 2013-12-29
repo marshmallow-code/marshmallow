@@ -200,7 +200,9 @@ class Nested(Raw):
     def __get_fields_to_marshal(self, all_fields):
         '''Filter all_fields based on self.only and self.exclude.'''
         # Default 'only' to all the nested fields
-        if isinstance(self.only, basestring):
+        if all_fields is None:
+            return OrderedDict()
+        elif isinstance(self.only, basestring):
             only = set([self.only])
         else:
             only = set(all_fields) if self.only is None else set(self.only)
@@ -219,7 +221,7 @@ class Nested(Raw):
             return None
         if isinstance(self.nested, SerializerABC):
             self.serializer = self.nested
-            self.nested._data = nested_obj
+            self.serializer.obj = nested_obj
         elif isinstance(self.nested, type) and \
                 issubclass(self.nested, SerializerABC) and \
                 not self.serializer:
