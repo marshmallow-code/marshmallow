@@ -420,6 +420,7 @@ class DateTime(Raw):
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
+
     """
     localtime = False
 
@@ -442,10 +443,6 @@ class LocalDateTime(DateTime):
         ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
     Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
 
-    .. warning::
-        Output may be different on different operating systems due to variations
-        in how localtimes are handled. When in doubt, use the
-        :class:`DateTime <marshmallow.fields.DateTime>` field.
     """
     localtime = True
 

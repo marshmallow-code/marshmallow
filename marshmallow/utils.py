@@ -142,19 +142,34 @@ class UTC(datetime.tzinfo):
 
 UTC = utc = UTC()  # UTC is a singleton
 
+def local_rfcformat(dt):
+    """Return the RFC822-formatted representation of a timezone-aware datetime
+    with the UTC offset.
+    """
+    weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
+    month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+             "Oct", "Nov", "Dec"][dt.month - 1]
+    tz_offset = dt.strftime("%z")
+    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
+        dt.year, dt.hour, dt.minute, dt.second, tz_offset)
 
 def rfcformat(dt, localtime=False):
-    '''Return the RFC822-formatted represenation of a datetime object.
+    """Return the RFC822-formatted representation of a datetime object.
 
+    :param datetime dt: The datetime.
     :param bool localtime: If ``True``, return the date relative to the local
-        timezone instead of UTC, properly taking daylight savings time into account.
-    '''
-    return formatdate(timegm(dt.utctimetuple()), localtime=localtime)
+        timezone instead of UTC, displaying the proper offset,
+        e.g. "Sun, 10 Nov 2013 08:23:45 -0600"
+    """
+    if not localtime:
+        return formatdate(timegm(dt.utctimetuple()))
+    else:
+        return local_rfcformat(dt)
 
 
 def isoformat(dt, localtime=False, *args, **kwargs):
-    '''Return the ISO8601-formatted UTC representation of a datetime object.
-    '''
+    """Return the ISO8601-formatted UTC representation of a datetime object.
+    """
     if localtime and dt.tzinfo is not None:
         localized = dt
     else:

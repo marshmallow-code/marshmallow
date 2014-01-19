@@ -246,7 +246,6 @@ class TestSerializer(unittest.TestCase):
         assert_equal(self.serialized.data['updated'],
                     'Sun, 10 Nov 2013 20:20:58 -0000')
 
-    @unittest.skipIf(LINUX, "Skip due to different localtime behavior on Linux")
     def test_local_datetime_field(self):
         assert_equal(self.serialized.data['updated_local'],
                     'Sun, 10 Nov 2013 14:20:58 -0600')
@@ -900,12 +899,10 @@ class TestUtils(unittest.TestCase):
         d = dt.datetime(2013, 11, 10, 1, 23, 45)
         assert_equal(utils.rfcformat(d), "Sun, 10 Nov 2013 01:23:45 -0000")
 
-    @unittest.skipIf(LINUX, "Skip due to different localtime behavior on Linux")
     def test_rfcformat_central(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
         assert_equal(utils.rfcformat(d), 'Sun, 10 Nov 2013 07:23:45 -0000')
 
-    @unittest.skipIf(LINUX, "Skip due to different localtime behavior on Linux")
     def test_rfcformat_central_localized(self):
         d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
         assert_equal(utils.rfcformat(d, localtime=True), "Sun, 10 Nov 2013 08:23:45 -0600")
