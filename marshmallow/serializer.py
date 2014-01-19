@@ -222,16 +222,17 @@ class BaseSerializer(base.SerializerABC):
         '''Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
-        :returns: An OrderedDict of field_name:field_obj pairs.
-
         :param set field_names: Field names to include in the final
             return dictionary.
+        :returns: An OrderedDict of field_name:field_obj pairs.
         '''
         # Convert obj to a dict
-        obj_marshallable = utils.to_marshallable_type(self.obj)
+        obj_marshallable = utils.to_marshallable_type(self.obj,
+            field_names=field_names)
         if obj_marshallable and self.many:
             try:  # Homogeneous collection
-                obj_dict = utils.to_marshallable_type(obj_marshallable[0])
+                obj_dict = utils.to_marshallable_type(obj_marshallable[0],
+                    field_names=field_names)
             except IndexError:  # Nothing to serialize
                 return self.declared_fields
         else:
@@ -243,6 +244,7 @@ class BaseSerializer(base.SerializerABC):
             else:
                 if obj_dict:
                     try:
+                        print(obj_dict)
                         attribute_type = type(obj_dict[key])
                     except KeyError:
                         raise AttributeError(

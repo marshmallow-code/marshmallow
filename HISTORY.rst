@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.5.1 (2014-01-19)
+++++++++++++++++++
+
+* Avoid unnecessary attribute access in `utils.to_marshallable_type` for improved performance.
+
 0.5.0 (2013-12-29)
 ++++++++++++++++++
 
