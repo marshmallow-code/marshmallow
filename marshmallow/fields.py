@@ -34,6 +34,9 @@ def validated(f):
                     )
                     raise MarshallingError(getattr(self, "error", None) or msg)
             return output
+        # TypeErrors should be raised if fields are not declared as instances
+        except TypeError:
+            raise
         except Exception as error:
             raise MarshallingError(getattr(self, "error", None) or error)
     return decorated
