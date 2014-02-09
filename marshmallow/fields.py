@@ -18,7 +18,8 @@ from marshmallow.exceptions import MarshallingError
 
 def validated(f):
     """Decorator that wraps a field's ``format`` or ``output`` method. If an
-    exception is raised during the execution of the wrapped method, a
+    exception is raised during the execution of the wrapped method or the
+    field object's ``validate`` function evaluates to ``False``, a
     MarshallingError is raised instead with the underlying exception's
     error message or the user-defined error message (if defined).
     """
@@ -131,6 +132,9 @@ class Raw(FieldABC):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
+    :param callable validate: Validation function that takes the output as its
+        only paramter and returns a boolean. If it returns False, a
+        MarshallingError is raised.
     """
 
     def __init__(self, default=None, attribute=None, error=None, validate=None):

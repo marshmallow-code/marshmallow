@@ -16,11 +16,12 @@ Let's start with a basic user model.
     import datetime as dt
 
     class User(object):
-        def __init__(self, name, email):
+        def __init__(self, name, email, age=None):
             self.name = name
             self.email = email
             self.created_at = dt.datetime.now()
             self.friends = []
+            self.age = age
 
 
 Create a serializer by defining a class with variables mapping attribute names to a field class object that formats the final output of the serializer.
@@ -111,6 +112,18 @@ You can give fields a custom error message by passing the ``error`` parameter to
 .. code-block:: python
 
     email = fields.Email(error='Invalid email address. Try again.')
+
+You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined) which evaluates to a boolean.
+
+.. code-block:: python
+
+    class ValidatedUserSerializer(UserSerializer):
+        age = fields.Number(validate=lambda n: 18 <= n <= 40,
+                            error='User is over the hill')
+    jagger = User(name="Mick", email="mick@stones.com", age=70)
+    s = ValidatedUserSerializer(jagger)
+    s.is_valid()  # False
+    s.errors  # {'age': 'User is over the hill'}
 
 
 .. note::
