@@ -12,7 +12,7 @@ import pytz
 
 from marshmallow import Serializer, fields, validate, pprint, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import LINUX, unicode, PY26, binary_type, total_seconds
+from marshmallow.compat import unicode, PY26, binary_type, total_seconds
 
 if PY26:
     def assert_in(obj, cont):
@@ -853,6 +853,22 @@ class TestFields(unittest.TestCase):
         assert_raises(MarshallingError, lambda: fields.List("string"))
         assert_raises(MarshallingError, lambda: fields.List(UserSerializer))
 
+    def test_integer_with_validator(self):
+        user = User(name='Joe', age='20')
+        field = fields.Integer(validate=lambda x: 18 <= x <= 24)
+        out = field.output('age', user)
+        assert_equal(out, 20)
+        user2 = User(name='Joe', age='25')
+        assert_raises(MarshallingError,
+            lambda: field.output('age', user2))
+
+    def test_string_validator(self):
+        user = User(name='Joe')
+        field = fields.String(validate=lambda n: len(n) == 3)
+        assert_equal(field.output('name', user), 'Joe')
+        user2 = User(name='Joseph')
+        assert_raises(MarshallingError,
+            lambda: field.output('name', user2))
 
 class TestUtils(unittest.TestCase):
 

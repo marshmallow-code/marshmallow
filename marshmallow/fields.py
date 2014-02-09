@@ -25,7 +25,14 @@ def validated(f):
     @wraps(f)
     def decorated(self, *args, **kwargs):
         try:
-            return f(self, *args, **kwargs)
+            output = f(self, *args, **kwargs)
+            if hasattr(self, 'validate') and callable(self.validate):
+                if not self.validate(output):
+                    msg = 'Validator {0}({1}) is not True'.format(
+                        self.validate.__name__, output
+                    )
+                    raise MarshallingError(getattr(self, "error", None) or msg)
+            return output
         except Exception as error:
             raise MarshallingError(getattr(self, "error", None) or error)
     return decorated
@@ -126,10 +133,11 @@ class Raw(FieldABC):
     :param str error: Error message stored upon validation failure.
     """
 
-    def __init__(self, default=None, attribute=None, error=None):
+    def __init__(self, default=None, attribute=None, error=None, validate=None):
         self.attribute = attribute
         self.default = default
         self.error = error
+        self.validate = validate
 
     def get_value(self, key, obj):
         '''Return the value for a given key from an object.'''
@@ -150,6 +158,7 @@ class Raw(FieldABC):
         """
         return value
 
+    @validated
     def output(self, key, obj):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
@@ -266,6 +275,7 @@ def flatten(dictlist, key):
     """
     return [d[key] for d in dictlist]
 
+
 class List(Raw):
     '''A list field.
 
@@ -307,9 +317,10 @@ class List(Raw):
 class String(Raw):
     """A string field."""
 
-    def __init__(self, default='', attribute=None, *args, **kwargs):
+    def __init__(self, default='', attribute=None,  *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
+    @validated
     def format(self, value):
         try:
             return text_type(value)
@@ -341,6 +352,7 @@ class Number(Raw):
         else:
             return self.num_type(value)
 
+    @validated
     def format(self, value):
         try:
             if value is None:
@@ -424,7 +436,7 @@ class DateTime(Raw):
     """
     localtime = False
 
-    def __init__(self, format=None, default=None, attribute=None):
+    def __init__(self, format=None, default=None, attribute=None, **kwargs):
         super(DateTime, self).__init__(default=default, attribute=attribute)
         self.dateformat = format
 
@@ -558,6 +570,7 @@ class Method(Raw):
         self.method_name = method_name
         super(Method, self).__init__()
 
+    @validated
     def output(self, key, obj):
         try:
             return getattr(self.parent, self.method_name)(obj)
@@ -576,6 +589,7 @@ class Function(Raw):
     def __init__(self, func):
         self.func = func
 
+    @validated
     def output(self, key, obj):
         try:
             return self.func(obj)
