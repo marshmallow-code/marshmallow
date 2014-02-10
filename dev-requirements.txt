@@ -4,3 +4,4 @@ sphinx
 wheel
 invoke
 pytz
+unittest2

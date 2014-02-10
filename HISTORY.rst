@@ -9,7 +9,7 @@ Changelog
 0.5.1 (2014-02-02)
 ++++++++++++++++++
 
-* Avoid unnecessary attribute access in `utils.to_marshallable_type` for improved performance.
+* Avoid unnecessary attribute access in ``utils.to_marshallable_type`` for improved performance.
 * Fix RFC822 formatting for localized datetimes.
 
 0.5.0 (2013-12-29)
