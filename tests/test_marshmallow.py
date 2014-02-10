@@ -6,6 +6,7 @@ import json
 import datetime as dt
 import uuid
 import warnings
+from email.utils import parsedate
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -870,6 +871,14 @@ class TestFields(unittest.TestCase):
         assert_raises(MarshallingError,
             lambda: field.output('name', user2))
 
+    def test_datetime_validator(self):
+        user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
+        field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
+        assert_equal(field.output('birthdate', user), utils.rfcformat(user.birthdate))
+        user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
+        assert_raises(MarshallingError,
+            lambda: field.output('birthdate', user2))
+
 class TestUtils(unittest.TestCase):
 
     def test_to_marshallable_type(self):
@@ -934,6 +943,14 @@ class TestUtils(unittest.TestCase):
     def test_isoformat_localtime(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
         assert_equal(utils.isoformat(d, localtime=True), "2013-11-10T01:23:45-06:00")
+
+    def test_from_rfc(self):
+        d = dt.datetime.now()
+        rfc = utils.rfcformat(d)
+        output = utils.from_rfc(rfc)
+        assert_equal(output.year, d.year)
+        assert_equal(output.month, d.month)
+        assert_equal(output.day, d.day)
 
 
 class TestValidators(unittest.TestCase):

@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Enable custom field validation via the ``validate`` parameter.
+* Add ``utils.from_rfc`` for parsing RFC datestring to Python datetime object.
 
 0.5.1 (2014-02-02)
 ++++++++++++++++++

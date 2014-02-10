@@ -3,7 +3,8 @@
 from __future__ import absolute_import
 import json
 import datetime
-from email.utils import formatdate
+import time
+from email.utils import formatdate, parsedate
 from calendar import timegm
 import types
 
@@ -178,3 +179,11 @@ def isoformat(dt, localtime=False, *args, **kwargs):
         else:
             localized = dt.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
+
+def from_rfc(datestring):
+    """Parse a RFC822-formatted datetime string and return a datetime object.
+    https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
+    """
+    parsed = parsedate(datestring)  # as a tuple
+    timestamp = time.mktime(parsed)
+    return datetime.datetime.fromtimestamp(timestamp)
