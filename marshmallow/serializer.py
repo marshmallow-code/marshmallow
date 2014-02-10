@@ -244,7 +244,6 @@ class BaseSerializer(base.SerializerABC):
             else:
                 if obj_dict:
                     try:
-                        print(obj_dict)
                         attribute_type = type(obj_dict[key])
                     except KeyError:
                         raise AttributeError(
