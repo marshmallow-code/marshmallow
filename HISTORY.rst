@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.5.2 (unreleased)
+0.5.2 (2014-02-10)
 ++++++++++++++++++
 
 * Enable custom field validation via the ``validate`` parameter.

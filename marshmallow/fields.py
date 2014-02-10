@@ -94,7 +94,7 @@ class Marshaller(object):
     # Make an instance callable
     __call__ = marshal
 
-# Singleton marshaller method for use in this module
+# Singleton marshaller function for use in this module
 marshal = Marshaller(strict=True)
 
 

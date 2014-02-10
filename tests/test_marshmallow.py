@@ -6,7 +6,6 @@ import json
 import datetime as dt
 import uuid
 import warnings
-from email.utils import parsedate
 
 from nose.tools import *  # PEP8 asserts
 import pytz
@@ -849,6 +848,9 @@ class TestFields(unittest.TestCase):
         field = fields.Select(['male', 'female'])
         assert_equal(field.output("sex", self.user),
                      "male")
+        invalid = User('foo', sex='alien')
+        assert_raises(MarshallingError,
+            lambda: field.output('sex', invalid))
 
     def test_bad_list_field(self):
         assert_raises(MarshallingError, lambda: fields.List("string"))
