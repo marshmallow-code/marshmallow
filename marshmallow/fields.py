@@ -577,9 +577,9 @@ class Method(Raw):
         (in addition to self) that is the object to be serialized.
     """
 
-    def __init__(self, method_name):
+    def __init__(self, method_name, **kwargs):
         self.method_name = method_name
-        super(Method, self).__init__()
+        super(Method, self).__init__(**kwargs)
 
     @validated
     def output(self, key, obj):
@@ -598,7 +598,7 @@ class Function(Raw):
     '''
 
     def __init__(self, func, **kwargs):
-        super(Function, self).__init__(kwargs)
+        super(Function, self).__init__(**kwargs)
         self.func = func
 
     @validated

@@ -854,6 +854,9 @@ class TestFields(unittest.TestCase):
         assert_raises(MarshallingError, lambda: fields.List("string"))
         assert_raises(MarshallingError, lambda: fields.List(UserSerializer))
 
+
+class TestValidation(unittest.TestCase):
+
     def test_integer_with_validator(self):
         user = User(name='Joe', age='20')
         field = fields.Integer(validate=lambda x: 18 <= x <= 24)
@@ -862,6 +865,14 @@ class TestFields(unittest.TestCase):
         user2 = User(name='Joe', age='25')
         assert_raises(MarshallingError,
             lambda: field.output('age', user2))
+
+    def test_float_with_validator(self):
+        user = User(name='Joe', age=3.14)
+        field = fields.Float(validate=lambda f: f <= 4.1)
+        assert_equal(field.output('age', user), user.age)
+        invalid = User('foo', age=5.1)
+        assert_raises(MarshallingError,
+            lambda: field.output('age', invalid))
 
     def test_string_validator(self):
         user = User(name='Joe')
@@ -878,6 +889,29 @@ class TestFields(unittest.TestCase):
         user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
         assert_raises(MarshallingError,
             lambda: field.output('birthdate', user2))
+
+    def test_function_validator(self):
+        user = User('joe')
+        field = fields.Function(lambda d: d.name.upper(),
+            validate=lambda n: len(n) == 3)
+        assert_equal(field.output('uppername', user), 'JOE')
+        invalid = User(name='joseph')
+        assert_raises(MarshallingError,
+            lambda: field.output('uppername', invalid))
+
+    def test_method_validator(self):
+        class MethodSerializer(Serializer):
+            uppername = fields.Method('get_uppername',
+                                    validate=lambda n: len(n) == 3)
+            def get_uppername(self, obj):
+                return obj.name.upper()
+        user = User('joe')
+        s = MethodSerializer(user, strict=True)
+        assert_equal(s.data['uppername'], 'JOE')
+        invalid = User(name='joseph')
+        assert_raises(MarshallingError,
+            lambda: MethodSerializer(invalid, strict=True))
+
 
 class TestUtils(unittest.TestCase):
 
