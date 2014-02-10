@@ -413,9 +413,10 @@ class Arbitrary(Number):
     ex: 634271127864378216478362784632784678324.23432
     """
     # No as_string param
-    def __init__(self, default=0, attribute=None):
-        super(Arbitrary, self).__init__(default=default, attribute=attribute)
+    def __init__(self, default=0, attribute=None, **kwargs):
+        super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
+    @validated
     def format(self, value):
         try:
             if value is None:
@@ -444,7 +445,7 @@ class DateTime(Raw):
     localtime = False
 
     def __init__(self, format=None, default=None, attribute=None, **kwargs):
-        super(DateTime, self).__init__(default=default, attribute=attribute)
+        super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
         self.dateformat = format
 
     @validated
