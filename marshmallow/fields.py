@@ -470,6 +470,7 @@ class LocalDateTime(DateTime):
 class Time(Raw):
     """ISO8601-formatted time string."""
 
+    @validated
     def format(self, value):
         try:
             ret = value.isoformat()
@@ -484,6 +485,7 @@ class Time(Raw):
 class Date(Raw):
     """ISO8601-formatted date string."""
 
+    @validated
     def format(self, value):
         try:
             return value.isoformat()
@@ -498,6 +500,7 @@ class TimeDelta(Raw):
     as a float.
     '''
 
+    @validated
     def format(self, value):
         try:
             return total_seconds(value)
@@ -594,7 +597,8 @@ class Function(Raw):
         to be serialized.
     '''
 
-    def __init__(self, func):
+    def __init__(self, func, **kwargs):
+        super(Function, self).__init__(kwargs)
         self.func = func
 
     @validated
@@ -603,7 +607,7 @@ class Function(Raw):
             return self.func(obj)
         except TypeError as te:  # Function is not callable
             raise MarshallingError(te)
-        except AttributeError:
+        except AttributeError:  # the object is not expected to have the attribute
             pass
 
 
@@ -616,9 +620,9 @@ class Select(Raw):
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
     """
-    def __init__(self,  choices, default=None, attribute=None, error=None):
+    def __init__(self,  choices, default=None, attribute=None, error=None, **kwargs):
         self.choices = choices
-        return super(Select, self).__init__(default, attribute, error)
+        return super(Select, self).__init__(default, attribute, error, **kwargs)
 
     def format(self, value):
         if value not in self.choices:
