@@ -17,6 +17,7 @@ from marshmallow.compat import unicode, PY26, binary_type, total_seconds
 if PY26:
     def assert_in(obj, cont):
         assert obj in cont, "{0} not in {1}".format(obj, cont)
+
     def assert_not_in(obj, cont):
         assert obj not in cont, "{0} found in {1}".format(obj, cont)
 
@@ -24,12 +25,13 @@ central = pytz.timezone("US/Central")
 
 ##### Models #####
 
+
 class User(object):
     SPECIES = "Homo sapiens"
 
     def __init__(self, name, age=0, id_=None, homepage=None,
-                email=None, registered=True, time_registered=None,
-                birthdate=None, balance=100, sex='male', employer=None):
+                 email=None, registered=True, time_registered=None,
+                 birthdate=None, balance=100, sex='male', employer=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -51,7 +53,6 @@ class User(object):
         self.employer = employer
         self.relatives = []
 
-
     @property
     def since_created(self):
         return dt.datetime(2013, 11, 24) - self.created
@@ -61,7 +62,6 @@ class User(object):
 
 
 class Blog(object):
-
     def __init__(self, title, user, collaborators=None, categories=None, id_=None):
         self.title = title
         self.user = user
@@ -70,6 +70,7 @@ class Blog(object):
         self.id = id_
 
 ###### Serializers #####
+
 
 class Uppercased(fields.Raw):
     '''Custom field formatting example.'''
@@ -97,18 +98,18 @@ class UserSerializer(Serializer):
     hair_colors = fields.List(fields.Raw)
     sex_choices = fields.List(fields.Raw)
     finger_count = fields.Integer()
-    uid  = fields.UUID()
+    uid = fields.UUID()
     time_registered = fields.Time()
     birthdate = fields.Date()
     since_created = fields.TimeDelta()
     sex = fields.Select(['male', 'female'])
-
 
     def get_is_old(self, obj):
         try:
             return obj.age > 80
         except TypeError as te:
             raise MarshallingError(te)
+
 
 class UserMetaSerializer(Serializer):
     '''The equivalent of the UserSerializer, using the ``fields`` option.'''
@@ -129,38 +130,47 @@ class UserMetaSerializer(Serializer):
 
     class Meta:
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
-                   'uppername', 'email', 'balance', 'is_old', 'lowername',
-                   "updated_local", "species", 'registered', 'hair_colors',
-                   'sex_choices', "finger_count", 'uid', 'time_registered',
-                   'birthdate', 'since_created')
+                  'uppername', 'email', 'balance', 'is_old', 'lowername',
+                  "updated_local", "species", 'registered', 'hair_colors',
+                  'sex_choices', "finger_count", 'uid', 'time_registered',
+                  'birthdate', 'since_created')
 
 
 class UserExcludeSerializer(UserSerializer):
     class Meta:
         exclude = ("created", "updated", "field_not_found_but_thats_ok")
 
+
 class UserAdditionalSerializer(Serializer):
     lowername = fields.Function(lambda obj: obj.name.lower())
+
     class Meta:
         additional = ("name", "age", "created", "email")
+
 
 class UserIntSerializer(UserSerializer):
     age = fields.Integer()
 
+
 class UserFixedSerializer(UserSerializer):
     age = fields.Fixed(decimals=2)
+
 
 class UserFloatStringSerializer(UserSerializer):
     age = fields.Float(as_string=True)
 
+
 class UserDecimalSerializer(UserSerializer):
     age = fields.Arbitrary()
+
 
 class ExtendedUserSerializer(UserSerializer):
     is_old = fields.Boolean()
 
+
 class UserRelativeUrlSerializer(UserSerializer):
     homepage = fields.Url(relative=True)
+
 
 class BlogSerializer(Serializer):
     title = fields.String()
@@ -168,6 +178,7 @@ class BlogSerializer(Serializer):
     collaborators = fields.Nested(UserSerializer, many=True)
     categories = fields.List(fields.String)
     id = fields.String()
+
 
 class BlogUserMetaSerializer(Serializer):
     user = fields.Nested(UserMetaSerializer())
@@ -182,16 +193,20 @@ class BlogSerializerMeta(Serializer):
     class Meta:
         fields = ('title', 'user', 'collaborators', 'categories', "id")
 
+
 class BlogSerializerOnly(Serializer):
     title = fields.String()
     user = fields.Nested(UserSerializer)
     collaborators = fields.Nested(UserSerializer, only=("id", ), many=True)
 
+
 class BlogSerializerExclude(BlogSerializer):
     user = fields.Nested(UserSerializer, exclude=("uppername", "species"))
 
+
 class BlogSerializerOnlyExclude(BlogSerializer):
     user = fields.Nested(UserSerializer, only=("name", ), exclude=("name", "species"))
+
 
 class BlogSerializerPrefixedUser(BlogSerializer):
     user = fields.Nested(UserSerializer(prefix="usr_"))
@@ -201,7 +216,6 @@ class BlogSerializerPrefixedUser(BlogSerializer):
 
 
 class TestSerializer(unittest.TestCase):
-
     def setUp(self):
         self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
         self.serialized = UserSerializer(self.obj)
@@ -231,24 +245,28 @@ class TestSerializer(unittest.TestCase):
 
     def test_naive_datetime_field(self):
         assert_equal(self.serialized.data['created'],
-                    'Sun, 10 Nov 2013 14:20:58 -0000')
+                     'Sun, 10 Nov 2013 14:20:58 -0000')
 
     def test_datetime_formatted_field(self):
-        assert_equal(self.serialized.data['created_formatted'],
-            self.obj.created.strftime("%Y-%m-%d"))
+        assert_equal(
+            self.serialized.data['created_formatted'],
+            self.obj.created.strftime("%Y-%m-%d")
+        )
 
     def test_datetime_iso_field(self):
-        assert_equal(self.serialized.data['created_iso'],
-            utils.isoformat(self.obj.created))
+        assert_equal(
+            self.serialized.data['created_iso'],
+            utils.isoformat(self.obj.created)
+        )
 
     def test_tz_datetime_field(self):
         # Datetime is corrected back to GMT
         assert_equal(self.serialized.data['updated'],
-                    'Sun, 10 Nov 2013 20:20:58 -0000')
+                     'Sun, 10 Nov 2013 20:20:58 -0000')
 
     def test_local_datetime_field(self):
         assert_equal(self.serialized.data['updated_local'],
-                    'Sun, 10 Nov 2013 14:20:58 -0600')
+                     'Sun, 10 Nov 2013 14:20:58 -0600')
 
     def test_class_variable(self):
         assert_equal(self.serialized.data['species'], 'Homo sapiens')
@@ -288,7 +306,10 @@ class TestSerializer(unittest.TestCase):
         assert_equal(self.serialized.data['uppername'], "MONTY")
 
     def test_url_field(self):
-        assert_equal(self.serialized.data['homepage'], "http://monty.python.org/")
+        assert_equal(
+            self.serialized.data['homepage'],
+            "http://monty.python.org/",
+        )
 
     def test_url_field_validation(self):
         invalid = User("John", age=42, homepage="/john")
@@ -304,8 +325,10 @@ class TestSerializer(unittest.TestCase):
         user = User(name="John Doe", homepage="www.foo.com")
         serialized = UserSerializer(user)
         assert_in("homepage", serialized.errors)
-        assert_equal(serialized.errors['homepage'],
-            '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?')
+        assert_equal(
+            serialized.errors['homepage'],
+            '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?',
+        )
 
     def test_default(self):
         user = User("John")  # No ID set
@@ -321,7 +344,10 @@ class TestSerializer(unittest.TestCase):
         u = User("John", email="johnexample.com")
         s = UserSerializer(u)
         assert_in("email", s.errors)
-        assert_equal(s.errors['email'], '"johnexample.com" is not a valid email address.')
+        assert_equal(
+            s.errors['email'],
+            '"johnexample.com" is not a valid email address.',
+        )
 
     def test_integer_field(self):
         u = User("John", age=42.3)
@@ -427,8 +453,10 @@ class TestSerializer(unittest.TestCase):
         assert_in('age', s.data)
 
     def test_invalid_only_param(self):
-        assert_raises(AttributeError,
-            lambda: UserSerializer(self.obj, only=("_invalid", "name")))
+        assert_raises(
+            AttributeError,
+            lambda: UserSerializer(self.obj, only=("_invalid", "name")),
+        )
 
     def test_strict_init(self):
         invalid = User("Foo", email="foo.com")
@@ -445,22 +473,24 @@ class TestSerializer(unittest.TestCase):
         assert_equal(self.serialized.data['uid'], str(self.obj.uid))
 
     def test_can_serialize_time(self):
-        assert_equal(self.serialized.data['time_registered'],
-            self.obj.time_registered.isoformat()[:12])
+        assert_equal(
+            self.serialized.data['time_registered'],
+            self.obj.time_registered.isoformat()[:12],
+        )
 
     def test_invalid_time(self):
         u = User('Joe', time_registered='foo')
         s = UserSerializer(u)
         assert_false(s.is_valid(['time_registered']))
         assert_equal(s.errors['time_registered'],
-            "'foo' cannot be formatted as a time.")
+                     "'foo' cannot be formatted as a time.")
 
     def test_invalid_date(self):
         u = User("Joe", birthdate='foo')
         s = UserSerializer(u)
         assert_false(s.is_valid(['birthdate']))
         assert_equal(s.errors['birthdate'],
-            "'foo' cannot be formatted as a date.")
+                     "'foo' cannot be formatted as a date.")
 
     def test_invalid_selection(self):
         u = User('Jonhy')
@@ -468,7 +498,7 @@ class TestSerializer(unittest.TestCase):
         s = UserSerializer(u)
         assert_false(s.is_valid(['sex']))
         assert_equal(s.errors['sex'],
-            "'hybrid' is not a valid choice for this field.")
+                     "'hybrid' is not a valid choice for this field.")
 
 
 def test_custom_error_message():
@@ -476,6 +506,7 @@ def test_custom_error_message():
         email = fields.Email(error="Invalid email")
         homepage = fields.Url(error="Bad homepage.")
         balance = fields.Fixed(error="Bad balance.")
+
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
     s = ErrorSerializer(u)
     assert_false(s.is_valid())
@@ -483,11 +514,14 @@ def test_custom_error_message():
     assert_equal(s.errors['homepage'], "Bad homepage.")
     assert_equal(s.errors['balance'], "Bad balance.")
 
+
 def test_error_raised_if_fields_option_is_not_list():
     class BadSerializer(Serializer):
         name = fields.String()
+
         class Meta:
             fields = 'name'
+
     u = User('Joe')
     assert_raises(ValueError, lambda: BadSerializer(u))
 
@@ -495,20 +529,23 @@ def test_error_raised_if_fields_option_is_not_list():
 def test_error_raised_if_additional_option_is_not_list():
     class BadSerializer(Serializer):
         name = fields.String()
+
         class Meta:
             additional = 'email'
+
     u = User('Joe')
     assert_raises(ValueError, lambda: BadSerializer(u))
 
 
 class TestMetaOptions(unittest.TestCase):
     def setUp(self):
-        self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
+        self.obj = User(name="Monty", age=42.3,
+                        homepage="http://monty.python.org/")
         self.serialized = UserSerializer(self.obj)
 
     def test_meta_serializer_fields(self):
         u = User("John", age=42.3, email="john@example.com",
-                homepage="http://john.com")
+                 homepage="http://john.com")
         s = UserMetaSerializer(u)
         assert_equal(s.data['name'], u.name)
         assert_equal(s.data['balance'], "100.00")
@@ -561,8 +598,10 @@ class TestMetaOptions(unittest.TestCase):
 
     def test_dateformat_option(self):
         format = '%Y-%m'
+
         class DateFormatSerializer(Serializer):
             updated = fields.DateTime("%m-%d")
+
             class Meta:
                 fields = ('created', 'updated')
                 dateformat = format
@@ -573,6 +612,7 @@ class TestMetaOptions(unittest.TestCase):
     def test_default_dateformat(self):
         class DateFormatSerializer(Serializer):
             updated = fields.DateTime(format="%m-%d")
+
             class Meta:
                 fields = ('created', 'updated')
         serialized = DateFormatSerializer(self.obj)
@@ -584,7 +624,7 @@ class TestMetaOptions(unittest.TestCase):
             pass
 
         assert_equal(InheritedMetaSerializer(self.obj).data,
-                    UserMetaSerializer(self.obj).data)
+                     UserMetaSerializer(self.obj).data)
 
     def test_additional(self):
         s = UserAdditionalSerializer(self.obj)
@@ -594,6 +634,7 @@ class TestMetaOptions(unittest.TestCase):
     def test_cant_set_both_additional_and_fields(self):
         class BadSerializer(Serializer):
             name = fields.String()
+
             class Meta:
                 fields = ("name", 'email')
                 additional = ('email', 'homepage')
@@ -607,13 +648,12 @@ class TestMetaOptions(unittest.TestCase):
 
 
 class TestNestedSerializer(unittest.TestCase):
-
     def setUp(self):
         self.user = User(name="Monty", age=81)
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
         self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"],
-                        collaborators=[col1, col2])
+                         collaborators=[col1, col2])
 
     def test_flat_nested(self):
         class FlatBlogSerializer(Serializer):
@@ -640,13 +680,13 @@ class TestNestedSerializer(unittest.TestCase):
     def test_nested_many_fields(self):
         serialized_blog = BlogSerializer(self.blog)
         assert_equal(serialized_blog.data['collaborators'],
-            [UserSerializer(col).data for col in self.blog.collaborators])
+                     [UserSerializer(col).data for col in self.blog.collaborators])
 
     def test_nested_meta_many(self):
         serialized_blog = BlogUserMetaSerializer(self.blog)
         assert_equal(len(serialized_blog.data['collaborators']), 2)
         assert_equal(serialized_blog.data['collaborators'],
-            [UserMetaSerializer(col).data for col in self.blog.collaborators])
+                     [UserMetaSerializer(col).data for col in self.blog.collaborators])
 
     def test_nested_only(self):
         col1 = User(name="Mick", age=123, id_="abc")
@@ -654,7 +694,7 @@ class TestNestedSerializer(unittest.TestCase):
         self.blog.collaborators = [col1, col2]
         serialized_blog = BlogSerializerOnly(self.blog)
         assert_equal(serialized_blog.data['collaborators'],
-                    [{"id": col1.id}, {"id": col2.id}])
+                     [{"id": col1.id}, {"id": col2.id}])
 
     def test_exclude(self):
         serialized = BlogSerializerExclude(self.blog)
@@ -674,8 +714,10 @@ class TestNestedSerializer(unittest.TestCase):
         serialized_blog = BlogSerializer(blog)
         assert_false(serialized_blog.is_valid())
         assert_in("email", serialized_blog.errors['user'])
-        assert_equal(serialized_blog.errors['user']['email'],
-            "\"{0}\" is not a valid email address.".format(invalid_user.email))
+        assert_equal(
+            serialized_blog.errors['user']['email'],
+            "\"{0}\" is not a valid email address.".format(invalid_user.email),
+        )
         # No problems with collaborators
         assert_not_in("collaborators", serialized_blog.errors)
 
@@ -687,8 +729,10 @@ class TestNestedSerializer(unittest.TestCase):
     def test_nested_function_field(self):
         s = BlogSerializer(self.blog)
         assert_equal(s.data['user']['lowername'], self.user.name.lower())
-        assert_equal(s.data['collaborators'][0]['lowername'],
-                    self.blog.collaborators[0].name.lower())
+        assert_equal(
+            s.data['collaborators'][0]['lowername'],
+            self.blog.collaborators[0].name.lower(),
+        )
 
     def test_nested_prefixed_field(self):
         s = BlogSerializerPrefixedUser(self.blog)
@@ -711,7 +755,7 @@ class TestNestedSerializer(unittest.TestCase):
         assert_equal(s.data['title'], self.blog.title)
         assert_equal(s.data['user'], UserSerializer(self.user).data)
         assert_equal(s.data['collaborators'], [UserSerializer(c).data
-                                                for c in self.blog.collaborators])
+                                               for c in self.blog.collaborators])
         assert_equal(s.data['categories'], self.blog.categories)
 
     def test_serializer_with_nested_meta_fields(self):
@@ -726,7 +770,6 @@ class TestNestedSerializer(unittest.TestCase):
 
 
 class TestSelfReference(unittest.TestCase):
-
     def setUp(self):
         self.employer = User(name="Joe", age=59)
         self.user = User(name="Tom", employer=self.employer, age=28)
@@ -746,6 +789,7 @@ class TestSelfReference(unittest.TestCase):
     def test_nesting_within_itself_meta(self):
         class SelfSerializer(Serializer):
             employer = fields.Nested("self")
+
             class Meta:
                 additional = ('name', 'age')
 
@@ -759,6 +803,7 @@ class TestSelfReference(unittest.TestCase):
     def test_nested_self_with_only_param(self):
         class SelfSerializer(Serializer):
             employer = fields.Nested('self', only=('name', ))
+
             class Meta:
                 fields = ('name', 'employer')
 
@@ -770,6 +815,7 @@ class TestSelfReference(unittest.TestCase):
     def test_nested_many(self):
         class SelfManySerializer(Serializer):
             relatives = fields.Nested('self', many=True)
+
             class Meta:
                 additional = ('name', 'age')
 
@@ -783,7 +829,6 @@ class TestSelfReference(unittest.TestCase):
 
 
 class TestFields(unittest.TestCase):
-
     def setUp(self):
         self.user = User("Foo", "foo@bar.com")
 
@@ -801,29 +846,39 @@ class TestFields(unittest.TestCase):
 
     def test_datetime_field(self):
         field = fields.DateTime()
-        assert_equal(field.output("created", self.user),
-            utils.rfcformat(self.user.created, localtime=False))
+        assert_equal(
+            field.output("created", self.user),
+            utils.rfcformat(self.user.created, localtime=False),
+        )
 
     def test_localdatetime_field(self):
         field = fields.LocalDateTime()
-        assert_equal(field.output("created", self.user),
-            utils.rfcformat(self.user.created, localtime=True))
+        assert_equal(
+            field.output("created", self.user),
+            utils.rfcformat(self.user.created, localtime=True),
+        )
 
     def test_datetime_iso8601(self):
         field = fields.DateTime(format="iso")
-        assert_equal(field.output("created", self.user),
-            utils.isoformat(self.user.created, localtime=False))
+        assert_equal(
+            field.output("created", self.user),
+            utils.isoformat(self.user.created, localtime=False),
+        )
 
     def test_localdatetime_iso(self):
         field = fields.LocalDateTime(format="iso")
-        assert_equal(field.output("created", self.user),
-            utils.isoformat(self.user.created, localtime=True))
+        assert_equal(
+            field.output("created", self.user),
+            utils.isoformat(self.user.created, localtime=True),
+        )
 
     def test_datetime_format(self):
         format = "%Y-%m-%d"
         field = fields.DateTime(format=format)
-        assert_equal(field.output("created", self.user),
-            self.user.created.strftime(format))
+        assert_equal(
+            field.output("created", self.user),
+            self.user.created.strftime(format)
+        )
 
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()
@@ -831,26 +886,33 @@ class TestFields(unittest.TestCase):
 
     def test_time_field(self):
         field = fields.Time()
-        assert_equal(field.output("time_registered", self.user),
-                self.user.time_registered.isoformat()[:12])
+        assert_equal(
+            field.output("time_registered", self.user),
+            self.user.time_registered.isoformat()[:12],
+        )
 
     def test_date_field(self):
         field = fields.Date()
-        assert_equal(field.output('birthdate', self.user),
-            self.user.birthdate.isoformat())
+        assert_equal(
+            field.output('birthdate', self.user),
+            self.user.birthdate.isoformat(),
+        )
 
     def test_timedelta_field(self):
         field = fields.TimeDelta()
-        assert_equal(field.output("since_created", self.user),
-            total_seconds(self.user.since_created))
+        assert_equal(
+            field.output("since_created", self.user),
+            total_seconds(self.user.since_created)
+        )
 
     def test_select_field(self):
         field = fields.Select(['male', 'female'])
-        assert_equal(field.output("sex", self.user),
-                     "male")
+        assert_equal(field.output("sex", self.user), "male")
         invalid = User('foo', sex='alien')
-        assert_raises(MarshallingError,
-            lambda: field.output('sex', invalid))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('sex', invalid),
+        )
 
     def test_bad_list_field(self):
         assert_raises(MarshallingError, lambda: fields.List("string"))
@@ -858,73 +920,87 @@ class TestFields(unittest.TestCase):
 
 
 class TestValidation(unittest.TestCase):
-
     def test_integer_with_validator(self):
         user = User(name='Joe', age='20')
         field = fields.Integer(validate=lambda x: 18 <= x <= 24)
         out = field.output('age', user)
         assert_equal(out, 20)
         user2 = User(name='Joe', age='25')
-        assert_raises(MarshallingError,
-            lambda: field.output('age', user2))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('age', user2),
+        )
 
     def test_float_with_validator(self):
         user = User(name='Joe', age=3.14)
         field = fields.Float(validate=lambda f: f <= 4.1)
         assert_equal(field.output('age', user), user.age)
         invalid = User('foo', age=5.1)
-        assert_raises(MarshallingError,
-            lambda: field.output('age', invalid))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('age', invalid)
+        )
 
     def test_string_validator(self):
         user = User(name='Joe')
         field = fields.String(validate=lambda n: len(n) == 3)
         assert_equal(field.output('name', user), 'Joe')
         user2 = User(name='Joseph')
-        assert_raises(MarshallingError,
-            lambda: field.output('name', user2))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('name', user2)
+        )
 
     def test_datetime_validator(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
         field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
         assert_equal(field.output('birthdate', user), utils.rfcformat(user.birthdate))
         user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
-        assert_raises(MarshallingError,
-            lambda: field.output('birthdate', user2))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('birthdate', user2)
+        )
 
     def test_function_validator(self):
         user = User('joe')
         field = fields.Function(lambda d: d.name.upper(),
-            validate=lambda n: len(n) == 3)
+                                validate=lambda n: len(n) == 3)
         assert_equal(field.output('uppername', user), 'JOE')
         invalid = User(name='joseph')
-        assert_raises(MarshallingError,
-            lambda: field.output('uppername', invalid))
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('uppername', invalid),
+        )
 
     def test_method_validator(self):
         class MethodSerializer(Serializer):
             uppername = fields.Method('get_uppername',
-                                    validate=lambda n: len(n) == 3)
+                                      validate=lambda n: len(n) == 3)
+
             def get_uppername(self, obj):
                 return obj.name.upper()
         user = User('joe')
         s = MethodSerializer(user, strict=True)
         assert_equal(s.data['uppername'], 'JOE')
         invalid = User(name='joseph')
-        assert_raises(MarshallingError,
-            lambda: MethodSerializer(invalid, strict=True))
+        assert_raises(
+            MarshallingError,
+            lambda: MethodSerializer(invalid, strict=True),
+        )
 
 
 class TestUtils(unittest.TestCase):
-
     def test_to_marshallable_type(self):
         class Foo(object):
             CLASS_VAR = 'bar'
+
             def __init__(self):
                 self.attribute = 'baz'
+
             @property
             def prop(self):
                 return 42
+
         obj = Foo()
         u_dict = utils.to_marshallable_type(obj)
         assert_equal(u_dict['CLASS_VAR'], Foo.CLASS_VAR)
@@ -944,12 +1020,12 @@ class TestUtils(unittest.TestCase):
     def test_marshallable(self):
         class ObjContainer(object):
             contained = {"foo": 1}
+
             def __marshallable__(self):
                 return self.contained
 
         obj = ObjContainer()
         assert_equal(utils.to_marshallable_type(obj), {"foo": 1})
-
 
     def test_is_collection(self):
         assert_true(utils.is_collection([1, 'foo', {}]))
@@ -990,7 +1066,6 @@ class TestUtils(unittest.TestCase):
 
 
 class TestValidators(unittest.TestCase):
-
     def test_invalid_email(self):
         invalid1 = "user@example"
         assert_raises(ValueError, lambda: validate.email(invalid1))
@@ -1001,7 +1076,6 @@ class TestValidators(unittest.TestCase):
 
 
 class TestMarshaller(unittest.TestCase):
-
     def test_stores_errors(self):
         u = User("Foo", email="foobar")
         marshal = fields.Marshaller()
@@ -1012,7 +1086,7 @@ class TestMarshaller(unittest.TestCase):
         u = User("Foo", email="foobar")
         marshal = fields.Marshaller(strict=True)
         assert_raises(MarshallingError,
-            lambda: marshal(u, {"email": fields.Email()}))
+                      lambda: marshal(u, {"email": fields.Email()}))
 
     def test_prefix(self):
         u = User("Foo", email="foo@bar.com")
