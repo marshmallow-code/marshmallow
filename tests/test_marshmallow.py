@@ -329,6 +329,12 @@ class TestSerializer(unittest.TestCase):
         assert_equal(type(serialized.data['age']), int)
         assert_equal(serialized.data['age'], 42)
 
+    def test_integer_default(self):
+        user = User("John", age=None)
+        serialized = UserIntSerializer(user)
+        assert_equal(type(serialized.data['age']), int)
+        assert_equal(serialized.data['age'], 0)
+
     def test_fixed_field(self):
         u = User("John", age=42.3)
         serialized = UserFixedSerializer(u)

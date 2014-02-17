@@ -377,6 +377,10 @@ class Integer(Number):
 
     num_type = int
 
+    def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
+        self.as_string = as_string
+        super(Number, self).__init__(default=default, attribute=attribute,
+            error=error, **kwargs)
 
 class Boolean(Raw):
     '''A boolean field.'''
