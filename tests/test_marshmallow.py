@@ -10,7 +10,7 @@ import warnings
 from nose.tools import *  # PEP8 asserts
 import pytz
 
-from marshmallow import Serializer, fields, validate, pprint, utils
+from marshmallow import Serializer, fields, validate, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import unicode, PY26, binary_type, total_seconds
 
