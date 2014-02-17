@@ -10,7 +10,7 @@ import warnings
 from nose.tools import *  # PEP8 asserts
 import pytz
 
-from marshmallow import Serializer, fields, validate, pprint, utils
+from marshmallow import Serializer, fields, validate, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import unicode, PY26, binary_type, total_seconds
 
@@ -328,6 +328,12 @@ class TestSerializer(unittest.TestCase):
         serialized = UserIntSerializer(u)
         assert_equal(type(serialized.data['age']), int)
         assert_equal(serialized.data['age'], 42)
+
+    def test_integer_default(self):
+        user = User("John", age=None)
+        serialized = UserIntSerializer(user)
+        assert_equal(type(serialized.data['age']), int)
+        assert_equal(serialized.data['age'], 0)
 
     def test_fixed_field(self):
         u = User("John", age=42.3)
