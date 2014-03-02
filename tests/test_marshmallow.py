@@ -852,6 +852,19 @@ class TestFields(unittest.TestCase):
     def test_function_with_uncallable_param(self):
         assert_raises(MarshallingError, lambda: fields.Function("uncallable"))
 
+    def test_method_field_with_method_missing(self):
+        class BadSerializer(Serializer):
+            bad_field = fields.Method('invalid')
+        u = User('Foo')
+        assert_raises(MarshallingError, lambda: BadSerializer(u, strict=True))
+
+    def test_method_field_with_uncallable_attribute(self):
+        class BadSerializer(Serializer):
+            foo = 'not callable'
+            bad_field = fields.Method('foo')
+        u = User('Foo')
+        assert_raises(MarshallingError, lambda: BadSerializer(u, strict=True))
+
     def test_datetime_field(self):
         field = fields.DateTime()
         assert_equal(

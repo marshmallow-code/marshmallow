@@ -575,12 +575,15 @@ class Email(Raw):
 
 
 def get_args(func):
+    """Return a tuple of argument names for a function."""
     return inspect.getargspec(func).args
 
 
 def _callable(obj):
+    """Checks that an object is callable, else raises a ``MarshallingError``.
+    """
     if not callable(obj):
-        raise MarshallingError('{0!r} is not callable.'.format(obj))
+        raise MarshallingError('Object {0!r} is not callable.'.format(obj))
     return obj
 
 
@@ -599,7 +602,7 @@ class Method(Raw):
     @validated
     def output(self, key, obj):
         try:
-            method = getattr(self.parent, self.method_name)
+            method = _callable(getattr(self.parent, self.method_name, None))
             if len(get_args(method)) > 2:
                 return method(obj, self.parent.context)
             else:
@@ -609,12 +612,12 @@ class Method(Raw):
 
 
 class Function(Raw):
-    '''A field that takes the value returned by a function.
+    """A field that takes the value returned by a function.
 
     :param function func: A callable function from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
         to be serialized.
-    '''
+    """
 
     def __init__(self, func, **kwargs):
         super(Function, self).__init__(**kwargs)
