@@ -8,6 +8,7 @@
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 from functools import wraps
+import inspect
 
 from marshmallow import validate, utils
 from marshmallow.base import FieldABC, SerializerABC
@@ -573,6 +574,10 @@ class Email(Raw):
         return validate.email(value)
 
 
+def get_args(func):
+    return inspect.getargspec(func).args
+
+
 class Method(Raw):
     """A field that takes the value returned by a Serializer method.
 
@@ -588,7 +593,11 @@ class Method(Raw):
     @validated
     def output(self, key, obj):
         try:
-            return getattr(self.parent, self.method_name)(obj)
+            method = getattr(self.parent, self.method_name)
+            if len(get_args(method)) > 2:
+                return method(obj, self.parent.context)
+            else:
+                return method(obj)
         except AttributeError:
             pass
 
@@ -608,7 +617,10 @@ class Function(Raw):
     @validated
     def output(self, key, obj):
         try:
-            return self.func(obj)
+            if len(get_args(self.func)) > 1:
+                return self.func(obj, self.parent.context)
+            else:
+                return self.func(obj)
         except TypeError as te:  # Function is not callable
             raise MarshallingError(te)
         except AttributeError:  # the object is not expected to have the attribute

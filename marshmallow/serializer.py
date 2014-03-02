@@ -146,7 +146,8 @@ class BaseSerializer(base.SerializerABC):
         pass
 
     def __init__(self, obj=None, extra=None, only=None,
-                exclude=None, prefix='', strict=False, many=False):
+                exclude=None, prefix='', strict=False, many=False,
+                context=None):
         if not many and utils.is_collection(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
@@ -165,6 +166,7 @@ class BaseSerializer(base.SerializerABC):
         #: Callable marshalling object
         self.marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
         self.extra = extra
+        self.context = context
         if isinstance(obj, types.GeneratorType):
             self.obj = list(obj)
         else:

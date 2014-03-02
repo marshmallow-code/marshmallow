@@ -65,9 +65,12 @@ class Blog(object):
     def __init__(self, title, user, collaborators=None, categories=None, id_=None):
         self.title = title
         self.user = user
-        self.collaborators = collaborators  # List/tuple of users
+        self.collaborators = collaborators or []  # List/tuple of users
         self.categories = categories
         self.id = id_
+
+    def __contains__(self, item):
+        return item.name in [each.name for each in self.collaborators]
 
 ###### Serializers #####
 
@@ -1106,6 +1109,43 @@ class TestMarshaller(unittest.TestCase):
         marshal = fields.Marshaller()
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert_equal(len(res), 2)
+
+
+
+class UserContextSerializer(Serializer):
+    is_owner = fields.Method('get_is_owner')
+    is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
+
+    def get_is_owner(self, user, context):
+        return context['blog'].user.name == user.name
+
+
+class TestContext(unittest.TestCase):
+
+    def test_context_method(self):
+        owner = User('Joe')
+        blog = Blog(title='Joe Blog', user=owner)
+        context = {'blog': blog}
+        s = UserContextSerializer(owner, context=context)
+        assert_true(s.data['is_owner'])
+        nonowner = User('Fred')
+        s = UserContextSerializer(nonowner, context=context)
+        assert_false(s.data['is_owner'])
+
+    def test_context_method_function(self):
+        owner = User('Fred')
+        blog = Blog('Killer Queen', user=owner)
+        collab = User('Brian')
+        blog.collaborators.append(collab)
+        context = {'blog': blog}
+        s = UserContextSerializer(collab, context=context)
+        assert_true(s.data['is_collab'])
+        noncollab = User('Foo')
+        assert_false(UserContextSerializer(noncollab, context=context).data['is_collab'])
+
+    def test_context_bad_signature(self):
+        assert 0, 'finish me'
+
 
 
 if __name__ == '__main__':
