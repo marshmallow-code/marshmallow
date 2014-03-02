@@ -850,8 +850,7 @@ class TestFields(unittest.TestCase):
         assert_equal("FOO", field.output("key", self.user))
 
     def test_function_with_uncallable_param(self):
-        field = fields.Function("uncallable")
-        assert_raises(MarshallingError, lambda: field.output("key", self.user))
+        assert_raises(MarshallingError, lambda: fields.Function("uncallable"))
 
     def test_datetime_field(self):
         field = fields.DateTime()
@@ -1142,10 +1141,6 @@ class TestContext(unittest.TestCase):
         assert_true(s.data['is_collab'])
         noncollab = User('Foo')
         assert_false(UserContextSerializer(noncollab, context=context).data['is_collab'])
-
-    def test_context_bad_signature(self):
-        assert 0, 'finish me'
-
 
 
 if __name__ == '__main__':

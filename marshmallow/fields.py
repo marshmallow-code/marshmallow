@@ -578,6 +578,12 @@ def get_args(func):
     return inspect.getargspec(func).args
 
 
+def _callable(obj):
+    if not callable(obj):
+        raise MarshallingError('{0!r} is not callable.'.format(obj))
+    return obj
+
+
 class Method(Raw):
     """A field that takes the value returned by a Serializer method.
 
@@ -612,7 +618,7 @@ class Function(Raw):
 
     def __init__(self, func, **kwargs):
         super(Function, self).__init__(**kwargs)
-        self.func = func
+        self.func = _callable(func)
 
     @validated
     def output(self, key, obj):
