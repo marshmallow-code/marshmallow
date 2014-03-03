@@ -220,7 +220,7 @@ class mockjson(object):
 
     @staticmethod
     def dumps(val):
-        return '{"foo": 42}'
+        return '{"foo": 42}'.encode('utf-8')
 
     @staticmethod
     def loads(val):
@@ -525,7 +525,6 @@ class TestSerializer(unittest.TestCase):
             name = fields.String()
             class Meta:
                 json_module = mockjson
-
 
         user = User('Joe')
         s = UserJSONSerializer(user)
