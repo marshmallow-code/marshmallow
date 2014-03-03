@@ -215,6 +215,17 @@ class BlogSerializerPrefixedUser(BlogSerializer):
     user = fields.Nested(UserSerializer(prefix="usr_"))
     collaborators = fields.Nested(UserSerializer(prefix="usr_"), many=True)
 
+
+class mockjson(object):
+
+    @staticmethod
+    def dumps(val):
+        return '{"foo": 42}'
+
+    @staticmethod
+    def loads(val):
+        return {'foo': 42}
+
 ##### The Tests #####
 
 
@@ -508,6 +519,17 @@ class TestSerializer(unittest.TestCase):
         assert_false(s.is_valid(['sex']))
         assert_equal(s.errors['sex'],
                      "'hybrid' is not a valid choice for this field.")
+
+    def test_custom_json(self):
+        class UserJSONSerializer(Serializer):
+            name = fields.String()
+            class Meta:
+                json_module = mockjson
+
+
+        user = User('Joe')
+        s = UserJSONSerializer(user)
+        assert_equal(s.json, mockjson.dumps('val'))
 
 
 def test_custom_error_message():

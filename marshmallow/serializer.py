@@ -61,6 +61,7 @@ class SerializerOpts(object):
             raise ValueError("`exclude` must be a list or tuple.")
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
+        self.json_module = getattr(meta, 'json_module', json)
 
 
 class BaseSerializer(base.SerializerABC):
@@ -142,6 +143,8 @@ class BaseSerializer(base.SerializerABC):
             date format explicitly specified.
         - ``strict``: If ``True``, raise errors during marshalling rather than
             storing them.
+        - ``json_module``: JSON module to use. Defaults to the ``json`` module
+            in the stdlib.
         '''
         pass
 
@@ -281,7 +284,7 @@ class BaseSerializer(base.SerializerABC):
         '''Return the JSON representation of the data. Takes the same arguments
         as Pythons built-in ``json.dumps``.
         '''
-        ret = json.dumps(self.data, *args, **kwargs)
+        ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
         # On Python 2, json.dumps returns bytestrings
         # On Python 3, json.dumps returns unicode
         # Ensure that a bytestring is returned

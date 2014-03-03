@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.5.4 (unreleased)
+++++++++++++++++++
+
+* Add ``json_module`` class Meta option.
+
 0.5.3 (2014-03-02)
 ++++++++++++++++++
 
