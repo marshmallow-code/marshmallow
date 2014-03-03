@@ -1,9 +1,9 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import sys
-import subprocess
-
 from setuptools import setup, find_packages
+
+TEST_REQUIREMENTS = ['unittest2', 'nose', 'pytz']
 
 
 def find_version(fname):
@@ -24,37 +24,6 @@ def find_version(fname):
 
 __version__ = find_version("marshmallow/__init__.py")
 
-PUBLISH_CMD = "python setup.py register sdist bdist_wheel upload"
-TEST_PUBLISH_CMD = 'python setup.py register -r test sdist bdist_wheel upload -r test'
-TEST_CMD = 'nosetests'
-
-if 'publish' in sys.argv:
-    try:
-        __import__('wheel')
-    except ImportError:
-        print("wheel required. Run `pip install wheel`.")
-        sys.exit(1)
-    status = subprocess.call(PUBLISH_CMD, shell=True)
-    sys.exit(status)
-
-if 'publish_test' in sys.argv:
-    try:
-        __import__('wheel')
-    except ImportError:
-        print("wheel required. Run `pip install wheel`.")
-        sys.exit(1)
-    status = subprocess.call(TEST_PUBLISH_CMD, shell=True)
-    sys.exit()
-
-if 'run_tests' in sys.argv:
-    try:
-        __import__('nose')
-    except ImportError:
-        print('nose required. Run `pip install nose`.')
-        sys.exit(1)
-
-    status = subprocess.call(TEST_CMD, shell=True)
-    sys.exit(status)
 
 def read(fname):
     with open(fname) as fp:
@@ -74,10 +43,10 @@ setup(
     packages=find_packages(exclude=("test*", )),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
-    tests_require=['unittest2', 'nose', 'pytz'],
+    tests_require=TEST_REQUIREMENTS,
     license=read("LICENSE"),
     zip_safe=False,
-    keywords=('serialization', "rest", "json", "api"),
+    keywords=('serialization', "rest", "json", "api", "marshal", "marshalling"),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
