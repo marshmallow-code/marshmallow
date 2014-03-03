@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.5.3 (unreleased)
+0.5.3 (2014-03-02)
 ++++++++++++++++++
 
 * Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_
