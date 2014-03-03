@@ -5,6 +5,8 @@ Changelog
 ++++++++++++++++++
 
 * Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_
+* Add ``context`` param to ``Serializer``. Allows accessing arbitrary objects in ``Function`` and ``Method`` fields.
+* ``Function`` and ``Method`` fields raise ``MarshallingError`` if their argument is uncallable.
 
 
 0.5.2 (2014-02-10)

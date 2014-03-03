@@ -465,9 +465,10 @@ class DateTime(Raw):
 
 class LocalDateTime(DateTime):
     """A formatted datetime string in localized time, relative to UTC.
-        ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
-    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
 
+        ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
+
+    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
     """
     localtime = True
 
@@ -604,6 +605,9 @@ class Method(Raw):
         try:
             method = _callable(getattr(self.parent, self.method_name, None))
             if len(get_args(method)) > 2:
+                if self.parent.context is None:
+                    msg = 'No context available for Method field {0!r}'.format(key)
+                    raise MarshallingError(msg)
                 return method(obj, self.parent.context)
             else:
                 return method(obj)
@@ -627,6 +631,9 @@ class Function(Raw):
     def output(self, key, obj):
         try:
             if len(get_args(self.func)) > 1:
+                if self.parent.context is None:
+                    msg = 'No context available for Function field {0!r}'.format(key)
+                    raise MarshallingError(msg)
                 return self.func(obj, self.parent.context)
             else:
                 return self.func(obj)

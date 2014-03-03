@@ -324,6 +324,34 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
 
+Adding Context
+++++++++++++++
+New in version ``0.5.3``.
+
+You may wish to include other objects when computing a :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field.
+
+As an example, you might want your ``UserSerializer`` to output whether or not a ``User`` is the author of a ``Blog``.
+
+In these cases, you can pass a dictionary as the ``context`` argument to a serializer. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        name = fields.String()
+        is_author = fields.Function(lambda user, ctx: user == ctx['blog'].author)
+        likes_bikes = fields.Method('writes_about_bikes')
+
+        def writes_about_bikes(self, user, ctx):
+            return 'bicycle' in ctx['blog'].title.lower()
+
+    user = User('Freddie Mercury', 'fred@queen.com')
+    blog = Blog('Bicycle Blog', author=user)
+
+    context = {'blog': blog}
+    serialized = UserSerializer(user, context=context)
+    serialized.data['is_author']  # => True
+    serialized.data['likes_bikes']  # => True
+
 Refactoring (Meta Options)
 --------------------------
 

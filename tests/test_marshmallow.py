@@ -1123,7 +1123,6 @@ class TestMarshaller(unittest.TestCase):
         assert_equal(len(res), 2)
 
 
-
 class UserContextSerializer(Serializer):
     is_owner = fields.Method('get_is_owner')
     is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
@@ -1155,6 +1154,11 @@ class TestContext(unittest.TestCase):
         noncollab = User('Foo')
         assert_false(UserContextSerializer(noncollab, context=context).data['is_collab'])
 
+    def test_function_field_raises_error_when_context_not_available(self):
+        owner = User('Joe')
+        # no context
+        assert_raises(MarshallingError,
+            lambda: UserContextSerializer(owner, strict=True))
 
 if __name__ == '__main__':
     unittest.main()
