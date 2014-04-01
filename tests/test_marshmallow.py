@@ -1,25 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest2 as unittest
+import unittest
 import json
 import datetime as dt
 import uuid
 import warnings
 
-from nose.tools import *  # PEP8 asserts
+import pytest
 import pytz
 
 from marshmallow import Serializer, fields, validate, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import unicode, PY26, binary_type, total_seconds
+from marshmallow.compat import unicode, binary_type, total_seconds
 
-if PY26:
-    def assert_in(obj, cont):
-        assert obj in cont, "{0} not in {1}".format(obj, cont)
-
-    def assert_not_in(obj, cont):
-        assert obj not in cont, "{0} found in {1}".format(obj, cont)
 
 central = pytz.timezone("US/Central")
 
@@ -228,297 +222,284 @@ class mockjson(object):
 
 ##### The Tests #####
 
+def assert_almost_equal(a, b, precision=5):
+    assert round(a, precision) == round(a, precision)
+
 
 class TestSerializer(unittest.TestCase):
+
     def setUp(self):
         self.obj = User(name="Monty", age=42.3, homepage="http://monty.python.org/")
         self.serialized = UserSerializer(self.obj)
 
     def test_serializing_basic_object(self):
-        assert_equal(self.serialized.data['name'], "Monty")
+        assert self.serialized.data['name'] == "Monty"
         assert_almost_equal(self.serialized.data['age'], 42.3)
-        assert_true(self.serialized.data['registered'])
+        assert self.serialized.data['registered']
 
     def test_serializing_none(self):
         s = UserSerializer(None)
-        assert_equal(s.data['name'], '')
-        assert_equal(s.data['age'], 0)
+        assert s.data['name'] == ''
+        assert s.data['age'] == 0
 
     def test_fields_are_copies(self):
         s = UserSerializer(User("Monty", age=42))
         s2 = UserSerializer(User("Monty", age=43))
-        assert_true(s.fields is not s2.fields)
+        assert s.fields is not s2.fields
 
     def test_json(self):
         json_data = self.serialized.json
         expected = binary_type(json.dumps(self.serialized.data).encode("utf-8"))
-        assert_equal(json_data, expected)
+        assert json_data == expected
 
     def test_to_json_returns_bytestring(self):
-        assert_true(isinstance(self.serialized.to_json(), binary_type))
+        assert isinstance(self.serialized.to_json(), binary_type)
 
     def test_naive_datetime_field(self):
-        assert_equal(self.serialized.data['created'],
-                     'Sun, 10 Nov 2013 14:20:58 -0000')
+        assert self.serialized.data['created'] == 'Sun, 10 Nov 2013 14:20:58 -0000'
 
     def test_datetime_formatted_field(self):
-        assert_equal(
-            self.serialized.data['created_formatted'],
-            self.obj.created.strftime("%Y-%m-%d")
-        )
+        result = self.serialized.data['created_formatted']
+        assert result == self.obj.created.strftime("%Y-%m-%d")
 
     def test_datetime_iso_field(self):
-        assert_equal(
-            self.serialized.data['created_iso'],
-            utils.isoformat(self.obj.created)
-        )
+        assert self.serialized.data['created_iso'] == utils.isoformat(self.obj.created)
 
     def test_tz_datetime_field(self):
         # Datetime is corrected back to GMT
-        assert_equal(self.serialized.data['updated'],
-                     'Sun, 10 Nov 2013 20:20:58 -0000')
+        assert self.serialized.data['updated'] == 'Sun, 10 Nov 2013 20:20:58 -0000'
 
     def test_local_datetime_field(self):
-        assert_equal(self.serialized.data['updated_local'],
-                     'Sun, 10 Nov 2013 14:20:58 -0600')
+        assert self.serialized.data['updated_local'] == 'Sun, 10 Nov 2013 14:20:58 -0600'
 
     def test_class_variable(self):
-        assert_equal(self.serialized.data['species'], 'Homo sapiens')
+        assert self.serialized.data['species'] == 'Homo sapiens'
 
     def test_serialize_many(self):
         user1 = User(name="Mick", age=123)
         user2 = User(name="Keith", age=456)
         users = [user1, user2]
         serialized = UserSerializer(users, many=True)
-        assert_equal(len(serialized.data), 2)
-        assert_equal(serialized.data[0]['name'], "Mick")
-        assert_equal(serialized.data[1]['name'], "Keith")
+        assert len(serialized.data) == 2
+        assert serialized.data[0]['name'] == "Mick"
+        assert serialized.data[1]['name'] == "Keith"
 
     def test_no_implicit_list_handling(self):
         users = [User(name='Mick'), User(name='Keith')]
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
-            assert_raises(TypeError, lambda: UserSerializer(users))
-        assert_true(issubclass(w[-1].category, DeprecationWarning))
+            with pytest.raises(TypeError):
+                UserSerializer(users)
+        assert issubclass(w[-1].category, DeprecationWarning)
 
     def test_serialize_many_with_meta(self):
         user1 = User(name="Mick", age=123)
         user2 = User(name="Keith", age=456)
         users = [user1, user2]
         s = UserMetaSerializer(users, many=True)
-        assert_equal(len(s.data), 2)
-        assert_equal(s.data[0]['name'], "Mick")
-        assert_equal(s.data[0]['created'], utils.rfcformat(user1.created))
-        assert_equal(s.data[1]['name'], "Keith")
+        assert len(s.data) == 2
+        assert s.data[0]['name'] == "Mick"
+        assert s.data[0]['created'] == utils.rfcformat(user1.created)
+        assert s.data[1]['name'] == "Keith"
 
     def test_inheriting_serializer(self):
         serialized = ExtendedUserSerializer(self.obj)
-        assert_equal(serialized.data['name'], self.obj.name)
-        assert_false(serialized.data['is_old'])
+        assert serialized.data['name'] == self.obj.name
+        assert not serialized.data['is_old']
 
     def test_custom_field(self):
-        assert_equal(self.serialized.data['uppername'], "MONTY")
+        assert self.serialized.data['uppername'] == "MONTY"
 
     def test_url_field(self):
-        assert_equal(
-            self.serialized.data['homepage'],
-            "http://monty.python.org/",
-        )
+        assert self.serialized.data['homepage'] == "http://monty.python.org/"
 
     def test_url_field_validation(self):
         invalid = User("John", age=42, homepage="/john")
         s = UserSerializer(invalid)
-        assert_false(s.is_valid(["homepage"]))
+        assert s.is_valid(["homepage"]) is False
 
     def test_relative_url_field(self):
         u = User("John", age=42, homepage="/john")
         serialized = UserRelativeUrlSerializer(u)
-        assert_true(serialized.is_valid())
+        assert serialized.is_valid()
 
     def test_stores_invalid_url_error(self):
         user = User(name="John Doe", homepage="www.foo.com")
         serialized = UserSerializer(user)
-        assert_in("homepage", serialized.errors)
-        assert_equal(
-            serialized.errors['homepage'],
-            '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?',
-        )
+        assert "homepage" in serialized.errors
+        expected = '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?'
+        assert serialized.errors['homepage'] == expected
 
     def test_default(self):
         user = User("John")  # No ID set
         serialized = UserSerializer(user)
-        assert_equal(serialized.data['id'], "no-id")
+        assert serialized.data['id'] == "no-id"
 
     def test_email_field(self):
         u = User("John", email="john@example.com")
         s = UserSerializer(u)
-        assert_equal(s.data['email'], "john@example.com")
+        assert s.data['email'] == "john@example.com"
 
     def test_stored_invalid_email(self):
         u = User("John", email="johnexample.com")
         s = UserSerializer(u)
-        assert_in("email", s.errors)
-        assert_equal(
-            s.errors['email'],
-            '"johnexample.com" is not a valid email address.',
-        )
+        assert "email" in s.errors
+        assert s.errors['email'] == '"johnexample.com" is not a valid email address.'
 
     def test_integer_field(self):
         u = User("John", age=42.3)
         serialized = UserIntSerializer(u)
-        assert_equal(type(serialized.data['age']), int)
-        assert_equal(serialized.data['age'], 42)
+        assert type(serialized.data['age']) == int
+        assert serialized.data['age'] == 42
 
     def test_integer_default(self):
         user = User("John", age=None)
         serialized = UserIntSerializer(user)
-        assert_equal(type(serialized.data['age']), int)
-        assert_equal(serialized.data['age'], 0)
+        assert type(serialized.data['age']) == int
+        assert serialized.data['age'] == 0
 
     def test_fixed_field(self):
         u = User("John", age=42.3)
         serialized = UserFixedSerializer(u)
-        assert_equal(serialized.data['age'], "42.30")
+        assert serialized.data['age'] == "42.30"
 
     def test_as_string(self):
         u = User("John", age=42.3)
         serialized = UserFloatStringSerializer(u)
-        assert_equal(type(serialized.data['age']), str)
+        assert type(serialized.data['age']) == str
         assert_almost_equal(float(serialized.data['age']), 42.3)
 
     def test_decimal_field(self):
         u = User("John", age=42.3)
         s = UserDecimalSerializer(u)
-        assert_equal(type(s.data['age']), unicode)
+        assert type(s.data['age']) == unicode
         assert_almost_equal(float(s.data['age']), 42.3)
 
     def test_price_field(self):
-        assert_equal(self.serialized.data['balance'], "100.00")
+        assert self.serialized.data['balance'] == "100.00"
 
     def test_validate(self):
         valid = User("Joe", email="joe@foo.com")
         invalid = User("John", email="johnexample.com")
-        assert_true(UserSerializer(valid).is_valid())
-        assert_false(UserSerializer(invalid).is_valid())
+        assert UserSerializer(valid).is_valid()
+        assert UserSerializer(invalid).is_valid() is False
 
     def test_validate_field(self):
         invalid = User("John", email="johnexample.com")
-        assert_true(UserSerializer(invalid).is_valid(["name"]))
-        assert_false(UserSerializer(invalid).is_valid(["email"]))
+        assert UserSerializer(invalid).is_valid(["name"]) is True
+        assert UserSerializer(invalid).is_valid(["email"]) is False
 
     def test_validating_nonexistent_field_raises_error(self):
-        assert_raises(KeyError, lambda: self.serialized.is_valid(["foobar"]))
+        with pytest.raises(KeyError):
+            self.serialized.is_valid(["foobar"])
 
     def test_fields_param_must_be_list_or_tuple(self):
         invalid = User("John", email="johnexample.com")
-        assert_raises(ValueError, lambda: UserSerializer(invalid).is_valid("name"))
+        with pytest.raises(ValueError):
+            UserSerializer(invalid).is_valid("name")
 
     def test_extra(self):
         user = User("Joe", email="joe@foo.com")
         s = UserSerializer(user, extra={"fav_color": "blue"})
-        assert_equal(s.data['fav_color'], "blue")
+        assert s.data['fav_color'] == "blue"
 
     def test_method_field(self):
-        assert_false(self.serialized.data['is_old'])
+        assert self.serialized.data['is_old'] is False
         u = User("Joe", age=81)
-        assert_true(UserSerializer(u).data['is_old'])
+        assert UserSerializer(u).data['is_old'] is True
 
     def test_function_field(self):
-        assert_equal(self.serialized.data['lowername'], self.obj.name.lower())
+        assert self.serialized.data['lowername'] == self.obj.name.lower()
 
     def test_prefix(self):
         s = UserSerializer(self.obj, prefix="usr_")
-        assert_equal(s.data['usr_name'], self.obj.name)
+        assert s.data['usr_name'] == self.obj.name
 
     def test_fields_must_be_declared_as_instances(self):
         class BadUserSerializer(Serializer):
             name = fields.String
-        assert_raises(TypeError, lambda: BadUserSerializer(self.obj))
+        with pytest.raises(TypeError):
+            BadUserSerializer(self.obj)
 
     def test_serializing_generator(self):
         users = [User("Foo"), User("Bar")]
         user_gen = (u for u in users)
         s = UserSerializer(user_gen, many=True)
-        assert_equal(len(s.data), 2)
-        assert_equal(s.data[0], UserSerializer(users[0]).data)
+        assert len(s.data) == 2
+        assert s.data[0] == UserSerializer(users[0]).data
 
     def test_serializing_generator_with_meta_fields(self):
         users = [User("Foo"), User("Bar")]
         user_gen = (u for u in users)
         s = UserMetaSerializer(user_gen, many=True)
-        assert_equal(len(s.data), 2)
-        assert_equal(s.data[0], UserMetaSerializer(users[0]).data)
+        assert len(s.data), 2
+        assert s.data[0], UserMetaSerializer(users[0]).data
 
     def test_serializing_empty_list_returns_empty_list(self):
-        assert_equal(UserSerializer([], many=True).data, [])
-        assert_equal(UserMetaSerializer([], many=True).data, [])
+        assert UserSerializer([], many=True).data == []
+        assert UserMetaSerializer([], many=True).data == []
 
     def test_serializing_dict(self):
         user = {"name": "foo", "email": "foo", "age": 42.3}
         s = UserSerializer(user)
-        assert_equal(s.data['name'], "foo")
-        assert_equal(s.data['age'], 42.3)
-        assert_false(s.is_valid(['email']))
+        assert s.data['name'] == "foo"
+        assert s.data['age'] == 42.3
+        assert s.is_valid(['email']) is False
 
     def test_exclude_in_init(self):
         s = UserSerializer(self.obj, exclude=('age', 'homepage'))
-        assert_not_in('homepage', s.data)
-        assert_not_in('age', s.data)
-        assert_in('name', s.data)
+        assert 'homepage' not in s.data
+        assert 'age' not in s.data
+        assert 'name' in s.data
 
     def test_only_in_init(self):
         s = UserSerializer(self.obj, only=('name', 'age'))
-        assert_not_in('homepage', s.data)
-        assert_in('name', s.data)
-        assert_in('age', s.data)
+        assert 'homepage' not in s.data
+        assert 'name' in s.data
+        assert 'age' in s.data
 
     def test_invalid_only_param(self):
-        assert_raises(
-            AttributeError,
-            lambda: UserSerializer(self.obj, only=("_invalid", "name")),
-        )
+        with pytest.raises(AttributeError):
+            UserSerializer(self.obj, only=("_invalid", "name"))
 
     def test_strict_init(self):
         invalid = User("Foo", email="foo.com")
-        assert_raises(MarshallingError, lambda: UserSerializer(invalid, strict=True))
+        with pytest.raises(MarshallingError):
+            UserSerializer(invalid, strict=True)
 
     def test_strict_meta_option(self):
         class StrictUserSerializer(UserSerializer):
             class Meta:
                 strict = True
         invalid = User("Foo", email="foo.com")
-        assert_raises(MarshallingError, lambda: StrictUserSerializer(invalid))
+        with pytest.raises(MarshallingError):
+            StrictUserSerializer(invalid)
 
     def test_can_serialize_uuid(self):
-        assert_equal(self.serialized.data['uid'], str(self.obj.uid))
+        assert self.serialized.data['uid'] == str(self.obj.uid)
 
     def test_can_serialize_time(self):
-        assert_equal(
-            self.serialized.data['time_registered'],
-            self.obj.time_registered.isoformat()[:12],
-        )
+        expected = self.obj.time_registered.isoformat()[:12]
+        assert self.serialized.data['time_registered'] == expected
 
     def test_invalid_time(self):
         u = User('Joe', time_registered='foo')
         s = UserSerializer(u)
-        assert_false(s.is_valid(['time_registered']))
-        assert_equal(s.errors['time_registered'],
-                     "'foo' cannot be formatted as a time.")
+        assert s.is_valid(['time_registered']) is False
+        assert s.errors['time_registered'] == "'foo' cannot be formatted as a time."
 
     def test_invalid_date(self):
         u = User("Joe", birthdate='foo')
         s = UserSerializer(u)
-        assert_false(s.is_valid(['birthdate']))
-        assert_equal(s.errors['birthdate'],
-                     "'foo' cannot be formatted as a date.")
+        assert s.is_valid(['birthdate']) is False
+        assert s.errors['birthdate'] == "'foo' cannot be formatted as a date."
 
     def test_invalid_selection(self):
         u = User('Jonhy')
         u.sex = 'hybrid'
         s = UserSerializer(u)
-        assert_false(s.is_valid(['sex']))
-        assert_equal(s.errors['sex'],
-                     "'hybrid' is not a valid choice for this field.")
+        assert s.is_valid(['sex']) is False
+        assert s.errors['sex'] == "'hybrid' is not a valid choice for this field."
 
     def test_custom_json(self):
         class UserJSONSerializer(Serializer):
@@ -528,7 +509,7 @@ class TestSerializer(unittest.TestCase):
 
         user = User('Joe')
         s = UserJSONSerializer(user)
-        assert_equal(s.json, mockjson.dumps('val'))
+        assert s.json == mockjson.dumps('val')
 
 
 def test_custom_error_message():
@@ -539,10 +520,10 @@ def test_custom_error_message():
 
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
     s = ErrorSerializer(u)
-    assert_false(s.is_valid())
-    assert_equal(s.errors['email'], "Invalid email")
-    assert_equal(s.errors['homepage'], "Bad homepage.")
-    assert_equal(s.errors['balance'], "Bad balance.")
+    assert s.is_valid() is False
+    assert s.errors['email'] == "Invalid email"
+    assert s.errors['homepage'] == "Bad homepage."
+    assert s.errors['balance'] == "Bad balance."
 
 
 def test_error_raised_if_fields_option_is_not_list():
@@ -553,7 +534,8 @@ def test_error_raised_if_fields_option_is_not_list():
             fields = 'name'
 
     u = User('Joe')
-    assert_raises(ValueError, lambda: BadSerializer(u))
+    with pytest.raises(ValueError):
+        BadSerializer(u)
 
 
 def test_error_raised_if_additional_option_is_not_list():
@@ -564,7 +546,8 @@ def test_error_raised_if_additional_option_is_not_list():
             additional = 'email'
 
     u = User('Joe')
-    assert_raises(ValueError, lambda: BadSerializer(u))
+    with pytest.raises(ValueError):
+        BadSerializer(u)
 
 
 class TestMetaOptions(unittest.TestCase):
@@ -577,54 +560,57 @@ class TestMetaOptions(unittest.TestCase):
         u = User("John", age=42.3, email="john@example.com",
                  homepage="http://john.com")
         s = UserMetaSerializer(u)
-        assert_equal(s.data['name'], u.name)
-        assert_equal(s.data['balance'], "100.00")
-        assert_equal(s.data['uppername'], "JOHN")
-        assert_false(s.data['is_old'])
-        assert_equal(s.data['created'], utils.rfcformat(u.created))
-        assert_equal(s.data['updated_local'], utils.rfcformat(u.updated, localtime=True))
-        assert_equal(s.data['finger_count'], 10)
+        assert s.data['name'] == u.name
+        assert s.data['balance'] == "100.00"
+        assert s.data['uppername'] == "JOHN"
+        assert s.data['is_old'] is False
+        assert s.data['created'] == utils.rfcformat(u.created)
+        assert s.data['updated_local'] == utils.rfcformat(u.updated, localtime=True)
+        assert s.data['finger_count'] == 10
 
     def test_meta_fields_mapping(self):
         s = UserMetaSerializer(self.obj)
-        assert_equal(type(s.fields['name']), fields.String)
-        assert_equal(type(s.fields['created']), fields.DateTime)
-        assert_equal(type(s.fields['updated']), fields.DateTime)
-        assert_equal(type(s.fields['updated_local']), fields.LocalDateTime)
-        assert_equal(type(s.fields['age']), fields.Float)
-        assert_equal(type(s.fields['balance']), fields.Price)
-        assert_equal(type(s.fields['registered']), fields.Boolean)
-        assert_equal(type(s.fields['sex_choices']), fields.Raw)
-        assert_equal(type(s.fields['hair_colors']), fields.Raw)
-        assert_equal(type(s.fields['finger_count']), fields.Integer)
-        assert_equal(type(s.fields['uid']), fields.UUID)
-        assert_equal(type(s.fields['time_registered']), fields.Time)
-        assert_equal(type(s.fields['birthdate']), fields.Date)
-        assert_equal(type(s.fields['since_created']), fields.TimeDelta)
+        assert type(s.fields['name']) == fields.String
+        assert type(s.fields['created']) == fields.DateTime
+        assert type(s.fields['updated']) == fields.DateTime
+        assert type(s.fields['updated_local']) == fields.LocalDateTime
+        assert type(s.fields['age']) == fields.Float
+        assert type(s.fields['balance']) == fields.Price
+        assert type(s.fields['registered']) == fields.Boolean
+        assert type(s.fields['sex_choices']) == fields.Raw
+        assert type(s.fields['hair_colors']) == fields.Raw
+        assert type(s.fields['finger_count']) == fields.Integer
+        assert type(s.fields['uid']) == fields.UUID
+        assert type(s.fields['time_registered']) == fields.Time
+        assert type(s.fields['birthdate']) == fields.Date
+        assert type(s.fields['since_created']) == fields.TimeDelta
 
     def test_meta_field_not_on_obj_raises_attribute_error(self):
         class BadUserSerializer(Serializer):
             class Meta:
                 fields = ('name', 'notfound')
-        assert_raises(AttributeError, lambda: BadUserSerializer(self.obj))
+        with pytest.raises(AttributeError):
+            BadUserSerializer(self.obj)
 
     def test_exclude_fields(self):
         s = UserExcludeSerializer(self.obj)
-        assert_not_in("created", s.data)
-        assert_not_in("updated", s.data)
-        assert_in("name", s.data)
+        assert "created" not in s.data
+        assert "updated" not in s.data
+        assert "name" in s.data
 
     def test_fields_option_must_be_list_or_tuple(self):
         class BadFields(Serializer):
             class Meta:
                 fields = "name"
-        assert_raises(ValueError, lambda: BadFields(self.obj))
+        with pytest.raises(ValueError):
+            BadFields(self.obj)
 
     def test_exclude_option_must_be_list_or_tuple(self):
         class BadExclude(Serializer):
             class Meta:
                 exclude = "name"
-        assert_raises(ValueError, lambda: BadExclude(self.obj))
+        with pytest.raises(ValueError):
+            BadExclude(self.obj)
 
     def test_dateformat_option(self):
         format = '%Y-%m'
@@ -636,8 +622,8 @@ class TestMetaOptions(unittest.TestCase):
                 fields = ('created', 'updated')
                 dateformat = format
         serialized = DateFormatSerializer(self.obj)
-        assert_equal(serialized.data['created'], self.obj.created.strftime(format))
-        assert_equal(serialized.data['updated'], self.obj.updated.strftime("%m-%d"))
+        assert serialized.data['created'] == self.obj.created.strftime(format)
+        assert serialized.data['updated'] == self.obj.updated.strftime("%m-%d")
 
     def test_default_dateformat(self):
         class DateFormatSerializer(Serializer):
@@ -646,20 +632,20 @@ class TestMetaOptions(unittest.TestCase):
             class Meta:
                 fields = ('created', 'updated')
         serialized = DateFormatSerializer(self.obj)
-        assert_equal(serialized.data['created'], utils.rfcformat(self.obj.created))
-        assert_equal(serialized.data['updated'], self.obj.updated.strftime("%m-%d"))
+        assert serialized.data['created'] == utils.rfcformat(self.obj.created)
+        assert serialized.data['updated'] == self.obj.updated.strftime("%m-%d")
 
     def test_inherit_meta(self):
         class InheritedMetaSerializer(UserMetaSerializer):
             pass
-
-        assert_equal(InheritedMetaSerializer(self.obj).data,
-                     UserMetaSerializer(self.obj).data)
+        result = InheritedMetaSerializer(self.obj).data
+        expected = UserMetaSerializer(self.obj).data
+        assert result == expected
 
     def test_additional(self):
         s = UserAdditionalSerializer(self.obj)
-        assert_equal(s.data['lowername'], self.obj.name.lower())
-        assert_equal(s.data['name'], self.obj.name)
+        assert s.data['lowername'] == self.obj.name.lower()
+        assert s.data['name'] == self.obj.name
 
     def test_cant_set_both_additional_and_fields(self):
         class BadSerializer(Serializer):
@@ -668,13 +654,14 @@ class TestMetaOptions(unittest.TestCase):
             class Meta:
                 fields = ("name", 'email')
                 additional = ('email', 'homepage')
-        assert_raises(ValueError, lambda: BadSerializer(self.obj))
+        with pytest.raises(ValueError):
+            BadSerializer(self.obj)
 
     def test_serializing_none(self):
         s = UserMetaSerializer(None)
         # Since meta fields are used, defaults to None
-        assert_equal(s.data['name'], None)
-        assert_equal(s.data['email'], None)
+        assert s.data['name'] is None
+        assert s.data['email'] is None
 
 
 class TestNestedSerializer(unittest.TestCase):
@@ -691,8 +678,8 @@ class TestNestedSerializer(unittest.TestCase):
             user = fields.Nested(UserSerializer, only='name')
             collaborators = fields.Nested(UserSerializer, only='name', many=True)
         s = FlatBlogSerializer(self.blog)
-        assert_equal(s.data['user'], self.blog.user.name)
-        assert_equal(s.data['collaborators'][0], self.blog.collaborators[0].name)
+        assert s.data['user'] == self.blog.user.name
+        assert s.data['collaborators'][0] == self.blog.collaborators[0].name
 
     def test_flat_nested2(self):
         class FlatBlogSerializer(Serializer):
@@ -700,103 +687,98 @@ class TestNestedSerializer(unittest.TestCase):
             collaborators = fields.Nested(UserSerializer, many=True, only='uid')
 
         s = FlatBlogSerializer(self.blog)
-        assert_equal(s.data['collaborators'][0], str(self.blog.collaborators[0].uid))
+        assert s.data['collaborators'][0] == str(self.blog.collaborators[0].uid)
 
     def test_nested(self):
         serialized_blog = BlogSerializer(self.blog)
         serialized_user = UserSerializer(self.user)
-        assert_equal(serialized_blog.data['user'], serialized_user.data)
+        assert serialized_blog.data['user'] == serialized_user.data
 
     def test_nested_many_fields(self):
         serialized_blog = BlogSerializer(self.blog)
-        assert_equal(serialized_blog.data['collaborators'],
-                     [UserSerializer(col).data for col in self.blog.collaborators])
+        expected = [UserSerializer(col).data for col in self.blog.collaborators]
+        assert serialized_blog.data['collaborators'] == expected
 
     def test_nested_meta_many(self):
         serialized_blog = BlogUserMetaSerializer(self.blog)
-        assert_equal(len(serialized_blog.data['collaborators']), 2)
-        assert_equal(serialized_blog.data['collaborators'],
-                     [UserMetaSerializer(col).data for col in self.blog.collaborators])
+        assert len(serialized_blog.data['collaborators']) == 2
+        expected = [UserMetaSerializer(col).data for col in self.blog.collaborators]
+        assert serialized_blog.data['collaborators'] == expected
 
     def test_nested_only(self):
         col1 = User(name="Mick", age=123, id_="abc")
         col2 = User(name="Keith", age=456, id_="def")
         self.blog.collaborators = [col1, col2]
         serialized_blog = BlogSerializerOnly(self.blog)
-        assert_equal(serialized_blog.data['collaborators'],
-                     [{"id": col1.id}, {"id": col2.id}])
+        assert serialized_blog.data['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
 
     def test_exclude(self):
         serialized = BlogSerializerExclude(self.blog)
-        assert_not_in("uppername", serialized.data['user'].keys())
+        assert "uppername" not in serialized.data['user'].keys()
 
     def test_only_takes_precedence_over_exclude(self):
         serialized = BlogSerializerOnlyExclude(self.blog)
-        assert_equal(serialized.data['user']['name'], self.user.name)
+        assert serialized.data['user']['name'] == self.user.name
 
     def test_list_field(self):
         serialized = BlogSerializer(self.blog)
-        assert_equal(serialized.data['categories'], ["humor", "violence"])
+        assert serialized.data['categories'] == ["humor", "violence"]
 
     def test_nested_errors(self):
         invalid_user = User("Monty", email="foo")
         blog = Blog("Monty's blog", user=invalid_user)
         serialized_blog = BlogSerializer(blog)
-        assert_false(serialized_blog.is_valid())
-        assert_in("email", serialized_blog.errors['user'])
-        assert_equal(
-            serialized_blog.errors['user']['email'],
-            "\"{0}\" is not a valid email address.".format(invalid_user.email),
-        )
+        assert serialized_blog.is_valid() is False
+        assert "email" in serialized_blog.errors['user']
+        expected_msg = "\"{0}\" is not a valid email address.".format(invalid_user.email)
+        assert serialized_blog.errors['user']['email'] == expected_msg
         # No problems with collaborators
-        assert_not_in("collaborators", serialized_blog.errors)
+        assert "collaborators" not in serialized_blog.errors
 
     def test_nested_method_field(self):
         s = BlogSerializer(self.blog)
-        assert_true(s.data['user']['is_old'])
-        assert_true(s.data['collaborators'][0]['is_old'])
+        assert s.data['user']['is_old']
+        assert s.data['collaborators'][0]['is_old']
 
     def test_nested_function_field(self):
         s = BlogSerializer(self.blog)
-        assert_equal(s.data['user']['lowername'], self.user.name.lower())
-        assert_equal(
-            s.data['collaborators'][0]['lowername'],
-            self.blog.collaborators[0].name.lower(),
-        )
+        assert s.data['user']['lowername'] == self.user.name.lower()
+        expected = self.blog.collaborators[0].name.lower()
+        assert s.data['collaborators'][0]['lowername'] == expected
 
     def test_nested_prefixed_field(self):
         s = BlogSerializerPrefixedUser(self.blog)
-        assert_equal(s.data['user']['usr_name'], self.user.name)
-        assert_equal(s.data['user']['usr_lowername'], self.user.name.lower())
+        assert s.data['user']['usr_name'] == self.user.name
+        assert s.data['user']['usr_lowername'] == self.user.name.lower()
 
     def test_nested_prefixed_many_field(self):
         s = BlogSerializerPrefixedUser(self.blog)
-        assert_equal(s.data['collaborators'][0]['usr_name'],
-                     self.blog.collaborators[0].name)
+        assert s.data['collaborators'][0]['usr_name'] == self.blog.collaborators[0].name
 
     def test_invalid_float_field(self):
         user = User("Joe", age="1b2")
         s = UserSerializer(user)
-        assert_false(s.is_valid(["age"]))
-        assert_in("age", s.errors)
+        assert s.is_valid(["age"]) is False
+        assert "age" in s.errors
 
     def test_serializer_meta_with_nested_fields(self):
         s = BlogSerializerMeta(self.blog)
-        assert_equal(s.data['title'], self.blog.title)
-        assert_equal(s.data['user'], UserSerializer(self.user).data)
-        assert_equal(s.data['collaborators'], [UserSerializer(c).data
-                                               for c in self.blog.collaborators])
-        assert_equal(s.data['categories'], self.blog.categories)
+        assert s.data['title'] == self.blog.title
+        assert s.data['user'] == UserSerializer(self.user).data
+        assert s.data['collaborators'] == [UserSerializer(c).data
+                                               for c in self.blog.collaborators]
+        assert s.data['categories'] == self.blog.categories
 
     def test_serializer_with_nested_meta_fields(self):
         # Serializer has user = fields.Nested(UserMetaSerializer)
         s = BlogUserMetaSerializer(self.blog)
-        assert_equal(s.data['user'], UserMetaSerializer(self.blog.user).data)
+        assert s.data['user'] == UserMetaSerializer(self.blog.user).data
 
     def test_nested_fields_must_be_passed_a_serializer(self):
         class BadNestedFieldSerializer(BlogSerializer):
             user = fields.Nested(fields.String)
-        assert_raises(ValueError, lambda: BadNestedFieldSerializer(self.blog))
+        with pytest.raises(ValueError):
+            BadNestedFieldSerializer(self.blog)
 
 
 class TestSelfReference(unittest.TestCase):
@@ -811,10 +793,10 @@ class TestSelfReference(unittest.TestCase):
             employer = fields.Nested("self")
 
         s = SelfSerializer(self.user)
-        assert_true(s.is_valid())
-        assert_equal(s.data['name'], self.user.name)
-        assert_equal(s.data['employer']['name'], self.employer.name)
-        assert_equal(s.data['employer']['age'], self.employer.age)
+        assert s.is_valid()
+        assert s.data['name'] == self.user.name
+        assert s.data['employer']['name'] == self.employer.name
+        assert s.data['employer']['age'] == self.employer.age
 
     def test_nesting_within_itself_meta(self):
         class SelfSerializer(Serializer):
@@ -824,11 +806,11 @@ class TestSelfReference(unittest.TestCase):
                 additional = ('name', 'age')
 
         s = SelfSerializer(self.user)
-        assert_true(s.is_valid())
-        assert_equal(s.data['name'], self.user.name)
-        assert_equal(s.data['age'], self.user.age)
-        assert_equal(s.data['employer']['name'], self.employer.name)
-        assert_equal(s.data['employer']['age'], self.employer.age)
+        assert s.is_valid()
+        assert s.data['name'] == self.user.name
+        assert s.data['age'] == self.user.age
+        assert s.data['employer']['name'] == self.employer.name
+        assert s.data['employer']['age'] == self.employer.age
 
     def test_nested_self_with_only_param(self):
         class SelfSerializer(Serializer):
@@ -838,9 +820,9 @@ class TestSelfReference(unittest.TestCase):
                 fields = ('name', 'employer')
 
         s = SelfSerializer(self.user)
-        assert_equal(s.data['name'], self.user.name)
-        assert_equal(s.data['employer']['name'], self.employer.name)
-        assert_not_in('age', s.data['employer'])
+        assert s.data['name'] == self.user.name
+        assert s.data['employer']['name'] == self.employer.name
+        assert 'age' not in s.data['employer']
 
     def test_nested_many(self):
         class SelfManySerializer(Serializer):
@@ -852,10 +834,10 @@ class TestSelfReference(unittest.TestCase):
         person = User(name='Foo')
         person.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
         s = SelfManySerializer(person)
-        assert_equal(s.data['name'], person.name)
-        assert_equal(len(s.data['relatives']), len(person.relatives))
-        assert_equal(s.data['relatives'][0]['name'], person.relatives[0].name)
-        assert_equal(s.data['relatives'][0]['age'], person.relatives[0].age)
+        assert s.data['name'] == person.name
+        assert len(s.data['relatives']) == len(person.relatives)
+        assert s.data['relatives'][0]['name'] == person.relatives[0].name
+        assert s.data['relatives'][0]['age'] == person.relatives[0].age
 
 
 class TestFields(unittest.TestCase):
@@ -864,101 +846,86 @@ class TestFields(unittest.TestCase):
 
     def test_repr(self):
         field = fields.String()
-        assert_equal(repr(field), "<String Field>")
+        assert repr(field) == "<String Field>"
 
     def test_function_field(self):
         field = fields.Function(lambda obj: obj.name.upper())
-        assert_equal("FOO", field.output("key", self.user))
+        assert "FOO" == field.output("key", self.user)
 
     def test_function_with_uncallable_param(self):
-        assert_raises(MarshallingError, lambda: fields.Function("uncallable"))
+        with pytest.raises(MarshallingError):
+            fields.Function("uncallable")
 
     def test_method_field_with_method_missing(self):
         class BadSerializer(Serializer):
             bad_field = fields.Method('invalid')
         u = User('Foo')
-        assert_raises(MarshallingError, lambda: BadSerializer(u, strict=True))
+        with pytest.raises(MarshallingError):
+            BadSerializer(u, strict=True)
 
     def test_method_field_with_uncallable_attribute(self):
         class BadSerializer(Serializer):
             foo = 'not callable'
             bad_field = fields.Method('foo')
         u = User('Foo')
-        assert_raises(MarshallingError, lambda: BadSerializer(u, strict=True))
+        with pytest.raises(MarshallingError):
+            BadSerializer(u, strict=True)
 
     def test_datetime_field(self):
         field = fields.DateTime()
-        assert_equal(
-            field.output("created", self.user),
-            utils.rfcformat(self.user.created, localtime=False),
-        )
+        expected = utils.rfcformat(self.user.created, localtime=False)
+        assert field.output("created", self.user) == expected
 
     def test_localdatetime_field(self):
         field = fields.LocalDateTime()
-        assert_equal(
-            field.output("created", self.user),
-            utils.rfcformat(self.user.created, localtime=True),
-        )
+        expected = utils.rfcformat(self.user.created, localtime=True)
+        assert field.output("created", self.user) == expected
 
     def test_datetime_iso8601(self):
         field = fields.DateTime(format="iso")
-        assert_equal(
-            field.output("created", self.user),
-            utils.isoformat(self.user.created, localtime=False),
-        )
+        expected = utils.isoformat(self.user.created, localtime=False)
+        assert field.output("created", self.user) == expected
 
     def test_localdatetime_iso(self):
         field = fields.LocalDateTime(format="iso")
-        assert_equal(
-            field.output("created", self.user),
-            utils.isoformat(self.user.created, localtime=True),
-        )
+        expected = utils.isoformat(self.user.created, localtime=True)
+        assert field.output("created", self.user) == expected
 
     def test_datetime_format(self):
         format = "%Y-%m-%d"
         field = fields.DateTime(format=format)
-        assert_equal(
-            field.output("created", self.user),
-            self.user.created.strftime(format)
-        )
+        assert field.output("created", self.user) == self.user.created.strftime(format)
 
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()
-        assert_equal(field.output("notfound", self.user), '')
+        assert field.output("notfound", self.user) == ''
 
     def test_time_field(self):
         field = fields.Time()
-        assert_equal(
-            field.output("time_registered", self.user),
-            self.user.time_registered.isoformat()[:12],
-        )
+        expected = self.user.time_registered.isoformat()[:12]
+        assert field.output("time_registered", self.user) == expected
 
     def test_date_field(self):
         field = fields.Date()
-        assert_equal(
-            field.output('birthdate', self.user),
-            self.user.birthdate.isoformat(),
-        )
+        assert field.output('birthdate', self.user) == self.user.birthdate.isoformat()
 
     def test_timedelta_field(self):
         field = fields.TimeDelta()
-        assert_equal(
-            field.output("since_created", self.user),
-            total_seconds(self.user.since_created)
-        )
+        expected = total_seconds(self.user.since_created)
+        assert field.output("since_created", self.user) == expected
 
     def test_select_field(self):
         field = fields.Select(['male', 'female'])
-        assert_equal(field.output("sex", self.user), "male")
+        assert field.output("sex", self.user) == "male"
         invalid = User('foo', sex='alien')
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('sex', invalid),
-        )
+        with pytest.raises(MarshallingError):
+            field.output('sex', invalid)
 
     def test_bad_list_field(self):
-        assert_raises(MarshallingError, lambda: fields.List("string"))
-        assert_raises(MarshallingError, lambda: fields.List(UserSerializer))
+        with pytest.raises(MarshallingError):
+            fields.List("string")
+        with pytest.raises(MarshallingError):
+            fields.List(UserSerializer)
 
 
 class TestValidation(unittest.TestCase):
@@ -966,53 +933,43 @@ class TestValidation(unittest.TestCase):
         user = User(name='Joe', age='20')
         field = fields.Integer(validate=lambda x: 18 <= x <= 24)
         out = field.output('age', user)
-        assert_equal(out, 20)
+        assert out == 20
         user2 = User(name='Joe', age='25')
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('age', user2),
-        )
+        with pytest.raises(MarshallingError):
+            field.output('age', user2)
 
     def test_float_with_validator(self):
         user = User(name='Joe', age=3.14)
         field = fields.Float(validate=lambda f: f <= 4.1)
-        assert_equal(field.output('age', user), user.age)
+        assert field.output('age', user) == user.age
         invalid = User('foo', age=5.1)
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('age', invalid)
-        )
+        with pytest.raises(MarshallingError):
+            field.output('age', invalid)
 
     def test_string_validator(self):
         user = User(name='Joe')
         field = fields.String(validate=lambda n: len(n) == 3)
-        assert_equal(field.output('name', user), 'Joe')
+        assert field.output('name', user) == 'Joe'
         user2 = User(name='Joseph')
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('name', user2)
-        )
+        with pytest.raises(MarshallingError):
+            field.output('name', user2)
 
     def test_datetime_validator(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
         field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
-        assert_equal(field.output('birthdate', user), utils.rfcformat(user.birthdate))
+        assert field.output('birthdate', user) == utils.rfcformat(user.birthdate)
         user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('birthdate', user2)
-        )
+        with pytest.raises(MarshallingError):
+            field.output('birthdate', user2)
 
     def test_function_validator(self):
         user = User('joe')
         field = fields.Function(lambda d: d.name.upper(),
                                 validate=lambda n: len(n) == 3)
-        assert_equal(field.output('uppername', user), 'JOE')
+        assert field.output('uppername', user) == 'JOE'
         invalid = User(name='joseph')
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('uppername', invalid),
-        )
+        with pytest.raises(MarshallingError):
+            field.output('uppername', invalid)
 
     def test_method_validator(self):
         class MethodSerializer(Serializer):
@@ -1023,12 +980,10 @@ class TestValidation(unittest.TestCase):
                 return obj.name.upper()
         user = User('joe')
         s = MethodSerializer(user, strict=True)
-        assert_equal(s.data['uppername'], 'JOE')
+        assert s.data['uppername'] == 'JOE'
         invalid = User(name='joseph')
-        assert_raises(
-            MarshallingError,
-            lambda: MethodSerializer(invalid, strict=True),
-        )
+        with pytest.raises(MarshallingError):
+            MethodSerializer(invalid, strict=True)
 
 
 class TestUtils(unittest.TestCase):
@@ -1045,19 +1000,19 @@ class TestUtils(unittest.TestCase):
 
         obj = Foo()
         u_dict = utils.to_marshallable_type(obj)
-        assert_equal(u_dict['CLASS_VAR'], Foo.CLASS_VAR)
-        assert_equal(u_dict['attribute'], obj.attribute)
-        assert_equal(u_dict['prop'], obj.prop)
+        assert u_dict['CLASS_VAR'] == Foo.CLASS_VAR
+        assert u_dict['attribute'] == obj.attribute
+        assert u_dict['prop'] == obj.prop
 
     def test_to_marshallable_type_none(self):
-        assert_equal(utils.to_marshallable_type(None), None)
+        assert utils.to_marshallable_type(None) == None
 
     def test_to_marshallable_type_list(self):
-        assert_equal(utils.to_marshallable_type(['foo', 'bar']), ['foo', 'bar'])
+        assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']
 
     def test_to_marshallable_type_generator(self):
         gen = (e for e in ['foo', 'bar'])
-        assert_equal(utils.to_marshallable_type(gen), ['foo', 'bar'])
+        assert utils.to_marshallable_type(gen) == ['foo', 'bar']
 
     def test_marshallable(self):
         class ObjContainer(object):
@@ -1067,54 +1022,57 @@ class TestUtils(unittest.TestCase):
                 return self.contained
 
         obj = ObjContainer()
-        assert_equal(utils.to_marshallable_type(obj), {"foo": 1})
+        assert utils.to_marshallable_type(obj) == {"foo": 1}
 
     def test_is_collection(self):
-        assert_true(utils.is_collection([1, 'foo', {}]))
-        assert_true(utils.is_collection(('foo', 2.3)))
-        assert_false(utils.is_collection({'foo': 'bar'}))
+        assert utils.is_collection([1, 'foo', {}]) is True
+        assert utils.is_collection(('foo', 2.3)) is True
+        assert utils.is_collection({'foo': 'bar'}) is False
 
     def test_rfcformat_gmt_naive(self):
         d = dt.datetime(2013, 11, 10, 1, 23, 45)
-        assert_equal(utils.rfcformat(d), "Sun, 10 Nov 2013 01:23:45 -0000")
+        assert utils.rfcformat(d) == "Sun, 10 Nov 2013 01:23:45 -0000"
 
     def test_rfcformat_central(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        assert_equal(utils.rfcformat(d), 'Sun, 10 Nov 2013 07:23:45 -0000')
+        assert utils.rfcformat(d) == 'Sun, 10 Nov 2013 07:23:45 -0000'
 
     def test_rfcformat_central_localized(self):
         d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
-        assert_equal(utils.rfcformat(d, localtime=True), "Sun, 10 Nov 2013 08:23:45 -0600")
+        assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 08:23:45 -0600"
 
     def test_isoformat(self):
         d = dt.datetime(2013, 11, 10, 1, 23, 45)
-        assert_equal(utils.isoformat(d), '2013-11-10T01:23:45+00:00')
+        assert utils.isoformat(d) == '2013-11-10T01:23:45+00:00'
 
     def test_isoformat_tzaware(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        assert_equal(utils.isoformat(d), "2013-11-10T07:23:45+00:00")
+        assert utils.isoformat(d) == "2013-11-10T07:23:45+00:00"
 
     def test_isoformat_localtime(self):
         d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        assert_equal(utils.isoformat(d, localtime=True), "2013-11-10T01:23:45-06:00")
+        assert utils.isoformat(d, localtime=True) == "2013-11-10T01:23:45-06:00"
 
     def test_from_rfc(self):
         d = dt.datetime.now()
         rfc = utils.rfcformat(d)
         output = utils.from_rfc(rfc)
-        assert_equal(output.year, d.year)
-        assert_equal(output.month, d.month)
-        assert_equal(output.day, d.day)
+        assert output.year == d.year
+        assert output.month == d.month
+        assert output.day == d.day
 
 
 class TestValidators(unittest.TestCase):
     def test_invalid_email(self):
         invalid1 = "user@example"
-        assert_raises(ValueError, lambda: validate.email(invalid1))
+        with pytest.raises(ValueError):
+            validate.email(invalid1)
         invalid2 = "example.com"
-        assert_raises(ValueError, lambda: validate.email(invalid2))
+        with pytest.raises(ValueError):
+            validate.email(invalid2)
         invalid3 = "user"
-        assert_raises(ValueError, lambda: validate.email(invalid3))
+        with pytest.raises(ValueError):
+            validate.email(invalid3)
 
 
 class TestMarshaller(unittest.TestCase):
@@ -1122,26 +1080,26 @@ class TestMarshaller(unittest.TestCase):
         u = User("Foo", email="foobar")
         marshal = fields.Marshaller()
         marshal(u, {"email": fields.Email()})
-        assert_in("email", marshal.errors)
+        assert "email" in marshal.errors
 
     def test_strict_mode_raises_errors(self):
         u = User("Foo", email="foobar")
         marshal = fields.Marshaller(strict=True)
-        assert_raises(MarshallingError,
-                      lambda: marshal(u, {"email": fields.Email()}))
+        with pytest.raises(MarshallingError):
+            marshal(u, {"email": fields.Email()})
 
     def test_prefix(self):
         u = User("Foo", email="foo@bar.com")
         marshal = fields.Marshaller(prefix='usr_')
         result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
-        assert_equal(result['usr_name'], u.name)
-        assert_equal(result['usr_email'], u.email)
+        assert result['usr_name'] == u.name
+        assert result['usr_email'] == u.email
 
     def test_marshalling_generator(self):
         gen = (u for u in [User("Foo"), User("Bar")])
         marshal = fields.Marshaller()
         res = marshal(gen, {"name": fields.String()}, many=True)
-        assert_equal(len(res), 2)
+        assert len(res) == 2
 
 
 class UserContextSerializer(Serializer):
@@ -1159,10 +1117,10 @@ class TestContext(unittest.TestCase):
         blog = Blog(title='Joe Blog', user=owner)
         context = {'blog': blog}
         s = UserContextSerializer(owner, context=context)
-        assert_true(s.data['is_owner'])
+        assert s.data['is_owner'] is True
         nonowner = User('Fred')
         s = UserContextSerializer(nonowner, context=context)
-        assert_false(s.data['is_owner'])
+        assert s.data['is_owner'] is False
 
     def test_context_method_function(self):
         owner = User('Fred')
@@ -1171,15 +1129,16 @@ class TestContext(unittest.TestCase):
         blog.collaborators.append(collab)
         context = {'blog': blog}
         s = UserContextSerializer(collab, context=context)
-        assert_true(s.data['is_collab'])
+        assert s.data['is_collab'] is True
         noncollab = User('Foo')
-        assert_false(UserContextSerializer(noncollab, context=context).data['is_collab'])
+        result = UserContextSerializer(noncollab, context=context).data['is_collab']
+        assert result is False
 
     def test_function_field_raises_error_when_context_not_available(self):
         owner = User('Joe')
         # no context
-        assert_raises(MarshallingError,
-            lambda: UserContextSerializer(owner, strict=True))
+        with pytest.raises(MarshallingError):
+            UserContextSerializer(owner, strict=True)
 
 if __name__ == '__main__':
     unittest.main()
