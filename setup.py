@@ -1,9 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+import sys
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
 
-TEST_REQUIREMENTS = ['unittest2', 'nose', 'pytz']
+TEST_REQUIREMENTS = ['pytest', 'pytz']
+
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        import pytest
+        errcode = pytest.main(self.test_args)
+        sys.exit(errcode)
 
 
 def find_version(fname):
@@ -57,6 +71,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
     ],
     test_suite='tests',
+    cmdclass={'test': PyTest},
 )

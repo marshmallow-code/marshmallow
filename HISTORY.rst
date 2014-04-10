@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Add ``json_module`` class Meta option.
+* Tested on Python 3.4.
 
 0.5.3 (2014-03-02)
 ++++++++++++++++++
