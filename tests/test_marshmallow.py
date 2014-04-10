@@ -986,6 +986,17 @@ class TestValidation(unittest.TestCase):
             MethodSerializer(invalid, strict=True)
 
 
+class TestRequiredFlag(unittest.TestCase):
+
+    def test_required_field_failure(self):
+        user_data = {"name":"Phil"}
+        field = fields.Integer(required=True)
+        assert_raises(
+            MarshallingError,
+            lambda: field.output('age', user_data)
+        )
+
+
 class TestUtils(unittest.TestCase):
     def test_to_marshallable_type(self):
         class Foo(object):

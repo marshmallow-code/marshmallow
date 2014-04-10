@@ -141,15 +141,23 @@ class Raw(FieldABC):
         MarshallingError is raised.
     """
 
-    def __init__(self, default=None, attribute=None, error=None, validate=None):
+    def __init__(self, default=None, attribute=None, error=None, validate=None, required=False):
         self.attribute = attribute
         self.default = default
         self.error = error
         self.validate = validate
+        self.required = required
 
     def get_value(self, key, obj):
-        '''Return the value for a given key from an object.'''
-        return _get_value(key if self.attribute is None else self.attribute, obj)
+        """Return the value for a given key from an object.
+
+        :exception MarshallingError: In case of a required field returning None
+        """
+        check_key = key if self.attribute is None else self.attribute
+        value = _get_value(check_key, obj)
+        if value is None and self.required:
+            raise MarshallingError("{0} is a required field".format(check_key))
+        return value
 
     def format(self, value):
         """Formats a field's value. No-op by default, concrete fields should
