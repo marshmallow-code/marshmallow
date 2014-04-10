@@ -982,8 +982,9 @@ class TestValidation(unittest.TestCase):
         s = MethodSerializer(user, strict=True)
         assert s.data['uppername'] == 'JOE'
         invalid = User(name='joseph')
-        with pytest.raises(MarshallingError):
+        with pytest.raises(MarshallingError) as excinfo:
             MethodSerializer(invalid, strict=True)
+        assert 'is not True' in str(excinfo)
 
 
 @pytest.mark.parametrize('FieldClass', [
@@ -997,7 +998,7 @@ def test_required_field_failure(FieldClass):
     field = FieldClass(required=True)
     with pytest.raises(MarshallingError) as excinfo:
         field.output('age', user_data)
-    assert excinfo.value.message == "{0!r} is a required field".format('age')
+    assert "{0!r} is a required field".format('age') in str(excinfo)
 
 
 def test_required_list_field_failure():
@@ -1005,7 +1006,7 @@ def test_required_list_field_failure():
     field = fields.List(fields.String, required=True)
     with pytest.raises(MarshallingError) as excinfo:
         field.output('relatives', user_data)
-    assert excinfo.value.message == '{0!r} is a required field'.format('relatives')
+    assert '{0!r} is a required field'.format('relatives') in str(excinfo)
 
 
 class TestUtils(unittest.TestCase):
