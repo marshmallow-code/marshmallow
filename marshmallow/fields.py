@@ -156,7 +156,7 @@ class Raw(FieldABC):
         check_key = key if self.attribute is None else self.attribute
         value = _get_value(check_key, obj)
         if value is None and self.required:
-            raise MarshallingError("{0} is a required field".format(check_key))
+            raise MarshallingError("{0!r} is a required field".format(check_key))
         return value
 
     def format(self, value):

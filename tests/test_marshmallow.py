@@ -986,15 +986,26 @@ class TestValidation(unittest.TestCase):
             MethodSerializer(invalid, strict=True)
 
 
-class TestRequiredFlag(unittest.TestCase):
+@pytest.mark.parametrize('FieldClass', [
+    fields.String,
+    fields.Integer,
+    fields.Boolean,
+    fields.Float,
+])
+def test_required_field_failure(FieldClass):
+    user_data = {"name": "Phil"}
+    field = FieldClass(required=True)
+    with pytest.raises(MarshallingError) as excinfo:
+        field.output('age', user_data)
+    assert excinfo.value.message == "{0!r} is a required field".format('age')
 
-    def test_required_field_failure(self):
-        user_data = {"name":"Phil"}
-        field = fields.Integer(required=True)
-        assert_raises(
-            MarshallingError,
-            lambda: field.output('age', user_data)
-        )
+
+def test_required_list_field_failure():
+    user_data = {"name": "Rosie"}
+    field = fields.List(fields.String, required=True)
+    with pytest.raises(MarshallingError) as excinfo:
+        field.output('relatives', user_data)
+    assert excinfo.value.message == '{0!r} is a required field'.format('relatives')
 
 
 class TestUtils(unittest.TestCase):
