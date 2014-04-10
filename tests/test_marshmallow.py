@@ -992,6 +992,15 @@ class TestValidation(unittest.TestCase):
     fields.Integer,
     fields.Boolean,
     fields.Float,
+    fields.Number,
+    fields.DateTime,
+    fields.LocalDateTime,
+    fields.Time,
+    fields.Date,
+    fields.TimeDelta,
+    fields.Fixed,
+    fields.Url,
+    fields.Email,
 ])
 def test_required_field_failure(FieldClass):
     user_data = {"name": "Phil"}
@@ -999,6 +1008,19 @@ def test_required_field_failure(FieldClass):
     with pytest.raises(MarshallingError) as excinfo:
         field.output('age', user_data)
     assert "{0!r} is a required field".format('age') in str(excinfo)
+
+
+@pytest.mark.parametrize(('FieldClass', 'value'), [
+    (fields.String, ''),
+    (fields.Integer, 0),
+    (fields.Float, 0.0)
+])
+def test_required_field_falsy_is_ok(FieldClass, value):
+    user_data = {'name': value}
+    field = FieldClass(required=True)
+    result = field.output('name', user_data)
+    assert result  is not None
+    assert result == value
 
 
 def test_required_list_field_failure():
