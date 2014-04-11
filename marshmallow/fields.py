@@ -139,9 +139,12 @@ class Raw(FieldABC):
     :param callable validate: Validation function that takes the output as its
         only paramter and returns a boolean. If it returns False, a
         MarshallingError is raised.
+    :param bool required: Make a field required. If a field is ``None``,
+        raise a MarshallingError.
     """
 
-    def __init__(self, default=None, attribute=None, error=None, validate=None, required=False):
+    def __init__(self, default=None, attribute=None, error=None,
+                validate=None, required=False):
         self.attribute = attribute
         self.default = default
         self.error = error
@@ -156,7 +159,7 @@ class Raw(FieldABC):
         check_key = key if self.attribute is None else self.attribute
         value = _get_value(check_key, obj)
         if value is None and self.required:
-            raise MarshallingError("{0!r} is a required field".format(check_key))
+            raise MarshallingError("{0!r} is a required field.".format(check_key))
         return value
 
     def format(self, value):

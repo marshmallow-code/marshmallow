@@ -6,7 +6,7 @@ Changelog
 
 * Add ``json_module`` class Meta option.
 * Add ``required`` option to fields . Thanks @DeaconDesperado.
-* Tested on Python 3.4.
+* Tested on Python 3.4 and PyPy.
 
 0.5.3 (2014-03-02)
 ++++++++++++++++++

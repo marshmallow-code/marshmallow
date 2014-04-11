@@ -1031,6 +1031,16 @@ def test_required_list_field_failure():
     assert '{0!r} is a required field'.format('relatives') in str(excinfo)
 
 
+def test_serialization_with_required_field():
+    class RequiredUserSerializer(Serializer):
+        name = fields.String(required=True)
+
+    user = User(name=None)
+    s = RequiredUserSerializer(user)
+    assert s.is_valid() is False
+    assert 'name' in s.errors
+    assert s.errors['name'] == '{0!r} is a required field.'.format('name')
+
 class TestUtils(unittest.TestCase):
     def test_to_marshallable_type(self):
         class Foo(object):

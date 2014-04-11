@@ -142,6 +142,22 @@ You can perform additional validation for a field by passing it a ``validate`` c
             raise err
         MarshallingError: "foo" is not a valid email address.
 
+Required Fields
++++++++++++++++
+
+You can make a field required by passing ``required=True``. An error will be stored if the object's corresponding attribute is ``None``.
+
+.. code-block:: python
+
+    class UserSerializer(Serializer):
+        name = fields.String(required=True)
+        email = fields.Email()
+
+    user = User(name=None, email='foo@bar.com')
+    serialized = UserSerializer(user)
+    serialized.is_valid()  # False
+    serialized.errors  # {'name': '"name" is a required field.'}
+
 
 Specifying Attribute Names
 --------------------------
