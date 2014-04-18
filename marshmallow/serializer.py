@@ -182,7 +182,7 @@ class BaseSerializer(base.SerializerABC):
                 self.__data.update(self.extra)
 
     def _update_fields(self, obj):
-        '''Update fields based on the passed in object.'''
+        """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
             ret = self.__filter_fields(self.only)
@@ -210,9 +210,9 @@ class BaseSerializer(base.SerializerABC):
         return self.fields
 
     def __set_field_attrs(self, fields_dict):
-        '''Set the parents of all field objects in fields_dict to self, and
+        """Set the parents of all field objects in fields_dict to self, and
         set the dateformat specified in ``class Meta``, if necessary.
-        '''
+        """
         for field_name, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
                 field_obj.parent = self
@@ -224,13 +224,13 @@ class BaseSerializer(base.SerializerABC):
         return fields_dict
 
     def __filter_fields(self, field_names):
-        '''Return only those field_name:field_obj pairs specified by
+        """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
         :param set field_names: Field names to include in the final
             return dictionary.
         :returns: An OrderedDict of field_name:field_obj pairs.
-        '''
+        """
         # Convert obj to a dict
         obj_marshallable = utils.to_marshallable_type(self.obj,
             field_names=field_names)
@@ -272,12 +272,12 @@ class BaseSerializer(base.SerializerABC):
 
     @property
     def json(self):
-        '''The data as a JSON string.'''
+        """The data as a JSON string."""
         return self.to_json()
 
     @property
     def errors(self):
-        '''Dictionary of errors raised during serialization.'''
+        """Dictionary of errors raised during serialization."""
         return self.marshal.errors
 
     def to_json(self, *args, **kwargs):
