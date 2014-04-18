@@ -62,7 +62,7 @@ setup(
     zip_safe=False,
     keywords=('serialization', "rest", "json", "api", "marshal", "marshalling"),
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
