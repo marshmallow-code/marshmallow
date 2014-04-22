@@ -196,7 +196,7 @@ class Nested(Raw):
     Examples: ::
 
         user = fields.Nested(UserSerializer)
-        collaborators = fields.Nested(UserSerializer, many=True, only='id')
+        collaborators = fields.Nested(UserSerializer(many=True, only='id'))
         parent = fields.Nested('self')
 
     :param Serializer nested: The Serializer class or instance to nest, or
