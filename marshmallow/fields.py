@@ -181,6 +181,9 @@ class Raw(FieldABC):
     def output(self, key, obj):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
+
+        :param str key: The attibute or key to get.
+        :param str obj: The object to pull the key from.
         :exception MarshallingError: In case of formatting problem
         """
         value = self.get_value(key, obj)
