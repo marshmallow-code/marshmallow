@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''The Serializer class, including its metaclass and options (class Meta).'''
+"""The Serializer class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import
 import datetime as dt
 import json
@@ -7,6 +7,7 @@ import copy
 import uuid
 import types
 import warnings
+import functools
 
 from marshmallow import base, fields, utils
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -180,6 +181,22 @@ class BaseSerializer(base.SerializerABC):
             self.__data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 self.__data.update(self.extra)
+
+    @classmethod
+    def factory(cls, *args, **kwargs):
+        """Create a factory function that returns an instance of the serializer.
+        Can be used to "freeze" the serializer's arguments.
+
+        Example usage: ::
+
+            serialize_user = UserSerializer.factory(strict=True)
+            user = User(email='invalidemail')
+            serialize_user(user)  # => raises MarshallingError
+
+        """
+        factory_func = functools.partial(cls, *args, **kwargs)
+        functools.update_wrapper(factory_func, cls)
+        return factory_func
 
     def _update_fields(self, obj):
         """Update fields based on the passed in object."""

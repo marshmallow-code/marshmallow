@@ -248,6 +248,30 @@ def test_serializing_none():
     assert s.data['name'] == ''
     assert s.data['age'] == 0
 
+def test_factory(user):
+    serialize_user = UserSerializer.factory()
+
+    s = serialize_user(user)
+    assert s.data['name'] == user.name
+    assert s.data['age'] == user.age
+
+def test_factory_saves_args(user):
+    serialize_user = UserSerializer.factory(strict=True)
+    user.homepage = 'invalid-url'
+    with pytest.raises(MarshallingError):
+        serialize_user(user)
+
+def test_can_override_factory_params(user):
+    serialize_user = UserSerializer.factory(strict=True)
+    user.homepage = 'invalid-url'
+    # no error raised when overriding strict mode
+    serialize_user(user, strict=False)
+
+
+def test_factory_doc_is_same_as_class_doc():
+    serialize_user = UserSerializer.factory(strict=True)
+    assert serialize_user.__doc__ == UserSerializer.__doc__
+
 
 @pytest.mark.parametrize('SerializerClass',
     [UserSerializer, UserMetaSerializer])
