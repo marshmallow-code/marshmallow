@@ -1161,10 +1161,10 @@ class TestContext:
             UserContextSerializer(owner, strict=True)
 
 def raise_marshalling_value_error():
-        try:
-            raise ValueError('Foo bar')
-        except ValueError as error:
-            raise MarshallingError(error)
+    try:
+        raise ValueError('Foo bar')
+    except ValueError as error:
+        raise MarshallingError(error)
 
 class TestMarshallingError:
 
