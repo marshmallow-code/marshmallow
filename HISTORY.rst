@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+0.5.5 (unreleased)
+++++++++++++++++++
+
+* Add ``Serializer.factory`` for creating a factory function that returns a Serializer instance.
+
+
 0.5.4 (2014-04-17)
 ++++++++++++++++++
 
