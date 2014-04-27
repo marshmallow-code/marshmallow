@@ -379,6 +379,7 @@ Let's refactor our User serializer to be more concise.
 
 .. code-block:: python
 
+    # Refactored serializer
     class UserSerializer(Serializer):
         uppername = fields.Function(lambda obj: obj.name.upper())
         class Meta:
@@ -397,6 +398,25 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
             uppername = fields.Function(lambda obj: obj.name.upper())
             class Meta:
                 additional = ("name", "email", "created_at")  # No need to include 'uppername'
+
+Refactoring II (Factory Functions)
+----------------------------------
+
+You may find yourself passing the same arguments whenever you serialize an object. For example, you may always want to serialize objects in "strict" mode.
+
+.. code-block:: python
+
+    s = UserSerializer(user1, strict=True)
+    s2 = UserSerializer(user2, strict=True)
+
+You can create a function that serializes objects with "fixed" arguments by using the :func:`Serializer.factory <marshmallow.Serializer.factory>` class method.
+
+.. code-block:: python
+
+    # refactored, using a factory
+    serialize_user = UserSerializer.factory(strict=True)
+    s = serialize_user(user1)
+    s2 = serialize_user(user2)
 
 
 Printing Serialized Data

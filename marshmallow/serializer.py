@@ -193,6 +193,14 @@ class BaseSerializer(base.SerializerABC):
             user = User(email='invalidemail')
             serialize_user(user)  # => raises MarshallingError
 
+        :param args: Takes the same positional and keyword arguments as the
+            serializer's constructor
+        :rtype: A ``functools.partial`` object (from the standard library)
+        :return: A function that returns instances of the serializer, fixed with
+            the passed arguments.
+
+        .. versionadded:: 0.5.5
+
         """
         factory_func = functools.partial(cls, *args, **kwargs)
         functools.update_wrapper(factory_func, cls)
