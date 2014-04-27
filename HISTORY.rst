@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 * Add ``Serializer.factory`` for creating a factory function that returns a Serializer instance.
+* ``MarshallingError`` stores its underlying exception as an instance variable. Useful for inspecting errors.
 
 
 0.5.4 (2014-04-17)

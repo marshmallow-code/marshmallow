@@ -1130,7 +1130,7 @@ class UserContextSerializer(Serializer):
         return context['blog'].user.name == user.name
 
 
-class TestContext(unittest.TestCase):
+class TestContext:
 
     def test_context_method(self):
         owner = User('Joe')
@@ -1160,5 +1160,17 @@ class TestContext(unittest.TestCase):
         with pytest.raises(MarshallingError):
             UserContextSerializer(owner, strict=True)
 
-if __name__ == '__main__':
-    unittest.main()
+def raise_marshalling_value_error():
+        try:
+            raise ValueError('Foo bar')
+        except ValueError as error:
+            raise MarshallingError(error)
+
+class TestMarshallingError:
+
+    def test_saves_underlying_exception(self):
+        with pytest.raises(MarshallingError) as excinfo:
+            raise_marshalling_value_error()
+        assert 'Foo bar' in str(excinfo)
+        error = excinfo.value
+        assert isinstance(error.underlying_exception, ValueError)
