@@ -16,6 +16,35 @@ from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds
                                 basestring)
 from marshmallow.exceptions import MarshallingError
 
+__all__ = [
+    'validated',
+    'Marshaller',
+    'Raw',
+    'Nested',
+    'List',
+    'String',
+    'UUID',
+    'Number',
+    'Integer',
+    'Boolean',
+    'FormattedString',
+    'Float',
+    'Arbitrary',
+    'DateTime',
+    'LocalDateTime',
+    'Time',
+    'Date',
+    'TimeDelta',
+    'Fixed',
+    'ZERO',
+    'Price',
+    'Url',
+    'Email',
+    'Method',
+    'Function',
+    'Select',
+]
+
 
 def validated(f):
     """Decorator that wraps a field's ``format`` or ``output`` method. If an
@@ -658,13 +687,16 @@ class Function(Raw):
 
 
 class Select(Raw):
-    """A field that only lets you set values in the selection.
+    """A field that provides a set of values which an attribute must be
+    contrained to.
 
     :param choices: A list of valid values.
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
+
+    :raises: MarshallingError if attribute's value is not one of the given choices.
     """
     def __init__(self,  choices, default=None, attribute=None, error=None, **kwargs):
         self.choices = choices
