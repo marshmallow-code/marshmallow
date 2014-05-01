@@ -6,8 +6,8 @@ API Reference
 
 .. module:: marshmallow
 
-Core
-====
+Serializer
+==========
 
 .. autoclass:: Serializer
     :inherited-members:

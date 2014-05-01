@@ -1174,3 +1174,7 @@ class TestMarshallingError:
         assert 'Foo bar' in str(excinfo)
         error = excinfo.value
         assert isinstance(error.underlying_exception, ValueError)
+
+
+def test_enum_is_select():
+    assert fields.Select is fields.Enum

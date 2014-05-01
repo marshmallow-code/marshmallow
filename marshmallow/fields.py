@@ -43,6 +43,7 @@ __all__ = [
     'Method',
     'Function',
     'Select',
+    'Enum',
 ]
 
 
@@ -704,5 +705,7 @@ class Select(Raw):
 
     def format(self, value):
         if value not in self.choices:
-            raise MarshallingError("'%s' is not a valid choice for this field." % value)
+            raise MarshallingError("{0!r} is not a valid choice for this field.".format(value))
         return value
+
+Enum = Select
