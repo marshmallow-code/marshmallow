@@ -8,3 +8,8 @@ __license__ = "MIT"
 from marshmallow.serializer import Serializer
 
 from marshmallow.utils import pprint
+
+__all__ = [
+    'Serializer',
+    'pprint'
+]

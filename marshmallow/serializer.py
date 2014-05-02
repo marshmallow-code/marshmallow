@@ -124,6 +124,8 @@ class BaseSerializer(base.SerializerABC):
         dt.timedelta: fields.TimeDelta,
     }
 
+    OPTIONS_CLASS = SerializerOpts
+
     class Meta(object):
         '''Options object for a Serializer.
 
@@ -162,7 +164,7 @@ class BaseSerializer(base.SerializerABC):
         self.__data = None
         self.obj = obj
         self.many = many
-        self.opts = SerializerOpts(self.Meta)
+        self.opts = self.OPTIONS_CLASS(self.Meta)
         self.only = only or ()
         self.exclude = exclude or ()
         self.prefix = prefix

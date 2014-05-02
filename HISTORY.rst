@@ -6,7 +6,9 @@ Changelog
 
 * Add ``Serializer.factory`` for creating a factory function that returns a Serializer instance.
 * ``MarshallingError`` stores its underlying exception as an instance variable. This is useful for inspecting errors.
-
+* ``fields.Select`` is aliased to ``fields.Enum``.
+* Add ``fields.__all__`` and ``marshmallow.__all__`` so that the modules can be more easily extended.
+* Expose ``Serializer.OPTIONS_CLASS`` as a class variable so that options defaults can be overridden.
 
 0.5.4 (2014-04-17)
 ++++++++++++++++++

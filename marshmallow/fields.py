@@ -74,13 +74,13 @@ def validated(f):
 
 
 class Marshaller(object):
-    '''Callable class responsible for marshalling data and storing errors.
+    """Callable class responsible for marshalling data and storing errors.
 
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If ``True``, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
-    '''
+    """
     def __init__(self, prefix='', strict=False):
         self.prefix = prefix
         self.strict = strict
