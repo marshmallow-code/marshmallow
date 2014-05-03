@@ -1178,3 +1178,16 @@ class TestMarshallingError:
 
 def test_enum_is_select():
     assert fields.Select is fields.Enum
+
+def test_process_data_hook(user):
+    class JSONRootSerializer(Serializer):
+        NAME = 'user'
+        name = fields.String()
+
+        def process_data(self, data):
+            return {
+                self.NAME: data
+            }
+    s = JSONRootSerializer(user)
+    assert 'user' in s.data
+    assert s.data['user']['name'] == user.name

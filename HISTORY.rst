@@ -9,6 +9,7 @@ Changelog
 * ``fields.Select`` is aliased to ``fields.Enum``.
 * Add ``fields.__all__`` and ``marshmallow.__all__`` so that the modules can be more easily extended.
 * Expose ``Serializer.OPTIONS_CLASS`` as a class variable so that options defaults can be overridden.
+* Add ``Serializer.process_data`` hook that allows subclasses to manipulate the final output data.
 
 0.5.4 (2014-04-17)
 ++++++++++++++++++

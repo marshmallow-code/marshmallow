@@ -180,9 +180,10 @@ class BaseSerializer(base.SerializerABC):
         self._update_fields(obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
-            self.__data = self.marshal(self.obj, self.fields, many=self.many)
+            raw_data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
-                self.__data.update(self.extra)
+                raw_data.update(self.extra)
+            self.__data = self.process_data(raw_data)
 
     @classmethod
     def factory(cls, *args, **kwargs):
@@ -289,12 +290,13 @@ class BaseSerializer(base.SerializerABC):
 
     @property
     def data(self):
-        '''The serialized data as an ``OrderedDict``.
-        '''
+        """The serialized data as an :class:`OrderedDict`.
+        """
         if not self.__data:  # Cache the data
-            self.__data = self.marshal(self.obj, self.fields, many=self.many)
+            raw_data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
-                self.__data.update(self.extra)
+                raw_data.update(self.extra)
+            self.__data = self.process_data(raw_data)
         return self.__data
 
     @property
@@ -306,6 +308,11 @@ class BaseSerializer(base.SerializerABC):
     def errors(self):
         """Dictionary of errors raised during serialization."""
         return self.marshal.errors
+
+    def process_data(self, data):
+        """Hook that allows subclasses to modify the final output of the data.
+        """
+        return data
 
     def to_json(self, *args, **kwargs):
         '''Return the JSON representation of the data. Takes the same arguments
