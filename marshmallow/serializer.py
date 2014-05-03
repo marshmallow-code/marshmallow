@@ -311,6 +311,8 @@ class BaseSerializer(base.SerializerABC):
 
     def process_data(self, data):
         """Hook that allows subclasses to modify the final output of the data.
+
+        .. versionadded:: 0.5.5
         """
         return data
 
