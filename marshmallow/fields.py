@@ -151,6 +151,10 @@ def _get_value_for_key(key, obj, default):
             return obj[key]
         except KeyError:
             return default
+        # Some objects disguise as dicts but don't take
+        # string keys (e.g., sqlalchemy's KeyedTuple)
+        except TypeError:
+            pass
     if hasattr(obj, key):
         return getattr(obj, key)
     return default
