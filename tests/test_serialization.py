@@ -1191,3 +1191,19 @@ def test_process_data_hook(user):
     s = JSONRootSerializer(user)
     assert 'user' in s.data
     assert s.data['user']['name'] == user.name
+
+def test_error_gets_raised_if_many_is_omitted(user):
+    class BadSerializer(Serializer):
+        # forgot to set many=True
+        class Meta:
+            fields = ('name', 'relatives')
+        relatives = fields.Nested(UserSerializer)
+
+    user.relatives = [User('Joe'), User('Mike')]
+
+    with pytest.raises(TypeError) as excinfo:
+        BadSerializer(user).data
+        # Exception includes message about setting many argument
+        assert 'many=True' in str(excinfo)
+
+

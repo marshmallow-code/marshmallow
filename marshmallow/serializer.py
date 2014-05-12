@@ -264,10 +264,11 @@ class BaseSerializer(base.SerializerABC):
             field_names=field_names)
         if obj_marshallable and self.many:
             try:  # Homogeneous collection
-                obj_dict = utils.to_marshallable_type(obj_marshallable[0],
-                    field_names=field_names)
+                obj_prototype = obj_marshallable[0]
             except IndexError:  # Nothing to serialize
                 return self.declared_fields
+            obj_dict = utils.to_marshallable_type(obj_prototype,
+                field_names=field_names)
         else:
             obj_dict = obj_marshallable
         ret = OrderedDict()

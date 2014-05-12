@@ -305,7 +305,12 @@ class Nested(Raw):
             self.__updated_fields = True
             self.serializer._update_fields(nested_obj)
         fields = self.__get_fields_to_marshal(self.serializer.fields)
-        ret = self.serializer.marshal(nested_obj, fields, many=self.many)
+        try:
+            ret = self.serializer.marshal(nested_obj, fields, many=self.many)
+        except TypeError as err:
+            raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
+                            'If the nested object is a collection, you need to set '
+                            '"many=True".'.format(err))
         # Parent should get any errors stored after marshalling
         if self.serializer.errors:
             self.parent.errors[key] = self.serializer.errors
