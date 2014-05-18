@@ -6,6 +6,7 @@ import json
 import datetime as dt
 import uuid
 import warnings
+from collections import namedtuple
 
 import pytest
 import pytz
@@ -1206,4 +1207,11 @@ def test_error_gets_raised_if_many_is_omitted(user):
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
 
+def test_serializing_named_tuple():
+    Point = namedtuple('Point', ['x', 'y'])
 
+    field = fields.Raw()
+
+    p = Point(x=4, y=2)
+
+    assert field.output('x', p) == 4
