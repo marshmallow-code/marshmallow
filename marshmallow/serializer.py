@@ -129,7 +129,7 @@ class BaseSerializer(base.SerializerABC):
     OPTIONS_CLASS = SerializerOpts
 
     class Meta(object):
-        '''Options object for a Serializer.
+        """Options object for a Serializer.
 
         Example usage: ::
 
@@ -150,7 +150,7 @@ class BaseSerializer(base.SerializerABC):
             storing them.
         - ``json_module``: JSON module to use. Defaults to the ``json`` module
             in the stdlib.
-        '''
+        """
         pass
 
     def __init__(self, obj=None, extra=None, only=None,

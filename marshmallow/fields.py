@@ -257,7 +257,7 @@ class Nested(Raw):
         super(Nested, self).__init__(**kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
-        '''Filter all_fields based on self.only and self.exclude.'''
+        """Filter all_fields based on self.only and self.exclude """
         # Default 'only' to all the nested fields
         ret = OrderedDict()
         if all_fields is None:

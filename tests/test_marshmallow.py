@@ -12,7 +12,7 @@ import pytest
 import pytz
 
 from marshmallow import Serializer, fields, validate, utils, class_registry
-from marshmallow.exceptions import MarshallingError
+from marshmallow.exceptions import MarshallingError, RegistryError
 from marshmallow.compat import unicode, binary_type, total_seconds
 
 
@@ -1223,7 +1223,11 @@ def test_serializer_has_class_registry():
     class MySerializer(Serializer):
         pass
 
+    class MySubSerializer(Serializer):
+        pass
+
     assert 'MySerializer' in class_registry._registry
+    assert 'MySubSerializer' in class_registry._registry
 
 
 class A:
@@ -1259,5 +1263,5 @@ def test_two_way_nesting():
     assert b_serialized.data['a']['id'] == a_obj.id
 
 def test_invalid_class_name_in_nested_field_raises_error(user):
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RegistryError):
         fields.Nested('notfound').output('foo', user)

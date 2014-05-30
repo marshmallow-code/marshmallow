@@ -3,7 +3,7 @@
 serializers, which may be used with
 :class:`fields.Nested <marshmallow.fields.Nested>`.
 """
-
+from marshmallow.exceptions import RegistryError
 # {
 #   <class_name>: <list of class objects>
 # }
@@ -22,10 +22,10 @@ def get_class(classname):
     try:
         classes = _registry[classname]
     except KeyError:
-        raise RuntimeError('Class with name {0!r} was not found. You may need '
-            'to import the class.')
+        raise RegistryError('Class with name {0!r} was not found. You may need '
+            'to import the class.'.format(classname))
     if len(classes) > 1:
-        raise RuntimeError('Multiple classes with name {0!r} '
+        raise RegistryError('Multiple classes with name {0!r} '
             'were found.'.format(classname))
     else:
         return _registry[classname][0]

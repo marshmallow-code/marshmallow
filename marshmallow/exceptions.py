@@ -2,7 +2,14 @@
 """Exception classes for marshmallow-related errors."""
 
 class MarshmallowError(Exception):
-    '''Base class for all marshmallow-related errors.'''
+    """Base class for all marshmallow-related errors."""
+    pass
+
+
+class RegistryError(NameError, MarshmallowError):
+    """Raised when an invalid operation is performed on the serializer
+    class registry.
+    """
     pass
 
 
