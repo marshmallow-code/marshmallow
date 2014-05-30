@@ -68,7 +68,7 @@ class SerializerOpts(object):
 
 
 class BaseSerializer(base.SerializerABC):
-    '''Base serializer class with which to define custom serializers.
+    """Base serializer class with which to define custom serializers.
 
     Example usage:
 
@@ -109,7 +109,7 @@ class BaseSerializer(base.SerializerABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to ``True`` if ``obj`` is a collection
         so that the object will be serialized to a list.
-    '''
+    """
     TYPE_MAPPING = {
         text_type: fields.String,
         binary_type: fields.String,
@@ -320,9 +320,9 @@ class BaseSerializer(base.SerializerABC):
         return data
 
     def to_json(self, *args, **kwargs):
-        '''Return the JSON representation of the data. Takes the same arguments
-        as Pythons built-in ``json.dumps``.
-        '''
+        """Return the JSON representation of the data. Takes the same arguments
+        as Python's built-in ``json.dumps``.
+        """
         ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
         # On Python 2, json.dumps returns bytestrings
         # On Python 3, json.dumps returns unicode
