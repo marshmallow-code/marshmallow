@@ -10,7 +10,7 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 from functools import wraps
 import inspect
 
-from marshmallow import validate, utils
+from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
                                 basestring)
@@ -286,10 +286,14 @@ class Nested(Raw):
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SerializerABC):
                 self.__serializer = self.nested(None, many=self.many)
-            elif self.nested == 'self':
-                self.__serializer = self.parent  # The serializer this fields belongs to
-                # For now, don't allow nesting of depth > 1
-                self.exclude += (self.name, )  # Exclude this field
+            elif isinstance(self.nested, basestring):
+                if self.nested == 'self':
+                    self.__serializer = self.parent  # The serializer this fields belongs to
+                    # For now, don't allow nesting of depth > 1
+                    self.exclude += (self.name, )  # Exclude this field
+                else:
+                    serializer_class = class_registry.get_class(self.nested)
+                    self.__serializer = serializer_class(None, many=self.many)
             else:
                 raise ValueError("Nested fields must be passed a Serializer, not {0}."
                                 .format(self.nested.__class__))

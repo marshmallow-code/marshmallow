@@ -11,7 +11,7 @@ from collections import namedtuple
 import pytest
 import pytz
 
-from marshmallow import Serializer, fields, validate, utils
+from marshmallow import Serializer, fields, validate, utils, class_registry
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import unicode, binary_type, total_seconds
 
@@ -1215,3 +1215,49 @@ def test_serializing_named_tuple():
     p = Point(x=4, y=2)
 
     assert field.output('x', p) == 4
+
+
+##### Class registry/two-way nesting #####
+
+def test_serializer_has_class_registry():
+    class MySerializer(Serializer):
+        pass
+
+    assert 'MySerializer' in class_registry._registry
+
+
+class A:
+
+    def __init__(self, _id, b=None):
+        self.id = _id
+        self.b = b
+
+class B:
+
+    def __init__(self, _id, a=None):
+        self.id = _id
+        self.a = a
+
+class ASerializer(Serializer):
+    id = fields.Integer()
+    b = fields.Nested('BSerializer', exclude=('a', ))
+
+class BSerializer(Serializer):
+    id = fields.Integer()
+    a = fields.Nested('ASerializer')
+
+
+def test_two_way_nesting():
+    a_obj = A(1)
+    b_obj = B(2, a=a_obj)
+    a_obj.b = b_obj
+
+    a_serialized = ASerializer(a_obj)
+    b_serialized = BSerializer(b_obj)
+
+    assert a_serialized.data['b']['id'] == b_obj.id
+    assert b_serialized.data['a']['id'] == a_obj.id
+
+def test_invalid_class_name_in_nested_field_raises_error(user):
+    with pytest.raises(RuntimeError):
+        fields.Nested('notfound').output('foo', user)

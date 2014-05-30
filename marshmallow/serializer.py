@@ -9,30 +9,32 @@ import types
 import warnings
 import functools
 
-from marshmallow import base, fields, utils
+from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
 class SerializerMeta(type):
-    '''Metaclass for the Serializer class. Binds the declared fields to
+    """Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field objects.
-    '''
+    """
 
     def __new__(mcs, name, bases, attrs):
         attrs['_declared_fields'] = mcs.get_declared_fields(bases, attrs, base.FieldABC)
-        return super(SerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+        new_class = super(SerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+        class_registry.register(name, new_class)
+        return new_class
 
     @classmethod
     def get_declared_fields(mcs, bases, attrs, field_class):
-        '''Return the declared fields of a class as an OrderedDict.
+        """Return the declared fields of a class as an OrderedDict.
 
         :param tuple bases: Tuple of classes the class is subclassing.
         :param dict attrs: Dictionary of class attributes.
         :param type field_class: The base field class. Any class attribute that
             is of this type will be be returned
-        '''
+        """
         declared = [(field_name, attrs.pop(field_name))
                     for field_name, val in list(iteritems(attrs))
                     if utils.is_instance_or_subclass(val, field_class)]
