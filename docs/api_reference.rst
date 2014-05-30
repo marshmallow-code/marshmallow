@@ -35,7 +35,11 @@ Utility Functions
 .. automodule:: marshmallow.utils
     :members:
 
+Class Registry
+==============
 
+.. automodule:: marshmallow.class_registry
+    :members:
 
 Exceptions
 ==========
@@ -44,4 +48,5 @@ Exceptions
 
 .. autoexception:: MarshmallowError
 .. autoexception:: MarshallingError
+.. autoexception:: RegistryError
 
