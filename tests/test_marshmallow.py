@@ -1281,5 +1281,18 @@ def test_nesting_with_class_name_many():
     assert c_serialized.data['bs'][0]['id'] == c_obj.bs[0].id
 
 def test_invalid_class_name_in_nested_field_raises_error(user):
-    with pytest.raises(RegistryError):
+    with pytest.raises(RegistryError) as excinfo:
         fields.Nested('notfound').output('foo', user)
+
+    assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
+
+def test_multiple_classes_with_same_name():
+    from .foo_serializer import FooSerializer as FooSerializer1
+    class FooSerializer(Serializer):
+        pass
+    with pytest.raises(RegistryError) as excinfo:
+        field = fields.Nested('FooSerializer')
+        field.output('bar', {})
+    msg = 'Multiple classes with name {0!r} were found.'\
+            .format('FooSerializer')
+    assert msg in str(excinfo)

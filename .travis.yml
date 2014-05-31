@@ -12,4 +12,4 @@ install:
   - pip install pytz
   - pip install -U .
 
-script: py.test
+script: py.test --verbose
