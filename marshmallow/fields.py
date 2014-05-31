@@ -229,11 +229,12 @@ class Nested(Raw):
     Examples: ::
 
         user = fields.Nested(UserSerializer)
+        user2 = fields.Nested('UserSerializer')  # Equivalent to above
         collaborators = fields.Nested(UserSerializer(many=True, only='id'))
         parent = fields.Nested('self')
 
     :param Serializer nested: The Serializer class, instance, or class name (string)
-        to nest, or "self" to nest the serializer within itself.
+        to nest, or ``"self"`` to nest the serializer within itself.
     :param tuple exclude: A list or tuple of fields to exclude.
     :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields
         will be marshalled. If a field name (string) is given, only a single

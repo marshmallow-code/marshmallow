@@ -13,7 +13,23 @@ _registry = {}
 
 
 def register(classname, cls):
-    """Add a class to the registry of serializer classes."""
+    """Add a class to the registry of serializer classes. When a class is
+    registered, an entry for both its classname and its full, module-qualified
+    path are added to the registry.
+
+    Example: ::
+
+        class MyClass:
+            pass
+
+        register('MyClass', MyClass)
+        # Registry:
+        # {
+        #   'MyClass': [path.to.MyClass],
+        #   'path.to.MyClass': [path.to.MyClass],
+        # }
+
+    """
     # Module where the class is located
     module = cls.__module__
     # Full module path to the class

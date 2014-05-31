@@ -219,19 +219,53 @@ Two-way Nesting
 If you have two objects that nest each other, you can refer to a nested serializer by its class name. This allows you to nest serializers that have not yet been defined.
 
 
+For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
+
 .. code-block:: python
 
     class AuthorSerializer(Serializer):
         class Meta:
             fields = ('id', 'name', 'books')
-        books = fields.Nested('BookSerializer', many=True)
+        # Make sure to use the 'only' or 'exclude' params
+        # to avoid infinite recursion
+        books = fields.Nested('BookSerializer', many=True, exclude=('author', ))
 
     class BookSerializer(Serializer):
         class Meta:
             fields = ('id', 'title', 'author')
-        # Make sure to use the 'only' or 'exclude' params
-        # to avoid infinite recursion
         author = fields.Nested('AuthorSerializer', only=('id', 'name'))
+
+
+.. code-block:: python
+
+    from marshmallow import pprint
+    from mymodels import Author, Book
+
+    author = Author(name='William Faulkner')
+    book = Book(title='As I Lay Dying', author=author)
+
+    pprint(BookSerializer(book).data, indent=2)
+    # {
+    #   "author": {
+    #     "id": 8,
+    #     "name": "William Faulkner"
+    #   },
+    #   "id": 124,
+    #   "title": "As I Lay Dying"
+    # }
+
+    pprint(AuthorSerializer(author).data, indent=2)
+    # {
+    #   "books": [
+    #     {
+    #       "id": 124,
+    #       "title": "As I Lay Dying"
+    #     }
+    #   ],
+    #   "id": 8,
+    #   "name": "William Faulkner"
+    # }
+
 
 Nesting A Serializer Within Itself
 ++++++++++++++++++++++++++++++++++
