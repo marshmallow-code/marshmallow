@@ -1,4 +1,5 @@
 pytest
+pytest-xdist  # for test watching
 tox>=1.5.0
 sphinx
 wheel

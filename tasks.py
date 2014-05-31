@@ -11,6 +11,11 @@ def test():
     run('python setup.py test', pty=True)
 
 @task
+def watch():
+    """Run tests when a file changes."""
+    run('py.test -f tests/', pty=True)
+
+@task
 def clean():
     run("rm -rf build")
     run("rm -rf dist")
