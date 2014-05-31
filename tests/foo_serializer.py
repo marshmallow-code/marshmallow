@@ -1,5 +1,5 @@
-from marshmallow import Serializer
+from marshmallow import Serializer, fields
 
 
 class FooSerializer(Serializer):
-    pass
+    _id = fields.Integer()

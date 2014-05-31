@@ -1286,15 +1286,31 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
 
     assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
 
+class FooSerializer(Serializer):
+    _id = fields.Integer()
 
-def test_multiple_classes_with_same_name():
+def test_multiple_classes_with_same_name_raises_error():
+    # Import a class with the same name
     from .foo_serializer import FooSerializer as FooSerializer1
 
-    class FooSerializer(Serializer):
-        pass
+    # Using a nested field with the class name fails because there are
+    # two defined classes with the same name
     with pytest.raises(RegistryError) as excinfo:
         field = fields.Nested('FooSerializer')
         field.output('bar', {})
     msg = 'Multiple classes with name {0!r} were found.'\
             .format('FooSerializer')
     assert msg in str(excinfo)
+
+def test_can_use_full_module_path_to_class():
+    from .foo_serializer import FooSerializer as FooSerializer1
+    # Using full paths is ok
+    field = fields.Nested('tests.foo_serializer.FooSerializer')
+
+    # Note: The arguments here don't matter. What matters is that no
+    # error is raised
+    assert field.output('bar', {'foo': {'_id': 42}})
+
+    field2 = fields.Nested('tests.test_marshmallow.FooSerializer')
+
+    assert field2.output('bar', {'foo': {'_id': 42}})
