@@ -232,8 +232,8 @@ class Nested(Raw):
         collaborators = fields.Nested(UserSerializer(many=True, only='id'))
         parent = fields.Nested('self')
 
-    :param Serializer nested: The Serializer class or instance to nest, or
-        "self" to nest the serializer within itself.
+    :param Serializer nested: The Serializer class, instance, or class name (string)
+        to nest, or "self" to nest the serializer within itself.
     :param tuple exclude: A list or tuple of fields to exclude.
     :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields
         will be marshalled. If a field name (string) is given, only a single
@@ -338,14 +338,14 @@ def flatten(dictlist, key):
 
 
 class List(Raw):
-    '''A list field.
+    """A list field.
 
     Example: ::
 
         numbers = fields.List(fields.Float)
 
     :param cls_or_instance: A field class or instance.
-    '''
+    """
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):

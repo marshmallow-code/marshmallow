@@ -1242,6 +1242,13 @@ class B:
         self.id = _id
         self.a = a
 
+
+class C:
+
+    def __init__(self, _id, bs=None):
+        self.id = _id
+        self.bs = bs or []
+
 class ASerializer(Serializer):
     id = fields.Integer()
     b = fields.Nested('BSerializer', exclude=('a', ))
@@ -1250,6 +1257,9 @@ class BSerializer(Serializer):
     id = fields.Integer()
     a = fields.Nested('ASerializer')
 
+class CSerializer(Serializer):
+    id = fields.Integer()
+    bs = fields.Nested('BSerializer', many=True)
 
 def test_two_way_nesting():
     a_obj = A(1)
@@ -1261,6 +1271,14 @@ def test_two_way_nesting():
 
     assert a_serialized.data['b']['id'] == b_obj.id
     assert b_serialized.data['a']['id'] == a_obj.id
+
+def test_nesting_with_class_name_many():
+    c_obj = C(1, bs=[B(2), B(3), B(4)])
+
+    c_serialized = CSerializer(c_obj)
+
+    assert len(c_serialized.data['bs']) == len(c_obj.bs)
+    assert c_serialized.data['bs'][0]['id'] == c_obj.bs[0].id
 
 def test_invalid_class_name_in_nested_field_raises_error(user):
     with pytest.raises(RegistryError):

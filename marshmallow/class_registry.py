@@ -5,15 +5,16 @@ serializers, which may be used with
 """
 from marshmallow.exceptions import RegistryError
 
-
 # {
 #   <class_name>: <list of class objects>
 # }
 _registry = {}
 
+
 def register(classname, cls):
     """Add a class to the registry of serializer classes."""
-    if classname in _registry:
+    if classname in _registry and not \
+            any(each.__module__ == cls.__module__ for each in _registry[classname]):
         _registry[classname].append(cls)
     else:
         _registry[classname] = [cls]

@@ -213,6 +213,25 @@ When you serialize the blog, you will see the nested user representation.
         collaborators = fields.Nested(UserSerializer, many=True)
 
 
+Two-way Nesting
++++++++++++++++
+
+If you have two objects that nest each other, you can refer to a nested serializer by its class name. This allows you to nest serializers that have not yet been defined.
+
+
+.. code-block:: python
+
+    class AuthorSerializer(Serializer):
+        class Meta:
+            fields = ('id', 'name', 'books')
+        books = fields.Nested('BookSerializer', many=True)
+
+    class BookSerializer(Serializer):
+        class Meta:
+            fields = ('id', 'title', 'author')
+        # Make sure to use the 'only' or 'exclude' params
+        # to avoid infinite recursion
+        author = fields.Nested('AuthorSerializer', only=('id', 'name'))
 
 Nesting A Serializer Within Itself
 ++++++++++++++++++++++++++++++++++
