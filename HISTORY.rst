@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.6.0 (unreleased)
+0.6.0 (2014-06-03)
 ++++++++++++++++++
 
 * Fix bug in serializing keyed tuple types, e.g. ``namedtuple`` and ``KeyedTuple``.
