@@ -6,7 +6,7 @@ Changelog
 
 * Fix bug in serializing keyed tuple types, e.g. ``namedtuple`` and ``KeyedTuple``.
 * Nested field can load a serializer by its class name as a string. This makes it easier to implement 2-way nesting.
-
+* Make Serializer.data override-able.
 
 0.5.5 (2014-05-02)
 ++++++++++++++++++

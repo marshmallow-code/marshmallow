@@ -14,6 +14,7 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
+
 class SerializerMeta(type):
     """Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -163,7 +164,7 @@ class BaseSerializer(base.SerializerABC):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.fields = OrderedDict()
-        self.__data = None
+        self._data = None
         self.obj = obj
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
@@ -185,7 +186,7 @@ class BaseSerializer(base.SerializerABC):
             raw_data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 raw_data.update(self.extra)
-            self.__data = self.process_data(raw_data)
+            self._data = self.process_data(raw_data)
 
     @classmethod
     def factory(cls, *args, **kwargs):
@@ -295,12 +296,12 @@ class BaseSerializer(base.SerializerABC):
     def data(self):
         """The serialized data as an :class:`OrderedDict`.
         """
-        if not self.__data:  # Cache the data
+        if not self._data:  # Cache the data
             raw_data = self.marshal(self.obj, self.fields, many=self.many)
             if self.extra:
                 raw_data.update(self.extra)
-            self.__data = self.process_data(raw_data)
-        return self.__data
+            self._data = self.process_data(raw_data)
+        return self._data
 
     @property
     def json(self):
