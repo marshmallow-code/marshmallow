@@ -48,7 +48,7 @@ __all__ = [
 
 
 def validated(f):
-    """Decorator that wraps a field's ``format`` or ``output`` method. If an
+    """Decorator that wraps a field's ``output`` method. If an
     exception is raised during the execution of the wrapped method or the
     field object's ``validate`` function evaluates to ``False``, a
     MarshallingError is raised instead with the underlying exception's
@@ -214,7 +214,7 @@ class Raw(FieldABC):
 
         :param str key: The attibute or key to get.
         :param str obj: The object to pull the key from.
-        :exception MarshallingError: In case of formatting problem
+        :exception MarshallingError: In case of validation or formatting problem
         """
         value = self.get_value(key, obj)
         if value is None:
@@ -362,6 +362,7 @@ class List(Raw):
                                            "marshmallow.base.FieldABC")
             self.container = cls_or_instance
 
+    @validated
     def output(self, key, data):
         value = self.get_value(key, data)
         # we cannot really test for external dict behavior
@@ -382,7 +383,6 @@ class String(Raw):
     def __init__(self, default='', attribute=None,  *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
-    @validated
     def format(self, value):
         try:
             return text_type(value)
@@ -414,7 +414,6 @@ class Number(Raw):
         else:
             return self.num_type(value)
 
-    @validated
     def format(self, value):
         try:
             if value is None:
@@ -448,6 +447,7 @@ class FormattedString(Raw):
         super(FormattedString, self).__init__()
         self.src_str = text_type(src_str)
 
+    @validated
     def output(self, key, obj):
         try:
             data = utils.to_marshallable_type(obj)
@@ -475,7 +475,6 @@ class Arbitrary(Number):
     def __init__(self, default=0, attribute=None, **kwargs):
         super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
-    @validated
     def format(self, value):
         try:
             if value is None:
@@ -507,7 +506,6 @@ class DateTime(Raw):
         super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
         self.dateformat = format
 
-    @validated
     def format(self, value):
         self.dateformat = self.dateformat or 'rfc'
         format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
@@ -530,7 +528,6 @@ class LocalDateTime(DateTime):
 class Time(Raw):
     """ISO8601-formatted time string."""
 
-    @validated
     def format(self, value):
         try:
             ret = value.isoformat()
@@ -545,7 +542,6 @@ class Time(Raw):
 class Date(Raw):
     """ISO8601-formatted date string."""
 
-    @validated
     def format(self, value):
         try:
             return value.isoformat()
@@ -560,7 +556,6 @@ class TimeDelta(Raw):
     as a float.
     '''
 
-    @validated
     def format(self, value):
         try:
             return total_seconds(value)
@@ -583,7 +578,6 @@ class Fixed(Number):
                             *args, **kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
-    @validated
     def format(self, value):
         dvalue = utils.float_to_decimal(float(value))
         if not dvalue.is_normal() and dvalue != ZERO:
