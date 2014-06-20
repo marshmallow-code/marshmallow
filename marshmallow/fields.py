@@ -48,14 +48,22 @@ __all__ = [
 
 
 def validated(f):
-    """Decorator that wraps a field's ``output`` method. If an
-    exception is raised during the execution of the wrapped method or the
-    field object's ``validate`` function evaluates to ``False``, a
-    MarshallingError is raised instead with the underlying exception's
-    error message or the user-defined error message (if defined).
+    """Decorator that wraps a field's ``output`` method.
+
+    If the field is required and the value is missing, we raise a
+    MarshallingError immediately. Otherwise, if an exception is raised
+    during the execution of the wrapped method or the field object's
+    ``validate`` function evaluates to ``False``, a MarshallingError
+    is raised with the underlying exception's error message or the
+    user-defined error message (if defined).
     """
     @wraps(f)
     def decorated(self, *args, **kwargs):
+        if hasattr(self, "required"):
+            value = self.get_value(args[0], args[1])
+            if self.required and value is None:
+                raise MarshallingError("Missing data for required field.")
+
         try:
             output = f(self, *args, **kwargs)
             if hasattr(self, 'validate') and callable(self.validate):
@@ -182,15 +190,9 @@ class Raw(FieldABC):
         self.required = required
 
     def get_value(self, key, obj):
-        """Return the value for a given key from an object.
-
-        :exception MarshallingError: In case of a required field returning None
-        """
+        """Return the value for a given key from an object."""
         check_key = key if self.attribute is None else self.attribute
-        value = _get_value(check_key, obj)
-        if value is None and self.required:
-            raise MarshallingError("{0!r} is a required field.".format(check_key))
-        return value
+        return _get_value(check_key, obj)
 
     def format(self, value):
         """Formats a field's value. No-op by default, concrete fields should

@@ -1047,7 +1047,7 @@ def test_required_field_failure(FieldClass):
     field = FieldClass(required=True)
     with pytest.raises(MarshallingError) as excinfo:
         field.output('age', user_data)
-    assert "{0!r} is a required field".format('age') in str(excinfo)
+    assert "Missing data for required field." in str(excinfo)
 
 
 @pytest.mark.parametrize(('FieldClass', 'value'), [
@@ -1068,7 +1068,7 @@ def test_required_list_field_failure():
     field = fields.List(fields.String, required=True)
     with pytest.raises(MarshallingError) as excinfo:
         field.output('relatives', user_data)
-    assert '{0!r} is a required field'.format('relatives') in str(excinfo)
+    assert 'Missing data for required field.' in str(excinfo)
 
 
 def test_serialization_with_required_field():
@@ -1079,8 +1079,26 @@ def test_serialization_with_required_field():
     s = RequiredUserSerializer(user)
     assert s.is_valid() is False
     assert 'name' in s.errors
-    assert s.errors['name'] == '{0!r} is a required field.'.format('name')
+    assert s.errors['name'] == 'Missing data for required field.'
 
+
+def test_serialization_with_required_field_and_custom_validator():
+    class RequiredGenderSerializer(Serializer):
+        gender = fields.String(required=True,
+                               validate=lambda x: x.lower() == 'f' or x.lower() == 'm',
+                               error="Gender must be 'f' or 'm'.")
+
+    user = dict(gender=None)
+    s = RequiredGenderSerializer(user)
+    assert s.is_valid() is False
+    assert 'gender' in s.errors
+    assert s.errors['gender'] == "Missing data for required field."
+
+    user = dict(gender='Unkown')
+    s = RequiredGenderSerializer(user)
+    assert s.is_valid() is False
+    assert 'gender' in s.errors
+    assert s.errors['gender'] == "Gender must be 'f' or 'm'."
 
 
 class TestValidators(unittest.TestCase):
