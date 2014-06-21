@@ -2,10 +2,11 @@ Changelog
 ---------
 
 
-0.6.1 (unreleased)
+0.7.0 (unreleased)
 ++++++++++++++++++
 
 * Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks Joe Alcorn for reporting.
+* If ``required=True`` validation is violated for a given ``Field``, it will raise an error message that is different from the message specified by the ``error`` argument. Thanks Anders Steinlein.
 
 0.6.0 (2014-06-03)
 ++++++++++++++++++

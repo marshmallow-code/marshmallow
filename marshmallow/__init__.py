@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-__version__ = '0.6.1-dev'
+__version__ = '0.7.0-dev'
 __author__ = 'Steven Loria'
 __license__ = "MIT"
 
