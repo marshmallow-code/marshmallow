@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+
+0.6.1 (unreleased)
+++++++++++++++++++
+
+* Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks Joe Alcorn for reporting.
+
 0.6.0 (2014-06-03)
 ++++++++++++++++++
 

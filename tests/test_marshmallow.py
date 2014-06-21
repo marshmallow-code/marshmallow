@@ -441,6 +441,12 @@ def test_extra():
     s = UserSerializer(user, extra={"fav_color": "blue"})
     assert s.data['fav_color'] == "blue"
 
+def test_extra_many():
+    users = [User('Fred'), User('Brian')]
+    s = UserSerializer(users, many=True, extra={'band': 'Queen'})
+    data = s.data
+    assert data[0]['band'] == 'Queen'
+
 @pytest.mark.parametrize('SerializerClass',
     [UserSerializer, UserMetaSerializer])
 def test_method_field(SerializerClass, serialized_user):

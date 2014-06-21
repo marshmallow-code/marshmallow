@@ -184,9 +184,13 @@ class BaseSerializer(base.SerializerABC):
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             raw_data = self.marshal(self.obj, self.fields, many=self.many)
-            if self.extra:
-                raw_data.update(self.extra)
             self._data = self.process_data(raw_data)
+            if self.extra:
+                if self.many:
+                    for each in self._data:
+                        each.update(self.extra)
+                else:
+                    self._data.update(self.extra)
 
     @classmethod
     def factory(cls, *args, **kwargs):
@@ -298,9 +302,13 @@ class BaseSerializer(base.SerializerABC):
         """
         if not self._data:  # Cache the data
             raw_data = self.marshal(self.obj, self.fields, many=self.many)
-            if self.extra:
-                raw_data.update(self.extra)
             self._data = self.process_data(raw_data)
+            if self.extra:
+                if self.many:
+                    for each in self._data:
+                        each.update(self.extra)
+                else:
+                    self._data.update(self.extra)
         return self._data
 
     @property
