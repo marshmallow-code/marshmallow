@@ -183,14 +183,17 @@ class BaseSerializer(base.SerializerABC):
         self._update_fields(obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
-            raw_data = self.marshal(self.obj, self.fields, many=self.many)
-            self._data = self.process_data(raw_data)
-            if self.extra:
-                if self.many:
-                    for each in self._data:
-                        each.update(self.extra)
-                else:
-                    self._data.update(self.extra)
+            self._update_data()
+
+    def _update_data(self):
+        raw_data = self.marshal(self.obj, self.fields, many=self.many)
+        self._data = self.process_data(raw_data)
+        if self.extra:
+            if self.many:
+                for each in self._data:
+                    each.update(self.extra)
+            else:
+                self._data.update(self.extra)
 
     @classmethod
     def factory(cls, *args, **kwargs):
@@ -301,14 +304,7 @@ class BaseSerializer(base.SerializerABC):
         """The serialized data as an :class:`OrderedDict`.
         """
         if not self._data:  # Cache the data
-            raw_data = self.marshal(self.obj, self.fields, many=self.many)
-            self._data = self.process_data(raw_data)
-            if self.extra:
-                if self.many:
-                    for each in self._data:
-                        each.update(self.extra)
-                else:
-                    self._data.update(self.extra)
+            self._update_data()
         return self._data
 
     @property
