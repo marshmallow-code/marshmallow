@@ -35,5 +35,6 @@ Project Info
 
     license
     changelog
+    authors
     contributing
     kudos
