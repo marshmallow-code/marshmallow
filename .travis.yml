@@ -9,7 +9,7 @@ python:
   - "2.6"
   - "pypy"
 install:
-  - pip install pytz
+  - travis_retry pip install pytz
   - pip install -U .
 
-script: py.test --verbose
+script: python setup.py test
