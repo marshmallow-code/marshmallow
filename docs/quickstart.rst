@@ -156,7 +156,7 @@ You can make a field required by passing ``required=True``. An error will be sto
     user = User(name=None, email='foo@bar.com')
     serialized = UserSerializer(user)
     serialized.is_valid()  # False
-    serialized.errors  # {'name': '"name" is a required field.'}
+    serialized.errors  # {'name': 'Missing data for required field.'}
 
 
 Specifying Attribute Names
