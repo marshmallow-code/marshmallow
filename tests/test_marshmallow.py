@@ -729,6 +729,33 @@ def test_serializer_with_custom_error_handler(user):
     with pytest.raises(CustomError):
         MySerializer(user).data
 
+def test_serializer_with_custom_data_handler(user):
+    class CallbackSerializer(Serializer):
+        name = fields.String()
+
+    @CallbackSerializer.data_handler
+    def add_meaning(serializer, data):
+        data['meaning'] = 42
+
+    ser = CallbackSerializer(user)
+    assert ser.data['meaning'] == 42
+
+def test_serializer_with_multiple_data_handlers(user):
+    class CallbackSerializer2(Serializer):
+        name = fields.String()
+
+    @CallbackSerializer2.data_handler
+    def add_meaning(serializer, data):
+        data['meaning'] = 42
+
+    @CallbackSerializer2.data_handler
+    def upper_name(serializer, data):
+        data['name'] = data['name'].upper()
+
+    ser = CallbackSerializer2(user)
+    assert ser.data['meaning'] == 42
+    assert ser.data['name'] == user.name.upper()
+
 
 class TestNestedSerializer(unittest.TestCase):
     def setUp(self):
@@ -1226,18 +1253,6 @@ class TestMarshallingError:
 def test_enum_is_select():
     assert fields.Select is fields.Enum
 
-def test_process_data_hook(user):
-    class JSONRootSerializer(Serializer):
-        NAME = 'user'
-        name = fields.String()
-
-        def process_data(self, data):
-            return {
-                self.NAME: data
-            }
-    s = JSONRootSerializer(user)
-    assert 'user' in s.data
-    assert s.data['user']['name'] == user.name
 
 def test_error_gets_raised_if_many_is_omitted(user):
     class BadSerializer(Serializer):

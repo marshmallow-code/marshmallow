@@ -10,6 +10,8 @@ Changelog
 * More generic error message raised when required field is missing.
 * ``validated`` decorator should only wrap a ``Field`` class's ``output`` method.
 * Add ``Serializer.error_handler`` decorator that registers a custom error handler.
+* Add ``Serializer.data_handler`` decorator that registers data post-processing callback.
+ *Backwards-incompatible*: Deprecate ``process_data`` method. Use the ``data_handler`` method instead.
 
 0.6.0 (2014-06-03)
 ++++++++++++++++++

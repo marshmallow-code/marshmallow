@@ -130,6 +130,10 @@ class BaseSerializer(base.SerializerABC):
 
     #: Custom error handler function. May be ``None``.
     error_callback = None
+    #: List of registered post-processing functions.
+    #  NOTE: Initially ``None`` so that every subclass references a different
+    #  list of functions
+    data_callbacks = None
 
     class Meta(object):
         """Options object for a Serializer.
@@ -181,6 +185,7 @@ class BaseSerializer(base.SerializerABC):
         )
         self.extra = extra
         self.context = context
+
         if isinstance(obj, types.GeneratorType):
             self.obj = list(obj)
         else:
@@ -191,16 +196,23 @@ class BaseSerializer(base.SerializerABC):
             self._update_data()
 
     def _update_data(self):
-        raw_data = self.marshal(self.obj, self.fields, many=self.many)
+        result = self.marshal(self.obj, self.fields, many=self.many)
         if self.extra:
             if self.many:
-                for each in raw_data:
+                for each in result:
                     each.update(self.extra)
             else:
-                raw_data.update(self.extra)
+                result.update(self.extra)
         if callable(self.error_callback):
             self.error_callback(self.marshal.errors, self.obj)
-        self._data = self.process_data(raw_data)
+
+        # invoke registered callbacks
+        # NOTE: these callbacks will mutate the data
+        if self.data_callbacks:
+            for callback in self.data_callbacks:
+                if callable(callback):
+                    callback(self, result)
+        self._data = result
 
     @classmethod
     def error_handler(cls, func):
@@ -224,11 +236,37 @@ class BaseSerializer(base.SerializerABC):
         return func
 
     @classmethod
+    def data_handler(cls, func):
+        """Decorator that registers a post-processing function for the
+        serializer. The function receives the serializer instance and the serialized
+        data as arguments.
+
+        Example: ::
+
+            class UserSerializer(Serializer):
+                name = fields.String()
+
+            @UserSerializer.data_handler
+            def add_surname(serializer, data):
+                data['surname'] = data['name'].split()[1]
+
+        .. note::
+
+            You can register multiple handler functions for the same serializer.
+
+        .. versionadded:: 0.7.0
+
+        """
+        cls.data_callbacks = cls.data_callbacks or []
+        cls.data_callbacks.append(func)
+        return func
+
+    @classmethod
     def factory(cls, *args, **kwargs):
         """Create a factory function that returns an instance of the serializer.
         Can be used to "freeze" the serializer's arguments.
 
-        Example usage: ::
+        Example: ::
 
             serialize_user = UserSerializer.factory(strict=True)
             user = User(email='invalidemail')
@@ -344,13 +382,6 @@ class BaseSerializer(base.SerializerABC):
     def errors(self):
         """Dictionary of errors raised during serialization."""
         return self.marshal.errors
-
-    def process_data(self, data):
-        """Hook that allows subclasses to modify the final output of the data.
-
-        .. versionadded:: 0.5.5
-        """
-        return data
 
     def to_json(self, *args, **kwargs):
         """Return the JSON representation of the data. Takes the same arguments
