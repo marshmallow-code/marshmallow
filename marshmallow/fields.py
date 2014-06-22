@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-'''Field classes for formatting and validating the serialized object.
-'''
+"""Field classes for formatting and validating the serialized object.
+"""
 # Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
 # See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
 # file for more licensing information.
@@ -59,10 +59,10 @@ def validated(f):
     """
     @wraps(f)
     def decorated(self, *args, **kwargs):
-        if hasattr(self, "required"):
+        if hasattr(self, 'required'):
             value = self.get_value(args[0], args[1])
             if self.required and value is None:
-                raise MarshallingError("Missing data for required field.")
+                raise MarshallingError('Missing data for required field.')
 
         try:
             output = f(self, *args, **kwargs)
@@ -88,11 +88,16 @@ class Marshaller(object):
         serialized field names.
     :param bool strict: If ``True``, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
+    :param callable error_handler: Error handling function that receieves a
+        dictionary of stored errors.
     """
-    def __init__(self, prefix='', strict=False):
+    def __init__(self, prefix='', strict=False, error_handler=None):
         self.prefix = prefix
         self.strict = strict
         self.errors = {}
+        if error_handler and not callable(error_handler):
+            raise ValueError('{0!r} is not callable.'.format(error_handler))
+        self.error_handler = error_handler
 
     def marshal(self, data, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
@@ -119,8 +124,8 @@ class Marshaller(object):
                 item = (key, None)
             except TypeError:
                 # field declared as a class, not an instance
-                if isinstance(field_obj, type) and \
-                    issubclass(field_obj, FieldABC):
+                if (isinstance(field_obj, type) and
+                       issubclass(field_obj, FieldABC)):
                     msg = ('Field for "{0}" must be declared as a '
                                     "Field instance, not a class. "
                                     'Did you mean "fields.{1}()"?'
@@ -128,6 +133,9 @@ class Marshaller(object):
                     raise TypeError(msg)
                 raise
             items.append(item)
+
+        if callable(self.error_handler):
+            self.error_handler(self.errors)
         return OrderedDict(items)
 
     # Make an instance callable

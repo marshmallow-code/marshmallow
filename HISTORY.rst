@@ -7,6 +7,8 @@ Changelog
 
 * Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks Joe Alcorn for reporting.
 * If ``required=True`` validation is violated for a given ``Field``, it will raise an error message that is different from the message specified by the ``error`` argument. Thanks Anders Steinlein.
+* More generic error message raised when required field is missing.
+* ``validated`` decorator should only wrap a ``Field`` class's output method.
 
 0.6.0 (2014-06-03)
 ++++++++++++++++++

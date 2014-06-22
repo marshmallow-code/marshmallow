@@ -1121,6 +1121,7 @@ class TestValidators(unittest.TestCase):
 
 
 class TestMarshaller(unittest.TestCase):
+
     def test_stores_errors(self):
         u = User("Foo", email="foobar")
         marshal = fields.Marshaller()
@@ -1145,6 +1146,24 @@ class TestMarshaller(unittest.TestCase):
         marshal = fields.Marshaller()
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert len(res) == 2
+
+    def test_custom_error_handler(self):
+        class CustomError(Exception):
+            pass
+
+        def handle_error(errors):
+            assert 'email' in errors
+            raise CustomError('There were errors.')
+
+        marshal = fields.Marshaller(error_handler=handle_error)
+        u = User('Foo', email='foobar')
+
+        with pytest.raises(CustomError):
+            marshal(u, {'email': fields.Email()})
+
+    def test_error_handler_must_be_callable(self):
+        with pytest.raises(ValueError):
+            fields.Marshaller(error_handler=42)
 
 
 class UserContextSerializer(Serializer):
@@ -1338,3 +1357,4 @@ def test_can_use_full_module_path_to_class():
     field2 = fields.Nested('tests.test_marshmallow.FooSerializer')
 
     assert field2.output('bar', {'foo': {'_id': 42}})
+
