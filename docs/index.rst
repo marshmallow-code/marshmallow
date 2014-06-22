@@ -16,6 +16,7 @@ Guide
 
    install
    quickstart
+   extending
    examples
 
 

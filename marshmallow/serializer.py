@@ -211,7 +211,7 @@ class BaseSerializer(base.SerializerABC):
         if self._data_callbacks:
             for callback in self._data_callbacks:
                 if callable(callback):
-                    result = callback(self, result)
+                    result = callback(self, result, self.obj)
         self._data = result
 
     @classmethod

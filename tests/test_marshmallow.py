@@ -737,7 +737,7 @@ def test_serializer_with_custom_data_handler(user):
         name = fields.String()
 
     @CallbackSerializer.data_handler
-    def add_meaning(serializer, data):
+    def add_meaning(serializer, data, obj):
         data['meaning'] = 42
         return data
 
@@ -749,12 +749,12 @@ def test_serializer_with_multiple_data_handlers(user):
         name = fields.String()
 
     @CallbackSerializer2.data_handler
-    def add_meaning(serializer, data):
+    def add_meaning(serializer, data, obj):
         data['meaning'] = 42
         return data
 
     @CallbackSerializer2.data_handler
-    def upper_name(serializer, data):
+    def upper_name(serializer, data, obj):
         data['name'] = data['name'].upper()
         return data
 
@@ -769,7 +769,7 @@ def test_root_data_handler(user):
         name = fields.String()
 
     @RootSerializer.data_handler
-    def add_root(serializer, data):
+    def add_root(serializer, data, obj):
         return {
             serializer.NAME: data
         }
