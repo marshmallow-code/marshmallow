@@ -129,11 +129,11 @@ class BaseSerializer(base.SerializerABC):
     OPTIONS_CLASS = SerializerOpts
 
     #: Custom error handler function. May be ``None``.
-    error_callback = None
+    _error_callback = None
     #: List of registered post-processing functions.
     #  NOTE: Initially ``None`` so that every subclass references a different
     #  list of functions
-    data_callbacks = None
+    _data_callbacks = None
 
     class Meta(object):
         """Options object for a Serializer.
@@ -203,15 +203,15 @@ class BaseSerializer(base.SerializerABC):
                     each.update(self.extra)
             else:
                 result.update(self.extra)
-        if callable(self.error_callback):
-            self.error_callback(self.marshal.errors, self.obj)
+        if self.marshal.errors and callable(self._error_callback):
+            self._error_callback(self.marshal.errors, self.obj)
 
         # invoke registered callbacks
         # NOTE: these callbacks will mutate the data
-        if self.data_callbacks:
-            for callback in self.data_callbacks:
+        if self._data_callbacks:
+            for callback in self._data_callbacks:
                 if callable(callback):
-                    callback(self, result)
+                    result = callback(self, result)
         self._data = result
 
     @classmethod
@@ -232,14 +232,14 @@ class BaseSerializer(base.SerializerABC):
         .. versionadded:: 0.7.0
 
         """
-        cls.error_callback = func
+        cls._error_callback = func
         return func
 
     @classmethod
     def data_handler(cls, func):
         """Decorator that registers a post-processing function for the
         serializer. The function receives the serializer instance and the serialized
-        data as arguments.
+        data as arguments and should return the processed data.
 
         Example: ::
 
@@ -249,6 +249,7 @@ class BaseSerializer(base.SerializerABC):
             @UserSerializer.data_handler
             def add_surname(serializer, data):
                 data['surname'] = data['name'].split()[1]
+                return data
 
         .. note::
 
@@ -257,8 +258,8 @@ class BaseSerializer(base.SerializerABC):
         .. versionadded:: 0.7.0
 
         """
-        cls.data_callbacks = cls.data_callbacks or []
-        cls.data_callbacks.append(func)
+        cls._data_callbacks = cls._data_callbacks or []
+        cls._data_callbacks.append(func)
         return func
 
     @classmethod

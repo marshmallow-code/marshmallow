@@ -729,6 +729,9 @@ def test_serializer_with_custom_error_handler(user):
     with pytest.raises(CustomError):
         MySerializer(user).data
 
+    user.email = 'monty@python.org'
+    assert MySerializer(user).data
+
 def test_serializer_with_custom_data_handler(user):
     class CallbackSerializer(Serializer):
         name = fields.String()
@@ -736,6 +739,7 @@ def test_serializer_with_custom_data_handler(user):
     @CallbackSerializer.data_handler
     def add_meaning(serializer, data):
         data['meaning'] = 42
+        return data
 
     ser = CallbackSerializer(user)
     assert ser.data['meaning'] == 42
@@ -747,14 +751,31 @@ def test_serializer_with_multiple_data_handlers(user):
     @CallbackSerializer2.data_handler
     def add_meaning(serializer, data):
         data['meaning'] = 42
+        return data
 
     @CallbackSerializer2.data_handler
     def upper_name(serializer, data):
         data['name'] = data['name'].upper()
+        return data
 
     ser = CallbackSerializer2(user)
     assert ser.data['meaning'] == 42
     assert ser.data['name'] == user.name.upper()
+
+def test_root_data_handler(user):
+    class RootSerializer(Serializer):
+        NAME = 'user'
+
+        name = fields.String()
+
+    @RootSerializer.data_handler
+    def add_root(serializer, data):
+        return {
+            serializer.NAME: data
+        }
+
+    s = RootSerializer(user)
+    assert s.data['user']['name'] == user.name
 
 
 class TestNestedSerializer(unittest.TestCase):
