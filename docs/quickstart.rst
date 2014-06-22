@@ -127,6 +127,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
 
 .. note::
+
     If you set ``strict=True`` in either the Serializer constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in.
 
     .. code-block:: python
@@ -141,6 +142,18 @@ You can perform additional validation for a field by passing it a ``validate`` c
           File "marshmallow/serializer.py", line 203, in marshal
             raise err
         MarshallingError: "foo" is not a valid email address.
+
+
+    Alternatively, can also register a custom error handler function for a serializer using the :func:`error_handler <Serializer.error_handler>` decorator.
+
+    .. code-block:: python
+
+        import logging
+
+        @UserSerializer.error_handler
+        def handle_errors(serializer, errors, obj):
+            logging.error(errors)
+            raise ValueError('There was a problem serializing {0!r}'.format(obj))
 
 Required Fields
 +++++++++++++++
