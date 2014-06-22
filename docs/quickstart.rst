@@ -144,16 +144,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
         MarshallingError: "foo" is not a valid email address.
 
 
-    Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Serializer.error_handler>` decorator.
-
-    .. code-block:: python
-
-        import logging
-
-        @UserSerializer.error_handler
-        def handle_errors(serializer, errors, obj):
-            logging.error(errors)
-            raise ValueError('There was a problem serializing {0!r}'.format(obj))
+    Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Serializer.error_handler>` decorator. See the :ref:`Extending Serializers <extending>` page for more info.
 
 Required Fields
 +++++++++++++++

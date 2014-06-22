@@ -238,8 +238,9 @@ class BaseSerializer(base.SerializerABC):
     @classmethod
     def data_handler(cls, func):
         """Decorator that registers a post-processing function for the
-        serializer. The function receives the serializer instance and the serialized
-        data as arguments and should return the processed data.
+        serializer. The function receives the serializer instance, the serialized
+        data, and the original object as arguments and should return the
+        processed data.
 
         Example: ::
 
@@ -247,7 +248,7 @@ class BaseSerializer(base.SerializerABC):
                 name = fields.String()
 
             @UserSerializer.data_handler
-            def add_surname(serializer, data):
+            def add_surname(serializer, data, obj):
                 data['surname'] = data['name'].split()[1]
                 return data
 
