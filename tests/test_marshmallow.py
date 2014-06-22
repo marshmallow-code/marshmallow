@@ -709,6 +709,27 @@ def test_serializing_none_meta():
     assert s.data['email'] is None
 
 
+def test_serializer_with_custom_error_handler(user):
+
+    class CustomError(Exception):
+        pass
+
+    class MySerializer(Serializer):
+        name = fields.String()
+        email = fields.Email()
+
+    @MySerializer.error_handler
+    def handle_errors(serializer, errors, obj):
+        assert isinstance(serializer, MySerializer)
+        assert 'email' in errors
+        assert isinstance(obj, User)
+        raise CustomError('Something bad happened')
+
+    user.email = 'bademail'
+    with pytest.raises(CustomError):
+        MySerializer(user).data
+
+
 class TestNestedSerializer(unittest.TestCase):
     def setUp(self):
         self.user = User(name="Monty", age=81)
@@ -1146,24 +1167,6 @@ class TestMarshaller(unittest.TestCase):
         marshal = fields.Marshaller()
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert len(res) == 2
-
-    def test_custom_error_handler(self):
-        class CustomError(Exception):
-            pass
-
-        def handle_error(errors):
-            assert 'email' in errors
-            raise CustomError('There were errors.')
-
-        marshal = fields.Marshaller(error_handler=handle_error)
-        u = User('Foo', email='foobar')
-
-        with pytest.raises(CustomError):
-            marshal(u, {'email': fields.Email()})
-
-    def test_error_handler_must_be_callable(self):
-        with pytest.raises(ValueError):
-            fields.Marshaller(error_handler=42)
 
 
 class UserContextSerializer(Serializer):

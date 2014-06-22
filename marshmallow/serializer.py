@@ -14,7 +14,6 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
 
-
 class SerializerMeta(type):
     """Metaclass for the Serializer class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -129,6 +128,9 @@ class BaseSerializer(base.SerializerABC):
 
     OPTIONS_CLASS = SerializerOpts
 
+    #: Custom error handler function. May be ``None``.
+    error_callback = None
+
     class Meta(object):
         """Options object for a Serializer.
 
@@ -173,7 +175,10 @@ class BaseSerializer(base.SerializerABC):
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         #: Callable marshalling object
-        self.marshal = fields.Marshaller(prefix=self.prefix, strict=self.strict)
+        self.marshal = fields.Marshaller(
+            prefix=self.prefix,
+            strict=self.strict
+        )
         self.extra = extra
         self.context = context
         if isinstance(obj, types.GeneratorType):
@@ -194,6 +199,29 @@ class BaseSerializer(base.SerializerABC):
                     each.update(self.extra)
             else:
                 self._data.update(self.extra)
+        if callable(self.error_callback):
+            self.error_callback(self.marshal.errors, self.obj)
+
+    @classmethod
+    def error_handler(cls, func):
+        """Decorator that registers an error handler function for the serializer.
+        The function receives the serializer instance, a dictionary of errors,
+        and the serialized object as arguments.
+
+        Example: ::
+
+            class UserSerializer(Serializer):
+                email = fields.Email()
+
+            @UserSerializer.error_handler
+            def handle_errors(serializer, errors, obj):
+                raise ValueError('An error occurred while marshalling {}'.format(obj))
+
+        .. versionadded:: 0.7.0
+
+        """
+        cls.error_callback = func
+        return func
 
     @classmethod
     def factory(cls, *args, **kwargs):

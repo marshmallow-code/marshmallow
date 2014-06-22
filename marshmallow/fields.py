@@ -95,9 +95,6 @@ class Marshaller(object):
         self.prefix = prefix
         self.strict = strict
         self.errors = {}
-        if error_handler and not callable(error_handler):
-            raise ValueError('{0!r} is not callable.'.format(error_handler))
-        self.error_handler = error_handler
 
     def marshal(self, data, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
@@ -133,9 +130,6 @@ class Marshaller(object):
                     raise TypeError(msg)
                 raise
             items.append(item)
-
-        if callable(self.error_handler):
-            self.error_handler(self.errors)
         return OrderedDict(items)
 
     # Make an instance callable
