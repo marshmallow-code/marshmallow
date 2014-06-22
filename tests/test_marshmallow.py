@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
 import json
 import datetime as dt
 import uuid
@@ -778,8 +777,9 @@ def test_root_data_handler(user):
     assert s.data['user']['name'] == user.name
 
 
-class TestNestedSerializer(unittest.TestCase):
-    def setUp(self):
+class TestNestedSerializer:
+
+    def setup_method(self, method):
         self.user = User(name="Monty", age=81)
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
@@ -895,8 +895,9 @@ class TestNestedSerializer(unittest.TestCase):
             BadNestedFieldSerializer(self.blog)
 
 
-class TestSelfReference(unittest.TestCase):
-    def setUp(self):
+class TestSelfReference:
+
+    def setup_method(self, method):
         self.employer = User(name="Joe", age=59)
         self.user = User(name="Tom", employer=self.employer, age=28)
 
@@ -954,8 +955,9 @@ class TestSelfReference(unittest.TestCase):
         assert s.data['relatives'][0]['age'] == person.relatives[0].age
 
 
-class TestFields(unittest.TestCase):
-    def setUp(self):
+class TestFields:
+
+    def setup_method(self, method):
         self.user = User("Foo", "foo@bar.com")
 
     def test_repr(self):
@@ -1042,7 +1044,7 @@ class TestFields(unittest.TestCase):
             fields.List(UserSerializer)
 
 
-class TestValidation(unittest.TestCase):
+class TestValidation:
 
     def test_integer_with_validator(self):
         user = User(name='Joe', age='20')
@@ -1176,7 +1178,7 @@ def test_serialization_with_required_field_and_custom_validator():
     assert s.errors['gender'] == "Gender must be 'f' or 'm'."
 
 
-class TestValidators(unittest.TestCase):
+class TestValidators:
     def test_invalid_email(self):
         invalid1 = "user@example"
         with pytest.raises(ValueError):
@@ -1189,7 +1191,7 @@ class TestValidators(unittest.TestCase):
             validate.email(invalid3)
 
 
-class TestMarshaller(unittest.TestCase):
+class TestMarshaller:
 
     def test_stores_errors(self):
         u = User("Foo", email="foobar")
