@@ -2,16 +2,16 @@ Changelog
 ---------
 
 
-0.7.0 (unreleased)
+0.7.0 (2014-06-22)
 ++++++++++++++++++
 
+* Add ``Serializer.error_handler`` decorator that registers a custom error handler.
+* Add ``Serializer.data_handler`` decorator that registers data post-processing callbacks.
+* *Backwards-incompatible*: ``process_data`` method is deprecated. Use the ``data_handler`` decorator instead.
 * Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks Joe Alcorn for reporting.
 * If ``required=True`` validation is violated for a given ``Field``, it will raise an error message that is different from the message specified by the ``error`` argument. Thanks Anders Steinlein.
 * More generic error message raised when required field is missing.
 * ``validated`` decorator should only wrap a ``Field`` class's ``output`` method.
-* Add ``Serializer.error_handler`` decorator that registers a custom error handler.
-* Add ``Serializer.data_handler`` decorator that registers data post-processing callbacks.
-* *Backwards-incompatible*: ``process_data`` method is deprecated. Use the ``data_handler`` decorator instead.
 
 0.6.0 (2014-06-03)
 ++++++++++++++++++
