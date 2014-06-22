@@ -166,7 +166,7 @@ class BaseSerializer(base.SerializerABC):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.fields = OrderedDict()
-        self._data = None
+        self._data = None  # the cached, serialized data
         self.obj = obj
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
@@ -192,15 +192,15 @@ class BaseSerializer(base.SerializerABC):
 
     def _update_data(self):
         raw_data = self.marshal(self.obj, self.fields, many=self.many)
-        self._data = self.process_data(raw_data)
         if self.extra:
             if self.many:
-                for each in self._data:
+                for each in raw_data:
                     each.update(self.extra)
             else:
-                self._data.update(self.extra)
+                raw_data.update(self.extra)
         if callable(self.error_callback):
             self.error_callback(self.marshal.errors, self.obj)
+        self._data = self.process_data(raw_data)
 
     @classmethod
     def error_handler(cls, func):

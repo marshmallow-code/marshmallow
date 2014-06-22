@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''Validation functions for various types of data.'''
+"""Validation functions for various types of data."""
 import re
 
 
