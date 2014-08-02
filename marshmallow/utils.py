@@ -37,6 +37,11 @@ def is_instance_or_subclass(val, class_):
     except TypeError:
         return isinstance(val, class_)
 
+def is_keyed_tuple(obj):
+    """Return True if ``obj`` has keyed tuple behavior, such as
+    namedtuples or SQLAlchemy's KeyedTuples.
+    """
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
 
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
