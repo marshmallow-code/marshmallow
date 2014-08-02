@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+0.7.1 (unreleased)
+++++++++++++++++++
+
+* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++
