@@ -322,14 +322,12 @@ def test_serialize_many(SerializerClass):
     assert serialized.data[0]['name'] == "Mick"
     assert serialized.data[1]['name'] == "Keith"
 
-def test_no_implicit_list_handling():
+def test_no_implicit_list_handling(recwarn):
     users = [User(name='Mick'), User(name='Keith')]
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter('always')
-        with pytest.raises(TypeError):
-            UserSerializer(users)
-    assert issubclass(w[-1].category, DeprecationWarning)
-
+    with pytest.raises(TypeError):
+        UserSerializer(users)
+    w = recwarn.pop()
+    assert issubclass(w.category, DeprecationWarning)
 
 def test_inheriting_serializer(user):
     serialized = ExtendedUserSerializer(user)
@@ -1291,6 +1289,7 @@ def test_error_gets_raised_if_many_is_omitted(user):
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
 
+
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
 
@@ -1299,6 +1298,18 @@ def test_serializing_named_tuple():
     p = Point(x=4, y=2)
 
     assert field.output('x', p) == 4
+
+
+def test_serializing_named_tuple_with_meta():
+    Point = namedtuple('Point', ['x', 'y'])
+    p = Point(x=4, y=2)
+    class PointSerializer(Serializer):
+        class Meta:
+            fields = ('x', 'y')
+
+    serialized = PointSerializer(p)
+    assert serialized.data['x'] == 4
+    assert serialized.data['y'] == 2
 
 
 ##### Class registry/two-way nesting #####

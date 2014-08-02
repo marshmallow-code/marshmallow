@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
+from collections import namedtuple
 
 import pytz
 
@@ -27,6 +28,26 @@ def test_to_marshallable_type():
 
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
+
+def test_to_marshallable_type_with_namedtuple():
+    Point = namedtuple('Point', ['x', 'y'])
+    p = Point(24, 42)
+    result = utils.to_marshallable_type(p)
+    assert result['x'] == p.x
+    assert result['y'] == p.y
+
+def test_is_keyed_tuple():
+    Point = namedtuple('Point', ['x', 'y'])
+    p = Point(24, 42)
+    assert utils.is_keyed_tuple(p) is True
+    t = (24, 42)
+    assert utils.is_keyed_tuple(t) is False
+    d = {'x': 42, 'y': 24}
+    assert utils.is_keyed_tuple(d) is False
+    s = 'xy'
+    assert utils.is_keyed_tuple(s) is False
+    l = [24, 42]
+    assert utils.is_keyed_tuple(l) is False
 
 def test_to_marshallable_type_list():
     assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']

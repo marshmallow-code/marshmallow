@@ -14,18 +14,18 @@ from pprint import pprint as py_pprint
 from marshmallow.compat import OrderedDict
 
 def is_iterable_but_not_string(obj):
-    '''Return True if ``obj`` is an iterable object that isn't a string.'''
+    """Return True if ``obj`` is an iterable object that isn't a string."""
     return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
 
 
 def is_indexable_but_not_string(obj):
-    '''Return True if ``obj`` is indexable but isn't a string.'''
+    """Return True if ``obj`` is indexable but isn't a string."""
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
 
 def is_collection(obj):
-    '''Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
-    '''
+    """Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
+    """
     return is_iterable_but_not_string(obj) and not isinstance(obj, dict)
 
 
@@ -37,6 +37,11 @@ def is_instance_or_subclass(val, class_):
     except TypeError:
         return isinstance(val, class_)
 
+def is_keyed_tuple(obj):
+    """Return True if ``obj`` has keyed tuple behavior, such as
+    namedtuples or SQLAlchemy's KeyedTuples.
+    """
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
 
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
@@ -62,7 +67,7 @@ def to_marshallable_type(obj, field_names=None):
     if hasattr(obj, '__marshallable__'):
         return obj.__marshallable__()
 
-    if hasattr(obj, '__getitem__'):
+    if hasattr(obj, '__getitem__') and not is_keyed_tuple(obj):
         return obj  # it is indexable it is ok
 
     if isinstance(obj, types.GeneratorType):
@@ -77,9 +82,9 @@ def to_marshallable_type(obj, field_names=None):
 
 
 def pprint(obj, *args, **kwargs):
-    '''Pretty-printing function that can pretty-print OrderedDicts
+    """Pretty-printing function that can pretty-print OrderedDicts
     like regular dictionaries.
-    '''
+    """
     if isinstance(obj, OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
     else:
