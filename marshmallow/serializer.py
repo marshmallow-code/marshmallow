@@ -190,7 +190,7 @@ class BaseSerializer(base.SerializerABC):
             self.obj = list(obj)
         else:
             self.obj = obj
-        self._update_fields(obj)
+        self._update_fields()
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             self._update_data()
@@ -287,7 +287,7 @@ class BaseSerializer(base.SerializerABC):
         functools.update_wrapper(factory_func, cls)
         return factory_func
 
-    def _update_fields(self, obj):
+    def _update_fields(self):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
