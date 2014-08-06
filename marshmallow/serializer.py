@@ -413,6 +413,14 @@ class BaseSerializer(base.SerializerABC):
                 return False
         return True
 
+    def deserialize(self, structure):
+        """
+        """
+        return dict(
+            (key, self.fields[key].deserialize(structure[key]))
+            for key, value in iteritems(structure)
+        )
+
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
     __doc__ = BaseSerializer.__doc__

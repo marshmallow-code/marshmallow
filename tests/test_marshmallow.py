@@ -4,7 +4,6 @@
 import json
 import datetime as dt
 import uuid
-import warnings
 from collections import namedtuple
 
 import pytest
@@ -550,6 +549,7 @@ def test_invalid_selection():
 def test_custom_json():
     class UserJSONSerializer(Serializer):
         name = fields.String()
+
         class Meta:
             json_module = mockjson
 
@@ -1134,7 +1134,7 @@ def test_required_field_falsy_is_ok(FieldClass, value):
     user_data = {'name': value}
     field = FieldClass(required=True)
     result = field.output('name', user_data)
-    assert result  is not None
+    assert result is not None
     assert result == value
 
 
@@ -1303,6 +1303,7 @@ def test_serializing_named_tuple():
 def test_serializing_named_tuple_with_meta():
     Point = namedtuple('Point', ['x', 'y'])
     p = Point(x=4, y=2)
+
     class PointSerializer(Serializer):
         class Meta:
             fields = ('x', 'y')
@@ -1384,9 +1385,10 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
 class FooSerializer(Serializer):
     _id = fields.Integer()
 
+
 def test_multiple_classes_with_same_name_raises_error():
     # Import a class with the same name
-    from .foo_serializer import FooSerializer as FooSerializer1
+    from .foo_serializer import FooSerializer as FooSerializer1  # noqa
 
     # Using a nested field with the class name fails because there are
     # two defined classes with the same name
@@ -1397,8 +1399,9 @@ def test_multiple_classes_with_same_name_raises_error():
             .format('FooSerializer')
     assert msg in str(excinfo)
 
+
 def test_can_use_full_module_path_to_class():
-    from .foo_serializer import FooSerializer as FooSerializer1
+    from .foo_serializer import FooSerializer as FooSerializer1  # noqa
     # Using full paths is ok
     field = fields.Nested('tests.foo_serializer.FooSerializer')
 
@@ -1410,3 +1413,13 @@ def test_can_use_full_module_path_to_class():
 
     assert field2.output('bar', {'foo': {'_id': 42}})
 
+
+class TestDeserialization:
+
+    def test_deserialize_to_dict(self):
+        # UserSerializer has no custom deserialization behavior, so a dict is
+        # returned
+        user_dict = {'name': 'Monty', 'age': '42.3'}
+        result = UserSerializer().deserialize(user_dict)
+        assert result['name'] == 'Monty'
+        assert result['age'] == 42.3

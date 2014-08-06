@@ -14,7 +14,7 @@ from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
                                 basestring)
-from marshmallow.exceptions import MarshallingError
+from marshmallow.exceptions import MarshallingError, DeserializationError
 
 __all__ = [
     'validated',
@@ -225,6 +225,9 @@ class Raw(FieldABC):
             return self.default
         return self.format(value)
 
+    def deserialize(self, value):
+        return value
+
 
 class Nested(Raw):
     """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
@@ -257,8 +260,7 @@ class Nested(Raw):
         self.exclude = exclude or ()
         self.many = many
         self.__serializer = None
-        self.__updated_fields = False  # ensures serializer fields are updated
-                                        # only once
+        self.__updated_fields = False  # ensures serializer fields are updated only once
         super(Nested, self).__init__(**kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
@@ -384,7 +386,7 @@ class List(Raw):
 class String(Raw):
     """A string field."""
 
-    def __init__(self, default='', attribute=None,  *args, **kwargs):
+    def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
     def format(self, value):
@@ -418,13 +420,19 @@ class Number(Raw):
         else:
             return self.num_type(value)
 
-    def format(self, value):
+    def _validated(self, value, exception_class):
         try:
             if value is None:
                 return self._format_num(self.default)
             return self._format_num(value)
         except ValueError as ve:
-            raise MarshallingError(ve)
+            raise exception_class(ve)
+
+    def format(self, value):
+        return self._validated(value, MarshallingError)
+
+    def deserialize(self, value):
+        return self._validated(value, DeserializationError)
 
 
 class Integer(Number):
@@ -707,7 +715,7 @@ class Select(Raw):
 
     :raises: MarshallingError if attribute's value is not one of the given choices.
     """
-    def __init__(self,  choices, default=None, attribute=None, error=None, **kwargs):
+    def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
