@@ -10,8 +10,8 @@ import pytest
 import pytz
 
 from marshmallow import Serializer, fields, validate, utils, class_registry
-from marshmallow.exceptions import MarshallingError, RegistryError
-from marshmallow.compat import unicode, binary_type, total_seconds
+from marshmallow.exceptions import MarshallingError, RegistryError, DeserializationError
+from marshmallow.compat import unicode, binary_type, total_seconds, text_type
 
 
 central = pytz.timezone("US/Central")
@@ -1414,7 +1414,93 @@ def test_can_use_full_module_path_to_class():
     assert field2.output('bar', {'foo': {'_id': 42}})
 
 
-class TestDeserialization:
+class TestFieldDeserialization:
+
+    def test_float_field_deserialization(self):
+        field = fields.Float()
+        assert_almost_equal(field.deserialize('12.3'), 12.3)
+        assert_almost_equal(field.deserialize(12.3), 12.3)
+        assert field.deserialize(None) == 0.0
+        with pytest.raises(DeserializationError) as excinfo:
+            field.deserialize('bad')
+        assert 'could not convert string to float' in str(excinfo)
+
+    def test_float_field_deserialization_with_default(self):
+        field = fields.Float(default=1.0)
+        assert field.deserialize(None) == 1.0
+
+    def test_integer_field_deserialization(self):
+        field = fields.Integer()
+        assert field.deserialize('42') == 42
+        assert field.deserialize(None) == 0
+        with pytest.raises(DeserializationError):
+            field.deserialize('42.0')
+        with pytest.raises(DeserializationError):
+            field.deserialize('bad')
+
+    def test_string_field_deserialization(self):
+        field = fields.String()
+        assert field.deserialize(42) == '42'
+
+    def test_boolean_field_deserialization(self):
+        field = fields.Boolean()
+        assert field.deserialize('True') is True
+        assert field.deserialize('False') is False
+        assert field.deserialize('true') is True
+        assert field.deserialize('false') is False
+        assert field.deserialize('1') is True
+        assert field.deserialize('0') is False
+
+    def test_boolean_field_deserialization_with_custom_truthy_values(self):
+        class MyBoolean(fields.Boolean):
+            truthy = set(['yep'])
+        field = MyBoolean()
+        assert field.deserialize('yep') is True
+        with pytest.raises(DeserializationError):
+            field.deserialize('notvalid')
+
+    def test_arbitrary_field_deserialization(self):
+        field = fields.Arbitrary()
+        expected = text_type(utils.float_to_decimal(float(42)))
+        assert field.deserialize('42') == expected
+
+    def test_datetime_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_localdatetime_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_time_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_fixed_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_timedelta_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_date_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_price_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_url_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_email_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_function_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_select_field_deserialization(self):
+        assert 0, 'finish me'
+
+    def test_enum_field_deserialization(self):
+        assert 0, 'finish me'
+
+class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
         # UserSerializer has no custom deserialization behavior, so a dict is
