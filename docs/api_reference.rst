@@ -47,6 +47,7 @@ Exceptions
 .. module:: marshmallow.exceptions
 
 .. autoexception:: MarshmallowError
+.. autoexception:: _WrappingException
 .. autoexception:: MarshallingError
 .. autoexception:: RegistryError
-
+.. autoexception:: DeserializationError

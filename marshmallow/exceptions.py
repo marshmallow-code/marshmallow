@@ -15,7 +15,7 @@ class RegistryError(NameError, MarshmallowError):
 
 class _WrappingException(MarshmallowError):
     """Exception that wraps a different, underlying exception. Used so that
-    an error in serialization or deserialization can be rereaised as an
+    an error in serialization or deserialization can be reraised as an
     :exc:`MarshmallowError <MarshmallowError>`.
     """
 
