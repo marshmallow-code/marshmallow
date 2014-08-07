@@ -389,11 +389,18 @@ class String(Raw):
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
-    def format(self, value):
+    def _validated(self, value, exception_class):
+        """Format ``value`` or raise ``exception_class`` if an error occurs."""
         try:
             return text_type(value)
         except ValueError as ve:
-            raise MarshallingError(self.error or ve)
+            raise exception_class(self.error or ve)
+
+    def format(self, value):
+        return self._validated(value, MarshallingError)
+
+    def deserialize(self, value):
+        return self._validated(value, DeserializationError)
 
 
 class UUID(String):
@@ -421,6 +428,7 @@ class Number(Raw):
             return self.num_type(value)
 
     def _validated(self, value, exception_class):
+        """Format the value or raise ``exception_class`` if an error occurs."""
         try:
             if value is None:
                 return self._format_num(self.default)
@@ -449,10 +457,36 @@ class Integer(Number):
             error=error, **kwargs)
 
 class Boolean(Raw):
-    '''A boolean field.'''
+    """A boolean field."""
+
+    #: Values that will deserialize to ``True``. If an empty set, any non-falsy
+    #  value will deserialize to ``True``.
+    truthy = set()
+    #: Values that will deserialize to ``False``.
+    falsy = set(['False', 'false', '0', 'null', 'None'])
+
     def format(self, value):
         return bool(value)
 
+    def deserialize(self, value):
+        if not value:
+            return False
+        try:
+            value_str = text_type(value)
+        except TypeError as error:
+            raise DeserializationError(error)
+        if value_str in self.falsy:
+            return False
+        elif self.truthy:
+            if value_str in self.truthy:
+                return True
+            else:
+                raise DeserializationError(
+                    '{0!r} is not in {1} nor {2}'.format(
+                        value_str, self.truthy, self.falsy
+                    ))
+
+        return True
 
 class FormattedString(Raw):
     def __init__(self, src_str):
@@ -487,13 +521,21 @@ class Arbitrary(Number):
     def __init__(self, default=0, attribute=None, **kwargs):
         super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
-    def format(self, value):
+    def _validated(self, value, exception_class):
+        """Format ``value`` or raise ``exception_class`` if an error occurs."""
         try:
             if value is None:
                 return text_type(utils.float_to_decimal(float(self.default)))
             return text_type(utils.float_to_decimal(float(value)))
         except ValueError as ve:
-            raise MarshallingError(ve)
+            raise exception_class(ve)
+
+    def format(self, value):
+        return self._validated(value, MarshallingError)
+
+    def deserialize(self, value):
+        return self._validated(value, DeserializationError)
+
 
 DATEFORMAT_FUNCTIONS = {
     "iso": utils.isoformat,
