@@ -14,12 +14,17 @@ class RegistryError(NameError, MarshmallowError):
 
 
 class _WrappingException(MarshmallowError):
+    """Exception that wraps a different, underlying exception. Used so that
+    an error in serialization or deserialization can be rereaised as an
+    :exc:`MarshmallowError <MarshmallowError>`.
+    """
 
     def __init__(self, underlying_exception):
-        self.underlying_exception = underlying_exception
-        # just put the contextual representation of the error to hint on what
-        # went wrong without exposing internals
-        super(MarshallingError, self).__init__(str(underlying_exception))
+        if isinstance(underlying_exception, Exception):
+            self.underlying_exception = underlying_exception
+        else:
+            self.underlying_exception = None
+        super(_WrappingException, self).__init__(str(underlying_exception))
 
 
 class MarshallingError(_WrappingException):
