@@ -165,21 +165,6 @@ class Raw(FieldABC):
         check_key = key if self.attribute is None else self.attribute
         return _get_value(check_key, obj)
 
-    def _format(self, value):
-        """Formats a field's value. No-op by default, concrete fields should
-        override this and apply the appropriate formatting.
-
-        :param value: The value to format
-        :exception MarshallingError: In case of formatting problem
-
-        Ex::
-
-            class TitleCase(Raw):
-                def _format(self, value):
-                    return unicode(value).title()
-        """
-        return value
-
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
         """Invoke ``method``and validate the output. Call self.validate when
         appropriate, and raise ``exception_class`` if a validation error
@@ -229,10 +214,34 @@ class Raw(FieldABC):
         """Deserialize ``value``."""
         return self._call_with_validation('_deserialize', DeserializationError, value)
 
+    # Methods for concrete classes to override.
+
+    def _format(self, value):
+        """Formats a field's value. No-op by default, concrete fields should
+        override this and apply the appropriate formatting.
+
+        :param value: The value to format
+        :exception MarshallingError: In case of formatting problem
+
+        Ex::
+
+            class TitleCase(Raw):
+                def _format(self, value):
+                    return unicode(value).title()
+        """
+        return value
+
     def _serialize(self, value, key, obj):
+        """Serializes ``value`` to a basic Python datatype.
+
+        :param value: The value to be serialized.
+        :param str key: The attribute or key on the object to be serialized.
+        :param obj: The object the value was pulled from.
+        """
         return self._format(value)
 
     def _deserialize(self, value):
+        """Deserialize value."""
         return value
 
 
@@ -792,9 +801,15 @@ class Select(Raw):
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
-    def _format(self, value):
+    def _validated(self, value, exception_class, *args, **kwargs):
         if value not in self.choices:
-            raise MarshallingError("{0!r} is not a valid choice for this field.".format(value))
+            raise exception_class("{0!r} is not a valid choice for this field.".format(value))
         return value
+
+    def _format(self, value):
+        return self._validated(value, MarshallingError)
+
+    def _deserialize(self, value):
+        return self._validated(value, DeserializationError)
 
 Enum = Select

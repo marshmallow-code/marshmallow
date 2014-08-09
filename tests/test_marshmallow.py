@@ -1555,10 +1555,13 @@ class TestFieldDeserialization:
     def test_function_field_deserialization(self):
         assert 0, 'finish me'
 
-    def test_select_field_deserialization(self):
-        assert 0, 'finish me'
-
     def test_enum_field_deserialization(self):
+        field = fields.Enum(['red', 'blue'])
+        assert field.deserialize('red') == 'red'
+        with pytest.raises(DeserializationError):
+            field.deserialize('notvalid')
+
+    def test_list_field_deserialization(self):
         assert 0, 'finish me'
 
     def test_field_deserialization_with_user_validator(self):
