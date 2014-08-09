@@ -1,21 +1,24 @@
 # -*- coding: utf-8 -*-
-'''Abstract base classes.
+"""Abstract base classes.
 
 These are necessary to avoid circular imports between core.py and fields.py.
-'''
+"""
 import copy
 
 
 class FieldABC(object):
-    '''Abstract base class from which all Field classes inherit.
-    '''
+    """Abstract base class from which all Field classes inherit.
+    """
     parent = None
     name = None
 
-    def format(self, value):
+    def _format(self, value):
         raise NotImplementedError
 
-    def output(self, key, obj):
+    def _serialize(self, value, key, obj):
+        raise NotImplementedError
+
+    def _deserialize(self, value):
         raise NotImplementedError
 
     def __deepcopy__(self, memo):

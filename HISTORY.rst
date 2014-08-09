@@ -7,6 +7,9 @@ Changelog
 * Support for deserialization.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Fix default value for ``Fixed`` field.
+* *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``output`` and ``deserialize`` comprise the public API for a ``Field``.
+* *Backwards-incompatible*: ``Field.format`` gets called with a field's default value if the pulled value is ``None`` and the field is not required.
+* Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++

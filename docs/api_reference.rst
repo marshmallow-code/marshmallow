@@ -48,6 +48,7 @@ Exceptions
 
 .. autoexception:: MarshmallowError
 .. autoexception:: _WrappingException
+.. autoexception:: ForcedError
 .. autoexception:: MarshallingError
 .. autoexception:: RegistryError
 .. autoexception:: DeserializationError
