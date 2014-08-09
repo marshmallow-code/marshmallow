@@ -14,6 +14,13 @@ from marshmallow.exceptions import MarshallingError, RegistryError, Deserializat
 from marshmallow.compat import unicode, binary_type, total_seconds, text_type
 
 
+def assert_datetime_equal(dt1, dt2):
+    assert dt1.year == dt2.year
+    assert dt1.month == dt2.month
+    assert dt1.day == dt2.day
+    assert dt1.hour == dt2.hour
+    assert dt1.minute == dt2.minute
+
 central = pytz.timezone("US/Central")
 
 ##### Models #####
@@ -1465,6 +1472,18 @@ class TestFieldDeserialization:
         assert field.deserialize('42') == expected
 
     def test_datetime_field_deserialization(self):
+        dtime = dt.datetime.now()
+        datestring = utils.rfcformat(dtime)
+        field = fields.DateTime()
+        assert_datetime_equal(field.deserialize(datestring), dtime)
+
+    def test_iso_datetime_field_deserialization(self):
+        dtime = dt.datetime.now()
+        datestring = dtime.isoformat()
+        field = fields.DateTime(format='iso')
+        assert_datetime_equal(field.deserialize(datestring), dtime)
+
+    def test_tz_datetime_field_deserialization(self):
         assert 0, 'finish me'
 
     def test_localdatetime_field_deserialization(self):
@@ -1474,7 +1493,12 @@ class TestFieldDeserialization:
         assert 0, 'finish me'
 
     def test_fixed_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.Fixed(decimals=3)
+        assert field.deserialize(None) == '0.000'
+        assert field.deserialize('12.3456') == '12.346'
+        assert field.deserialize(12.3456) == '12.346'
+        with pytest.raises(DeserializationError):
+            field.deserialize('badvalue')
 
     def test_timedelta_field_deserialization(self):
         assert 0, 'finish me'
@@ -1483,10 +1507,23 @@ class TestFieldDeserialization:
         assert 0, 'finish me'
 
     def test_price_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.Price()
+        assert field.deserialize(None) == '0.00'
+        assert field.deserialize('12.345') == '12.35'
 
     def test_url_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.Url()
+        assert field.deserialize('https://duckduckgo.com') == 'https://duckduckgo.com'
+        assert field.deserialize(None) is None
+        with pytest.raises(DeserializationError):
+            field.deserialize('badurl')
+        # Relative URLS not allowed by default
+        with pytest.raises(DeserializationError):
+            field.deserialize('/foo/bar')
+
+    def test_relative_url_field_deserialization(self):
+        field = fields.Url(relative=True)
+        assert field.deserialize('/foo/bar') == '/foo/bar'
 
     def test_email_field_deserialization(self):
         assert 0, 'finish me'
@@ -1499,6 +1536,20 @@ class TestFieldDeserialization:
 
     def test_enum_field_deserialization(self):
         assert 0, 'finish me'
+
+    def test_field_deserialization_with_user_validator(self):
+        field = fields.String(validate=lambda s: s.lower() == 'valid')
+        assert field.deserialize('Valid') == 'Valid'
+        with pytest.raises(DeserializationError) as excinfo:
+            field.deserialize('invalid')
+        assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+
+    def test_field_deserialization_with_custom_error_message(self):
+        field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
+        with pytest.raises(DeserializationError) as excinfo:
+            field.deserialize('invalid')
+        assert 'Bad value.' in str(excinfo)
+
 
 class TestSchemaDeserialization:
 

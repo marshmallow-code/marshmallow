@@ -4,8 +4,9 @@ Changelog
 0.8.0 (unreleased)
 ++++++++++++++++++
 
-* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Support for deserialization.
+* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
+* Fix default value for ``Fixed`` field.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++

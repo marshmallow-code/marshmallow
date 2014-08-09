@@ -146,6 +146,7 @@ class UTC(datetime.tzinfo):
 
 UTC = utc = UTC()  # UTC is a singleton
 
+
 def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
@@ -156,6 +157,7 @@ def local_rfcformat(dt):
     tz_offset = dt.strftime("%z")
     return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
         dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+
 
 def rfcformat(dt, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
@@ -183,6 +185,7 @@ def isoformat(dt, localtime=False, *args, **kwargs):
             localized = dt.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
+
 def from_rfc(datestring):
     """Parse a RFC822-formatted datetime string and return a datetime object.
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
@@ -190,3 +193,10 @@ def from_rfc(datestring):
     parsed = parsedate(datestring)  # as a tuple
     timestamp = time.mktime(parsed)
     return datetime.datetime.fromtimestamp(timestamp)
+
+
+def from_iso(datestring):
+    """Parse a ISO8601-formatted datetime string and return a datetime object.
+    """
+    # TODO: Use dateutil if available
+    return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')

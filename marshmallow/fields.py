@@ -47,6 +47,30 @@ __all__ = [
 ]
 
 
+def _call_with_validation(func, obj, exception_class, *args, **kwargs):
+    """Call ``func`` on ``obj`` and reraise any errors with an error of type
+    ``exception_class``. Used as a helper function for the :func:`validated <validated>`
+    and :func:`validated_deserialization <validated_deserialization>` decorators.
+
+    If ``obj`` has a ``validate`` attribute, the validator is called on the output
+    of ``func`` and an error is raised if the validator returns ``False``.
+    """
+    try:
+        output = func(obj, *args, **kwargs)
+        if hasattr(obj, 'validate') and callable(obj.validate):
+            if not obj.validate(output):
+                msg = 'Validator {0}({1}) is not True'.format(
+                    obj.validate.__name__, output
+                )
+                raise exception_class(getattr(obj, "error", None) or msg)
+        return output
+    # TypeErrors should be raised if fields are not declared as instances
+    except TypeError:
+        raise
+    except Exception as error:
+        raise exception_class(getattr(obj, 'error', None) or error)
+
+
 def validated(f):
     """Decorator that wraps a field's ``output`` method.
 
@@ -63,21 +87,20 @@ def validated(f):
             value = self.get_value(args[0], args[1])
             if self.required and value is None:
                 raise MarshallingError('Missing data for required field.')
+        return _call_with_validation(f, self, MarshallingError, *args, **kwargs)
+    return decorated
 
-        try:
-            output = f(self, *args, **kwargs)
-            if hasattr(self, 'validate') and callable(self.validate):
-                if not self.validate(output):
-                    msg = 'Validator {0}({1}) is not True'.format(
-                        self.validate.__name__, output
-                    )
-                    raise MarshallingError(getattr(self, "error", None) or msg)
-            return output
-        # TypeErrors should be raised if fields are not declared as instances
-        except TypeError:
-            raise
-        except Exception as error:
-            raise MarshallingError(getattr(self, "error", None) or error)
+
+def validated_deserializer(f):
+    """Decorator that wraps a field's ``deserialize`` method.
+
+    If the field has a ``validate`` function, the validator is called on the
+    deserialized output. A :exc:`DeserializationError` is raised if the validator
+    returns ``False``
+    """
+    @wraps(f)
+    def decorated(self, *args, **kwargs):
+        return _call_with_validation(f, self, DeserializationError, *args, **kwargs)
     return decorated
 
 
@@ -389,18 +412,15 @@ class String(Raw):
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
-    def _validated(self, value, exception_class):
-        """Format ``value`` or raise ``exception_class`` if an error occurs."""
+    def format(self, value):
         try:
             return text_type(value)
         except ValueError as ve:
-            raise exception_class(self.error or ve)
+            raise MarshallingError(self.error or ve)
 
-    def format(self, value):
-        return self._validated(value, MarshallingError)
-
+    @validated_deserializer
     def deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return text_type(value)
 
 
 class UUID(String):
@@ -537,11 +557,15 @@ class Arbitrary(Number):
         return self._validated(value, DeserializationError)
 
 
-DATEFORMAT_FUNCTIONS = {
+DATEFORMAT_SERIALIZATION_FUNCS = {
     "iso": utils.isoformat,
     "rfc": utils.rfcformat,
 }
 
+DATEFORMAT_DESERIALIZATION_FUNCS = {
+    'rfc': utils.from_rfc,
+    'iso': utils.from_iso,
+}
 
 class DateTime(Raw):
     """A formatted datetime string in UTC.
@@ -558,15 +582,23 @@ class DateTime(Raw):
 
     def __init__(self, format=None, default=None, attribute=None, **kwargs):
         super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
-        self.dateformat = format
+        self.dateformat = format or 'rfc'
 
     def format(self, value):
-        self.dateformat = self.dateformat or 'rfc'
-        format_func = DATEFORMAT_FUNCTIONS.get(self.dateformat, None)
+        format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
         if format_func:
             return format_func(value, localtime=self.localtime)
         else:
             return value.strftime(self.dateformat)
+
+    def deserialize(self, value):
+        func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat, None)
+        if func:
+            return func(value)
+        else:
+            raise DeserializationError(
+                'Cannot deserialize {0!r} to a datetime'.format(value)
+            )
 
 
 class LocalDateTime(DateTime):
@@ -633,9 +665,20 @@ class Fixed(Number):
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
     def format(self, value):
-        dvalue = utils.float_to_decimal(float(value))
+        return self._validated(value, MarshallingError)
+
+    def deserialize(self, value):
+        return self._validated(value, DeserializationError)
+
+    def _validated(self, value, exception_class):
+        if value is None:
+            value = self.default
+        try:
+            dvalue = utils.float_to_decimal(float(value))
+        except (TypeError, ValueError) as err:
+            raise exception_class(err)
         if not dvalue.is_normal() and dvalue != ZERO:
-            raise MarshallingError('Invalid Fixed precision number.')
+            raise exception_class('Invalid Fixed precision number.')
         return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
 
 
@@ -663,6 +706,14 @@ class Url(Raw):
         if value is None:
             return self.default
         return validate.url(value, relative=self.relative)
+
+    def deserialize(self, value):
+        if value is None:
+            return self.default
+        try:
+            return validate.url(value, relative=self.relative)
+        except ValueError as err:
+            raise DeserializationError(err)
 
 
 class Email(Raw):
