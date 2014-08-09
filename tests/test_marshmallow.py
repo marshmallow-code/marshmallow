@@ -662,16 +662,16 @@ def test_exclude_option_must_be_list_or_tuple(user):
         BadExclude(user)
 
 def test_dateformat_option(user):
-    format = '%Y-%m'
+    fmt = '%Y-%m'
 
     class DateFormatSerializer(Serializer):
         updated = fields.DateTime("%m-%d")
 
         class Meta:
             fields = ('created', 'updated')
-            dateformat = format
+            dateformat = fmt
     serialized = DateFormatSerializer(user)
-    assert serialized.data['created'] == user.created.strftime(format)
+    assert serialized.data['created'] == user.created.strftime(fmt)
     assert serialized.data['updated'] == user.updated.strftime("%m-%d")
 
 def test_default_dateformat(user):
