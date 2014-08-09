@@ -6,13 +6,6 @@ class MarshmallowError(Exception):
     pass
 
 
-class RegistryError(NameError, MarshmallowError):
-    """Raised when an invalid operation is performed on the serializer
-    class registry.
-    """
-    pass
-
-
 class _WrappingException(MarshmallowError):
     """Exception that wraps a different, underlying exception. Used so that
     an error in serialization or deserialization can be reraised as an
@@ -26,6 +19,28 @@ class _WrappingException(MarshmallowError):
             self.underlying_exception = None
         super(_WrappingException, self).__init__(str(underlying_exception))
 
+
+class ForcedError(_WrappingException):
+    """Error that always gets raised, even during serialization.
+    Field classes should raise this error if the error should not be stored in
+    the Marshaller's error dictionary and should instead be raised.
+
+    Must be instantiated with an underlying exception.
+
+    Example: ::
+
+        def _serialize(self, value, key, obj):
+            if not isinstace(value, dict):
+                raise ForcedError(ValueError('Value must be a dict.'))
+    """
+    pass
+
+
+class RegistryError(ForcedError, NameError):
+    """Raised when an invalid operation is performed on the serializer
+    class registry.
+    """
+    pass
 
 class MarshallingError(_WrappingException):
     """Raised in case of a marshalling error. If a MarshallingError is raised
