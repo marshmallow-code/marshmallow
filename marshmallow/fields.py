@@ -166,9 +166,14 @@ class Raw(FieldABC):
         return _get_value(check_key, obj)
 
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
-        """Invoke ``method``and validate the output. Call self.validate when
+        """Utility method to invoke ``method`` and validate the output. Call ``self.validate`` when
         appropriate, and raise ``exception_class`` if a validation error
         occurs.
+
+        :param str method: Name of the method to call.
+        :param Exception exception_class: Type of exception to raise when an error occurs.
+        :param args: Positional arguments to pass to the method.
+        :param kwargs: Keyword arguments to pass to the method.
         """
         try:
             func = getattr(self, method)
@@ -198,7 +203,7 @@ class Raw(FieldABC):
 
         :param str key: The attibute or key to get.
         :param str obj: The object to pull the key from.
-        :exception MarshallingError: In case of validation or formatting problem
+        :raise MarshallingError: In case of validation or formatting problem
         """
         value = self.get_value(key, obj)
         if value is None and self._CHECK_REQUIRED:
@@ -212,17 +217,20 @@ class Raw(FieldABC):
                                           value, key, obj)
 
     def deserialize(self, value):
-        """Deserialize ``value``."""
+        """Deserialize ``value``.
+
+        :raise DeserializationError: If an invalid value is passed.
+        """
         return self._call_with_validation('_deserialize', DeserializationError, value)
 
     # Methods for concrete classes to override.
 
     def _format(self, value):
-        """Formats a field's value. No-op by default, concrete fields should
+        """Formats a field's value. No-op by default. Concrete :class:`Field` should
         override this and apply the appropriate formatting.
 
         :param value: The value to format
-        :exception MarshallingError: In case of formatting problem
+        :raise MarshallingError: In case of formatting problem
 
         Ex::
 
@@ -233,7 +241,8 @@ class Raw(FieldABC):
         return value
 
     def _serialize(self, value, key, obj):
-        """Serializes ``value`` to a basic Python datatype.
+        """Serializes ``value`` to a basic Python datatype. Concrete :class:`Field` classes
+        should implement this method.
 
         :param value: The value to be serialized.
         :param str key: The attribute or key on the object to be serialized.
@@ -242,7 +251,7 @@ class Raw(FieldABC):
         return self._format(value)
 
     def _deserialize(self, value):
-        """Deserialize value."""
+        """Deserialize value. Concrete :class:`Field` classes should implement this method."""
         return value
 
 

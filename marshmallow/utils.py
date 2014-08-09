@@ -197,6 +197,8 @@ def from_rfc(datestring):
 
 def from_iso(datestring):
     """Parse a ISO8601-formatted datetime string and return a datetime object.
+    Return a naive datetime (timezone information is ignored).
     """
     # TODO: Use dateutil if available
+    # Strip off timezone info.
     return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')

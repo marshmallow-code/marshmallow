@@ -57,10 +57,10 @@ class TestFieldDeserialization:
         expected = text_type(utils.float_to_decimal(float(42)))
         assert field.deserialize('42') == expected
 
-    def test_datetime_field_deserialization(self):
+    def test_rfc_datetime_field_deserialization(self):
         dtime = dt.datetime.now()
         datestring = utils.rfcformat(dtime)
-        field = fields.DateTime()
+        field = fields.DateTime(format='rfc')
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
     def test_iso_datetime_field_deserialization(self):
@@ -73,7 +73,11 @@ class TestFieldDeserialization:
         assert 0, 'finish me'
 
     def test_localdatetime_field_deserialization(self):
-        assert 0, 'finish me'
+        dtime = dt.datetime.now()
+        localized_dtime = central.localize(dtime)
+        field = fields.DateTime(format='iso')
+        # Deserializes to a naive datetime
+        assert_datetime_equal(field.deserialize(localized_dtime.isoformat()), dtime)
 
     def test_time_field_deserialization(self):
         assert 0, 'finish me'
@@ -120,6 +124,9 @@ class TestFieldDeserialization:
     def test_function_field_deserialization(self):
         assert 0, 'finish me'
 
+    def test_method_field_deserialization(self):
+        assert 0, 'finish me'
+
     def test_enum_field_deserialization(self):
         field = fields.Enum(['red', 'blue'])
         assert field.deserialize('red') == 'red'
@@ -156,3 +163,6 @@ class TestSchemaDeserialization:
         result = UserSerializer().deserialize(user_dict)
         assert result['name'] == 'Monty'
         assert result['age'] == 42.3
+
+    def test_make_object(self):
+        assert 0, 'finish me'

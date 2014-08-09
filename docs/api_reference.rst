@@ -10,7 +10,7 @@ Serializer
 ==========
 
 .. autoclass:: Serializer
-    :inherited-members:
+    :private-members:
 
 .. autofunction:: pprint
 
@@ -22,6 +22,8 @@ Fields
 
 .. automodule:: marshmallow.fields
     :members:
+    :inherited-members:
+    :private-members:
 
 Validators
 ==========
