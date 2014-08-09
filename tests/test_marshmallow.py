@@ -77,8 +77,9 @@ class Blog(object):
 
 class Uppercased(fields.Raw):
     '''Custom field formatting example.'''
-    def format(self, value):
-        return value.upper()
+    def _format(self, value):
+        if value:
+            return value.upper()
 
 
 class UserSerializer(Serializer):
@@ -963,7 +964,7 @@ class TestSelfReference:
 class TestFields:
 
     def setup_method(self, method):
-        self.user = User("Foo", "foo@bar.com")
+        self.user = User("Foo", email="foo@bar.com", age=42)
 
     def test_repr(self):
         field = fields.String()
@@ -1047,6 +1048,29 @@ class TestFields:
             fields.List("string")
         with pytest.raises(MarshallingError):
             fields.List(UserSerializer)
+
+    def test_arbitrary_field(self):
+        field = fields.Arbitrary()
+        self.user.age = 12.3
+        result = field.output('age', self.user)
+        assert result == text_type(utils.float_to_decimal(self.user.age))
+        self.user.age = None
+        result = field.output('age', self.user)
+        assert result == text_type(utils.float_to_decimal(0.0))
+        with pytest.raises(MarshallingError):
+            self.user.age = 'invalidvalue'
+            field.output('age', self.user)
+
+    def test_fixed_field(self):
+        field = fields.Fixed(3)
+        self.user.age = 42
+        result = field.output('age', self.user)
+        assert result == '42.000'
+        self.user.age = None
+        assert field.output('age', self.user) == '0.000'
+        with pytest.raises(MarshallingError):
+            self.user.age = 'invalidvalue'
+            field.output('age', self.user)
 
 
 class TestValidation:

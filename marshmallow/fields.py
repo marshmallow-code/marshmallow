@@ -165,7 +165,7 @@ class Raw(FieldABC):
         check_key = key if self.attribute is None else self.attribute
         return _get_value(check_key, obj)
 
-    def format(self, value):
+    def _format(self, value):
         """Formats a field's value. No-op by default, concrete fields should
         override this and apply the appropriate formatting.
 
@@ -175,7 +175,7 @@ class Raw(FieldABC):
         Ex::
 
             class TitleCase(Raw):
-                def format(self, value):
+                def _format(self, value):
                     return unicode(value).title()
         """
         return value
@@ -219,7 +219,7 @@ class Raw(FieldABC):
             if hasattr(self, 'required') and self.required:
                 raise MarshallingError('Missing data for required field.')
             elif hasattr(self, 'default'):
-                return self.default
+                return self._format(self.default)
             else:
                 return None
         return self._call_with_validation('_serialize', MarshallingError,
@@ -230,7 +230,7 @@ class Raw(FieldABC):
         return self._call_with_validation('_deserialize', DeserializationError, value)
 
     def _serialize(self, value, key, obj):
-        return self.format(value)
+        return self._format(value)
 
     def _deserialize(self, value):
         return value
@@ -393,7 +393,7 @@ class String(Raw):
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
-    def format(self, value):
+    def _format(self, value):
         try:
             return text_type(value)
         except ValueError as ve:
@@ -436,7 +436,7 @@ class Number(Raw):
         except ValueError as ve:
             raise exception_class(ve)
 
-    def format(self, value):
+    def _format(self, value):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -465,7 +465,7 @@ class Boolean(Raw):
     #: Values that will deserialize to ``False``.
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
-    def format(self, value):
+    def _format(self, value):
         return bool(value)
 
     def _deserialize(self, value):
@@ -493,7 +493,7 @@ class FormattedString(Raw):
         super(FormattedString, self).__init__()
         self.src_str = text_type(src_str)
 
-    def _serialize(self, key, obj):
+    def _serialize(self, value, key, obj):
         try:
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
@@ -529,7 +529,7 @@ class Arbitrary(Number):
         except ValueError as ve:
             raise exception_class(ve)
 
-    def format(self, value):
+    def _format(self, value):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -566,13 +566,14 @@ class DateTime(Raw):
         # from a Meta option
         self.dateformat = format
 
-    def format(self, value):
-        self.dateformat = self.dateformat or 'rfc'
-        format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
-        if format_func:
-            return format_func(value, localtime=self.localtime)
-        else:
-            return value.strftime(self.dateformat)
+    def _format(self, value):
+        if value:
+            self.dateformat = self.dateformat or 'rfc'
+            format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+            if format_func:
+                return format_func(value, localtime=self.localtime)
+            else:
+                return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
         self.dateformat = self.dateformat or 'rfc'
@@ -598,7 +599,7 @@ class LocalDateTime(DateTime):
 class Time(Raw):
     """ISO8601-formatted time string."""
 
-    def format(self, value):
+    def _format(self, value):
         try:
             ret = value.isoformat()
         except AttributeError:
@@ -612,7 +613,7 @@ class Time(Raw):
 class Date(Raw):
     """ISO8601-formatted date string."""
 
-    def format(self, value):
+    def _format(self, value):
         try:
             return value.isoformat()
         except AttributeError:
@@ -626,7 +627,7 @@ class TimeDelta(Raw):
     as a float.
     '''
 
-    def format(self, value):
+    def _format(self, value):
         try:
             return total_seconds(value)
         except AttributeError:
@@ -648,7 +649,9 @@ class Fixed(Number):
                             *args, **kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
-    def format(self, value):
+    # Override _format instead of _serialize so that default value also gets
+    # formatted
+    def _format(self, value):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -684,8 +687,9 @@ class Url(Raw):
                 *args, **kwargs)
         self.relative = relative
 
-    def _serialize(self, value, key, obj):
-        return validate.url(value, relative=self.relative)
+    def _format(self, value):
+        if value:
+            return validate.url(value, relative=self.relative)
 
     def _deserialize(self, value):
         if value is None:
@@ -788,7 +792,7 @@ class Select(Raw):
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
-    def format(self, value):
+    def _format(self, value):
         if value not in self.choices:
             raise MarshallingError("{0!r} is not a valid choice for this field.".format(value))
         return value
