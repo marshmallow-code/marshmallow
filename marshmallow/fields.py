@@ -173,12 +173,12 @@ class Raw(FieldABC):
         try:
             func = getattr(self, method)
             output = func(*args, **kwargs)
-            if hasattr(self, 'validate') and callable(self.validate):
+            if callable(self.validate):
                 if not self.validate(output):
                     msg = 'Validator {0}({1}) is not True'.format(
                         self.validate.__name__, output
                     )
-                    raise exception_class(getattr(self, "error", None) or msg)
+                    raise exception_class(self.error or msg)
             return output
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:
