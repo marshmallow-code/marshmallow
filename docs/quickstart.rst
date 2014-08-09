@@ -351,14 +351,16 @@ The method you choose will depend on personal preference and the manner in which
 Creating A Field Class
 ++++++++++++++++++++++
 
-To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its ``format`` and/or ``output`` methods.
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its :meth:`_format <marshmallow.fields.Raw._format>` and/or :meth:`_serialize <marshmallow.fields.Raw._serialize>` methods.
 
 .. code-block:: python
 
     from marshmallow import fields
 
     class Titlecased(fields.Raw):
-        def format(self, value):
+        def _format(self, value):
+            if value is None:
+                return ''
             return value.title()
 
     class UserSerializer(Serializer):
@@ -397,8 +399,9 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
 
-Adding Context
-++++++++++++++
+Adding Context to Method and Function Fields
+++++++++++++++++++++++++++++++++++++++++++++
+
 New in version ``0.5.3``.
 
 You may wish to include other objects when computing a :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field.
