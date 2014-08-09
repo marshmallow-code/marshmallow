@@ -2,12 +2,9 @@
 import datetime as dt
 from collections import namedtuple
 
-import pytz
-
 from marshmallow import utils
+from tests.base import assert_datetime_equal, central
 
-
-central = pytz.timezone("US/Central")
 
 def test_to_marshallable_type():
     class Foo(object):
@@ -99,6 +96,18 @@ def test_from_rfc():
     d = dt.datetime.now()
     rfc = utils.rfcformat(d)
     output = utils.from_rfc(rfc)
-    assert output.year == d.year
-    assert output.month == d.month
-    assert output.day == d.day
+    assert_datetime_equal(output, d)
+
+def test_from_iso():
+    d = dt.datetime.now()
+    formatted = d.isoformat()
+    assert_datetime_equal(utils.from_iso(formatted), d)
+
+def test_from_iso_with_tz():
+    d = central.localize(dt.datetime.now())
+    formatted = d.isoformat()
+    result = utils.from_iso(formatted)
+    assert_datetime_equal(result, d)
+    if utils.dateutil_available:
+        # Note a naive datetime
+        assert result.tzinfo is not None

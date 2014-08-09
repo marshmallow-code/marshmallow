@@ -57,6 +57,11 @@ class TestFieldDeserialization:
         expected = text_type(utils.float_to_decimal(float(42)))
         assert field.deserialize('42') == expected
 
+    def test_invalid_datetime_deserialization(self):
+        field = fields.DateTime()
+        with pytest.raises(DeserializationError):
+            field.deserialize('not-a-datetime')
+
     def test_rfc_datetime_field_deserialization(self):
         dtime = dt.datetime.now()
         datestring = utils.rfcformat(dtime)

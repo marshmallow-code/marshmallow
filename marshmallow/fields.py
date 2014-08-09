@@ -8,6 +8,7 @@
 from __future__ import absolute_import
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 import inspect
+import warnings
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SerializerABC
@@ -593,14 +594,24 @@ class DateTime(Raw):
                 return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
-        self.dateformat = self.dateformat or 'rfc'
+        err = DeserializationError(
+            'Cannot deserialize {0!r} to a datetime'.format(value)
+        )
         func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat, None)
         if func:
-            return func(value)
+            try:
+                return func(value)
+            except TypeError:
+                raise err
+        elif utils.dateutil_available:
+            try:
+                return utils.from_datestring(value)
+            except TypeError:
+                raise err
         else:
-            raise DeserializationError(
-                'Cannot deserialize {0!r} to a datetime'.format(value)
-            )
+            warnings.warn('It is recommended that you install python-dateutil for datetime '
+                          ' for improved datetime deserialization.')
+            raise err
 
 
 class LocalDateTime(DateTime):

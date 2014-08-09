@@ -7,9 +7,15 @@ import time
 from email.utils import formatdate, parsedate
 from calendar import timegm
 import types
-
 from decimal import Decimal, Context, Inexact
 from pprint import pprint as py_pprint
+
+dateutil_available = False
+try:
+    from dateutil import parser
+    dateutil_available = True
+except ImportError:
+    dateutil_available = False
 
 from marshmallow.compat import OrderedDict
 
@@ -121,9 +127,6 @@ class UTC(datetime.tzinfo):
     def dst(self, dt):
         return ZERO
 
-    def __reduce__(self):
-        return _UTC, ()
-
     def localize(self, dt, is_dst=False):
         '''Convert naive time to local time'''
         if dt.tzinfo is not None:
@@ -186,19 +189,40 @@ def isoformat(dt, localtime=False, *args, **kwargs):
     return localized.isoformat(*args, **kwargs)
 
 
+def from_datestring(datestring):
+    """Parse an arbitrary datestring and return a datetime object using
+    dateutils' parser.
+    """
+    if dateutil_available:
+        return parser.parse(datestring)
+    else:
+        raise RuntimeError('from_datestring requires the python-dateutils to be'
+                           'installed.')
+
 def from_rfc(datestring):
     """Parse a RFC822-formatted datetime string and return a datetime object.
+
+    Use dateutil's parser if possible.
+
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
     """
-    parsed = parsedate(datestring)  # as a tuple
-    timestamp = time.mktime(parsed)
-    return datetime.datetime.fromtimestamp(timestamp)
+    # Use dateutil's parser if possible
+    if dateutil_available:
+        return parser.parse(datestring)
+    else:
+        parsed = parsedate(datestring)  # as a tuple
+        timestamp = time.mktime(parsed)
+        return datetime.datetime.fromtimestamp(timestamp)
 
 
 def from_iso(datestring):
     """Parse a ISO8601-formatted datetime string and return a datetime object.
-    Return a naive datetime (timezone information is ignored).
+
+    Use dateutil's parser if possible and return a timezone-aware datetime.
     """
-    # TODO: Use dateutil if available
-    # Strip off timezone info.
-    return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+    # Use dateutil's parser if possible
+    if dateutil_available:
+        return parser.parse(datestring)
+    else:
+        # Strip off timezone info.
+        return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')

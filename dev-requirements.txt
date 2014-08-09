@@ -5,3 +5,4 @@ sphinx
 wheel
 invoke
 pytz
+python-dateutil
