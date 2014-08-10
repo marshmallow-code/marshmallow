@@ -4,7 +4,7 @@ import json
 
 from marshmallow import fields, utils, Serializer
 from marshmallow.exceptions import DeserializationError
-from marshmallow.compat import text_type
+from marshmallow.compat import text_type, total_seconds
 
 from tests.base import *  # noqa
 
@@ -15,9 +15,8 @@ class TestFieldDeserialization:
         assert_almost_equal(field.deserialize('12.3'), 12.3)
         assert_almost_equal(field.deserialize(12.3), 12.3)
         assert field.deserialize(None) == 0.0
-        with pytest.raises(DeserializationError) as excinfo:
+        with pytest.raises(DeserializationError):
             field.deserialize('bad')
-        assert 'could not convert string to float' in str(excinfo)
 
     def test_float_field_deserialization_with_default(self):
         field = fields.Float(default=1.0)
@@ -115,11 +114,11 @@ class TestFieldDeserialization:
         field = fields.TimeDelta()
         result = field.deserialize('42')
         assert isinstance(result, dt.timedelta)
-        assert result.total_seconds() == 42.0
+        assert total_seconds(result) == 42.0
         result = field.deserialize('-42')
-        assert result.total_seconds() == -42.0
+        assert total_seconds(result) == -42.0
         result = field.deserialize(12.3)
-        assert_almost_equal(result.total_seconds(), 12.3)
+        assert_almost_equal(total_seconds(result), 12.3)
 
     def test_invalid_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
@@ -263,5 +262,3 @@ class TestSchemaDeserialization:
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
-
-

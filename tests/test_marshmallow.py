@@ -1228,5 +1228,3 @@ def test_can_use_full_module_path_to_class():
     field2 = fields.Nested('tests.test_marshmallow.FooSerializer')
 
     assert field2.output('bar', {'foo': {'_id': 42}})
-
-

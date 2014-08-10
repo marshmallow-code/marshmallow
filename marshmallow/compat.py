@@ -56,8 +56,8 @@ def with_metaclass(meta, *bases):
 
 
 def total_seconds(td):
-    '''Return the total number of seconds contained in the duration.
+    """Return the total number of seconds contained in the duration.
 
     Needed for python 2.6 compatibility.
-    '''
+    """
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
