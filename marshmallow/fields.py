@@ -108,6 +108,15 @@ class Marshaller(object):
 
     # TODO: Repetition here. Rethink.
     def deserialize(self, data, fields_dict, many=False, postprocess=None):
+        """Deserialize ``data`` based on the schema defined by ``fields_dict``.
+
+        :param dict data: The data to deserialize.
+        :param dict fields_dict: Mapping of field names to field objects.
+        :param bool many: Set to ``True`` if ``data`` should be deserialized as
+            a collection.
+        :param callable postprocess: Post-processing function that is passed the
+            deserialized dictionary.
+        """
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
         items = []
