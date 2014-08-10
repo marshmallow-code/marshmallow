@@ -414,8 +414,14 @@ class BaseSerializer(base.SerializerABC):
         return True
 
     def _deserialize_single(self, data):
+        """Deserialize a single instance.
+
+        :param dict data: The data to deserialize.
+        """
+        # If a Field defines ``attribute``, use that as the key, otherwise
+        # just use the name of the field
         result = dict(
-            (key, self.fields[key].deserialize(data[key]))
+            (self.fields[key].attribute or key, self.fields[key].deserialize(data[key]))
             for key, value in iteritems(data)
         )
         return self.make_object(result)
