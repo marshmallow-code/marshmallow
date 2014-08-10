@@ -237,6 +237,11 @@ class SimpleUserSerializer(Serializer):
     name = fields.String()
     age = fields.Float()
 
+class Validator(Serializer):
+    email = fields.Email()
+    colors = fields.Enum(['red', 'blue'])
+    age = fields.Integer(validate=lambda n: n > 0)
+
 class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
@@ -277,10 +282,6 @@ class TestSchemaDeserialization:
         assert_almost_equal(result.age, 42.3)
 
     def test_nested_single_deserialization_to_dict(self):
-        class SimpleUserSerializer(Serializer):
-            name = fields.String()
-            age = fields.Integer()
-
         class SimpleBlogSerializer(Serializer):
             title = fields.String()
             author = fields.Nested(SimpleUserSerializer)
@@ -295,10 +296,6 @@ class TestSchemaDeserialization:
         assert author['age'] == 914
 
     def test_nested_list_deserialization_to_dict(self):
-        class SimpleUserSerializer(Serializer):
-            name = fields.String()
-            age = fields.Integer()
-
         class SimpleBlogSerializer(Serializer):
             title = fields.String()
             authors = fields.Nested(SimpleUserSerializer, many=True)
@@ -327,6 +324,30 @@ class TestSchemaDeserialization:
         result = AliasingUserSerializer().deserialize(data)
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
+
+    def test_deserialization_stores_errors(self):
+        bad_data = {
+            'email': 'invalid-email',
+            'colors': 'burger',
+            'age': -1,
+        }
+        v = Validator(strict=False)
+        v.deserialize(bad_data)
+        errors = v.deserialization_errors
+        assert 'email' in errors
+        assert 'colors' in errors
+        assert 'age' in errors
+
+    def test_strict_mode_deserialization(self):
+        bad_data = {
+            'email': 'invalid-email',
+            'colors': 'burger',
+            'age': -1,
+        }
+        v = Validator(strict=True)
+        with pytest.raises(DeserializationError):
+            v.deserialize(bad_data)
+
 
 class TestUnMarshaller:
 

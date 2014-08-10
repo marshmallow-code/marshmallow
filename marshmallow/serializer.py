@@ -389,6 +389,10 @@ class BaseSerializer(base.SerializerABC):
         """Dictionary of errors raised during serialization."""
         return self._marshal.errors
 
+    @property
+    def deserialization_errors(self):
+        return self._unmarshal.errors
+
     def to_json(self, *args, **kwargs):
         """Return the JSON representation of the data. Takes the same arguments
         as Python's built-in ``json.dumps``.
