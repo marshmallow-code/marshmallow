@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 """Field classes for formatting and validating the serialized object.
 """
-# Adapted from https://github.com/twilio/flask-restful/blob/master/flask_restful/fields.py.
-# See the `NOTICE <https://github.com/sloria/marshmallow/blob/master/NOTICE>`_
-# file for more licensing information.
-
 from __future__ import absolute_import
-import datetime as dt
+
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+import datetime as dt
 import inspect
 import warnings
 
@@ -67,19 +64,21 @@ class Marshaller(object):
         self.errors = {}
         self.deserialization_errors = {}
 
-    def marshal(self, data, fields_dict, many=False):
+    def serialize(self, data, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
-        fields to output and filters the data based on those fields.
+        fields to output and serializes the data based on those fields.
 
         :param data: The actual object(s) from which the fields are taken from
-        :param dict fields: A dict whose keys will make up the final serialized
-                       response output.
+        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to ``True`` if ``data`` is a collection object
                         that is iterable.
-        :returns: An OrderedDict of the marshalled data
+        :return: An OrderedDict of the marshalled data
+
+        .. versionchanged:: 1.0.0
+            Renamed from ``marshal``.
         """
         if many and data is not None:
-            return [self.marshal(d, fields_dict, many=False) for d in data]
+            return [self.serialize(d, fields_dict, many=False) for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
@@ -104,18 +103,21 @@ class Marshaller(object):
         return OrderedDict(items)
 
     # Make an instance callable
-    __call__ = marshal
+    __call__ = serialize
 
     # TODO: Repetition here. Rethink.
     def deserialize(self, data, fields_dict, many=False, postprocess=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
-        :param dict fields_dict: Mapping of field names to field objects.
+        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to ``True`` if ``data`` should be deserialized as
             a collection.
         :param callable postprocess: Post-processing function that is passed the
             deserialized dictionary.
+        :return: An OrderedDict of the deserialized data.
+
+        .. versionadded:: 1.0.0
         """
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
@@ -123,7 +125,6 @@ class Marshaller(object):
         for attr_name, value in iteritems(data):
             field_obj = fields_dict[attr_name]
             key = fields_dict[attr_name].attribute or attr_name
-
             try:
                 value = field_obj.deserialize(data[attr_name])
                 item = (key, value)
