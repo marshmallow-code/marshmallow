@@ -19,6 +19,13 @@ class _WrappingException(MarshmallowError):
             self.underlying_exception = None
         super(_WrappingException, self).__init__(str(underlying_exception))
 
+    def __str__(self):
+        base = Exception.__str__(self)
+        if self.underlying_exception:
+            underlying_str = self.underlying_exception.__class__.__name__
+            return '{0} (underlying {1})'.format(base, underlying_str)
+        return base
+
 
 class ForcedError(_WrappingException):
     """Error that always gets raised, even during serialization.
