@@ -6,6 +6,7 @@ import uuid
 import pytz
 
 from marshmallow import Serializer, fields
+from marshmallow.exceptions import MarshallingError
 
 central = pytz.timezone("US/Central")
 
@@ -125,6 +126,9 @@ class UserSerializer(Serializer):
             return obj.age > 80
         except TypeError as te:
             raise MarshallingError(te)
+
+    def make_object(self, data):
+        return User(**data)
 
 
 class UserMetaSerializer(Serializer):

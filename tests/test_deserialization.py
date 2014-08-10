@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+import json
 
 from marshmallow import fields, utils, Serializer
 from marshmallow.exceptions import DeserializationError
@@ -254,3 +255,13 @@ class TestSchemaDeserialization:
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
+
+    def test_deserialize_from_json(self):
+        user_dict = {'name': 'Monty', 'age': '42.3'}
+        user_json = json.dumps(user_dict)
+        result = UserSerializer().deserialize_from_json(user_json)
+        assert isinstance(result, User)
+        assert result.name == 'Monty'
+        assert_almost_equal(result.age, 42.3)
+
+

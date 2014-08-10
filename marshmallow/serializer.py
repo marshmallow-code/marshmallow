@@ -414,8 +414,8 @@ class BaseSerializer(base.SerializerABC):
         return True
 
     def deserialize(self, structure):
-        """Deserialize a data structure to the schema defined by this Serializer's
-        fields.
+        """Deserialize a data structure to an object defined by this Serializer's
+        fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
         """
         data = dict(
             (key, self.fields[key].deserialize(structure[key]))
@@ -423,9 +423,17 @@ class BaseSerializer(base.SerializerABC):
         )
         return self.make_object(data)
 
+    def deserialize_from_json(self, json_data):
+        """Same as :meth:`deserialize <marshmallow.Serializer.deserialize>`,
+        except it takes JSON data as input.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        """
+        return self.deserialize(self.opts.json_module.loads(json_data))
+
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
-        output.
+        output. Defaults to noop (i.e. just return ``data`` as is).
 
         :param dict data: The deserialized data.
         """

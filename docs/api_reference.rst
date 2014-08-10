@@ -10,7 +10,7 @@ Serializer
 ==========
 
 .. autoclass:: Serializer
-    :private-members:
+    :inherited-members:
 
 .. autofunction:: pprint
 
