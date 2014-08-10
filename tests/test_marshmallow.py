@@ -1032,6 +1032,34 @@ class TestMarshaller:
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert len(res) == 2
 
+    def test_deserialize(self):
+        user_data = {
+            'age': '12'
+        }
+        marshal = fields.Marshaller()
+        result = marshal.deserialize(user_data, {'age': fields.Integer()})
+        assert result['age'] == 12
+
+    def test_deserialize_many(self):
+        assert 0, 'finish me'
+
+    def test_deserialize_stores_errors(self):
+        user_data = {
+            'email': 'invalid',
+            'age': 'nan',
+            'name': 'Valid Name',
+        }
+        fields_dict = {
+            'email': fields.Email(),
+            'age': fields.Integer(),
+            'name': fields.String(),
+        }
+        marshal = fields.Marshaller()
+        marshal.deserialize(user_data, fields_dict)
+        assert 'email' in marshal.deserialization_errors
+        assert 'age' in marshal.deserialization_errors
+        assert 'name' not in marshal.deserialization_errors
+
 
 class UserContextSerializer(Serializer):
     is_owner = fields.Method('get_is_owner')

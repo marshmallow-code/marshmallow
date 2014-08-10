@@ -65,6 +65,7 @@ class Marshaller(object):
         self.prefix = prefix
         self.strict = strict
         self.errors = {}
+        self.deserialization_errors = {}
 
     def marshal(self, data, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
@@ -104,6 +105,40 @@ class Marshaller(object):
 
     # Make an instance callable
     __call__ = marshal
+
+    # TODO: Repetition here. Rethink.
+    def deserialize(self, data, fields_dict, many=False, postprocess=None):
+        if many and data is not None:
+            return [self.deserialize(d, fields_dict, many=False) for d in data]
+        items = []
+        for attr_name, value in iteritems(data):
+            field_obj = fields_dict[attr_name]
+            key = fields_dict[attr_name].attribute or attr_name
+
+            try:
+                value = field_obj.deserialize(data[attr_name])
+                item = (key, value)
+            except DeserializationError as err:  # Store errors
+                if self.strict:
+                    raise err
+                self.deserialization_errors[key] = text_type(err)
+                item = (key, None)
+            except TypeError:
+                # field declared as a class, not an instance
+                if (isinstance(field_obj, type) and
+                       issubclass(field_obj, FieldABC)):
+                    msg = ('Field for "{0}" must be declared as a '
+                                    "Field instance, not a class. "
+                                    'Did you mean "fields.{1}()"?'
+                                    .format(attr_name, field_obj.__name__))
+                    raise TypeError(msg)
+                raise
+            items.append(item)
+        ret = OrderedDict(items)
+        if postprocess:
+            return postprocess(ret)
+        return ret
+
 
 # Singleton marshaller function for use in this module
 marshal = Marshaller(strict=True)
@@ -147,7 +182,7 @@ class Raw(FieldABC):
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validation function that takes the output as its
-        only paramter and returns a boolean. If it returns False, a
+        only parameter and returns a boolean. If it returns False, a
         MarshallingError is raised.
     :param bool required: Make a field required. If a field is ``None``,
         raise a MarshallingError.
