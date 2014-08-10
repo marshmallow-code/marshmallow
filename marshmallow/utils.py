@@ -199,7 +199,7 @@ def from_datestring(datestring):
         raise RuntimeError('from_datestring requires the python-dateutils to be'
                            'installed.')
 
-def from_rfc(datestring):
+def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible.
@@ -207,7 +207,7 @@ def from_rfc(datestring):
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
     """
     # Use dateutil's parser if possible
-    if dateutil_available:
+    if dateutil_available and use_dateutil:
         return parser.parse(datestring)
     else:
         parsed = parsedate(datestring)  # as a tuple
@@ -215,14 +215,28 @@ def from_rfc(datestring):
         return datetime.datetime.fromtimestamp(timestamp)
 
 
-def from_iso(datestring):
-    """Parse a ISO8601-formatted datetime string and return a datetime object.
+def from_iso(datestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
     # Use dateutil's parser if possible
-    if dateutil_available:
+    if dateutil_available and use_dateutil:
         return parser.parse(datestring)
     else:
         # Strip off timezone info.
         return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+
+
+def from_iso_time(timestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime.time
+    object.
+    """
+    if dateutil_available and use_dateutil:
+        return parser.parse(timestring).time()
+    else:
+        if len(timestring) > 8:  # has microseconds
+            fmt = '%H:%M:%S.%f'
+        else:
+            fmt = '%H:%M:%S'
+        return datetime.datetime.strptime(timestring, fmt).time()

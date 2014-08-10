@@ -74,15 +74,15 @@ class TestFieldDeserialization:
         field = fields.DateTime(format='iso')
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
-    def test_tz_datetime_field_deserialization(self):
-        assert 0, 'finish me'
-
     def test_localdatetime_field_deserialization(self):
         dtime = dt.datetime.now()
         localized_dtime = central.localize(dtime)
         field = fields.DateTime(format='iso')
-        # Deserializes to a naive datetime
-        assert_datetime_equal(field.deserialize(localized_dtime.isoformat()), dtime)
+        result = field.deserialize(localized_dtime.isoformat())
+        assert_datetime_equal(result, dtime)
+        # If dateutil is used, the datetime will not be naive
+        if utils.dateutil_available:
+            assert result.tzinfo is not None
 
     def test_time_field_deserialization(self):
         assert 0, 'finish me'

@@ -3,7 +3,7 @@ import datetime as dt
 from collections import namedtuple
 
 from marshmallow import utils
-from tests.base import assert_datetime_equal, central
+from tests.base import assert_datetime_equal, central, assert_time_equal
 
 
 def test_to_marshallable_type():
@@ -95,13 +95,16 @@ def test_isoformat_localtime():
 def test_from_rfc():
     d = dt.datetime.now()
     rfc = utils.rfcformat(d)
-    output = utils.from_rfc(rfc)
-    assert_datetime_equal(output, d)
+    result = utils.from_rfc(rfc)
+    assert isinstance(result, dt.datetime)
+    assert_datetime_equal(result, d)
 
 def test_from_iso():
     d = dt.datetime.now()
     formatted = d.isoformat()
-    assert_datetime_equal(utils.from_iso(formatted), d)
+    result = utils.from_iso(formatted)
+    assert isinstance(result, dt.datetime)
+    assert_datetime_equal(result, d)
 
 def test_from_iso_with_tz():
     d = central.localize(dt.datetime.now())
@@ -111,3 +114,17 @@ def test_from_iso_with_tz():
     if utils.dateutil_available:
         # Note a naive datetime
         assert result.tzinfo is not None
+
+def test_from_iso_time_with_microseconds_no_dateutil():
+    t = dt.time(1, 23, 45, 6789)
+    formatted = t.isoformat()
+    result = utils.from_iso_time(formatted, use_dateutil=False)
+    assert isinstance(result, dt.time)
+    assert_time_equal(result, t, microseconds=True)
+
+def test_from_iso_time_without_microseconds_no_dateutil():
+    t = dt.time(1, 23, 45)
+    formatted = t.isoformat()
+    result = utils.from_iso_time(formatted, use_dateutil=False)
+    assert isinstance(result, dt.time)
+    assert_time_equal(result, t, microseconds=True)

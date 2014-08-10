@@ -7,10 +7,13 @@ import pytz
 
 from marshmallow import Serializer, fields
 
+central = pytz.timezone("US/Central")
+
 ##### Custom asserts #####
 
 def assert_almost_equal(a, b, precision=5):
     assert round(a, precision) == round(a, precision)
+
 
 def assert_datetime_equal(dt1, dt2):
     assert dt1.year == dt2.year
@@ -19,7 +22,14 @@ def assert_datetime_equal(dt1, dt2):
     assert dt1.hour == dt2.hour
     assert dt1.minute == dt2.minute
 
-central = pytz.timezone("US/Central")
+
+def assert_time_equal(t1, t2, microseconds=True):
+    assert t1.hour == t2.hour
+    assert t1.minute == t2.minute
+    assert t1.second == t2.second
+    if microseconds:
+        assert t1.microsecond == t2.microsecond
+
 
 ##### Models #####
 
@@ -224,4 +234,3 @@ class mockjson(object):
     @staticmethod
     def loads(val):
         return {'foo': 42}
-
