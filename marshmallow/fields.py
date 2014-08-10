@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from functools import partial
 import datetime as dt
 import inspect
 import warnings
@@ -64,48 +65,38 @@ class Marshaller(object):
         self.errors = {}
         self.deserialization_errors = {}
 
-    def serialize(self, data, fields_dict, many=False):
+    def serialize(self, obj, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
-        :param data: The actual object(s) from which the fields are taken from
+        :param obj: The actual object(s) from which the fields are taken from
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
-        :param bool many: Set to ``True`` if ``data`` is a collection object
-                        that is iterable.
+        :param bool many: Set to ``True`` if ``data`` should be serialized as
+            a collection.
         :return: An OrderedDict of the marshalled data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        if many and data is not None:
-            return [self.serialize(d, fields_dict, many=False) for d in data]
+        if many and obj is not None:
+            return [self.serialize(d, fields_dict, many=False) for d in obj]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
-            try:
-                item = (key, field_obj.output(attr_name, data))
-            except MarshallingError as err:  # Store errors
-                if self.strict:
-                    raise err
-                self.errors[key] = text_type(err)
-                item = (key, None)
-            except TypeError:
-                # field declared as a class, not an instance
-                if (isinstance(field_obj, type) and
-                       issubclass(field_obj, FieldABC)):
-                    msg = ('Field for "{0}" must be declared as a '
-                                    "Field instance, not a class. "
-                                    'Did you mean "fields.{1}()"?'
-                                    .format(attr_name, field_obj.__name__))
-                    raise TypeError(msg)
-                raise
-            items.append(item)
+            value = self._get_value(
+                getter_func=partial(field_obj.output, attr_name),
+                data=obj,
+                field_name=key,
+                field_obj=field_obj,
+                errors_dict=self.errors,
+                exception_class=MarshallingError
+            )
+            items.append((key, value))
         return OrderedDict(items)
 
     # Make an instance callable
     __call__ = serialize
 
-    # TODO: Repetition here. Rethink.
     def deserialize(self, data, fields_dict, many=False, postprocess=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
@@ -125,30 +116,54 @@ class Marshaller(object):
         for attr_name, value in iteritems(data):
             field_obj = fields_dict[attr_name]
             key = fields_dict[attr_name].attribute or attr_name
-            try:
-                value = field_obj.deserialize(data[attr_name])
-                item = (key, value)
-            except DeserializationError as err:  # Store errors
-                if self.strict:
-                    raise err
-                self.deserialization_errors[key] = text_type(err)
-                item = (key, None)
-            except TypeError:
-                # field declared as a class, not an instance
-                if (isinstance(field_obj, type) and
-                       issubclass(field_obj, FieldABC)):
-                    msg = ('Field for "{0}" must be declared as a '
-                                    "Field instance, not a class. "
-                                    'Did you mean "fields.{1}()"?'
-                                    .format(attr_name, field_obj.__name__))
-                    raise TypeError(msg)
-                raise
-            items.append(item)
+            value = self._get_value(
+                getter_func=field_obj.deserialize,
+                data=data[attr_name],
+                field_name=key,
+                field_obj=field_obj,
+                errors_dict=self.deserialization_errors,
+                exception_class=DeserializationError
+            )
+            items.append((key, value))
         ret = OrderedDict(items)
         if postprocess:
             return postprocess(ret)
         return ret
 
+    def _get_value(self, getter_func, data, field_name, field_obj, errors_dict, exception_class):
+        """Helper method for DRYing up logic in the :meth:`serialize` and
+        :meth:`deserialize` methods. Call ``getter_func`` with ``data`` as its
+        argument, and store any errors of type ``exception_class`` in ``error_dict``.
+
+        :param callable getter_func: Function for getting the serialized/deserialized
+            value from ``data``.
+        :param data: The data passed to ``getter_func``.
+        :param str field_name: Field name.
+        :param FieldABC field_obj: Field object that performs the
+            serialization/deserialization behavior.
+        :param dict errors_dict: Dictionary to store errors on.
+        :param type exception_class: Exception class that will be caught during
+            serialization/deserialization. Errors of this type will be stored
+            in ``errors_dict``.
+        """
+        try:
+            value = getter_func(data)
+        except exception_class as err:  # Store errors
+            if self.strict:
+                raise err
+            errors_dict[field_name] = text_type(err)
+            value = None
+        except TypeError:
+            # field declared as a class, not an instance
+            if (isinstance(field_obj, type) and
+                    issubclass(field_obj, FieldABC)):
+                msg = ('Field for "{0}" must be declared as a '
+                                "Field instance, not a class. "
+                                'Did you mean "fields.{1}()"?'
+                                .format(field_name, field_obj.__name__))
+                raise TypeError(msg)
+            raise
+        return value
 
 # Singleton marshaller function for use in this module
 marshal = Marshaller(strict=True)

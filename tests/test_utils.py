@@ -13,7 +13,6 @@ from tests.base import (
 )
 
 
-
 def test_to_marshallable_type():
     class Foo(object):
         CLASS_VAR = 'bar'
@@ -133,7 +132,7 @@ def test_from_iso_time_with_microseconds(use_dateutil):
     assert_time_equal(result, t, microseconds=True)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_iso_time_without_microseconds_no_dateutil(use_dateutil):
+def test_from_iso_time_without_microseconds(use_dateutil):
     t = dt.time(1, 23, 45)
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
@@ -141,7 +140,7 @@ def test_from_iso_time_without_microseconds_no_dateutil(use_dateutil):
     assert_time_equal(result, t, microseconds=True)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_iso_date_no_dateutil(use_dateutil):
+def test_from_iso_date(use_dateutil):
     d = dt.date(2014, 8, 21)
     iso_date = d.isoformat()
     result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
