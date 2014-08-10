@@ -426,7 +426,10 @@ class Nested(Raw):
             self.serializer._update_fields()
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         try:
-            ret = self.serializer.marshal(nested_obj, fields, many=self.many)
+            # We call the protected `_marshal` method instead of `serialize`
+            # because we need to pass the this fields ``many`` attribute as
+            # an argument, which ``serialize`` would not allow
+            ret = self.serializer._marshal(nested_obj, fields, many=self.many)
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '

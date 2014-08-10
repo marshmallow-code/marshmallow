@@ -34,6 +34,15 @@ def test_serializing_basic_object(SerializerClass, user):
     assert_almost_equal(s.data['age'], 42.3)
     assert s.data['registered']
 
+def test_deferred_serialization(user):
+    s = UserSerializer()
+    result = s.serialize(user)
+    assert result['name'] == user.name
+    # Change strict mode
+    s.strict = True
+    bad_user = User(name='Monty', email='invalid')
+    with pytest.raises(MarshallingError):
+        s.serialize(bad_user)
 
 def test_serializing_none():
     s = UserSerializer(None)

@@ -179,12 +179,12 @@ class BaseSerializer(base.SerializerABC):
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         #: Callable marshalling object
-        self.marshal = fields.Marshaller(
+        self._marshal = fields.Marshaller(
             prefix=self.prefix,
             strict=self.strict
         )
         #: Callable unmarshalling object
-        self.unmarshal = fields.UnMarshaller(
+        self._unmarshal = fields.UnMarshaller(
             strict=self.strict
         )
         self.extra = extra
@@ -200,15 +200,15 @@ class BaseSerializer(base.SerializerABC):
             self._update_data()
 
     def _update_data(self):
-        result = self.marshal(self.obj, self.fields, many=self.many)
+        result = self._marshal(self.obj, self.fields, many=self.many)
         if self.extra:
             if self.many:
                 for each in result:
                     each.update(self.extra)
             else:
                 result.update(self.extra)
-        if self.marshal.errors and callable(self._error_callback):
-            self._error_callback(self.marshal.errors, self.obj)
+        if self._marshal.errors and callable(self._error_callback):
+            self._error_callback(self._marshal.errors, self.obj)
 
         # invoke registered callbacks
         # NOTE: these callbacks will mutate the data
@@ -387,7 +387,7 @@ class BaseSerializer(base.SerializerABC):
     @property
     def errors(self):
         """Dictionary of errors raised during serialization."""
-        return self.marshal.errors
+        return self._marshal.errors
 
     def to_json(self, *args, **kwargs):
         """Return the JSON representation of the data. Takes the same arguments
@@ -410,18 +410,30 @@ class BaseSerializer(base.SerializerABC):
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
         fields_to_validate = field_names or self.fields.keys()
-        for fname in fields_tokvalidate:
+        for fname in fields_to_validate:
             if fname not in self.fields:
                 raise KeyError('"{0}" is not a valid field name.'.format(fname))
             if fname in self.errors:
                 return False
         return True
 
+    def serialize(self, obj):
+        """Serialize an object to native Python data types according to this
+        Serializer's fields.
+
+        :param obj: The object to serialize.
+        """
+        self._marshal.strict = self.strict
+        return self._marshal(obj, self.fields, many=self.many)
+
     def deserialize(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
         fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
+
+        :param dict data: The data to deserialize.
         """
-        return self.unmarshal(data, self.fields, self.many,
+        self._unmarshal.strict = self.strict
+        return self._unmarshal(data, self.fields, self.many,
                                         postprocess=self.make_object)
 
     def deserialize_from_json(self, json_data):
