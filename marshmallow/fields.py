@@ -21,6 +21,7 @@ from marshmallow.exceptions import (
 
 __all__ = [
     'Marshaller',
+    'UnMarshaller',
     'Raw',
     'Nested',
     'List',
@@ -49,21 +50,56 @@ __all__ = [
 ]
 
 
+def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
+               exception_class, strict=False):
+    """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
+    :meth:`UnMarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
+    argument, and store any errors of type ``exception_class`` in ``error_dict``.
+
+    :param callable getter_func: Function for getting the serialized/deserialized
+        value from ``data``.
+    :param data: The data passed to ``getter_func``.
+    :param str field_name: Field name.
+    :param FieldABC field_obj: Field object that performs the
+        serialization/deserialization behavior.
+    :param dict errors_dict: Dictionary to store errors on.
+    :param type exception_class: Exception class that will be caught during
+        serialization/deserialization. Errors of this type will be stored
+        in ``errors_dict``.
+    """
+    try:
+        value = getter_func(data)
+    except exception_class as err:  # Store errors
+        if strict:
+            raise err
+        # Warning: Mutation!
+        errors_dict[field_name] = text_type(err)
+        value = None
+    except TypeError:
+        # field declared as a class, not an instance
+        if (isinstance(field_obj, type) and
+                issubclass(field_obj, FieldABC)):
+            msg = ('Field for "{0}" must be declared as a '
+                            "Field instance, not a class. "
+                            'Did you mean "fields.{1}()"?'
+                            .format(field_name, field_obj.__name__))
+            raise TypeError(msg)
+        raise
+    return value
+
 class Marshaller(object):
-    """Callable class responsible for marshalling data and storing errors.
+    """Callable class responsible for serializing data and storing errors.
 
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If ``True``, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
-    :param callable error_handler: Error handling function that receieves a
-        dictionary of stored errors.
     """
-    def __init__(self, prefix='', strict=False, error_handler=None):
+    def __init__(self, prefix='', strict=False):
         self.prefix = prefix
         self.strict = strict
+        #: Dictionary of errors stored during serialization
         self.errors = {}
-        self.deserialization_errors = {}
 
     def serialize(self, obj, fields_dict, many=False):
         """Takes raw data (a dict, list, or other object) and a dict of
@@ -83,19 +119,36 @@ class Marshaller(object):
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
-            value = self._get_value(
+            value = _call_and_store(
                 getter_func=partial(field_obj.output, attr_name),
                 data=obj,
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
-                exception_class=MarshallingError
+                exception_class=MarshallingError,
+                strict=self.strict
             )
             items.append((key, value))
         return OrderedDict(items)
 
     # Make an instance callable
     __call__ = serialize
+
+
+class UnMarshaller(object):
+    """Callable class responsible for deserializing data and storing errors.
+
+    :param str prefix: Optional prefix that will be prepended to all the
+        serialized field names.
+    :param bool strict: If ``True``, raise errors if invalid data are passed in
+        instead of failing silently and storing the errors.
+
+    .. versionadded:: 1.0.0
+    """
+    def __init__(self, prefix='', strict=False):
+        self.strict = strict
+        #: Dictionary of errors stored during deserialization
+        self.errors = {}
 
     def deserialize(self, data, fields_dict, many=False, postprocess=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
@@ -107,8 +160,6 @@ class Marshaller(object):
         :param callable postprocess: Post-processing function that is passed the
             deserialized dictionary.
         :return: An OrderedDict of the deserialized data.
-
-        .. versionadded:: 1.0.0
         """
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
@@ -116,13 +167,14 @@ class Marshaller(object):
         for attr_name, value in iteritems(data):
             field_obj = fields_dict[attr_name]
             key = fields_dict[attr_name].attribute or attr_name
-            value = self._get_value(
+            value = _call_and_store(
                 getter_func=field_obj.deserialize,
                 data=data[attr_name],
                 field_name=key,
                 field_obj=field_obj,
-                errors_dict=self.deserialization_errors,
-                exception_class=DeserializationError
+                errors_dict=self.errors,
+                exception_class=DeserializationError,
+                strict=self.strict
             )
             items.append((key, value))
         ret = OrderedDict(items)
@@ -130,40 +182,9 @@ class Marshaller(object):
             return postprocess(ret)
         return ret
 
-    def _get_value(self, getter_func, data, field_name, field_obj, errors_dict, exception_class):
-        """Helper method for DRYing up logic in the :meth:`serialize` and
-        :meth:`deserialize` methods. Call ``getter_func`` with ``data`` as its
-        argument, and store any errors of type ``exception_class`` in ``error_dict``.
+    # Make an instance callable
+    __call__ = deserialize
 
-        :param callable getter_func: Function for getting the serialized/deserialized
-            value from ``data``.
-        :param data: The data passed to ``getter_func``.
-        :param str field_name: Field name.
-        :param FieldABC field_obj: Field object that performs the
-            serialization/deserialization behavior.
-        :param dict errors_dict: Dictionary to store errors on.
-        :param type exception_class: Exception class that will be caught during
-            serialization/deserialization. Errors of this type will be stored
-            in ``errors_dict``.
-        """
-        try:
-            value = getter_func(data)
-        except exception_class as err:  # Store errors
-            if self.strict:
-                raise err
-            errors_dict[field_name] = text_type(err)
-            value = None
-        except TypeError:
-            # field declared as a class, not an instance
-            if (isinstance(field_obj, type) and
-                    issubclass(field_obj, FieldABC)):
-                msg = ('Field for "{0}" must be declared as a '
-                                "Field instance, not a class. "
-                                'Did you mean "fields.{1}()"?'
-                                .format(field_name, field_obj.__name__))
-                raise TypeError(msg)
-            raise
-        return value
 
 # Singleton marshaller function for use in this module
 marshal = Marshaller(strict=True)

@@ -183,6 +183,10 @@ class BaseSerializer(base.SerializerABC):
             prefix=self.prefix,
             strict=self.strict
         )
+        #: Callable unmarshalling object
+        self.unmarshal = fields.UnMarshaller(
+            strict=self.strict
+        )
         self.extra = extra
         self.context = context
 
@@ -406,7 +410,7 @@ class BaseSerializer(base.SerializerABC):
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
         fields_to_validate = field_names or self.fields.keys()
-        for fname in fields_to_validate:
+        for fname in fields_tokvalidate:
             if fname not in self.fields:
                 raise KeyError('"{0}" is not a valid field name.'.format(fname))
             if fname in self.errors:
@@ -417,7 +421,7 @@ class BaseSerializer(base.SerializerABC):
         """Deserialize a data structure to an object defined by this Serializer's
         fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
         """
-        return self.marshal.deserialize(data, self.fields, self.many,
+        return self.unmarshal(data, self.fields, self.many,
                                         postprocess=self.make_object)
 
     def deserialize_from_json(self, json_data):
