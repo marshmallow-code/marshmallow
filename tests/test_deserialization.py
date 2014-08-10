@@ -1,7 +1,7 @@
-
+# -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, utils
+from marshmallow import fields, utils, Serializer
 from marshmallow.exceptions import DeserializationError
 from marshmallow.compat import text_type
 
@@ -85,7 +85,22 @@ class TestFieldDeserialization:
             assert result.tzinfo is not None
 
     def test_time_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.Time()
+        t = dt.time(1, 23, 45)
+        t_formatted = t.isoformat()
+        result = field.deserialize(t_formatted)
+        assert isinstance(result, dt.time)
+        assert_time_equal(result, t)
+        # With microseconds
+        t2 = dt.time(1, 23, 45, 6789)
+        t2_formatted = t2.isoformat()
+        result2 = field.deserialize(t2_formatted)
+        assert_time_equal(result2, t2)
+
+    def test_invalid_time_field_deserialization(self):
+        field = fields.Time()
+        with pytest.raises(DeserializationError):
+            field.deserialize('badvalue')
 
     def test_fixed_field_deserialization(self):
         field = fields.Fixed(decimals=3)
@@ -96,10 +111,32 @@ class TestFieldDeserialization:
             field.deserialize('badvalue')
 
     def test_timedelta_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.TimeDelta()
+        result = field.deserialize('42')
+        assert isinstance(result, dt.timedelta)
+        assert result.total_seconds() == 42.0
+        result = field.deserialize('-42')
+        assert result.total_seconds() == -42.0
+        result = field.deserialize(12.3)
+        assert_almost_equal(result.total_seconds(), 12.3)
+
+    def test_invalid_timedelta_field_deserialization(self):
+        field = fields.TimeDelta()
+        with pytest.raises(DeserializationError):
+            field.deserialize('badvalue')
 
     def test_date_field_deserialization(self):
-        assert 0, 'finish me'
+        field = fields.Date()
+        d = dt.date(2014, 8, 21)
+        iso_date = d.isoformat()
+        result = field.deserialize(iso_date)
+        assert isinstance(result, dt.date)
+        assert_date_equal(result, d)
+
+    def test_invalid_date_field_deserialization(self):
+        field = fields.Date()
+        with pytest.raises(DeserializationError):
+            field.deserialize('badvalue')
 
     def test_price_field_deserialization(self):
         field = fields.Price()
@@ -126,11 +163,45 @@ class TestFieldDeserialization:
         with pytest.raises(DeserializationError):
             field.deserialize('invalidemail')
 
-    def test_function_field_deserialization(self):
-        assert 0, 'finish me'
+    def test_function_field_deserialization_is_noop_by_default(self):
+        field = fields.Function(lambda x: None)
+        # Default is noop
+        assert field.deserialize('foo') == 'foo'
+        assert field.deserialize(42) == 42
 
-    def test_method_field_deserialization(self):
-        assert 0, 'finish me'
+    def test_function_field_deserialization_with_callable(self):
+        field = fields.Function(lambda x: None,
+                                deserialize=lambda val: val.upper())
+        assert field.deserialize('foo') == 'FOO'
+
+    def test_deserialization_function_must_be_callable(self):
+        with pytest.raises(ValueError):
+            fields.Function(lambda x: None,
+                            deserialize='notvalid')
+
+    def test_method_field_deserialization_is_noop_by_default(self):
+        class MiniUserSerializer(Serializer):
+            uppername = fields.Method('uppercase_name')
+
+            def uppercase_name(self, obj):
+                return obj.upper()
+        user = User(name='steve')
+        s = MiniUserSerializer(user)
+        assert s.fields['uppername'].deserialize('steve') == 'steve'
+
+    def test_deserialization_method(self):
+        class MiniUserSerializer(Serializer):
+            uppername = fields.Method('uppercase_name', deserialize='lowercase_name')
+
+            def uppercase_name(self, obj):
+                return obj.name.upper()
+
+            def lowercase_name(self, value):
+                return value.lower()
+
+        user = User(name='steve')
+        s = MiniUserSerializer(user)
+        assert s.fields['uppername'].deserialize('STEVE') == 'steve'
 
     def test_enum_field_deserialization(self):
         field = fields.Enum(['red', 'blue'])
@@ -162,12 +233,24 @@ class TestFieldDeserialization:
 class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
-        # UserSerializer has no custom deserialization behavior, so a dict is
-        # returned
+        # No custom deserialization behavior, so a dict is returned
+        class SimpleUserSerializer(Serializer):
+            name = fields.String()
+            age = fields.Float()
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result = UserSerializer().deserialize(user_dict)
+        result = SimpleUserSerializer().deserialize(user_dict)
         assert result['name'] == 'Monty'
-        assert result['age'] == 42.3
+        assert_almost_equal(result['age'], 42.3)
 
     def test_make_object(self):
-        assert 0, 'finish me'
+        class SimpleUserSerializer(Serializer):
+            name = fields.String()
+            age = fields.Float()
+
+            def make_object(self, data):
+                return User(**data)
+        user_dict = {'name': 'Monty', 'age': '42.3'}
+        result = SimpleUserSerializer().deserialize(user_dict)
+        assert isinstance(result, User)
+        assert result.name == 'Monty'
+        assert_almost_equal(result.age, 42.3)

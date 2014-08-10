@@ -2,8 +2,16 @@
 import datetime as dt
 from collections import namedtuple
 
+import pytest
+
 from marshmallow import utils
-from tests.base import assert_datetime_equal, central, assert_time_equal
+from tests.base import (
+    assert_datetime_equal,
+    central,
+    assert_time_equal,
+    assert_date_equal,
+)
+
 
 
 def test_to_marshallable_type():
@@ -115,16 +123,27 @@ def test_from_iso_with_tz():
         # Note a naive datetime
         assert result.tzinfo is not None
 
-def test_from_iso_time_with_microseconds_no_dateutil():
+# Test with and without dateutil
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_time_with_microseconds(use_dateutil):
     t = dt.time(1, 23, 45, 6789)
     formatted = t.isoformat()
-    result = utils.from_iso_time(formatted, use_dateutil=False)
+    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
     assert isinstance(result, dt.time)
     assert_time_equal(result, t, microseconds=True)
 
-def test_from_iso_time_without_microseconds_no_dateutil():
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_time_without_microseconds_no_dateutil(use_dateutil):
     t = dt.time(1, 23, 45)
     formatted = t.isoformat()
-    result = utils.from_iso_time(formatted, use_dateutil=False)
+    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
     assert isinstance(result, dt.time)
     assert_time_equal(result, t, microseconds=True)
+
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_date_no_dateutil(use_dateutil):
+    d = dt.date(2014, 8, 21)
+    iso_date = d.isoformat()
+    result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
+    assert isinstance(result, dt.date)
+    assert_date_equal(result, d)

@@ -240,3 +240,9 @@ def from_iso_time(timestring, use_dateutil=True):
         else:
             fmt = '%H:%M:%S'
         return datetime.datetime.strptime(timestring, fmt).time()
+
+def from_iso_date(datestring, use_dateutil=True):
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring).date()
+    else:
+        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d')

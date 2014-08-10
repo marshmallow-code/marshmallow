@@ -414,12 +414,22 @@ class BaseSerializer(base.SerializerABC):
         return True
 
     def deserialize(self, structure):
+        """Deserialize a data structure to the schema defined by this Serializer's
+        fields.
         """
-        """
-        return dict(
+        data = dict(
             (key, self.fields[key].deserialize(structure[key]))
             for key, value in iteritems(structure)
         )
+        return self.make_object(data)
+
+    def make_object(self, data):
+        """Override-able method that defines how to create the final deserialization
+        output.
+
+        :param dict data: The deserialized data.
+        """
+        return data
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):

@@ -6,6 +6,7 @@
 # file for more licensing information.
 
 from __future__ import absolute_import
+import datetime as dt
 from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 import inspect
 import warnings
@@ -637,6 +638,14 @@ class Time(Raw):
             return ret[:12]
         return ret
 
+    def _deserialize(self, value):
+        """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
+        try:
+            return utils.from_iso_time(value)
+        except TypeError:
+            raise DeserializationError(
+                'Could not deserialize {0!r} to a time object.'.format(value)
+            )
 
 class Date(Raw):
     """ISO8601-formatted date string."""
@@ -648,6 +657,17 @@ class Date(Raw):
             raise MarshallingError('{0} cannot be formatted as a date.'
                                     .format(repr(value)))
         return value
+
+    def _deserialize(self, value):
+        """Deserialize an ISO8601-formatted date string to a
+        :class:`datetime.date` object.
+        """
+        try:
+            return utils.from_iso_date(value)
+        except TypeError:
+            raise DeserializationError(
+                'Could not deserialize {0!r} to a date object.'.format(value)
+            )
 
 
 class TimeDelta(Raw):
@@ -662,6 +682,12 @@ class TimeDelta(Raw):
             raise MarshallingError('{0} cannot be formatted as a timedelta.'
                                     .format(repr(value)))
         return value
+
+    def _deserialize(self, value):
+        """Deserialize a value in seconds to a :class:`datetime.timedelta`
+        object.
+        """
+        return dt.timedelta(seconds=float(value))
 
 
 ZERO = MyDecimal()
@@ -755,10 +781,10 @@ def get_args(func):
 
 
 def _callable(obj):
-    """Checks that an object is callable, else raises a ``MarshallingError``.
+    """Check that an object is callable, else raise a :exc:`ValueError`.
     """
     if not callable(obj):
-        raise MarshallingError('Object {0!r} is not callable.'.format(obj))
+        raise ValueError('Object {0!r} is not callable.'.format(obj))
     return obj
 
 
@@ -766,13 +792,22 @@ class Method(Raw):
     """A field that takes the value returned by a Serializer method.
 
     :param str method_name: The name of the Serializer method from which
-        to retrieve the value. The method must take a single argument ``obj``
-        (in addition to self) that is the object to be serialized.
+        to retrieve the value. The method must take an argument ``obj``
+        (in addition to self) that is the object to be serialized. The method
+        can also take a ``context`` argument which is a dictionary context
+        passed to a Serializer.
+    :param str deserialize: Optional name of the Serializer method for deserializing
+        a value The method must take a single argument ``value``, which is the
+        value to deserialize.
     """
     _CHECK_REQUIRED = False
 
-    def __init__(self, method_name, **kwargs):
+    def __init__(self, method_name, deserialize=None, **kwargs):
         self.method_name = method_name
+        if deserialize:
+            self.deserialize_method_name = deserialize
+        else:
+            self.deserialize_method_name = None
         super(Method, self).__init__(**kwargs)
 
     def _serialize(self, value, key, obj):
@@ -788,19 +823,35 @@ class Method(Raw):
         except AttributeError:
             pass
 
+    def _deserialize(self, value):
+        if self.deserialize_method_name:
+            try:
+                method = _callable(getattr(self.parent, self.deserialize_method_name, None))
+                return method(value)
+            except AttributeError:
+                pass
+        return value
+
 
 class Function(Raw):
     """A field that takes the value returned by a function.
 
-    :param function func: A callable function from which to retrieve the value.
+    :param callable func: A callable from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
-        to be serialized.
+        to be serialized. It can also optionally take a ``context`` argument,
+        which is a dictionary of context variables passed to the serializer.
+    :param callable deserialize: Deserialization function that takes the value
+        to be deserialized as its only argument.
     """
     _CHECK_REQUIRED = False
 
-    def __init__(self, func, **kwargs):
+    def __init__(self, func, deserialize=None, **kwargs):
         super(Function, self).__init__(**kwargs)
         self.func = _callable(func)
+        if deserialize:
+            self.deserialize_func = _callable(deserialize)
+        else:
+            self.deserialize_func = None
 
     def _serialize(self, value, key, obj):
         try:
@@ -815,6 +866,11 @@ class Function(Raw):
             raise MarshallingError(te)
         except AttributeError:  # the object is not expected to have the attribute
             pass
+
+    def _deserialize(self, value):
+        if self.deserialize_func:
+            return self.deserialize_func(value)
+        return value
 
 
 class Select(Raw):

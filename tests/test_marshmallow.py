@@ -760,7 +760,7 @@ class TestFields:
         assert "FOO" == field.output("key", self.user)
 
     def test_function_with_uncallable_param(self):
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValueError):
             fields.Function("uncallable")
 
     def test_method_field_with_method_missing(self):

@@ -10,6 +10,7 @@ Changelog
 * *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``output`` and ``deserialize`` comprise the public API for a ``Field``.
 * *Backwards-incompatible*: ``Field.format`` gets called with a field's default value if the pulled value is ``None`` and the field is not required.
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
+* *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++

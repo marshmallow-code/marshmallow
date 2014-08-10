@@ -15,10 +15,14 @@ def assert_almost_equal(a, b, precision=5):
     assert round(a, precision) == round(a, precision)
 
 
+def assert_date_equal(d1, d2):
+    assert d1.year == d2.year
+    assert d1.month == d2.month
+    assert d1.day == d2.day
+
+
 def assert_datetime_equal(dt1, dt2):
-    assert dt1.year == dt2.year
-    assert dt1.month == dt2.month
-    assert dt1.day == dt2.day
+    assert_date_equal(dt1, dt2)
     assert dt1.hour == dt2.hour
     assert dt1.minute == dt2.minute
 
