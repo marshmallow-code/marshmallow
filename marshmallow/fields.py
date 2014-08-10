@@ -360,6 +360,9 @@ class Nested(Raw):
                 return ret[self.only]
         return ret
 
+    def _deserialize(self, value):
+        return self.serializer.deserialize(value)
+
 
 def flatten(dictlist, key):
     """Flattens a list of dicts into just a list of values.

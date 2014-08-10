@@ -413,15 +413,21 @@ class BaseSerializer(base.SerializerABC):
                 return False
         return True
 
-    def deserialize(self, structure):
+    def _deserialize_single(self, data):
+        result = dict(
+            (key, self.fields[key].deserialize(data[key]))
+            for key, value in iteritems(data)
+        )
+        return self.make_object(result)
+
+    def deserialize(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
         fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
         """
-        data = dict(
-            (key, self.fields[key].deserialize(structure[key]))
-            for key, value in iteritems(structure)
-        )
-        return self.make_object(data)
+        if self.many:
+            return [self._deserialize_single(each) for each in data]
+        else:
+            return self._deserialize_single(data)
 
     def deserialize_from_json(self, json_data):
         """Same as :meth:`deserialize <marshmallow.Serializer.deserialize>`,

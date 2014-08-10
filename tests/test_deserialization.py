@@ -37,6 +37,9 @@ class TestFieldDeserialization:
 
     def test_boolean_field_deserialization(self):
         field = fields.Boolean()
+        assert field.deserialize(True) is True
+        assert field.deserialize(False) is False
+        assert field.deserialize(None) is False
         assert field.deserialize('True') is True
         assert field.deserialize('False') is False
         assert field.deserialize('true') is True
@@ -229,28 +232,38 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
+# No custom deserialization behavior, so a dict is returned
+class SimpleUserSerializer(Serializer):
+    name = fields.String()
+    age = fields.Float()
 
 class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
-        # No custom deserialization behavior, so a dict is returned
-        class SimpleUserSerializer(Serializer):
-            name = fields.String()
-            age = fields.Float()
         user_dict = {'name': 'Monty', 'age': '42.3'}
         result = SimpleUserSerializer().deserialize(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
 
+    def test_deserialize_many(self):
+        users_data = [
+            {'name': 'Mick', 'age': '914'},
+            {'name': 'Keith', 'age': '8442'}
+        ]
+        result = SimpleUserSerializer(many=True).deserialize(users_data)
+        assert isinstance(result, list)
+        user = result[0]
+        assert user['age'] == int(users_data[0]['age'])
+
     def test_make_object(self):
-        class SimpleUserSerializer(Serializer):
+        class SimpleUserSerializer2(Serializer):
             name = fields.String()
             age = fields.Float()
 
             def make_object(self, data):
                 return User(**data)
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result = SimpleUserSerializer().deserialize(user_dict)
+        result = SimpleUserSerializer2().deserialize(user_dict)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
@@ -262,3 +275,55 @@ class TestSchemaDeserialization:
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
+
+    def test_nested_single_deserialization_to_dict(self):
+        class SimpleUserSerializer(Serializer):
+            name = fields.String()
+            age = fields.Integer()
+
+        class SimpleBlogSerializer(Serializer):
+            title = fields.String()
+            author = fields.Nested(SimpleUserSerializer)
+
+        blog_dict = {
+            'title': 'Gimme Shelter',
+            'author': {'name': 'Mick', 'age': '914'}
+        }
+        result = SimpleBlogSerializer().deserialize(blog_dict)
+        author = result['author']
+        assert author['name'] == 'Mick'
+        assert author['age'] == 914
+
+    def test_nested_list_deserialization_to_dict(self):
+        class SimpleUserSerializer(Serializer):
+            name = fields.String()
+            age = fields.Integer()
+
+        class SimpleBlogSerializer(Serializer):
+            title = fields.String()
+            authors = fields.Nested(SimpleUserSerializer, many=True)
+
+        blog_dict = {
+            'title': 'Gimme Shelter',
+            'authors': [
+                {'name': 'Mick', 'age': '914'},
+                {'name': 'Keith', 'age': '8442'}
+            ]
+        }
+        result = SimpleBlogSerializer().deserialize(blog_dict)
+        assert isinstance(result['authors'], list)
+        author = result['authors'][0]
+        assert author['name'] == 'Mick'
+        assert author['age'] == 914
+
+    def test_deserialize_with_attribute_param(self):
+        class AliasingUserSerializer(Serializer):
+            username = fields.Email(attribute='email')
+            years = fields.Integer(attribute='age')
+        data = {
+            'username': 'foo@bar.com',
+            'years': '42'
+        }
+        result = AliasingUserSerializer().deserialize(data)
+        assert result['email'] == 'foo@bar.com'
+        assert result['age'] == 42
