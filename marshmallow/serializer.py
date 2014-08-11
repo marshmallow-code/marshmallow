@@ -163,7 +163,7 @@ class BaseSerializer(base.SerializerABC):
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False,
                 context=None):
-        if not many and utils.is_collection(obj):
+        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
