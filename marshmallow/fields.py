@@ -507,6 +507,8 @@ class String(Raw):
         return text_type(value)
 
     def _deserialize(self, value):
+        if value is None:
+            return self.default
         return text_type(value)
 
 
