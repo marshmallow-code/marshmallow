@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import json
-import datetime as dt
-from collections import namedtuple
 
 import pytest
 
-from marshmallow import Serializer, fields, validate, utils
+from marshmallow import Serializer, fields, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import unicode, binary_type, total_seconds, text_type
+from marshmallow.compat import unicode, binary_type
 
 from tests.base import *  # noqa
 
@@ -594,97 +592,99 @@ class TestNestedSerializer:
             name = fields.String()
             user = fields.Nested(UserSerializer, only='name')
             collaborators = fields.Nested(UserSerializer, only='name', many=True)
-        s = FlatBlogSerializer(self.blog)
-        assert s.data['user'] == self.blog.user.name
-        assert s.data['collaborators'][0] == self.blog.collaborators[0].name
+        s = FlatBlogSerializer()
+        data, _ = s.dump(self.blog)
+        assert data['user'] == self.blog.user.name
+        assert data['collaborators'][0] == self.blog.collaborators[0].name
 
     def test_flat_nested2(self):
         class FlatBlogSerializer(Serializer):
             name = fields.String()
             collaborators = fields.Nested(UserSerializer, many=True, only='uid')
 
-        s = FlatBlogSerializer(self.blog)
-        assert s.data['collaborators'][0] == str(self.blog.collaborators[0].uid)
+        s = FlatBlogSerializer()
+        data, _ = s.dump(self.blog)
+        assert data['collaborators'][0] == str(self.blog.collaborators[0].uid)
 
     def test_nested(self):
-        serialized_blog = BlogSerializer(self.blog)
-        serialized_user = UserSerializer(self.user)
-        assert serialized_blog.data['user'] == serialized_user.data
+        blog_serializer = BlogSerializer()
+        serialized_blog, _ = blog_serializer.dump(self.blog)
+        user_serializer = UserSerializer()
+        serialized_user, _ = user_serializer.dump(self.user)
+        assert serialized_blog['user'] == serialized_user
 
     def test_nested_many_fields(self):
-        serialized_blog = BlogSerializer(self.blog)
-        expected = [UserSerializer(col).data for col in self.blog.collaborators]
-        assert serialized_blog.data['collaborators'] == expected
+        serialized_blog, _ = BlogSerializer().dump(self.blog)
+        expected = [UserSerializer().dump(col)[0] for col in self.blog.collaborators]
+        assert serialized_blog['collaborators'] == expected
 
     def test_nested_meta_many(self):
-        serialized_blog = BlogUserMetaSerializer(self.blog)
-        assert len(serialized_blog.data['collaborators']) == 2
-        expected = [UserMetaSerializer(col).data for col in self.blog.collaborators]
-        assert serialized_blog.data['collaborators'] == expected
+        serialized_blog = BlogUserMetaSerializer().dump(self.blog)[0]
+        assert len(serialized_blog['collaborators']) == 2
+        expected = [UserMetaSerializer().dump(col)[0] for col in self.blog.collaborators]
+        assert serialized_blog['collaborators'] == expected
 
     def test_nested_only(self):
         col1 = User(name="Mick", age=123, id_="abc")
         col2 = User(name="Keith", age=456, id_="def")
         self.blog.collaborators = [col1, col2]
-        serialized_blog = BlogSerializerOnly(self.blog)
-        assert serialized_blog.data['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
+        serialized_blog = BlogSerializerOnly().dump(self.blog)[0]
+        assert serialized_blog['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
 
     def test_exclude(self):
-        serialized = BlogSerializerExclude(self.blog)
-        assert "uppername" not in serialized.data['user'].keys()
+        serialized = BlogSerializerExclude().dump(self.blog)[0]
+        assert "uppername" not in serialized['user'].keys()
 
     def test_only_takes_precedence_over_exclude(self):
-        serialized = BlogSerializerOnlyExclude(self.blog)
-        assert serialized.data['user']['name'] == self.user.name
+        serialized = BlogSerializerOnlyExclude().dump(self.blog)[0]
+        assert serialized['user']['name'] == self.user.name
 
     def test_list_field(self):
-        serialized = BlogSerializer(self.blog)
-        assert serialized.data['categories'] == ["humor", "violence"]
+        serialized = BlogSerializer().dump(self.blog)[0]
+        assert serialized['categories'] == ["humor", "violence"]
 
     def test_nested_errors(self):
         invalid_user = User("Monty", email="foo")
         blog = Blog("Monty's blog", user=invalid_user)
-        serialized_blog = BlogSerializer(blog)
-        assert serialized_blog.is_valid() is False
-        assert "email" in serialized_blog.errors['user']
+        serialized_blog, errors = BlogSerializer().dump(blog)
+        assert "email" in errors['user']
         expected_msg = "\"{0}\" is not a valid email address.".format(invalid_user.email)
-        assert serialized_blog.errors['user']['email'] == expected_msg
+        assert errors['user']['email'] == expected_msg
         # No problems with collaborators
-        assert "collaborators" not in serialized_blog.errors
+        assert "collaborators" not in errors
 
     def test_nested_method_field(self):
-        s = BlogSerializer(self.blog)
-        assert s.data['user']['is_old']
-        assert s.data['collaborators'][0]['is_old']
+        data = BlogSerializer().dump(self.blog)[0]
+        assert data['user']['is_old']
+        assert data['collaborators'][0]['is_old']
 
     def test_nested_function_field(self):
-        s = BlogSerializer(self.blog)
-        assert s.data['user']['lowername'] == self.user.name.lower()
+        data = BlogSerializer().dump(self.blog)[0]
+        assert data['user']['lowername'] == self.user.name.lower()
         expected = self.blog.collaborators[0].name.lower()
-        assert s.data['collaborators'][0]['lowername'] == expected
+        assert data['collaborators'][0]['lowername'] == expected
 
     def test_nested_prefixed_field(self):
-        s = BlogSerializerPrefixedUser(self.blog)
-        assert s.data['user']['usr_name'] == self.user.name
-        assert s.data['user']['usr_lowername'] == self.user.name.lower()
+        data = BlogSerializerPrefixedUser().dump(self.blog)[0]
+        assert data['user']['usr_name'] == self.user.name
+        assert data['user']['usr_lowername'] == self.user.name.lower()
 
     def test_nested_prefixed_many_field(self):
-        s = BlogSerializerPrefixedUser(self.blog)
-        assert s.data['collaborators'][0]['usr_name'] == self.blog.collaborators[0].name
+        data = BlogSerializerPrefixedUser().dump(self.blog)[0]
+        assert data['collaborators'][0]['usr_name'] == self.blog.collaborators[0].name
 
     def test_invalid_float_field(self):
         user = User("Joe", age="1b2")
-        s = UserSerializer(user)
-        assert s.is_valid(["age"]) is False
-        assert "age" in s.errors
+        _, errors = UserSerializer().dump(user)
+        assert "age" in errors
 
     def test_serializer_meta_with_nested_fields(self):
-        s = BlogSerializerMeta(self.blog)
-        assert s.data['title'] == self.blog.title
-        assert s.data['user'] == UserSerializer(self.user).data
-        assert s.data['collaborators'] == [UserSerializer(c).data
+        data = BlogSerializerMeta().dump(self.blog)[0]
+        assert data['title'] == self.blog.title
+        assert data['user'] == UserSerializer(self.user).data
+        assert data['collaborators'] == [UserSerializer(c).data
                                                for c in self.blog.collaborators]
-        assert s.data['categories'] == self.blog.categories
+        assert data['categories'] == self.blog.categories
 
     def test_serializer_with_nested_meta_fields(self):
         # Serializer has user = fields.Nested(UserMetaSerializer)
@@ -695,7 +695,7 @@ class TestNestedSerializer:
         class BadNestedFieldSerializer(BlogSerializer):
             user = fields.Nested(fields.String)
         with pytest.raises(ValueError):
-            BadNestedFieldSerializer(self.blog)
+            BadNestedFieldSerializer().dump(self.blog)
 
 
 class TestSelfReference:
@@ -710,11 +710,11 @@ class TestSelfReference:
             age = fields.Integer()
             employer = fields.Nested("self")
 
-        s = SelfSerializer(self.user)
-        assert s.is_valid()
-        assert s.data['name'] == self.user.name
-        assert s.data['employer']['name'] == self.employer.name
-        assert s.data['employer']['age'] == self.employer.age
+        data, errors = SelfSerializer().dump(self.user)
+        assert not errors
+        assert data['name'] == self.user.name
+        assert data['employer']['name'] == self.employer.name
+        assert data['employer']['age'] == self.employer.age
 
     def test_nesting_within_itself_meta(self):
         class SelfSerializer(Serializer):
@@ -723,12 +723,12 @@ class TestSelfReference:
             class Meta:
                 additional = ('name', 'age')
 
-        s = SelfSerializer(self.user)
-        assert s.is_valid()
-        assert s.data['name'] == self.user.name
-        assert s.data['age'] == self.user.age
-        assert s.data['employer']['name'] == self.employer.name
-        assert s.data['employer']['age'] == self.employer.age
+        data, errors = SelfSerializer().dump(self.user)
+        assert not errors
+        assert data['name'] == self.user.name
+        assert data['age'] == self.user.age
+        assert data['employer']['name'] == self.employer.name
+        assert data['employer']['age'] == self.employer.age
 
     def test_nested_self_with_only_param(self):
         class SelfSerializer(Serializer):
@@ -737,10 +737,10 @@ class TestSelfReference:
             class Meta:
                 fields = ('name', 'employer')
 
-        s = SelfSerializer(self.user)
-        assert s.data['name'] == self.user.name
-        assert s.data['employer']['name'] == self.employer.name
-        assert 'age' not in s.data['employer']
+        data = SelfSerializer().dump(self.user)[0]
+        assert data['name'] == self.user.name
+        assert data['employer']['name'] == self.employer.name
+        assert 'age' not in data['employer']
 
     def test_nested_many(self):
         class SelfManySerializer(Serializer):
@@ -751,234 +751,11 @@ class TestSelfReference:
 
         person = User(name='Foo')
         person.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
-        s = SelfManySerializer(person)
-        assert s.data['name'] == person.name
-        assert len(s.data['relatives']) == len(person.relatives)
-        assert s.data['relatives'][0]['name'] == person.relatives[0].name
-        assert s.data['relatives'][0]['age'] == person.relatives[0].age
-
-
-class TestFieldSerialization:
-
-    def setup_method(self, method):
-        self.user = User("Foo", email="foo@bar.com", age=42)
-
-    def test_repr(self):
-        field = fields.String()
-        assert repr(field) == "<String Field>"
-
-    def test_function_field(self):
-        field = fields.Function(lambda obj: obj.name.upper())
-        assert "FOO" == field.output("key", self.user)
-
-    def test_function_with_uncallable_param(self):
-        with pytest.raises(ValueError):
-            fields.Function("uncallable")
-
-    def test_method_field_with_method_missing(self):
-        class BadSerializer(Serializer):
-            bad_field = fields.Method('invalid')
-        u = User('Foo')
-        with pytest.raises(MarshallingError):
-            BadSerializer(u, strict=True)
-
-    def test_method_field_with_uncallable_attribute(self):
-        class BadSerializer(Serializer):
-            foo = 'not callable'
-            bad_field = fields.Method('foo')
-        u = User('Foo')
-        with pytest.raises(MarshallingError):
-            BadSerializer(u, strict=True)
-
-    def test_datetime_field(self):
-        field = fields.DateTime()
-        expected = utils.rfcformat(self.user.created, localtime=False)
-        assert field.output("created", self.user) == expected
-
-    def test_localdatetime_field(self):
-        field = fields.LocalDateTime()
-        expected = utils.rfcformat(self.user.created, localtime=True)
-        assert field.output("created", self.user) == expected
-
-    def test_datetime_iso8601(self):
-        field = fields.DateTime(format="iso")
-        expected = utils.isoformat(self.user.created, localtime=False)
-        assert field.output("created", self.user) == expected
-
-    def test_localdatetime_iso(self):
-        field = fields.LocalDateTime(format="iso")
-        expected = utils.isoformat(self.user.created, localtime=True)
-        assert field.output("created", self.user) == expected
-
-    def test_datetime_format(self):
-        format = "%Y-%m-%d"
-        field = fields.DateTime(format=format)
-        assert field.output("created", self.user) == self.user.created.strftime(format)
-
-    def test_string_field(self):
-        field = fields.String()
-        user = User(name=b'foo')
-        assert field.output('name', user) == 'foo'
-        user.name = None
-        assert field.output('name', user) == ''
-
-    def test_string_field_defaults_to_empty_string(self):
-        field = fields.String()
-        assert field.output("notfound", self.user) == ''
-
-    def test_time_field(self):
-        field = fields.Time()
-        expected = self.user.time_registered.isoformat()[:12]
-        assert field.output("time_registered", self.user) == expected
-
-    def test_date_field(self):
-        field = fields.Date()
-        assert field.output('birthdate', self.user) == self.user.birthdate.isoformat()
-
-    def test_timedelta_field(self):
-        field = fields.TimeDelta()
-        expected = total_seconds(self.user.since_created)
-        assert field.output("since_created", self.user) == expected
-
-    def test_select_field(self):
-        field = fields.Select(['male', 'female'])
-        assert field.output("sex", self.user) == "male"
-        invalid = User('foo', sex='alien')
-        with pytest.raises(MarshallingError):
-            field.output('sex', invalid)
-
-    def test_bad_list_field(self):
-        with pytest.raises(MarshallingError):
-            fields.List("string")
-        with pytest.raises(MarshallingError):
-            fields.List(UserSerializer)
-
-    def test_arbitrary_field(self):
-        field = fields.Arbitrary()
-        self.user.age = 12.3
-        result = field.output('age', self.user)
-        assert result == text_type(utils.float_to_decimal(self.user.age))
-        self.user.age = None
-        result = field.output('age', self.user)
-        assert result == text_type(utils.float_to_decimal(0.0))
-        with pytest.raises(MarshallingError):
-            self.user.age = 'invalidvalue'
-            field.output('age', self.user)
-
-    def test_fixed_field(self):
-        field = fields.Fixed(3)
-        self.user.age = 42
-        result = field.output('age', self.user)
-        assert result == '42.000'
-        self.user.age = None
-        assert field.output('age', self.user) == '0.000'
-        with pytest.raises(MarshallingError):
-            self.user.age = 'invalidvalue'
-            field.output('age', self.user)
-
-
-class TestValidation:
-
-    def test_integer_with_validator(self):
-        user = User(name='Joe', age='20')
-        field = fields.Integer(validate=lambda x: 18 <= x <= 24)
-        out = field.output('age', user)
-        assert out == 20
-        user2 = User(name='Joe', age='25')
-        with pytest.raises(MarshallingError):
-            field.output('age', user2)
-
-    def test_float_with_validator(self):
-        user = User(name='Joe', age=3.14)
-        field = fields.Float(validate=lambda f: f <= 4.1)
-        assert field.output('age', user) == user.age
-        invalid = User('foo', age=5.1)
-        with pytest.raises(MarshallingError):
-            field.output('age', invalid)
-
-    def test_string_validator(self):
-        user = User(name='Joe')
-        field = fields.String(validate=lambda n: len(n) == 3)
-        assert field.output('name', user) == 'Joe'
-        user2 = User(name='Joseph')
-        with pytest.raises(MarshallingError):
-            field.output('name', user2)
-
-    def test_datetime_validator(self):
-        user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
-        field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
-        assert field.output('birthdate', user) == utils.rfcformat(user.birthdate)
-        user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
-        with pytest.raises(MarshallingError):
-            field.output('birthdate', user2)
-
-    def test_function_validator(self):
-        user = User('joe')
-        field = fields.Function(lambda d: d.name.upper(),
-                                validate=lambda n: len(n) == 3)
-        assert field.output('uppername', user) == 'JOE'
-        invalid = User(name='joseph')
-        with pytest.raises(MarshallingError):
-            field.output('uppername', invalid)
-
-    def test_method_validator(self):
-        class MethodSerializer(Serializer):
-            uppername = fields.Method('get_uppername',
-                                      validate=lambda n: len(n) == 3)
-
-            def get_uppername(self, obj):
-                return obj.name.upper()
-        user = User('joe')
-        s = MethodSerializer(user, strict=True)
-        assert s.data['uppername'] == 'JOE'
-        invalid = User(name='joseph')
-        with pytest.raises(MarshallingError) as excinfo:
-            MethodSerializer(invalid, strict=True)
-        assert 'is not True' in str(excinfo)
-
-
-@pytest.mark.parametrize('FieldClass', [
-    fields.String,
-    fields.Integer,
-    fields.Boolean,
-    fields.Float,
-    fields.Number,
-    fields.DateTime,
-    fields.LocalDateTime,
-    fields.Time,
-    fields.Date,
-    fields.TimeDelta,
-    fields.Fixed,
-    fields.Url,
-    fields.Email,
-])
-def test_required_field_failure(FieldClass):
-    user_data = {"name": "Phil"}
-    field = FieldClass(required=True)
-    with pytest.raises(MarshallingError) as excinfo:
-        field.output('age', user_data)
-    assert "Missing data for required field." in str(excinfo)
-
-
-@pytest.mark.parametrize(('FieldClass', 'value'), [
-    (fields.String, ''),
-    (fields.Integer, 0),
-    (fields.Float, 0.0)
-])
-def test_required_field_falsy_is_ok(FieldClass, value):
-    user_data = {'name': value}
-    field = FieldClass(required=True)
-    result = field.output('name', user_data)
-    assert result is not None
-    assert result == value
-
-
-def test_required_list_field_failure():
-    user_data = {"name": "Rosie"}
-    field = fields.List(fields.String, required=True)
-    with pytest.raises(MarshallingError) as excinfo:
-        field.output('relatives', user_data)
-    assert 'Missing data for required field.' in str(excinfo)
+        data = SelfManySerializer().dump(person)[0]
+        assert data['name'] == person.name
+        assert len(data['relatives']) == len(person.relatives)
+        assert data['relatives'][0]['name'] == person.relatives[0].name
+        assert data['relatives'][0]['age'] == person.relatives[0].age
 
 
 def test_serialization_with_required_field():
@@ -986,10 +763,9 @@ def test_serialization_with_required_field():
         name = fields.String(required=True)
 
     user = User(name=None)
-    s = RequiredUserSerializer(user)
-    assert s.is_valid() is False
-    assert 'name' in s.errors
-    assert s.errors['name'] == 'Missing data for required field.'
+    data, errors = RequiredUserSerializer().dump(user)
+    assert 'name' in errors
+    assert errors['name'] == 'Missing data for required field.'
 
 
 def test_serialization_with_required_field_and_custom_validator():
@@ -999,57 +775,16 @@ def test_serialization_with_required_field_and_custom_validator():
                                error="Gender must be 'f' or 'm'.")
 
     user = dict(gender=None)
-    s = RequiredGenderSerializer(user)
-    assert s.is_valid() is False
-    assert 'gender' in s.errors
-    assert s.errors['gender'] == "Missing data for required field."
+    data, errors = RequiredGenderSerializer().dump(user)
+    assert errors
+    assert 'gender' in errors
+    assert errors['gender'] == "Missing data for required field."
 
     user = dict(gender='Unkown')
     s = RequiredGenderSerializer(user)
     assert s.is_valid() is False
     assert 'gender' in s.errors
     assert s.errors['gender'] == "Gender must be 'f' or 'm'."
-
-
-class TestValidators:
-    def test_invalid_email(self):
-        invalid1 = "user@example"
-        with pytest.raises(ValueError):
-            validate.email(invalid1)
-        invalid2 = "example.com"
-        with pytest.raises(ValueError):
-            validate.email(invalid2)
-        invalid3 = "user"
-        with pytest.raises(ValueError):
-            validate.email(invalid3)
-
-
-class TestMarshaller:
-
-    def test_stores_errors(self):
-        u = User("Foo", email="foobar")
-        marshal = fields.Marshaller()
-        marshal(u, {"email": fields.Email()})
-        assert "email" in marshal.errors
-
-    def test_strict_mode_raises_errors(self):
-        u = User("Foo", email="foobar")
-        marshal = fields.Marshaller(strict=True)
-        with pytest.raises(MarshallingError):
-            marshal(u, {"email": fields.Email()})
-
-    def test_prefix(self):
-        u = User("Foo", email="foo@bar.com")
-        marshal = fields.Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
-        assert result['usr_name'] == u.name
-        assert result['usr_email'] == u.email
-
-    def test_marshalling_generator(self):
-        gen = (u for u in [User("Foo"), User("Bar")])
-        marshal = fields.Marshaller()
-        res = marshal(gen, {"name": fields.String()}, many=True)
-        assert len(res) == 2
 
 
 class UserContextSerializer(Serializer):
@@ -1066,11 +801,11 @@ class TestContext:
         owner = User('Joe')
         blog = Blog(title='Joe Blog', user=owner)
         context = {'blog': blog}
-        s = UserContextSerializer(owner, context=context)
-        assert s.data['is_owner'] is True
+        data = UserContextSerializer(context=context).dump(owner)[0]
+        assert data['is_owner'] is True
         nonowner = User('Fred')
-        s = UserContextSerializer(nonowner, context=context)
-        assert s.data['is_owner'] is False
+        data = UserContextSerializer(context=context).dump(nonowner)[0]
+        assert data['is_owner'] is False
 
     def test_context_method_function(self):
         owner = User('Fred')
@@ -1078,17 +813,17 @@ class TestContext:
         collab = User('Brian')
         blog.collaborators.append(collab)
         context = {'blog': blog}
-        s = UserContextSerializer(collab, context=context)
-        assert s.data['is_collab'] is True
+        data = UserContextSerializer(context=context).dump(collab)[0]
+        assert data['is_collab'] is True
         noncollab = User('Foo')
-        result = UserContextSerializer(noncollab, context=context).data['is_collab']
-        assert result is False
+        data = UserContextSerializer(context=context).dump(noncollab)[0]
+        assert data['is_collab'] is False
 
     def test_function_field_raises_error_when_context_not_available(self):
         owner = User('Joe')
         # no context
         with pytest.raises(MarshallingError):
-            UserContextSerializer(owner, strict=True)
+            UserContextSerializer(strict=True).dump(owner)
 
 def raise_marshalling_value_error():
     try:
@@ -1106,10 +841,6 @@ class TestMarshallingError:
         assert isinstance(error.underlying_exception, ValueError)
 
 
-def test_enum_is_select():
-    assert fields.Select is fields.Enum
-
-
 def test_error_gets_raised_if_many_is_omitted(user):
     class BadSerializer(Serializer):
         # forgot to set many=True
@@ -1120,29 +851,6 @@ def test_error_gets_raised_if_many_is_omitted(user):
     user.relatives = [User('Joe'), User('Mike')]
 
     with pytest.raises(TypeError) as excinfo:
-        BadSerializer(user).data
+        BadSerializer().dump(user)
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
-
-
-def test_serializing_named_tuple():
-    Point = namedtuple('Point', ['x', 'y'])
-
-    field = fields.Raw()
-
-    p = Point(x=4, y=2)
-
-    assert field.output('x', p) == 4
-
-
-def test_serializing_named_tuple_with_meta():
-    Point = namedtuple('Point', ['x', 'y'])
-    p = Point(x=4, y=2)
-
-    class PointSerializer(Serializer):
-        class Meta:
-            fields = ('x', 'y')
-
-    serialized = PointSerializer(p)
-    assert serialized.data['x'] == 4
-    assert serialized.data['y'] == 2

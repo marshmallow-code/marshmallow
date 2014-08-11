@@ -423,7 +423,7 @@ class Nested(Raw):
         self.serializer.obj = nested_obj
         if not self.__updated_fields:
             self.__updated_fields = True
-            self.serializer._update_fields()
+            self.serializer._update_fields(nested_obj)
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         try:
             # We call the protected `_marshal` method instead of `serialize`

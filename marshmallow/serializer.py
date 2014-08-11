@@ -194,7 +194,7 @@ class BaseSerializer(base.SerializerABC):
             self.obj = list(obj)
         else:
             self.obj = obj
-        self._update_fields()
+        self._update_fields(self.obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             self._update_data()
@@ -294,11 +294,11 @@ class BaseSerializer(base.SerializerABC):
         functools.update_wrapper(factory_func, cls)
         return factory_func
 
-    def _update_fields(self):
+    def _update_fields(self, obj):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only)
+            ret = self.__filter_fields(self.only, obj)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -316,7 +316,7 @@ class BaseSerializer(base.SerializerABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names)
+        ret = self.__filter_fields(field_names, obj)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -336,7 +336,7 @@ class BaseSerializer(base.SerializerABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __filter_fields(self, field_names):
+    def __filter_fields(self, field_names, obj):
         """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
@@ -345,7 +345,7 @@ class BaseSerializer(base.SerializerABC):
         :returns: An OrderedDict of field_name:field_obj pairs.
         """
         # Convert obj to a dict
-        obj_marshallable = utils.to_marshallable_type(self.obj,
+        obj_marshallable = utils.to_marshallable_type(obj,
             field_names=field_names)
         if obj_marshallable and self.many:
             try:  # Homogeneous collection
@@ -366,7 +366,7 @@ class BaseSerializer(base.SerializerABC):
                         attribute_type = type(obj_dict[key])
                     except KeyError:
                         raise AttributeError(
-                            '"{0}" is not a valid field for {1}.'.format(key, self.obj))
+                            '"{0}" is not a valid field for {1}.'.format(key, obj))
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
                 else:  # Object is None
                     field_obj = fields.Raw()
@@ -381,6 +381,8 @@ class BaseSerializer(base.SerializerABC):
         :param obj: The object to serialize.
         :return: A tuple of the form (``result``, ``errors``)
         """
+        if obj != self.obj:
+            self._update_fields(obj)
         self._marshal.strict = self.strict
         preresult = self._marshal(obj, self.fields, many=self.many)
         result = self._postprocess(preresult, obj=obj)
