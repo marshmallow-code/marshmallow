@@ -755,7 +755,7 @@ class TestSelfReference:
         assert s.data['relatives'][0]['age'] == person.relatives[0].age
 
 
-class TestFields:
+class TestFieldSerialization:
 
     def setup_method(self, method):
         self.user = User("Foo", email="foo@bar.com", age=42)
@@ -811,6 +811,13 @@ class TestFields:
         format = "%Y-%m-%d"
         field = fields.DateTime(format=format)
         assert field.output("created", self.user) == self.user.created.strftime(format)
+
+    def test_string_field(self):
+        field = fields.String()
+        user = User(name=b'foo')
+        assert field.output('name', user) == 'foo'
+        user.name = None
+        assert field.output('name', user) == ''
 
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()

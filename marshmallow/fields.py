@@ -12,7 +12,7 @@ import warnings
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
-                                basestring)
+                                basestring, binary_type)
 from marshmallow.exceptions import (
     MarshallingError,
     DeserializationError,
@@ -496,6 +496,10 @@ class List(Raw):
     # Deserialization is identical to _format behavior
     _deserialize = _format
 
+def _ensure_text_type(val):
+    if isinstance(val, binary_type):
+        val = val.decode('utf-8')
+    return text_type(val)
 
 class String(Raw):
     """A string field."""
@@ -504,12 +508,13 @@ class String(Raw):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
     def _format(self, value):
-        return text_type(value)
+        return _ensure_text_type(value)
 
     def _deserialize(self, value):
         if value is None:
             return self.default
-        return text_type(value)
+        result = _ensure_text_type(value)
+        return result
 
 
 class UUID(String):
@@ -518,7 +523,7 @@ class UUID(String):
 
 
 class Number(Raw):
-    '''Base class for number fields.'''
+    """Base class for number fields."""
 
     num_type = float
 
@@ -528,9 +533,9 @@ class Number(Raw):
             error=error, **kwargs)
 
     def _format_num(self, value):
-        '''Return the correct value for a number, given the passed in
+        """Return the correct value for a number, given the passed in
         arguments to __init__.
-        '''
+        """
         if self.as_string:
             return repr(self.num_type(value))
         else:
@@ -645,8 +650,8 @@ class Arbitrary(Number):
 
 
 DATEFORMAT_SERIALIZATION_FUNCS = {
-    "iso": utils.isoformat,
-    "rfc": utils.rfcformat,
+    'iso': utils.isoformat,
+    'rfc': utils.rfcformat,
 }
 
 DATEFORMAT_DESERIALIZATION_FUNCS = {

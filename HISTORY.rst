@@ -5,14 +5,15 @@ Changelog
 ++++++++++++++++++
 
 * Support for deserialization.
-* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
-* Fix default value for ``Fixed`` field.
 * Refactor fields interface.
 * *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``output`` and ``deserialize`` comprise the public API for a ``Field``.
 * *Backwards-incompatible*: Remove ``validated`` decorator. Validation occurs within ``Field`` methods.
 * *Backwards-incompatible*: ``Field.format`` gets called with a field's default value if the pulled value is ``None`` and the field is not required.
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 * *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
+* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
+* Fix default value for ``Fixed`` field.
+* Fix serialization of binary strings.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++

@@ -35,6 +35,7 @@ class TestFieldDeserialization:
         field = fields.String()
         assert field.deserialize(None) == ''
         assert field.deserialize(42) == '42'
+        assert field.deserialize(b'foo') == 'foo'
 
     def test_boolean_field_deserialization(self):
         field = fields.Boolean()

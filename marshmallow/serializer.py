@@ -414,10 +414,11 @@ class BaseSerializer(base.SerializerABC):
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
         fields_to_validate = field_names or self.fields.keys()
+        field_set, error_set = set(self.fields), set(self.errors)
         for fname in fields_to_validate:
-            if fname not in self.fields:
+            if fname not in field_set:
                 raise KeyError('"{0}" is not a valid field name.'.format(fname))
-            if fname in self.errors:
+            if fname in error_set:
                 return False
         return True
 
