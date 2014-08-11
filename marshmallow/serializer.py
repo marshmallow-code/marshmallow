@@ -422,7 +422,7 @@ class BaseSerializer(base.SerializerABC):
                 return False
         return True
 
-    def serialize(self, obj):
+    def dump(self, obj):
         """Serialize an object to native Python data types according to this
         Serializer's fields.
 
@@ -431,7 +431,7 @@ class BaseSerializer(base.SerializerABC):
         self._marshal.strict = self.strict
         return self._marshal(obj, self.fields, many=self.many)
 
-    def deserialize(self, data):
+    def load(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
         fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
 
@@ -441,13 +441,18 @@ class BaseSerializer(base.SerializerABC):
         return self._unmarshal(data, self.fields, self.many,
                                         postprocess=self.make_object)
 
-    def deserialize_from_json(self, json_data):
+    def load_from_json(self, json_data):
         """Same as :meth:`deserialize <marshmallow.Serializer.deserialize>`,
         except it takes JSON data as input.
 
         :param str json_data: A JSON string of the data to deserialize.
         """
         return self.deserialize(self.opts.json_module.loads(json_data))
+
+    # Aliases
+    serialize = dump
+    deserialize = load
+    deserialize_from_json = load_from_json
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization

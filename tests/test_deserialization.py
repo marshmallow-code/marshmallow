@@ -248,7 +248,7 @@ class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result = SimpleUserSerializer().deserialize(user_dict)
+        result = SimpleUserSerializer().load(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
 
@@ -257,7 +257,7 @@ class TestSchemaDeserialization:
             {'name': 'Mick', 'age': '914'},
             {'name': 'Keith', 'age': '8442'}
         ]
-        result = SimpleUserSerializer(many=True).deserialize(users_data)
+        result = SimpleUserSerializer(many=True).load(users_data)
         assert isinstance(result, list)
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
@@ -270,7 +270,7 @@ class TestSchemaDeserialization:
             def make_object(self, data):
                 return User(**data)
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result = SimpleUserSerializer2().deserialize(user_dict)
+        result = SimpleUserSerializer2().load(user_dict)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
@@ -278,7 +278,7 @@ class TestSchemaDeserialization:
     def test_deserialize_from_json(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
         user_json = json.dumps(user_dict)
-        result = UserSerializer().deserialize_from_json(user_json)
+        result = UserSerializer().load_from_json(user_json)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
@@ -292,7 +292,7 @@ class TestSchemaDeserialization:
             'title': 'Gimme Shelter',
             'author': {'name': 'Mick', 'age': '914'}
         }
-        result = SimpleBlogSerializer().deserialize(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         author = result['author']
         assert author['name'] == 'Mick'
         assert author['age'] == 914
@@ -309,7 +309,7 @@ class TestSchemaDeserialization:
                 {'name': 'Keith', 'age': '8442'}
             ]
         }
-        result = SimpleBlogSerializer().deserialize(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         assert isinstance(result['authors'], list)
         author = result['authors'][0]
         assert author['name'] == 'Mick'
@@ -323,7 +323,7 @@ class TestSchemaDeserialization:
             'username': 'foo@bar.com',
             'years': '42'
         }
-        result = AliasingUserSerializer().deserialize(data)
+        result = AliasingUserSerializer().load(data)
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
 
@@ -334,7 +334,7 @@ class TestSchemaDeserialization:
             'age': -1,
         }
         v = Validator(strict=False)
-        v.deserialize(bad_data)
+        v.load(bad_data)
         errors = v.deserialization_errors
         assert 'email' in errors
         assert 'colors' in errors
@@ -348,7 +348,7 @@ class TestSchemaDeserialization:
         }
         v = Validator(strict=True)
         with pytest.raises(UnmarshallingError):
-            v.deserialize(bad_data)
+            v.load(bad_data)
 
 
 class TestUnMarshaller:
