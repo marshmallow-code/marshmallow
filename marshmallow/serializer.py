@@ -199,24 +199,27 @@ class BaseSerializer(base.SerializerABC):
         if self.obj is not None:
             self._update_data()
 
-    def _update_data(self):
-        result = self._marshal(self.obj, self.fields, many=self.many)
+    def _postprocess(self, data, obj):
         if self.extra:
             if self.many:
-                for each in result:
+                for each in data:
                     each.update(self.extra)
             else:
-                result.update(self.extra)
+                data.update(self.extra)
         if self._marshal.errors and callable(self._error_callback):
-            self._error_callback(self._marshal.errors, self.obj)
+            self._error_callback(self._marshal.errors, obj)
 
         # invoke registered callbacks
         # NOTE: these callbacks will mutate the data
         if self._data_callbacks:
             for callback in self._data_callbacks:
                 if callable(callback):
-                    result = callback(self, result, self.obj)
-        self._data = result
+                    data = callback(self, data, obj)
+        return data
+
+    def _update_data(self):
+        result = self._marshal(self.obj, self.fields, many=self.many)
+        self._data = self._postprocess(result, obj=self.obj)
 
     @classmethod
     def error_handler(cls, func):
@@ -371,57 +374,6 @@ class BaseSerializer(base.SerializerABC):
                 ret[key] = field_obj
         return ret
 
-    @property
-    def data(self):
-        """The serialized data as an :class:`OrderedDict`.
-        """
-        if not self._data:  # Cache the data
-            self._update_data()
-        return self._data
-
-    def to_json(self, *args, **kwargs):
-        """Return the JSON representation of the data. Takes the same arguments
-        as Python's built-in ``json.dumps``.
-        """
-        ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
-        # On Python 2, json.dumps returns bytestrings
-        # On Python 3, json.dumps returns unicode
-        # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            return binary_type(ret.encode('utf-8'))
-        return ret
-
-    @property
-    def json(self):
-        """The data as a JSON string."""
-        return self.to_json()
-
-    @property
-    def errors(self):
-        """Dictionary of errors raised during serialization."""
-        return self._marshal.errors
-
-    @property
-    def deserialization_errors(self):
-        return self._unmarshal.errors
-
-    def is_valid(self, field_names=None):
-        """Return ``True`` if all data are valid, ``False`` otherwise.
-
-        :param field_names: List of field names (strings) to validate.
-            If ``None``, all fields will be validated.
-        """
-        if field_names is not None and type(field_names) not in (list, tuple):
-            raise ValueError("field_names param must be a list or tuple")
-        fields_to_validate = field_names or self.fields.keys()
-        field_set, error_set = set(self.fields), set(self.errors)
-        for fname in fields_to_validate:
-            if fname not in field_set:
-                raise KeyError('"{0}" is not a valid field name.'.format(fname))
-            if fname in error_set:
-                return False
-        return True
-
     def dump(self, obj):
         """Serialize an object to native Python data types according to this
         Serializer's fields.
@@ -430,7 +382,8 @@ class BaseSerializer(base.SerializerABC):
         :return: A tuple of the form (``result``, ``errors``)
         """
         self._marshal.strict = self.strict
-        result = self._marshal(obj, self.fields, many=self.many)
+        preresult = self._marshal(obj, self.fields, many=self.many)
+        result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
         return result, errors
 
@@ -452,6 +405,7 @@ class BaseSerializer(base.SerializerABC):
         except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
         """
         return self.load(self.opts.json_module.loads(json_data))
 
@@ -460,6 +414,7 @@ class BaseSerializer(base.SerializerABC):
         except it returns a JSON-encode.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
         """
         deserialized = self.dump(obj)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
@@ -468,7 +423,7 @@ class BaseSerializer(base.SerializerABC):
         # Ensure that a bytestring is returned
         if isinstance(ret, text_type):
             return binary_type(ret.encode('utf-8'))
-        return ret
+        return ret, self._marshal.errors
 
     # Aliases
     serialize = dump
@@ -481,6 +436,38 @@ class BaseSerializer(base.SerializerABC):
         :param dict data: The deserialized data.
         """
         return data
+
+    ##### Legacy API #####
+
+    @property
+    def data(self):
+        """The serialized data as an :class:`OrderedDict`.
+        """
+        if not self._data:  # Cache the data
+            self._update_data()
+        return self._data
+
+    @property
+    def errors(self):
+        """Dictionary of errors raised during serialization."""
+        return self._marshal.errors
+
+    def is_valid(self, field_names=None):
+        """Return ``True`` if all data are valid, ``False`` otherwise.
+
+        :param field_names: List of field names (strings) to validate.
+            If ``None``, all fields will be validated.
+        """
+        if field_names is not None and type(field_names) not in (list, tuple):
+            raise ValueError("field_names param must be a list or tuple")
+        fields_to_validate = field_names or self.fields.keys()
+        field_set, error_set = set(self.fields), set(self.errors)
+        for fname in fields_to_validate:
+            if fname not in field_set:
+                raise KeyError('"{0}" is not a valid field name.'.format(fname))
+            if fname in error_set:
+                return False
+        return True
 
 
 class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):

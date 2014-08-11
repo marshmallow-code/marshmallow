@@ -77,14 +77,18 @@ def test_fields_are_not_copies(SerializerClass):
     assert s.fields is not s2.fields
 
 
-def test_json(serialized_user):
-    json_data = serialized_user.json
-    expected = binary_type(json.dumps(serialized_user.data).encode("utf-8"))
+def test_dumps_returns_json(user):
+    s = UserSerializer()
+    serialized = s.dump(user)
+    json_data = s.dumps(user)
+    expected = binary_type(json.dumps(serialized).encode("utf-8"))
     assert json_data == expected
 
 
-def test_to_json_returns_bytestring(serialized_user):
-    assert isinstance(serialized_user.to_json(), binary_type)
+def test_dumps_returns_bytestring(user):
+    s = UserSerializer()
+    result = s.dumps(user)
+    assert isinstance(result, binary_type)
 
 
 def test_naive_datetime_field(serialized_user):
@@ -352,7 +356,8 @@ def test_custom_json():
 
     user = User('Joe')
     s = UserJSONSerializer(user)
-    assert s.json == mockjson.dumps('val')
+    result, errors = s.dumps(user)
+    assert result == mockjson.dumps('val')
 
 
 def test_custom_error_message():
@@ -521,7 +526,7 @@ def test_serializer_with_custom_error_handler(user):
 
     user.email = 'bademail'
     with pytest.raises(CustomError):
-        MySerializer(user).data
+        MySerializer().dump(user)
 
     user.email = 'monty@python.org'
     assert MySerializer(user).data
@@ -535,8 +540,9 @@ def test_serializer_with_custom_data_handler(user):
         data['meaning'] = 42
         return data
 
-    ser = CallbackSerializer(user)
-    assert ser.data['meaning'] == 42
+    ser = CallbackSerializer()
+    data, _ = ser.dump(user)
+    assert data['meaning'] == 42
 
 def test_serializer_with_multiple_data_handlers(user):
     class CallbackSerializer2(Serializer):
@@ -552,9 +558,10 @@ def test_serializer_with_multiple_data_handlers(user):
         data['name'] = data['name'].upper()
         return data
 
-    ser = CallbackSerializer2(user)
-    assert ser.data['meaning'] == 42
-    assert ser.data['name'] == user.name.upper()
+    ser = CallbackSerializer2()
+    data, _ = ser.dump(user)
+    assert data['meaning'] == 42
+    assert data['name'] == user.name.upper()
 
 def test_root_data_handler(user):
     class RootSerializer(Serializer):
@@ -568,8 +575,9 @@ def test_root_data_handler(user):
             serializer.NAME: data
         }
 
-    s = RootSerializer(user)
-    assert s.data['user']['name'] == user.name
+    s = RootSerializer()
+    data, _ = s.dump(user)
+    assert data['user']['name'] == user.name
 
 
 class TestNestedSerializer:
