@@ -42,6 +42,7 @@ class RegistryError(ForcedError, NameError):
     """
     pass
 
+
 class MarshallingError(_WrappingException):
     """Raised in case of a marshalling error. If a MarshallingError is raised
     during serialization, the error is caught and the error message
@@ -51,6 +52,6 @@ class MarshallingError(_WrappingException):
     pass
 
 
-class DeserializationError(_WrappingException):
+class UnmarshallingError(_WrappingException):
     """Raised when invalid data are passed to a deserialization function."""
     pass

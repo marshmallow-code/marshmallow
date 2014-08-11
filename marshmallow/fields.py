@@ -15,7 +15,7 @@ from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds
                                 basestring, binary_type)
 from marshmallow.exceptions import (
     MarshallingError,
-    DeserializationError,
+    UnmarshallingError,
     ForcedError,
 )
 
@@ -173,7 +173,7 @@ class UnMarshaller(object):
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
-                exception_class=DeserializationError,
+                exception_class=UnmarshallingError,
                 strict=self.strict
             )
             items.append((key, value))
@@ -304,7 +304,7 @@ class Raw(FieldABC):
 
         :raise DeserializationError: If an invalid value is passed.
         """
-        return self._call_with_validation('_deserialize', DeserializationError, value)
+        return self._call_with_validation('_deserialize', UnmarshallingError, value)
 
     # Methods for concrete classes to override.
 
@@ -554,7 +554,7 @@ class Number(Raw):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
 
 class Integer(Number):
@@ -588,14 +588,14 @@ class Boolean(Raw):
         try:
             value_str = text_type(value)
         except TypeError as error:
-            raise DeserializationError(error)
+            raise UnmarshallingError(error)
         if value_str in self.falsy:
             return False
         elif self.truthy:
             if value_str in self.truthy:
                 return True
             else:
-                raise DeserializationError(
+                raise UnmarshallingError(
                     '{0!r} is not in {1} nor {2}'.format(
                         value_str, self.truthy, self.falsy
                     ))
@@ -646,7 +646,7 @@ class Arbitrary(Number):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
 
 DATEFORMAT_SERIALIZATION_FUNCS = {
@@ -689,7 +689,7 @@ class DateTime(Raw):
                 return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
-        err = DeserializationError(
+        err = UnmarshallingError(
             'Cannot deserialize {0!r} to a datetime'.format(value)
         )
         func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat, None)
@@ -737,7 +737,7 @@ class Time(Raw):
         try:
             return utils.from_iso_time(value)
         except TypeError:
-            raise DeserializationError(
+            raise UnmarshallingError(
                 'Could not deserialize {0!r} to a time object.'.format(value)
             )
 
@@ -759,7 +759,7 @@ class Date(Raw):
         try:
             return utils.from_iso_date(value)
         except TypeError:
-            raise DeserializationError(
+            raise UnmarshallingError(
                 'Could not deserialize {0!r} to a date object.'.format(value)
             )
 
@@ -803,7 +803,7 @@ class Fixed(Number):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
     def _validated(self, value, exception_class):
         if value is None:
@@ -848,7 +848,7 @@ class Url(Raw):
     def _deserialize(self, value):
         if value is None:
             return self.default
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
 
 class Email(Raw):
@@ -866,7 +866,7 @@ class Email(Raw):
             return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
 
 def get_args(func):
@@ -992,6 +992,6 @@ class Select(Raw):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, DeserializationError)
+        return self._validated(value, UnmarshallingError)
 
 Enum = Select

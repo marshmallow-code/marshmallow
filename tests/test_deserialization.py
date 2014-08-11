@@ -3,7 +3,7 @@ import pytest
 import json
 
 from marshmallow import fields, utils, Serializer
-from marshmallow.exceptions import DeserializationError
+from marshmallow.exceptions import UnmarshallingError
 from marshmallow.compat import text_type, total_seconds
 
 from tests.base import *  # noqa
@@ -15,7 +15,7 @@ class TestFieldDeserialization:
         assert_almost_equal(field.deserialize('12.3'), 12.3)
         assert_almost_equal(field.deserialize(12.3), 12.3)
         assert field.deserialize(None) == 0.0
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('bad')
 
     def test_float_field_deserialization_with_default(self):
@@ -26,9 +26,9 @@ class TestFieldDeserialization:
         field = fields.Integer()
         assert field.deserialize('42') == 42
         assert field.deserialize(None) == 0
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('42.0')
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('bad')
 
     def test_string_field_deserialization(self):
@@ -54,7 +54,7 @@ class TestFieldDeserialization:
             truthy = set(['yep'])
         field = MyBoolean()
         assert field.deserialize('yep') is True
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('notvalid')
 
     def test_arbitrary_field_deserialization(self):
@@ -64,7 +64,7 @@ class TestFieldDeserialization:
 
     def test_invalid_datetime_deserialization(self):
         field = fields.DateTime()
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('not-a-datetime')
 
     def test_rfc_datetime_field_deserialization(self):
@@ -104,7 +104,7 @@ class TestFieldDeserialization:
 
     def test_invalid_time_field_deserialization(self):
         field = fields.Time()
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
     def test_fixed_field_deserialization(self):
@@ -112,7 +112,7 @@ class TestFieldDeserialization:
         assert field.deserialize(None) == '0.000'
         assert field.deserialize('12.3456') == '12.346'
         assert field.deserialize(12.3456) == '12.346'
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
     def test_timedelta_field_deserialization(self):
@@ -127,7 +127,7 @@ class TestFieldDeserialization:
 
     def test_invalid_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
     def test_date_field_deserialization(self):
@@ -140,7 +140,7 @@ class TestFieldDeserialization:
 
     def test_invalid_date_field_deserialization(self):
         field = fields.Date()
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
     def test_price_field_deserialization(self):
@@ -152,10 +152,10 @@ class TestFieldDeserialization:
         field = fields.Url()
         assert field.deserialize('https://duckduckgo.com') == 'https://duckduckgo.com'
         assert field.deserialize(None) is None
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badurl')
         # Relative URLS not allowed by default
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('/foo/bar')
 
     def test_relative_url_field_deserialization(self):
@@ -165,7 +165,7 @@ class TestFieldDeserialization:
     def test_email_field_deserialization(self):
         field = fields.Email()
         assert field.deserialize('foo@bar.com') == 'foo@bar.com'
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('invalidemail')
 
     def test_function_field_deserialization_is_noop_by_default(self):
@@ -211,26 +211,26 @@ class TestFieldDeserialization:
     def test_enum_field_deserialization(self):
         field = fields.Enum(['red', 'blue'])
         assert field.deserialize('red') == 'red'
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize('notvalid')
 
     def test_list_field_deserialization(self):
         field = fields.List(fields.Fixed(3))
         nums = (1, 2, 3)
         assert field.deserialize(nums) == ['1.000', '2.000', '3.000']
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             field.deserialize((1, 2, 'invalid'))
 
     def test_field_deserialization_with_user_validator(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
         assert field.deserialize('Valid') == 'Valid'
-        with pytest.raises(DeserializationError) as excinfo:
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('invalid')
         assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
-        with pytest.raises(DeserializationError) as excinfo:
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
@@ -347,7 +347,7 @@ class TestSchemaDeserialization:
             'age': -1,
         }
         v = Validator(strict=True)
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             v.deserialize(bad_data)
 
 
@@ -388,7 +388,7 @@ class TestUnMarshaller:
 
     def test_deserialize_strict_raises_error(self):
         strict_unmarshal = fields.UnMarshaller(strict=True)
-        with pytest.raises(DeserializationError):
+        with pytest.raises(UnmarshallingError):
             strict_unmarshal(
                 {'email': 'invalid', 'name': 'Mick'},
                 {'email': fields.Email(), 'name': fields.String()}
