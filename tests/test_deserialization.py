@@ -278,7 +278,7 @@ class TestSchemaDeserialization:
     def test_deserialize_from_json(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
         user_json = json.dumps(user_dict)
-        result, errors = UserSerializer().load_from_json(user_json)
+        result, errors = UserSerializer().loads(user_json)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)

@@ -379,6 +379,18 @@ class BaseSerializer(base.SerializerABC):
             self._update_data()
         return self._data
 
+    def to_json(self, *args, **kwargs):
+        """Return the JSON representation of the data. Takes the same arguments
+        as Python's built-in ``json.dumps``.
+        """
+        ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
+        # On Python 2, json.dumps returns bytestrings
+        # On Python 3, json.dumps returns unicode
+        # Ensure that a bytestring is returned
+        if isinstance(ret, text_type):
+            return binary_type(ret.encode('utf-8'))
+        return ret
+
     @property
     def json(self):
         """The data as a JSON string."""
@@ -392,18 +404,6 @@ class BaseSerializer(base.SerializerABC):
     @property
     def deserialization_errors(self):
         return self._unmarshal.errors
-
-    def to_json(self, *args, **kwargs):
-        """Return the JSON representation of the data. Takes the same arguments
-        as Python's built-in ``json.dumps``.
-        """
-        ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
-        # On Python 2, json.dumps returns bytestrings
-        # On Python 3, json.dumps returns unicode
-        # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            return binary_type(ret.encode('utf-8'))
-        return ret
 
     def is_valid(self, field_names=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
@@ -447,18 +447,32 @@ class BaseSerializer(base.SerializerABC):
         errors = self._unmarshal.errors
         return result, errors
 
-    def load_from_json(self, json_data):
-        """Same as :meth:`deserialize <marshmallow.Serializer.deserialize>`,
-        except it takes JSON data as input.
+    def loads(self, json_data):
+        """Same as :meth:`load <marshmallow.Serializer.load>`,
+        except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
         """
-        return self.deserialize(self.opts.json_module.loads(json_data))
+        return self.load(self.opts.json_module.loads(json_data))
+
+    def dumps(self, obj, *args, **kwargs):
+        """Same as :meth:`dump <marshmallow.Serializer.dump>`,
+        except it returns a JSON-encode.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        """
+        deserialized = self.dump(obj)
+        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
+        # On Python 2, json.dumps returns bytestrings
+        # On Python 3, json.dumps returns unicode
+        # Ensure that a bytestring is returned
+        if isinstance(ret, text_type):
+            return binary_type(ret.encode('utf-8'))
+        return ret
 
     # Aliases
     serialize = dump
     deserialize = load
-    deserialize_from_json = load_from_json
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
