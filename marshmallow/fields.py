@@ -445,7 +445,7 @@ class Nested(Raw):
         return ret
 
     def _deserialize(self, value):
-        return self.serializer.deserialize(value)
+        return self.serializer.load(value)[0]
 
 
 def flatten(dictlist, key):

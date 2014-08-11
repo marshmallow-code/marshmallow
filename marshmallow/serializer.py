@@ -427,19 +427,25 @@ class BaseSerializer(base.SerializerABC):
         Serializer's fields.
 
         :param obj: The object to serialize.
+        :return: A tuple of the form (``result``, ``errors``)
         """
         self._marshal.strict = self.strict
-        return self._marshal(obj, self.fields, many=self.many)
+        result = self._marshal(obj, self.fields, many=self.many)
+        errors = self._marshal.errors
+        return result, errors
 
     def load(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
         fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
 
         :param dict data: The data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
         """
         self._unmarshal.strict = self.strict
-        return self._unmarshal(data, self.fields, self.many,
+        result = self._unmarshal(data, self.fields, self.many,
                                         postprocess=self.make_object)
+        errors = self._unmarshal.errors
+        return result, errors
 
     def load_from_json(self, json_data):
         """Same as :meth:`deserialize <marshmallow.Serializer.deserialize>`,

@@ -32,6 +32,13 @@ def test_serializer_dump(user):
     with pytest.raises(MarshallingError):
         s.dump(bad_user)
 
+def test_dump_returns_dict_of_errors():
+    s = UserSerializer()
+    bad_user = User(name='Monty', email='invalidemail', homepage='badurl')
+    result, errors = s.dump(bad_user)
+    assert 'email' in errors
+    assert 'homepage' in errors
+
 def test_serializing_none():
     s = UserSerializer(None)
     assert s.data['name'] == ''
