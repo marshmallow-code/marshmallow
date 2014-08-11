@@ -169,6 +169,7 @@ class BaseSerializer(base.SerializerABC):
                             category=DeprecationWarning)
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
+        #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = OrderedDict()
         self._data = None  # the cached, serialized data
         self.obj = obj
@@ -278,21 +279,24 @@ class BaseSerializer(base.SerializerABC):
         Example: ::
 
             serialize_user = UserSerializer.factory(strict=True)
-            user = User(email='invalidemail')
-            serialize_user(user)  # => raises MarshallingError
+            user = User(email='foo@bar.com')
+            data, errors = serialize_user(user)
+            invalid_user = User(email='invalidemail')
+            serialize_user(invalid_user)  # => raises MarshallingError
 
         :param args: Takes the same positional and keyword arguments as the
             serializer's constructor
-        :rtype: A ``functools.partial`` object (from the standard library)
-        :return: A function that returns instances of the serializer, fixed with
-            the passed arguments.
+        :return: A function that serializes its first argument and returns a tuple
+            of the form ``(result, errors)``.
 
         .. versionadded:: 0.5.5
-
+        .. versionchanged:: 1.0.0
+            Return the partialed class's :meth:`dump` method instead of the
+            class itself.
         """
-        factory_func = functools.partial(cls, *args, **kwargs)
-        functools.update_wrapper(factory_func, cls)
-        return factory_func
+        partial_cls = functools.partial(cls, *args, **kwargs)
+        functools.update_wrapper(partial_cls, cls)
+        return partial_cls().dump
 
     def _update_fields(self, obj):
         """Update fields based on the passed in object."""
@@ -380,6 +384,8 @@ class BaseSerializer(base.SerializerABC):
 
         :param obj: The object to serialize.
         :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
         """
         if obj != self.obj:
             self._update_fields(obj)
@@ -395,6 +401,8 @@ class BaseSerializer(base.SerializerABC):
 
         :param dict data: The data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
         """
         self._unmarshal.strict = self.strict
         result = self._unmarshal(data, self.fields, self.many,
@@ -408,6 +416,8 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
         """
         return self.load(self.opts.json_module.loads(json_data))
 
@@ -417,6 +427,8 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
         """
         deserialized = self.dump(obj)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
@@ -436,6 +448,8 @@ class BaseSerializer(base.SerializerABC):
         output. Defaults to noop (i.e. just return ``data`` as is).
 
         :param dict data: The deserialized data.
+
+        .. versionadded:: 1.0.0
         """
         return data
 

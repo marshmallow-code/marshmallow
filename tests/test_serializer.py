@@ -45,9 +45,9 @@ def test_serializing_none():
 def test_factory(user):
     serialize_user = UserSerializer.factory()
 
-    s = serialize_user(user)
-    assert s.data['name'] == user.name
-    assert s.data['age'] == user.age
+    data, errors = serialize_user(user)
+    assert data['name'] == user.name
+    assert data['age'] == user.age
 
 def test_factory_saves_args(user):
     serialize_user = UserSerializer.factory(strict=True)
