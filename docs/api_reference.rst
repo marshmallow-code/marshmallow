@@ -22,7 +22,6 @@ Fields
 
 .. automodule:: marshmallow.fields
     :members:
-    :inherited-members:
     :private-members:
 
 Validators
@@ -46,11 +45,5 @@ Class Registry
 Exceptions
 ==========
 
-.. module:: marshmallow.exceptions
-
-.. autoexception:: MarshmallowError
-.. autoexception:: _WrappingException
-.. autoexception:: ForcedError
-.. autoexception:: MarshallingError
-.. autoexception:: RegistryError
-.. autoexception:: DeserializationError
+.. automodule:: marshmallow.exceptions
+    :members:

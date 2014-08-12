@@ -40,9 +40,21 @@ def docs(clean=False, browse=False):
         browse_docs()
 
 @task
-def readme():
+def watch_docs():
+    try:
+        import sphinx_autobuild  # noqa
+    except ImportError:
+        print('ERROR: watch task requires the sphinx_autobuild package.')
+        print('Install it with:')
+        print('    pip install sphinx-autobuild')
+        sys.exit(1)
+    run('sphinx-autobuild {} {}'.format(docs_dir, build_dir), pty=True)
+
+@task
+def readme(browse=False):
     run("rst2html.py README.rst > README.html", pty=True)
-    run("open README.html")
+    if browse:
+        run("open README.html")
 
 @task
 def publish(test=False):

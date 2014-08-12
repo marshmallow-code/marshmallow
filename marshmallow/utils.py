@@ -89,7 +89,8 @@ def to_marshallable_type(obj, field_names=None):
 
 def pprint(obj, *args, **kwargs):
     """Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries.
+    like regular dictionaries. Useful for printing the output of
+    :meth:`marshmallow.Serializer.dump`.
     """
     if isinstance(obj, OrderedDict):
         print(json.dumps(obj, *args, **kwargs))

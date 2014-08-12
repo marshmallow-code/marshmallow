@@ -5,13 +5,13 @@ Changelog
 ++++++++++++++++++
 
 * Support for deserialization.
-* Refactor fields interface.
+* Improved ``Serializer`` interface. Use the ``Serializer.dump`` and ``Serializer.load`` methods for serializing and deserializing, respectively.
+* *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Serializer.dumps`` instead.
+* Reworked fields interface.
 * *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``output`` and ``deserialize`` comprise the public API for a ``Field``.
 * *Backwards-incompatible*: Remove ``validated`` decorator. Validation occurs within ``Field`` methods.
-* *Backwards-incompatible*: ``Field.format`` gets called with a field's default value if the pulled value is ``None`` and the field is not required.
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 * *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
-* *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Serializer.dumps()`` instead.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Fix default value for ``Fixed`` field.
 * Fix serialization of binary strings.

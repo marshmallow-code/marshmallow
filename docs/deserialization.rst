@@ -9,7 +9,6 @@ Deserialization
 The Basics
 ----------
 
-
 .. code-block:: python
 
     from marshmallow import Serializer, fields

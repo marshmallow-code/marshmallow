@@ -26,13 +26,13 @@ class FieldABC(object):
         return ret
 
     def __repr__(self):
-        return "<{0} Field>".format(self.__class__.__name__)
+        return '<{0} Field>'.format(self.__class__.__name__)
 
     __str__ = __repr__
 
 
 class SerializerABC(object):
-    '''Abstract base class from which all Serializers inherit.'''
+    """Abstract base class from which all Serializers inherit."""
 
     @property
     def errors(self):

@@ -50,13 +50,21 @@ class QuoteSerializer(Serializer):
     class Meta:
         fields = ("id", "content", "posted_at", 'author')
 
+# Single serializers with no extra configuration
+author_serializer = AuthorSerializer()
+quote_serializer = QuoteSerializer()
+
 ##### API #####
 
 @app.route("/api/v1/authors")
 def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
-    return jsonify({"authors": AuthorSerializer(authors, many=True).data})
+    serializer = AuthorSerializer(many=True)
+    data, errors = serializer.dump(authors)
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({"authors": data})
 
 @app.route("/api/v1/authors/<int:pk>")
 def get_author(pk):
@@ -64,15 +72,23 @@ def get_author(pk):
         author = Author.query.get(pk)
     except IntegrityError:
         return jsonify({"message": "Author could not be found."}), 400
-    return jsonify({"author": AuthorSerializer(author).data,
-                    "quotes": QuoteSerializer(author.quotes.all(),
-                                                only=('id', 'content')).data})
+    author_data, author_errors = author_serializer.dump(author)
+    quotes_serializer = QuoteSerializer(only=('id', 'content'), many=True)
+    quotes_data, quote_errors = quotes_serializer.dump(author.quotes.all())
+    if author_errors:
+        return jsonify(author_errors), 400
+    if quote_errors:
+        return jsonify(quote_errors), 400
+    return jsonify({'author': author_data, 'quotes': quotes_data})
 
-@app.route("/api/v1/quotes", methods=["GET"])
+@app.route('/api/v1/quotes', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
-    serialized = QuoteSerializer(quotes, only=("id", "content"), many=True)
-    return jsonify({"quotes": serialized.data})
+    serializer = QuoteSerializer(only=("id", "content"), many=True)
+    data, errors = serializer.dump(quotes)
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({"quotes": data})
 
 @app.route("/api/v1/quotes/<int:pk>")
 def get_quote(pk):
@@ -80,7 +96,10 @@ def get_quote(pk):
         quote = Quote.query.get(pk)
     except IntegrityError:
         return jsonify({"message": "Quote could not be found."}), 400
-    return jsonify({"quote": QuoteSerializer(quote).data})
+    data, errors = quote_serializer.dump(quote)
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({"quote": data})
 
 @app.route("/api/v1/quotes/new", methods=["POST"])
 def new_quote():
@@ -95,8 +114,11 @@ def new_quote():
     quote = Quote(content, author)
     db.session.add(quote)
     db.session.commit()
+    data, errors = quote_serializer.dump(Quote.query.get(quote.id))
+    if errors:
+        return jsonify(errors), 400
     return jsonify({"message": "Created new quote.",
-                    "quote": QuoteSerializer(Quote.query.get(quote.id)).data})
+                    "quote": data})
 
 if __name__ == '__main__':
     db.create_all()
