@@ -49,13 +49,13 @@ Changelog
 ++++++++++++++++++
 
 * Add ``json_module`` class Meta option.
-* Add ``required`` option to fields . Thanks @DeaconDesperado.
+* Add ``required`` option to fields . Thanks `@DeaconDesperado <http://github.com/DeaconDesperado>`_.
 * Tested on Python 3.4 and PyPy.
 
 0.5.3 (2014-03-02)
 ++++++++++++++++++
 
-* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_
+* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_.
 * Add ``context`` param to ``Serializer``. Allows accessing arbitrary objects in ``Function`` and ``Method`` fields.
 * ``Function`` and ``Method`` fields raise ``MarshallingError`` if their argument is uncallable.
 
