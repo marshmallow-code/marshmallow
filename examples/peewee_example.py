@@ -53,6 +53,11 @@ class TodoSerializer(Serializer):
     class Meta:
         additional = ('id', 'content', 'posted_on')
 
+# singleton serializers with no configuration
+user_serializer = UserSerializer()
+todo_serializer = TodoSerializer()
+todos_serializer = TodoSerializer(many=True)
+
 ###### HELPERS ######
 
 def check_auth(email, password):
@@ -98,13 +103,18 @@ def register():
         user = User.create(email=request.json['email'], joined_on=dt.datetime.now(),
                             password=request.json['password'])
         message = "Successfully created user: {0}".format(user.email)
-    return jsonify({'message': message, "user": UserSerializer(user).data})
+    data, errors = user_serializer.dump(user)
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({'message': message, "user": data})
 
 @app.route("/api/v1/todos")
 def get_todos():
     todos = Todo.select()  # Get all todos
-    serialized = TodoSerializer(list(todos), many=True)
-    return jsonify({"todos": serialized.data})
+    data, errors = todos_serializer.dump(list(todos))
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({"todos": data})
 
 @app.route("/api/v1/todos/<int:pk>")
 def get_todo(pk):
@@ -112,7 +122,10 @@ def get_todo(pk):
         todo = Todo.get(Todo.id == pk)
     except Todo.DoesNotExist:
         return jsonify({"message": "Todo could not be found"})
-    return jsonify({"todo": TodoSerializer(todo).data})
+    data, errors = todo_serializer.dump(todo)
+    if errors:
+        return jsonify(errors), 400
+    return jsonify({"todo": data})
 
 @app.route("/api/v1/todos/<int:pk>/toggle", methods=["POST"])
 def toggledone(pk):
@@ -123,8 +136,11 @@ def toggledone(pk):
     status = not todo.is_done
     update_query = todo.update(is_done=status)
     update_query.execute()
+    data, errors = todo_serializer.dump(todo)
+    if errors:
+        return jsonify(errors), 400
     return jsonify({"message": "Successfully toggled status.",
-                    "todo": TodoSerializer(todo).data})
+                    "todo": data})
 
 @app.route("/api/v1/todos/new", methods=["POST"])
 @requires_auth
@@ -132,8 +148,11 @@ def new_todo():
     user = User.get(User.email == request.authorization.username)
     todo_content = request.json['content']
     todo = Todo.create(content=todo_content, user=user, posted_on=dt.datetime.now())
+    data, errors = todo_serializer.dump(todo)
+    if errors:
+        return jsonify(errors), 400
     return jsonify({"message": "Successfully created new todo item.",
-                    "todo": TodoSerializer(todo).data})
+                    "todo": data})
 
 if __name__ == '__main__':
     create_tables()

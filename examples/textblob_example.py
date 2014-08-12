@@ -18,10 +18,13 @@ class BlobSerializer(Serializer):
         else:
             return 'neutral'
 
+blob_serializer = BlobSerializer()
+
 @route("/api/v1/analyze", method="POST")
 def analyze():
     blob = TextBlob(request.json['text'])
-    return BlobSerializer(blob).data
+    data, errors = blob_serializer.dump(blob)
+    return data
 
 
 run(reloader=True, port=5000)

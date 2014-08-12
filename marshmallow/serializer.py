@@ -163,12 +163,13 @@ class BaseSerializer(base.SerializerABC):
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False,
                 context=None):
-        if not many and utils.is_collection(obj):
+        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
+        #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = OrderedDict()
         self._data = None  # the cached, serialized data
         self.obj = obj
@@ -179,8 +180,12 @@ class BaseSerializer(base.SerializerABC):
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         #: Callable marshalling object
-        self.marshal = fields.Marshaller(
+        self._marshal = fields.Marshaller(
             prefix=self.prefix,
+            strict=self.strict
+        )
+        #: Callable unmarshalling object
+        self._unmarshal = fields.UnMarshaller(
             strict=self.strict
         )
         self.extra = extra
@@ -190,29 +195,32 @@ class BaseSerializer(base.SerializerABC):
             self.obj = list(obj)
         else:
             self.obj = obj
-        self._update_fields()
+        self._update_fields(self.obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             self._update_data()
 
-    def _update_data(self):
-        result = self.marshal(self.obj, self.fields, many=self.many)
+    def _postprocess(self, data, obj):
         if self.extra:
             if self.many:
-                for each in result:
+                for each in data:
                     each.update(self.extra)
             else:
-                result.update(self.extra)
-        if self.marshal.errors and callable(self._error_callback):
-            self._error_callback(self.marshal.errors, self.obj)
+                data.update(self.extra)
+        if self._marshal.errors and callable(self._error_callback):
+            self._error_callback(self._marshal.errors, obj)
 
         # invoke registered callbacks
         # NOTE: these callbacks will mutate the data
         if self._data_callbacks:
             for callback in self._data_callbacks:
                 if callable(callback):
-                    result = callback(self, result, self.obj)
-        self._data = result
+                    data = callback(self, data, obj)
+        return data
+
+    def _update_data(self):
+        result = self._marshal(self.obj, self.fields, many=self.many)
+        self._data = self._postprocess(result, obj=self.obj)
 
     @classmethod
     def error_handler(cls, func):
@@ -271,27 +279,30 @@ class BaseSerializer(base.SerializerABC):
         Example: ::
 
             serialize_user = UserSerializer.factory(strict=True)
-            user = User(email='invalidemail')
-            serialize_user(user)  # => raises MarshallingError
+            user = User(email='foo@bar.com')
+            data, errors = serialize_user(user)
+            invalid_user = User(email='invalidemail')
+            serialize_user(invalid_user)  # => raises MarshallingError
 
         :param args: Takes the same positional and keyword arguments as the
             serializer's constructor
-        :rtype: A ``functools.partial`` object (from the standard library)
-        :return: A function that returns instances of the serializer, fixed with
-            the passed arguments.
+        :return: A function that serializes its first argument and returns a tuple
+            of the form ``(result, errors)``.
 
         .. versionadded:: 0.5.5
-
+        .. versionchanged:: 1.0.0
+            Return the partialed class's :meth:`dump` method instead of the
+            class itself.
         """
-        factory_func = functools.partial(cls, *args, **kwargs)
-        functools.update_wrapper(factory_func, cls)
-        return factory_func
+        partial_cls = functools.partial(cls, *args, **kwargs)
+        functools.update_wrapper(partial_cls, cls)
+        return partial_cls().dump
 
-    def _update_fields(self):
+    def _update_fields(self, obj):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only)
+            ret = self.__filter_fields(self.only, obj)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -309,7 +320,7 @@ class BaseSerializer(base.SerializerABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names)
+        ret = self.__filter_fields(field_names, obj)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -329,7 +340,7 @@ class BaseSerializer(base.SerializerABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __filter_fields(self, field_names):
+    def __filter_fields(self, field_names, obj):
         """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
@@ -338,7 +349,7 @@ class BaseSerializer(base.SerializerABC):
         :returns: An OrderedDict of field_name:field_obj pairs.
         """
         # Convert obj to a dict
-        obj_marshallable = utils.to_marshallable_type(self.obj,
+        obj_marshallable = utils.to_marshallable_type(obj,
             field_names=field_names)
         if obj_marshallable and self.many:
             try:  # Homogeneous collection
@@ -359,13 +370,90 @@ class BaseSerializer(base.SerializerABC):
                         attribute_type = type(obj_dict[key])
                     except KeyError:
                         raise AttributeError(
-                            '"{0}" is not a valid field for {1}.'.format(key, self.obj))
+                            '"{0}" is not a valid field for {1}.'.format(key, obj))
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
                 else:  # Object is None
                     field_obj = fields.Raw()
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret
+
+    def dump(self, obj):
+        """Serialize an object to native Python data types according to this
+        Serializer's fields.
+
+        :param obj: The object to serialize.
+        :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
+        """
+        if obj != self.obj:
+            self._update_fields(obj)
+        self._marshal.strict = self.strict
+        preresult = self._marshal(obj, self.fields, many=self.many)
+        result = self._postprocess(preresult, obj=obj)
+        errors = self._marshal.errors
+        return result, errors
+
+    def load(self, data):
+        """Deserialize a data structure to an object defined by this Serializer's
+        fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
+
+        :param dict data: The data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
+        """
+        self._unmarshal.strict = self.strict
+        result = self._unmarshal(data, self.fields, self.many,
+                                        postprocess=self.make_object)
+        errors = self._unmarshal.errors
+        return result, errors
+
+    def loads(self, json_data):
+        """Same as :meth:`load <marshmallow.Serializer.load>`,
+        except it takes a JSON string as input.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
+        """
+        return self.load(self.opts.json_module.loads(json_data))
+
+    def dumps(self, obj, *args, **kwargs):
+        """Same as :meth:`dump <marshmallow.Serializer.dump>`,
+        except it returns a JSON-encoded string.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+
+        .. versionadded:: 1.0.0
+        """
+        deserialized = self.dump(obj)
+        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
+        # On Python 2, json.dumps returns bytestrings
+        # On Python 3, json.dumps returns unicode
+        # Ensure that a bytestring is returned
+        if isinstance(ret, text_type):
+            return binary_type(ret.encode('utf-8'))
+        return ret, self._marshal.errors
+
+    # Aliases
+    serialize = dump
+    deserialize = load
+
+    def make_object(self, data):
+        """Override-able method that defines how to create the final deserialization
+        output. Defaults to noop (i.e. just return ``data`` as is).
+
+        :param dict data: The deserialized data.
+
+        .. versionadded:: 1.0.0
+        """
+        return data
+
+    ##### Legacy API #####
 
     @property
     def data(self):
@@ -376,26 +464,9 @@ class BaseSerializer(base.SerializerABC):
         return self._data
 
     @property
-    def json(self):
-        """The data as a JSON string."""
-        return self.to_json()
-
-    @property
     def errors(self):
         """Dictionary of errors raised during serialization."""
-        return self.marshal.errors
-
-    def to_json(self, *args, **kwargs):
-        """Return the JSON representation of the data. Takes the same arguments
-        as Python's built-in ``json.dumps``.
-        """
-        ret = self.opts.json_module.dumps(self.data, *args, **kwargs)
-        # On Python 2, json.dumps returns bytestrings
-        # On Python 3, json.dumps returns unicode
-        # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            return binary_type(ret.encode('utf-8'))
-        return ret
+        return self._marshal.errors
 
     def is_valid(self, field_names=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
@@ -406,10 +477,11 @@ class BaseSerializer(base.SerializerABC):
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
         fields_to_validate = field_names or self.fields.keys()
+        field_set, error_set = set(self.fields), set(self.errors)
         for fname in fields_to_validate:
-            if fname not in self.fields:
+            if fname not in field_set:
                 raise KeyError('"{0}" is not a valid field name.'.format(fname))
-            if fname in self.errors:
+            if fname in error_set:
                 return False
         return True
 

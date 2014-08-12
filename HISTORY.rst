@@ -1,10 +1,20 @@
 Changelog
 ---------
 
-0.7.1 (unreleased)
+1.0.0 (unreleased)
 ++++++++++++++++++
 
+* Support for deserialization.
+* Improved ``Serializer`` interface. Use the ``Serializer.dump`` and ``Serializer.load`` methods for serializing and deserializing, respectively.
+* *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Serializer.dumps`` instead.
+* Reworked fields interface.
+* *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``output`` and ``deserialize`` comprise the public API for a ``Field``.
+* *Backwards-incompatible*: Remove ``validated`` decorator. Validation occurs within ``Field`` methods.
+* Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
+* *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
+* Fix default value for ``Fixed`` field.
+* Fix serialization of binary strings.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++
@@ -83,7 +93,7 @@ Changelog
 0.4.0 (2013-11-24)
 ++++++++++++++++++
 
-* Add ``additional`` `clas Meta` option.
+* Add ``additional`` `class Meta` option.
 * Add ``dateformat`` `class Meta` option.
 * Support for serializing UUID, date, time, and timedelta objects.
 * Remove ``Serializer.to_data`` method. Just use ``Serialize.data`` property.

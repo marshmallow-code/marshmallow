@@ -23,6 +23,9 @@ Let's start with a basic user model.
             self.friends = []
             self.age = age
 
+        def __repr__(self):
+            return '<User(name={self.name})>'.format(self=self)
+
 
 Create a serializer by defining a class with variables mapping attribute names to a field class object that formats the final output of the serializer.
 
@@ -41,20 +44,25 @@ For a full reference on the field classes, see the :ref:`API Docs <api_fields>`.
 Serializing Objects
 -------------------
 
-Serialize objects by passing them into your serializers. Onced serialized, you can get the dictionary representation via the ``data`` property and the JSON representation via the ``json`` property.
+Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.Serializer.dump>` method, which returns the serialized ``result`` as a dictionary and a dictionary of validation errors.
 
 .. code-block:: python
 
     user = User(name="Monty", email="monty@python.org")
-    serialized = UserSerializer(user)
-    serialized.data
+    serializer = UserSerializer()
+    result, errors = serializer.dump(user)
+    result
     # {'created_at': 'Sun, 10 Nov 2013 15:48:19 -0000',
     #  'email': u'monty@python.org',
     #  'name': u'Monty'}
-    serialized.json
+
+You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.Serializer.dumps>`
+
+.. code-block:: python
+
+    json_result, errors = serializer.dumps(user)
+    json_result
     # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
-
-
 
 Filtering output
 ++++++++++++++++
@@ -63,22 +71,78 @@ You may not need to output all declared fields every time you use a serializer. 
 
 .. code-block:: python
 
-    UserSerializer(user, only=('name', 'email'))
+    summary_serializer = UserSerializer(only=('name', 'email'))
+    summary_serializer.dump(user)[0]
     # {"name": "Monty Python", "email": "monty@python.org"}
 
 You can also exclude fields by passing in the ``exclude`` parameter.
 
-Serializing Collections of Objects
-++++++++++++++++++++++++++++++++++
 
-Iterable collections of objects are also serializable. Just set ``many=True``.
+Deserializing Objects
+---------------------
+
+The opposite of the :meth:`dump <Serializer.dump>` method is the :meth:`load <Serializer.load>` method, which deserializes an input dictionary to an application-level data structure (e.g. an ORM object in a web application).
+
+By default, :meth:`load <Serializer.load>` will return a dictionary of field names mapped to the deserialized values.
+
+.. code-block:: python
+
+    from pprint import pprint
+
+    user_data = {
+        'created_at': '2014-08-11T05:26:03.869245',
+        'email': u'ken@yahoo.com',
+        'name': u'Ken'
+    }
+    serializer = UserSerializer()
+    result, errors = serializer.load(user_data)
+    pprint(result)
+    # {'created_at': datetime.datetime(2014, 8, 11, 5, 26, 3, 869245),
+    #  'email': 'ken@yahoo.com',
+    #  'name': 'Ken'}
+
+Notice that the datetime string was converted to a datetime object.
+
+Deserializing to Objects
+++++++++++++++++++++++++
+
+In order to deserialize to an object, define the :meth:`make_object <Serializer.make_object>` method of your :class:`Serializer`. The method receives a dictionary of deserialized data as its only parameter.
+
+.. code-block:: python
+
+    # Same as above, but this time we define ``make_object``
+    class UserSerializer(Serializer):
+
+        name = fields.String()
+        email = fields.Email()
+        created_at = fields.DateTime()
+
+        def make_object(self, data):
+            return User(**data)
+
+Now, the :meth:`load <Serializer.load>` method will return a ``User`` object.
+
+.. code-block:: python
+
+    user_data = {
+        'name': 'Ronnie',
+        'email': 'ronnie@stones.com'
+    }
+    serializer = UserSerializer()
+    result, errors = serializer.load(user_data)
+
+Handling Collections of Objects
+-------------------------------
+
+Iterable collections of objects are also serializable and deserializable. Just set ``many=True``.
 
 .. code-block:: python
 
     user1 = User(name="Mick", email="mick@stones.com")
     user2 = User(name="Keith", email="keith@stones.com")
     users = [user1, user2]
-    UserSerializer(users, many=True).data
+    serializer = UserSerializer(many=True)
+    results, errors = serializer.dump(users)
     # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
     #   'email': u'mick@stones.com',
     #   'name': u'Mick'},
@@ -89,23 +153,12 @@ Iterable collections of objects are also serializable. Just set ``many=True``.
 Validation
 ----------
 
-To validate the data passed to a serializer, call the ``is_valid()`` method, optionally passing in a list of fields to validate.
+Both :meth:`Serializer.dump` and :meth:`Serializer.load` (as well as their JSON-encoding counterparts :meth:`Serializer.dumps` and :meth:`Serializer.loads`) return a dictionary of validation errors as the second element of their return value.
 
 .. code-block:: python
 
-    invalid = User("Foo Bar", email="foo")
-    s = UserSerializer(invalid)
-    s.is_valid()
-    # False
-    s.is_valid(["email"])
-    # False
-
-You can get a dictionary of validation errors via the ``errors`` property.
-
-.. code-block:: python
-
-    s.errors
-    # {'email': u'foo is not a valid email address.'}
+    result, errors = UserSerializer().load({'email': 'foo'})
+    errors  # => {'email': u'foo is not a valid email address.'}
 
 You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
 
@@ -120,11 +173,10 @@ You can perform additional validation for a field by passing it a ``validate`` c
     class ValidatedUserSerializer(UserSerializer):
         age = fields.Number(validate=lambda n: 18 <= n <= 40,
                             error='User is over the hill')
-    jagger = User(name="Mick", email="mick@stones.com", age=70)
-    s = ValidatedUserSerializer(jagger)
-    s.is_valid()  # False
-    s.errors  # {'age': 'User is over the hill'}
 
+    jagger = User(name="Mick", email="mick@stones.com", age=71)
+    result, errors = ValidatedUserSerializer().dump(jagger)
+    errors  # => {'age': 'User is over the hill'}
 
 .. note::
 
@@ -132,7 +184,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
     .. code-block:: python
 
-        >>> UserSerializer(invalid, strict=True)
+        >>> UserSerializer(strict=True).dump(invalid)
         Traceback (most recent call last):
           File "<input>", line 1, in <module>
           File "marshmallow/serializer.py", line 90, in __init__
@@ -158,9 +210,8 @@ You can make a field required by passing ``required=True``. An error will be sto
         email = fields.Email()
 
     user = User(name=None, email='foo@bar.com')
-    serialized = UserSerializer(user)
-    serialized.is_valid()  # False
-    serialized.errors  # {'name': 'Missing data for required field.'}
+    data, errors = UserSerializer().dump(user)
+    errors  # {'name': 'Missing data for required field.'}
 
 
 Specifying Attribute Names
@@ -175,6 +226,13 @@ By default, serializers will marshal the object attributes that have the same na
         email_addr = fields.String(attribute="email")
         date_created = fields.DateTime(attribute="created_at")
 
+    user = User('Keith', email='keith@stones.com')
+    ser = UserSerializer()
+    result, errors = ser.dump(user)
+    pprint(result)
+    # {'email_addr': 'keith@stones.com',
+    # 'date_created': 'Mon, 11 Aug 2014 01:53:16 -0000',
+    # 'name': 'Keith'}
 
 Nesting Serializers
 -------------------
@@ -202,8 +260,8 @@ When you serialize the blog, you will see the nested user representation.
 
     user = User(name="Monty", email="monty@python.org")
     blog = Blog(title="Something Completely Different", author=user)
-    serialized = BlogSerializer(blog)
-    serialized.data
+    result, errors = BlogSerializer().dump(blog)
+    pprint(result)
     # {'author': {'created_at': 'Sun, 10 Nov 2013 16:10:57 -0000',
     #               'email': u'monty@python.org',
     #               'name': u'Monty'},
@@ -247,8 +305,8 @@ For example, a representation of an ``Author`` model might include the books tha
 
     author = Author(name='William Faulkner')
     book = Book(title='As I Lay Dying', author=author)
-
-    pprint(BookSerializer(book).data, indent=2)
+    book_result, errors = BookSerializer().dump(book)
+    pprint(book_result, indent=2)
     # {
     #   "author": {
     #     "id": 8,
@@ -258,7 +316,8 @@ For example, a representation of an ``Author`` model might include the books tha
     #   "title": "As I Lay Dying"
     # }
 
-    pprint(AuthorSerializer(author).data, indent=2)
+    author_result, erros = AuthorSerializer().dump(author)
+    pprint(author_result, indent=2)
     # {
     #   "books": [
     #     {
@@ -286,8 +345,8 @@ If the object to be serialized has a relationship to an object of the same type,
     user = User("Steve", 'steve@example.com')
     user.friends.append(User("Mike", 'mike@example.com'))
     user.friends.append(User('Joe', 'joe@example.com'))
-    serialized = UserSerializer(user)
-    serialized.data
+    result, errors = UserSerializer().dump(user)
+    pprint(result)
     # {
     #     "friends": [
     #         {"name": "Mike","email": "mike@example.com"},
@@ -333,7 +392,6 @@ You can explicitly specify which attributes in the nested fields you want to ser
         # }
 
 
-
 You can also exclude fields by passing in an ``exclude`` list.
 
 
@@ -351,14 +409,16 @@ The method you choose will depend on personal preference and the manner in which
 Creating A Field Class
 ++++++++++++++++++++++
 
-To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its ``format`` and/or ``output`` methods.
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its :meth:`_format <marshmallow.fields.Raw._format>`, :meth:`_serialize <marshmallow.fields.Raw._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Raw._deserialize>` methods.
 
 .. code-block:: python
 
     from marshmallow import fields
 
     class Titlecased(fields.Raw):
-        def format(self, value):
+        def _format(self, value):
+            if value is None:
+                return ''
             return value.title()
 
     class UserSerializer(Serializer):
@@ -397,8 +457,9 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
 
-Adding Context
-++++++++++++++
+Adding Context to Method and Function Fields
+++++++++++++++++++++++++++++++++++++++++++++
+
 New in version ``0.5.3``.
 
 You may wish to include other objects when computing a :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field.
@@ -421,7 +482,7 @@ In these cases, you can pass a dictionary as the ``context`` argument to a seria
     blog = Blog('Bicycle Blog', author=user)
 
     context = {'blog': blog}
-    serialized = UserSerializer(user, context=context)
+    result, errors = UserSerializer(context=context).dump(user)
     serialized.data['is_author']  # => True
     serialized.data['likes_bikes']  # => True
 
@@ -430,7 +491,7 @@ Refactoring (Meta Options)
 
 When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
 
-The *class Meta* paradigm allows you to specify which attributes you want to serialize. **marshmallow** will choose an appropriate field type based on the attribute's type.
+The *class Meta* paradigm allows you to specify which attributes you want to serialize. Marshmallow will choose an appropriate field type based on the attribute's type.
 
 Let's refactor our User serializer to be more concise.
 
@@ -472,8 +533,8 @@ You can create a function that serializes objects with "fixed" arguments by usin
 
     # refactored, using a factory
     serialize_user = UserSerializer.factory(strict=True)
-    s = serialize_user(user1)
-    s2 = serialize_user(user2)
+    result1, errors1 = serialize_user(user1)
+    result2, errors2 = serialize_user(user2)
 
 
 Printing Serialized Data

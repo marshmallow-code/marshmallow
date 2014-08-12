@@ -7,9 +7,15 @@ import time
 from email.utils import formatdate, parsedate
 from calendar import timegm
 import types
-
 from decimal import Decimal, Context, Inexact
 from pprint import pprint as py_pprint
+
+dateutil_available = False
+try:
+    from dateutil import parser
+    dateutil_available = True
+except ImportError:
+    dateutil_available = False
 
 from marshmallow.compat import OrderedDict
 
@@ -83,7 +89,8 @@ def to_marshallable_type(obj, field_names=None):
 
 def pprint(obj, *args, **kwargs):
     """Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries.
+    like regular dictionaries. Useful for printing the output of
+    :meth:`marshmallow.Serializer.dump`.
     """
     if isinstance(obj, OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
@@ -121,9 +128,6 @@ class UTC(datetime.tzinfo):
     def dst(self, dt):
         return ZERO
 
-    def __reduce__(self):
-        return _UTC, ()
-
     def localize(self, dt, is_dst=False):
         '''Convert naive time to local time'''
         if dt.tzinfo is not None:
@@ -146,6 +150,7 @@ class UTC(datetime.tzinfo):
 
 UTC = utc = UTC()  # UTC is a singleton
 
+
 def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
@@ -156,6 +161,7 @@ def local_rfcformat(dt):
     tz_offset = dt.strftime("%z")
     return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
         dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+
 
 def rfcformat(dt, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
@@ -183,10 +189,61 @@ def isoformat(dt, localtime=False, *args, **kwargs):
             localized = dt.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
-def from_rfc(datestring):
+
+def from_datestring(datestring):
+    """Parse an arbitrary datestring and return a datetime object using
+    dateutils' parser.
+    """
+    if dateutil_available:
+        return parser.parse(datestring)
+    else:
+        raise RuntimeError('from_datestring requires the python-dateutils to be'
+                           'installed.')
+
+def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
+
+    Use dateutil's parser if possible.
+
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
     """
-    parsed = parsedate(datestring)  # as a tuple
-    timestamp = time.mktime(parsed)
-    return datetime.datetime.fromtimestamp(timestamp)
+    # Use dateutil's parser if possible
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring)
+    else:
+        parsed = parsedate(datestring)  # as a tuple
+        timestamp = time.mktime(parsed)
+        return datetime.datetime.fromtimestamp(timestamp)
+
+
+def from_iso(datestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime object.
+
+    Use dateutil's parser if possible and return a timezone-aware datetime.
+    """
+    # Use dateutil's parser if possible
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring)
+    else:
+        # Strip off timezone info.
+        return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+
+
+def from_iso_time(timestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime.time
+    object.
+    """
+    if dateutil_available and use_dateutil:
+        return parser.parse(timestring).time()
+    else:
+        if len(timestring) > 8:  # has microseconds
+            fmt = '%H:%M:%S.%f'
+        else:
+            fmt = '%H:%M:%S'
+        return datetime.datetime.strptime(timestring, fmt).time()
+
+def from_iso_date(datestring, use_dateutil=True):
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring).date()
+    else:
+        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d')
