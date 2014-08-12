@@ -319,6 +319,8 @@ class Raw(FieldABC):
 
             class TitleCase(Raw):
                 def _format(self, value):
+                    if not value:
+                        return ''
                     return unicode(value).title()
         """
         return value

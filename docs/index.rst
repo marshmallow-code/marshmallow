@@ -16,7 +16,6 @@ Guide
 
    install
    quickstart
-   deserialization
    extending
    examples
 

@@ -24,14 +24,14 @@ Let's start with a basic user model.
             self.age = age
 
         def __repr__(self):
-            return '<User(name={self.name})>'.format(self=self)
+            return '<User(name={self.name!r})>'.format(self=self)
 
 
 Create a serializer by defining a class with variables mapping attribute names to a field class object that formats the final output of the serializer.
 
 .. code-block:: python
 
-    from marshmallow import Serializer, fields
+    from marshmallow import Serializer, fields, pprint
 
     class UserSerializer(Serializer):
         name = fields.String()
@@ -51,17 +51,21 @@ Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.
     user = User(name="Monty", email="monty@python.org")
     serializer = UserSerializer()
     result, errors = serializer.dump(user)
-    result
+    pprint(result)
     # {'created_at': 'Sun, 10 Nov 2013 15:48:19 -0000',
     #  'email': u'monty@python.org',
     #  'name': u'Monty'}
 
-You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.Serializer.dumps>`
+.. note::
+
+    Marshmallow provides a :func:`pprint` function for pretty-printing the ``OrderedDicts`` returned by the :meth:`dump <marshmallow.Serializer.dump>` method.
+
+You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.Serializer.dumps>`.
 
 .. code-block:: python
 
     json_result, errors = serializer.dumps(user)
-    json_result
+    pprint(json_result)
     # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
 
 Filtering output
@@ -130,6 +134,7 @@ Now, the :meth:`load <Serializer.load>` method will return a ``User`` object.
     }
     serializer = UserSerializer()
     result, errors = serializer.load(user_data)
+    result  # => <User(name='Ronnie')>
 
 Handling Collections of Objects
 -------------------------------
@@ -234,6 +239,37 @@ By default, serializers will marshal the object attributes that have the same na
     # 'date_created': 'Mon, 11 Aug 2014 01:53:16 -0000',
     # 'name': 'Keith'}
 
+Refactoring (Meta Options)
+--------------------------
+
+When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
+
+The *class Meta* paradigm allows you to specify which attributes you want to serialize. Marshmallow will choose an appropriate field type based on the attribute's type.
+
+Let's refactor our User serializer to be more concise.
+
+.. code-block:: python
+
+    # Refactored serializer
+    class UserSerializer(Serializer):
+        uppername = fields.Function(lambda obj: obj.name.upper())
+        class Meta:
+            fields = ("name", "email", "created_at", "uppername")
+
+Note that ``name`` will be automatically formatted as a :class:`String <marshmallow.fields.String>` and ``created_at`` will be formatted as a :class:`DateTime <marshmallow.fields.DateTime>`.
+
+.. note::
+    If instead you want to specify which field names to include *in addition* to the explicitly declared fields, you can use the ``additional`` option.
+
+    The serializer below is equivalent to above:
+
+    .. code-block:: python
+
+        class UserSerializer(Serializer):
+            uppername = fields.Function(lambda obj: obj.name.upper())
+            class Meta:
+                additional = ("name", "email", "created_at")  # No need to include 'uppername'
+
 Nesting Serializers
 -------------------
 
@@ -241,6 +277,7 @@ Serializers can be nested to represent relationships between objects (e.g. forei
 
 .. code-block:: python
 
+    # An example Blog model
     class Blog(object):
         def __init__(self, title, author):
             self.title = title
@@ -286,17 +323,16 @@ For example, a representation of an ``Author`` model might include the books tha
 .. code-block:: python
 
     class AuthorSerializer(Serializer):
-        class Meta:
-            fields = ('id', 'name', 'books')
         # Make sure to use the 'only' or 'exclude' params
         # to avoid infinite recursion
         books = fields.Nested('BookSerializer', many=True, exclude=('author', ))
+        class Meta:
+            fields = ('id', 'name', 'books')
 
     class BookSerializer(Serializer):
+        author = fields.Nested('AuthorSerializer', only=('id', 'name'))
         class Meta:
             fields = ('id', 'title', 'author')
-        author = fields.Nested('AuthorSerializer', only=('id', 'name'))
-
 
 .. code-block:: python
 
@@ -316,7 +352,7 @@ For example, a representation of an ``Author`` model might include the books tha
     #   "title": "As I Lay Dying"
     # }
 
-    author_result, erros = AuthorSerializer().dump(author)
+    author_result, errors = AuthorSerializer().dump(author)
     pprint(author_result, indent=2)
     # {
     #   "books": [
@@ -375,7 +411,7 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
 .. note::
 
-    If you pass in a field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
+    If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
 
     .. code-block:: python
 
@@ -383,8 +419,9 @@ You can explicitly specify which attributes in the nested fields you want to ser
             name = fields.String()
             email = fields.Email()
             friends = fields.Nested('self', only='name', many=True)
-        ...
-        UserSerializer(user).data
+        # ... create ``user`` ...
+        result, errors = UserSerializer().dump(user)
+        pprint(result)
         # {
         #     "friends": ["Mike", "Joe"],
         #     "name": "Steve",
@@ -486,77 +523,12 @@ In these cases, you can pass a dictionary as the ``context`` argument to a seria
     serialized.data['is_author']  # => True
     serialized.data['likes_bikes']  # => True
 
-Refactoring (Meta Options)
---------------------------
-
-When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
-
-The *class Meta* paradigm allows you to specify which attributes you want to serialize. Marshmallow will choose an appropriate field type based on the attribute's type.
-
-Let's refactor our User serializer to be more concise.
-
-.. code-block:: python
-
-    # Refactored serializer
-    class UserSerializer(Serializer):
-        uppername = fields.Function(lambda obj: obj.name.upper())
-        class Meta:
-            fields = ("name", "email", "created_at", "uppername")
-
-Note that ``name`` will be automatically formatted as a :class:`String <marshmallow.fields.String>` and ``created_at`` will be formatted as a :class:`DateTime <marshmallow.fields.DateTime>`.
-
-.. note::
-    If instead you want to specify which field names to include *in addition* to the explicitly declared fields, you can use the ``additional`` option.
-
-    The serializer below is equivalent to above:
-
-    .. code-block:: python
-
-        class UserSerializer(Serializer):
-            uppername = fields.Function(lambda obj: obj.name.upper())
-            class Meta:
-                additional = ("name", "email", "created_at")  # No need to include 'uppername'
-
-Refactoring II (Factory Functions)
-----------------------------------
-
-You may find yourself passing the same arguments whenever you serialize an object. For example, you may always want to serialize objects in "strict" mode.
-
-.. code-block:: python
-
-    s = UserSerializer(user1, strict=True)
-    s2 = UserSerializer(user2, strict=True)
-
-You can create a function that serializes objects with "fixed" arguments by using the :func:`Serializer.factory <marshmallow.Serializer.factory>` class method.
-
-.. code-block:: python
-
-    # refactored, using a factory
-    serialize_user = UserSerializer.factory(strict=True)
-    result1, errors1 = serialize_user(user1)
-    result2, errors2 = serialize_user(user2)
-
-
-Printing Serialized Data
-------------------------
-
-Marshmallow provides a ``pprint`` function for pretty-printing the OrderedDicts returned by ``Serializer.data``.
-
-.. code-block:: python
-
-    >>> from marshmallow import pprint
-    >>> u = User("Monty Python", email="monty@python.org")
-    >>> serialized = UserSerializer(u)
-    >>> pprint(serialized.data, indent=4)
-    {
-        "created_at": "Sun, 10 Nov 2013 20:31:36 -0000",
-        "name": "Monty Python",
-        "email": "monty@python.org"
-    }
 
 Next Steps
 ----------
 
 Check out the :ref:`API Reference <api>` for a full listing of available fields.
+
+Need to add custom post-processing or error handling behavior? See the :ref:`Extending Serializers <extending>` page.
 
 For example applications using marshmallow, check out the :ref:`Examples <examples>` page.

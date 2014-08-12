@@ -423,7 +423,7 @@ class BaseSerializer(base.SerializerABC):
 
     def dumps(self, obj, *args, **kwargs):
         """Same as :meth:`dump <marshmallow.Serializer.dump>`,
-        except it returns a JSON-encoded string.
+        except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
