@@ -43,18 +43,25 @@ class TestFieldSerialization:
         with pytest.raises(MarshallingError):
             BadSerializer(u, strict=True)
 
-    def test_datetime_field(self):
-        field = fields.DateTime()
+    def test_datetime_deserializes_to_iso_by_default(self):
+        field = fields.DateTime()  # No format specified
+        expected = utils.isoformat(self.user.created, localtime=False)
+        assert field.serialize("created", self.user) == expected
+
+    @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
+    def test_datetime_field_rfc822(self, fmt):
+        field = fields.DateTime(format=fmt)
         expected = utils.rfcformat(self.user.created, localtime=False)
         assert field.serialize("created", self.user) == expected
 
-    def test_localdatetime_field(self):
-        field = fields.LocalDateTime()
+    def test_localdatetime_rfc_field(self):
+        field = fields.LocalDateTime(format='rfc')
         expected = utils.rfcformat(self.user.created, localtime=True)
         assert field.serialize("created", self.user) == expected
 
-    def test_datetime_iso8601(self):
-        field = fields.DateTime(format="iso")
+    @pytest.mark.parametrize('fmt', ['iso', 'iso8601'])
+    def test_datetime_iso8601(self, fmt):
+        field = fields.DateTime(format=fmt)
         expected = utils.isoformat(self.user.created, localtime=False)
         assert field.serialize("created", self.user) == expected
 
@@ -203,7 +210,7 @@ class TestValidation:
 
     def test_datetime_validator(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
-        field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
+        field = fields.DateTime(format='rfc', validate=lambda d: utils.from_rfc(d).year == 2014)
         assert field.serialize('birthdate', user) == utils.rfcformat(user.birthdate)
         user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
         with pytest.raises(MarshallingError):

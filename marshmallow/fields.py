@@ -653,12 +653,18 @@ class Arbitrary(Number):
 
 DATEFORMAT_SERIALIZATION_FUNCS = {
     'iso': utils.isoformat,
+    'iso8601': utils.isoformat,
+
     'rfc': utils.rfcformat,
+    'rfc822': utils.rfcformat,
 }
 
 DATEFORMAT_DESERIALIZATION_FUNCS = {
-    'rfc': utils.from_rfc,
     'iso': utils.from_iso,
+    'iso8601': utils.from_iso,
+
+    'rfc': utils.from_rfc,
+    'rfc822': utils.from_rfc,
 }
 
 class DateTime(Raw):
@@ -672,6 +678,8 @@ class DateTime(Raw):
         ``None``, assumes the attribute has the same name as the field.
 
     """
+    DEFAULT_FORMAT = 'iso'
+
     localtime = False
 
     def __init__(self, format=None, default=None, attribute=None, **kwargs):
@@ -683,7 +691,7 @@ class DateTime(Raw):
 
     def _format(self, value):
         if value:
-            self.dateformat = self.dateformat or 'rfc'
+            self.dateformat = self.dateformat or self.DEFAULT_FORMAT
             format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
             if format_func:
                 return format_func(value, localtime=self.localtime)

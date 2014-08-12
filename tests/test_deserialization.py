@@ -67,16 +67,18 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize('not-a-datetime')
 
-    def test_rfc_datetime_field_deserialization(self):
+    @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
+    def test_rfc_datetime_field_deserialization(self, fmt):
         dtime = dt.datetime.now()
         datestring = utils.rfcformat(dtime)
-        field = fields.DateTime(format='rfc')
+        field = fields.DateTime(format=fmt)
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
-    def test_iso_datetime_field_deserialization(self):
+    @pytest.mark.parametrize('fmt', ['iso', 'iso8601'])
+    def test_iso_datetime_field_deserialization(self, fmt):
         dtime = dt.datetime.now()
         datestring = dtime.isoformat()
-        field = fields.DateTime(format='iso')
+        field = fields.DateTime(format=fmt)
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
     def test_localdatetime_field_deserialization(self):

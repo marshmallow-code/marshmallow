@@ -82,8 +82,9 @@ def test_dumps_returns_bytestring(user):
     assert isinstance(result, binary_type)
 
 
-def test_naive_datetime_field(serialized_user):
-    assert serialized_user.data['created'] == 'Sun, 10 Nov 2013 14:20:58 -0000'
+def test_naive_datetime_field(user, serialized_user):
+    expected = utils.isoformat(user.created)
+    assert serialized_user.data['created'] == expected
 
 def test_datetime_formatted_field(user, serialized_user):
     result = serialized_user.data['created_formatted']
@@ -92,12 +93,14 @@ def test_datetime_formatted_field(user, serialized_user):
 def test_datetime_iso_field(user, serialized_user):
     assert serialized_user.data['created_iso'] == utils.isoformat(user.created)
 
-def test_tz_datetime_field(serialized_user):
+def test_tz_datetime_field(user, serialized_user):
     # Datetime is corrected back to GMT
-    assert serialized_user.data['updated'] == 'Sun, 10 Nov 2013 20:20:58 -0000'
+    expected = utils.isoformat(user.updated)
+    assert serialized_user.data['updated'] == expected
 
-def test_local_datetime_field(serialized_user):
-    assert serialized_user.data['updated_local'] == 'Sun, 10 Nov 2013 14:20:58 -0600'
+def test_local_datetime_field(user, serialized_user):
+    expected = utils.isoformat(user.updated, localtime=True)
+    assert serialized_user.data['updated_local'] == expected
 
 def test_class_variable(serialized_user):
     assert serialized_user.data['species'] == 'Homo sapiens'
@@ -397,8 +400,8 @@ def test_meta_serializer_fields():
     assert s.data['balance'] == "100.00"
     assert s.data['uppername'] == "JOHN"
     assert s.data['is_old'] is False
-    assert s.data['created'] == utils.rfcformat(u.created)
-    assert s.data['updated_local'] == utils.rfcformat(u.updated, localtime=True)
+    assert s.data['created'] == utils.isoformat(u.created)
+    assert s.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
     assert s.data['finger_count'] == 10
 
 
@@ -467,7 +470,7 @@ def test_default_dateformat(user):
         class Meta:
             fields = ('created', 'updated')
     serialized = DateFormatSerializer(user)
-    assert serialized.data['created'] == utils.rfcformat(user.created)
+    assert serialized.data['created'] == utils.isoformat(user.created)
     assert serialized.data['updated'] == user.updated.strftime("%m-%d")
 
 def test_inherit_meta(user):
