@@ -69,7 +69,7 @@ def test_nesting_with_class_name_many():
 
 def test_invalid_class_name_in_nested_field_raises_error(user):
     with pytest.raises(RegistryError) as excinfo:
-        fields.Nested('notfound').output('foo', user)
+        fields.Nested('notfound').serialize('foo', user)
 
     assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
 
@@ -85,7 +85,7 @@ def test_multiple_classes_with_same_name_raises_error():
     # two defined classes with the same name
     with pytest.raises(RegistryError) as excinfo:
         field = fields.Nested('FooSerializer')
-        field.output('bar', {})
+        field.serialize('bar', {})
     msg = 'Multiple classes with name {0!r} were found.'\
             .format('FooSerializer')
     assert msg in str(excinfo)
@@ -98,8 +98,8 @@ def test_can_use_full_module_path_to_class():
 
     # Note: The arguments here don't matter. What matters is that no
     # error is raised
-    assert field.output('bar', {'foo': {'_id': 42}})
+    assert field.serialize('bar', {'foo': {'_id': 42}})
 
     field2 = fields.Nested('tests.test_registry.FooSerializer')
 
-    assert field2.output('bar', {'foo': {'_id': 42}})
+    assert field2.serialize('bar', {'foo': {'_id': 42}})

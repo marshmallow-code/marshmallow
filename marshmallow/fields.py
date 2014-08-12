@@ -120,7 +120,7 @@ class Marshaller(object):
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
             value = _call_and_store(
-                getter_func=partial(field_obj.output, attr_name),
+                getter_func=partial(field_obj.serialize, attr_name),
                 data=obj,
                 field_name=key,
                 field_obj=field_obj,
@@ -280,7 +280,7 @@ class Raw(FieldABC):
         except Exception as error:
             raise exception_class(getattr(self, 'error', None) or error)
 
-    def output(self, key, obj):
+    def serialize(self, key, obj):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
@@ -488,7 +488,7 @@ class List(Raw):
     def _format(self, value):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
             # Convert all instances in typed list to container type
-            return [self.container.output(idx, value) for idx
+            return [self.container.serialize(idx, value) for idx
                     in range(len(value))]
         if value is None:
             return self.default

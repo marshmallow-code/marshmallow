@@ -22,7 +22,7 @@ class TestFieldSerialization:
 
     def test_function_field(self):
         field = fields.Function(lambda obj: obj.name.upper())
-        assert "FOO" == field.output("key", self.user)
+        assert "FOO" == field.serialize("key", self.user)
 
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
@@ -46,59 +46,59 @@ class TestFieldSerialization:
     def test_datetime_field(self):
         field = fields.DateTime()
         expected = utils.rfcformat(self.user.created, localtime=False)
-        assert field.output("created", self.user) == expected
+        assert field.serialize("created", self.user) == expected
 
     def test_localdatetime_field(self):
         field = fields.LocalDateTime()
         expected = utils.rfcformat(self.user.created, localtime=True)
-        assert field.output("created", self.user) == expected
+        assert field.serialize("created", self.user) == expected
 
     def test_datetime_iso8601(self):
         field = fields.DateTime(format="iso")
         expected = utils.isoformat(self.user.created, localtime=False)
-        assert field.output("created", self.user) == expected
+        assert field.serialize("created", self.user) == expected
 
     def test_localdatetime_iso(self):
         field = fields.LocalDateTime(format="iso")
         expected = utils.isoformat(self.user.created, localtime=True)
-        assert field.output("created", self.user) == expected
+        assert field.serialize("created", self.user) == expected
 
     def test_datetime_format(self):
         format = "%Y-%m-%d"
         field = fields.DateTime(format=format)
-        assert field.output("created", self.user) == self.user.created.strftime(format)
+        assert field.serialize("created", self.user) == self.user.created.strftime(format)
 
     def test_string_field(self):
         field = fields.String()
         user = User(name=b'foo')
-        assert field.output('name', user) == 'foo'
+        assert field.serialize('name', user) == 'foo'
         user.name = None
-        assert field.output('name', user) == ''
+        assert field.serialize('name', user) == ''
 
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()
-        assert field.output("notfound", self.user) == ''
+        assert field.serialize("notfound", self.user) == ''
 
     def test_time_field(self):
         field = fields.Time()
         expected = self.user.time_registered.isoformat()[:12]
-        assert field.output("time_registered", self.user) == expected
+        assert field.serialize("time_registered", self.user) == expected
 
     def test_date_field(self):
         field = fields.Date()
-        assert field.output('birthdate', self.user) == self.user.birthdate.isoformat()
+        assert field.serialize('birthdate', self.user) == self.user.birthdate.isoformat()
 
     def test_timedelta_field(self):
         field = fields.TimeDelta()
         expected = total_seconds(self.user.since_created)
-        assert field.output("since_created", self.user) == expected
+        assert field.serialize("since_created", self.user) == expected
 
     def test_select_field(self):
         field = fields.Select(['male', 'female'])
-        assert field.output("sex", self.user) == "male"
+        assert field.serialize("sex", self.user) == "male"
         invalid = User('foo', sex='alien')
         with pytest.raises(MarshallingError):
-            field.output('sex', invalid)
+            field.serialize('sex', invalid)
 
     def test_bad_list_field(self):
         with pytest.raises(MarshallingError):
@@ -109,25 +109,25 @@ class TestFieldSerialization:
     def test_arbitrary_field(self):
         field = fields.Arbitrary()
         self.user.age = 12.3
-        result = field.output('age', self.user)
+        result = field.serialize('age', self.user)
         assert result == text_type(utils.float_to_decimal(self.user.age))
         self.user.age = None
-        result = field.output('age', self.user)
+        result = field.serialize('age', self.user)
         assert result == text_type(utils.float_to_decimal(0.0))
         with pytest.raises(MarshallingError):
             self.user.age = 'invalidvalue'
-            field.output('age', self.user)
+            field.serialize('age', self.user)
 
     def test_fixed_field(self):
         field = fields.Fixed(3)
         self.user.age = 42
-        result = field.output('age', self.user)
+        result = field.serialize('age', self.user)
         assert result == '42.000'
         self.user.age = None
-        assert field.output('age', self.user) == '0.000'
+        assert field.serialize('age', self.user) == '0.000'
         with pytest.raises(MarshallingError):
             self.user.age = 'invalidvalue'
-            field.output('age', self.user)
+            field.serialize('age', self.user)
 
 
 @pytest.mark.parametrize('FieldClass', [
@@ -149,7 +149,7 @@ def test_required_field_failure(FieldClass):
     user_data = {"name": "Phil"}
     field = FieldClass(required=True)
     with pytest.raises(MarshallingError) as excinfo:
-        field.output('age', user_data)
+        field.serialize('age', user_data)
     assert "Missing data for required field." in str(excinfo)
 
 
@@ -161,7 +161,7 @@ def test_required_field_failure(FieldClass):
 def test_required_field_falsy_is_ok(FieldClass, value):
     user_data = {'name': value}
     field = FieldClass(required=True)
-    result = field.output('name', user_data)
+    result = field.serialize('name', user_data)
     assert result is not None
     assert result == value
 
@@ -170,7 +170,7 @@ def test_required_list_field_failure():
     user_data = {"name": "Rosie"}
     field = fields.List(fields.String, required=True)
     with pytest.raises(MarshallingError) as excinfo:
-        field.output('relatives', user_data)
+        field.serialize('relatives', user_data)
     assert 'Missing data for required field.' in str(excinfo)
 
 
@@ -179,44 +179,44 @@ class TestValidation:
     def test_integer_with_validator(self):
         user = User(name='Joe', age='20')
         field = fields.Integer(validate=lambda x: 18 <= x <= 24)
-        out = field.output('age', user)
+        out = field.serialize('age', user)
         assert out == 20
         user2 = User(name='Joe', age='25')
         with pytest.raises(MarshallingError):
-            field.output('age', user2)
+            field.serialize('age', user2)
 
     def test_float_with_validator(self):
         user = User(name='Joe', age=3.14)
         field = fields.Float(validate=lambda f: f <= 4.1)
-        assert field.output('age', user) == user.age
+        assert field.serialize('age', user) == user.age
         invalid = User('foo', age=5.1)
         with pytest.raises(MarshallingError):
-            field.output('age', invalid)
+            field.serialize('age', invalid)
 
     def test_string_validator(self):
         user = User(name='Joe')
         field = fields.String(validate=lambda n: len(n) == 3)
-        assert field.output('name', user) == 'Joe'
+        assert field.serialize('name', user) == 'Joe'
         user2 = User(name='Joseph')
         with pytest.raises(MarshallingError):
-            field.output('name', user2)
+            field.serialize('name', user2)
 
     def test_datetime_validator(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
         field = fields.DateTime(validate=lambda d: utils.from_rfc(d).year == 2014)
-        assert field.output('birthdate', user) == utils.rfcformat(user.birthdate)
+        assert field.serialize('birthdate', user) == utils.rfcformat(user.birthdate)
         user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
         with pytest.raises(MarshallingError):
-            field.output('birthdate', user2)
+            field.serialize('birthdate', user2)
 
     def test_function_validator(self):
         user = User('joe')
         field = fields.Function(lambda d: d.name.upper(),
                                 validate=lambda n: len(n) == 3)
-        assert field.output('uppername', user) == 'JOE'
+        assert field.serialize('uppername', user) == 'JOE'
         invalid = User(name='joseph')
         with pytest.raises(MarshallingError):
-            field.output('uppername', invalid)
+            field.serialize('uppername', invalid)
 
     def test_method_validator(self):
         class MethodSerializer(Serializer):
@@ -272,7 +272,7 @@ def test_serializing_named_tuple():
 
     p = Point(x=4, y=2)
 
-    assert field.output('x', p) == 4
+    assert field.serialize('x', p) == 4
 
 
 def test_serializing_named_tuple_with_meta():
