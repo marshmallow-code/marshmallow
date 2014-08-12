@@ -236,7 +236,7 @@ class Raw(FieldABC):
     _CHECK_REQUIRED = True
 
     def __init__(self, default=None, attribute=None, error=None,
-                validate=None, required=False):
+                 validate=None, required=False):
         self.attribute = attribute
         self.default = default
         self.error = error
@@ -261,12 +261,17 @@ class Raw(FieldABC):
         try:
             func = getattr(self, method)
             output = func(*args, **kwargs)
-            if callable(self.validate):
-                if not self.validate(output):
-                    msg = 'Validator {0}({1}) is not True'.format(
-                        self.validate.__name__, output
-                    )
-                    raise exception_class(self.error or msg)
+            if self.validate is not None:
+                validators = [i for i in self.validate] if type(self.validate) == list else [self.validate]
+            else:
+                validators = []
+            if len(validators) > 0:
+                msg = lambda v: 'Validator {0}({1}) is not True'.format(
+                    v.__name__, output
+                )
+                for validator in validators:
+                    if not validator(output):
+                        raise exception_class(self.error or msg(validator))
             return output
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:
