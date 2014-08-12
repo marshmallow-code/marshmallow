@@ -430,14 +430,14 @@ class BaseSerializer(base.SerializerABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized = self.dump(obj)
+        deserialized, errors = self.dump(obj)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         # On Python 2, json.dumps returns bytestrings
         # On Python 3, json.dumps returns unicode
         # Ensure that a bytestring is returned
         if isinstance(ret, text_type):
             return binary_type(ret.encode('utf-8'))
-        return ret, self._marshal.errors
+        return ret, errors
 
     # Aliases
     serialize = dump

@@ -69,16 +69,16 @@ def test_fields_are_not_copies(SerializerClass):
 
 
 def test_dumps_returns_json(user):
-    s = UserSerializer()
-    serialized = s.dump(user)
-    json_data = s.dumps(user)
+    ser = UserSerializer()
+    serialized, errors = ser.dump(user)
+    json_data, errors = ser.dumps(user)
     expected = binary_type(json.dumps(serialized).encode("utf-8"))
     assert json_data == expected
 
 
 def test_dumps_returns_bytestring(user):
     s = UserSerializer()
-    result = s.dumps(user)
+    result, errors = s.dumps(user)
     assert isinstance(result, binary_type)
 
 
