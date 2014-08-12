@@ -55,16 +55,9 @@ def test_factory_saves_args(user):
     with pytest.raises(MarshallingError):
         serialize_user(user)
 
-def test_can_override_factory_params(user):
+def test_factory_doc_is_same_as_dump_doc():
     serialize_user = UserSerializer.factory(strict=True)
-    user.homepage = 'invalid-url'
-    # no error raised when overriding strict mode
-    serialize_user(user, strict=False)
-
-
-def test_factory_doc_is_same_as_class_doc():
-    serialize_user = UserSerializer.factory(strict=True)
-    assert serialize_user.__doc__ == UserSerializer.__doc__
+    assert serialize_user.__doc__ == UserSerializer.dump.__doc__
 
 
 @pytest.mark.parametrize('SerializerClass',
