@@ -231,11 +231,22 @@ class TestFieldDeserialization:
         assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
 
     def test_field_deserialization_with_user_validators(self):
-        field = fields.String(validate=[lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav'])
-        assert field.deserialize('Valid') == 'Valid'
-        with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('invalid')
-        assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+
+        def validators_gen():
+            yield lambda s: s.lower() == 'valid'
+            yield lambda s: s.lower()[::-1] == 'dilav'
+
+        m_colletion_type = [
+            fields.String(validate=[lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav']),
+            fields.String(validate=(lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav')),
+            fields.String(validate=validators_gen)
+        ]
+
+        for field in m_colletion_type:
+            assert field.deserialize('Valid') == 'Valid'
+            with pytest.raises(UnmarshallingError) as excinfo:
+                field.deserialize('invalid')
+            assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')

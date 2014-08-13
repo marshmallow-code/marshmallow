@@ -194,12 +194,23 @@ class TestValidation:
 
     def test_integer_with_validators(self):
         user = User(name='Joe', age='20')
-        field = fields.Integer(validate=[lambda x: x <= 24, lambda x: 18 <= x])
-        out = field.serialize('age', user)
-        assert out == 20
-        user2 = User(name='Joe', age='25')
-        with pytest.raises(MarshallingError):
-            field.serialize('age', user2)
+
+        def validators_gen():
+            yield lambda x: x <= 24
+            yield lambda x: 18 <= x
+
+        m_collection_type = [
+            fields.Integer(validate=[lambda x: x <= 24, lambda x: 18 <= x]),
+            fields.Integer(validate=(lambda x: x <= 24, lambda x: 18 <= x)),
+            fields.Integer(validate=validators_gen)
+        ]
+
+        for field in m_collection_type:
+            out = field.serialize('age', user)
+            assert out == 20
+            user2 = User(name='Joe', age='25')
+            with pytest.raises(MarshallingError):
+                field.serialize('age', user2)
 
     def test_float_with_validator(self):
         user = User(name='Joe', age=3.14)
@@ -211,11 +222,22 @@ class TestValidation:
 
     def test_float_with_validators(self):
         user = User(name='Joe', age=3.14)
-        field = fields.Float(validate=[lambda f: f <= 4.1, lambda f: f >= 1.0])
-        assert field.serialize('age', user) == user.age
-        invalid = User('foo', age=5.1)
-        with pytest.raises(MarshallingError):
-            field.serialize('age', invalid)
+
+        def validators_gen():
+            yield lambda f: f <= 4.1
+            yield lambda f: f >= 1.0
+
+        m_collection_type = [
+            fields.Float(validate=[lambda f: f <= 4.1, lambda f: f >= 1.0]),
+            fields.Float(validate=(lambda f: f <= 4.1, lambda f: f >= 1.0)),
+            fields.Float(validate=validators_gen)
+        ]
+
+        for field in m_collection_type:
+            assert field.serialize('age', user) == user.age
+            invalid = User('foo', age=5.1)
+            with pytest.raises(MarshallingError):
+                field.serialize('age', invalid)
 
     def test_string_validator(self):
         user = User(name='Joe')
@@ -227,11 +249,22 @@ class TestValidation:
 
     def test_string_validators(self):
         user = User(name='Joe')
-        field = fields.String(validate=[lambda n: len(n) == 3, lambda n: n.lower() == 'joe'])
-        assert field.serialize('name', user) == 'Joe'
-        user2 = User(name='Joseph')
-        with pytest.raises(MarshallingError):
-            field.serialize('name', user2)
+
+        def validators_gen():
+            yield lambda n: len(n) == 3
+            yield lambda n: n.lower() == 'joe'
+
+        m_collection_type = [
+            fields.String(validate=[lambda n: len(n) == 3, lambda n: n.lower() == 'joe']),
+            fields.String(validate=(lambda n: len(n) == 3, lambda n: n.lower() == 'joe')),
+            fields.String(validate=validators_gen)
+        ]
+
+        for field in m_collection_type:
+            assert field.serialize('name', user) == 'Joe'
+            user2 = User(name='Joseph')
+            with pytest.raises(MarshallingError):
+                field.serialize('name', user2)
 
     def test_datetime_validator(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
@@ -243,12 +276,24 @@ class TestValidation:
 
     def test_datetime_validators(self):
         user = User('Joe', birthdate=dt.datetime(2014, 8, 21))
-        field = fields.DateTime(format='rfc', validate=[lambda d: utils.from_rfc(d).year == 2014,
-                                                        lambda d: utils.from_rfc(d).month == 8])
-        assert field.serialize('birthdate', user) == utils.rfcformat(user.birthdate)
-        user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
-        with pytest.raises(MarshallingError):
-            field.serialize('birthdate', user2)
+
+        def validators_gen():
+            yield lambda d: utils.from_rfc(d).year == 2014
+            yield lambda d: utils.from_rfc(d).month == 8
+
+        m_collection_type = [
+            fields.DateTime(format='rfc', validate=[lambda d: utils.from_rfc(d).year == 2014,
+                                                    lambda d: utils.from_rfc(d).month == 8]),
+            fields.DateTime(format='rfc', validate=(lambda d: utils.from_rfc(d).year == 2014,
+                                                    lambda d: utils.from_rfc(d).month == 8)),
+            fields.DateTime(format='rfc', validate=validators_gen)
+        ]
+
+        for field in m_collection_type:
+            assert field.serialize('birthdate', user) == utils.rfcformat(user.birthdate)
+            user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
+            with pytest.raises(MarshallingError):
+                field.serialize('birthdate', user2)
 
     def test_function_validator(self):
         user = User('joe')
@@ -261,12 +306,22 @@ class TestValidation:
 
     def test_function_validators(self):
         user = User('joe')
-        field = fields.Function(lambda d: d.name.upper(),
-                                validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o'])
-        assert field.serialize('uppername', user) == 'JOE'
-        invalid = User(name='joseph')
-        with pytest.raises(MarshallingError):
-            field.serialize('uppername', invalid)
+
+        def validators_gen():
+            yield lambda n: len(n) == 3
+            yield lambda n: n[1].lower() == 'o'
+
+        m_collection_type = [
+            fields.Function(lambda d: d.name.upper(), validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']),
+            fields.Function(lambda d: d.name.upper(), validate=(lambda n: len(n) == 3, lambda n: n[1].lower() == 'o')),
+            fields.Function(lambda d: d.name.upper(), validate=validators_gen)
+        ]
+
+        for field in m_collection_type:
+            assert field.serialize('uppername', user) == 'JOE'
+            invalid = User(name='joseph')
+            with pytest.raises(MarshallingError):
+                field.serialize('uppername', invalid)
 
     def test_method_validator(self):
         class MethodSerializer(Serializer):
@@ -284,19 +339,42 @@ class TestValidation:
         assert 'is not True' in str(excinfo)
 
     def test_method_validators(self):
-        class MethodSerializer(Serializer):
+
+        def validators_gen():
+            yield lambda n: len(n) == 3
+            yield lambda n: n.upper()[2] == 'E'
+
+        class MethodSerializerList(Serializer):
             uppername = fields.Method('get_uppername',
                                       validate=[lambda n: len(n) == 3, lambda n: n.upper()[2] == 'E'])
 
             def get_uppername(self, obj):
                 return obj.name.upper()
+
+        class MethodSerializerTuple(Serializer):
+            uppername = fields.Method('get_uppername',
+                                      validate=(lambda n: len(n) == 3, lambda n: n.upper()[2] == 'E'))
+
+            def get_uppername(self, obj):
+                return obj.name.upper()
+
+        class MethodSerializerGenerator(Serializer):
+            uppername = fields.Method('get_uppername',
+                                      validate=validators_gen)
+
+            def get_uppername(self, obj):
+                return obj.name.upper()
+
+        m_collection_type = [MethodSerializerList, MethodSerializerTuple, MethodSerializerGenerator]
+
         user = User('joe')
-        s = MethodSerializer(user, strict=True)
-        assert s.data['uppername'] == 'JOE'
-        invalid = User(name='joseph')
-        with pytest.raises(MarshallingError) as excinfo:
-            MethodSerializer(strict=True).dump(invalid)
-        assert 'is not True' in str(excinfo)
+        for serializer in m_collection_type:
+            s = serializer(user, strict=True)
+            assert s.data['uppername'] == 'JOE'
+            invalid = User(name='joseph')
+            with pytest.raises(MarshallingError) as excinfo:
+                serializer(strict=True).dump(invalid)
+            assert 'is not True' in str(excinfo)
 
 class TestMarshaller:
 
