@@ -163,7 +163,8 @@ class UnMarshaller(object):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
 
-    def deserialize(self, data, fields_dict, many=False, postprocess=None):
+    def deserialize(self, data, fields_dict, many=False, postprocess=None,
+                    encapsulate=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -172,8 +173,15 @@ class UnMarshaller(object):
             a collection.
         :param callable postprocess: Post-processing function that is passed the
             deserialized dictionary.
+        :param str encapsulate: The singular name of the key if data is
+            encapsulated, if used with many=True is pluralized
         :return: An OrderedDict of the deserialized data.
         """
+        if encapsulate and data:
+            if many:
+                data = data[pluralize(encapsulate)]
+            else:
+                data = data[encapsulate]
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
         items = []

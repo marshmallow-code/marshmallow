@@ -414,7 +414,7 @@ class BaseSerializer(base.SerializerABC):
         """
         self._unmarshal.strict = self.strict
         result = self._unmarshal(data, self.fields, self.many,
-                                        postprocess=self.make_object)
+                    postprocess=self.make_object, encapsulate=self.encapsulate)
         errors = self._unmarshal.errors
         return result, errors
 
