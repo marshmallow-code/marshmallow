@@ -264,6 +264,28 @@ class TestSchemaDeserialization:
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
 
+    def test_deserialize_encapsulate(self):
+        user_data = {
+            'user': {'name': 'Mick', 'age': 18}
+        }
+        serializer = SimpleUserSerializer(encapsulate='user')
+        result, errors = serializer.load(user_data)
+        assert result['name'] == user_data['user']['name']
+        assert result['age'] == user_data['user']['age']
+
+    def test_deserialize_encapsulate_many(self):
+        users_data = {
+            'users': [
+                {'name': 'Mick', 'age': 18},
+                {'name': 'Keith', 'age': 19}
+            ]
+        }
+        serializer = SimpleUserSerializer(many=True, encapsulate='user')
+        result, errors = serializer.load(users_data)
+        for idx, res in enumerate(result):
+            assert res['name'] == users_data['users'][idx]['name']
+            assert res['age'] == users_data['users'][idx]['age']
+
     def test_make_object(self):
         class SimpleUserSerializer2(Serializer):
             name = fields.String()
