@@ -183,17 +183,9 @@ You can perform additional validation for a field by passing it a ``validate`` c
     result, errors = ValidatedUserSerializer().dump(jagger)
     errors  # => {'age': 'User is over the hill'}
 
-If you have multiple validations to perform, you can even pass a list of callables. So with a slight modification our previous example would become:
+.. note::
 
-.. code-block:: python
-
-    class ValidatedUserSerializer(UserSerializer):
-        age = fields.Number(validate=[lambda n: n >= 18, lambda n: n <= 40],
-                            error='User is over the hill')
-
-    jagger = User(name="Mick", email="mick@stones.com", age=71)
-    result, errors = ValidatedUserSerializer().dump(jagger)
-    errors  # => {'age': 'User is over the hill'}
+If you have multiple validations to perform, you may also pass a collection (list, tuple) or generator of callables to the ``validate`` parameter.
 
 .. note::
 
