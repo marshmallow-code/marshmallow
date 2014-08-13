@@ -862,7 +862,7 @@ def test_encapsulated_many_data(user):
     range_of_users = 10
     serializer = UserSerializer(many=True, encapsulate='user')
     x = serializer.dump([user] * range_of_users)[0]
-    assert x.keys() == ['users']
+    assert list(x.keys()) == ['users']
     for idx in range(0, range_of_users):
         assert x['users'][idx]['name'] == user.name
         assert x['users'][idx]['age'] == user.age
@@ -874,7 +874,7 @@ def test_encapsulated_meta():
             encapsulate = "user"
     user = User("Foo", email="foo.com")
     x = EncapUserSerializer().dump(user)[0]
-    assert x.keys() == ['user']
+    assert list(x.keys()) == ['user']
 
     x = EncapUserSerializer(many=True).dump([user])[0]
-    assert x.keys() == ['users']
+    assert list(x.keys()) == ['users']
