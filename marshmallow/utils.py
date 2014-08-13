@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import json
 import datetime
 import time
+import inspect
 from email.utils import formatdate, parsedate
 from calendar import timegm
 import types
@@ -19,9 +20,16 @@ except ImportError:
 
 from marshmallow.compat import OrderedDict
 
+
+def is_generator(obj):
+    """Return True if ``obj`` is a generator
+    """
+    return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
+
+
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
-    return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
+    return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
 
 def is_indexable_but_not_string(obj):
