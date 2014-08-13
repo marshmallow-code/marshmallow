@@ -19,6 +19,9 @@ from marshmallow.exceptions import (
     ForcedError,
 )
 
+from inflection import pluralize
+
+
 __all__ = [
     'Marshaller',
     'UnMarshaller',
@@ -101,7 +104,7 @@ class Marshaller(object):
         #: Dictionary of errors stored during serialization
         self.errors = {}
 
-    def serialize(self, obj, fields_dict, many=False):
+    def serialize(self, obj, fields_dict, many=False, encapsulate=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -109,13 +112,19 @@ class Marshaller(object):
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to ``True`` if ``data`` should be serialized as
             a collection.
+        :param str encapsulate: If a name is given, is used to encapsulate
+            the result and pluralize it when used with many=True
         :return: An OrderedDict of the marshalled data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self.serialize(d, fields_dict, many=False) for d in obj]
+            data = [self.serialize(d, fields_dict, many=False) for d in obj]
+            if encapsulate:
+                return {pluralize(encapsulate): data}
+            else:
+                return data
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
@@ -129,7 +138,11 @@ class Marshaller(object):
                 strict=self.strict
             )
             items.append((key, value))
-        return OrderedDict(items)
+        data = OrderedDict(items)
+        if encapsulate:
+            return {encapsulate: data}
+        else:
+            return data
 
     # Make an instance callable
     __call__ = serialize
