@@ -302,7 +302,7 @@ class Raw(FieldABC):
     def deserialize(self, value):
         """Deserialize ``value``.
 
-        :raise DeserializationError: If an invalid value is passed.
+        :raise UnmarshallingError: If an invalid value is passed.
         """
         return self._call_with_validation('_deserialize', UnmarshallingError, value)
 

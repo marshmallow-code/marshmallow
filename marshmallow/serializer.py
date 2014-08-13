@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """The Serializer class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import
+
+from collections import namedtuple
 import datetime as dt
 import json
 import copy
@@ -13,6 +15,10 @@ from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 
+#: Return type of :meth:`Serializer.dump`
+MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
+#: Return type of :meth:`Serializer.load`
+UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
 class SerializerMeta(type):
     """Metaclass for the Serializer class. Binds the declared fields to
@@ -384,6 +390,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param obj: The object to serialize.
         :return: A tuple of the form (``result``, ``errors``)
+        :rtype: MarshalResult, a :class:`namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -393,7 +400,7 @@ class BaseSerializer(base.SerializerABC):
         preresult = self._marshal(obj, self.fields, many=self.many)
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
-        return result, errors
+        return MarshalResult(result, errors)
 
     def load(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
@@ -401,6 +408,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param dict data: The data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+        :rtype: UnmarshalResult, a :class:`namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -408,7 +416,7 @@ class BaseSerializer(base.SerializerABC):
         result = self._unmarshal(data, self.fields, self.many,
                                         postprocess=self.make_object)
         errors = self._unmarshal.errors
-        return result, errors
+        return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data):
         """Same as :meth:`load <marshmallow.Serializer.load>`,
@@ -416,6 +424,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+        :rtype: UnMarshalResult, a :class:`namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -427,6 +436,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
+        :rtype: MarshalResult, a :class:`namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -437,7 +447,7 @@ class BaseSerializer(base.SerializerABC):
         # # Ensure that a bytestring is returned
         if isinstance(ret, text_type):
             ret = bytes(ret.encode('utf-8'))
-        return ret, errors
+        return MarshalResult(ret, errors)
 
     # Aliases
     serialize = dump
