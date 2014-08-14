@@ -22,6 +22,7 @@ def test_validate_field(SerializerClass):
     assert SerializerClass(invalid).is_valid(["name"]) is True
     assert SerializerClass(invalid).is_valid(["email"]) is False
 
-def test_validating_nonexistent_field_raises_error(serialized_user):
+def test_validating_nonexistent_field_raises_error(user):
+    ser_user = UserSerializer(user)
     with pytest.raises(KeyError):
-        serialized_user.is_valid(["foobar"])
+        ser_user.is_valid(["foobar"])

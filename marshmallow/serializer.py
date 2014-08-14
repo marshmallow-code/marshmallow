@@ -377,9 +377,9 @@ class BaseSerializer(base.SerializerABC):
                     except KeyError:
                         raise AttributeError(
                             '"{0}" is not a valid field for {1}.'.format(key, obj))
-                    field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Raw)()
+                    field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
                 else:  # Object is None
-                    field_obj = fields.Raw()
+                    field_obj = fields.Field()
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret

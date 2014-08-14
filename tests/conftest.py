@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Pytest fixtures that are available in all test modules."""
 import pytest
 
 from tests.base import User, UserSerializer
@@ -9,4 +10,4 @@ def user():
 
 @pytest.fixture
 def serialized_user(user):
-    return UserSerializer(user)
+    return UserSerializer().dump(user)

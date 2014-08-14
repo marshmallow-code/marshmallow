@@ -275,7 +275,7 @@ def test_enum_is_select():
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
 
-    field = fields.Raw()
+    field = fields.Field()
 
     p = Point(x=4, y=2)
 
