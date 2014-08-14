@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from marshmallow import Serializer, fields, utils
+from marshmallow import Serializer, fields, utils, MarshalResult, UnmarshalResult
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import unicode, binary_type
 
@@ -15,10 +15,11 @@ from tests.base import *  # noqa
 @pytest.mark.parametrize('SerializerClass',
     [UserSerializer, UserMetaSerializer])
 def test_serializing_basic_object(SerializerClass, user):
-    s = SerializerClass(user)
-    assert s.data['name'] == user.name
+    s = SerializerClass()
+    data, errors = s.dump(user)
+    assert data['name'] == user.name
     assert_almost_equal(s.data['age'], 42.3)
-    assert s.data['registered']
+    assert data['registered']
 
 def test_serializer_dump(user):
     s = UserSerializer()
@@ -36,6 +37,36 @@ def test_dump_returns_dict_of_errors():
     result, errors = s.dump(bad_user)
     assert 'email' in errors
     assert 'homepage' in errors
+
+def test_dump_returns_a_marshalresult(user):
+    s = UserSerializer()
+    result = s.dump(user)
+    assert isinstance(result, MarshalResult)
+    data = result.data
+    assert isinstance(data, dict)
+    errors = result.errors
+    assert isinstance(errors, dict)
+
+def test_dumps_returns_a_marshalresult(user):
+    s = UserSerializer()
+    result = s.dumps(user)
+    assert isinstance(result, MarshalResult)
+    assert isinstance(result.data, binary_type)
+    assert isinstance(result.errors, dict)
+
+def test_load_returns_an_unmarshalresult():
+    s = UserSerializer()
+    result = s.load({'name': 'Monty'})
+    assert isinstance(result, UnmarshalResult)
+    assert isinstance(result.data, User)
+    assert isinstance(result.errors, dict)
+
+def test_loads_returns_an_unmarshalresult(user):
+    s = UserSerializer()
+    result = s.loads(json.dumps({'name': 'Monty'}))
+    assert isinstance(result, UnmarshalResult)
+    assert isinstance(result.data, User)
+    assert isinstance(result.errors, dict)
 
 def test_serializing_none():
     s = UserSerializer(None)
@@ -205,22 +236,6 @@ def test_decimal_field():
 def test_price_field(serialized_user):
     assert serialized_user.data['balance'] == "100.00"
 
-def test_validate():
-    valid = User("Joe", email="joe@foo.com")
-    invalid = User("John", email="johnexample.com")
-    assert UserSerializer(valid).is_valid()
-    assert UserSerializer(invalid).is_valid() is False
-
-@pytest.mark.parametrize('SerializerClass',
-    [UserSerializer, UserMetaSerializer])
-def test_validate_field(SerializerClass):
-    invalid = User("John", email="johnexample.com")
-    assert SerializerClass(invalid).is_valid(["name"]) is True
-    assert SerializerClass(invalid).is_valid(["email"]) is False
-
-def test_validating_nonexistent_field_raises_error(serialized_user):
-    with pytest.raises(KeyError):
-        serialized_user.is_valid(["foobar"])
 
 def test_fields_param_must_be_list_or_tuple():
     invalid = User("John", email="johnexample.com")
@@ -229,13 +244,12 @@ def test_fields_param_must_be_list_or_tuple():
 
 def test_extra():
     user = User("Joe", email="joe@foo.com")
-    s = UserSerializer(user, extra={"fav_color": "blue"})
-    assert s.data['fav_color'] == "blue"
+    data, errors = UserSerializer(extra={"fav_color": "blue"}).dump(user)
+    assert data['fav_color'] == "blue"
 
 def test_extra_many():
     users = [User('Fred'), User('Brian')]
-    s = UserSerializer(users, many=True, extra={'band': 'Queen'})
-    data = s.data
+    data, errs = UserSerializer(many=True, extra={'band': 'Queen'}).dump(users)
     assert data[0]['band'] == 'Queen'
 
 @pytest.mark.parametrize('SerializerClass',

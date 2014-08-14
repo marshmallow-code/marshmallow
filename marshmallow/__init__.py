@@ -3,13 +3,15 @@ from __future__ import absolute_import
 
 __version__ = '1.0.0-dev'
 __author__ = 'Steven Loria'
-__license__ = "MIT"
+__license__ = 'MIT'
 
-from marshmallow.serializer import Serializer
+from marshmallow.serializer import Serializer, MarshalResult, UnmarshalResult
 
 from marshmallow.utils import pprint
 
 __all__ = [
     'Serializer',
-    'pprint'
+    'pprint',
+    'MarshalResult',
+    'UnmarshalResult',
 ]

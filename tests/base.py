@@ -88,7 +88,7 @@ class Blog(object):
 ###### Serializers #####
 
 
-class Uppercased(fields.Raw):
+class Uppercased(fields.Field):
     '''Custom field formatting example.'''
     def _format(self, value):
         if value:
@@ -112,8 +112,8 @@ class UserSerializer(Serializer):
     is_old = fields.Method("get_is_old")
     lowername = fields.Function(lambda obj: obj.name.lower())
     registered = fields.Boolean()
-    hair_colors = fields.List(fields.Raw)
-    sex_choices = fields.List(fields.Raw)
+    hair_colors = fields.List(fields.Field)
+    sex_choices = fields.List(fields.Field)
     finger_count = fields.Integer()
     uid = fields.UUID()
     time_registered = fields.Time()

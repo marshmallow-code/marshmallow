@@ -217,11 +217,10 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
-class Raw(FieldABC):
+class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
-    data does not need to be formatted before being serialized. Fields should
-    throw a MarshallingError in case of parsing problem.
+    data does not need to be formatted before being serialized or deserialized.
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
@@ -231,7 +230,7 @@ class Raw(FieldABC):
         only parameter and returns a boolean. If it returns False, a
         MarshallingError is raised.
     :param bool required: Make a field required. If a field is ``None``,
-        raise a MarshallingError.
+        raise a :exc:`MarshallingError`.
     """
     _CHECK_REQUIRED = True
 
@@ -302,7 +301,7 @@ class Raw(FieldABC):
     def deserialize(self, value):
         """Deserialize ``value``.
 
-        :raise DeserializationError: If an invalid value is passed.
+        :raise UnmarshallingError: If an invalid value is passed.
         """
         return self._call_with_validation('_deserialize', UnmarshallingError, value)
 
@@ -317,7 +316,7 @@ class Raw(FieldABC):
 
         Ex::
 
-            class TitleCase(Raw):
+            class TitleCase(Field):
                 def _format(self, value):
                     if not value:
                         return ''
@@ -339,8 +338,10 @@ class Raw(FieldABC):
         """Deserialize value. Concrete :class:`Field` classes should implement this method."""
         return value
 
+class Raw(Field):
+    """Field that applies no formatting or validation."""
 
-class Nested(Raw):
+class Nested(Field):
     """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
     inside a field.
 
@@ -461,7 +462,7 @@ def flatten(dictlist, key):
     return [d[key] for d in dictlist]
 
 
-class List(Raw):
+class List(Field):
     """A list field.
 
     Example: ::
@@ -503,7 +504,7 @@ def _ensure_text_type(val):
         val = val.decode('utf-8')
     return text_type(val)
 
-class String(Raw):
+class String(Field):
     """A string field."""
 
     def __init__(self, default='', attribute=None, *args, **kwargs):
@@ -524,7 +525,7 @@ class UUID(String):
     pass
 
 
-class Number(Raw):
+class Number(Field):
     """Base class for number fields."""
 
     num_type = float
@@ -572,7 +573,7 @@ class Integer(Number):
         super(Number, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
 
-class Boolean(Raw):
+class Boolean(Field):
     """A boolean field."""
 
     #: Values that will deserialize to ``True``. If an empty set, any non-falsy
@@ -603,7 +604,7 @@ class Boolean(Raw):
                     ))
         return True
 
-class FormattedString(Raw):
+class FormattedString(Field):
     def __init__(self, src_str):
         super(FormattedString, self).__init__()
         self.src_str = text_type(src_str)
@@ -667,7 +668,7 @@ DATEFORMAT_DESERIALIZATION_FUNCS = {
     'rfc822': utils.from_rfc,
 }
 
-class DateTime(Raw):
+class DateTime(Field):
     """A formatted datetime string in UTC.
         ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
@@ -729,7 +730,7 @@ class LocalDateTime(DateTime):
     localtime = True
 
 
-class Time(Raw):
+class Time(Field):
     """ISO8601-formatted time string."""
 
     def _format(self, value):
@@ -751,7 +752,7 @@ class Time(Raw):
                 'Could not deserialize {0!r} to a time object.'.format(value)
             )
 
-class Date(Raw):
+class Date(Field):
     """ISO8601-formatted date string."""
 
     def _format(self, value):
@@ -774,7 +775,7 @@ class Date(Raw):
             )
 
 
-class TimeDelta(Raw):
+class TimeDelta(Field):
     '''Formats time delta objects, returning the total number of seconds
     as a float.
     '''
@@ -832,7 +833,7 @@ class Price(Fixed):
         super(Price, self).__init__(decimals=decimals, **kwargs)
 
 
-class Url(Raw):
+class Url(Field):
     """A validated URL field.
 
     :param default: Default value for the field if the attribute is not set.
@@ -861,7 +862,7 @@ class Url(Raw):
         return self._validated(value, UnmarshallingError)
 
 
-class Email(Raw):
+class Email(Field):
     """A validated email field.
     """
 
@@ -892,7 +893,7 @@ def _callable(obj):
     return obj
 
 
-class Method(Raw):
+class Method(Field):
     """A field that takes the value returned by a Serializer method.
 
     :param str method_name: The name of the Serializer method from which
@@ -937,7 +938,7 @@ class Method(Raw):
         return value
 
 
-class Function(Raw):
+class Function(Field):
     """A field that takes the value returned by a function.
 
     :param callable func: A callable from which to retrieve the value.
@@ -977,7 +978,7 @@ class Function(Raw):
         return value
 
 
-class Select(Raw):
+class Select(Field):
     """A field that provides a set of values which an attribute must be
     contrained to.
 

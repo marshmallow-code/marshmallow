@@ -29,3 +29,12 @@ Once you have the source, you can install it into your site-packages with ::
 .. _Github: https://github.com/sloria/marshmallow
 .. _tarball: https://github.com/sloria/marshmallow/tarball/master
 .. _zipball: https://github.com/sloria/marshmallow/zipball/master
+
+.. note::
+
+    The ``python-dateutil`` package is not a hard dependency, but it is recommended for robust datetime deserialization.
+
+    ::
+
+        $ pip install python-dateutil
+
