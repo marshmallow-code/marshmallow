@@ -22,6 +22,7 @@ from marshmallow.exceptions import (
 __all__ = [
     'Marshaller',
     'UnMarshaller',
+    'Field',
     'Raw',
     'Nested',
     'List',

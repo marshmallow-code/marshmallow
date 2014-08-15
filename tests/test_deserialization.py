@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 import json
+import uuid
 
 from marshmallow import fields, utils, Serializer
 from marshmallow.exceptions import UnmarshallingError
@@ -180,6 +181,11 @@ class TestFieldDeserialization:
         field = fields.Function(lambda x: None,
                                 deserialize=lambda val: val.upper())
         assert field.deserialize('foo') == 'FOO'
+
+    def test_uuid_field_deserialization(self):
+        field = fields.UUID()
+        uuid_str = str(uuid.uuid4())
+        assert field.deserialize(uuid_str) == uuid_str
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):
