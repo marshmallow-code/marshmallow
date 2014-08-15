@@ -187,13 +187,10 @@ class BaseSerializer(base.SerializerABC):
         self.strict = strict or self.opts.strict
         #: Callable marshalling object
         self._marshal = fields.Marshaller(
-            prefix=self.prefix,
-            strict=self.strict
+            prefix=self.prefix
         )
         #: Callable unmarshalling object
-        self._unmarshal = fields.UnMarshaller(
-            strict=self.strict
-        )
+        self._unmarshal = fields.UnMarshaller()
         self.extra = extra
         self.context = context
 
@@ -225,7 +222,7 @@ class BaseSerializer(base.SerializerABC):
         return data
 
     def _update_data(self):
-        result = self._marshal(self.obj, self.fields, many=self.many)
+        result = self._marshal(self.obj, self.fields, many=self.many, strict=self.strict)
         self._data = self._postprocess(result, obj=self.obj)
 
     @classmethod
@@ -396,8 +393,7 @@ class BaseSerializer(base.SerializerABC):
         """
         if obj != self.obj:
             self._update_fields(obj)
-        self._marshal.strict = self.strict
-        preresult = self._marshal(obj, self.fields, many=self.many)
+        preresult = self._marshal(obj, self.fields, many=self.many, strict=self.strict)
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
@@ -412,8 +408,7 @@ class BaseSerializer(base.SerializerABC):
 
         .. versionadded:: 1.0.0
         """
-        self._unmarshal.strict = self.strict
-        result = self._unmarshal(data, self.fields, self.many,
+        result = self._unmarshal(data, self.fields, self.many, strict=self.strict,
                                         postprocess=self.make_object)
         errors = self._unmarshal.errors
         return UnmarshalResult(data=result, errors=errors)

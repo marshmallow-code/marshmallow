@@ -250,9 +250,9 @@ class TestMarshaller:
 
     def test_strict_mode_raises_errors(self):
         u = User("Foo", email="foobar")
-        marshal = fields.Marshaller(strict=True)
+        marshal = fields.Marshaller()
         with pytest.raises(MarshallingError):
-            marshal(u, {"email": fields.Email()})
+            marshal(u, {"email": fields.Email()}, strict=True)
 
     def test_prefix(self):
         u = User("Foo", email="foo@bar.com")

@@ -96,13 +96,12 @@ class Marshaller(object):
     :param bool strict: If ``True``, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
     """
-    def __init__(self, prefix='', strict=False):
+    def __init__(self, prefix=''):
         self.prefix = prefix
-        self.strict = strict
         #: Dictionary of errors stored during serialization
         self.errors = {}
 
-    def serialize(self, obj, fields_dict, many=False):
+    def serialize(self, obj, fields_dict, many=False, strict=False):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -127,7 +126,7 @@ class Marshaller(object):
                 field_obj=field_obj,
                 errors_dict=self.errors,
                 exception_class=MarshallingError,
-                strict=self.strict
+                strict=strict
             )
             items.append((key, value))
         return OrderedDict(items)
@@ -146,12 +145,11 @@ class UnMarshaller(object):
 
     .. versionadded:: 1.0.0
     """
-    def __init__(self, prefix='', strict=False):
-        self.strict = strict
+    def __init__(self, prefix=''):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
 
-    def deserialize(self, data, fields_dict, many=False, postprocess=None):
+    def deserialize(self, data, fields_dict, many=False, postprocess=None, strict=False):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -175,7 +173,7 @@ class UnMarshaller(object):
                 field_obj=field_obj,
                 errors_dict=self.errors,
                 exception_class=UnmarshallingError,
-                strict=self.strict
+                strict=strict
             )
             items.append((key, value))
         ret = OrderedDict(items)
@@ -188,7 +186,7 @@ class UnMarshaller(object):
 
 
 # Singleton marshaller function for use in this module
-marshal = Marshaller(strict=True)
+marshal = Marshaller()
 
 
 def _get_value(key, obj, default=None):
@@ -495,7 +493,7 @@ class List(Field):
         if value is None:
             return self.default
 
-        return [marshal(value, self.container.nested)]
+        return [marshal(value, self.container.nested, strict=True)]
 
     # Deserialization is identical to _format behavior
     _deserialize = _format

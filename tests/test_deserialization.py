@@ -394,11 +394,12 @@ class TestUnMarshaller:
         assert user['age'] == 71
 
     def test_deserialize_strict_raises_error(self):
-        strict_unmarshal = fields.UnMarshaller(strict=True)
+        strict_unmarshal = fields.UnMarshaller()
         with pytest.raises(UnmarshallingError):
             strict_unmarshal(
                 {'email': 'invalid', 'name': 'Mick'},
-                {'email': fields.Email(), 'name': fields.String()}
+                {'email': fields.Email(), 'name': fields.String()},
+                strict=True
             )
 
     def test_deserialize_stores_errors(self, unmarshal):
