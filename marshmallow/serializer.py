@@ -400,7 +400,7 @@ class BaseSerializer(base.SerializerABC):
 
     def load(self, data):
         """Deserialize a data structure to an object defined by this Serializer's
-        fields and :meth:`make_object <marshmallow.Serializer.make_object>`.
+        fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
@@ -414,20 +414,18 @@ class BaseSerializer(base.SerializerABC):
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data):
-        """Same as :meth:`load <marshmallow.Serializer.load>`,
-        except it takes a JSON string as input.
+        """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
-        :rtype: UnMarshalResult, a :class:`namedtuple`
+        :rtype: UnmarshalResult, a :class:`namedtuple`
 
         .. versionadded:: 1.0.0
         """
         return self.load(self.opts.json_module.loads(json_data))
 
     def dumps(self, obj, *args, **kwargs):
-        """Same as :meth:`dump <marshmallow.Serializer.dump>`,
-        except return a JSON-encoded string.
+        """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)

@@ -446,13 +446,13 @@ The method you choose will depend on personal preference and the manner in which
 Creating A Field Class
 ++++++++++++++++++++++
 
-To create a custom field class, create a subclass of :class:`marshmallow.fields.Raw <marshmallow.fields.Raw>` and implement its :meth:`_format <marshmallow.fields.Raw._format>`, :meth:`_serialize <marshmallow.fields.Raw._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Raw._deserialize>` methods.
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_format <marshmallow.fields.Field._format>`, :meth:`_serialize <marshmallow.fields.Field._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
 
 .. code-block:: python
 
     from marshmallow import fields
 
-    class Titlecased(fields.Raw):
+    class Titlecased(fields.Field):
         def _format(self, value):
             if value is None:
                 return ''

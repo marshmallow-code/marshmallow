@@ -12,12 +12,13 @@ Guide
 =====
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   install
-   quickstart
-   extending
-   examples
+    why
+    install
+    quickstart
+    extending
+    examples
 
 
 API Reference

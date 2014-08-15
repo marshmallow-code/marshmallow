@@ -93,8 +93,6 @@ class Marshaller(object):
 
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
-    :param bool strict: If ``True``, raise errors if invalid data are passed in
-        instead of failing silently and storing the errors.
     """
     def __init__(self, prefix=''):
         self.prefix = prefix
@@ -109,6 +107,8 @@ class Marshaller(object):
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to ``True`` if ``data`` should be serialized as
             a collection.
+        :param bool strict: If ``True``, raise errors if invalid data are passed in
+            instead of failing silently and storing the errors.
         :return: An OrderedDict of the marshalled data
 
         .. versionchanged:: 1.0.0
@@ -140,8 +140,6 @@ class UnMarshaller(object):
 
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
-    :param bool strict: If ``True``, raise errors if invalid data are passed in
-        instead of failing silently and storing the errors.
 
     .. versionadded:: 1.0.0
     """
@@ -158,6 +156,8 @@ class UnMarshaller(object):
             a collection.
         :param callable postprocess: Post-processing function that is passed the
             deserialized dictionary.
+        :param bool strict: If ``True``, raise errors if invalid data are passed in
+            instead of failing silently and storing the errors.
         :return: An OrderedDict of the deserialized data.
         """
         if many and data is not None:

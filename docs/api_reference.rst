@@ -9,8 +9,12 @@ API Reference
 Serializer
 ==========
 
+
 .. autoclass:: Serializer
     :inherited-members:
+
+.. autoclass:: MarshalResult
+.. autoclass:: UnmarshalResult
 
 .. autofunction:: pprint
 
