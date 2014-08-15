@@ -587,6 +587,16 @@ def test_root_data_handler(user):
     data, _ = s.dump(user)
     assert data['user']['name'] == user.name
 
+def test_serializer_repr():
+    class MySerializer(Serializer):
+        name = fields.String()
+
+    ser = MySerializer(many=True, strict=True)
+    rep = repr(ser)
+    assert 'MySerializer' in rep
+    assert 'strict=True' in rep
+    assert 'many=True' in rep
+
 
 class TestNestedSerializer:
 

@@ -203,6 +203,11 @@ class BaseSerializer(base.SerializerABC):
         if self.obj is not None:
             self._update_data()
 
+    def __repr__(self):
+        return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
+            ClassName=self.__class__.__name__, self=self
+        )
+
     def _postprocess(self, data, obj):
         if self.extra:
             if self.many:
