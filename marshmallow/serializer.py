@@ -71,6 +71,7 @@ class SerializerOpts(object):
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
+        self.encapsulate = getattr(meta, 'encapsulate', None)
 
 
 class BaseSerializer(base.SerializerABC):
@@ -115,6 +116,8 @@ class BaseSerializer(base.SerializerABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to ``True`` if ``obj`` is a collection
         so that the object will be serialized to a list.
+    :param str encapsulate: If a name is given, is used to encapsulate
+        the result and pluralize it when used with many=True
     """
     TYPE_MAPPING = {
         text_type: fields.String,
@@ -163,12 +166,14 @@ class BaseSerializer(base.SerializerABC):
             storing them.
         - ``json_module``: JSON module to use. Defaults to the ``json`` module
             in the stdlib.
+        - ``encapsulate``: If a name is given, is used to encapsulate the result
+            and pluralize it when used with many=True
         """
         pass
 
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False,
-                context=None):
+                context=None, encapsulate=None):
         if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
@@ -185,6 +190,7 @@ class BaseSerializer(base.SerializerABC):
         self.exclude = exclude or ()
         self.prefix = prefix
         self.strict = strict or self.opts.strict
+        self.encapsulate = encapsulate or self.opts.encapsulate
         #: Callable marshalling object
         self._marshal = fields.Marshaller(
             prefix=self.prefix,
@@ -225,7 +231,8 @@ class BaseSerializer(base.SerializerABC):
         return data
 
     def _update_data(self):
-        result = self._marshal(self.obj, self.fields, many=self.many)
+        result = self._marshal(self.obj, self.fields, many=self.many,
+                               encapsulate=self.encapsulate)
         self._data = self._postprocess(result, obj=self.obj)
 
     @classmethod
@@ -397,7 +404,8 @@ class BaseSerializer(base.SerializerABC):
         if obj != self.obj:
             self._update_fields(obj)
         self._marshal.strict = self.strict
-        preresult = self._marshal(obj, self.fields, many=self.many)
+        preresult = self._marshal(obj, self.fields, many=self.many,
+                                  encapsulate=self.encapsulate)
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
@@ -414,7 +422,7 @@ class BaseSerializer(base.SerializerABC):
         """
         self._unmarshal.strict = self.strict
         result = self._unmarshal(data, self.fields, self.many,
-                                        postprocess=self.make_object)
+                    postprocess=self.make_object, encapsulate=self.encapsulate)
         errors = self._unmarshal.errors
         return UnmarshalResult(data=result, errors=errors)
 

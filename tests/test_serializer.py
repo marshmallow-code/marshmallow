@@ -864,3 +864,31 @@ def test_error_gets_raised_if_many_is_omitted(user):
         BadSerializer().dump(user)
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
+
+
+def test_encapsulated_data(user):
+    x = UserSerializer(encapsulate='user').dump(user)[0]
+    assert x['user']['name'] == user.name
+    assert x['user']['age'] == user.age
+
+
+def test_encapsulated_many_data(user):
+    range_of_users = 10
+    serializer = UserSerializer(many=True, encapsulate='user')
+    x = serializer.dump([user] * range_of_users)[0]
+    assert list(x.keys()) == ['users']
+    for idx in range(0, range_of_users):
+        assert x['users'][idx]['name'] == user.name
+        assert x['users'][idx]['age'] == user.age
+
+
+def test_encapsulated_meta():
+    class EncapUserSerializer(UserSerializer):
+        class Meta:
+            encapsulate = "user"
+    user = User("Foo", email="foo.com")
+    x = EncapUserSerializer().dump(user)[0]
+    assert list(x.keys()) == ['user']
+
+    x = EncapUserSerializer(many=True).dump([user])[0]
+    assert list(x.keys()) == ['users']

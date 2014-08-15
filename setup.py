@@ -57,6 +57,7 @@ setup(
     packages=find_packages(exclude=("test*", )),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
+    install_requires=['inflection'],
     tests_require=TEST_REQUIREMENTS,
     license=read("LICENSE"),
     zip_safe=False,
