@@ -201,6 +201,9 @@ class BaseSerializer(base.SerializerABC):
         self._update_fields(self.obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
+            warnings.warn('Serializing objects in the Serializer constructor is a '
+                          'deprecated API. Use the Serializer.dump method instead.',
+                          category=DeprecationWarning)
             self._update_data()
 
     def __repr__(self):
@@ -474,6 +477,9 @@ class BaseSerializer(base.SerializerABC):
     @property
     def errors(self):
         """Dictionary of errors raised during serialization."""
+        warnings.warn('Accessing errors through Serializer.errors is deprecated. '
+                      'Use the return value of Serializer.dump instead.',
+                      category=DeprecationWarning)
         return self._marshal.errors
 
     def is_valid(self, field_names=None):
@@ -482,6 +488,8 @@ class BaseSerializer(base.SerializerABC):
         :param field_names: List of field names (strings) to validate.
             If ``None``, all fields will be validated.
         """
+        warnings.warn('Serializer.is_valid() is deprecated. Use Serializer.dump '
+                      'instead.', category=DeprecationWarning)
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
         fields_to_validate = field_names or self.fields.keys()

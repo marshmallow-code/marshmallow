@@ -9,11 +9,13 @@ def test_serializing_through_contructor(user):
     s = UserSerializer(user)
     assert s.data['name'] == user.name
 
-def test_validate():
+def test_validate(recwarn):
     valid = User("Joe", email="joe@foo.com")
     invalid = User("John", email="johnexample.com")
     assert UserSerializer(valid).is_valid()
     assert UserSerializer(invalid).is_valid() is False
+    warning = recwarn.pop()
+    assert issubclass(warning.category, DeprecationWarning)
 
 @pytest.mark.parametrize('SerializerClass',
     [UserSerializer, UserMetaSerializer])
