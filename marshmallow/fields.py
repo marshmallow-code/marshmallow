@@ -956,7 +956,7 @@ class Method(Field):
             method = _callable(getattr(self.parent, self.method_name, None))
             if len(_get_args(method)) > 2:
                 if self.parent.context is None:
-                    msg = 'No context available for Method field {0!r}'.format(key)
+                    msg = 'No context available for Method field {0!r}'.format(attr)
                     raise MarshallingError(msg)
                 return method(obj, self.parent.context)
             else:
@@ -998,7 +998,7 @@ class Function(Field):
         try:
             if len(_get_args(self.func)) > 1:
                 if self.parent.context is None:
-                    msg = 'No context available for Function field {0!r}'.format(key)
+                    msg = 'No context available for Function field {0!r}'.format(attr)
                     raise MarshallingError(msg)
                 return self.func(obj, self.parent.context)
             else:

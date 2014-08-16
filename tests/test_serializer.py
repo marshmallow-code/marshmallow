@@ -839,11 +839,32 @@ class TestContext:
         data = UserContextSerializer(context=context).dump(noncollab)[0]
         assert data['is_collab'] is False
 
+    def test_method_field_raises_error_when_context_not_available(self):
+        # serializer that only has a method field
+        class UserMethodContextSerializer(Serializer):
+            is_owner = fields.Method('get_is_owner')
+
+            def get_is_owner(self, user, context):
+                return context['blog'].user.name == user.name
+        owner = User('Joe')
+        with pytest.raises(MarshallingError) as excinfo:
+            UserMethodContextSerializer(strict=True).dump(owner)
+
+        msg = 'No context available for Method field {0!r}'.format('is_owner')
+        assert msg in str(excinfo)
+
     def test_function_field_raises_error_when_context_not_available(self):
+        # only has a function field
+        class UserFunctionContextSerializer(Serializer):
+            is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
+
         owner = User('Joe')
         # no context
-        with pytest.raises(MarshallingError):
-            UserContextSerializer(strict=True).dump(owner)
+        with pytest.raises(MarshallingError) as excinfo:
+            UserFunctionContextSerializer(strict=True).dump(owner)
+        msg = 'No context available for Function field {0!r}'.format('is_collab')
+        assert msg in str(excinfo)
+
 
 def raise_marshalling_value_error():
     try:
