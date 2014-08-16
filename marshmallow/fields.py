@@ -311,7 +311,7 @@ class Field(FieldABC):
         override this and apply the appropriate formatting.
 
         :param value: The value to format
-        :raise MarshallingError: In case of formatting problem
+        :raise MarshallingError: In case of formatting or validation failure.
 
         Ex::
 
@@ -330,11 +330,15 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str key: The attribute or key on the object to be serialized.
         :param obj: The object the value was pulled from.
+        :raise MarshallingError: In case of formatting or validation failure.
         """
         return self._format(value)
 
     def _deserialize(self, value):
-        """Deserialize value. Concrete :class:`Field` classes should implement this method."""
+        """Deserialize value. Concrete :class:`Field` classes should implement this method.
+
+        :raise UnmarshallingError: In case of formatting or validation failure.
+        """
         return value
 
 class Raw(Field):
