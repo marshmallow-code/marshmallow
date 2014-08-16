@@ -199,13 +199,13 @@ class TestValidation:
             yield lambda x: x <= 24
             yield lambda x: 18 <= x
 
-        m_collection_type = [
+        m_collection_types = [
             fields.Integer(validate=[lambda x: x <= 24, lambda x: 18 <= x]),
             fields.Integer(validate=(lambda x: x <= 24, lambda x: 18 <= x)),
             fields.Integer(validate=validators_gen)
         ]
 
-        for field in m_collection_type:
+        for field in m_collection_types:
             out = field.serialize('age', user)
             assert out == 20
             user2 = User(name='Joe', age='25')
@@ -227,13 +227,13 @@ class TestValidation:
             yield lambda f: f <= 4.1
             yield lambda f: f >= 1.0
 
-        m_collection_type = [
+        m_collection_types = [
             fields.Float(validate=[lambda f: f <= 4.1, lambda f: f >= 1.0]),
             fields.Float(validate=(lambda f: f <= 4.1, lambda f: f >= 1.0)),
             fields.Float(validate=validators_gen)
         ]
 
-        for field in m_collection_type:
+        for field in m_collection_types:
             assert field.serialize('age', user) == user.age
             invalid = User('foo', age=5.1)
             with pytest.raises(MarshallingError):
@@ -254,13 +254,13 @@ class TestValidation:
             yield lambda n: len(n) == 3
             yield lambda n: n.lower() == 'joe'
 
-        m_collection_type = [
+        m_collection_types = [
             fields.String(validate=[lambda n: len(n) == 3, lambda n: n.lower() == 'joe']),
             fields.String(validate=(lambda n: len(n) == 3, lambda n: n.lower() == 'joe')),
             fields.String(validate=validators_gen)
         ]
 
-        for field in m_collection_type:
+        for field in m_collection_types:
             assert field.serialize('name', user) == 'Joe'
             user2 = User(name='Joseph')
             with pytest.raises(MarshallingError):
@@ -281,7 +281,7 @@ class TestValidation:
             yield lambda d: utils.from_rfc(d).year == 2014
             yield lambda d: utils.from_rfc(d).month == 8
 
-        m_collection_type = [
+        m_collection_types = [
             fields.DateTime(format='rfc', validate=[lambda d: utils.from_rfc(d).year == 2014,
                                                     lambda d: utils.from_rfc(d).month == 8]),
             fields.DateTime(format='rfc', validate=(lambda d: utils.from_rfc(d).year == 2014,
@@ -289,7 +289,7 @@ class TestValidation:
             fields.DateTime(format='rfc', validate=validators_gen)
         ]
 
-        for field in m_collection_type:
+        for field in m_collection_types:
             assert field.serialize('birthdate', user) == utils.rfcformat(user.birthdate)
             user2 = User('Joe', birthdate=dt.datetime(2013, 8, 21))
             with pytest.raises(MarshallingError):
@@ -311,13 +311,13 @@ class TestValidation:
             yield lambda n: len(n) == 3
             yield lambda n: n[1].lower() == 'o'
 
-        m_collection_type = [
+        m_collection_types = [
             fields.Function(lambda d: d.name.upper(), validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']),
             fields.Function(lambda d: d.name.upper(), validate=(lambda n: len(n) == 3, lambda n: n[1].lower() == 'o')),
             fields.Function(lambda d: d.name.upper(), validate=validators_gen)
         ]
 
-        for field in m_collection_type:
+        for field in m_collection_types:
             assert field.serialize('uppername', user) == 'JOE'
             invalid = User(name='joseph')
             with pytest.raises(MarshallingError):
@@ -365,15 +365,15 @@ class TestValidation:
             def get_uppername(self, obj):
                 return obj.name.upper()
 
-        m_collection_type = [MethodSerializerList, MethodSerializerTuple, MethodSerializerGenerator]
+        collection_serializers = [MethodSerializerList, MethodSerializerTuple, MethodSerializerGenerator]
 
         user = User('joe')
-        for serializer in m_collection_type:
-            s = serializer(user, strict=True)
-            assert s.data['uppername'] == 'JOE'
+        for SerializerCls in collection_serializers:
+            data, _ = SerializerCls(strict=True).dump(user)
+            assert data['uppername'] == 'JOE'
             invalid = User(name='joseph')
             with pytest.raises(MarshallingError) as excinfo:
-                serializer(strict=True).dump(invalid)
+                SerializerCls(strict=True).dump(invalid)
             assert 'is not True' in str(excinfo)
 
 class TestMarshaller:

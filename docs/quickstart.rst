@@ -185,7 +185,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
 .. note::
 
-If you have multiple validations to perform, you may also pass a collection (list, tuple) or generator of callables to the ``validate`` parameter.
+    If you have multiple validations to perform, you may also pass a collection (list, tuple) or generator of callables to the ``validate`` parameter.
 
 .. note::
 
