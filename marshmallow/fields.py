@@ -234,7 +234,7 @@ class Field(FieldABC):
     _CHECK_REQUIRED = True
 
     def __init__(self, default=None, attribute=None, error=None,
-                validate=None, required=False):
+                 validate=None, required=False):
         self.attribute = attribute
         self.default = default
         self.error = error
@@ -259,12 +259,22 @@ class Field(FieldABC):
         try:
             func = getattr(self, method)
             output = func(*args, **kwargs)
-            if callable(self.validate):
-                if not self.validate(output):
+            if self.validate:
+                if utils.is_iterable_but_not_string(self.validate):
+                    if not utils.is_generator(self.validate):
+                        validators = self.validate
+                    else:
+                        validators = [i for i in self.validate()]
+                elif callable(self.validate):
+                    validators = [self.validate]
+                else:
+                    raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
+                for validator in validators:
                     msg = 'Validator {0}({1}) is not True'.format(
-                        self.validate.__name__, output
+                        validator.__name__, output
                     )
-                    raise exception_class(self.error or msg)
+                    if not validator(output):
+                        raise exception_class(self.error or msg)
             return output
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:

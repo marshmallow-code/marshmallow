@@ -236,6 +236,24 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
 
+    def test_field_deserialization_with_user_validators(self):
+
+        def validators_gen():
+            yield lambda s: s.lower() == 'valid'
+            yield lambda s: s.lower()[::-1] == 'dilav'
+
+        m_colletion_type = [
+            fields.String(validate=[lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav']),
+            fields.String(validate=(lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav')),
+            fields.String(validate=validators_gen)
+        ]
+
+        for field in m_colletion_type:
+            assert field.deserialize('Valid') == 'Valid'
+            with pytest.raises(UnmarshallingError) as excinfo:
+                field.deserialize('invalid')
+            assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
         with pytest.raises(UnmarshallingError) as excinfo:
@@ -251,6 +269,11 @@ class Validator(Serializer):
     email = fields.Email()
     colors = fields.Enum(['red', 'blue'])
     age = fields.Integer(validate=lambda n: n > 0)
+
+class Validators(Serializer):
+    email = fields.Email()
+    colors = fields.Enum(['red', 'blue'])
+    age = fields.Integer(validate=[lambda n: n > 0, lambda n: n < 100])
 
 class TestSchemaDeserialization:
 
@@ -347,6 +370,18 @@ class TestSchemaDeserialization:
         assert 'colors' in errors
         assert 'age' in errors
 
+    def test_deserialization_returns_errors_with_multiple_validators(self):
+        bad_data = {
+            'email': 'invalid-email',
+            'colors': 'burger',
+            'age': -1,
+        }
+        v = Validators(strict=False)
+        result, errors = v.load(bad_data)
+        assert 'email' in errors
+        assert 'colors' in errors
+        assert 'age' in errors
+
     def test_strict_mode_deserialization(self):
         bad_data = {
             'email': 'invalid-email',
@@ -354,6 +389,16 @@ class TestSchemaDeserialization:
             'age': -1,
         }
         v = Validator(strict=True)
+        with pytest.raises(UnmarshallingError):
+            v.load(bad_data)
+
+    def test_strict_mode_deserialization_with_multiple_validators(self):
+        bad_data = {
+            'email': 'invalid-email',
+            'colors': 'burger',
+            'age': -1,
+        }
+        v = Validators(strict=True)
         with pytest.raises(UnmarshallingError):
             v.load(bad_data)
 
