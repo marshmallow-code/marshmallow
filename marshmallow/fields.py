@@ -361,6 +361,7 @@ class Nested(Field):
     :param bool allow_null: Whether to return None instead of a dictionary
         with null keys, if a nested dictionary has all-null keys
     :param bool many: Whether the field is a collection of objects.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     _CHECK_REQUIRED = False
 
@@ -441,7 +442,7 @@ class Nested(Field):
             self.parent.errors[key] = self.serializer.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
-                return flatten(ret, key=self.only)
+                return _flatten(ret, key=self.only)
             else:
                 return ret[self.only]
         return ret
@@ -450,12 +451,12 @@ class Nested(Field):
         return self.serializer.load(value)[0]
 
 
-def flatten(dictlist, key):
+def _flatten(dictlist, key):
     """Flattens a list of dicts into just a list of values.
     ::
 
         >>> d = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
-        >>> flatten(d, 'id')
+        >>> _flatten(d, 'id')
         [1, 2]
     """
     return [d[key] for d in dictlist]
@@ -469,6 +470,7 @@ class List(Field):
         numbers = fields.List(fields.Float)
 
     :param cls_or_instance: A field class or instance.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
@@ -504,7 +506,10 @@ def _ensure_text_type(val):
     return text_type(val)
 
 class String(Field):
-    """A string field."""
+    """A string field.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
@@ -525,7 +530,10 @@ class UUID(String):
 
 
 class Number(Field):
-    """Base class for number fields."""
+    """Base class for number fields.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     num_type = float
 
@@ -563,6 +571,7 @@ class Integer(Number):
     """An integer field.
 
     :param bool as_string: If True, format the value as a string.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
     num_type = int
@@ -573,7 +582,10 @@ class Integer(Number):
             error=error, **kwargs)
 
 class Boolean(Field):
-    """A boolean field."""
+    """A boolean field.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     #: Values that will deserialize to ``True``. If an empty set, any non-falsy
     #  value will deserialize to ``True``.
@@ -621,6 +633,7 @@ class Float(Number):
     A double as IEEE-754 double precision string.
 
     :param bool as_string: If True, format the value as a string.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
     num_type = float
@@ -630,6 +643,8 @@ class Arbitrary(Number):
     """A floating point number with an arbitrary precision,
     formatted as as string.
     ex: 634271127864378216478362784632784678324.23432
+
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
     # No as_string param
     def __init__(self, default=0, attribute=None, **kwargs):
@@ -676,6 +691,7 @@ class DateTime(Field):
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
     DEFAULT_FORMAT = 'iso'
@@ -714,8 +730,8 @@ class DateTime(Field):
             except TypeError:
                 raise err
         else:
-            warnings.warn('It is recommended that you install python-dateutil for datetime '
-                          ' for improved datetime deserialization.')
+            warnings.warn('It is recommended that you install python-dateutil '
+                          'for improved datetime deserialization.')
             raise err
 
 
@@ -730,7 +746,10 @@ class LocalDateTime(DateTime):
 
 
 class Time(Field):
-    """ISO8601-formatted time string."""
+    """ISO8601-formatted time string.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     def _format(self, value):
         try:
@@ -752,7 +771,10 @@ class Time(Field):
             )
 
 class Date(Field):
-    """ISO8601-formatted date string."""
+    """ISO8601-formatted date string.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     def _format(self, value):
         try:
@@ -775,9 +797,11 @@ class Date(Field):
 
 
 class TimeDelta(Field):
-    '''Formats time delta objects, returning the total number of seconds
+    """Formats time delta objects, returning the total number of seconds
     as a float.
-    '''
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     def _format(self, value):
         try:
@@ -799,6 +823,8 @@ ZERO = MyDecimal()
 
 class Fixed(Number):
     """A fixed-precision number as a string.
+
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
     def __init__(self, decimals=5, default=0, attribute=None, error=None,
@@ -828,6 +854,10 @@ class Fixed(Number):
 
 
 class Price(Fixed):
+    """A Price field with fixed precision.
+
+    :param kwargs: The same keyword arguments that :class:`Fixed` receives.
+    """
     def __init__(self, decimals=2, **kwargs):
         super(Price, self).__init__(decimals=decimals, **kwargs)
 
@@ -839,6 +869,7 @@ class Url(Field):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
         super(Url, self).__init__(default=default, attribute=attribute,
@@ -863,6 +894,8 @@ class Url(Field):
 
 class Email(Field):
     """A validated email field.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
     def _validated(self, value, exception_class):
@@ -879,7 +912,7 @@ class Email(Field):
         return self._validated(value, UnmarshallingError)
 
 
-def get_args(func):
+def _get_args(func):
     """Return a tuple of argument names for a function."""
     return inspect.getargspec(func).args
 
@@ -917,7 +950,7 @@ class Method(Field):
     def _serialize(self, value, key, obj):
         try:
             method = _callable(getattr(self.parent, self.method_name, None))
-            if len(get_args(method)) > 2:
+            if len(_get_args(method)) > 2:
                 if self.parent.context is None:
                     msg = 'No context available for Method field {0!r}'.format(key)
                     raise MarshallingError(msg)
@@ -959,7 +992,7 @@ class Function(Field):
 
     def _serialize(self, value, key, obj):
         try:
-            if len(get_args(self.func)) > 1:
+            if len(_get_args(self.func)) > 1:
                 if self.parent.context is None:
                     msg = 'No context available for Function field {0!r}'.format(key)
                     raise MarshallingError(msg)
@@ -986,8 +1019,9 @@ class Select(Field):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
+    :param kwargs: The same keyword arguments that :class:`Fixed` receives.
 
-    :raises: MarshallingError if attribute's value is not one of the given choices.
+    :raise: MarshallingError if attribute's value is not one of the given choices.
     """
     def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
         self.choices = choices

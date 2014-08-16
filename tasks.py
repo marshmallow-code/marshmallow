@@ -44,13 +44,15 @@ def browse_docs():
         sys.exit(1)
 
 @task
-def docs(clean=False, browse=False):
+def docs(clean=False, browse=False, watch=False):
     """Build the docs."""
     if clean:
         clean_docs()
     run("sphinx-build %s %s" % (docs_dir, build_dir), pty=True)
     if browse:
         browse_docs()
+    if watch:
+        watch_docs()
 
 @task
 def watch_docs():

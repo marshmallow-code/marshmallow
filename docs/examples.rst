@@ -61,7 +61,7 @@ Then send a POST request with some text.
     }
 
 
-Quotes API (Flask + SQL-Alchemy)
+Quotes API (Flask + SQLAlchemy)
 ================================
 
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
