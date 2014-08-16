@@ -16,3 +16,4 @@ Contributors (chronological)
 - Joakim Ekberg `@kalasjocke <https://github.com/kalasjocke>`_
 - Mark Grey `@DeaconDesperado <https://github.com/DeaconDesperado>`_
 - Anders Steinlein `@asteinlein <https://github.com/asteinlein>`_
+- Cyril Thomas `@Ketouem <https://github.com/Ketouem>`_
