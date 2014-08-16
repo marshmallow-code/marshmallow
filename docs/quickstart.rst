@@ -437,7 +437,7 @@ Custom Fields
 
 There are three ways to create a custom-formatted field for a serializer:
 
-- Create a custom field class
+- Create a custom :class:`Field` class
 - Use a :class:`Method <marshmallow.fields.Method>` field
 - Use a :class:`Function <marshmallow.fields.Function>` field
 
