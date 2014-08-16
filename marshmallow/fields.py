@@ -241,9 +241,9 @@ class Field(FieldABC):
         self.validate = validate
         self.required = required
 
-    def get_value(self, key, obj):
+    def get_value(self, attr, obj):
         """Return the value for a given key from an object."""
-        check_key = key if self.attribute is None else self.attribute
+        check_key = attr if self.attribute is None else self.attribute
         return _get_value(check_key, obj)
 
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
@@ -278,7 +278,7 @@ class Field(FieldABC):
         except Exception as error:
             raise exception_class(getattr(self, 'error', None) or error)
 
-    def serialize(self, key, obj):
+    def serialize(self, attr, obj):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
@@ -286,7 +286,7 @@ class Field(FieldABC):
         :param str obj: The object to pull the key from.
         :raise MarshallingError: In case of validation or formatting problem
         """
-        value = self.get_value(key, obj)
+        value = self.get_value(attr, obj)
         if value is None and self._CHECK_REQUIRED:
             if hasattr(self, 'required') and self.required:
                 raise MarshallingError('Missing data for required field.')
@@ -295,7 +295,7 @@ class Field(FieldABC):
             else:
                 return None
         return self._call_with_validation('_serialize', MarshallingError,
-                                          value, key, obj)
+                                          value, attr, obj)
 
     def deserialize(self, value):
         """Deserialize ``value``.
@@ -323,7 +323,7 @@ class Field(FieldABC):
         """
         return value
 
-    def _serialize(self, value, key, obj):
+    def _serialize(self, value, attr, obj):
         """Serializes ``value`` to a basic Python datatype. Concrete :class:`Field` classes
         should implement this method.
 
@@ -423,7 +423,7 @@ class Nested(Field):
                                 .format(self.nested.__class__)))
         return self.__serializer
 
-    def _serialize(self, nested_obj, key, obj):
+    def _serialize(self, nested_obj, attr, obj):
         if self.allow_null and nested_obj is None:
             return None
         self.serializer.many = self.many
@@ -443,7 +443,7 @@ class Nested(Field):
                             '"many=True".'.format(err))
         # Parent should get any errors stored after marshalling
         if self.serializer.errors:
-            self.parent.errors[key] = self.serializer.errors
+            self.parent.errors[attr] = self.serializer.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return _flatten(ret, key=self.only)
@@ -624,7 +624,7 @@ class FormattedString(Field):
         super(FormattedString, self).__init__()
         self.src_str = text_type(src_str)
 
-    def _serialize(self, value, key, obj):
+    def _serialize(self, value, attr, obj):
         try:
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
@@ -951,7 +951,7 @@ class Method(Field):
             self.deserialize_method_name = None
         super(Method, self).__init__(**kwargs)
 
-    def _serialize(self, value, key, obj):
+    def _serialize(self, value, attr, obj):
         try:
             method = _callable(getattr(self.parent, self.method_name, None))
             if len(_get_args(method)) > 2:
@@ -994,7 +994,7 @@ class Function(Field):
         else:
             self.deserialize_func = None
 
-    def _serialize(self, value, key, obj):
+    def _serialize(self, value, attr, obj):
         try:
             if len(_get_args(self.func)) > 1:
                 if self.parent.context is None:
