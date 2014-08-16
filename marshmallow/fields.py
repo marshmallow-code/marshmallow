@@ -261,19 +261,16 @@ class Raw(FieldABC):
         try:
             func = getattr(self, method)
             output = func(*args, **kwargs)
-
-            if utils.is_iterable_but_not_string(self.validate):
-                if not utils.is_generator(self.validate):
-                    validators = self.validate
+            if self.validate:
+                if utils.is_iterable_but_not_string(self.validate):
+                    if not utils.is_generator(self.validate):
+                        validators = self.validate
+                    else:
+                        validators = [i for i in self.validate()]
+                elif callable(self.validate):
+                    validators = [self.validate]
                 else:
-                    validators = [i for i in self.validate()]
-            elif callable(self.validate):
-                validators = [self.validate]
-            elif self.validate is None:
-                validators = []
-            else:
-                raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
-            if len(validators) > 0:
+                    raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
                 for validator in validators:
                     msg = 'Validator {0}({1}) is not True'.format(
                         validator.__name__, output
