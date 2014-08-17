@@ -35,8 +35,7 @@ Homepage: http://marshmallow.rtfd.org/
     serializer = PersonSerializer()
     result, errors = serializer.dump(person)
     pprint(result)
-    # {"name": "Guido van Rossum", "date_born": "Sun, 10 Nov 2013 14:24:50 -0000"}
-
+    # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}
 
 
 Get It Now

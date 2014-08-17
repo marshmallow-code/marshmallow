@@ -161,30 +161,30 @@ After registering a user and creating some todo items in the database, here is a
                 "content": "Refactor everything",
                 "done": false,
                 "id": 3,
-                "posted_on": "Thu, 14 Nov 2013 14:18:58 -0000",
+                "posted_on": ""2014-08-17T14:42:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
                 }
             },
             {
                 "content": "Learn python",
                 "done": false,
                 "id": 2,
-                "posted_on": "Thu, 14 Nov 2013 14:18:27 -0000",
+                "posted_on": "2014-08-17T14:42:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
                 }
             },
             {
                 "content": "Install marshmallow",
                 "done": false,
                 "id": 1,
-                "posted_on": "Thu, 14 Nov 2013 14:17:41 -0000",
+                "posted_on": "2014-08-17T14:42:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
                 }
             }
         ]

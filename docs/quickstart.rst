@@ -52,9 +52,10 @@ Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.
     serializer = UserSerializer()
     result, errors = serializer.dump(user)
     pprint(result)
-    # {'created_at': 'Sun, 10 Nov 2013 15:48:19 -0000',
-    #  'email': u'monty@python.org',
-    #  'name': u'Monty'}
+
+    # {"created_at": "2014-08-17T14:54:16.049594+00:00",
+    #  "name": "Monty",
+    #  "email": "monty@python.org"}
 
 .. note::
 
@@ -66,7 +67,7 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
 
     json_result, errors = serializer.dumps(user)
     pprint(json_result)
-    # '{"created_at": "Sun, 10 Nov 2013 15:48:19 -0000", "name": "Monty", "email": "monty@python.org"}'
+    # '{"created_at": "2014-08-17T14:54:16.049594+00:00", "name": "Monty", "email": "monty@python.org"}'
 
 Filtering output
 ++++++++++++++++
@@ -148,10 +149,10 @@ Iterable collections of objects are also serializable and deserializable. Just s
     users = [user1, user2]
     serializer = UserSerializer(many=True)
     results, errors = serializer.dump(users)
-    # [{'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    # [{'created_at': '2014-08-17T14:58:57.600623+00:00',
     #   'email': u'mick@stones.com',
     #   'name': u'Mick'},
-    #  {'created_at': 'Fri, 08 Nov 2013 17:02:17 -0000',
+    #  {'created_at': '2014-08-17T14:58:57.600623+00:00',
     #   'email': u'keith@stones.com',
     #   'name': u'Keith'}]
 
@@ -240,7 +241,7 @@ By default, serializers will marshal the object attributes that have the same na
     result, errors = ser.dump(user)
     pprint(result)
     # {'email_addr': 'keith@stones.com',
-    # 'date_created': 'Mon, 11 Aug 2014 01:53:16 -0000',
+    # 'date_created': '2014-08-17T14:58:57.600623+00:00',
     # 'name': 'Keith'}
 
 Refactoring (Meta Options)
@@ -303,7 +304,7 @@ When you serialize the blog, you will see the nested user representation.
     blog = Blog(title="Something Completely Different", author=user)
     result, errors = BlogSerializer().dump(blog)
     pprint(result)
-    # {'author': {'created_at': 'Sun, 10 Nov 2013 16:10:57 -0000',
+    # {'author': {'created_at': '2014-08-17T14:58:57.600623+00:00',
     #               'email': u'monty@python.org',
     #               'name': u'Monty'},
     #  'title': u'Something Completely Different'}
