@@ -164,27 +164,27 @@ After registering a user and creating some todo items in the database, here is a
                 "posted_on": ""2014-08-17T14:42:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             },
             {
                 "content": "Learn python",
                 "done": false,
                 "id": 2,
-                "posted_on": "2014-08-17T14:42:12.479650+00:00",
+                "posted_on": "2014-08-15T17:41:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             },
             {
                 "content": "Install marshmallow",
                 "done": false,
                 "id": 1,
-                "posted_on": "2014-08-17T14:42:12.479650+00:00",
+                "posted_on": "2014-08-15T09:15:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "2014-08-17T14:42:12.479650+00:00"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             }
         ]
