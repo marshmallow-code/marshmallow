@@ -626,6 +626,31 @@ class TestNestedSerializer:
         data, _ = s.dump(self.blog)
         assert data['collaborators'][0] == str(self.blog.collaborators[0].uid)
 
+    def test_required_nested_field(self):
+        class BlogRequiredSerializer(Serializer):
+            user = fields.Nested(UserSerializer, required=True)
+
+        b = Blog('Authorless blog', user=None)
+        _, errs = BlogRequiredSerializer().dump(b)
+        assert 'user' in errs
+        assert 'required' in errs['user']
+
+    def test_nested_default(self):
+        class BlogDefaultSerializer(Serializer):
+            user = fields.Nested(UserSerializer, default=0)
+
+        b = Blog('Just the default blog', user=None)
+        data, _ = BlogDefaultSerializer().dump(b)
+        assert data['user'] == 0
+
+    def test_nested_none_default(self):
+        class BlogDefaultSerializer(Serializer):
+            user = fields.Nested(UserSerializer, default=None)
+
+        b = Blog('Just the default blog', user=None)
+        data, _ = BlogDefaultSerializer().dump(b)
+        assert data['user'] is None
+
     def test_nested(self):
         blog_serializer = BlogSerializer()
         serialized_blog, _ = blog_serializer.dump(self.blog)
@@ -637,6 +662,7 @@ class TestNestedSerializer:
         serialized_blog, _ = BlogSerializer().dump(self.blog)
         expected = [UserSerializer().dump(col)[0] for col in self.blog.collaborators]
         assert serialized_blog['collaborators'] == expected
+
 
     def test_nested_meta_many(self):
         serialized_blog = BlogUserMetaSerializer().dump(self.blog)[0]

@@ -13,6 +13,7 @@ Changelog
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 * *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
 * *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
+* Fix behavior of the ``required`` parameter on ``Nested`` fields.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Fix default value for ``Fixed`` field.
 * Fix serialization of binary strings.

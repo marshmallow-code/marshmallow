@@ -17,6 +17,7 @@ from marshmallow.exceptions import (
     MarshallingError,
     UnmarshallingError,
     ForcedError,
+    RegistryError,
 )
 
 __all__ = [
@@ -50,6 +51,7 @@ __all__ = [
     'Enum',
 ]
 
+null = object()
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):
@@ -70,6 +72,8 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
     """
     try:
         value = getter_func(data)
+    except RegistryError:
+        raise
     except exception_class as err:  # Store errors
         if strict:
             raise err
@@ -231,7 +235,7 @@ class Field(FieldABC):
     :param bool required: Make a field required. If a field is ``None``,
         raise a :exc:`MarshallingError`.
     """
-    _CHECK_REQUIRED = True
+    _CHECK_ATTRIBUTE = True
 
     def __init__(self, default=None, attribute=None, error=None,
                  validate=None, required=False):
@@ -297,13 +301,11 @@ class Field(FieldABC):
         :raise MarshallingError: In case of validation or formatting problem
         """
         value = self.get_value(attr, obj)
-        if value is None and self._CHECK_REQUIRED:
+        if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'required') and self.required:
                 raise MarshallingError('Missing data for required field.')
-            elif hasattr(self, 'default'):
+            if hasattr(self, 'default') and self.default != null:
                 return self._format(self.default)
-            else:
-                return None
         return self._call_with_validation('_serialize', MarshallingError,
                                           value, attr, obj)
 
@@ -367,6 +369,7 @@ class Nested(Field):
 
     :param Serializer nested: The Serializer class, instance, or class name (string)
         to nest, or ``"self"`` to nest the serializer within itself.
+    :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
     :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields
         will be marshalled. If a field name (string) is given, only a single
@@ -377,9 +380,8 @@ class Nested(Field):
     :param bool many: Whether the field is a collection of objects.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    _CHECK_REQUIRED = False
 
-    def __init__(self, nested, exclude=None, only=None, allow_null=False,
+    def __init__(self, nested, default=null, exclude=None, only=None, allow_null=False,
                 many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
@@ -388,7 +390,7 @@ class Nested(Field):
         self.many = many
         self.__serializer = None
         self.__updated_fields = False  # ensures serializer fields are updated only once
-        super(Nested, self).__init__(**kwargs)
+        super(Nested, self).__init__(default=default, **kwargs)
 
     def __get_fields_to_marshal(self, all_fields):
         """Filter all_fields based on self.only and self.exclude """
@@ -951,7 +953,7 @@ class Method(Field):
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
     """
-    _CHECK_REQUIRED = False
+    _CHECK_ATTRIBUTE = False
 
     def __init__(self, method_name, deserialize=None, **kwargs):
         self.method_name = method_name
@@ -994,7 +996,7 @@ class Function(Field):
     :param callable deserialize: Deserialization function that takes the value
         to be deserialized as its only argument.
     """
-    _CHECK_REQUIRED = False
+    _CHECK_ATTRIBUTE = False
 
     def __init__(self, func, deserialize=None, **kwargs):
         super(Function, self).__init__(**kwargs)
