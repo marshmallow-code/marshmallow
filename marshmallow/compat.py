@@ -17,7 +17,7 @@ if PY2:
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
     if PY26:
-        from .orderreddict import OrderedDict
+        from .ordereddict import OrderedDict
     else:
         from collections import OrderedDict
     OrderedDict = OrderedDict
