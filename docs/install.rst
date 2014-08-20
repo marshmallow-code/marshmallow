@@ -8,7 +8,7 @@ Installation
 
 .. note::
 
-    The ``python-dateutil`` package is not a hard dependency, but it is recommended for robust datetime deserialization.
+    The `python-dateutil <http://labix.org/python-dateutil>`_ package is not a hard dependency, but it is recommended for robust datetime deserialization.
 
     ::
 

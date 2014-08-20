@@ -98,10 +98,10 @@ class BaseSerializer(base.SerializerABC):
                 fields = ("name", "date_born")
 
         person = Person("Guido van Rossum")
-        serialized = PersonSerializer(person)
-        serialized.data
-        # OrderedDict([('name', u'Guido van Rossum'),
-        #                ('date_born', 'Sat, 09 Nov 2013 00:10:29 -0000')])
+        serializer = PersonSerializer()
+        data, errors = serializer.dump(person)
+        data  # OrderedDict([('name', u'Guido van Rossum'),
+              #              ('date_born', '2014-08-19T21:06:10.620408')])
 
     :param obj: The object or collection of objects to be serialized.
     :param dict extra: A dict of extra attributes to bind to the serialized result.

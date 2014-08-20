@@ -30,7 +30,7 @@ You can register a custom error-handling function for a :class:`Serializer <Seri
 
 
     invalid = User('Foo Bar', email='foo')
-    s = UserSerializer(invalid)  # raises AppError
+    data, errs = UserSerializer().dump(invalid)  # raises AppError
 
 
 Transforming Data

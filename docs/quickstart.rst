@@ -244,6 +244,9 @@ By default, serializers will marshal the object attributes that have the same na
     # 'date_created': '2014-08-17T14:58:57.600623+00:00',
     # 'name': 'Keith'}
 
+
+.. _meta_options:
+
 Refactoring (Meta Options)
 --------------------------
 

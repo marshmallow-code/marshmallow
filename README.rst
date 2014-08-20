@@ -57,7 +57,7 @@ Requirements
 
 - Python >= 2.6 or >= 3.3
 
-marshmallow has no external dependencies outside of the Python standard library.
+marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <http://labix.org/python-dateutil>` is recommended for robust datetime deserialization.
 
 
 License
