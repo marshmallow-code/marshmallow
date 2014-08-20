@@ -450,10 +450,6 @@ class BaseSerializer(base.SerializerABC):
             ret = bytes(ret.encode('utf-8'))
         return MarshalResult(ret, errors)
 
-    # Aliases
-    serialize = dump
-    deserialize = load
-
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
         output. Defaults to noop (i.e. just return ``data`` as is).
