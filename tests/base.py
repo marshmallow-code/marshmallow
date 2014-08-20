@@ -112,8 +112,8 @@ class UserSerializer(Serializer):
     is_old = fields.Method("get_is_old")
     lowername = fields.Function(lambda obj: obj.name.lower())
     registered = fields.Boolean()
-    hair_colors = fields.List(fields.Field)
-    sex_choices = fields.List(fields.Field)
+    hair_colors = fields.List(fields.Raw)
+    sex_choices = fields.List(fields.Raw)
     finger_count = fields.Integer()
     uid = fields.UUID()
     time_registered = fields.Time()
@@ -132,7 +132,7 @@ class UserSerializer(Serializer):
 
 
 class UserMetaSerializer(Serializer):
-    '''The equivalent of the UserSerializer, using the ``fields`` option.'''
+    """The equivalent of the UserSerializer, using the ``fields`` option."""
     uppername = Uppercased(attribute='name')
     balance = fields.Price()
     is_old = fields.Method("get_is_old")

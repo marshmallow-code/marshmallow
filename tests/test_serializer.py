@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import random
 
 import pytest
 
@@ -10,6 +11,9 @@ from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import unicode, binary_type
 
 from tests.base import *  # noqa
+
+
+random.seed(1)
 
 # Run tests with both verbose serializer and "meta" option serializer
 @pytest.mark.parametrize('SerializerClass',
@@ -418,6 +422,16 @@ def test_meta_serializer_fields():
     assert s.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
     assert s.data['finger_count'] == 10
 
+def test_meta_fields_order_is_maintained(user):
+    class MetaSerializer(Serializer):
+        class Meta:
+            fields = ('name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate')
+
+    ser = MetaSerializer()
+    data, errs = ser.dump(user)
+    keys = list(data)
+    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
 
 def test_meta_fields_mapping(user):
     s = UserMetaSerializer(user)
@@ -662,7 +676,6 @@ class TestNestedSerializer:
         serialized_blog, _ = BlogSerializer().dump(self.blog)
         expected = [UserSerializer().dump(col)[0] for col in self.blog.collaborators]
         assert serialized_blog['collaborators'] == expected
-
 
     def test_nested_meta_many(self):
         serialized_blog = BlogUserMetaSerializer().dump(self.blog)[0]

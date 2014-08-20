@@ -19,6 +19,7 @@ from marshmallow.exceptions import (
     ForcedError,
     RegistryError,
 )
+from marshmallow.orderedset import OrderedSet
 
 __all__ = [
     'Marshaller',
@@ -402,12 +403,12 @@ class Nested(Field):
             ret[self.only] = all_fields[self.only]
             return ret
         else:
-            only = set(all_fields) if self.only is None else set(self.only)
+            only = OrderedSet(all_fields) if self.only is None else OrderedSet(self.only)
         if self.exclude and self.only:
             # Make sure that only takes precedence
-            exclude = set(self.exclude) - only
+            exclude = OrderedSet(self.exclude) - only
         else:
-            exclude = set([]) if self.exclude is None else set(self.exclude)
+            exclude = OrderedSet([]) if self.exclude is None else OrderedSet(self.exclude)
         filtered = ((k, v) for k, v in all_fields.items()
                     if k in only and k not in exclude)
         return OrderedDict(filtered)
