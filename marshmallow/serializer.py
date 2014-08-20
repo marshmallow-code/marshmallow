@@ -14,6 +14,7 @@ import functools
 from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
+from marshmallow.orderedset import OrderedSet
 
 #: Return type of :meth:`Serializer.dump`
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
@@ -320,12 +321,12 @@ class BaseSerializer(base.SerializerABC):
 
         if self.opts.fields:
             # Return only fields specified in fields option
-            field_names = set(self.opts.fields)
+            field_names = OrderedSet(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
-            field_names = set(self.declared_fields.keys()) | set(self.opts.additional)
+            field_names = OrderedSet(self.declared_fields.keys()) | OrderedSet(self.opts.additional)
         else:
-            field_names = set(self.declared_fields.keys())
+            field_names = OrderedSet(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
