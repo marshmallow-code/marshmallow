@@ -237,6 +237,7 @@ class Field(FieldABC):
         raise a :exc:`MarshallingError`.
     """
     _CHECK_ATTRIBUTE = True
+    _creation_index = 0
 
     def __init__(self, default=None, attribute=None, error=None,
                  validate=None, required=False):
@@ -245,6 +246,9 @@ class Field(FieldABC):
         self.error = error
         self.validate = validate
         self.required = required
+        # Save creation index so that fields can be sorted by Serializer
+        self._creation_index = Field._creation_index
+        Field._creation_index += 1
 
     def get_value(self, attr, obj):
         """Return the value for a given key from an object."""

@@ -42,9 +42,13 @@ class SerializerMeta(type):
         :param type field_class: The base field class. Any class attribute that
             is of this type will be be returned
         """
-        declared = [(field_name, attrs.pop(field_name))
-                    for field_name, val in list(iteritems(attrs))
-                    if utils.is_instance_or_subclass(val, field_class)]
+        # The declared fields, sorted by the order they were instantiated
+        declared = sorted(
+            [(field_name, attrs.pop(field_name))
+            for field_name, val in list(iteritems(attrs))
+            if utils.is_instance_or_subclass(val, field_class)],
+            key=lambda x: x[1]._creation_index
+        )
         # If subclassing another Serializer, inherit its fields
         # Loop in reverse to maintain the correct field order
         for base_class in bases[::-1]:
