@@ -23,7 +23,7 @@ from marshmallow.orderedset import OrderedSet
 
 __all__ = [
     'Marshaller',
-    'UnMarshaller',
+    'Unmarshaller',
     'Field',
     'Raw',
     'Nested',
@@ -45,6 +45,7 @@ __all__ = [
     'ZERO',
     'Price',
     'Url',
+    'URL',
     'Email',
     'Method',
     'Function',
@@ -140,7 +141,7 @@ class Marshaller(object):
     __call__ = serialize
 
 
-class UnMarshaller(object):
+class Unmarshaller(object):
     """Callable class responsible for deserializing data and storing errors.
 
     :param str prefix: Optional prefix that will be prepended to all the
@@ -912,6 +913,7 @@ class Url(Field):
             return self.default
         return self._validated(value, UnmarshallingError)
 
+URL = Url
 
 class Email(Field):
     """A validated email field.

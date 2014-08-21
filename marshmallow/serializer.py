@@ -195,7 +195,7 @@ class BaseSerializer(base.SerializerABC):
             prefix=self.prefix
         )
         #: Callable unmarshalling object
-        self._unmarshal = fields.UnMarshaller()
+        self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context
 

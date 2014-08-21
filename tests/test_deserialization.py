@@ -407,7 +407,7 @@ class TestUnMarshaller:
 
     @pytest.fixture
     def unmarshal(self):
-        return fields.UnMarshaller()
+        return fields.Unmarshaller()
 
     def test_deserialize(self, unmarshal):
         user_data = {
@@ -439,7 +439,7 @@ class TestUnMarshaller:
         assert user['age'] == 71
 
     def test_deserialize_strict_raises_error(self):
-        strict_unmarshal = fields.UnMarshaller()
+        strict_unmarshal = fields.Unmarshaller()
         with pytest.raises(UnmarshallingError):
             strict_unmarshal(
                 {'email': 'invalid', 'name': 'Mick'},
