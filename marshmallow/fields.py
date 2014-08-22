@@ -19,7 +19,6 @@ from marshmallow.exceptions import (
     ForcedError,
     RegistryError,
 )
-from marshmallow.orderedset import OrderedSet
 
 __all__ = [
     'Marshaller',
@@ -408,12 +407,12 @@ class Nested(Field):
             ret[self.only] = all_fields[self.only]
             return ret
         else:
-            only = OrderedSet(all_fields) if self.only is None else OrderedSet(self.only)
+            only = set(all_fields) if self.only is None else set(self.only)
         if self.exclude and self.only:
             # Make sure that only takes precedence
-            exclude = OrderedSet(self.exclude) - only
+            exclude = set(self.exclude) - only
         else:
-            exclude = OrderedSet([]) if self.exclude is None else OrderedSet(self.exclude)
+            exclude = set([]) if self.exclude is None else set(self.exclude)
         filtered = ((k, v) for k, v in all_fields.items()
                     if k in only and k not in exclude)
         return OrderedDict(filtered)
@@ -452,7 +451,7 @@ class Nested(Field):
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         try:
             # We call the protected `_marshal` method instead of `serialize`
-            # because we need to pass the this fields ``many`` attribute as
+            # because we need to pass the this field's ``many`` attribute as
             # an argument, which ``serialize`` would not allow
             ret = self.serializer._marshal(nested_obj, fields, many=self.many)
         except TypeError as err:

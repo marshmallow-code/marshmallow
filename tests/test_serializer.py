@@ -422,20 +422,41 @@ def test_meta_serializer_fields():
     assert s.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
     assert s.data['finger_count'] == 10
 
-def test_declared_field_order_is_maintained(user):
-    class KeepOrder(Serializer):
-        name = fields.String()
-        email = fields.Email()
-        age = fields.Integer()
-        created = fields.DateTime()
-        id = fields.Integer()
-        homepage = fields.Url()
-        birthdate = fields.DateTime()
+class KeepOrder(Serializer):
+    name = fields.String()
+    email = fields.Email()
+    age = fields.Integer()
+    created = fields.DateTime()
+    id = fields.Integer()
+    homepage = fields.Url()
+    birthdate = fields.DateTime()
 
+def test_declared_field_order_is_maintained(user):
     ser = KeepOrder()
     data, errs = ser.dump(user)
     keys = list(data)
     assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+def test_nested_field_order_with_only_arg_is_maintained(user):
+    class HasNestedOnly(Serializer):
+        user = fields.Nested(KeepOrder, only=('name', 'email', 'age',
+                                              'created', 'id', 'homepage'))
+    ser = HasNestedOnly()
+    data, errs = ser.dump({'user': user})
+    user_data = data['user']
+    keys = list(user_data)
+    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+
+def test_nested_field_order_with_exlude_arg_is_maintained(user):
+    class HasNestedExclude(Serializer):
+        user = fields.Nested(KeepOrder, exclude=('birthdate', ))
+
+    ser = HasNestedExclude()
+    data, errs = ser.dump({'user': user})
+    user_data = data['user']
+    keys = list(user_data)
+    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+
 
 def test_meta_fields_order_is_maintained(user):
     class MetaSerializer(Serializer):
