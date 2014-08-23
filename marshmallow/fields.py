@@ -413,7 +413,7 @@ class Nested(Field):
             exclude = set(self.exclude) - only
         else:
             exclude = set([]) if self.exclude is None else set(self.exclude)
-        filtered = ((k, v) for k, v in all_fields.items()
+        filtered = ((k, v) for k, v in iteritems(all_fields)
                     if k in only and k not in exclude)
         return OrderedDict(filtered)
 
@@ -450,9 +450,9 @@ class Nested(Field):
             self.serializer._update_fields(nested_obj)
         fields = self.__get_fields_to_marshal(self.serializer.fields)
         try:
-            # We call the protected `_marshal` method instead of `serialize`
+            # We call the protected _marshal method instead of _dump
             # because we need to pass the this field's ``many`` attribute as
-            # an argument, which ``serialize`` would not allow
+            # an argument, which _dump would not allow
             ret = self.serializer._marshal(nested_obj, fields, many=self.many)
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'

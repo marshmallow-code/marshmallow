@@ -13,6 +13,8 @@ Serializer
 .. autoclass:: Serializer
     :inherited-members:
 
+.. autoclass:: SerializerOpts
+
 .. autoclass:: MarshalResult
 .. autoclass:: UnmarshalResult
 

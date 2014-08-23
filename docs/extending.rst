@@ -65,3 +65,82 @@ One use case might be to add a "root" namespace for a serialized object.
 .. note::
 
     It is possible to register multiple data handlers for a single serializer.
+
+
+Extending "class Meta" Options
+--------------------------------
+
+``class Meta`` options are a way to configure and modify a :class:`Serializer's <Serializer>` behavior. See the :class:`API docs <Serializer>` for a listing of available options.
+
+You can add custom ``class Meta`` options by subclassing :class:`SerializerOpts`.
+
+Example: Adding a Namespace to Serialized Output
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+Let's say you want to namespace your data output by resource name, like so:
+
+::
+
+    {
+        'user': {
+            'name': 'Keith',
+            'email': 'keith@stones.com'
+        }
+    }
+
+
+You can add the namespace as a ``class Meta`` option.
+
+.. code-block:: python
+
+    from marshmallow import Serializer, SerializerOpts
+
+    class NamespaceOpts(SerializerOpts):
+        """Same as the default class Meta options, but adds "name" and
+        "plural_name" options for namespacing.
+        """
+
+        def __init__(self, meta):
+            SerializerOpts.__init__(self, meta)
+            self.name = getattr(meta, 'name', None)
+            self.plural_name = getattr(meta, 'plural_name', self.name)
+
+
+You would then create a custom serializer that uses your custom options class.
+
+.. code-block:: python
+
+
+    class NamespacedSerializer(Serializer):
+        OPTIONS_CLASS = NamespaceOpts
+
+        def _postprocess(self, data, obj):
+            """Execute any postprocessing steps, including adding a namespace to the final
+            output.
+            """
+            data = Serializer._postprocess(self, data)
+            if self.opts.name:   # Add namespace
+                namespace = self.opts.name
+                if self.many:
+                    namespace = self.opts.plural_name
+                 data = {namespace: data}
+            return data
+
+
+Your UserSerializer would then be defined like so:
+
+.. code-block:: python
+
+    class UserSerializer(NamespacedSerializer):
+        name = fields.String()
+        email = fields.Email()
+
+        class Meta:
+            name = 'user'
+            plural_name = 'users'
+
+    ser = UserSerializer()
+    user = User('Keith', email='keith@stones.com')
+    result = ser.dump(user)
+    result.data  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
+
