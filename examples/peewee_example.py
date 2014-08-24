@@ -50,10 +50,20 @@ class UserSerializer(Serializer):
 class TodoSerializer(Serializer):
     done = fields.Boolean(attribute='is_done')
     user = fields.Nested(UserSerializer)
+
     class Meta:
         additional = ('id', 'content', 'posted_on')
 
-# singleton serializers with no configuration
+    def make_object(self, data):
+        user = User.get(User.email == data['user'])
+        if data.get('id'):
+            todo = Todo.get(Todo.id == data.get['id'])
+        else:
+            todo = Todo(content=data['content'],
+                        user=user,
+                        posted_on=data.get('posted_on') or dt.datetime.utcnow())
+        return todo
+
 user_serializer = UserSerializer()
 todo_serializer = TodoSerializer()
 todos_serializer = TodoSerializer(many=True)
@@ -119,7 +129,7 @@ def get_todos():
 @app.route("/api/v1/todos/<int:pk>")
 def get_todo(pk):
     try:
-        todo = Todo.get(Todo.id == pk)
+        todo, errs = todo_serializer.load({'id': pk})
     except Todo.DoesNotExist:
         return jsonify({"message": "Todo could not be found"})
     data, errors = todo_serializer.dump(todo)
@@ -145,9 +155,12 @@ def toggledone(pk):
 @app.route("/api/v1/todos/new", methods=["POST"])
 @requires_auth
 def new_todo():
-    user = User.get(User.email == request.authorization.username)
-    todo_content = request.json['content']
-    todo = Todo.create(content=todo_content, user=user, posted_on=dt.datetime.now())
+    todo, errs = todo_serializer.load({
+        'content': request.json['content'],
+        'user': request.authorization.username,
+        'posted_on': dt.datetime.now(),
+    })
+    todo.save()
     data, errors = todo_serializer.dump(todo)
     if errors:
         return jsonify(errors), 400

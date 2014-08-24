@@ -23,8 +23,8 @@ blob_serializer = BlobSerializer()
 @route("/api/v1/analyze", method="POST")
 def analyze():
     blob = TextBlob(request.json['text'])
-    data, errors = blob_serializer.dump(blob)
-    return data
+    result = blob_serializer.dump(blob)
+    return result.data
 
 
 run(reloader=True, port=5000)

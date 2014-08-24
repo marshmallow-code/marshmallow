@@ -8,9 +8,9 @@ Extending Serializers
 Handling Errors
 ---------------
 
-By default, a :class:`Serializer <Serializer>` will store its validation errors in a dictionary on the :func:`errors <Serializer.errors>` attribute (unless ``strict`` mode is enabled).
+By default, :meth:`Serializer.dump` and :meth:`Serializer.load` will return validation errors as a dictionary (unless ``strict`` mode is enabled).
 
-You can register a custom error-handling function for a :class:`Serializer <Serializer>` using the :func:`Serializer.error_handler <Serializer.error_handler>` decorator. The function receives the serializer instance, the errors dictionary, and the original object to be serialized.
+You can register a custom error-handling function for a :class:`Serializer` using the :meth:`Serializer.error_handler` decorator. The function receives the serializer instance, the errors dictionary, and the original object to be serialized.
 
 
 .. code-block:: python
@@ -43,14 +43,14 @@ One use case might be to add a "root" namespace for a serialized object.
 .. code-block:: python
 
     class UserSerializer(Serializer):
-        ROOT = 'user'
+        NAME = 'user'
         name = fields.String()
         email = fields.Email()
 
     @UserSerializer.data_handler
     def add_root(serializer, data, obj):
         return {
-            serializer.ROOT: data
+            serializer.NAME: data
         }
 
     user = User('Monty Python', email='monty@python.org')
@@ -77,19 +77,24 @@ You can add custom ``class Meta`` options by subclassing :class:`SerializerOpts`
 Example: Adding a Namespace to Serialized Output
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-Let's say you want to namespace your data output by resource name, like so:
+Let's build upon the example above for adding root namespace for to serialized output. This time, we will create a custom base serializer with additional ``class Meta`` options.
 
 ::
 
+    # Example outputs
     {
         'user': {
             'name': 'Keith',
             'email': 'keith@stones.com'
         }
     }
+    # List output
+    {
+        'users': [{'name': 'Keith'}, {'name': 'Mick'}]
+    }
 
 
-You can add the namespace as a ``class Meta`` option.
+First, we'll add our namespace configuration to a custom options class.
 
 .. code-block:: python
 
@@ -106,7 +111,7 @@ You can add the namespace as a ``class Meta`` option.
             self.plural_name = getattr(meta, 'plural_name', self.name)
 
 
-You would then create a custom serializer that uses your custom options class.
+Then we create a custom serializer that uses our options class.
 
 .. code-block:: python
 
@@ -123,11 +128,11 @@ You would then create a custom serializer that uses your custom options class.
                 namespace = self.opts.name
                 if self.many:
                     namespace = self.opts.plural_name
-                 data = {namespace: data}
+                data = {namespace: data}
             return data
 
 
-Your UserSerializer would then be defined like so:
+Finally, our application serializers inherit from our custom serializer class.
 
 .. code-block:: python
 

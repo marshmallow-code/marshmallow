@@ -44,18 +44,17 @@ For a full reference on the field classes, see the :ref:`API Docs <api_fields>`.
 Serializing Objects
 -------------------
 
-Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.Serializer.dump>` method, which returns the serialized ``result`` as a dictionary and a dictionary of validation errors.
+Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.Serializer.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, as we'll see later).
 
 .. code-block:: python
 
     user = User(name="Monty", email="monty@python.org")
     serializer = UserSerializer()
-    result, errors = serializer.dump(user)
-    pprint(result)
-
-    # {"created_at": "2014-08-17T14:54:16.049594+00:00",
-    #  "name": "Monty",
-    #  "email": "monty@python.org"}
+    result = serializer.dump(user)
+    pprint(result.data)
+    # {"name": "Monty",
+    #  "email": "monty@python.org",
+    #  "created_at": "2014-08-17T14:54:16.049594+00:00"}
 
 .. note::
 
@@ -65,9 +64,9 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
 
 .. code-block:: python
 
-    json_result, errors = serializer.dumps(user)
-    pprint(json_result)
-    # '{"created_at": "2014-08-17T14:54:16.049594+00:00", "name": "Monty", "email": "monty@python.org"}'
+    json_result = serializer.dumps(user)
+    pprint(json_result.data)
+    # '{"name": "Monty", "email": "monty@python.org", "created_at": "2014-08-17T14:54:16.049594+00:00"}'
 
 Filtering output
 ++++++++++++++++
@@ -77,7 +76,7 @@ You may not need to output all declared fields every time you use a serializer. 
 .. code-block:: python
 
     summary_serializer = UserSerializer(only=('name', 'email'))
-    summary_serializer.dump(user)[0]
+    summary_serializer.dump(user).data
     # {"name": "Monty Python", "email": "monty@python.org"}
 
 You can also exclude fields by passing in the ``exclude`` parameter.
@@ -100,11 +99,11 @@ By default, :meth:`load <Serializer.load>` will return a dictionary of field nam
         'name': u'Ken'
     }
     serializer = UserSerializer()
-    result, errors = serializer.load(user_data)
-    pprint(result)
-    # {'created_at': datetime.datetime(2014, 8, 11, 5, 26, 3, 869245),
+    result = serializer.load(user_data)
+    pprint(result.data)
+    # {'name': 'Ken',
     #  'email': 'ken@yahoo.com',
-    #  'name': 'Ken'}
+    #  'created_at': datetime.datetime(2014, 8, 11, 5, 26, 3, 869245)},
 
 Notice that the datetime string was converted to a datetime object.
 
@@ -134,8 +133,8 @@ Now, the :meth:`load <Serializer.load>` method will return a ``User`` object.
         'email': 'ronnie@stones.com'
     }
     serializer = UserSerializer()
-    result, errors = serializer.load(user_data)
-    result  # => <User(name='Ronnie')>
+    result = serializer.load(user_data)
+    result.data  # => <User(name='Ronnie')>
 
 Handling Collections of Objects
 -------------------------------
@@ -148,13 +147,14 @@ Iterable collections of objects are also serializable and deserializable. Just s
     user2 = User(name="Keith", email="keith@stones.com")
     users = [user1, user2]
     serializer = UserSerializer(many=True)
-    results, errors = serializer.dump(users)
-    # [{'created_at': '2014-08-17T14:58:57.600623+00:00',
+    result = serializer.dump(users)
+    result.data
+    # [{'name': u'Mick',
     #   'email': u'mick@stones.com',
-    #   'name': u'Mick'},
-    #  {'created_at': '2014-08-17T14:58:57.600623+00:00',
+    #   'created_at': '2014-08-17T14:58:57.600623+00:00'}
+    #  {'name': u'Keith',
     #   'email': u'keith@stones.com',
-    #   'name': u'Keith'}]
+    #   'created_at': '2014-08-17T14:58:57.600623+00:00'}]
 
 Validation
 ----------
@@ -240,9 +240,9 @@ By default, serializers will marshal the object attributes that have the same na
     ser = UserSerializer()
     result, errors = ser.dump(user)
     pprint(result)
-    # {'email_addr': 'keith@stones.com',
-    # 'date_created': '2014-08-17T14:58:57.600623+00:00',
-    # 'name': 'Keith'}
+    # {'name': 'Keith',
+    #  'email_addr': 'keith@stones.com',
+    #  'date_created': '2014-08-17T14:58:57.600623+00:00'}
 
 
 .. _meta_options:
@@ -307,10 +307,10 @@ When you serialize the blog, you will see the nested user representation.
     blog = Blog(title="Something Completely Different", author=user)
     result, errors = BlogSerializer().dump(blog)
     pprint(result)
-    # {'author': {'created_at': '2014-08-17T14:58:57.600623+00:00',
-    #               'email': u'monty@python.org',
-    #               'name': u'Monty'},
-    #  'title': u'Something Completely Different'}
+    # {'title': u'Something Completely Different',
+    # {'author': {'name': u'Monty',
+    #             'email': u'monty@python.org',
+    #             'created_at': '2014-08-17T14:58:57.600623+00:00'}}
 
 .. note::
     If the field is a collection of nested objects, you must set ``many=True``.
@@ -352,25 +352,25 @@ For example, a representation of an ``Author`` model might include the books tha
     book_result, errors = BookSerializer().dump(book)
     pprint(book_result, indent=2)
     # {
+    #   "id": 124,
+    #   "title": "As I Lay Dying",
     #   "author": {
     #     "id": 8,
     #     "name": "William Faulkner"
-    #   },
-    #   "id": 124,
-    #   "title": "As I Lay Dying"
+    #   }
     # }
 
     author_result, errors = AuthorSerializer().dump(author)
     pprint(author_result, indent=2)
     # {
+    #   "id": 8,
+    #   "name": "William Faulkner",
     #   "books": [
     #     {
     #       "id": 124,
     #       "title": "As I Lay Dying"
     #     }
-    #   ],
-    #   "id": 8,
-    #   "name": "William Faulkner"
+    #   ]
     # }
 
 
@@ -392,12 +392,12 @@ If the object to be serialized has a relationship to an object of the same type,
     result, errors = UserSerializer().dump(user)
     pprint(result)
     # {
+    #     "name": "Steve",
+    #     "email": "steve@example.com",
     #     "friends": [
     #         {"name": "Mike","email": "mike@example.com"},
     #         {"name": "Joe","email": "joe@example.com"},
-    #     ],
-    #     "name": "Steve",
-    #     "email": "steve@example.com"
+    #     ]
     # }
 
 Specifying Nested Attributes
@@ -413,8 +413,8 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
     BlogSerializer2(blog).data
     # {
-    #     'author': {'email': u'monty@python.org'},
-    #     'title': u'Something Completely Different'
+    #     'title': u'Something Completely Different',
+    #     'author': {'email': u'monty@python.org'}
     # }
 
 .. note::
@@ -431,9 +431,9 @@ You can explicitly specify which attributes in the nested fields you want to ser
         result, errors = UserSerializer().dump(user)
         pprint(result)
         # {
-        #     "friends": ["Mike", "Joe"],
         #     "name": "Steve",
-        #     "email": "steve@example.com"
+        #     "email": "steve@example.com",
+        #     "friends": ["Mike", "Joe"]
         # }
 
 
@@ -511,7 +511,7 @@ You may wish to include other objects when computing a :class:`Function <marshma
 
 As an example, you might want your ``UserSerializer`` to output whether or not a ``User`` is the author of a ``Blog``.
 
-In these cases, you can pass a dictionary as the ``context`` argument to a serializer. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+In these cases, you can set the ``context`` attribute (a dictionary) of a serializer. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
 
 .. code-block:: python
 
@@ -523,13 +523,15 @@ In these cases, you can pass a dictionary as the ``context`` argument to a seria
         def writes_about_bikes(self, user, ctx):
             return 'bicycle' in ctx['blog'].title.lower()
 
+    serializer = UserSerializer()
+
     user = User('Freddie Mercury', 'fred@queen.com')
     blog = Blog('Bicycle Blog', author=user)
 
-    context = {'blog': blog}
-    result, errors = UserSerializer(context=context).dump(user)
-    serialized.data['is_author']  # => True
-    serialized.data['likes_bikes']  # => True
+    serializer.context = {'blog': blog}
+    data, errors = serializer.dump(user)
+    data['is_author']  # => True
+    data['likes_bikes']  # => True
 
 
 Next Steps

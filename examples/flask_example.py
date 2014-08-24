@@ -50,9 +50,9 @@ class QuoteSerializer(Serializer):
     class Meta:
         fields = ("id", "content", "posted_at", 'author')
 
-# Single serializers with no extra configuration
 author_serializer = AuthorSerializer()
 quote_serializer = QuoteSerializer()
+quotes_serializer = QuoteSerializer(many=True, only=('id', 'content'))
 
 ##### API #####
 
@@ -73,7 +73,6 @@ def get_author(pk):
     except IntegrityError:
         return jsonify({"message": "Author could not be found."}), 400
     author_data, author_errors = author_serializer.dump(author)
-    quotes_serializer = QuoteSerializer(only=('id', 'content'), many=True)
     quotes_data, quote_errors = quotes_serializer.dump(author.quotes.all())
     if author_errors:
         return jsonify(author_errors), 400
@@ -84,8 +83,7 @@ def get_author(pk):
 @app.route('/api/v1/quotes', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
-    serializer = QuoteSerializer(only=("id", "content"), many=True)
-    data, errors = serializer.dump(quotes)
+    data, errors = quotes_serializer.dump(quotes)
     if errors:
         return jsonify(errors), 400
     return jsonify({"quotes": data})
