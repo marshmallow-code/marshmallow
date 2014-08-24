@@ -120,6 +120,8 @@ class BaseSerializer(base.SerializerABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to ``True`` if ``obj`` is a collection
         so that the object will be serialized to a list.
+    :param dict context: Optional context passed to :class:`fields.Method` and
+        :class:`fields.Function` fields.
     """
     TYPE_MAPPING = {
         text_type: fields.String,
@@ -197,7 +199,7 @@ class BaseSerializer(base.SerializerABC):
         #: Callable unmarshalling object
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
-        self.context = context
+        self.context = context or {}
 
         if isinstance(obj, types.GeneratorType):
             self.obj = list(obj)
@@ -422,7 +424,7 @@ class BaseSerializer(base.SerializerABC):
         .. versionadded:: 1.0.0
         """
         result = self._unmarshal(data, self.fields, self.many, strict=self.strict,
-                                        postprocess=self.make_object)
+                                postprocess=self.make_object)
         errors = self._unmarshal.errors
         return UnmarshalResult(data=result, errors=errors)
 
