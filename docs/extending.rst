@@ -77,7 +77,7 @@ You can add custom ``class Meta`` options by subclassing :class:`SerializerOpts`
 Example: Adding a Namespace to Serialized Output
 ++++++++++++++++++++++++++++++++++++++++++++++++
 
-Let's build upon the example above for adding root namespace for to serialized output. This time, we will create a custom base serializer with additional ``class Meta`` options.
+Let's build upon the example above for adding a root namespace to serialized output. This time, we will create a custom base serializer with additional ``class Meta`` options.
 
 ::
 

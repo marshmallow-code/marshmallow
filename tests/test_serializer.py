@@ -379,11 +379,11 @@ def test_custom_error_message():
         balance = fields.Fixed(error="Bad balance.")
 
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
-    s = ErrorSerializer(u)
-    assert s.is_valid() is False
-    assert s.errors['email'] == "Invalid email"
-    assert s.errors['homepage'] == "Bad homepage."
-    assert s.errors['balance'] == "Bad balance."
+    s = ErrorSerializer()
+    data, errors = s.dump(u)
+    assert errors['email'] == "Invalid email"
+    assert errors['homepage'] == "Bad homepage."
+    assert errors['balance'] == "Bad balance."
 
 
 def test_error_raised_if_fields_option_is_not_list():
@@ -566,15 +566,17 @@ def test_serializing_none_meta():
     assert s.data['email'] is None
 
 
+class CustomError(Exception):
+    pass
+
+class MySerializer(Serializer):
+    name = fields.String()
+    email = fields.Email()
+
+class MySerializer2(Serializer):
+    homepage = fields.URL()
+
 def test_serializer_with_custom_error_handler(user):
-
-    class CustomError(Exception):
-        pass
-
-    class MySerializer(Serializer):
-        name = fields.String()
-        email = fields.Email()
-
     @MySerializer.error_handler
     def handle_errors(serializer, errors, obj):
         assert isinstance(serializer, MySerializer)
@@ -588,6 +590,34 @@ def test_serializer_with_custom_error_handler(user):
 
     user.email = 'monty@python.org'
     assert MySerializer(user).data
+
+def test_multiple_serializers_with_same_error_handler(user):
+
+    @MySerializer.error_handler
+    @MySerializer2.error_handler
+    def handle_errors(serializer, errors, obj):
+        raise CustomError('Something bad happened')
+    user.email = 'bademail'
+    user.homepage = 'foo'
+    with pytest.raises(CustomError):
+        MySerializer().dump(user)
+    with pytest.raises(CustomError):
+        MySerializer2().dump(user)
+
+def test_setting_error_handler_attribute(user):
+    def handle_errors(serializer, errors, obj):
+        raise CustomError('Something bad happened')
+
+    class ErrorSerializer(Serializer):
+        email = fields.Email()
+        _error_callback = handle_errors
+
+    user.email = 'invalid'
+
+    ser = ErrorSerializer()
+    with pytest.raises(CustomError):
+        ser.dump(user)
+
 
 def test_serializer_with_custom_data_handler(user):
     class CallbackSerializer(Serializer):
