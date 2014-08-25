@@ -33,12 +33,49 @@ def test_to_marshallable_type():
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
 
+PointNT = namedtuple('Point', ['x', 'y'])
+
 def test_to_marshallable_type_with_namedtuple():
-    Point = namedtuple('Point', ['x', 'y'])
-    p = Point(24, 42)
+    p = PointNT(24, 42)
     result = utils.to_marshallable_type(p)
     assert result['x'] == p.x
     assert result['y'] == p.y
+
+class PointClass(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+@pytest.mark.parametrize('obj', [
+    PointNT(24, 42),
+    PointClass(24, 42),
+    {'x': 24, 'y': 42}
+])
+def test_get_value(obj):
+    result = utils.get_value('x', obj)
+    assert result == 24
+    result2 = utils.get_value('y', obj)
+    assert result2 == 42
+
+def test_get_value_default():
+    p = PointClass(x=42, y=None)
+    # Default is only returned if key is not found
+    assert utils.get_value('z', p, default=123) == 123
+    # since 'y' is an attribute, None is returned instead of the default
+    assert utils.get_value('y', p, default=123) is None
+
+class Triangle(object):
+    def __init__(self, p1, p2, p3):
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.points = [p1, p2, p3]
+
+def test_get_value_for_nested_object():
+    tri = Triangle(p1=PointClass(1, 2), p2=PointNT(3, 4), p3={'x': 5, 'y': 6})
+    assert utils.get_value('p1.x', tri) == 1
+    assert utils.get_value('p2.x', tri) == 3
+    assert utils.get_value('p3.x', tri) == 5
 
 def test_is_keyed_tuple():
     Point = namedtuple('Point', ['x', 'y'])

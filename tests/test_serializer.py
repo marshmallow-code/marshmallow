@@ -978,3 +978,10 @@ def test_error_gets_raised_if_many_is_omitted(user):
         BadSerializer().dump(user)
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
+
+def test_serializer_can_specify_nested_object_as_attribute(blog):
+    class BlogUsernameSerializer(Serializer):
+        author_name = fields.String(attribute='user.name')
+    ser = BlogUsernameSerializer()
+    result = ser.dump(blog)
+    assert result.data['author_name'] == blog.user.name

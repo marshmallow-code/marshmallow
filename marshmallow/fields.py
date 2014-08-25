@@ -12,7 +12,7 @@ import warnings
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SerializerABC
 from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
-                                basestring, binary_type)
+                                basestring)
 from marshmallow.exceptions import (
     MarshallingError,
     UnmarshallingError,
@@ -194,33 +194,6 @@ class Unmarshaller(object):
 marshal = Marshaller()
 
 
-def _get_value(key, obj, default=None):
-    """Helper for pulling a keyed value off various types of objects"""
-    if type(key) == int:
-        return _get_value_for_key(key, obj, default)
-    else:
-        return _get_value_for_keys(key.split('.'), obj, default)
-
-
-def _get_value_for_keys(keys, obj, default):
-    if len(keys) == 1:
-        return _get_value_for_key(keys[0], obj, default)
-    else:
-        return _get_value_for_keys(
-            keys[1:], _get_value_for_key(keys[0], obj, default), default)
-
-
-def _get_value_for_key(key, obj, default):
-    if isinstance(key, basestring) and hasattr(obj, key):
-        return getattr(obj, key)
-    if utils.is_indexable_but_not_string(obj):
-        try:
-            return obj[key]
-        except KeyError:
-            return default
-    return default
-
-
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
@@ -253,7 +226,7 @@ class Field(FieldABC):
     def get_value(self, attr, obj):
         """Return the value for a given key from an object."""
         check_key = attr if self.attribute is None else self.attribute
-        return _get_value(check_key, obj)
+        return utils.get_value(check_key, obj)
 
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
         """Utility method to invoke ``method`` and validate the output. Call ``self.validate`` when
@@ -301,7 +274,7 @@ class Field(FieldABC):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
-        :param str key: The attibute or key to get.
+        :param str attr: The attibute or key to get from the object.
         :param str obj: The object to pull the key from.
         :raise MarshallingError: In case of validation or formatting problem
         """
@@ -345,7 +318,7 @@ class Field(FieldABC):
         should implement this method.
 
         :param value: The value to be serialized.
-        :param str key: The attribute or key on the object to be serialized.
+        :param str attr: The attribute or key on the object to be serialized.
         :param obj: The object the value was pulled from.
         :raise MarshallingError: In case of formatting or validation failure.
         """
@@ -463,24 +436,13 @@ class Nested(Field):
             self.parent.errors[attr] = self.serializer.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
-                return _flatten(ret, key=self.only)
+                return utils.flatten(ret, key=self.only)
             else:
                 return ret[self.only]
         return ret
 
     def _deserialize(self, value):
         return self.serializer.load(value)[0]
-
-
-def _flatten(dictlist, key):
-    """Flattens a list of dicts into just a list of values.
-    ::
-
-        >>> d = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
-        >>> _flatten(d, 'id')
-        [1, 2]
-    """
-    return [d[key] for d in dictlist]
 
 
 class List(Field):
@@ -521,10 +483,6 @@ class List(Field):
     # Deserialization is identical to _format behavior
     _deserialize = _format
 
-def _ensure_text_type(val):
-    if isinstance(val, binary_type):
-        val = val.decode('utf-8')
-    return text_type(val)
 
 class String(Field):
     """A string field.
@@ -536,12 +494,12 @@ class String(Field):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
     def _format(self, value):
-        return _ensure_text_type(value)
+        return utils.ensure_text_type(value)
 
     def _deserialize(self, value):
         if value is None:
             return self.default
-        result = _ensure_text_type(value)
+        result = utils.ensure_text_type(value)
         return result
 
 

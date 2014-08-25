@@ -18,7 +18,7 @@ try:
 except ImportError:
     dateutil_available = False
 
-from marshmallow.compat import OrderedDict
+from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
 
 
 def is_generator(obj):
@@ -255,3 +255,46 @@ def from_iso_date(datestring, use_dateutil=True):
         return parser.parse(datestring).date()
     else:
         return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d')
+
+def ensure_text_type(val):
+    if isinstance(val, binary_type):
+        val = val.decode('utf-8')
+    return text_type(val)
+
+def flatten(dictlist, key):
+    """Flattens a list of dicts into just a list of values.
+    ::
+
+        >>> d = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
+        >>> _flatten(d, 'id')
+        [1, 2]
+    """
+    return [d[key] for d in dictlist]
+
+# Various utilities for pulling keyed values from objects
+
+def get_value(key, obj, default=None):
+    """Helper for pulling a keyed value off various types of objects"""
+    if type(key) == int:
+        return _get_value_for_key(key, obj, default)
+    else:
+        return _get_value_for_keys(key.split('.'), obj, default)
+
+
+def _get_value_for_keys(keys, obj, default):
+    if len(keys) == 1:
+        return _get_value_for_key(keys[0], obj, default)
+    else:
+        return _get_value_for_keys(
+            keys[1:], _get_value_for_key(keys[0], obj, default), default)
+
+
+def _get_value_for_key(key, obj, default):
+    if isinstance(key, basestring) and hasattr(obj, key):
+        return getattr(obj, key)
+    if is_indexable_but_not_string(obj):
+        try:
+            return obj[key]
+        except KeyError:
+            return default
+    return default
