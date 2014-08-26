@@ -402,7 +402,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param obj: The object to serialize.
         :return: A tuple of the form (``result``, ``errors``)
-        :rtype: MarshalResult, a :class:`namedtuple`
+        :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -419,7 +419,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param dict data: The data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
-        :rtype: UnmarshalResult, a :class:`namedtuple`
+        :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -433,7 +433,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
-        :rtype: UnmarshalResult, a :class:`namedtuple`
+        :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
@@ -444,7 +444,7 @@ class BaseSerializer(base.SerializerABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :return: A tuple of the form (``result``, ``errors``)
-        :rtype: MarshalResult, a :class:`namedtuple`
+        :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
