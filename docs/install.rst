@@ -14,8 +14,8 @@ Installation
 
         $ pip install python-dateutil
 
-From the PyPI
--------------
+Installing/Upgrading from the PyPI
+----------------------------------
 
 To install the latest version from the PyPI:
 
@@ -23,27 +23,14 @@ To install the latest version from the PyPI:
 
     $ pip install -U marshmallow
 
-From Source
------------
+Get the Bleeding Edge Version
+-----------------------------
 
-Alternatively, you can install marshmallow from source.
+To get the latest development version of marshmallow, run
 
-You can clone the public repo: ::
+::
 
-    $ git clone https://github.com/sloria/marshmallow.git
-
-Or download one of the following:
-
-* tarball_
-* zipball_
-
-Once you have the source, you can install it into your site-packages with ::
-
-    $ python setup.py install
-
-.. _Github: https://github.com/sloria/marshmallow
-.. _tarball: https://github.com/sloria/marshmallow/tarball/master
-.. _zipball: https://github.com/sloria/marshmallow/zipball/master
+    $ pip install -U git+https://github.com/sloria/marshmallow.git@dev
 
 .. _migrating:
 
