@@ -98,3 +98,4 @@ Other notable changes:
 
 - ``datetime`` objects serialize to ISO8601 formatted strings by default (instead of RFC821 format).
 - The ``fields.validated`` decorator was removed, as it is no longer necessary given the new Fields interface.
+- `Serializer.factory` class method was removed.

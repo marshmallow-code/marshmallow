@@ -77,23 +77,6 @@ def test_serializing_none():
     assert s.data['name'] == ''
     assert s.data['age'] == 0
 
-def test_factory(user):
-    serialize_user = UserSerializer.factory()
-
-    data, errors = serialize_user(user)
-    assert data['name'] == user.name
-    assert data['age'] == user.age
-
-def test_factory_saves_args(user):
-    serialize_user = UserSerializer.factory(strict=True)
-    user.homepage = 'invalid-url'
-    with pytest.raises(MarshallingError):
-        serialize_user(user)
-
-def test_factory_doc_is_same_as_dump_doc():
-    serialize_user = UserSerializer.factory(strict=True)
-    assert serialize_user.__doc__ == UserSerializer.dump.__doc__
-
 
 @pytest.mark.parametrize('SerializerClass',
     [UserSerializer, UserMetaSerializer])

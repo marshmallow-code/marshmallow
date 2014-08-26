@@ -9,7 +9,6 @@ import copy
 import uuid
 import types
 import warnings
-import functools
 
 from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -288,33 +287,6 @@ class BaseSerializer(base.SerializerABC):
         cls._data_callbacks = cls._data_callbacks or []
         cls._data_callbacks.append(func)
         return func
-
-    @classmethod
-    def factory(cls, *args, **kwargs):
-        """Create a factory function that returns an instance of the serializer.
-        Can be used to "freeze" the serializer's arguments.
-
-        Example: ::
-
-            serialize_user = UserSerializer.factory(strict=True)
-            user = User(email='foo@bar.com')
-            data, errors = serialize_user(user)
-            invalid_user = User(email='invalidemail')
-            serialize_user(invalid_user)  # => raises MarshallingError
-
-        :param args: Takes the same positional and keyword arguments as the
-            serializer's constructor
-        :return: A function that serializes its first argument and returns a tuple
-            of the form ``(result, errors)``.
-
-        .. versionadded:: 0.5.5
-        .. versionchanged:: 1.0.0
-            Return the partialed class's :meth:`dump` method instead of the
-            class itself.
-        """
-        partial_cls = functools.partial(cls, *args, **kwargs)
-        functools.update_wrapper(partial_cls, cls)
-        return partial_cls().dump
 
     def _update_fields(self, obj):
         """Update fields based on the passed in object."""
