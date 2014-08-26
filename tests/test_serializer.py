@@ -597,19 +597,26 @@ def test_multiple_serializers_with_same_error_handler(user):
     with pytest.raises(CustomError):
         MySerializer2().dump(user)
 
-def test_setting_error_handler_attribute(user):
+def test_setting_error_handler_class_attribute(user):
     def handle_errors(serializer, errors, obj):
         raise CustomError('Something bad happened')
 
     class ErrorSerializer(Serializer):
         email = fields.Email()
-        _error_callback = handle_errors
+        __error_handler__ = handle_errors
+
+    class ErrorSerializerSub(ErrorSerializer):
+        pass
 
     user.email = 'invalid'
 
     ser = ErrorSerializer()
     with pytest.raises(CustomError):
         ser.dump(user)
+
+    subser = ErrorSerializerSub()
+    with pytest.raises(CustomError):
+        subser.dump(user)
 
 
 def test_serializer_with_custom_data_handler(user):
@@ -643,6 +650,20 @@ def test_serializer_with_multiple_data_handlers(user):
     data, _ = ser.dump(user)
     assert data['meaning'] == 42
     assert data['name'] == user.name.upper()
+
+def test_setting_data_handlers_class_attribute(user):
+    def add_meaning(serializer, data, obj):
+        data['meaning'] = 42
+        return data
+
+    class CallbackSerializer3(Serializer):
+        __data_handlers__ = [add_meaning]
+
+        name = fields.String()
+
+    ser = CallbackSerializer3()
+    data, _ = ser.dump(user)
+    assert data['meaning'] == 42
 
 def test_root_data_handler(user):
     class RootSerializer(Serializer):

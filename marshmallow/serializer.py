@@ -141,11 +141,11 @@ class BaseSerializer(base.SerializerABC):
     OPTIONS_CLASS = SerializerOpts
 
     #: Custom error handler function. May be ``None``.
-    _error_callback = None
+    __error_handler__ = None
     #: List of registered post-processing functions.
     #  NOTE: Initially ``None`` so that every subclass references a different
     #  list of functions
-    _data_callbacks = None
+    __data_handlers__ = None
 
     class Meta(object):
         """Options object for a Serializer.
@@ -224,13 +224,13 @@ class BaseSerializer(base.SerializerABC):
                     each.update(self.extra)
             else:
                 data.update(self.extra)
-        if self._marshal.errors and callable(self._error_callback):
-            self._error_callback(self._marshal.errors, obj)
+        if self._marshal.errors and callable(self.__error_handler__):
+            self.__error_handler__(self._marshal.errors, obj)
 
         # invoke registered callbacks
         # NOTE: these callbacks will mutate the data
-        if self._data_callbacks:
-            for callback in self._data_callbacks:
+        if self.__data_handlers__:
+            for callback in self.__data_handlers__:
                 if callable(callback):
                     data = callback(self, data, obj)
         return data
@@ -262,7 +262,7 @@ class BaseSerializer(base.SerializerABC):
         .. versionadded:: 0.7.0
 
         """
-        cls._error_callback = func
+        cls.__error_handler__ = func
         return func
 
     @classmethod
@@ -289,8 +289,8 @@ class BaseSerializer(base.SerializerABC):
         .. versionadded:: 0.7.0
 
         """
-        cls._data_callbacks = cls._data_callbacks or []
-        cls._data_callbacks.append(func)
+        cls.__data_handlers__ = cls.__data_handlers__ or []
+        cls.__data_handlers__.append(func)
         return func
 
     def _update_fields(self, obj):
@@ -403,8 +403,8 @@ class BaseSerializer(base.SerializerABC):
         result = self._unmarshal(data, self.fields, self.many, strict=self.strict,
                                 postprocess=self.make_object)
         errors = self._unmarshal.errors
-        if self._unmarshal.errors and callable(self._error_callback):
-            self._error_callback(self._unmarshal.errors, data)
+        if self._unmarshal.errors and callable(self.__error_handler__):
+            self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data):

@@ -4,7 +4,6 @@
 Extending Serializers
 =====================
 
-
 Handling Errors
 ---------------
 
@@ -28,7 +27,7 @@ You can register a custom error-handling function for a :class:`Serializer` usin
         logging.error(errors)
         raise AppError('An error occurred while serializing {0}'.format(obj))
 
-    invalid = User('Foo Bar', email='foo')
+    invalid = User('Foo Bar', email='invalid-email')
     serializer = UserSerializer()
     serializer.dump(invalid)  # raises AppError
     serializer.load({'email': 'invalid-email'})  # raises AppError
@@ -67,6 +66,19 @@ One use case might be to add a "root" namespace for a serialized object.
 .. note::
 
     It is possible to register multiple data handlers for a single serializer.
+
+Error Handlers and Data Handlers as Class Members
+-------------------------------------------------
+
+You can register error handlers and data handlers as class members. This might be useful if when defining an abstract serializer class.
+
+.. code-block:: python
+
+    class BaseSerializer(Serializer):
+        """A customized serializer with error handling and post-processing behavior."""
+        __error_handler__ = handle_errors  # A function
+        __data_handlers__ = [add_root]  # A list of functions
+
 
 
 Extending "class Meta" Options
