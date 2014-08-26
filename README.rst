@@ -33,8 +33,8 @@ Homepage: http://marshmallow.rtfd.org/
 
     person = Person("Guido van Rossum")
     serializer = PersonSerializer()
-    result, errors = serializer.dump(person)
-    pprint(result)
+    result = serializer.dump(person)
+    pprint(result.data)
     # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}
 
 
@@ -57,7 +57,7 @@ Requirements
 
 - Python >= 2.6 or >= 3.3
 
-marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <http://labix.org/python-dateutil>` is recommended for robust datetime deserialization.
+marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <http://labix.org/python-dateutil>`_ is recommended for robust datetime deserialization.
 
 
 License

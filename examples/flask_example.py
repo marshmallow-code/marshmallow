@@ -39,7 +39,7 @@ class AuthorSerializer(Serializer):
     formatted_name = fields.Method("format_name")
 
     def format_name(self, author):
-        return "%s, %s" % (author.last, author.first)
+        return "{}, {}".format(author.last, author.first)
 
     class Meta:
         fields = ('id', 'first', 'last', "formatted_name")
@@ -50,21 +50,41 @@ class QuoteSerializer(Serializer):
     class Meta:
         fields = ("id", "content", "posted_at", 'author')
 
+class SchemaError(Exception):
+    """Error that is raised when a marshalling or umarshalling error occurs.
+    Stores the dictionary of validation errors that occurred.
+    """
+    def __init__(self, message, errors):
+        Exception.__init__(self, message)
+        self.errors = errors
+
+# When a marshalling/unmarshalling error occurs, raise a SchemaError
+@AuthorSerializer.error_handler
+@QuoteSerializer.error_handler
+def handle_errors(serializer, errors, obj):
+    raise SchemaError('There was a problem marshalling or unmarshalling {}'
+            .format(obj), errors=errors)
+
 author_serializer = AuthorSerializer()
 quote_serializer = QuoteSerializer()
 quotes_serializer = QuoteSerializer(many=True, only=('id', 'content'))
 
 ##### API #####
 
+@app.errorhandler(SchemaError)
+def handle_marshalling_error(err):
+    """When a `SchemaError` is raised, return a 400 response with the
+    jsonified error dictionary.
+    """
+    return jsonify(err.errors), 400
+
 @app.route("/api/v1/authors")
 def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
     serializer = AuthorSerializer(many=True)
-    data, errors = serializer.dump(authors)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"authors": data})
+    result = serializer.dump(authors)
+    return jsonify({"authors": result.data})
 
 @app.route("/api/v1/authors/<int:pk>")
 def get_author(pk):
@@ -72,21 +92,15 @@ def get_author(pk):
         author = Author.query.get(pk)
     except IntegrityError:
         return jsonify({"message": "Author could not be found."}), 400
-    author_data, author_errors = author_serializer.dump(author)
-    quotes_data, quote_errors = quotes_serializer.dump(author.quotes.all())
-    if author_errors:
-        return jsonify(author_errors), 400
-    if quote_errors:
-        return jsonify(quote_errors), 400
-    return jsonify({'author': author_data, 'quotes': quotes_data})
+    author_result = author_serializer.dump(author)
+    quotes_result = quotes_serializer.dump(author.quotes.all())
+    return jsonify({'author': author_result.data, 'quotes': quotes_result.data})
 
 @app.route('/api/v1/quotes', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
-    data, errors = quotes_serializer.dump(quotes)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"quotes": data})
+    result = quotes_serializer.dump(quotes)
+    return jsonify({"quotes": result.data})
 
 @app.route("/api/v1/quotes/<int:pk>")
 def get_quote(pk):
@@ -94,10 +108,8 @@ def get_quote(pk):
         quote = Quote.query.get(pk)
     except IntegrityError:
         return jsonify({"message": "Quote could not be found."}), 400
-    data, errors = quote_serializer.dump(quote)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"quote": data})
+    result = quote_serializer.dump(quote)
+    return jsonify({"quote": result.data})
 
 @app.route("/api/v1/quotes/new", methods=["POST"])
 def new_quote():
@@ -112,11 +124,9 @@ def new_quote():
     quote = Quote(content, author)
     db.session.add(quote)
     db.session.commit()
-    data, errors = quote_serializer.dump(Quote.query.get(quote.id))
-    if errors:
-        return jsonify(errors), 400
+    result = quote_serializer.dump(Quote.query.get(quote.id))
     return jsonify({"message": "Created new quote.",
-                    "quote": data})
+                    "quote": result.data})
 
 if __name__ == '__main__':
     db.create_all()

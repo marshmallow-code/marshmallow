@@ -18,8 +18,8 @@
 
     person = Person("Guido van Rossum")
     serializer = PersonSerializer()
-    result, errors = serializer.dump(person)
-    pprint(result)
+    result = serializer.dump(person)
+    pprint(result.data)
     # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}
 
 

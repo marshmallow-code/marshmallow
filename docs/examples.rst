@@ -1,4 +1,5 @@
 .. _examples:
+.. module:: marshmallow
 
 ********
 Examples
@@ -66,8 +67,9 @@ Quotes API (Flask + SQLAlchemy)
 
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
-    - *class Meta* to specify which fields to serialize
+    - `class Meta` to specify which fields to serialize
     - Output filtering using ``only`` param
+    - Using the :func:`error_handler <Serlalizer.error_handler>` decorator
 
 
 .. literalinclude:: ../examples/flask_example.py
