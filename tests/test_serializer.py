@@ -559,7 +559,7 @@ class MySerializer(Serializer):
 class MySerializer2(Serializer):
     homepage = fields.URL()
 
-def test_serializer_with_custom_error_handler(user):
+def test_dump_with_custom_error_handler(user):
     @MySerializer.error_handler
     def handle_errors(serializer, errors, obj):
         assert isinstance(serializer, MySerializer)
@@ -573,6 +573,16 @@ def test_serializer_with_custom_error_handler(user):
 
     user.email = 'monty@python.org'
     assert MySerializer(user).data
+
+def test_load_with_custom_error_handler():
+    @MySerializer.error_handler
+    def handle_errors(serializer, errors, data):
+        assert isinstance(serializer, MySerializer)
+        assert 'email' in errors
+        assert isinstance(data, dict)
+        raise CustomError('Something bad happened')
+    with pytest.raises(CustomError):
+        MySerializer().load({'email': 'invalid'})
 
 def test_multiple_serializers_with_same_error_handler(user):
 

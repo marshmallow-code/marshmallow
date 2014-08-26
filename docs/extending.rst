@@ -28,9 +28,11 @@ You can register a custom error-handling function for a :class:`Serializer` usin
         logging.error(errors)
         raise AppError('An error occurred while serializing {0}'.format(obj))
 
-
     invalid = User('Foo Bar', email='foo')
-    data, errs = UserSerializer().dump(invalid)  # raises AppError
+    serializer = UserSerializer()
+    serializer.dump(invalid)  # raises AppError
+    serializer.load({'email': 'invalid-email'})  # raises AppError
+
 
 
 Transforming Data

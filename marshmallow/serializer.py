@@ -243,7 +243,8 @@ class BaseSerializer(base.SerializerABC):
     def error_handler(cls, func):
         """Decorator that registers an error handler function for the serializer.
         The function receives the serializer instance, a dictionary of errors,
-        and the serialized object as arguments.
+        and the serialized object (if serializing data) or data dictionary (if
+        deserializing data) as arguments.
 
         Example: ::
 
@@ -253,6 +254,10 @@ class BaseSerializer(base.SerializerABC):
             @UserSerializer.error_handler
             def handle_errors(serializer, errors, obj):
                 raise ValueError('An error occurred while marshalling {}'.format(obj))
+
+            user = User(email='invalid')
+            UserSerializer().dump(user)  # => raises ValueError
+            UserSerializer().load({'email': 'bademail'})  # raises ValueError
 
         .. versionadded:: 0.7.0
 
@@ -398,6 +403,8 @@ class BaseSerializer(base.SerializerABC):
         result = self._unmarshal(data, self.fields, self.many, strict=self.strict,
                                 postprocess=self.make_object)
         errors = self._unmarshal.errors
+        if self._unmarshal.errors and callable(self._error_callback):
+            self._error_callback(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data):
