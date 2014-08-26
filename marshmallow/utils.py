@@ -261,12 +261,12 @@ def ensure_text_type(val):
         val = val.decode('utf-8')
     return text_type(val)
 
-def flatten(dictlist, key):
-    """Flattens a list of dicts into just a list of values.
+def pluck(dictlist, key):
+    """Extracts a list of dictionary values from a list of dictionaries.
     ::
 
-        >>> d = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
-        >>> _flatten(d, 'id')
+        >>> dlist = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
+        >>> pluck(dlist, 'id')
         [1, 2]
     """
     return [d[key] for d in dictlist]

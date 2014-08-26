@@ -688,7 +688,8 @@ class TestNestedSerializer:
         s = FlatBlogSerializer()
         data, _ = s.dump(self.blog)
         assert data['user'] == self.blog.user.name
-        assert data['collaborators'][0] == self.blog.collaborators[0].name
+        for i, name in enumerate(data['collaborators']):
+            assert name == self.blog.collaborators[i].name
 
     def test_flat_nested2(self):
         class FlatBlogSerializer(Serializer):

@@ -82,6 +82,11 @@ class TestFieldSerialization:
         user.name = None
         assert field.serialize('name', user) == ''
 
+    def test_formattedstring_field(self):
+        field = fields.FormattedString('Hello {name}')
+        user = User(name='Monty')
+        assert field.serialize('name', user) == 'Hello Monty'
+
     def test_string_field_defaults_to_empty_string(self):
         field = fields.String()
         assert field.serialize("notfound", self.user) == ''

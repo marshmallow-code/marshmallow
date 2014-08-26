@@ -425,7 +425,7 @@ class Nested(Field):
         try:
             # We call the protected _marshal method instead of _dump
             # because we need to pass the this field's ``many`` attribute as
-            # an argument, which _dump would not allow
+            # an argument, which dump would not allow
             ret = self.serializer._marshal(nested_obj, fields, many=self.many)
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
@@ -436,13 +436,13 @@ class Nested(Field):
             self.parent.errors[attr] = self.serializer.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
-                return utils.flatten(ret, key=self.only)
+                return utils.pluck(ret, key=self.only)
             else:
                 return ret[self.only]
         return ret
 
     def _deserialize(self, value):
-        return self.serializer.load(value)[0]
+        return self.serializer.load(value).data
 
 
 class List(Field):
@@ -452,7 +452,7 @@ class List(Field):
 
         numbers = fields.List(fields.Float)
 
-    :param cls_or_instance: A field class or instance.
+    :param Field cls_or_instance: A field class or instance.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, cls_or_instance, **kwargs):
@@ -595,8 +595,20 @@ class Boolean(Field):
         return True
 
 class FormattedString(Field):
+    """Interpolate other values from the object into this field. The syntax for
+    the source string is the same as the string `str.format` method from the python stdlib.
+    ::
+
+        class UserSer(Serializer):
+            name = fields.String()
+            greeting = fields.FormattedString('Hello {name}')
+
+        ser = UserSer()
+        res = ser.dump(user)
+        res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
+    """
     def __init__(self, src_str):
-        super(FormattedString, self).__init__()
+        Field.__init__(self)
         self.src_str = text_type(src_str)
 
     def _serialize(self, value, attr, obj):
