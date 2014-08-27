@@ -331,6 +331,11 @@ class Field(FieldABC):
         """
         return value
 
+    @property
+    def context(self):
+        """The serializer context dictionary."""
+        return self.parent.context
+
 class Raw(Field):
     """Field that applies no formatting or validation."""
 
@@ -342,7 +347,7 @@ class Nested(Field):
 
         user = fields.Nested(UserSerializer)
         user2 = fields.Nested('UserSerializer')  # Equivalent to above
-        collaborators = fields.Nested(UserSerializer(many=True, only='id'))
+        collaborators = fields.Nested(UserSerializer, many=True, only='id')
         parent = fields.Nested('self')
 
     :param Serializer nested: The Serializer class, instance, or class name (string)

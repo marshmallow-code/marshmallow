@@ -993,6 +993,15 @@ class TestContext:
         msg = 'No context available for Function field {0!r}'.format('is_collab')
         assert msg in str(excinfo)
 
+    def test_fields_context(self):
+        class CSerializer(Serializer):
+            name = fields.String()
+
+        ser = CSerializer()
+        ser.context['foo'] = 42
+
+        assert ser.fields['name'].context == {'foo': 42}
+
 
 def raise_marshalling_value_error():
     try:
