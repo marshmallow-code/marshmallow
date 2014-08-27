@@ -222,6 +222,7 @@ class Field(FieldABC):
         # Save creation index so that fields can be sorted by Serializer
         self._creation_index = Field._creation_index
         Field._creation_index += 1
+        self.parent = FieldABC.parent
 
     def get_value(self, attr, obj):
         """Return the value for a given key from an object."""
