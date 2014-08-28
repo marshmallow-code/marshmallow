@@ -417,6 +417,8 @@ class Nested(Field):
             else:
                 raise ForcedError(ValueError("Nested fields must be passed a Serializer, not {0}."
                                 .format(self.nested.__class__)))
+        # Inherit context from parent
+        self.__serializer.context.update(self.parent.context)
         return self.__serializer
 
     def _serialize(self, nested_obj, attr, obj):

@@ -1002,6 +1002,22 @@ class TestContext:
 
         assert ser.fields['name'].context == {'foo': 42}
 
+    def test_nested_fields_inherit_context(self):
+        class InnerSerializer(Serializer):
+            likes_bikes = fields.Function(lambda obj, ctx: 'bikes' in ctx['info'])
+
+        class CSerializer(Serializer):
+            inner = fields.Nested(InnerSerializer)
+
+        ser = CSerializer(strict=True)
+
+        ser.context['info'] = 'i like bikes'
+        obj = {
+            'inner': {}
+        }
+        result = ser.dump(obj)
+        assert result.data['inner']['likes_bikes'] is True
+
 
 def raise_marshalling_value_error():
     try:
