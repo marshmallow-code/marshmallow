@@ -3,7 +3,7 @@ import pytest
 import json
 import uuid
 
-from marshmallow import fields, utils, Serializer
+from marshmallow import fields, utils, Schema
 from marshmallow.exceptions import UnmarshallingError
 from marshmallow.compat import text_type, total_seconds
 
@@ -193,7 +193,7 @@ class TestFieldDeserialization:
                             deserialize='notvalid')
 
     def test_method_field_deserialization_is_noop_by_default(self):
-        class MiniUserSerializer(Serializer):
+        class MiniUserSerializer(Schema):
             uppername = fields.Method('uppercase_name')
 
             def uppercase_name(self, obj):
@@ -203,7 +203,7 @@ class TestFieldDeserialization:
         assert s.fields['uppername'].deserialize('steve') == 'steve'
 
     def test_deserialization_method(self):
-        class MiniUserSerializer(Serializer):
+        class MiniUserSerializer(Schema):
             uppername = fields.Method('uppercase_name', deserialize='lowercase_name')
 
             def uppercase_name(self, obj):
@@ -261,16 +261,16 @@ class TestFieldDeserialization:
         assert 'Bad value.' in str(excinfo)
 
 # No custom deserialization behavior, so a dict is returned
-class SimpleUserSerializer(Serializer):
+class SimpleUserSerializer(Schema):
     name = fields.String()
     age = fields.Float()
 
-class Validator(Serializer):
+class Validator(Schema):
     email = fields.Email()
     colors = fields.Enum(['red', 'blue'])
     age = fields.Integer(validate=lambda n: n > 0)
 
-class Validators(Serializer):
+class Validators(Schema):
     email = fields.Email()
     colors = fields.Enum(['red', 'blue'])
     age = fields.Integer(validate=[lambda n: n > 0, lambda n: n < 100])
@@ -294,7 +294,7 @@ class TestSchemaDeserialization:
         assert user['age'] == int(users_data[0]['age'])
 
     def test_make_object(self):
-        class SimpleUserSerializer2(Serializer):
+        class SimpleUserSerializer2(Schema):
             name = fields.String()
             age = fields.Float()
 
@@ -309,13 +309,13 @@ class TestSchemaDeserialization:
     def test_loads_deserializes_from_json(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
         user_json = json.dumps(user_dict)
-        result, errors = UserSerializer().loads(user_json)
+        result, errors = UserSchema().loads(user_json)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
 
     def test_nested_single_deserialization_to_dict(self):
-        class SimpleBlogSerializer(Serializer):
+        class SimpleBlogSerializer(Schema):
             title = fields.String()
             author = fields.Nested(SimpleUserSerializer)
 
@@ -329,7 +329,7 @@ class TestSchemaDeserialization:
         assert author['age'] == 914
 
     def test_nested_list_deserialization_to_dict(self):
-        class SimpleBlogSerializer(Serializer):
+        class SimpleBlogSerializer(Schema):
             title = fields.String()
             authors = fields.Nested(SimpleUserSerializer, many=True)
 
@@ -347,7 +347,7 @@ class TestSchemaDeserialization:
         assert author['age'] == 914
 
     def test_deserialize_with_attribute_param(self):
-        class AliasingUserSerializer(Serializer):
+        class AliasingUserSerializer(Schema):
             username = fields.Email(attribute='email')
             years = fields.Integer(attribute='age')
         data = {

@@ -5,11 +5,11 @@ from collections import namedtuple
 
 import pytest
 
-from marshmallow import Serializer, fields, utils
+from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import total_seconds, text_type
 
-from tests.base import User, UserSerializer
+from tests.base import User, UserSchema
 
 class TestFieldSerialization:
 
@@ -29,14 +29,14 @@ class TestFieldSerialization:
             fields.Function("uncallable")
 
     def test_method_field_with_method_missing(self):
-        class BadSerializer(Serializer):
+        class BadSerializer(Schema):
             bad_field = fields.Method('invalid')
         u = User('Foo')
         with pytest.raises(MarshallingError):
             BadSerializer(u, strict=True)
 
     def test_method_field_with_uncallable_attribute(self):
-        class BadSerializer(Serializer):
+        class BadSerializer(Schema):
             foo = 'not callable'
             bad_field = fields.Method('foo')
         u = User('Foo')
@@ -116,7 +116,7 @@ class TestFieldSerialization:
         with pytest.raises(MarshallingError):
             fields.List("string")
         with pytest.raises(MarshallingError):
-            fields.List(UserSerializer)
+            fields.List(UserSchema)
 
     def test_arbitrary_field(self):
         field = fields.Arbitrary()
@@ -329,7 +329,7 @@ class TestValidation:
                 field.serialize('uppername', invalid)
 
     def test_method_validator(self):
-        class MethodSerializer(Serializer):
+        class MethodSerializer(Schema):
             uppername = fields.Method('get_uppername',
                                       validate=lambda n: len(n) == 3)
 
@@ -349,21 +349,21 @@ class TestValidation:
             yield lambda n: len(n) == 3
             yield lambda n: n.upper()[2] == 'E'
 
-        class MethodSerializerList(Serializer):
+        class MethodSerializerList(Schema):
             uppername = fields.Method('get_uppername',
                                       validate=[lambda n: len(n) == 3, lambda n: n.upper()[2] == 'E'])
 
             def get_uppername(self, obj):
                 return obj.name.upper()
 
-        class MethodSerializerTuple(Serializer):
+        class MethodSerializerTuple(Schema):
             uppername = fields.Method('get_uppername',
                                       validate=(lambda n: len(n) == 3, lambda n: n.upper()[2] == 'E'))
 
             def get_uppername(self, obj):
                 return obj.name.upper()
 
-        class MethodSerializerGenerator(Serializer):
+        class MethodSerializerGenerator(Schema):
             uppername = fields.Method('get_uppername',
                                       validate=validators_gen)
 
@@ -427,7 +427,7 @@ def test_serializing_named_tuple_with_meta():
     Point = namedtuple('Point', ['x', 'y'])
     p = Point(x=4, y=2)
 
-    class PointSerializer(Serializer):
+    class PointSerializer(Schema):
         class Meta:
             fields = ('x', 'y')
 

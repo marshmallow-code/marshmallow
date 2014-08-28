@@ -4,9 +4,10 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
+* Rename ``Serializer`` to ``Schema``.
 * Support for deserialization.
-* Improved ``Serializer`` interface. Use the ``Serializer.dump`` and ``Serializer.load`` methods for serializing and deserializing, respectively.
-* *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Serializer.dumps`` instead.
+* Improved ``Serializer`` interface. Use the ``Schema.dump`` and ``Schema.load`` methods for serializing and deserializing, respectively.
+* *Backwards-incompatible*: Remove ``Schema.json`` and ``Schema.to_json``. Use ``Schema.dumps`` instead.
 * Reworked fields interface.
 * *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``serialize`` and ``deserialize`` comprise the public API for a ``Field``. ``Field.format`` and ``Field.output`` have been removed.
 * *Backwards-incompatible*: Remove ``validated`` decorator. Validation occurs within ``Field`` methods.

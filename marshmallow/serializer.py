@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The Serializer class, including its metaclass and options (class Meta)."""
+"""The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import
 
 from collections import namedtuple
@@ -15,20 +15,20 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
 
-#: Return type of :meth:`Serializer.dump`
+#: Return type of :meth:`Schema.dump`
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
-#: Return type of :meth:`Serializer.load`
+#: Return type of :meth:`Schema.load`
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
-class SerializerMeta(type):
-    """Metaclass for the Serializer class. Binds the declared fields to
+class SchemaMeta(type):
+    """Metaclass for the Schema class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field objects.
     """
 
     def __new__(mcs, name, bases, attrs):
         attrs['_declared_fields'] = mcs.get_declared_fields(bases, attrs, base.FieldABC)
-        new_class = super(SerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+        new_class = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         class_registry.register(name, new_class)
         return new_class
 
@@ -48,7 +48,7 @@ class SerializerMeta(type):
             if utils.is_instance_or_subclass(val, field_class)],
             key=lambda x: x[1]._creation_index
         )
-        # If subclassing another Serializer, inherit its fields
+        # If subclassing another Schema, inherit its fields
         # Loop in reverse to maintain the correct field order
         for base_class in bases[::-1]:
             if hasattr(base_class, '_declared_fields'):
@@ -56,8 +56,8 @@ class SerializerMeta(type):
         return OrderedDict(declared)
 
 
-class SerializerOpts(object):
-    """class Meta options for the Serializer. Defines defaults."""
+class SchemaOpts(object):
+    """class Meta options for the :class:`Schema`. Defines defaults."""
 
     def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
@@ -77,7 +77,7 @@ class SerializerOpts(object):
         self.json_module = getattr(meta, 'json_module', json)
 
 
-class BaseSerializer(base.SerializerABC):
+class BaseSchema(base.SchemaABC):
     """Base serializer class with which to define custom serializers.
 
     Example usage:
@@ -85,24 +85,24 @@ class BaseSerializer(base.SerializerABC):
     .. code-block:: python
 
         from datetime import datetime
-        from marshmallow import Serializer, fields
+        from marshmallow import Schema, fields
 
         class Person(object):
             def __init__(self, name):
                 self.name = name
                 self.date_born = datetime.now()
 
-        class PersonSerializer(Serializer):
+        class PersonSchema(Schema):
             name = fields.String()
             date_born = fields.DateTime()
 
         # Or, equivalently
-        class PersonSerializer2(Serializer):
+        class PersonSchema2(Schema):
             class Meta:
                 fields = ("name", "date_born")
 
         person = Person("Guido van Rossum")
-        serializer = PersonSerializer()
+        serializer = PersonSchema()
         data, errors = serializer.dump(person)
         data  # OrderedDict([('name', u'Guido van Rossum'),
               #              ('date_born', '2014-08-19T21:06:10.620408')])
@@ -138,7 +138,7 @@ class BaseSerializer(base.SerializerABC):
         dt.timedelta: fields.TimeDelta,
     }
 
-    OPTIONS_CLASS = SerializerOpts
+    OPTIONS_CLASS = SchemaOpts
 
     #: Custom error handler function. May be ``None``.
     __error_handler__ = None
@@ -148,7 +148,7 @@ class BaseSerializer(base.SerializerABC):
     __data_handlers__ = None
 
     class Meta(object):
-        """Options object for a Serializer.
+        """Options object for a Schema.
 
         Example usage: ::
 
@@ -207,8 +207,8 @@ class BaseSerializer(base.SerializerABC):
         self._update_fields(self.obj)
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
-            warnings.warn('Serializing objects in the Serializer constructor is a '
-                          'deprecated API. Use the Serializer.dump method instead.',
+            warnings.warn('Serializing objects in the Schema constructor is a '
+                          'deprecated API. Use the Schema.dump method instead.',
                           category=DeprecationWarning)
             self._update_data()
 
@@ -248,16 +248,16 @@ class BaseSerializer(base.SerializerABC):
 
         Example: ::
 
-            class UserSerializer(Serializer):
+            class UserSchema(Schema):
                 email = fields.Email()
 
-            @UserSerializer.error_handler
+            @UserSchema.error_handler
             def handle_errors(serializer, errors, obj):
                 raise ValueError('An error occurred while marshalling {}'.format(obj))
 
             user = User(email='invalid')
-            UserSerializer().dump(user)  # => raises ValueError
-            UserSerializer().load({'email': 'bademail'})  # raises ValueError
+            UserSchema().dump(user)  # => raises ValueError
+            UserSchema().load({'email': 'bademail'})  # raises ValueError
 
         .. versionadded:: 0.7.0
 
@@ -274,10 +274,10 @@ class BaseSerializer(base.SerializerABC):
 
         Example: ::
 
-            class UserSerializer(Serializer):
+            class UserSchema(Schema):
                 name = fields.String()
 
-            @UserSerializer.data_handler
+            @UserSchema.data_handler
             def add_surname(serializer, data, obj):
                 data['surname'] = data['name'].split()[1]
                 return data
@@ -375,7 +375,7 @@ class BaseSerializer(base.SerializerABC):
 
     def dump(self, obj):
         """Serialize an object to native Python data types according to this
-        Serializer's fields.
+        Schema's fields.
 
         :param obj: The object to serialize.
         :return: A tuple of the form (``result``, ``errors``)
@@ -391,7 +391,7 @@ class BaseSerializer(base.SerializerABC):
         return MarshalResult(result, errors)
 
     def load(self, data):
-        """Deserialize a data structure to an object defined by this Serializer's
+        """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
@@ -459,8 +459,8 @@ class BaseSerializer(base.SerializerABC):
     @property
     def errors(self):
         """Dictionary of errors raised during serialization."""
-        warnings.warn('Accessing errors through Serializer.errors is deprecated. '
-                      'Use the return value of Serializer.dump instead.',
+        warnings.warn('Accessing errors through Schema.errors is deprecated. '
+                      'Use the return value of Schema.dump instead.',
                       category=DeprecationWarning)
         return self._marshal.errors
 
@@ -470,7 +470,7 @@ class BaseSerializer(base.SerializerABC):
         :param field_names: List of field names (strings) to validate.
             If ``None``, all fields will be validated.
         """
-        warnings.warn('Serializer.is_valid() is deprecated. Use Serializer.dump '
+        warnings.warn('Schema.is_valid() is deprecated. Use Schema.dump '
                       'instead.', category=DeprecationWarning)
         if field_names is not None and type(field_names) not in (list, tuple):
             raise ValueError("field_names param must be a list or tuple")
@@ -484,5 +484,7 @@ class BaseSerializer(base.SerializerABC):
         return True
 
 
-class Serializer(with_metaclass(SerializerMeta, BaseSerializer)):
-    __doc__ = BaseSerializer.__doc__
+class Schema(with_metaclass(SchemaMeta, BaseSchema)):
+    __doc__ = BaseSchema.__doc__
+
+Serializer = Schema

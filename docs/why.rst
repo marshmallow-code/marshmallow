@@ -17,7 +17,7 @@ Marshmallow makes no assumption about web frameworks or database layers. It will
 Terse, familiar syntax.
 -----------------------
 
-If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Serializer` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the :class:`Serializer` constructor. The :meth:`dump <Serializer.dump>` and :meth:`load <Serialier.load>` methods are used for serialization and deserialization (of course!).
+If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the :class:`Schema` constructor. The :meth:`dump <Schema.dump>` and :meth:`load <Schema.load>` methods are used for serialization and deserialization (of course!).
 
 Class-based schemas allow for inheritance and configuration.
 ------------------------------------------------------------
@@ -27,30 +27,30 @@ Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marsh
 Flexibility.
 ------------
 
-Marshmallow's makes it easy to modify a serializer's output at runtime. A single :class:`Serializer` class can produce multiple outputs formats. Why might that be useful?
+Marshmallow's makes it easy to modify a serializer's output at runtime. A single :class:`Schema` class can produce multiple outputs formats. Why might that be useful?
 
-As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints could be handled by the same :class:`Serializer`.
+As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints could be handled by the same :class:`Schema`.
 
 .. code-block:: python
 
-    class GameStateSerializer(Serializer):
+    class GameStateSchema(Schema):
         _id = fields.UUID(required=True)
-        players = fields.Nested(PlayerSerializer, many=True)
-        score = fields.Nested(ScoreSerializer)
+        players = fields.Nested(PlayerSchema, many=True)
+        score = fields.Nested(ScoreSchema)
         last_changed = fields.DateTime(format='rfc')
 
         class Meta:
             additional = ('title', 'date_created', 'type', 'is_active')
 
     # Serializes full game state
-    full_serializer = GameStateSerializer()
+    full_serializer = GameStateSchema()
     # Serializes a subset of information, for a low-latency endpoint
-    summary_serializer = GameStateSerializer(only=('_id', 'last_changed'))
+    summary_serializer = GameStateSchema(only=('_id', 'last_changed'))
     # Also filter the fields when serializing multiple games
-    gamelist_serializer = GameStateSerializer(many=True,
+    gamelist_serializer = GameStateSchema(many=True,
                                                only=('_id', 'players', 'last_changed'))
 
-In this example, a single serializer class produced three different outputs! The dynamic nature of a :class:`Serializer` schema keeps your code `DRY <https://en.wikipedia.org/wiki/DRY>`_ and flexible.
+In this example, a single serializer class produced three different outputs! The dynamic nature of a :class:`Schema` schema keeps your code `DRY <https://en.wikipedia.org/wiki/DRY>`_ and flexible.
 
 .. _Django REST Framework: http://www.django-rest-framework.org/
 .. _Flask-RESTful: http://flask-restful.readthedocs.org/

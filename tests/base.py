@@ -5,7 +5,7 @@ import uuid
 
 import pytz
 
-from marshmallow import Serializer, fields
+from marshmallow import Schema, fields
 from marshmallow.exceptions import MarshallingError
 
 central = pytz.timezone("US/Central")
@@ -95,7 +95,7 @@ class Uppercased(fields.Field):
             return value.upper()
 
 
-class UserSerializer(Serializer):
+class UserSchema(Schema):
     name = fields.String()
     age = fields.Float()
     created = fields.DateTime()
@@ -131,8 +131,8 @@ class UserSerializer(Serializer):
         return User(**data)
 
 
-class UserMetaSerializer(Serializer):
-    """The equivalent of the UserSerializer, using the ``fields`` option."""
+class UserMetaSchema(Schema):
+    """The equivalent of the UserSchema, using the ``fields`` option."""
     uppername = Uppercased(attribute='name')
     balance = fields.Price()
     is_old = fields.Method("get_is_old")
@@ -156,81 +156,81 @@ class UserMetaSerializer(Serializer):
                   'birthdate', 'since_created')
 
 
-class UserExcludeSerializer(UserSerializer):
+class UserExcludeSchema(UserSchema):
     class Meta:
         exclude = ("created", "updated", "field_not_found_but_thats_ok")
 
 
-class UserAdditionalSerializer(Serializer):
+class UserAdditionalSchema(Schema):
     lowername = fields.Function(lambda obj: obj.name.lower())
 
     class Meta:
         additional = ("name", "age", "created", "email")
 
 
-class UserIntSerializer(UserSerializer):
+class UserIntSchema(UserSchema):
     age = fields.Integer()
 
 
-class UserFixedSerializer(UserSerializer):
+class UserFixedSchema(UserSchema):
     age = fields.Fixed(decimals=2)
 
 
-class UserFloatStringSerializer(UserSerializer):
+class UserFloatStringSchema(UserSchema):
     age = fields.Float(as_string=True)
 
 
-class UserDecimalSerializer(UserSerializer):
+class UserDecimalSchema(UserSchema):
     age = fields.Arbitrary()
 
 
-class ExtendedUserSerializer(UserSerializer):
+class ExtendedUserSchema(UserSchema):
     is_old = fields.Boolean()
 
 
-class UserRelativeUrlSerializer(UserSerializer):
+class UserRelativeUrlSchema(UserSchema):
     homepage = fields.Url(relative=True)
 
 
-class BlogSerializer(Serializer):
+class BlogSchema(Schema):
     title = fields.String()
-    user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer, many=True)
+    user = fields.Nested(UserSchema)
+    collaborators = fields.Nested(UserSchema, many=True)
     categories = fields.List(fields.String)
     id = fields.String()
 
 
-class BlogUserMetaSerializer(Serializer):
-    user = fields.Nested(UserMetaSerializer())
-    collaborators = fields.Nested(UserMetaSerializer, many=True)
+class BlogUserMetaSchema(Schema):
+    user = fields.Nested(UserMetaSchema())
+    collaborators = fields.Nested(UserMetaSchema, many=True)
 
 
-class BlogSerializerMeta(Serializer):
+class BlogSerializerMeta(Schema):
     '''Same as BlogSerializer but using ``fields`` options.'''
-    user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer, many=True)
+    user = fields.Nested(UserSchema)
+    collaborators = fields.Nested(UserSchema, many=True)
 
     class Meta:
         fields = ('title', 'user', 'collaborators', 'categories', "id")
 
 
-class BlogSerializerOnly(Serializer):
+class BlogOnlySchema(Schema):
     title = fields.String()
-    user = fields.Nested(UserSerializer)
-    collaborators = fields.Nested(UserSerializer, only=("id", ), many=True)
+    user = fields.Nested(UserSchema)
+    collaborators = fields.Nested(UserSchema, only=("id", ), many=True)
 
 
-class BlogSerializerExclude(BlogSerializer):
-    user = fields.Nested(UserSerializer, exclude=("uppername", "species"))
+class BlogSerializerExclude(BlogSchema):
+    user = fields.Nested(UserSchema, exclude=("uppername", "species"))
 
 
-class BlogSerializerOnlyExclude(BlogSerializer):
-    user = fields.Nested(UserSerializer, only=("name", ), exclude=("name", "species"))
+class BlogSchemaOnlyExclude(BlogSchema):
+    user = fields.Nested(UserSchema, only=("name", ), exclude=("name", "species"))
 
 
-class BlogSerializerPrefixedUser(BlogSerializer):
-    user = fields.Nested(UserSerializer(prefix="usr_"))
-    collaborators = fields.Nested(UserSerializer(prefix="usr_"), many=True)
+class BlogSchemaPrefixedUser(BlogSchema):
+    user = fields.Nested(UserSchema(prefix="usr_"))
+    collaborators = fields.Nested(UserSchema(prefix="usr_"), many=True)
 
 
 class mockjson(object):

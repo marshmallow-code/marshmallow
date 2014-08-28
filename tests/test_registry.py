@@ -2,19 +2,19 @@
 
 import pytest
 
-from marshmallow import Serializer, fields, class_registry
+from marshmallow import Schema, fields, class_registry
 from marshmallow.exceptions import RegistryError
 
 
 def test_serializer_has_class_registry():
-    class MySerializer(Serializer):
+    class MySchema(Schema):
         pass
 
-    class MySubSerializer(Serializer):
+    class MySubSchema(Schema):
         pass
 
-    assert 'MySerializer' in class_registry._registry
-    assert 'MySubSerializer' in class_registry._registry
+    assert 'MySchema' in class_registry._registry
+    assert 'MySubSchema' in class_registry._registry
 
 
 class A:
@@ -36,33 +36,32 @@ class C:
         self.id = _id
         self.bs = bs or []
 
-class ASerializer(Serializer):
+class ASchema(Schema):
     id = fields.Integer()
-    b = fields.Nested('BSerializer', exclude=('a', ))
+    b = fields.Nested('BSchema', exclude=('a', ))
 
-class BSerializer(Serializer):
+class BSchema(Schema):
     id = fields.Integer()
-    a = fields.Nested('ASerializer')
+    a = fields.Nested('ASchema')
 
-class CSerializer(Serializer):
+class CSchema(Schema):
     id = fields.Integer()
-    bs = fields.Nested('BSerializer', many=True)
+    bs = fields.Nested('BSchema', many=True)
 
 def test_two_way_nesting():
     a_obj = A(1)
     b_obj = B(2, a=a_obj)
     a_obj.b = b_obj
 
-    a_serialized = ASerializer(a_obj)
-    b_serialized = BSerializer(b_obj)
-
+    a_serialized = ASchema().dump(a_obj)
+    b_serialized = BSchema().dump(b_obj)
     assert a_serialized.data['b']['id'] == b_obj.id
     assert b_serialized.data['a']['id'] == a_obj.id
 
 def test_nesting_with_class_name_many():
     c_obj = C(1, bs=[B(2), B(3), B(4)])
 
-    c_serialized = CSerializer(c_obj)
+    c_serialized = CSchema(c_obj)
 
     assert len(c_serialized.data['bs']) == len(c_obj.bs)
     assert c_serialized.data['bs'][0]['id'] == c_obj.bs[0].id
@@ -73,7 +72,7 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
 
     assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
 
-class FooSerializer(Serializer):
+class FooSerializer(Schema):
     _id = fields.Integer()
 
 

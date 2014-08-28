@@ -1,8 +1,8 @@
 from bottle import route, request, run
 from textblob import TextBlob
-from marshmallow import Serializer, fields
+from marshmallow import Schema, fields
 
-class BlobSerializer(Serializer):
+class BlobSchema(Schema):
     polarity = fields.Float()
     subjectivity = fields.Float()
     chunks = fields.List(fields.String, attribute="noun_phrases")
@@ -18,7 +18,7 @@ class BlobSerializer(Serializer):
         else:
             return 'neutral'
 
-blob_serializer = BlobSerializer()
+blob_serializer = BlobSchema()
 
 @route("/api/v1/analyze", method="POST")
 def analyze():

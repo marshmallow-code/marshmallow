@@ -31,7 +31,7 @@ class FieldABC(object):
     __str__ = __repr__
 
 
-class SerializerABC(object):
+class SchemaABC(object):
     """Abstract base class from which all Serializers inherit."""
 
     @property

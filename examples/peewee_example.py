@@ -3,7 +3,7 @@ from functools import wraps
 
 from flask import Flask, request, g, jsonify
 import peewee as pw
-from marshmallow import Serializer, fields
+from marshmallow import Schema, fields
 
 app = Flask(__name__)
 db = pw.SqliteDatabase("/tmp/todo.db")
@@ -43,13 +43,13 @@ def create_tables():
 
 ##### SERIALIZERS #####
 
-class UserSerializer(Serializer):
+class UserSchema(Schema):
     class Meta:
         fields = ('email', 'joined_on')
 
-class TodoSerializer(Serializer):
+class TodoSchema(Schema):
     done = fields.Boolean(attribute='is_done')
-    user = fields.Nested(UserSerializer)
+    user = fields.Nested(UserSchema)
 
     class Meta:
         additional = ('id', 'content', 'posted_on')
@@ -64,9 +64,9 @@ class TodoSerializer(Serializer):
                         posted_on=data.get('posted_on') or dt.datetime.utcnow())
         return todo
 
-user_serializer = UserSerializer()
-todo_serializer = TodoSerializer()
-todos_serializer = TodoSerializer(many=True)
+user_serializer = UserSchema()
+todo_serializer = TodoSchema()
+todos_serializer = TodoSchema(many=True)
 
 ###### HELPERS ######
 

@@ -2,7 +2,7 @@
 """Pytest fixtures that are available in all test modules."""
 import pytest
 
-from tests.base import User, UserSerializer, Blog
+from tests.base import User, UserSchema, Blog
 
 @pytest.fixture
 def user():
@@ -17,4 +17,4 @@ def blog(user):
 
 @pytest.fixture
 def serialized_user(user):
-    return UserSerializer().dump(user)
+    return UserSchema().dump(user)

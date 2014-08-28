@@ -18,7 +18,7 @@ Homepage: http://marshmallow.rtfd.org/
 .. code-block:: python
 
     from datetime import datetime
-    from marshmallow import Serializer, fields, pprint
+    from marshmallow import Schema, fields, pprint
 
     # A "model"
     class Person(object):
@@ -26,13 +26,13 @@ Homepage: http://marshmallow.rtfd.org/
             self.name = name
             self.date_born = datetime.now()
 
-    # A serializer
-    class PersonSerializer(Serializer):
+    # A serializer schema
+    class PersonSchema(Schema):
         name = fields.String()
         date_born = fields.DateTime()
 
     person = Person("Guido van Rossum")
-    serializer = PersonSerializer()
+    serializer = PersonSchema()
     result = serializer.dump(person)
     pprint(result.data)
     # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}

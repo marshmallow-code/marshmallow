@@ -10,7 +10,7 @@ import inspect
 import warnings
 
 from marshmallow import validate, utils, class_registry
-from marshmallow.base import FieldABC, SerializerABC
+from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
                                 basestring)
 from marshmallow.exceptions import (
@@ -219,7 +219,7 @@ class Field(FieldABC):
         self.error = error
         self.validate = validate
         self.required = required
-        # Save creation index so that fields can be sorted by Serializer
+        # Save creation index so that fields can be sorted by Schema
         self._creation_index = Field._creation_index
         Field._creation_index += 1
         self.parent = FieldABC.parent
@@ -341,17 +341,17 @@ class Raw(Field):
     """Field that applies no formatting or validation."""
 
 class Nested(Field):
-    """Allows you to nest a :class:`Serializer <marshmallow.Serializer>`
+    """Allows you to nest a :class:`Schema <marshmallow.Schema>`
     inside a field.
 
     Examples: ::
 
-        user = fields.Nested(UserSerializer)
-        user2 = fields.Nested('UserSerializer')  # Equivalent to above
-        collaborators = fields.Nested(UserSerializer, many=True, only='id')
+        user = fields.Nested(UserSchema)
+        user2 = fields.Nested('UserSchema')  # Equivalent to above
+        collaborators = fields.Nested(UserSchema, many=True, only='id')
         parent = fields.Nested('self')
 
-    :param Serializer nested: The Serializer class, instance, or class name (string)
+    :param Schema nested: The Schema class, instance, or class name (string)
         to nest, or ``"self"`` to nest the serializer within itself.
     :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
@@ -398,13 +398,13 @@ class Nested(Field):
 
     @property
     def serializer(self):
-        """The nested Serializer object."""
+        """The nested Schema object."""
         # Cache the serializer instance
         if not self.__serializer:
-            if isinstance(self.nested, SerializerABC):
+            if isinstance(self.nested, SchemaABC):
                 self.__serializer = self.nested
             elif isinstance(self.nested, type) and \
-                    issubclass(self.nested, SerializerABC):
+                    issubclass(self.nested, SchemaABC):
                 self.__serializer = self.nested(None, many=self.many)
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
@@ -415,7 +415,7 @@ class Nested(Field):
                     serializer_class = class_registry.get_class(self.nested)
                     self.__serializer = serializer_class(None, many=self.many)
             else:
-                raise ForcedError(ValueError("Nested fields must be passed a Serializer, not {0}."
+                raise ForcedError(ValueError("Nested fields must be passed a Schema, not {0}."
                                 .format(self.nested.__class__)))
         # Inherit context from parent
         self.__serializer.context.update(getattr(self.parent, 'context', {}))
@@ -607,7 +607,7 @@ class FormattedString(Field):
     the source string is the same as the string `str.format` method from the python stdlib.
     ::
 
-        class UserSer(Serializer):
+        class UserSer(Schema):
             name = fields.String()
             greeting = fields.FormattedString('Hello {name}')
 
@@ -700,7 +700,7 @@ class DateTime(Field):
     def __init__(self, format=None, default=None, attribute=None, **kwargs):
         super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
         # Allow this to be None. It may be set later in the ``format`` method
-        # This allows a Serializer to dynamically set the dateformat, e.g.
+        # This allows a Schema to dynamically set the dateformat, e.g.
         # from a Meta option
         self.dateformat = format
 
@@ -926,14 +926,14 @@ def _callable(obj):
 
 
 class Method(Field):
-    """A field that takes the value returned by a Serializer method.
+    """A field that takes the value returned by a Schema method.
 
-    :param str method_name: The name of the Serializer method from which
+    :param str method_name: The name of the Schema method from which
         to retrieve the value. The method must take an argument ``obj``
         (in addition to self) that is the object to be serialized. The method
         can also take a ``context`` argument which is a dictionary context
-        passed to a Serializer.
-    :param str deserialize: Optional name of the Serializer method for deserializing
+        passed to a Schema.
+    :param str deserialize: Optional name of the Schema method for deserializing
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
     """

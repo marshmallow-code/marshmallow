@@ -42,18 +42,18 @@ Migrating to 1.0.0
 
 Version 1.0.0 marks the first major release of marshmallow. Many big changes were made from the pre-1.0 releases in order to provide a cleaner API as well as to support object deserialization.
 
-Perhaps the largest change is in how objects get serialized. Serialization occurs by invoking the :meth:`Serializer.dump` method rather than passing the object to the constructor.  Because only configuration options (e.g. the ``many``, ``strict``, and ``only`` parameters) are passed to the constructor, you can more easily reuse serializer instances.  The :meth:`dump <Serializer.dump>` method also forms a nice symmetry with the :meth:`Serializer.load` method, which is used for deserialization.
+Perhaps the largest change is in how objects get serialized. Serialization occurs by invoking the :meth:`Schema.dump` method rather than passing the object to the constructor.  Because only configuration options (e.g. the ``many``, ``strict``, and ``only`` parameters) are passed to the constructor, you can more easily reuse serializer instances.  The :meth:`dump <Schema.dump>` method also forms a nice symmetry with the :meth:`Schema.load` method, which is used for deserialization.
 
 .. code-block:: python
 
-    class UserSerializer(Serializer):
+    class UserSchema(Schema):
         email = fields.Email()
         name = fields.String()
 
     user= User(email='monty@python.org', name='Monty Python')
 
     # 1.0
-    serializer = UserSerializer()
+    serializer = UserSchema()
     data, errors = serializer.dump(user)
     # OR
     result = serializer.dump(user)
@@ -61,7 +61,7 @@ Perhaps the largest change is in how objects get serialized. Serialization occur
     result.errors  # => errors
 
     # Pre-1.0
-    serialized = UserSerializer(user)
+    serialized = UserSchema(user)
     data = serialized.data
     errors = serialized.errors
 
@@ -83,6 +83,7 @@ The Fields interface was also reworked in 1.0.0 to make it easier to define cust
 
 Other notable changes:
 
+- :class:`Serializer` has been renamed to :class:`Schema`, but you can still import `marshmallow.Serializer`, which is just an alias for :class:`Schema`.
 - ``datetime`` objects serialize to ISO8601 formatted strings by default (instead of RFC821 format).
 - The ``fields.validated`` decorator was removed, as it is no longer necessary given the new Fields interface.
-- `Serializer.factory` class method was removed.
+- `Schema.factory` class method was removed.

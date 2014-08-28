@@ -6,18 +6,19 @@ __author__ = 'Steven Loria'
 __license__ = 'MIT'
 
 from marshmallow.serializer import (
-    Serializer,
-    SerializerOpts,
+    Schema,
+    SchemaOpts,
     MarshalResult,
-    UnmarshalResult
+    UnmarshalResult,
+    Serializer,
 )
 from marshmallow.utils import pprint
 from marshmallow.exceptions import MarshallingError, UnmarshallingError
 
 
 __all__ = [
-    'Serializer',
-    'SerializerOpts',
+    'Schema',
+    'SchemaOpts',
     'pprint',
     'MarshalResult',
     'UnmarshalResult',

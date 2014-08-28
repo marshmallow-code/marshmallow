@@ -6,14 +6,14 @@ API Reference
 
 .. module:: marshmallow
 
-Serializer
-==========
+Schema
+======
 
 
-.. autoclass:: Serializer
+.. autoclass:: Schema
     :inherited-members:
 
-.. autoclass:: SerializerOpts
+.. autoclass:: SchemaOpts
 
 .. autoclass:: MarshalResult
 .. autoclass:: UnmarshalResult

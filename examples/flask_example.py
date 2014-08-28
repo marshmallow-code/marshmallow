@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from marshmallow import Serializer, fields
+from marshmallow import Schema, fields
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/quotes.db'
@@ -35,7 +35,7 @@ class Quote(db.Model):
 
 ##### SERIALIZERS #####
 
-class AuthorSerializer(Serializer):
+class AuthorSchema(Schema):
     formatted_name = fields.Method("format_name")
 
     def format_name(self, author):
@@ -44,8 +44,8 @@ class AuthorSerializer(Serializer):
     class Meta:
         fields = ('id', 'first', 'last', "formatted_name")
 
-class QuoteSerializer(Serializer):
-    author = fields.Nested(AuthorSerializer)
+class QuoteSchema(Schema):
+    author = fields.Nested(AuthorSchema)
 
     class Meta:
         fields = ("id", "content", "posted_at", 'author')
@@ -59,15 +59,15 @@ class SchemaError(Exception):
         self.errors = errors
 
 # When a marshalling/unmarshalling error occurs, raise a SchemaError
-@AuthorSerializer.error_handler
-@QuoteSerializer.error_handler
+@AuthorSchema.error_handler
+@QuoteSchema.error_handler
 def handle_errors(serializer, errors, obj):
     raise SchemaError('There was a problem marshalling or unmarshalling {}'
             .format(obj), errors=errors)
 
-author_serializer = AuthorSerializer()
-quote_serializer = QuoteSerializer()
-quotes_serializer = QuoteSerializer(many=True, only=('id', 'content'))
+author_serializer = AuthorSchema()
+quote_serializer = QuoteSchema()
+quotes_serializer = QuoteSchema(many=True, only=('id', 'content'))
 
 ##### API #####
 
@@ -82,7 +82,7 @@ def handle_marshalling_error(err):
 def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
-    serializer = AuthorSerializer(many=True)
+    serializer = AuthorSchema(many=True)
     result = serializer.dump(authors)
     return jsonify({"authors": result.data})
 
