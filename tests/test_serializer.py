@@ -16,10 +16,10 @@ from tests.base import *  # noqa
 random.seed(1)
 
 # Run tests with both verbose serializer and "meta" option serializer
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_serializing_basic_object(SerializerClass, user):
-    s = SerializerClass()
+def test_serializing_basic_object(SchemaClass, user):
+    s = SchemaClass()
     data, errors = s.dump(user)
     assert data['name'] == user.name
     assert_almost_equal(s.data['age'], 42.3)
@@ -78,11 +78,11 @@ def test_serializing_none():
     assert s.data['age'] == 0
 
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_fields_are_not_copies(SerializerClass):
-    s = SerializerClass(User('Monty', age=42))
-    s2 = SerializerClass(User('Monty', age=43))
+def test_fields_are_not_copies(SchemaClass):
+    s = SchemaClass(User('Monty', age=42))
+    s2 = SchemaClass(User('Monty', age=43))
     assert s.fields is not s2.fields
 
 
@@ -123,13 +123,13 @@ def test_local_datetime_field(user, serialized_user):
 def test_class_variable(serialized_user):
     assert serialized_user.data['species'] == 'Homo sapiens'
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_serialize_many(SerializerClass):
+def test_serialize_many(SchemaClass):
     user1 = User(name="Mick", age=123)
     user2 = User(name="Keith", age=456)
     users = [user1, user2]
-    serialized = SerializerClass(users, many=True)
+    serialized = SchemaClass(users, many=True)
     assert len(serialized.data) == 2
     assert serialized.data[0]['name'] == "Mick"
     assert serialized.data[1]['name'] == "Keith"
@@ -152,11 +152,11 @@ def test_custom_field(serialized_user, user):
 def test_url_field(serialized_user, user):
     assert serialized_user.data['homepage'] == user.homepage
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_url_field_validation(SerializerClass):
+def test_url_field_validation(SchemaClass):
     invalid = User("John", age=42, homepage="/john")
-    s = SerializerClass(invalid)
+    s = SchemaClass(invalid)
     assert s.is_valid(["homepage"]) is False
 
 def test_relative_url_field():
@@ -164,11 +164,11 @@ def test_relative_url_field():
     serialized = UserRelativeUrlSchema(u)
     assert serialized.is_valid()
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_stores_invalid_url_error(SerializerClass):
+def test_stores_invalid_url_error(SchemaClass):
     user = User(name="John Doe", homepage="www.foo.com")
-    serialized = SerializerClass(user)
+    serialized = SchemaClass(user)
     assert "homepage" in serialized.errors
     expected = '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?'
     assert serialized.errors['homepage'] == expected
@@ -178,11 +178,11 @@ def test_default():
     serialized = UserSchema(user)
     assert serialized.data['id'] == "no-id"
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_email_field(SerializerClass):
+def test_email_field(SchemaClass):
     u = User("John", email="john@example.com")
-    s = SerializerClass(u)
+    s = SchemaClass(u)
     assert s.data['email'] == "john@example.com"
 
 def test_stored_invalid_email():
@@ -239,36 +239,36 @@ def test_extra_many():
     data, errs = UserSchema(many=True, extra={'band': 'Queen'}).dump(users)
     assert data[0]['band'] == 'Queen'
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_method_field(SerializerClass, serialized_user):
+def test_method_field(SchemaClass, serialized_user):
     assert serialized_user.data['is_old'] is False
     u = User("Joe", age=81)
-    assert SerializerClass(u).data['is_old'] is True
+    assert SchemaClass(u).data['is_old'] is True
 
 def test_function_field(serialized_user, user):
     assert serialized_user.data['lowername'] == user.name.lower()
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_prefix(SerializerClass, user):
-    s = SerializerClass(user, prefix="usr_")
+def test_prefix(SchemaClass, user):
+    s = SchemaClass(user, prefix="usr_")
     assert s.data['usr_name'] == user.name
 
 def test_fields_must_be_declared_as_instances(user):
-    class BadUserSerializer(Schema):
+    class BadUserSchema(Schema):
         name = fields.String
     with pytest.raises(TypeError):
-        BadUserSerializer(user)
+        BadUserSchema(user)
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_serializing_generator(SerializerClass):
+def test_serializing_generator(SchemaClass):
     users = [User("Foo"), User("Bar")]
     user_gen = (u for u in users)
-    s = SerializerClass(user_gen, many=True)
+    s = SchemaClass(user_gen, many=True)
     assert len(s.data) == 2
-    assert s.data[0] == SerializerClass(users[0]).data
+    assert s.data[0] == SchemaClass(users[0]).data
 
 
 def test_serializing_empty_list_returns_empty_list():
@@ -283,18 +283,18 @@ def test_serializing_dict(user):
     assert s.data['age'] == 42.3
     assert s.is_valid(['email']) is False
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_exclude_in_init(SerializerClass, user):
-    s = SerializerClass(user, exclude=('age', 'homepage'))
+def test_exclude_in_init(SchemaClass, user):
+    s = SchemaClass(user, exclude=('age', 'homepage'))
     assert 'homepage' not in s.data
     assert 'age' not in s.data
     assert 'name' in s.data
 
-@pytest.mark.parametrize('SerializerClass',
+@pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
-def test_only_in_init(SerializerClass, user):
-    s = SerializerClass(user, only=('name', 'age'))
+def test_only_in_init(SchemaClass, user):
+    s = SchemaClass(user, only=('name', 'age'))
     assert 'homepage' not in s.data
     assert 'name' in s.data
     assert 'age' in s.data
@@ -309,12 +309,12 @@ def test_strict_init():
         UserSchema(invalid, strict=True)
 
 def test_strict_meta_option():
-    class StrictUserSerializer(UserSchema):
+    class StrictUserSchema(UserSchema):
         class Meta:
             strict = True
     invalid = User("Foo", email="foo.com")
     with pytest.raises(MarshallingError):
-        StrictUserSerializer(invalid)
+        StrictUserSchema(invalid)
 
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user.data['uid'] == str(user.uid)
@@ -343,26 +343,26 @@ def test_invalid_selection():
     assert s.errors['sex'] == "'hybrid' is not a valid choice for this field."
 
 def test_custom_json():
-    class UserJSONSerializer(Schema):
+    class UserJSONSchema(Schema):
         name = fields.String()
 
         class Meta:
             json_module = mockjson
 
     user = User('Joe')
-    s = UserJSONSerializer(user)
+    s = UserJSONSchema(user)
     result, errors = s.dumps(user)
     assert result == mockjson.dumps('val')
 
 
 def test_custom_error_message():
-    class ErrorSerializer(Schema):
+    class ErrorSchema(Schema):
         email = fields.Email(error="Invalid email")
         homepage = fields.Url(error="Bad homepage.")
         balance = fields.Fixed(error="Bad balance.")
 
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
-    s = ErrorSerializer()
+    s = ErrorSchema()
     data, errors = s.dump(u)
     assert errors['email'] == "Invalid email"
     assert errors['homepage'] == "Bad homepage."
@@ -370,7 +370,7 @@ def test_custom_error_message():
 
 
 def test_error_raised_if_fields_option_is_not_list():
-    class BadSerializer(Schema):
+    class BadSchema(Schema):
         name = fields.String()
 
         class Meta:
@@ -378,11 +378,11 @@ def test_error_raised_if_fields_option_is_not_list():
 
     u = User('Joe')
     with pytest.raises(ValueError):
-        BadSerializer(u)
+        BadSchema(u)
 
 
 def test_error_raised_if_additional_option_is_not_list():
-    class BadSerializer(Schema):
+    class BadSchema(Schema):
         name = fields.String()
 
         class Meta:
@@ -390,7 +390,7 @@ def test_error_raised_if_additional_option_is_not_list():
 
     u = User('Joe')
     with pytest.raises(ValueError):
-        BadSerializer(u)
+        BadSchema(u)
 
 
 def test_meta_serializer_fields():
@@ -442,11 +442,11 @@ def test_nested_field_order_with_exlude_arg_is_maintained(user):
 
 
 def test_meta_fields_order_is_maintained(user):
-    class MetaSerializer(Schema):
+    class MetaSchema(Schema):
         class Meta:
             fields = ('name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate')
 
-    ser = MetaSerializer()
+    ser = MetaSchema()
     data, errs = ser.dump(user)
     keys = list(data)
     assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
@@ -471,11 +471,11 @@ def test_meta_fields_mapping(user):
 
 
 def test_meta_field_not_on_obj_raises_attribute_error(user):
-    class BadUserSerializer(Schema):
+    class BadUserSchema(Schema):
         class Meta:
             fields = ('name', 'notfound')
     with pytest.raises(AttributeError):
-        BadUserSerializer(user)
+        BadUserSchema(user)
 
 def test_exclude_fields(user):
     s = UserExcludeSchema(user)
@@ -500,30 +500,30 @@ def test_exclude_option_must_be_list_or_tuple(user):
 def test_dateformat_option(user):
     fmt = '%Y-%m'
 
-    class DateFormatSerializer(Schema):
+    class DateFormatSchema(Schema):
         updated = fields.DateTime("%m-%d")
 
         class Meta:
             fields = ('created', 'updated')
             dateformat = fmt
-    serialized = DateFormatSerializer(user)
+    serialized = DateFormatSchema(user)
     assert serialized.data['created'] == user.created.strftime(fmt)
     assert serialized.data['updated'] == user.updated.strftime("%m-%d")
 
 def test_default_dateformat(user):
-    class DateFormatSerializer(Schema):
+    class DateFormatSchema(Schema):
         updated = fields.DateTime(format="%m-%d")
 
         class Meta:
             fields = ('created', 'updated')
-    serialized = DateFormatSerializer(user)
+    serialized = DateFormatSchema(user)
     assert serialized.data['created'] == utils.isoformat(user.created)
     assert serialized.data['updated'] == user.updated.strftime("%m-%d")
 
 def test_inherit_meta(user):
-    class InheritedMetaSerializer(UserMetaSchema):
+    class InheritedMetaSchema(UserMetaSchema):
         pass
-    result = InheritedMetaSerializer(user).data
+    result = InheritedMetaSchema(user).data
     expected = UserMetaSchema(user).data
     assert result == expected
 
@@ -533,14 +533,14 @@ def test_additional(user):
     assert s.data['name'] == user.name
 
 def test_cant_set_both_additional_and_fields(user):
-    class BadSerializer(Schema):
+    class BadSchema(Schema):
         name = fields.String()
 
         class Meta:
             fields = ("name", 'email')
             additional = ('email', 'homepage')
     with pytest.raises(ValueError):
-        BadSerializer(user)
+        BadSchema(user)
 
 def test_serializing_none_meta():
     s = UserMetaSchema(None)
@@ -552,101 +552,101 @@ def test_serializing_none_meta():
 class CustomError(Exception):
     pass
 
-class MySerializer(Schema):
+class MySchema(Schema):
     name = fields.String()
     email = fields.Email()
 
-class MySerializer2(Schema):
+class MySchema2(Schema):
     homepage = fields.URL()
 
 def test_dump_with_custom_error_handler(user):
-    @MySerializer.error_handler
+    @MySchema.error_handler
     def handle_errors(serializer, errors, obj):
-        assert isinstance(serializer, MySerializer)
+        assert isinstance(serializer, MySchema)
         assert 'email' in errors
         assert isinstance(obj, User)
         raise CustomError('Something bad happened')
 
     user.email = 'bademail'
     with pytest.raises(CustomError):
-        MySerializer().dump(user)
+        MySchema().dump(user)
 
     user.email = 'monty@python.org'
-    assert MySerializer(user).data
+    assert MySchema(user).data
 
 def test_load_with_custom_error_handler():
-    @MySerializer.error_handler
+    @MySchema.error_handler
     def handle_errors(serializer, errors, data):
-        assert isinstance(serializer, MySerializer)
+        assert isinstance(serializer, MySchema)
         assert 'email' in errors
         assert isinstance(data, dict)
         raise CustomError('Something bad happened')
     with pytest.raises(CustomError):
-        MySerializer().load({'email': 'invalid'})
+        MySchema().load({'email': 'invalid'})
 
 def test_multiple_serializers_with_same_error_handler(user):
 
-    @MySerializer.error_handler
-    @MySerializer2.error_handler
+    @MySchema.error_handler
+    @MySchema2.error_handler
     def handle_errors(serializer, errors, obj):
         raise CustomError('Something bad happened')
     user.email = 'bademail'
     user.homepage = 'foo'
     with pytest.raises(CustomError):
-        MySerializer().dump(user)
+        MySchema().dump(user)
     with pytest.raises(CustomError):
-        MySerializer2().dump(user)
+        MySchema2().dump(user)
 
 def test_setting_error_handler_class_attribute(user):
     def handle_errors(serializer, errors, obj):
         raise CustomError('Something bad happened')
 
-    class ErrorSerializer(Schema):
+    class ErrorSchema(Schema):
         email = fields.Email()
         __error_handler__ = handle_errors
 
-    class ErrorSerializerSub(ErrorSerializer):
+    class ErrorSchemaSub(ErrorSchema):
         pass
 
     user.email = 'invalid'
 
-    ser = ErrorSerializer()
+    ser = ErrorSchema()
     with pytest.raises(CustomError):
         ser.dump(user)
 
-    subser = ErrorSerializerSub()
+    subser = ErrorSchemaSub()
     with pytest.raises(CustomError):
         subser.dump(user)
 
 
 def test_serializer_with_custom_data_handler(user):
-    class CallbackSerializer(Schema):
+    class CallbackSchema(Schema):
         name = fields.String()
 
-    @CallbackSerializer.data_handler
+    @CallbackSchema.data_handler
     def add_meaning(serializer, data, obj):
         data['meaning'] = 42
         return data
 
-    ser = CallbackSerializer()
+    ser = CallbackSchema()
     data, _ = ser.dump(user)
     assert data['meaning'] == 42
 
 def test_serializer_with_multiple_data_handlers(user):
-    class CallbackSerializer2(Schema):
+    class CallbackSchema2(Schema):
         name = fields.String()
 
-    @CallbackSerializer2.data_handler
+    @CallbackSchema2.data_handler
     def add_meaning(serializer, data, obj):
         data['meaning'] = 42
         return data
 
-    @CallbackSerializer2.data_handler
+    @CallbackSchema2.data_handler
     def upper_name(serializer, data, obj):
         data['name'] = data['name'].upper()
         return data
 
-    ser = CallbackSerializer2()
+    ser = CallbackSchema2()
     data, _ = ser.dump(user)
     assert data['meaning'] == 42
     assert data['name'] == user.name.upper()
@@ -656,43 +656,43 @@ def test_setting_data_handlers_class_attribute(user):
         data['meaning'] = 42
         return data
 
-    class CallbackSerializer3(Schema):
+    class CallbackSchema3(Schema):
         __data_handlers__ = [add_meaning]
 
         name = fields.String()
 
-    ser = CallbackSerializer3()
+    ser = CallbackSchema3()
     data, _ = ser.dump(user)
     assert data['meaning'] == 42
 
 def test_root_data_handler(user):
-    class RootSerializer(Schema):
+    class RootSchema(Schema):
         NAME = 'user'
 
         name = fields.String()
 
-    @RootSerializer.data_handler
+    @RootSchema.data_handler
     def add_root(serializer, data, obj):
         return {
             serializer.NAME: data
         }
 
-    s = RootSerializer()
+    s = RootSchema()
     data, _ = s.dump(user)
     assert data['user']['name'] == user.name
 
 def test_serializer_repr():
-    class MySerializer(Schema):
+    class MySchema(Schema):
         name = fields.String()
 
-    ser = MySerializer(many=True, strict=True)
+    ser = MySchema(many=True, strict=True)
     rep = repr(ser)
-    assert 'MySerializer' in rep
+    assert 'MySchema' in rep
     assert 'strict=True' in rep
     assert 'many=True' in rep
 
 
-class TestNestedSerializer:
+class TestNestedSchema:
 
     def setup_method(self, method):
         self.user = User(name="Monty", age=81)
@@ -702,48 +702,48 @@ class TestNestedSerializer:
                          collaborators=[col1, col2])
 
     def test_flat_nested(self):
-        class FlatBlogSerializer(Schema):
+        class FlatBlogSchema(Schema):
             name = fields.String()
             user = fields.Nested(UserSchema, only='name')
             collaborators = fields.Nested(UserSchema, only='name', many=True)
-        s = FlatBlogSerializer()
+        s = FlatBlogSchema()
         data, _ = s.dump(self.blog)
         assert data['user'] == self.blog.user.name
         for i, name in enumerate(data['collaborators']):
             assert name == self.blog.collaborators[i].name
 
     def test_flat_nested2(self):
-        class FlatBlogSerializer(Schema):
+        class FlatBlogSchema(Schema):
             name = fields.String()
             collaborators = fields.Nested(UserSchema, many=True, only='uid')
 
-        s = FlatBlogSerializer()
+        s = FlatBlogSchema()
         data, _ = s.dump(self.blog)
         assert data['collaborators'][0] == str(self.blog.collaborators[0].uid)
 
     def test_required_nested_field(self):
-        class BlogRequiredSerializer(Schema):
+        class BlogRequiredSchema(Schema):
             user = fields.Nested(UserSchema, required=True)
 
         b = Blog('Authorless blog', user=None)
-        _, errs = BlogRequiredSerializer().dump(b)
+        _, errs = BlogRequiredSchema().dump(b)
         assert 'user' in errs
         assert 'required' in errs['user']
 
     def test_nested_default(self):
-        class BlogDefaultSerializer(Schema):
+        class BlogDefaultSchema(Schema):
             user = fields.Nested(UserSchema, default=0)
 
         b = Blog('Just the default blog', user=None)
-        data, _ = BlogDefaultSerializer().dump(b)
+        data, _ = BlogDefaultSchema().dump(b)
         assert data['user'] == 0
 
     def test_nested_none_default(self):
-        class BlogDefaultSerializer(Schema):
+        class BlogDefaultSchema(Schema):
             user = fields.Nested(UserSchema, default=None)
 
         b = Blog('Just the default blog', user=None)
-        data, _ = BlogDefaultSerializer().dump(b)
+        data, _ = BlogDefaultSchema().dump(b)
         assert data['user'] is None
 
     def test_nested(self):
@@ -759,7 +759,7 @@ class TestNestedSerializer:
         assert serialized_blog['collaborators'] == expected
 
     def test_nested_meta_many(self):
-        serialized_blog = BlogUserMetaSerializer().dump(self.blog)[0]
+        serialized_blog = BlogUserMetaSchema().dump(self.blog)[0]
         assert len(serialized_blog['collaborators']) == 2
         expected = [UserMetaSchema().dump(col)[0] for col in self.blog.collaborators]
         assert serialized_blog['collaborators'] == expected
@@ -772,7 +772,7 @@ class TestNestedSerializer:
         assert serialized_blog['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
 
     def test_exclude(self):
-        serialized = BlogSerializerExclude().dump(self.blog)[0]
+        serialized = BlogSchemaExclude().dump(self.blog)[0]
         assert "uppername" not in serialized['user'].keys()
 
     def test_only_takes_precedence_over_exclude(self):
@@ -819,7 +819,7 @@ class TestNestedSerializer:
         assert "age" in errors
 
     def test_serializer_meta_with_nested_fields(self):
-        data = BlogSerializerMeta().dump(self.blog)[0]
+        data = BlogSchemaMeta().dump(self.blog)[0]
         assert data['title'] == self.blog.title
         assert data['user'] == UserSchema(self.user).data
         assert data['collaborators'] == [UserSchema(c).data
@@ -827,15 +827,15 @@ class TestNestedSerializer:
         assert data['categories'] == self.blog.categories
 
     def test_serializer_with_nested_meta_fields(self):
-        # Serializer has user = fields.Nested(UserMetaSerializer)
-        s = BlogUserMetaSerializer(self.blog)
+        # Schema has user = fields.Nested(UserMetaSerializer)
+        s = BlogUserMetaSchema(self.blog)
         assert s.data['user'] == UserMetaSchema(self.blog.user).data
 
     def test_nested_fields_must_be_passed_a_serializer(self):
-        class BadNestedFieldSerializer(BlogSchema):
+        class BadNestedFieldSchema(BlogSchema):
             user = fields.Nested(fields.String)
         with pytest.raises(ValueError):
-            BadNestedFieldSerializer().dump(self.blog)
+            BadNestedFieldSchema().dump(self.blog)
 
 
 class TestSelfReference:
@@ -845,25 +845,25 @@ class TestSelfReference:
         self.user = User(name="Tom", employer=self.employer, age=28)
 
     def test_nesting_serializer_within_itself(self):
-        class SelfSerializer(Schema):
+        class SelfSchema(Schema):
             name = fields.String()
             age = fields.Integer()
             employer = fields.Nested("self")
 
-        data, errors = SelfSerializer().dump(self.user)
+        data, errors = SelfSchema().dump(self.user)
         assert not errors
         assert data['name'] == self.user.name
         assert data['employer']['name'] == self.employer.name
         assert data['employer']['age'] == self.employer.age
 
     def test_nesting_within_itself_meta(self):
-        class SelfSerializer(Schema):
+        class SelfSchema(Schema):
             employer = fields.Nested("self")
 
             class Meta:
                 additional = ('name', 'age')
 
-        data, errors = SelfSerializer().dump(self.user)
+        data, errors = SelfSchema().dump(self.user)
         assert not errors
         assert data['name'] == self.user.name
         assert data['age'] == self.user.age
@@ -871,19 +871,19 @@ class TestSelfReference:
         assert data['employer']['age'] == self.employer.age
 
     def test_nested_self_with_only_param(self):
-        class SelfSerializer(Schema):
+        class SelfSchema(Schema):
             employer = fields.Nested('self', only=('name', ))
 
             class Meta:
                 fields = ('name', 'employer')
 
-        data = SelfSerializer().dump(self.user)[0]
+        data = SelfSchema().dump(self.user)[0]
         assert data['name'] == self.user.name
         assert data['employer']['name'] == self.employer.name
         assert 'age' not in data['employer']
 
     def test_nested_many(self):
-        class SelfManySerializer(Schema):
+        class SelfManySchema(Schema):
             relatives = fields.Nested('self', many=True)
 
             class Meta:
@@ -891,7 +891,7 @@ class TestSelfReference:
 
         person = User(name='Foo')
         person.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
-        data = SelfManySerializer().dump(person)[0]
+        data = SelfManySchema().dump(person)[0]
         assert data['name'] == person.name
         assert len(data['relatives']) == len(person.relatives)
         assert data['relatives'][0]['name'] == person.relatives[0].name
@@ -899,35 +899,35 @@ class TestSelfReference:
 
 
 def test_serialization_with_required_field():
-    class RequiredUserSerializer(Schema):
+    class RequiredUserSchema(Schema):
         name = fields.String(required=True)
 
     user = User(name=None)
-    data, errors = RequiredUserSerializer().dump(user)
+    data, errors = RequiredUserSchema().dump(user)
     assert 'name' in errors
     assert errors['name'] == 'Missing data for required field.'
 
 
 def test_serialization_with_required_field_and_custom_validator():
-    class RequiredGenderSerializer(Schema):
+    class RequiredGenderSchema(Schema):
         gender = fields.String(required=True,
                                validate=lambda x: x.lower() == 'f' or x.lower() == 'm',
                                error="Gender must be 'f' or 'm'.")
 
     user = dict(gender=None)
-    data, errors = RequiredGenderSerializer().dump(user)
+    data, errors = RequiredGenderSchema().dump(user)
     assert errors
     assert 'gender' in errors
     assert errors['gender'] == "Missing data for required field."
 
     user = dict(gender='Unkown')
-    s = RequiredGenderSerializer(user)
+    s = RequiredGenderSchema(user)
     assert s.is_valid() is False
     assert 'gender' in s.errors
     assert s.errors['gender'] == "Gender must be 'f' or 'm'."
 
 
-class UserContextSerializer(Schema):
+class UserContextSchema(Schema):
     is_owner = fields.Method('get_is_owner')
     is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
 
@@ -941,7 +941,7 @@ class TestContext:
         owner = User('Joe')
         blog = Blog(title='Joe Blog', user=owner)
         context = {'blog': blog}
-        serializer = UserContextSerializer()
+        serializer = UserContextSchema()
         serializer.context = context
         data = serializer.dump(owner)[0]
         assert data['is_owner'] is True
@@ -955,7 +955,7 @@ class TestContext:
         collab = User('Brian')
         blog.collaborators.append(collab)
         context = {'blog': blog}
-        serializer = UserContextSerializer()
+        serializer = UserContextSchema()
         serializer.context = context
         data = serializer.dump(collab)[0]
         assert data['is_collab'] is True
@@ -965,13 +965,13 @@ class TestContext:
 
     def test_method_field_raises_error_when_context_not_available(self):
         # serializer that only has a method field
-        class UserMethodContextSerializer(Schema):
+        class UserMethodContextSchema(Schema):
             is_owner = fields.Method('get_is_owner')
 
             def get_is_owner(self, user, context):
                 return context['blog'].user.name == user.name
         owner = User('Joe')
-        serializer = UserContextSerializer(strict=True)
+        serializer = UserContextSchema(strict=True)
         serializer.context = None
         with pytest.raises(MarshallingError) as excinfo:
             serializer.dump(owner)
@@ -981,11 +981,11 @@ class TestContext:
 
     def test_function_field_raises_error_when_context_not_available(self):
         # only has a function field
-        class UserFunctionContextSerializer(Schema):
+        class UserFunctionContextSchema(Schema):
             is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
 
         owner = User('Joe')
-        serializer = UserFunctionContextSerializer(strict=True)
+        serializer = UserFunctionContextSchema(strict=True)
         # no context
         serializer.context = None
         with pytest.raises(MarshallingError) as excinfo:
@@ -994,22 +994,22 @@ class TestContext:
         assert msg in str(excinfo)
 
     def test_fields_context(self):
-        class CSerializer(Schema):
+        class CSchema(Schema):
             name = fields.String()
 
-        ser = CSerializer()
+        ser = CSchema()
         ser.context['foo'] = 42
 
         assert ser.fields['name'].context == {'foo': 42}
 
     def test_nested_fields_inherit_context(self):
-        class InnerSerializer(Schema):
+        class InnerSchema(Schema):
             likes_bikes = fields.Function(lambda obj, ctx: 'bikes' in ctx['info'])
 
-        class CSerializer(Schema):
-            inner = fields.Nested(InnerSerializer)
+        class CSchema(Schema):
+            inner = fields.Nested(InnerSchema)
 
-        ser = CSerializer(strict=True)
+        ser = CSchema(strict=True)
 
         ser.context['info'] = 'i like bikes'
         obj = {
@@ -1036,7 +1036,7 @@ class TestMarshallingError:
 
 
 def test_error_gets_raised_if_many_is_omitted(user):
-    class BadSerializer(Schema):
+    class BadSchema(Schema):
         # forgot to set many=True
         class Meta:
             fields = ('name', 'relatives')
@@ -1045,13 +1045,13 @@ def test_error_gets_raised_if_many_is_omitted(user):
     user.relatives = [User('Joe'), User('Mike')]
 
     with pytest.raises(TypeError) as excinfo:
-        BadSerializer().dump(user)
+        BadSchema().dump(user)
         # Exception includes message about setting many argument
         assert 'many=True' in str(excinfo)
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
-    class BlogUsernameSerializer(Schema):
+    class BlogUsernameSchema(Schema):
         author_name = fields.String(attribute='user.name')
-    ser = BlogUsernameSerializer()
+    ser = BlogUsernameSchema()
     result = ser.dump(blog)
     assert result.data['author_name'] == blog.user.name

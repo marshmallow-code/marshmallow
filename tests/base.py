@@ -205,7 +205,7 @@ class BlogUserMetaSchema(Schema):
     collaborators = fields.Nested(UserMetaSchema, many=True)
 
 
-class BlogSerializerMeta(Schema):
+class BlogSchemaMeta(Schema):
     '''Same as BlogSerializer but using ``fields`` options.'''
     user = fields.Nested(UserSchema)
     collaborators = fields.Nested(UserSchema, many=True)
@@ -220,7 +220,7 @@ class BlogOnlySchema(Schema):
     collaborators = fields.Nested(UserSchema, only=("id", ), many=True)
 
 
-class BlogSerializerExclude(BlogSchema):
+class BlogSchemaExclude(BlogSchema):
     user = fields.Nested(UserSchema, exclude=("uppername", "species"))
 
 
