@@ -9,11 +9,6 @@ In fact, marshmallow was influenced by a number of these libraries. Marshmallow 
 
 Here are just a few reasons why you might use marshmallow.
 
-Agnostic.
----------
-
-Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice.
-
 Terse, familiar syntax.
 -----------------------
 
@@ -48,9 +43,39 @@ As an example, you might have a JSON endpoint for retrieving all information abo
     summary_serializer = GameStateSchema(only=('_id', 'last_changed'))
     # Also filter the fields when serializing multiple games
     gamelist_serializer = GameStateSchema(many=True,
-                                               only=('_id', 'players', 'last_changed'))
+                                          only=('_id', 'players', 'last_changed'))
 
 In this example, a single serializer class produced three different outputs! The dynamic nature of a :class:`Schema` schema keeps your code `DRY <https://en.wikipedia.org/wiki/DRY>`_ and flexible.
 
 .. _Django REST Framework: http://www.django-rest-framework.org/
 .. _Flask-RESTful: http://flask-restful.readthedocs.org/
+
+Context-aware serialization.
+----------------------------
+
+Marshmallow serializers can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
+
+.. code-block:: python
+
+    class PersonSchema(Schema):
+        id = fields.Integer()
+        name = fields.Method('get_name')
+
+        def get_name(self, person, context):
+            if context.get('anonymize'):
+                return '<anonymized>'
+            return person.name
+
+    person = Person(name='Monty')
+    person_serializer = PersonSchema()
+    person_serializer.dump(person)  # {'id': 143, 'name': 'Monty'}
+
+    # In a different context, anonymize the name
+    person_serializer.context['anonymize'] = True
+    person_serializer.dump(person)  # {'id': 143, 'name': '<anonymized>'}
+
+Agnostic.
+---------
+
+Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice.
+
