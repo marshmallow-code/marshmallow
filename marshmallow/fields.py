@@ -169,6 +169,8 @@ class Unmarshaller(object):
             return [self.deserialize(d, fields_dict, many=False) for d in data]
         items = []
         for attr_name, value in iteritems(data):
+            if attr_name not in fields_dict:
+                continue
             field_obj = fields_dict[attr_name]
             key = fields_dict[attr_name].attribute or attr_name
             value = _call_and_store(

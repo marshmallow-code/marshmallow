@@ -107,7 +107,9 @@ class BaseSchema(base.SchemaABC):
         data  # OrderedDict([('name', u'Guido van Rossum'),
               #              ('date_born', '2014-08-19T21:06:10.620408')])
 
-    :param obj: The object or collection of objects to be serialized.
+    :param obj: The object or collection of objects to be serialized. NOTE: This
+        parameter is deprecated. Pass the object to the :meth:`dump` method
+        instead.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If ``None``, all
         fields will be serialized.

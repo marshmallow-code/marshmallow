@@ -261,7 +261,7 @@ class TestFieldDeserialization:
         assert 'Bad value.' in str(excinfo)
 
 # No custom deserialization behavior, so a dict is returned
-class SimpleUserSerializer(Schema):
+class SimpleUserSchema(Schema):
     name = fields.String()
     age = fields.Float()
 
@@ -279,7 +279,7 @@ class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result, errors = SimpleUserSerializer().load(user_dict)
+        result, errors = SimpleUserSchema().load(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
 
@@ -288,7 +288,7 @@ class TestSchemaDeserialization:
             {'name': 'Mick', 'age': '914'},
             {'name': 'Keith', 'age': '8442'}
         ]
-        result, errors = SimpleUserSerializer(many=True).load(users_data)
+        result, errors = SimpleUserSchema(many=True).load(users_data)
         assert isinstance(result, list)
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
@@ -314,10 +314,16 @@ class TestSchemaDeserialization:
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
 
+    def test_exclude(self):
+        schema = SimpleUserSchema(exclude=('age', ))
+        result = schema.load({'name': 'Monty', 'age': 42})
+        assert 'name' in result.data
+        assert 'age' not in result.data
+
     def test_nested_single_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
-            author = fields.Nested(SimpleUserSerializer)
+            author = fields.Nested(SimpleUserSchema)
 
         blog_dict = {
             'title': 'Gimme Shelter',
@@ -331,7 +337,7 @@ class TestSchemaDeserialization:
     def test_nested_list_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
-            authors = fields.Nested(SimpleUserSerializer, many=True)
+            authors = fields.Nested(SimpleUserSchema, many=True)
 
         blog_dict = {
             'title': 'Gimme Shelter',
