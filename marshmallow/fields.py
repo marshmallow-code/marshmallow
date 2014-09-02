@@ -374,7 +374,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude or ()
         self.many = many
-        self.__serializer = None
+        self.__schema = None
         self.__updated_fields = False  # ensures serializer fields are updated only once
         super(Nested, self).__init__(default=default, **kwargs)
 
@@ -399,51 +399,55 @@ class Nested(Field):
         return OrderedDict(filtered)
 
     @property
-    def serializer(self):
-        """The nested Schema object."""
+    def schema(self):
+        """The nested Schema object.
+
+        .. versionchanged:: 1.0.0
+            Renamed from `serializer` to `schema`
+        """
         # Cache the serializer instance
-        if not self.__serializer:
+        if not self.__schema:
             if isinstance(self.nested, SchemaABC):
-                self.__serializer = self.nested
+                self.__schema = self.nested
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
-                self.__serializer = self.nested(None, many=self.many)
+                self.__schema = self.nested(None, many=self.many)
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
-                    self.__serializer = self.parent  # The serializer this fields belongs to
+                    self.__schema = self.parent  # The serializer this fields belongs to
                     # For now, don't allow nesting of depth > 1
                     self.exclude += (self.name, )  # Exclude this field
                 else:
                     serializer_class = class_registry.get_class(self.nested)
-                    self.__serializer = serializer_class(None, many=self.many)
+                    self.__schema = serializer_class(None, many=self.many)
             else:
                 raise ForcedError(ValueError("Nested fields must be passed a Schema, not {0}."
                                 .format(self.nested.__class__)))
         # Inherit context from parent
-        self.__serializer.context.update(getattr(self.parent, 'context', {}))
-        return self.__serializer
+        self.__schema.context.update(getattr(self.parent, 'context', {}))
+        return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
         if self.allow_null and nested_obj is None:
             return None
-        self.serializer.many = self.many
-        self.serializer.obj = nested_obj
+        self.schema.many = self.many
+        self.schema.obj = nested_obj
         if not self.__updated_fields:
             self.__updated_fields = True
-            self.serializer._update_fields(nested_obj)
-        fields = self.__get_fields_to_marshal(self.serializer.fields)
+            self.schema._update_fields(nested_obj)
+        fields = self.__get_fields_to_marshal(self.schema.fields)
         try:
             # We call the protected _marshal method instead of _dump
             # because we need to pass the this field's ``many`` attribute as
             # an argument, which dump would not allow
-            ret = self.serializer._marshal(nested_obj, fields, many=self.many)
+            ret = self.schema._marshal(nested_obj, fields, many=self.many)
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
                             '"many=True".'.format(err))
         # Parent should get any errors stored after marshalling
-        if self.serializer.errors:
-            self.parent.errors[attr] = self.serializer.errors
+        if self.schema.errors:
+            self.parent.errors[attr] = self.schema.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
@@ -452,7 +456,7 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
-        return self.serializer.load(value).data
+        return self.schema.load(value).data
 
 
 class List(Field):
