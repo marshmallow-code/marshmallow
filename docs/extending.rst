@@ -125,7 +125,7 @@ First, we'll add our namespace configuration to a custom options class.
             self.plural_name = getattr(meta, 'plural_name', self.name)
 
 
-Then we create a custom serializer that uses our options class.
+Then we create a custom :class:`Schema` that uses our options class.
 
 .. code-block:: python
 
@@ -146,7 +146,7 @@ Then we create a custom serializer that uses our options class.
             return data
 
 
-Finally, our application serializers inherit from our custom serializer class.
+Our application schemas can now inherit from our custom schema class.
 
 .. code-block:: python
 

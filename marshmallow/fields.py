@@ -336,7 +336,7 @@ class Field(FieldABC):
 
     @property
     def context(self):
-        """The serializer context dictionary."""
+        """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
 
 class Raw(Field):
@@ -353,8 +353,8 @@ class Nested(Field):
         collaborators = fields.Nested(UserSchema, many=True, only='id')
         parent = fields.Nested('self')
 
-    :param Schema nested: The Schema class, instance, or class name (string)
-        to nest, or ``"self"`` to nest the serializer within itself.
+    :param Schema nested: The Schema class or class name (string)
+        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
     :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields

@@ -9,8 +9,13 @@ In fact, marshmallow was influenced by a number of these libraries. Marshmallow 
 
 Here are just a few reasons why you might use marshmallow.
 
-Terse, familiar syntax.
------------------------
+Agnostic.
+---------
+
+Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice (for an example, see `Flask-Marshmallow <https://github.com/sloria/flask-marshmallow>`_).
+
+Concise, familiar syntax.
+-------------------------
 
 If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the :class:`Schema` constructor. The :meth:`dump <Schema.dump>` and :meth:`load <Schema.load>` methods are used for serialization and deserialization (of course!).
 
@@ -55,6 +60,8 @@ Context-aware serialization.
 
 Marshmallow serializers can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
 
+Here's a simple example that how a :class:`Schema` can anonymize a person's name when a boolean is set on the context.
+
 .. code-block:: python
 
     class PersonSchema(Schema):
@@ -73,9 +80,3 @@ Marshmallow serializers can modify their output based on the context in which th
     # In a different context, anonymize the name
     person_serializer.context['anonymize'] = True
     person_serializer.dump(person)  # {'id': 143, 'name': '<anonymized>'}
-
-Agnostic.
----------
-
-Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice.
-

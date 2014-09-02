@@ -68,7 +68,7 @@ class SchemaOpts(object):
             raise ValueError("`additional` option must be a list or tuple.")
         if self.fields and self.additional:
             raise ValueError("Cannot set both `fields` and `additional` options"
-                            " for the same serializer.")
+                            " for the same Schema.")
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
@@ -78,7 +78,7 @@ class SchemaOpts(object):
 
 
 class BaseSchema(base.SchemaABC):
-    """Base serializer class with which to define custom serializers.
+    """Base schema class with which to define custom schemas.
 
     Example usage:
 
@@ -102,8 +102,8 @@ class BaseSchema(base.SchemaABC):
                 fields = ("name", "date_born")
 
         person = Person("Guido van Rossum")
-        serializer = PersonSchema()
-        data, errors = serializer.dump(person)
+        schema = PersonSchema()
+        data, errors = schema.dump(person)
         data  # OrderedDict([('name', u'Guido van Rossum'),
               #              ('date_born', '2014-08-19T21:06:10.620408')])
 
@@ -243,8 +243,8 @@ class BaseSchema(base.SchemaABC):
 
     @classmethod
     def error_handler(cls, func):
-        """Decorator that registers an error handler function for the serializer.
-        The function receives the serializer instance, a dictionary of errors,
+        """Decorator that registers an error handler function for the schema.
+        The function receives the :class:`Schema` instance, a dictionary of errors,
         and the serialized object (if serializing data) or data dictionary (if
         deserializing data) as arguments.
 
@@ -254,7 +254,7 @@ class BaseSchema(base.SchemaABC):
                 email = fields.Email()
 
             @UserSchema.error_handler
-            def handle_errors(serializer, errors, obj):
+            def handle_errors(schema, errors, obj):
                 raise ValueError('An error occurred while marshalling {}'.format(obj))
 
             user = User(email='invalid')
@@ -270,7 +270,7 @@ class BaseSchema(base.SchemaABC):
     @classmethod
     def data_handler(cls, func):
         """Decorator that registers a post-processing function for the
-        serializer. The function receives the serializer instance, the serialized
+        serializer. The function receives the :class:`Schema` instance, the serialized
         data, and the original object as arguments and should return the
         processed data.
 
@@ -280,13 +280,13 @@ class BaseSchema(base.SchemaABC):
                 name = fields.String()
 
             @UserSchema.data_handler
-            def add_surname(serializer, data, obj):
+            def add_surname(schema, data, obj):
                 data['surname'] = data['name'].split()[1]
                 return data
 
         .. note::
 
-            You can register multiple handler functions for the same serializer.
+            You can register multiple handler functions for the same schema.
 
         .. versionadded:: 0.7.0
 
@@ -453,14 +453,24 @@ class BaseSchema(base.SchemaABC):
     @property
     def data(self):
         """The serialized data as an :class:`OrderedDict`.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
         """
+        warnings.warn('Accessing data through Schema.data is deprecated. '
+                      'Use the return value of Schema.dump instead.',
+                      category=DeprecationWarning)
         if not self._data:  # Cache the data
             self._update_data()
         return self._data
 
     @property
     def errors(self):
-        """Dictionary of errors raised during serialization."""
+        """Dictionary of errors raised during serialization.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+        """
         warnings.warn('Accessing errors through Schema.errors is deprecated. '
                       'Use the return value of Schema.dump instead.',
                       category=DeprecationWarning)
@@ -468,6 +478,9 @@ class BaseSchema(base.SchemaABC):
 
     def is_valid(self, field_names=None):
         """Return ``True`` if all data are valid, ``False`` otherwise.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
 
         :param field_names: List of field names (strings) to validate.
             If ``None``, all fields will be validated.

@@ -32,8 +32,8 @@ Homepage: http://marshmallow.rtfd.org/
         date_born = fields.DateTime()
 
     person = Person("Guido van Rossum")
-    serializer = PersonSchema()
-    result = serializer.dump(person)
+    schema = PersonSchema()
+    result = schema.dump(person)
     pprint(result.data)
     # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}
 
