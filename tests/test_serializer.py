@@ -882,6 +882,22 @@ class TestSelfReference:
         assert data['employer']['name'] == self.employer.name
         assert 'age' not in data['employer']
 
+    def test_multiple_nested_self_fields(self):
+        class MultipleSelfSchema(Schema):
+            emp = fields.Nested('self', only='name', attribute='employer')
+            rels = fields.Nested('self', only='name',
+                                    many=True, attribute='relatives')
+
+            class Meta:
+                fields = ('name', 'emp', 'rels')
+
+        schema = MultipleSelfSchema()
+        self.user.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
+        data, _ = schema.dump(self.user)
+        assert len(data['rels']) == len(self.user.relatives)
+        relative = data['rels'][0]
+        assert relative == self.user.relatives[0].name
+
     def test_nested_many(self):
         class SelfManySchema(Schema):
             relatives = fields.Nested('self', many=True)

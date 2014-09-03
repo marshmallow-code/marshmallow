@@ -414,12 +414,13 @@ class Nested(Field):
                 self.__schema = self.nested(None, many=self.many)
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
-                    self.__schema = self.parent  # The serializer this fields belongs to
+                    parent_class = self.parent.__class__
+                    self.__schema = parent_class(many=self.many)
                     # For now, don't allow nesting of depth > 1
                     self.exclude += (self.name, )  # Exclude this field
                 else:
-                    serializer_class = class_registry.get_class(self.nested)
-                    self.__schema = serializer_class(None, many=self.many)
+                    schema_class = class_registry.get_class(self.nested)
+                    self.__schema = schema_class(None, many=self.many)
             else:
                 raise ForcedError(ValueError("Nested fields must be passed a Schema, not {0}."
                                 .format(self.nested.__class__)))

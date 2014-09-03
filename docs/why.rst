@@ -22,12 +22,12 @@ If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecod
 Class-based schemas allow for inheritance and configuration.
 ------------------------------------------------------------
 
-Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marshmallow uses classes. This allows for easy code reuse and configuration. It also allows for powerful means for configuring and extending serializers, such as adding :ref:`post-processing and error handling behavior <extending>`.
+Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marshmallow uses classes. This allows for easy code reuse and configuration. It also allows for powerful means for configuring and extending schemas, such as adding :ref:`post-processing and error handling behavior <extending>`.
 
-Flexibility.
-------------
+Consistency meets flexibility.
+------------------------------
 
-Marshmallow's makes it easy to modify a serializer's output at runtime. A single :class:`Schema` class can produce multiple outputs formats. Why might that be useful?
+Marshmallow makes it easy to modify a schema's output at runtime. A single :class:`Schema` can produce multiple outputs formats while keeping the individual field outputs consistent. Why might that be useful?
 
 As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints could be handled by the same :class:`Schema`.
 
@@ -50,7 +50,7 @@ As an example, you might have a JSON endpoint for retrieving all information abo
     gamelist_serializer = GameStateSchema(many=True,
                                           only=('_id', 'players', 'last_changed'))
 
-In this example, a single serializer class produced three different outputs! The dynamic nature of a :class:`Schema` schema keeps your code `DRY <https://en.wikipedia.org/wiki/DRY>`_ and flexible.
+In this example, a single schema produced three different outputs! The dynamic nature of a :class:`Schema` schema keeps your code `DRY <https://en.wikipedia.org/wiki/DRY>`_ and flexible.
 
 .. _Django REST Framework: http://www.django-rest-framework.org/
 .. _Flask-RESTful: http://flask-restful.readthedocs.org/
@@ -74,9 +74,9 @@ Here's a simple example that how a :class:`Schema` can anonymize a person's name
             return person.name
 
     person = Person(name='Monty')
-    person_serializer = PersonSchema()
-    person_serializer.dump(person)  # {'id': 143, 'name': 'Monty'}
+    schema = PersonSchema()
+    schema.dump(person)  # {'id': 143, 'name': 'Monty'}
 
     # In a different context, anonymize the name
-    person_serializer.context['anonymize'] = True
-    person_serializer.dump(person)  # {'id': 143, 'name': '<anonymized>'}
+    schema.context['anonymize'] = True
+    schema.dump(person)  # {'id': 143, 'name': '<anonymized>'}
