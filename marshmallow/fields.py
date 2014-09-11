@@ -228,7 +228,10 @@ class Field(FieldABC):
 
     def get_value(self, attr, obj):
         """Return the value for a given key from an object."""
-        check_key = attr if self.attribute is None else self.attribute
+        # NOTE: Use getattr instead of direct attribute access here so that
+        # subclasses aren't required to define `attribute` member
+        attribute = getattr(self, 'attribute', None)
+        check_key = attr if attribute is None else attribute
         return utils.get_value(check_key, obj)
 
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
@@ -244,14 +247,17 @@ class Field(FieldABC):
         try:
             func = getattr(self, method)
             output = func(*args, **kwargs)
-            if self.validate:
-                if utils.is_iterable_but_not_string(self.validate):
-                    if not utils.is_generator(self.validate):
-                        validators = self.validate
+            # NOTE: Use getattr instead of direct attribute access here so that
+            # subclasses aren't required to define the `validate` attribute
+            validate = getattr(self, 'validate', None)
+            if validate:
+                if utils.is_iterable_but_not_string(validate):
+                    if not utils.is_generator(validate):
+                        validators = validate
                     else:
-                        validators = [i for i in self.validate()]
-                elif callable(self.validate):
-                    validators = [self.validate]
+                        validators = [i for i in validate()]
+                elif callable(validate):
+                    validators = [validate]
                 else:
                     raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
                 for validator in validators:
