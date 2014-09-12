@@ -52,7 +52,21 @@ __all__ = [
     'Enum',
 ]
 
-null = object()
+class _null(object):
+
+    def __bool__(self):
+        return False
+
+    __nonzero__ = __bool__  # PY2 compat
+
+    def __repr__(self):
+        return '<marshmallow.fields.null>'
+
+# Singleton that represents an empty value. Used as the default for Nested
+# fields so that `Field._call_with_validation` is invoked, even when the
+# object to serialize has the nested attribute set to None. Therefore,
+# `RegistryErrors` are properly raised.
+null = _null()
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):
