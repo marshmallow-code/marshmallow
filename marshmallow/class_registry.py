@@ -33,7 +33,7 @@ def register(classname, cls):
     # Module where the class is located
     module = cls.__module__
     # Full module path to the class
-    # e.g. user.serializers.UserSchema
+    # e.g. user.schemas.UserSchema
     fullpath = '.'.join([module, classname])
     # If the class is already registered; need to check if the entries are
     # in the same module as cls to avoid having multiple instances of the same

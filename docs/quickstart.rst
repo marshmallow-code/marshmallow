@@ -342,6 +342,13 @@ For example, a representation of an ``Author`` model might include the books tha
         class Meta:
             fields = ('id', 'title', 'author')
 
+.. note::
+    If you need to, you can also pass the full, module-qualified path to the `fields.Nested`. ::
+
+        books = fields.Nested('path.to.BookSchema',
+                              many=True, exclude=('author', ))
+
+
 .. code-block:: python
 
     from marshmallow import pprint
