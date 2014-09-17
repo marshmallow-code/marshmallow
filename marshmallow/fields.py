@@ -387,12 +387,12 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def __init__(self, nested, default=null, exclude=None, only=None, allow_null=False,
+    def __init__(self, nested, default=null, exclude=tuple(), only=None, allow_null=False,
                 many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
         self.only = only
-        self.exclude = exclude or ()
+        self.exclude = exclude
         self.many = many
         self.__schema = None
         self.__updated_fields = False  # ensures serializer fields are updated only once
@@ -436,8 +436,6 @@ class Nested(Field):
                 if self.nested == 'self':
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many)
-                    # For now, don't allow nesting of depth > 1
-                    self.exclude += (self.name, )  # Exclude this field
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(None, many=self.many)

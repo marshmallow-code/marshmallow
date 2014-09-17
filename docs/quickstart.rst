@@ -21,6 +21,7 @@ Let's start with a basic user model.
             self.email = email
             self.created_at = dt.datetime.now()
             self.friends = []
+            self.employer = None
             self.age = age
 
         def __repr__(self):
@@ -392,19 +393,37 @@ If the object to be serialized has a relationship to an object of the same type,
         name = fields.String()
         email = fields.Email()
         friends = fields.Nested('self', many=True)
+        # Use the 'exclude' argument to avoid infinite recursion
+        employer = fields.Nested('self', exclude=('employer', ), default=None)
 
     user = User("Steve", 'steve@example.com')
     user.friends.append(User("Mike", 'mike@example.com'))
     user.friends.append(User('Joe', 'joe@example.com'))
+    user.employer = User('Dirk', 'dirk@example.com')
     result, errors = UserSchema().dump(user)
-    pprint(result)
+    pprint(result, indent=2)
     # {
     #     "name": "Steve",
     #     "email": "steve@example.com",
     #     "friends": [
-    #         {"name": "Mike","email": "mike@example.com"},
-    #         {"name": "Joe","email": "joe@example.com"},
-    #     ]
+    #         {
+    #             "name": "Mike",
+    #             "email": "mike@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         },
+    #         {
+    #             "name": "Joe",
+    #             "email": "joe@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         }
+    #     ],
+    #     "employer": {
+    #         "name": "Dirk",
+    #         "email": "dirk@example.com",
+    #         "friends": []
+    #     }
     # }
 
 Specifying Nested Attributes

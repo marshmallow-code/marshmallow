@@ -848,7 +848,7 @@ class TestSelfReference:
         class SelfSchema(Schema):
             name = fields.String()
             age = fields.Integer()
-            employer = fields.Nested("self")
+            employer = fields.Nested('self', exclude=('employer', ))
 
         data, errors = SelfSchema().dump(self.user)
         assert not errors
@@ -858,7 +858,7 @@ class TestSelfReference:
 
     def test_nesting_within_itself_meta(self):
         class SelfSchema(Schema):
-            employer = fields.Nested("self")
+            employer = fields.Nested("self", exclude=('employer', ))
 
             class Meta:
                 additional = ('name', 'age')
@@ -893,7 +893,8 @@ class TestSelfReference:
 
         schema = MultipleSelfSchema()
         self.user.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
-        data, _ = schema.dump(self.user)
+        data, errors = schema.dump(self.user)
+        assert not errors
         assert len(data['rels']) == len(self.user.relatives)
         relative = data['rels'][0]
         assert relative == self.user.relatives[0].name
