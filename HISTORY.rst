@@ -15,6 +15,7 @@ Changelog
 * *Backwards-incompatible*: ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
 * *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
 * *Backwards-incompatible*: Remove `Serializer.factory` method.
+* *Backwards-incompatible*: Allow nesting a serializer within itself recursively. Use ``exclude`` or ``only`` to prevent infinite recursion.
 * ``Nested`` fields inherit context from their parent.
 * Fix ordering of field output.
 * Fix behavior of the ``required`` parameter on ``Nested`` fields.
