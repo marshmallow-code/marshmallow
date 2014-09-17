@@ -8,7 +8,7 @@ class MarshmallowError(Exception):
 
 class _WrappingException(MarshmallowError):
     """Exception that wraps a different, underlying exception. Used so that
-    an error in serialization or deserialization can be reraised as an
+    an error in serialization or deserialization can be reraised as a
     :exc:`MarshmallowError <MarshmallowError>`.
     """
 
@@ -44,14 +44,16 @@ class RegistryError(ForcedError, NameError):
 
 
 class MarshallingError(_WrappingException):
-    """Raised in case of a marshalling error. If a MarshallingError is raised
-    during serialization, the error is caught and the error message
-    is stored in the Serializer's ``error`` dictionary (unless ``strict`` mode
-    is turned on).
+    """Raised in case of a marshalling error. If raised during serialization,
+    the error is caught and the error message is stored in an ``errors``
+    dictionary (unless ``strict`` mode is turned on).
     """
     pass
 
 
 class UnmarshallingError(_WrappingException):
-    """Raised when invalid data are passed to a deserialization function."""
+    """Raised when invalid data are passed to a deserialization function. If
+    raised during deserialization, the error is caught and the error message
+    is stored in an ``errors`` dictionary.
+    """
     pass

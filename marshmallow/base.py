@@ -32,11 +32,16 @@ class FieldABC(object):
 
 
 class SchemaABC(object):
-    """Abstract base class from which all Serializers inherit."""
+    """Abstract base class from which all Schemas inherit."""
 
-    @property
-    def errors(self):
+    def dump(self, obj):
         raise NotImplementedError
 
-    def is_valid(self, fields=None):
+    def dumps(self, obj, *args, **kwargs):
+        raise NotImplementedError
+
+    def load(self, data):
+        raise NotImplementedError
+
+    def loads(self, data):
         raise NotImplementedError

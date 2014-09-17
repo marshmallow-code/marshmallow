@@ -409,7 +409,7 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
-    def loads(self, json_data):
+    def loads(self, json_data, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
@@ -418,7 +418,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        return self.load(self.opts.json_module.loads(json_data))
+        return self.load(self.opts.json_module.loads(json_data, *args, **kwargs))
 
     def dumps(self, obj, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
