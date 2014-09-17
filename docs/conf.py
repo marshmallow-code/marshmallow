@@ -29,6 +29,7 @@ sys.path.append(os.path.abspath("_themes"))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
 ]
 
 primary_domain = 'py'

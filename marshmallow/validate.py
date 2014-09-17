@@ -15,15 +15,15 @@ URL_REGEX = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 RELATIVE_URL_REGEX = re.compile(
-        r'^((?:http|ftp)s?://' # http:// or https://
-        r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
-        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
-        r'(?::\d+)?)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE) # host is optional, allow for relative URLs
+    r'^((?:http|ftp)s?://'  # http:// or https://
+    r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
+    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+    r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+    r'localhost|'  # localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+    r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
+    r'(?::\d+)?)?'  # optional port
+    r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
 
 def url(value, relative=False):
@@ -72,7 +72,7 @@ def email(value):
     if not USER_REGEX.match(user_part):
         raise ValueError(error_message)
 
-    if (not domain_part in DOMAIN_WHITELIST and
+    if (domain_part not in DOMAIN_WHITELIST and
             not DOMAIN_REGEX.match(domain_part)):
         # Try for possible IDN domain-part
         try:

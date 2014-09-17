@@ -18,6 +18,7 @@ from marshmallow.exceptions import MarshallingError, UnmarshallingError
 
 __all__ = [
     'Schema',
+    'Serializer',
     'SchemaOpts',
     'pprint',
     'MarshalResult',

@@ -8,8 +8,13 @@ python:
   - "2.7"
   - "2.6"
   - "pypy"
+
 install:
   - travis_retry pip install pytz
   - pip install -U .
+  - pip install flake8
+
+before_script:
+  - flake8 marshmallow
 
 script: python setup.py test
