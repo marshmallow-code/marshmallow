@@ -182,14 +182,15 @@ class Unmarshaller(object):
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
         items = []
-        for attr_name, value in iteritems(data):
+        for attr_name, field_obj in iteritems(fields_dict):
             if attr_name not in fields_dict:
                 continue
-            field_obj = fields_dict[attr_name]
+            # field_obj = fields_dict[attr_name]
+            #value = data.get(attr_name, None)
             key = fields_dict[attr_name].attribute or attr_name
             value = _call_and_store(
                 getter_func=field_obj.deserialize,
-                data=data[attr_name],
+                data=data.get(attr_name),
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
@@ -315,6 +316,12 @@ class Field(FieldABC):
 
         :raise UnmarshallingError: If an invalid value is passed.
         """
+        err = UnmarshallingError(
+            'Cannot deserialize {0!r} to a datetime'.format(value)
+        )
+
+        if self.required and not value:
+            raise UnmarshallingError('Missing value')
         return self._call_with_validation('_deserialize', UnmarshallingError, value)
 
     # Methods for concrete classes to override.
