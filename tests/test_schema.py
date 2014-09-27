@@ -7,7 +7,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import total_seconds, text_type
+from marshmallow.compat import total_seconds, text_type, OrderedDict
 
 from tests.base import User, UserSchema
 
@@ -434,3 +434,51 @@ def test_serializing_named_tuple_with_meta():
     serialized = PointSerializer(p)
     assert serialized.data['x'] == 4
     assert serialized.data['y'] == 2
+
+
+class TestFieldInheritance:
+
+    def test_inherit_fields_from_schema_subclass(self):
+        expected = OrderedDict([
+            ('field_a', fields.Number()),
+            ('field_b', fields.Number()),
+        ])
+        class SerializerA(Schema):
+            field_a = expected['field_a']
+        class SerializerB(SerializerA):
+            field_b = expected['field_b']
+        assert SerializerB._declared_fields == expected
+
+    def test_inherit_fields_from_non_schema_subclass(self):
+        expected = OrderedDict([
+            ('field_a', fields.Number()),
+            ('field_b', fields.Number()),
+        ])
+        class PlainBaseClass(object):
+            field_a = expected['field_a']
+        class SerializerB1(Schema, PlainBaseClass):
+            field_b = expected['field_b']
+        class SerializerB2(PlainBaseClass, Schema):
+            field_b = expected['field_b']
+        assert SerializerB1._declared_fields == expected
+        assert SerializerB2._declared_fields == expected
+
+    def test_inheritance_follows_mro(self):
+        expected = OrderedDict([
+            ('field_a', fields.String()),
+            ('field_c', fields.String()),
+            ('field_b', fields.String()),
+            ('field_d', fields.String()),
+        ])
+        # Diamond inheritance graph
+        # MRO: D -> B -> C -> A
+        class SerializerA(Schema):
+            field_a = expected['field_a']
+        class SerializerB(SerializerA):
+            field_b = expected['field_b']
+        class SerializerC(SerializerA):
+            field_c = expected['field_c']
+        class SerializerD(SerializerB, SerializerC):
+            field_d = expected['field_d']
+        assert SerializerD._declared_fields == expected
+
