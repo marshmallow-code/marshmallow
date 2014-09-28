@@ -20,6 +20,44 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
+
+def get_fields(attrs, field_class, pop=False):
+    """Get fields from a class, sorted by creation index.
+
+    :param attrs: Mapping of class attributes
+    :param type field_class: Base field class
+    :param bool pop: Remove matching fields
+    """
+    getter = getattr(attrs, 'pop' if pop else 'get')
+    return sorted(
+        [
+            (field_name, getter(field_name))
+            for field_name, field_value in list(iteritems(attrs))
+            if utils.is_instance_or_subclass(field_value, field_class)
+        ],
+        key=lambda pair: pair[1]._creation_index,
+    )
+
+def get_fields_by_mro(klass, field_class):
+    """Collect fields from a class, following its method resolution order. The
+    class itself is excluded from the search; only its parents are checked. Get
+    fields from ``_declared_fields`` if available, else use ``__dict__``.
+
+    :param type klass: Class whose fields to retrieve
+    :param type field_class: Base field class
+    """
+    return sum(
+        (
+            get_fields(
+                getattr(base, '_declared_fields', base.__dict__),
+                field_class
+            )
+            for base in klass.mro()[:0:-1]
+        ),
+        [],
+    )
+
+
 class SchemaMeta(type):
     """Metaclass for the Schema class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
@@ -27,33 +65,12 @@ class SchemaMeta(type):
     """
 
     def __new__(mcs, name, bases, attrs):
-        attrs['_declared_fields'] = mcs.get_declared_fields(bases, attrs, base.FieldABC)
-        new_class = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
-        class_registry.register(name, new_class)
-        return new_class
-
-    @classmethod
-    def get_declared_fields(mcs, bases, attrs, field_class):
-        """Return the declared fields of a class as an OrderedDict.
-
-        :param tuple bases: Tuple of classes the class is subclassing.
-        :param dict attrs: Dictionary of class attributes.
-        :param type field_class: The base field class. Any class attribute that
-            is of this type will be be returned
-        """
-        # The declared fields, sorted by the order they were instantiated
-        declared = sorted(
-            [(field_name, attrs.pop(field_name))
-            for field_name, val in list(iteritems(attrs))
-            if utils.is_instance_or_subclass(val, field_class)],
-            key=lambda x: x[1]._creation_index
-        )
-        # If subclassing another Schema, inherit its fields
-        # Loop in reverse to maintain the correct field order
-        for base_class in bases[::-1]:
-            if hasattr(base_class, '_declared_fields'):
-                declared = list(base_class._declared_fields.items()) + declared
-        return OrderedDict(declared)
+        fields = get_fields(attrs, base.FieldABC, pop=True)
+        klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
+        fields = get_fields_by_mro(klass, base.FieldABC) + fields
+        klass._declared_fields = OrderedDict(fields)
+        class_registry.register(name, klass)
+        return klass
 
 
 class SchemaOpts(object):
