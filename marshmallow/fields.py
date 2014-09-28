@@ -62,11 +62,21 @@ class _null(object):
     def __repr__(self):
         return '<marshmallow.fields.null>'
 
+class _missing(_null):
+
+    def __repr__(self):
+        return '<marshmallow.fields.missing>'
+
 # Singleton that represents an empty value. Used as the default for Nested
 # fields so that `Field._call_with_validation` is invoked, even when the
 # object to serialize has the nested attribute set to None. Therefore,
 # `RegistryErrors` are properly raised.
 null = _null()
+
+# Singleton value that indicates that a field's value is missing from input
+# dict passed to :meth:`Schema.load`. If the field's value is not required,
+# it's ``default`` value is used.
+missing = _missing()
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):
@@ -182,14 +192,16 @@ class Unmarshaller(object):
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False) for d in data]
         items = []
-        for attr_name, value in iteritems(data):
+        for attr_name, field_obj in iteritems(fields_dict):
             if attr_name not in fields_dict:
                 continue
-            field_obj = fields_dict[attr_name]
             key = fields_dict[attr_name].attribute or attr_name
+            raw_value = data.get(attr_name, missing)
+            if raw_value is missing and not field_obj.required:
+                continue
             value = _call_and_store(
                 getter_func=field_obj.deserialize,
-                data=data[attr_name],
+                data=raw_value,
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
@@ -235,7 +247,7 @@ class Field(FieldABC):
         self.error = error
         self.validate = validate
         self.required = required
-        # Save creation index so that fields can be sorted by Schema
+        # Save creation index so that fields can be sorted
         self._creation_index = Field._creation_index
         Field._creation_index += 1
         self.parent = FieldABC.parent
@@ -315,6 +327,11 @@ class Field(FieldABC):
 
         :raise UnmarshallingError: If an invalid value is passed.
         """
+        if value is missing:
+            if hasattr(self, 'required') and self.required:
+                raise UnmarshallingError('Missing data for required field.')
+            if hasattr(self, 'default') and self.default != null:
+                return self._format(self.default)
         return self._call_with_validation('_deserialize', UnmarshallingError, value)
 
     # Methods for concrete classes to override.

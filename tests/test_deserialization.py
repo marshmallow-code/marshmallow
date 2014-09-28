@@ -23,6 +23,10 @@ class TestFieldDeserialization:
         field = fields.Float(default=1.0)
         assert field.deserialize(None) == 1.0
 
+    def test_float_field_deserialization_missing_with_default(self):
+        field = fields.Float(default=1.0)
+        assert field.deserialize(fields.missing) == 1.0
+
     def test_integer_field_deserialization(self):
         field = fields.Integer()
         assert field.deserialize('42') == 42

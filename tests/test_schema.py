@@ -915,7 +915,7 @@ class TestSelfReference:
         assert data['relatives'][0]['age'] == person.relatives[0].age
 
 class RequiredUserSchema(Schema):
-    name = fields.String(required=True)
+    name = fields.Field(required=True)
 
 def test_serialization_with_required_field():
     user = User(name=None)
@@ -928,6 +928,12 @@ def test_deserialization_with_required_field():
     data, errors = RequiredUserSchema().load(in_data)
     assert 'name' in errors
     assert errors['name'] == 'Missing data for required field.'
+
+def test_deserialization_with_none_passed_to_required_field():
+    in_data = {'name': None}
+    data, errors = RequiredUserSchema().load(in_data)
+    assert 'name' not in errors
+    assert data['name'] is None
 
 def test_serialization_with_required_field_and_custom_validator():
     class RequiredGenderSchema(Schema):
