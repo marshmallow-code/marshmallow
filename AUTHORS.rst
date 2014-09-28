@@ -18,3 +18,4 @@ Contributors (chronological)
 - Anders Steinlein `@asteinlein <https://github.com/asteinlein>`_
 - Cyril Thomas `@Ketouem <https://github.com/Ketouem>`_
 - Austin Macdonald `@asmacdo <https://github.com/asmacdo>`_
+- Josh Carp `@jmcarp <https://github.com/jmcarp>`_
