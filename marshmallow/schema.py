@@ -52,7 +52,7 @@ def get_fields_by_mro(klass, field_class):
                 getattr(base, '_declared_fields', base.__dict__),
                 field_class
             )
-            for base in reversed(klass.mro()[1:])
+            for base in klass.mro()[:0:-1]
         ),
         [],
     )
