@@ -22,6 +22,7 @@ Changelog
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Fix default value for ``Fixed`` field.
 * Fix serialization of binary strings.
+* ``Schemas`` can inherit fields from non-``Schema`` base classes (e.g. mixins). Also, fields are inherited according to the MRO (rather than recursing over base classes). Thanks Josh Carp.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++
