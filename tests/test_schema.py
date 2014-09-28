@@ -914,16 +914,20 @@ class TestSelfReference:
         assert data['relatives'][0]['name'] == person.relatives[0].name
         assert data['relatives'][0]['age'] == person.relatives[0].age
 
+class RequiredUserSchema(Schema):
+    name = fields.String(required=True)
 
 def test_serialization_with_required_field():
-    class RequiredUserSchema(Schema):
-        name = fields.String(required=True)
-
     user = User(name=None)
     data, errors = RequiredUserSchema().dump(user)
     assert 'name' in errors
     assert errors['name'] == 'Missing data for required field.'
 
+def test_deserialization_with_required_field():
+    in_data = {}
+    data, errors = RequiredUserSchema().load(in_data)
+    assert 'name' in errors
+    assert errors['name'] == 'Missing data for required field.'
 
 def test_serialization_with_required_field_and_custom_validator():
     class RequiredGenderSchema(Schema):
@@ -1027,7 +1031,6 @@ class TestContext:
             inner = fields.Nested(InnerSchema)
 
         ser = CSchema(strict=True)
-
         ser.context['info'] = 'i like bikes'
         obj = {
             'inner': {}
