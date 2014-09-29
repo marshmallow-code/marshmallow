@@ -928,10 +928,13 @@ def test_deserialization_with_required_field():
     data, errors = RequiredUserSchema().load(in_data)
     assert 'name' in errors
     assert errors['name'] == 'Missing data for required field.'
+    # field value should also not be in output data
+    assert 'name' not in data
 
 def test_deserialization_with_none_passed_to_required_field():
     in_data = {'name': None}
     data, errors = RequiredUserSchema().load(in_data)
+    # None is a valid value, so no errors
     assert 'name' not in errors
     assert data['name'] is None
 

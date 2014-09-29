@@ -208,7 +208,8 @@ class Unmarshaller(object):
                 exception_class=UnmarshallingError,
                 strict=strict
             )
-            items.append((key, value))
+            if raw_value is not missing:
+                items.append((key, value))
         ret = OrderedDict(items)
         if postprocess:
             return postprocess(ret)
@@ -325,7 +326,8 @@ class Field(FieldABC):
     def deserialize(self, value):
         """Deserialize ``value``.
 
-        :raise UnmarshallingError: If an invalid value is passed.
+        :raise UnmarshallingError: If an invalid value is passed or if a required value
+            is missing.
         """
         if value is missing:
             if hasattr(self, 'required') and self.required:
