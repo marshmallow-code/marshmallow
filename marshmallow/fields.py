@@ -289,7 +289,7 @@ class Field(FieldABC):
                 else:
                     raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
                 for validator in validators:
-                    msg = 'Validator {0}({1}) is not True'.format(
+                    msg = u'Validator {0}({1}) is not True'.format(
                         validator.__name__, output
                     )
                     if not validator(output):

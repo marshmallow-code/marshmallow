@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
+from marshmallow.compat import text_type
 
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
@@ -17,7 +18,9 @@ class _WrappingException(MarshmallowError):
             self.underlying_exception = underlying_exception
         else:
             self.underlying_exception = None
-        super(_WrappingException, self).__init__(str(underlying_exception))
+        super(_WrappingException, self).__init__(
+            text_type(underlying_exception)
+        )
 
 
 class ForcedError(_WrappingException):
