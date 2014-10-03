@@ -4,7 +4,7 @@ import json
 import uuid
 
 from marshmallow import fields, utils, Schema
-from marshmallow.exceptions import UnmarshallingError
+from marshmallow.exceptions import UnmarshallingError, ValidationError
 from marshmallow.compat import text_type, total_seconds
 
 from tests.base import *  # noqa
@@ -239,6 +239,13 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('invalid')
         assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+        assert type(excinfo.value.underlying_exception) == ValidationError
+
+    def test_field_deserialization_with_validator_with_nonascii_input(self):
+        field = fields.String(validate=lambda s: False)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize(u'привет')
+        assert type(excinfo.value.underlying_exception) == ValidationError
 
     def test_field_deserialization_with_user_validators(self):
 

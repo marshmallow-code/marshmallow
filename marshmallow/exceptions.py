@@ -36,6 +36,11 @@ class ForcedError(_WrappingException):
     pass
 
 
+class ValidationError(MarshmallowError):
+    """Raised when validation fails on a field."""
+    pass
+
+
 class RegistryError(ForcedError, NameError):
     """Raised when an invalid operation is performed on the serializer
     class registry.

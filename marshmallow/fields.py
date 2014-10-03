@@ -18,6 +18,7 @@ from marshmallow.exceptions import (
     UnmarshallingError,
     ForcedError,
     RegistryError,
+    ValidationError,
 )
 
 __all__ = [
@@ -292,7 +293,7 @@ class Field(FieldABC):
                         validator.__name__, output
                     )
                     if not validator(output):
-                        raise exception_class(self.error or msg)
+                        raise ValidationError(self.error or msg)
             return output
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:
@@ -303,6 +304,9 @@ class Field(FieldABC):
                 raise err.underlying_exception
             else:
                 raise err
+        except ValidationError as err:
+            raise exception_class(err)
+        # Reraise errors, wrapping with exception_class
         except Exception as error:
             raise exception_class(getattr(self, 'error', None) or error)
 
