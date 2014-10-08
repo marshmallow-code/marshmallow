@@ -493,3 +493,104 @@ class TestUnMarshaller:
         result = unmarshal.deserialize(data, fields_dict)
         assert result['email'] == 'mick@stones.com'
         assert result['firstname'] == 'Mick'
+
+
+def validators_gen():
+    yield lambda x: x <= 24
+    yield lambda x: 18 <= x
+
+def validators_gen_float():
+    yield lambda f: f <= 4.1
+    yield lambda f: f >= 1.0
+
+def validators_gen_str():
+    yield lambda n: len(n) == 3
+    yield lambda n: n[1].lower() == 'o'
+
+class TestValidation:
+
+    def test_integer_with_validator(self):
+        field = fields.Integer(validate=lambda x: 18 <= x <= 24)
+        out = field.deserialize('20')
+        assert out == 20
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(25)
+
+    @pytest.mark.parametrize('field', [
+        fields.Integer(validate=[lambda x: x <= 24, lambda x: 18 <= x]),
+        fields.Integer(validate=(lambda x: x <= 24, lambda x: 18 <= x, )),
+        fields.Integer(validate=validators_gen)
+    ])
+    def test_integer_with_validators(self, field):
+        out = field.deserialize('20')
+        assert out == 20
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(25)
+
+    @pytest.mark.parametrize('field', [
+        fields.Float(validate=[lambda f: f <= 4.1, lambda f: f >= 1.0]),
+        fields.Float(validate=(lambda f: f <= 4.1, lambda f: f >= 1.0, )),
+        fields.Float(validate=validators_gen_float)
+    ])
+    def test_float_with_validators(self, field):
+        assert field.deserialize(3.14)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(4.2)
+
+    def test_string_validator(self):
+        field = fields.String(validate=lambda n: len(n) == 3)
+        assert field.deserialize('Joe') == 'Joe'
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('joseph')
+
+    def test_function_validator(self):
+        field = fields.Function(lambda d: d.name.upper(),
+                                validate=lambda n: len(n) == 3)
+        assert field.deserialize('joe')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('joseph')
+
+    @pytest.mark.parametrize('field', [
+        fields.Function(lambda d: d.name.upper(), validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']),
+        fields.Function(lambda d: d.name.upper(), validate=(lambda n: len(n) == 3, lambda n: n[1].lower() == 'o')),
+        fields.Function(lambda d: d.name.upper(), validate=validators_gen_str)
+    ])
+    def test_function_validators(self, field):
+        assert field.deserialize('joe')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('joseph')
+
+    def test_method_validator(self):
+        class MethodSerializer(Schema):
+            name = fields.Method('get_name', deserialize='get_name',
+                                      validate=lambda n: len(n) == 3)
+
+            def get_name(self, val):
+                return val.upper()
+        assert MethodSerializer(strict=True).load({'name': 'joe'})
+        with pytest.raises(UnmarshallingError) as excinfo:
+            MethodSerializer(strict=True).load({'name': 'joseph'})
+        assert 'is not True' in str(excinfo)
+
+@pytest.mark.parametrize('FieldClass', [
+    fields.String,
+    fields.Integer,
+    fields.Boolean,
+    fields.Float,
+    fields.Number,
+    fields.DateTime,
+    fields.LocalDateTime,
+    fields.Time,
+    fields.Date,
+    fields.TimeDelta,
+    fields.Fixed,
+    fields.Url,
+    fields.Email,
+])
+def test_required_field_failure(FieldClass):
+    class RequireSchema(Schema):
+        age = FieldClass(required=True)
+    user_data = {"name": "Phil"}
+    with pytest.raises(UnmarshallingError) as excinfo:
+        RequireSchema(strict=True).load(user_data)
+    assert "Missing data for required field." in str(excinfo)
