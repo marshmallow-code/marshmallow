@@ -262,6 +262,26 @@ class Field(FieldABC):
         check_key = attr if attribute is None else attribute
         return utils.get_value(check_key, obj)
 
+    def _validate(self, value):
+        """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
+        does not succeed.
+        """
+        if utils.is_iterable_but_not_string(self.validate):
+            if not utils.is_generator(self.validate):
+                validators = self.validate
+            else:
+                validators = [i for i in self.validate()]
+        elif callable(self.validate):
+            validators = [self.validate]
+        else:
+            raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
+        for validator in validators:
+            msg = u'Validator {0}({1}) is not True'.format(
+                validator.__name__, value
+            )
+            if not validator(value):
+                raise ValidationError(getattr(self, 'error', None) or msg)
+
     def _call_with_validation(self, method, exception_class, *args, **kwargs):
         """Utility method to invoke ``method`` and validate the output. Call ``self.validate`` when
         appropriate, and raise ``exception_class`` if a validation error
@@ -277,23 +297,8 @@ class Field(FieldABC):
             output = func(*args, **kwargs)
             # NOTE: Use getattr instead of direct attribute access here so that
             # subclasses aren't required to define the `validate` attribute
-            validate = getattr(self, 'validate', None)
-            if validate:
-                if utils.is_iterable_but_not_string(validate):
-                    if not utils.is_generator(validate):
-                        validators = validate
-                    else:
-                        validators = [i for i in validate()]
-                elif callable(validate):
-                    validators = [validate]
-                else:
-                    raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
-                for validator in validators:
-                    msg = u'Validator {0}({1}) is not True'.format(
-                        validator.__name__, output
-                    )
-                    if not validator(output):
-                        raise ValidationError(self.error or msg)
+            if getattr(self, 'validate', False):
+                self._validate(output)
             return output
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:
