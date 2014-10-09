@@ -140,6 +140,11 @@ class TestFieldSerialization:
             self.user.age = 'invalidvalue'
             field.serialize('age', self.user)
 
+    def test_serialize_does_not_apply_validators(self):
+        field = fields.Field(validate=lambda x: False)
+        # No validation error raised
+        assert field.serialize('age', self.user) == self.user.age
+
 
 class TestMarshaller:
 

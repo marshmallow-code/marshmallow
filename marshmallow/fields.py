@@ -233,8 +233,9 @@ class Field(FieldABC):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
-    :param callable validate: Validator or collection of validators
-        that takes the field's input value as its only parameter and returns a boolean.
+    :param callable validate: Validator or collection of validators that are called
+        during deserialization. Validator takes a field's input value as
+        its only parameter and returns a boolean.
         If it returns ``False``, an :exc:`UnmarshallingError` is raised.
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
@@ -282,13 +283,15 @@ class Field(FieldABC):
             if not validator(value):
                 raise ValidationError(getattr(self, 'error', None) or msg)
 
-    def _call_with_validation(self, method, exception_class, *args, **kwargs):
+    def _call_with_validation(self, method, exception_class, call_validator=True, *args, **kwargs):
         """Utility method to invoke ``method`` and validate the output. Call ``self.validate`` when
-        appropriate, and raise ``exception_class`` if a validation error
+        appropriate, and raise ``exception_class`` if a validation or formatting error
         occurs.
 
         :param str method: Name of the method to call.
         :param Exception exception_class: Type of exception to raise when an error occurs.
+        :param bool call_validator: Whether to call custom validation functions. This allows
+            validation functions to only be run during deserialization.
         :param args: Positional arguments to pass to the method.
         :param kwargs: Keyword arguments to pass to the method.
         """
@@ -297,7 +300,7 @@ class Field(FieldABC):
             output = func(*args, **kwargs)
             # NOTE: Use getattr instead of direct attribute access here so that
             # subclasses aren't required to define the `validate` attribute
-            if getattr(self, 'validate', False):
+            if call_validator and getattr(self, 'validate', False):
                 self._validate(output)
             return output
         # TypeErrors should be raised if fields are not declared as instances
@@ -321,13 +324,13 @@ class Field(FieldABC):
 
         :param str attr: The attibute or key to get from the object.
         :param str obj: The object to pull the key from.
-        :raise MarshallingError: In case of validation or formatting problem
+        :raise MarshallingError: In case of formatting problem
         """
         value = self.get_value(attr, obj)
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
                 return self._format(self.default)
-        return self._call_with_validation('_serialize', MarshallingError,
+        return self._call_with_validation('_serialize', MarshallingError, False,
                                           value, attr, obj)
 
     def deserialize(self, value):
@@ -341,7 +344,7 @@ class Field(FieldABC):
                 raise UnmarshallingError('Missing data for required field.')
             if hasattr(self, 'default') and self.default != null:
                 return self._format(self.default)
-        return self._call_with_validation('_deserialize', UnmarshallingError, value)
+        return self._call_with_validation('_deserialize', UnmarshallingError, True, value)
 
     # Methods for concrete classes to override.
 
