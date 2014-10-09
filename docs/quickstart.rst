@@ -160,7 +160,7 @@ Iterable collections of objects are also serializable and deserializable. Just s
 Validation
 ----------
 
-Both :meth:`Schema.dump` and :meth:`Schema.load` (as well as their JSON-encoding counterparts :meth:`Schema.dumps` and :meth:`Schema.loads`) return a dictionary of validation errors as the second element of their return value.
+:meth:`Schema.load` (and its JSON-encoding counterpart, :meth:`Schema.loads`) returns a dictionary of validation errors as the second element of its return value.
 
 .. code-block:: python
 
@@ -181,7 +181,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
         age = fields.Number(validate=lambda n: 18 <= n <= 40,
                             error='User is over the hill')
 
-    jagger = User(name="Mick", email="mick@stones.com", age=71)
+    in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
     result, errors = ValidatedUserSchema().dump(jagger)
     errors  # => {'age': 'User is over the hill'}
 
@@ -191,20 +191,16 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
 .. note::
 
+    :meth:`Schema.dump` also validates the format of its fields and returns a dictionary of errors. However, the callables passed to ``validate`` are only applied during deserialization.
+
+.. note::
+
     If you set ``strict=True`` in either the Schema constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in.
 
     .. code-block:: python
 
-        >>> UserSchema(strict=True).dump(invalid)
-        Traceback (most recent call last):
-          File "<input>", line 1, in <module>
-          File "marshmallow/serializer.py", line 90, in __init__
-            self.data = self.to_data()
-          File "marshmallow/serializer.py", line 210, in to_data
-            return self.marshal(self.obj, self.fields, *args, **kwargs)
-          File "marshmallow/serializer.py", line 203, in marshal
-            raise err
-        MarshallingError: "foo" is not a valid email address.
+        UserSchema(strict=True).dump({'email': foo})
+        # => UnmarshallingError: "foo" is not a valid email address.
 
 
     Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Serializers <extending>` page for more info.
@@ -212,7 +208,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 Required Fields
 +++++++++++++++
 
-You can make a field required by passing ``required=True``. An error will be stored if the object's corresponding attribute is ``None``.
+You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.dump`.
 
 .. code-block:: python
 
@@ -220,8 +216,7 @@ You can make a field required by passing ``required=True``. An error will be sto
         name = fields.String(required=True)
         email = fields.Email()
 
-    user = User(name=None, email='foo@bar.com')
-    data, errors = UserSchema().dump(user)
+    data, errors = UserSchema().load({'email': 'foo@bar.com'})
     errors  # {'name': 'Missing data for required field.'}
 
 
