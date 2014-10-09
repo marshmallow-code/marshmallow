@@ -559,6 +559,7 @@ class MySchema(Schema):
 class MySchema2(Schema):
     homepage = fields.URL()
 
+
 def test_dump_with_custom_error_handler(user):
     @MySchema.error_handler
     def handle_errors(serializer, errors, obj):
@@ -721,14 +722,13 @@ class TestNestedSchema:
         data, _ = s.dump(self.blog)
         assert data['collaborators'][0] == str(self.blog.collaborators[0].uid)
 
-    def test_required_nested_field(self):
+    def test_nested_field_does_not_vaidate_required(self):
         class BlogRequiredSchema(Schema):
-            user = fields.Nested(UserSchema, required=True)
+            user = fields.Nested(UserSchema, required=True, allow_null=True)
 
         b = Blog('Authorless blog', user=None)
         _, errs = BlogRequiredSchema().dump(b)
-        assert 'user' in errs
-        assert 'required' in errs['user']
+        assert 'user' not in errs
 
     def test_nested_default(self):
         class BlogDefaultSchema(Schema):
@@ -920,8 +920,8 @@ class RequiredUserSchema(Schema):
 def test_serialization_with_required_field():
     user = User(name=None)
     data, errors = RequiredUserSchema().dump(user)
-    assert 'name' in errors
-    assert errors['name'] == 'Missing data for required field.'
+    # Does not validate required
+    assert 'name' not in errors
 
 def test_deserialization_with_required_field():
     in_data = {}
@@ -938,23 +938,20 @@ def test_deserialization_with_none_passed_to_required_field():
     assert 'name' not in errors
     assert data['name'] is None
 
-def test_serialization_with_required_field_and_custom_validator():
-    class RequiredGenderSchema(Schema):
-        gender = fields.String(required=True,
-                               validate=lambda x: x.lower() == 'f' or x.lower() == 'm',
-                               error="Gender must be 'f' or 'm'.")
+def test_deserialization_with_required_field_and_custom_validator():
+    class ValidatingSchema(Schema):
+        color = fields.String(required=True,
+                               validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
+                               error="Color must be red or blue")
 
-    user = dict(gender=None)
-    data, errors = RequiredGenderSchema().dump(user)
+    data, errors = ValidatingSchema().load({'name': 'foo'})
     assert errors
-    assert 'gender' in errors
-    assert errors['gender'] == "Missing data for required field."
+    assert 'color' in errors
+    assert errors['color'] == "Missing data for required field."
 
-    user = dict(gender='Unkown')
-    s = RequiredGenderSchema(user)
-    assert s.is_valid() is False
-    assert 'gender' in s.errors
-    assert s.errors['gender'] == "Gender must be 'f' or 'm'."
+    _, errors = ValidatingSchema().load({'color': 'green'})
+    assert 'color' in errors
+    assert errors['color'] == "Color must be red or blue"
 
 
 class UserContextSchema(Schema):

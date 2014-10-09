@@ -141,27 +141,6 @@ class TestFieldSerialization:
             field.serialize('age', self.user)
 
 
-@pytest.mark.parametrize(('FieldClass', 'value'), [
-    (fields.String, ''),
-    (fields.Integer, 0),
-    (fields.Float, 0.0)
-])
-def test_required_field_falsy_is_ok(FieldClass, value):
-    user_data = {'name': value}
-    field = FieldClass(required=True)
-    result = field.serialize('name', user_data)
-    assert result is not None
-    assert result == value
-
-
-def test_required_list_field_failure():
-    user_data = {"name": "Rosie"}
-    field = fields.List(fields.String, required=True)
-    with pytest.raises(MarshallingError) as excinfo:
-        field.serialize('relatives', user_data)
-    assert 'Missing data for required field.' in str(excinfo)
-
-
 class TestMarshaller:
 
     def test_stores_errors(self):

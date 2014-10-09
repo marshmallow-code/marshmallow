@@ -233,19 +233,19 @@ class Field(FieldABC):
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
-    :param callable validate: Validation function that takes the output as its
-        only parameter and returns a boolean. If it returns False, a
-        MarshallingError is raised.
-    :param bool required: Make a field required. If a field is ``None``,
-        raise a :exc:`MarshallingError`.
+    :param callable validate: Validator or collection of validators
+        that takes the field's input value as its only parameter and returns a boolean.
+        If it returns ``False``, an :exc:`UnmarshallingError` is raised.
+    :param bool required: Raise an :exc:`UnmarshallingError` if the field value
+        is not supplied during deserialization.
     """
     _CHECK_ATTRIBUTE = True
     _creation_index = 0
 
     def __init__(self, default=None, attribute=None, error=None,
                  validate=None, required=False):
-        self.attribute = attribute
         self.default = default
+        self.attribute = attribute
         self.error = error
         self.validate = validate
         self.required = required
@@ -320,8 +320,6 @@ class Field(FieldABC):
         """
         value = self.get_value(attr, obj)
         if value is None and self._CHECK_ATTRIBUTE:
-            if hasattr(self, 'required') and self.required:
-                raise MarshallingError('Missing data for required field.')
             if hasattr(self, 'default') and self.default != null:
                 return self._format(self.default)
         return self._call_with_validation('_serialize', MarshallingError,
@@ -384,6 +382,7 @@ class Field(FieldABC):
 
 class Raw(Field):
     """Field that applies no formatting or validation."""
+    pass
 
 class Nested(Field):
     """Allows you to nest a :class:`Schema <marshmallow.Schema>`
