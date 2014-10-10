@@ -229,7 +229,8 @@ class Field(FieldABC):
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized or deserialized.
 
-    :param default: Default value for the field if the attribute is not set.
+    :param default: Default serialization value for the field if the attribute is
+        ``None``.
     :param str attribute: The name of the attribute to get the value from. If
         ``None``, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
@@ -240,6 +241,9 @@ class Field(FieldABC):
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
     """
+    # Some fields, such as Method fields and Function fields, are not expected
+    #  to exists as attributes on the objects to serialize. Set this to False
+    #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0
 
@@ -342,8 +346,6 @@ class Field(FieldABC):
         if value is missing:
             if hasattr(self, 'required') and self.required:
                 raise UnmarshallingError('Missing data for required field.')
-            if hasattr(self, 'default') and self.default != null:
-                return self._format(self.default)
         return self._call_with_validation('_deserialize', UnmarshallingError, True, value)
 
     # Methods for concrete classes to override.

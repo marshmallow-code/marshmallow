@@ -23,10 +23,6 @@ class TestFieldDeserialization:
         field = fields.Float(default=1.0)
         assert field.deserialize(None) == 1.0
 
-    def test_float_field_deserialization_missing_with_default(self):
-        field = fields.Float(default=1.0)
-        assert field.deserialize(fields.missing) == 1.0
-
     def test_integer_field_deserialization(self):
         field = fields.Integer()
         assert field.deserialize('42') == 42
@@ -293,6 +289,12 @@ class TestSchemaDeserialization:
         result, errors = SimpleUserSchema().load(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
+
+    def test_deserialize_with_missing_values(self):
+        user_dict = {'name': 'Monty'}
+        result, errs = SimpleUserSchema().load(user_dict)
+        # 'age' is not included in result
+        assert result == {'name': 'Monty'}
 
     def test_deserialize_many(self):
         users_data = [

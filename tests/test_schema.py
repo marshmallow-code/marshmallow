@@ -258,8 +258,9 @@ def test_prefix(SchemaClass, user):
 def test_fields_must_be_declared_as_instances(user):
     class BadUserSchema(Schema):
         name = fields.String
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as excinfo:
         BadUserSchema(user)
+    assert 'must be declared as a Field instance' in str(excinfo)
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
