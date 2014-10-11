@@ -162,12 +162,16 @@ class BaseSchema(base.SchemaABC):
 
     #: Custom error handler function. May be ``None``.
     __error_handler__ = None
+
+    #  NOTE: The below class attributes must initially be ``None`` so that
+    #  every subclass references a different list of functions
+
     #: List of registered post-processing functions.
-    #  NOTE: Initially ``None`` so that every subclass references a different
-    #  list of functions
     __data_handlers__ = None
     #: List of registered schema-level validation functions.
     __validators__ = None
+    #: List of registered pre-processing functions.
+    __preprocessors__ = None
 
     class Meta(object):
         """Options object for a Schema.
@@ -342,6 +346,34 @@ class BaseSchema(base.SchemaABC):
         cls.__validators__.append(func)
         return func
 
+    @classmethod
+    def preprocessor(cls, func):
+        """Decorator that registers a preprocessing function to be applied during
+        deserialization. The function receives the :class:`Schema` instance and the
+        input data as arguments and should return the modified dictionary of data.
+
+        Example: ::
+
+            class NumberSchema(Schema):
+                field_a = fields.Integer()
+                field_b = fields.Integer()
+
+            @NumberSchema.preprocessor
+            def validate_numbers(schama, input_data):
+                input_data['field_a'] += 1
+                return input_data
+
+        .. note::
+
+            You can register multiple preprocessors for the same schema.
+
+        .. versionadded:: 1.0
+
+        """
+        cls.__preprocessors__ = cls.__preprocessors__ or []
+        cls.__preprocessors__.append(func)
+        return func
+
     def _update_fields(self, obj):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
@@ -454,17 +486,24 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
+        # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
                          for func in self.__validators__]
         else:
             validators = []
+        if self.__preprocessors__:
+            preprocessors = [partial(func, self)
+                            for func in self.__preprocessors__]
+        else:
+            preprocessors = []
         result = self._unmarshal(
             data,
             self.fields,
             self.many,
             strict=self.strict,
             validators=validators,
+            preprocess=preprocessors,
             postprocess=[self.make_object]
         )
         errors = self._unmarshal.errors

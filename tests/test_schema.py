@@ -691,9 +691,40 @@ class TestSchemaValidator:
         assert '_schema' in errors
 
 
+class TestPreprocessors:
+
+    def test_preprocessors_defined_on_class(self):
+        def preprocess_data(schema, in_vals):
+            assert isinstance(schema, Schema)
+            in_vals['field_a'] += 1
+            return in_vals
+
+        class PreprocessingSchema(Schema):
+            __preprocessors__ = [preprocess_data]
+            field_a = fields.Integer()
+
+        schema = PreprocessingSchema()
+        result, errors = schema.load({'field_a': 10})
+        assert result['field_a'] == 11
+
+    def test_preprocessors_defined_by_decorator(self):
+
+        class PreprocessingSchema(Schema):
+            field_a = fields.Integer()
+
+        @PreprocessingSchema.preprocessor
+        def preprocess_data(schema, in_vals):
+            in_vals['field_a'] += 1
+            return in_vals
+
+        schema = PreprocessingSchema()
+        result, errors = schema.load({'field_a': 10})
+        assert result['field_a'] == 11
+
+
 class TestDataHandler:
 
-    def test_serializer_with_custom_data_handler(self, user):
+    def test_schema_with_custom_data_handler(self, user):
         class CallbackSchema(Schema):
             name = fields.String()
 
