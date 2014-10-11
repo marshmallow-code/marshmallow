@@ -145,7 +145,7 @@ class Marshaller(object):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self.serialize(d, fields_dict, many=False) for d in obj]
+            return [self.serialize(d, fields_dict, many=False, strict=strict) for d in obj]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = self.prefix + attr_name
@@ -211,7 +211,10 @@ class Unmarshaller(object):
         :return: An OrderedDict of the deserialized data.
         """
         if many and data is not None:
-            return [self.deserialize(d, fields_dict, many=False) for d in data]
+            return [self.deserialize(d, fields_dict, many=False,
+                        validators=validators, preprocess=preprocess, postprocess=postprocess,
+                        strict=strict)
+                    for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             if attr_name not in fields_dict:

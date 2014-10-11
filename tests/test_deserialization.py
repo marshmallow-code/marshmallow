@@ -307,17 +307,33 @@ class TestSchemaDeserialization:
         assert user['age'] == int(users_data[0]['age'])
 
     def test_make_object(self):
-        class SimpleUserSerializer2(Schema):
+        class SimpleUserSchema2(Schema):
             name = fields.String()
             age = fields.Float()
 
             def make_object(self, data):
                 return User(**data)
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result, errors = SimpleUserSerializer2().load(user_dict)
+        result, errors = SimpleUserSchema2().load(user_dict)
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
+
+    def test_make_object_many(self):
+        class SimpleUserSchema3(Schema):
+            name = fields.String()
+            age = fields.Float()
+
+            def make_object(self, data):
+                return User(**data)
+
+        users_data = [
+            {'name': 'Mick', 'age': '914'},
+            {'name': 'Keith', 'age': '8442'}
+        ]
+        result, errors = SimpleUserSchema3(many=True).load(users_data)
+        assert len(result) == len(users_data)
+        assert all([isinstance(each, User) for each in result])
 
     def test_loads_deserializes_from_json(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
@@ -508,6 +524,23 @@ class TestUnMarshaller:
 
         result = unmarshal.deserialize(data, fields_dict, preprocess=[preprocessor])
         assert result['a'] == 11
+
+    def test_preprocessing_many(self, unmarshal):
+        data = [
+            {'a': 12},
+            {'a': 34},
+        ]
+        fields_dict = {
+            'a': fields.Integer(),
+        }
+
+        def preprocessor(in_vals):
+            in_vals['a'] += 1
+            return in_vals
+
+        result = unmarshal.deserialize(data, fields_dict, preprocess=[preprocessor], many=True)
+        assert result[0]['a'] == 13
+        assert result[1]['a'] == 35
 
 
 def validators_gen():

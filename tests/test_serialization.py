@@ -160,6 +160,16 @@ class TestMarshaller:
         with pytest.raises(MarshallingError):
             marshal(u, {"email": fields.Email()}, strict=True)
 
+    def test_strict_mode_many(self):
+        users = [
+            User("Foo", email="foobar"),
+            User('Bar', email='bar@example.com')
+        ]
+        marshal = fields.Marshaller()
+        with pytest.raises(MarshallingError) as excinfo:
+            marshal(users, {'email': fields.Email()}, strict=True, many=True)
+        assert 'foobar' in str(excinfo)
+
     def test_prefix(self):
         u = User("Foo", email="foo@bar.com")
         marshal = fields.Marshaller(prefix='usr_')

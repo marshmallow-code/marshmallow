@@ -438,7 +438,7 @@ class BaseSchema(base.SchemaABC):
         result = self._unmarshal(
             data,
             self.fields,
-            self.many,
+            many=self.many,
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
