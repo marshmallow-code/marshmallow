@@ -560,128 +560,130 @@ class MySchema(Schema):
 class MySchema2(Schema):
     homepage = fields.URL()
 
+class TestErrorHandler:
 
-def test_dump_with_custom_error_handler(user):
-    @MySchema.error_handler
-    def handle_errors(serializer, errors, obj):
-        assert isinstance(serializer, MySchema)
-        assert 'email' in errors
-        assert isinstance(obj, User)
-        raise CustomError('Something bad happened')
+    def test_dump_with_custom_error_handler(self, user):
+        @MySchema.error_handler
+        def handle_errors(serializer, errors, obj):
+            assert isinstance(serializer, MySchema)
+            assert 'email' in errors
+            assert isinstance(obj, User)
+            raise CustomError('Something bad happened')
 
-    user.email = 'bademail'
-    with pytest.raises(CustomError):
-        MySchema().dump(user)
+        user.email = 'bademail'
+        with pytest.raises(CustomError):
+            MySchema().dump(user)
 
-    user.email = 'monty@python.org'
-    assert MySchema(user).data
+        user.email = 'monty@python.org'
+        assert MySchema(user).data
 
-def test_load_with_custom_error_handler():
-    @MySchema.error_handler
-    def handle_errors(serializer, errors, data):
-        assert isinstance(serializer, MySchema)
-        assert 'email' in errors
-        assert isinstance(data, dict)
-        raise CustomError('Something bad happened')
-    with pytest.raises(CustomError):
-        MySchema().load({'email': 'invalid'})
+    def test_load_with_custom_error_handler(self):
+        @MySchema.error_handler
+        def handle_errors(serializer, errors, data):
+            assert isinstance(serializer, MySchema)
+            assert 'email' in errors
+            assert isinstance(data, dict)
+            raise CustomError('Something bad happened')
+        with pytest.raises(CustomError):
+            MySchema().load({'email': 'invalid'})
 
-def test_multiple_serializers_with_same_error_handler(user):
+    def test_multiple_serializers_with_same_error_handler(self, user):
 
-    @MySchema.error_handler
-    @MySchema2.error_handler
-    def handle_errors(serializer, errors, obj):
-        raise CustomError('Something bad happened')
-    user.email = 'bademail'
-    user.homepage = 'foo'
-    with pytest.raises(CustomError):
-        MySchema().dump(user)
-    with pytest.raises(CustomError):
-        MySchema2().dump(user)
+        @MySchema.error_handler
+        @MySchema2.error_handler
+        def handle_errors(serializer, errors, obj):
+            raise CustomError('Something bad happened')
+        user.email = 'bademail'
+        user.homepage = 'foo'
+        with pytest.raises(CustomError):
+            MySchema().dump(user)
+        with pytest.raises(CustomError):
+            MySchema2().dump(user)
 
-def test_setting_error_handler_class_attribute(user):
-    def handle_errors(serializer, errors, obj):
-        raise CustomError('Something bad happened')
+    def test_setting_error_handler_class_attribute(self, user):
+        def handle_errors(serializer, errors, obj):
+            raise CustomError('Something bad happened')
 
-    class ErrorSchema(Schema):
-        email = fields.Email()
-        __error_handler__ = handle_errors
+        class ErrorSchema(Schema):
+            email = fields.Email()
+            __error_handler__ = handle_errors
 
-    class ErrorSchemaSub(ErrorSchema):
-        pass
+        class ErrorSchemaSub(ErrorSchema):
+            pass
 
-    user.email = 'invalid'
+        user.email = 'invalid'
 
-    ser = ErrorSchema()
-    with pytest.raises(CustomError):
-        ser.dump(user)
+        ser = ErrorSchema()
+        with pytest.raises(CustomError):
+            ser.dump(user)
 
-    subser = ErrorSchemaSub()
-    with pytest.raises(CustomError):
-        subser.dump(user)
+        subser = ErrorSchemaSub()
+        with pytest.raises(CustomError):
+            subser.dump(user)
 
+class TestDataHandler:
 
-def test_serializer_with_custom_data_handler(user):
-    class CallbackSchema(Schema):
-        name = fields.String()
+    def test_serializer_with_custom_data_handler(self, user):
+        class CallbackSchema(Schema):
+            name = fields.String()
 
-    @CallbackSchema.data_handler
-    def add_meaning(serializer, data, obj):
-        data['meaning'] = 42
-        return data
+        @CallbackSchema.data_handler
+        def add_meaning(serializer, data, obj):
+            data['meaning'] = 42
+            return data
 
-    ser = CallbackSchema()
-    data, _ = ser.dump(user)
-    assert data['meaning'] == 42
+        ser = CallbackSchema()
+        data, _ = ser.dump(user)
+        assert data['meaning'] == 42
 
-def test_serializer_with_multiple_data_handlers(user):
-    class CallbackSchema2(Schema):
-        name = fields.String()
+    def test_serializer_with_multiple_data_handlers(self, user):
+        class CallbackSchema2(Schema):
+            name = fields.String()
 
-    @CallbackSchema2.data_handler
-    def add_meaning(serializer, data, obj):
-        data['meaning'] = 42
-        return data
+        @CallbackSchema2.data_handler
+        def add_meaning(serializer, data, obj):
+            data['meaning'] = 42
+            return data
 
-    @CallbackSchema2.data_handler
-    def upper_name(serializer, data, obj):
-        data['name'] = data['name'].upper()
-        return data
+        @CallbackSchema2.data_handler
+        def upper_name(serializer, data, obj):
+            data['name'] = data['name'].upper()
+            return data
 
-    ser = CallbackSchema2()
-    data, _ = ser.dump(user)
-    assert data['meaning'] == 42
-    assert data['name'] == user.name.upper()
+        ser = CallbackSchema2()
+        data, _ = ser.dump(user)
+        assert data['meaning'] == 42
+        assert data['name'] == user.name.upper()
 
-def test_setting_data_handlers_class_attribute(user):
-    def add_meaning(serializer, data, obj):
-        data['meaning'] = 42
-        return data
+    def test_setting_data_handlers_class_attribute(self, user):
+        def add_meaning(serializer, data, obj):
+            data['meaning'] = 42
+            return data
 
-    class CallbackSchema3(Schema):
-        __data_handlers__ = [add_meaning]
+        class CallbackSchema3(Schema):
+            __data_handlers__ = [add_meaning]
 
-        name = fields.String()
+            name = fields.String()
 
-    ser = CallbackSchema3()
-    data, _ = ser.dump(user)
-    assert data['meaning'] == 42
+        ser = CallbackSchema3()
+        data, _ = ser.dump(user)
+        assert data['meaning'] == 42
 
-def test_root_data_handler(user):
-    class RootSchema(Schema):
-        NAME = 'user'
+    def test_root_data_handler(self, user):
+        class RootSchema(Schema):
+            NAME = 'user'
 
-        name = fields.String()
+            name = fields.String()
 
-    @RootSchema.data_handler
-    def add_root(serializer, data, obj):
-        return {
-            serializer.NAME: data
-        }
+        @RootSchema.data_handler
+        def add_root(serializer, data, obj):
+            return {
+                serializer.NAME: data
+            }
 
-    s = RootSchema()
-    data, _ = s.dump(user)
-    assert data['user']['name'] == user.name
+        s = RootSchema()
+        data, _ = s.dump(user)
+        assert data['user']['name'] == user.name
 
 def test_serializer_repr():
     class MySchema(Schema):
