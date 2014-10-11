@@ -9,12 +9,13 @@ Handling Errors
 
 By default, :meth:`Schema.dump` and :meth:`Schema.load` will return validation errors as a dictionary (unless ``strict`` mode is enabled).
 
-You can register a custom error-handling function for a :class:`Schema` using the :meth:`Schema.error_handler` decorator. The function receives the serializer instance, the errors dictionary, and the original object to be serialized.
+You can register a custom error-handling function for a :class:`Schema` using the :meth:`Schema.error_handler` decorator. The function receives the schema instance, the errors dictionary, and the original object to be serialized.
 
 
 .. code-block:: python
 
     import logging
+    from marshmallow import Schema, fields
 
     class AppError(Exception):
         pass
@@ -22,26 +23,52 @@ You can register a custom error-handling function for a :class:`Schema` using th
     class UserSchema(Schema):
         email = fields.Email()
 
+    # Log and raise our custom exception when serialization
+    # or deserialization fails
     @UserSchema.error_handler
-    def handle_errors(serializer, errors, obj):
+    def handle_errors(schema, errors, obj):
         logging.error(errors)
         raise AppError('An error occurred while serializing {0}'.format(obj))
 
     invalid = User('Foo Bar', email='invalid-email')
-    serializer = UserSchema()
-    serializer.dump(invalid)  # raises AppError
-    serializer.load({'email': 'invalid-email'})  # raises AppError
+    schema = UserSchema()
+    schema.dump(invalid)  # raises AppError
+    schema.load({'email': 'invalid-email'})  # raises AppError
 
+Schema-level Validation
+-----------------------
+
+You can register schema-level validation functions for a :class:`Schema` using the :meth:`Schema.validator` decorator. The function receives the schema instance and the input data
+as arguments. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class NumberSchema(Schema):
+        field_a = fields.Integer()
+        field_b = fields.Integer()
+
+    @NumberSchema.validator
+    def validate_numbers(schama, input_data):
+        return input_data['field_b'] > input_data['field_a']
+
+    schema = NumberSchema()
+    result, errors = schema.load({'field_a': 2, 'field_b': 1})
+    errors['_schema']
+    # => "Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is not True"
 
 
 Transforming Data
 -----------------
 
-The :func:`Schema.data_handler <Schema.data_handler>` decorator can be used to register data post-processing functions that transform the serialized data. The function receives the serializer instance, the serialized data dictionary, and the original object to be serialized. It should return the transformed data.
+The :meth:`Schema.data_handler <Schema.data_handler>` decorator can be used to register data post-processing functions for transforming serialized data. The function receives the serializer instance, the serialized data dictionary, and the original object to be serialized. It should return the transformed data.
 
 One use case might be to add a "root" namespace for a serialized object.
 
 .. code-block:: python
+
+    from marshmallow import Schema, fields
 
     class UserSchema(Schema):
         NAME = 'user'
@@ -70,7 +97,7 @@ One use case might be to add a "root" namespace for a serialized object.
 Error Handlers and Data Handlers as Class Members
 -------------------------------------------------
 
-You can register error handlers and data handlers as class members. This might be useful if when defining an abstract serializer class.
+You can register error handlers, validators, and data handlers as class members. This might be useful if when defining an abstract serializer class.
 
 .. code-block:: python
 
@@ -78,7 +105,7 @@ You can register error handlers and data handlers as class members. This might b
         """A customized serializer with error handling and post-processing behavior."""
         __error_handler__ = handle_errors  # A function
         __data_handlers__ = [add_root]  # A list of functions
-
+        __validators__ = [validate_schema]  # A list of functions
 
 
 Extending "class Meta" Options
