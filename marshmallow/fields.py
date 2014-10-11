@@ -178,12 +178,11 @@ class Unmarshaller(object):
         self.errors = {}
 
     def _validate(self, validators, output, strict=False):
-        """Perform schema-level validation. Store errors on the `Unmarshaller`
-        object.
+        """Perform schema-level validation. Stores errors if ``strict`` is ``False``.
         """
         for validator_func in validators:
             try:
-                if not validator_func(output):
+                if validator_func(output) is False:
                     func_name = utils.get_func_name(validator_func)
                     raise ValidationError(u'Schema validator {0}({1}) is not True'.format(
                         func_name, dict(output)

@@ -166,7 +166,7 @@ class BaseSchema(base.SchemaABC):
     #  NOTE: Initially ``None`` so that every subclass references a different
     #  list of functions
     __data_handlers__ = None
-
+    #: List of registered schema-level validation functions.
     __validators__ = None
 
     class Meta(object):
@@ -289,8 +289,8 @@ class BaseSchema(base.SchemaABC):
 
     @classmethod
     def data_handler(cls, func):
-        """Decorator that registers a post-processing function for the
-        serializer. The function receives the :class:`Schema` instance, the serialized
+        """Decorator that registers a post-processing function.
+        The function receives the :class:`Schema` instance, the serialized
         data, and the original object as arguments and should return the
         processed data.
 
@@ -313,6 +313,33 @@ class BaseSchema(base.SchemaABC):
         """
         cls.__data_handlers__ = cls.__data_handlers__ or []
         cls.__data_handlers__.append(func)
+        return func
+
+    @classmethod
+    def validator(cls, func):
+        """Decorator that registers a schema validation function to be applied during
+        deserialization. The function receives the :class:`Schema` instance and the
+        input data as arguments and should return ``False`` if validation fails.
+
+        Example: ::
+
+            class NumberSchema(Schema):
+                field_a = fields.Integer()
+                field_b = fields.Integer()
+
+            @NumberSchema.validator
+            def validate_numbers(schama, input_data):
+                return input_data['field_b'] > input_data['field_a']
+
+        .. note::
+
+            You can register multiple validators for the same schema.
+
+        .. versionadded:: 1.0
+
+        """
+        cls.__validators__ = cls.__validators__ or []
+        cls.__validators__.append(func)
         return func
 
     def _update_fields(self, obj):

@@ -7,7 +7,7 @@ import random
 import pytest
 
 from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
-from marshmallow.exceptions import MarshallingError
+from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
 from marshmallow.compat import unicode, binary_type, OrderedDict
 
 from tests.base import *  # noqa
@@ -634,7 +634,60 @@ class TestSchemaValidator:
             field_b = fields.Field()
 
         schema = ValidatingSchema()
-        result, errors = schema.load({'field_a': 2, 'field_b': 1})
+        _, errors = schema.load({'field_a': 2, 'field_b': 1})
+        assert '_schema' in errors
+
+    def test_validator_with_strict(self):
+        def validate_schema(instance, input_vals):
+            assert isinstance(instance, Schema)
+            return input_vals['field_b'] > input_vals['field_a']
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_schema]
+            field_a = fields.Field()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema(strict=True)
+        in_data = {'field_a': 2, 'field_b': 1}
+        with pytest.raises(UnmarshallingError) as excinfo:
+            schema.load(in_data)
+        expected_msg = u'Schema validator validate_schema({0}) is not True'.format(
+            in_data
+        )
+        assert expected_msg in str(excinfo)
+
+        # underlying exception is a ValidationError
+        exc = excinfo.value
+        assert isinstance(exc.underlying_exception, ValidationError)
+
+    def test_validator_defined_by_decorator(self):
+        class ValidatingSchema(Schema):
+            field_a = fields.Field()
+            field_b = fields.Field()
+
+        @ValidatingSchema.validator
+        def validate_schema(instance, input_vals):
+            assert isinstance(instance, Schema)
+            return input_vals['field_b'] > input_vals['field_a']
+
+        schema = ValidatingSchema()
+        _, errors = schema.load({'field_a': 2, 'field_b': 1})
+        assert '_schema' in errors
+
+    def test_validators_are_inherited(self):
+        def validate_schema(instance, input_vals):
+            return input_vals['field_b'] > input_vals['field_a']
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_schema]
+            field_a = fields.Field()
+            field_b = fields.Field()
+
+        class ValidatingSchemaChild(ValidatingSchema):
+            pass
+
+        schema = ValidatingSchema()
+        _, errors = schema.load({'field_a': 2, 'field_b': 1})
         assert '_schema' in errors
 
 
