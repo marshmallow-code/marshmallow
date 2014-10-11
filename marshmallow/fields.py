@@ -195,15 +195,17 @@ class Unmarshaller(object):
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
-            postprocess=None, strict=False):
+            preprocess=None, postprocess=None, strict=False):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to ``True`` if ``data`` should be deserialized as
             a collection.
-        :param callable postprocess: Post-processing function that is passed the
+        :param list validators: List of validation functions to apply to the
             deserialized dictionary.
+        :param list preprocess: List of pre-processing functions.
+        :param list postprocess: List of post-processing functions.
         :param bool strict: If ``True``, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :return: An OrderedDict of the deserialized data.
@@ -230,11 +232,18 @@ class Unmarshaller(object):
             if raw_value is not missing:
                 items.append((key, value))
         ret = OrderedDict(items)
+
+        if preprocess:
+            preprocess = preprocess or []
+            for func in preprocess:
+                ret = func(ret)
         if validators:
             validators = validators or []
             ret = self._validate(validators, ret, strict=strict)
         if postprocess:
-            return postprocess(ret)
+            postprocess = postprocess or []
+            for func in postprocess:
+                ret = func(ret)
         return ret
 
     # Make an instance callable

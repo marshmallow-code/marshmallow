@@ -496,6 +496,19 @@ class TestUnMarshaller:
         assert result['email'] == 'mick@stones.com'
         assert result['firstname'] == 'Mick'
 
+    def test_preprocessing_function(self, unmarshal):
+        data = {'a': 10}
+        fields_dict = {
+            'a': fields.Integer(),
+        }
+
+        def preprocessor(in_vals):
+            in_vals['a'] += 1
+            return in_vals
+
+        result = unmarshal.deserialize(data, fields_dict, preprocess=[preprocessor])
+        assert result['a'] == 11
+
 
 def validators_gen():
     yield lambda x: x <= 24

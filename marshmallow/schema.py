@@ -465,7 +465,7 @@ class BaseSchema(base.SchemaABC):
             self.many,
             strict=self.strict,
             validators=validators,
-            postprocess=self.make_object
+            postprocess=[self.make_object]
         )
         errors = self._unmarshal.errors
         if self._unmarshal.errors and callable(self.__error_handler__):
