@@ -318,7 +318,7 @@ class Field(FieldABC):
             msg = u'Validator {0}({1}) is not True'.format(
                 func_name, value
             )
-            if not validator(value):
+            if validator(value) is False:
                 raise ValidationError(getattr(self, 'error', None) or msg)
 
     def _call_with_validation(self, method, exception_class, call_validator=True, *args, **kwargs):

@@ -237,6 +237,15 @@ class TestFieldDeserialization:
         assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
         assert type(excinfo.value.underlying_exception) == ValidationError
 
+    def test_validator_must_return_false_to_raise_error(self):
+        # validator returns None, so anything validates
+        field = fields.String(validate=lambda s: None)
+        assert field.deserialize('Valid') == 'Valid'
+        # validator returns False, so nothing validates
+        field2 = fields.String(validate=lambda s: False)
+        with pytest.raises(UnmarshallingError):
+            field2.deserialize('invalid')
+
     def test_field_deserialization_with_validator_with_nonascii_input(self):
         field = fields.String(validate=lambda s: False)
         with pytest.raises(UnmarshallingError) as excinfo:
@@ -424,6 +433,15 @@ class TestSchemaDeserialization:
             'age': -1,
         }
         v = Validator(strict=True)
+        with pytest.raises(UnmarshallingError):
+            v.load(bad_data)
+
+    def test_strict_mode_many(self):
+        bad_data = [
+            {'email': 'foo@bar.com', 'colors': 'red', 'age': 18},
+            {'email': 'bad', 'colors': 'pizza', 'age': -1}
+        ]
+        v = Validator(strict=True, many=True)
         with pytest.raises(UnmarshallingError):
             v.load(bad_data)
 
