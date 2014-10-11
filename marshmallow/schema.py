@@ -9,10 +9,12 @@ import copy
 import uuid
 import types
 import warnings
+import functools
 
 from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
+from marshmallow.exceptions import ValidationError, UnmarshallingError
 from marshmallow.orderedset import OrderedSet
 
 #: Return type of :meth:`Schema.dump`
@@ -165,6 +167,8 @@ class BaseSchema(base.SchemaABC):
     #  NOTE: Initially ``None`` so that every subclass references a different
     #  list of functions
     __data_handlers__ = None
+
+    __validators__ = None
 
     class Meta(object):
         """Options object for a Schema.
@@ -392,6 +396,21 @@ class BaseSchema(base.SchemaABC):
                 ret[key] = field_obj
         return ret
 
+    def _validate(self, output):
+        validators = self.__validators__ or []
+        for validator_func in validators:
+            try:
+                if not validator_func(output):
+                    raise ValidationError(u'Schema validator {0}({1})'.format(
+                        validator_func.__name__, dict(output)
+                    ))
+            except ValidationError as err:
+                if self.strict:
+                    raise UnmarshallingError(err)
+                # Store errors
+                self._unmarshal.errors['_schema'] = text_type(err)
+        return output
+
     def dump(self, obj):
         """Serialize an object to native Python data types according to this
         Schema's fields.
@@ -404,7 +423,12 @@ class BaseSchema(base.SchemaABC):
         """
         if obj != self.obj:
             self._update_fields(obj)
-        preresult = self._marshal(obj, self.fields, many=self.many, strict=self.strict)
+        preresult = self._marshal(
+            obj,
+            self.fields,
+            many=self.many,
+            strict=self.strict
+        )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
@@ -419,8 +443,14 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        result = self._unmarshal(data, self.fields, self.many, strict=self.strict,
-                                postprocess=self.make_object)
+        result = self._unmarshal(
+            data,
+            self.fields,
+            self.many,
+            strict=self.strict,
+            preprocess=self._validate,
+            postprocess=self.make_object
+        )
         errors = self._unmarshal.errors
         if self._unmarshal.errors and callable(self.__error_handler__):
             self.__error_handler__(self._unmarshal.errors, data)

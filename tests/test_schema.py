@@ -621,6 +621,24 @@ class TestErrorHandler:
         with pytest.raises(CustomError):
             subser.dump(user)
 
+class TestSchemaValidator:
+
+    def test_validator_defined_on_class(self):
+
+        def validate_schema(input_vals):
+            # assert isinstance(instance, Schema)
+            return input_vals['field_b'] > input_vals['field_a']
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_schema]
+            field_a = fields.Field()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema()
+        result, errors = schema.load({'field_a': 2, 'field_b': 1})
+        assert '_schema' in errors
+
+
 class TestDataHandler:
 
     def test_serializer_with_custom_data_handler(self, user):
@@ -685,7 +703,7 @@ class TestDataHandler:
         data, _ = s.dump(user)
         assert data['user']['name'] == user.name
 
-def test_serializer_repr():
+def test_schema_repr():
     class MySchema(Schema):
         name = fields.String()
 

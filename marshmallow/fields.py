@@ -177,7 +177,8 @@ class Unmarshaller(object):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
 
-    def deserialize(self, data, fields_dict, many=False, postprocess=None, strict=False):
+    def deserialize(self, data, fields_dict, many=False, preprocess=None,
+            postprocess=None, strict=False):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -212,6 +213,8 @@ class Unmarshaller(object):
             if raw_value is not missing:
                 items.append((key, value))
         ret = OrderedDict(items)
+        if preprocess:
+            ret = preprocess(ret)
         if postprocess:
             return postprocess(ret)
         return ret
