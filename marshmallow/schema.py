@@ -2,13 +2,13 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import
 
-from collections import namedtuple
+import copy
 import datetime as dt
 import json
-import copy
-import uuid
 import types
+import uuid
 import warnings
+from collections import namedtuple
 from functools import partial
 
 from marshmallow import base, fields, utils, class_registry
@@ -22,7 +22,7 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
 
-def get_fields(attrs, field_class, pop=False):
+def _get_fields(attrs, field_class, pop=False):
     """Get fields from a class, sorted by creation index.
 
     :param attrs: Mapping of class attributes
@@ -39,7 +39,7 @@ def get_fields(attrs, field_class, pop=False):
         key=lambda pair: pair[1]._creation_index,
     )
 
-def get_fields_by_mro(klass, field_class):
+def _get_fields_by_mro(klass, field_class):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
@@ -49,7 +49,7 @@ def get_fields_by_mro(klass, field_class):
     """
     return sum(
         (
-            get_fields(
+            _get_fields(
                 getattr(base, '_declared_fields', base.__dict__),
                 field_class
             )
@@ -66,9 +66,9 @@ class SchemaMeta(type):
     """
 
     def __new__(mcs, name, bases, attrs):
-        fields = get_fields(attrs, base.FieldABC, pop=True)
+        fields = _get_fields(attrs, base.FieldABC, pop=True)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
-        fields = get_fields_by_mro(klass, base.FieldABC) + fields
+        fields = _get_fields_by_mro(klass, base.FieldABC) + fields
         klass._declared_fields = OrderedDict(fields)
         class_registry.register(name, klass)
         return klass
