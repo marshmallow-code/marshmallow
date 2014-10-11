@@ -261,9 +261,7 @@ class BaseSchema(base.SchemaABC):
                     data = callback(self, data, obj)
         return data
 
-    def _update_data(self):
-        result = self._marshal(self.obj, self.fields, many=self.many, strict=self.strict)
-        self._data = self._postprocess(result, obj=self.obj)
+    ##### Handler decorators #####
 
     @classmethod
     def error_handler(cls, func):
@@ -374,6 +372,160 @@ class BaseSchema(base.SchemaABC):
         cls.__preprocessors__.append(func)
         return func
 
+    ##### Serialization/Deserialization API #####
+
+    def dump(self, obj):
+        """Serialize an object to native Python data types according to this
+        Schema's fields.
+
+        :param obj: The object to serialize.
+        :return: A tuple of the form (``result``, ``errors``)
+        :rtype: `MarshalResult`, a `collections.namedtuple`
+
+        .. versionadded:: 1.0.0
+        """
+        if obj != self.obj:
+            self._update_fields(obj)
+        preresult = self._marshal(
+            obj,
+            self.fields,
+            many=self.many,
+            strict=self.strict
+        )
+        result = self._postprocess(preresult, obj=obj)
+        errors = self._marshal.errors
+        return MarshalResult(result, errors)
+
+    def dumps(self, obj, *args, **kwargs):
+        """Same as :meth:`dump`, except return a JSON-encoded string.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+        :rtype: `MarshalResult`, a `collections.namedtuple`
+
+        .. versionadded:: 1.0.0
+        """
+        deserialized, errors = self.dump(obj)
+        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
+        # # On Python 2, json.dumps returns bytestrings
+        # # On Python 3, json.dumps returns unicode
+        # # Ensure that a bytestring is returned
+        if isinstance(ret, text_type):
+            ret = bytes(ret.encode('utf-8'))
+        return MarshalResult(ret, errors)
+
+    def load(self, data):
+        """Deserialize a data structure to an object defined by this Schema's
+        fields and :meth:`make_object`.
+
+        :param dict data: The data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+        :rtype: `UnmarshalResult`, a `collections.namedtuple`
+
+        .. versionadded:: 1.0.0
+        """
+        # Bind self as the first argument of validators and preprocessors
+        if self.__validators__:
+            validators = [partial(func, self)
+                         for func in self.__validators__]
+        else:
+            validators = []
+        if self.__preprocessors__:
+            preprocessors = [partial(func, self)
+                            for func in self.__preprocessors__]
+        else:
+            preprocessors = []
+        result = self._unmarshal(
+            data,
+            self.fields,
+            self.many,
+            strict=self.strict,
+            validators=validators,
+            preprocess=preprocessors,
+            postprocess=[self.make_object]
+        )
+        errors = self._unmarshal.errors
+        if self._unmarshal.errors and callable(self.__error_handler__):
+            self.__error_handler__(self._unmarshal.errors, data)
+        return UnmarshalResult(data=result, errors=errors)
+
+    def loads(self, json_data, *args, **kwargs):
+        """Same as :meth:`load`, except it takes a JSON string as input.
+
+        :param str json_data: A JSON string of the data to deserialize.
+        :return: A tuple of the form (``result``, ``errors``)
+        :rtype: `UnmarshalResult`, a `collections.namedtuple`
+
+        .. versionadded:: 1.0.0
+        """
+        return self.load(self.opts.json_module.loads(json_data, *args, **kwargs))
+
+    def make_object(self, data):
+        """Override-able method that defines how to create the final deserialization
+        output. Defaults to noop (i.e. just return ``data`` as is).
+
+        :param dict data: The deserialized data.
+
+        .. versionadded:: 1.0.0
+        """
+        return data
+
+    ##### Legacy API #####
+
+    @property
+    def data(self):
+        """The serialized data as an :class:`OrderedDict`.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+        """
+        warnings.warn('Accessing data through Schema.data is deprecated. '
+                      'Use the return value of Schema.dump instead.',
+                      category=DeprecationWarning)
+        if not self._data:  # Cache the data
+            self._update_data()
+        return self._data
+
+    @property
+    def errors(self):
+        """Dictionary of errors raised during serialization.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+        """
+        warnings.warn('Accessing errors through Schema.errors is deprecated. '
+                      'Use the return value of Schema.dump instead.',
+                      category=DeprecationWarning)
+        return self._marshal.errors
+
+    def is_valid(self, field_names=None):
+        """Return ``True`` if all data are valid, ``False`` otherwise.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+
+        :param field_names: List of field names (strings) to validate.
+            If ``None``, all fields will be validated.
+        """
+        warnings.warn('Schema.is_valid() is deprecated. Use Schema.dump '
+                      'instead.', category=DeprecationWarning)
+        if field_names is not None and type(field_names) not in (list, tuple):
+            raise ValueError("field_names param must be a list or tuple")
+        fields_to_validate = field_names or self.fields.keys()
+        field_set, error_set = set(self.fields), set(self.errors)
+        for fname in fields_to_validate:
+            if fname not in field_set:
+                raise KeyError('"{0}" is not a valid field name.'.format(fname))
+            if fname in error_set:
+                return False
+        return True
+
+    ##### Private helpers #####
+
+    def _update_data(self):
+        result = self._marshal(self.obj, self.fields, many=self.many, strict=self.strict)
+        self._data = self._postprocess(result, obj=self.obj)
+
     def _update_fields(self, obj):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
@@ -453,152 +605,6 @@ class BaseSchema(base.SchemaABC):
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret
-
-    def dump(self, obj):
-        """Serialize an object to native Python data types according to this
-        Schema's fields.
-
-        :param obj: The object to serialize.
-        :return: A tuple of the form (``result``, ``errors``)
-        :rtype: `MarshalResult`, a `collections.namedtuple`
-
-        .. versionadded:: 1.0.0
-        """
-        if obj != self.obj:
-            self._update_fields(obj)
-        preresult = self._marshal(
-            obj,
-            self.fields,
-            many=self.many,
-            strict=self.strict
-        )
-        result = self._postprocess(preresult, obj=obj)
-        errors = self._marshal.errors
-        return MarshalResult(result, errors)
-
-    def load(self, data):
-        """Deserialize a data structure to an object defined by this Schema's
-        fields and :meth:`make_object`.
-
-        :param dict data: The data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
-        :rtype: `UnmarshalResult`, a `collections.namedtuple`
-
-        .. versionadded:: 1.0.0
-        """
-        # Bind self as the first argument of validators and preprocessors
-        if self.__validators__:
-            validators = [partial(func, self)
-                         for func in self.__validators__]
-        else:
-            validators = []
-        if self.__preprocessors__:
-            preprocessors = [partial(func, self)
-                            for func in self.__preprocessors__]
-        else:
-            preprocessors = []
-        result = self._unmarshal(
-            data,
-            self.fields,
-            self.many,
-            strict=self.strict,
-            validators=validators,
-            preprocess=preprocessors,
-            postprocess=[self.make_object]
-        )
-        errors = self._unmarshal.errors
-        if self._unmarshal.errors and callable(self.__error_handler__):
-            self.__error_handler__(self._unmarshal.errors, data)
-        return UnmarshalResult(data=result, errors=errors)
-
-    def loads(self, json_data, *args, **kwargs):
-        """Same as :meth:`load`, except it takes a JSON string as input.
-
-        :param str json_data: A JSON string of the data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
-        :rtype: `UnmarshalResult`, a `collections.namedtuple`
-
-        .. versionadded:: 1.0.0
-        """
-        return self.load(self.opts.json_module.loads(json_data, *args, **kwargs))
-
-    def dumps(self, obj, *args, **kwargs):
-        """Same as :meth:`dump`, except return a JSON-encoded string.
-
-        :param str json_data: A JSON string of the data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
-        :rtype: `MarshalResult`, a `collections.namedtuple`
-
-        .. versionadded:: 1.0.0
-        """
-        deserialized, errors = self.dump(obj)
-        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
-        # # On Python 2, json.dumps returns bytestrings
-        # # On Python 3, json.dumps returns unicode
-        # # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            ret = bytes(ret.encode('utf-8'))
-        return MarshalResult(ret, errors)
-
-    def make_object(self, data):
-        """Override-able method that defines how to create the final deserialization
-        output. Defaults to noop (i.e. just return ``data`` as is).
-
-        :param dict data: The deserialized data.
-
-        .. versionadded:: 1.0.0
-        """
-        return data
-
-    ##### Legacy API #####
-
-    @property
-    def data(self):
-        """The serialized data as an :class:`OrderedDict`.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
-        """
-        warnings.warn('Accessing data through Schema.data is deprecated. '
-                      'Use the return value of Schema.dump instead.',
-                      category=DeprecationWarning)
-        if not self._data:  # Cache the data
-            self._update_data()
-        return self._data
-
-    @property
-    def errors(self):
-        """Dictionary of errors raised during serialization.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
-        """
-        warnings.warn('Accessing errors through Schema.errors is deprecated. '
-                      'Use the return value of Schema.dump instead.',
-                      category=DeprecationWarning)
-        return self._marshal.errors
-
-    def is_valid(self, field_names=None):
-        """Return ``True`` if all data are valid, ``False`` otherwise.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
-
-        :param field_names: List of field names (strings) to validate.
-            If ``None``, all fields will be validated.
-        """
-        warnings.warn('Schema.is_valid() is deprecated. Use Schema.dump '
-                      'instead.', category=DeprecationWarning)
-        if field_names is not None and type(field_names) not in (list, tuple):
-            raise ValueError("field_names param must be a list or tuple")
-        fields_to_validate = field_names or self.fields.keys()
-        field_set, error_set = set(self.fields), set(self.errors)
-        for fname in fields_to_validate:
-            if fname not in field_set:
-                raise KeyError('"{0}" is not a valid field name.'.format(fname))
-            if fname in error_set:
-                return False
-        return True
 
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
