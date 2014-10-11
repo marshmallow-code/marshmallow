@@ -59,6 +59,30 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
     # => "Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is not True"
 
 
+Pre-processing Input Data
+-------------------------
+
+Data pre-processing functions can be registered using :meth:`Schema.preprocessor`. A pre-processing function reeives the schema instace and the input data as arguments and must return the dictionary of processed data.
+
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class UserSchema(Schema):
+        name = fields.String()
+        slug = fields.String()
+
+    @UserSchema.preprocessor
+    def slugify_name(schema, in_data):
+        in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+        return in_data
+
+    schema = UserSchema()
+    result, errors = schema.load({'name': 'Steve', 'slug': 'Steve Loria '})
+    result['slug']  # => 'steve-loria'
+
+
 Transforming Data
 -----------------
 
@@ -94,18 +118,19 @@ One use case might be to add a "root" namespace for a serialized object.
 
     It is possible to register multiple data handlers for a single serializer.
 
-Error Handlers and Data Handlers as Class Members
--------------------------------------------------
+Handler Functions as Class Members
+----------------------------------
 
-You can register error handlers, validators, and data handlers as class members. This might be useful if when defining an abstract serializer class.
+You can register error handlers, validators, and data handlers as optional class members. This might be useful if when defining an abstract serializer class.
 
 .. code-block:: python
 
     class BaseSchema(Schema):
         """A customized serializer with error handling and post-processing behavior."""
         __error_handler__ = handle_errors  # A function
-        __data_handlers__ = [add_root]  # A list of functions
-        __validators__ = [validate_schema]  # A list of functions
+        __data_handlers__ = [add_root]      # List of functions
+        __validators__ = [validate_schema]  # List of functions
+        __preprocessors__ = [preprocess_data]  # List of functions
 
 
 Extending "class Meta" Options

@@ -359,7 +359,7 @@ class BaseSchema(base.SchemaABC):
                 field_b = fields.Integer()
 
             @NumberSchema.preprocessor
-            def validate_numbers(schama, input_data):
+            def add_to_field_a(schama, input_data):
                 input_data['field_a'] += 1
                 return input_data
 
