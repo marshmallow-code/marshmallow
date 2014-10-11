@@ -9,12 +9,11 @@ import copy
 import uuid
 import types
 import warnings
-import functools
+from functools import partial
 
 from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
-from marshmallow.exceptions import ValidationError, UnmarshallingError
 from marshmallow.orderedset import OrderedSet
 
 #: Return type of :meth:`Schema.dump`
@@ -396,21 +395,6 @@ class BaseSchema(base.SchemaABC):
                 ret[key] = field_obj
         return ret
 
-    def _validate(self, output):
-        validators = self.__validators__ or []
-        for validator_func in validators:
-            try:
-                if not validator_func(output):
-                    raise ValidationError(u'Schema validator {0}({1})'.format(
-                        validator_func.__name__, dict(output)
-                    ))
-            except ValidationError as err:
-                if self.strict:
-                    raise UnmarshallingError(err)
-                # Store errors
-                self._unmarshal.errors['_schema'] = text_type(err)
-        return output
-
     def dump(self, obj):
         """Serialize an object to native Python data types according to this
         Schema's fields.
@@ -443,12 +427,17 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
+        if self.__validators__:
+            validators = [partial(func, self)
+                         for func in self.__validators__]
+        else:
+            validators = []
         result = self._unmarshal(
             data,
             self.fields,
             self.many,
             strict=self.strict,
-            preprocess=self._validate,
+            validators=validators,
             postprocess=self.make_object
         )
         errors = self._unmarshal.errors

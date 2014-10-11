@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
 from collections import namedtuple
+from functools import partial
 
 import pytest
 
@@ -183,3 +184,14 @@ def test_from_iso_date(use_dateutil):
     result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
     assert isinstance(result, dt.date)
     assert_date_equal(result, d)
+
+
+def test_get_func_name():
+    def foo(a, b):
+        return a + b
+
+    assert utils.get_func_name(foo) == 'foo'
+    # Works for partials, too
+    foo_partial = partial(foo, 1)
+
+    assert utils.get_func_name(foo_partial) == 'foo'

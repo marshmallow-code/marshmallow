@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 """Utility methods for marshmallow."""
 from __future__ import absolute_import
-import json
+
 import datetime
-import time
+import functools
 import inspect
-from email.utils import formatdate, parsedate
-from calendar import timegm
+import json
+import time
 import types
+from calendar import timegm
 from decimal import Decimal, Context, Inexact
+from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
+
+from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
+
 
 dateutil_available = False
 try:
@@ -17,8 +22,6 @@ try:
     dateutil_available = True
 except ImportError:
     dateutil_available = False
-
-from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
 
 
 def is_generator(obj):
@@ -298,3 +301,11 @@ def _get_value_for_key(key, obj, default):
         except KeyError:
             return default
     return default
+
+
+def get_func_name(func):
+    """Given a function object, return its name. Handles `functools.partial` objects.
+    """
+    if isinstance(func, functools.partial):
+        return func.func.__name__
+    return func.__name__

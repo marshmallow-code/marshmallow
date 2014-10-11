@@ -624,9 +624,8 @@ class TestErrorHandler:
 class TestSchemaValidator:
 
     def test_validator_defined_on_class(self):
-
-        def validate_schema(input_vals):
-            # assert isinstance(instance, Schema)
+        def validate_schema(instance, input_vals):
+            assert isinstance(instance, Schema)
             return input_vals['field_b'] > input_vals['field_a']
 
         class ValidatingSchema(Schema):

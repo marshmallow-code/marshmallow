@@ -177,7 +177,25 @@ class Unmarshaller(object):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
 
-    def deserialize(self, data, fields_dict, many=False, preprocess=None,
+    def _validate(self, validators, output, strict=False):
+        """Perform schema-level validation. Store errors on the `Unmarshaller`
+        object.
+        """
+        for validator_func in validators:
+            try:
+                if not validator_func(output):
+                    func_name = utils.get_func_name(validator_func)
+                    raise ValidationError(u'Schema validator {0}({1}) is not True'.format(
+                        func_name, dict(output)
+                    ))
+            except ValidationError as err:
+                if strict:
+                    raise UnmarshallingError(err)
+                # Store errors
+                self.errors['_schema'] = text_type(err)
+        return output
+
+    def deserialize(self, data, fields_dict, many=False, validators=None,
             postprocess=None, strict=False):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
@@ -213,8 +231,9 @@ class Unmarshaller(object):
             if raw_value is not missing:
                 items.append((key, value))
         ret = OrderedDict(items)
-        if preprocess:
-            ret = preprocess(ret)
+        if validators:
+            validators = validators or []
+            ret = self._validate(validators, ret, strict=strict)
         if postprocess:
             return postprocess(ret)
         return ret
