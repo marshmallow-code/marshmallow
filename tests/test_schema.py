@@ -690,6 +690,17 @@ class TestSchemaValidator:
         _, errors = schema.load({'field_a': 2, 'field_b': 1})
         assert '_schema' in errors
 
+    def test_uncaught_validation_errors_are_stored(self):
+        def validate_schema(schema, input_vals):
+            raise ValidationError('Something went wrong')
+
+        class MySchema(Schema):
+            __validators__ = [validate_schema]
+
+        schema = MySchema()
+        _, errors = schema.load({'foo': 42})
+        assert errors['_schema'] == 'Something went wrong'
+
 
 class TestPreprocessors:
 

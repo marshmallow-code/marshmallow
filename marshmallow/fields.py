@@ -111,7 +111,7 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         if (isinstance(field_obj, type) and
                 issubclass(field_obj, FieldABC)):
             msg = ('Field for "{0}" must be declared as a '
-                            "Field instance, not a class. "
+                            'Field instance, not a class. '
                             'Did you mean "fields.{1}()"?'
                             .format(field_name, field_obj.__name__))
             raise TypeError(msg)

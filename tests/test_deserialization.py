@@ -455,6 +455,16 @@ class TestSchemaDeserialization:
         with pytest.raises(UnmarshallingError):
             v.load(bad_data)
 
+    def test_uncaught_validation_errors_are_stored(self):
+        def validate_field(val):
+            raise ValidationError('Something went wrong')
+
+        class MySchema(Schema):
+            foo = fields.Field(validate=validate_field)
+
+        _, errors = MySchema().load({'foo': 42})
+        assert errors['foo'] == 'Something went wrong'
+
 
 class TestUnMarshaller:
 
