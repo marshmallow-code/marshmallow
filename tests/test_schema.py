@@ -701,6 +701,18 @@ class TestSchemaValidator:
         _, errors = schema.load({'foo': 42})
         assert errors['_schema'] == 'Something went wrong'
 
+    def test_validation_error_with_error_parameter(self):
+        def validate_schema(schema, input_vals):
+            raise ValidationError('Something went wrong')
+
+        class MySchema(Schema):
+            __validators__ = [validate_schema]
+            foo = fields.String(error="This message isn't used")
+
+        schema = MySchema()
+        _, errors = schema.load({'foo': 42})
+        assert errors['_schema'] == 'Something went wrong'
+
 
 class TestPreprocessors:
 

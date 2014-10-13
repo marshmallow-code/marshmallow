@@ -182,8 +182,28 @@ You can perform additional validation for a field by passing it a ``validate`` c
                             error='User is over the hill')
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
-    result, errors = ValidatedUserSchema().dump(jagger)
+    result, errors = ValidatedUserSchema().load(in_data)
     errors  # => {'age': 'User is over the hill'}
+
+
+Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError
+
+    def validate_quantity(n):
+        if n < 0:
+            raise ValidationError('Quantity must be greater than 0.')
+        if n > 30:
+            raise ValidationError('Quantity must not be greater than 30.')
+
+    class ItemSchema(Schema):
+        quantity = fields.Integer(validate=validate_quantity)
+
+    in_data = {'quantity': 31}
+    result, errors = ItemSchema().load(in_data)
+    errors  # => {'quantity': 'Quantity must not be greater than 30.'}
 
 .. note::
 
@@ -199,11 +219,16 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
     .. code-block:: python
 
-        UserSchema(strict=True).dump({'email': foo})
+        UserSchema(strict=True).load({'email': foo})
         # => UnmarshallingError: "foo" is not a valid email address.
 
 
-    Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Serializers <extending>` page for more info.
+    Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
+
+
+.. seealso::
+
+    Need schema-level validation? See the :ref:`Extending Schemas <schemavalidation>` page.
 
 Required Fields
 +++++++++++++++

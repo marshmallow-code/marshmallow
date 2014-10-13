@@ -1,8 +1,8 @@
 .. _extending:
 .. module:: marshmallow
 
-Extending Serializers
-=====================
+Extending Schemas
+=================
 
 Handling Errors
 ---------------
@@ -34,6 +34,8 @@ You can register a custom error-handling function for a :class:`Schema` using th
     schema = UserSchema()
     schema.dump(invalid)  # raises AppError
     schema.load({'email': 'invalid-email'})  # raises AppError
+
+.. _schemavalidation:
 
 Schema-level Validation
 -----------------------
@@ -126,7 +128,6 @@ You can register error handlers, validators, and data handlers as optional class
 .. code-block:: python
 
     class BaseSchema(Schema):
-        """A customized serializer with error handling and post-processing behavior."""
         __error_handler__ = handle_errors  # A function
         __data_handlers__ = [add_root]      # List of functions
         __validators__ = [validate_schema]  # List of functions
