@@ -13,7 +13,7 @@ from marshmallow.schema import (
     Serializer,
 )
 from marshmallow.utils import pprint
-from marshmallow.exceptions import MarshallingError, UnmarshallingError
+from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
 
 
 __all__ = [
@@ -25,4 +25,5 @@ __all__ = [
     'UnmarshalResult',
     'MarshallingError',
     'UnmarshallingError',
+    'ValidationError',
 ]
