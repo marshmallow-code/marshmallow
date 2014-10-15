@@ -463,7 +463,34 @@ class TestSchemaDeserialization:
             foo = fields.Field(validate=validate_field)
 
         _, errors = MySchema().load({'foo': 42})
-        assert errors['foo'] == 'Something went wrong'
+        assert 'Something went wrong' in errors['foo']
+
+    def test_multiple_errors_can_be_stored_for_a_field(self):
+
+        def validate_with_bool(n):
+            return False
+
+        def validate_with_error(n):
+            raise ValidationError('foo is not valid')
+
+        class MySchema(Schema):
+            foo = fields.Field(required=True, validate=[
+                validate_with_bool,
+                validate_with_error,
+            ])
+        _, errors = MySchema().load({'foo': 'bar'})
+
+        assert type(errors['foo']) == list
+        assert len(errors['foo']) == 2
+
+    def test_required_value_only_passed_to_validators_if_provided(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True, validate=lambda f: False)
+
+        _, errors = MySchema().load({})
+        # required value missing
+        assert len(errors['foo']) == 1
+        assert 'Missing data for required field.' in errors['foo']
 
 
 class TestUnMarshaller:
@@ -667,6 +694,6 @@ def test_required_field_failure(FieldClass):
     class RequireSchema(Schema):
         age = FieldClass(required=True)
     user_data = {"name": "Phil"}
-    with pytest.raises(UnmarshallingError) as excinfo:
-        RequireSchema(strict=True).load(user_data)
-    assert "Missing data for required field." in str(excinfo)
+    data, errs = RequireSchema().load(user_data)
+    assert "Missing data for required field." in errs['age']
+    assert data == {}

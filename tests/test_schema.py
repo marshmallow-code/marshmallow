@@ -168,10 +168,10 @@ def test_relative_url_field():
     [UserSchema, UserMetaSchema])
 def test_stores_invalid_url_error(SchemaClass):
     user = User(name="John Doe", homepage="www.foo.com")
-    serialized = SchemaClass(user)
-    assert "homepage" in serialized.errors
-    expected = '"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?'
-    assert serialized.errors['homepage'] == expected
+    result = SchemaClass().dump(user)
+    assert "homepage" in result.errors
+    expected = ['"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?']
+    assert result.errors['homepage'] == expected
 
 def test_default():
     user = User("John")  # No ID set
@@ -189,7 +189,7 @@ def test_stored_invalid_email():
     u = User("John", email="johnexample.com")
     s = UserSchema(u)
     assert "email" in s.errors
-    assert s.errors['email'] == '"johnexample.com" is not a valid email address.'
+    assert s.errors['email'][0] == '"johnexample.com" is not a valid email address.'
 
 def test_integer_field():
     u = User("John", age=42.3)
@@ -326,22 +326,19 @@ def test_can_serialize_time(user, serialized_user):
 
 def test_invalid_time():
     u = User('Joe', time_registered='foo')
-    s = UserSchema(u)
-    assert s.is_valid(['time_registered']) is False
-    assert s.errors['time_registered'] == "'foo' cannot be formatted as a time."
+    s = UserSchema().dump(u)
+    assert "'foo' cannot be formatted as a time." in s.errors['time_registered']
 
 def test_invalid_date():
     u = User("Joe", birthdate='foo')
-    s = UserSchema(u)
-    assert s.is_valid(['birthdate']) is False
-    assert s.errors['birthdate'] == "'foo' cannot be formatted as a date."
+    s = UserSchema().dump(u)
+    assert "'foo' cannot be formatted as a date." in s.errors['birthdate']
 
 def test_invalid_selection():
     u = User('Jonhy')
     u.sex = 'hybrid'
-    s = UserSchema(u)
-    assert s.is_valid(['sex']) is False
-    assert s.errors['sex'] == "'hybrid' is not a valid choice for this field."
+    s = UserSchema().dump(u)
+    assert "'hybrid' is not a valid choice for this field." in s.errors['sex']
 
 def test_custom_json():
     class UserJSONSchema(Schema):
@@ -365,9 +362,9 @@ def test_custom_error_message():
     u = User("Joe", email="joe.net", homepage="joe@example.com", balance="blah")
     s = ErrorSchema()
     data, errors = s.dump(u)
-    assert errors['email'] == "Invalid email"
-    assert errors['homepage'] == "Bad homepage."
-    assert errors['balance'] == "Bad balance."
+    assert "Invalid email" in errors['email']
+    assert "Bad homepage." in errors['homepage']
+    assert "Bad balance." in errors['balance']
 
 
 def test_error_raised_if_fields_option_is_not_list():
@@ -636,6 +633,25 @@ class TestSchemaValidator:
         schema = ValidatingSchema()
         _, errors = schema.load({'field_a': 2, 'field_b': 1})
         assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+
+    def test_multiple_schema_errors_can_be_stored(self):
+        def validate_with_bool(schema, in_vals):
+            return False
+
+        def validate_with_err(schema, inv_vals):
+            raise ValidationError('Something went wrong.')
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_err, validate_with_bool]
+            field_a = fields.Field()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema()
+        _, errors = schema.load({'field_a': 2, 'field_b': 1})
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 2
+        assert errors['_schema'][0] == 'Something went wrong.'
 
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):
@@ -699,7 +715,7 @@ class TestSchemaValidator:
 
         schema = MySchema()
         _, errors = schema.load({'foo': 42})
-        assert errors['_schema'] == 'Something went wrong'
+        assert errors['_schema'] == ['Something went wrong']
 
     def test_validation_error_with_error_parameter(self):
         def validate_schema(schema, input_vals):
@@ -711,7 +727,7 @@ class TestSchemaValidator:
 
         schema = MySchema()
         _, errors = schema.load({'foo': 42})
-        assert errors['_schema'] == 'Something went wrong'
+        assert errors['_schema'] == ['Something went wrong']
 
 
 class TestPreprocessors:
@@ -916,7 +932,7 @@ class TestNestedSchema:
         serialized_blog, errors = BlogSchema().dump(blog)
         assert "email" in errors['user']
         expected_msg = "\"{0}\" is not a valid email address.".format(invalid_user.email)
-        assert errors['user']['email'] == expected_msg
+        assert expected_msg in errors['user']['email']
         # No problems with collaborators
         assert "collaborators" not in errors
 
@@ -1054,7 +1070,7 @@ def test_deserialization_with_required_field():
     in_data = {}
     data, errors = RequiredUserSchema().load(in_data)
     assert 'name' in errors
-    assert errors['name'] == 'Missing data for required field.'
+    assert 'Missing data for required field.' in errors['name']
     # field value should also not be in output data
     assert 'name' not in data
 
@@ -1074,11 +1090,11 @@ def test_deserialization_with_required_field_and_custom_validator():
     data, errors = ValidatingSchema().load({'name': 'foo'})
     assert errors
     assert 'color' in errors
-    assert errors['color'] == "Missing data for required field."
+    assert "Missing data for required field." in errors['color']
 
     _, errors = ValidatingSchema().load({'color': 'green'})
     assert 'color' in errors
-    assert errors['color'] == "Color must be red or blue"
+    assert "Color must be red or blue" in errors['color']
 
 
 class UserContextSchema(Schema):

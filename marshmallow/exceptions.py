@@ -41,7 +41,13 @@ class ForcedError(_WrappingException):
 
 class ValidationError(MarshmallowError):
     """Raised when validation fails on a field."""
-    pass
+
+    def __init__(self, message):
+        if not isinstance(message, dict) and not isinstance(message, list):
+            messages = [message]
+        else:
+            messages = message
+        self.messages = messages
 
 
 class RegistryError(ForcedError, NameError):

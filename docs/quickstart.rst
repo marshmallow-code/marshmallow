@@ -165,7 +165,7 @@ Validation
 .. code-block:: python
 
     result, errors = UserSchema().load({'email': 'foo'})
-    errors  # => {'email': u'foo is not a valid email address.'}
+    errors  # => {'email': ['foo is not a valid email address.']}
 
 You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
 
@@ -183,7 +183,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
     result, errors = ValidatedUserSchema().load(in_data)
-    errors  # => {'age': 'User is over the hill'}
+    errors  # => {'age': ['User is over the hill']}
 
 
 Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.
@@ -203,7 +203,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
     in_data = {'quantity': 31}
     result, errors = ItemSchema().load(in_data)
-    errors  # => {'quantity': 'Quantity must not be greater than 30.'}
+    errors  # => {'quantity': ['Quantity must not be greater than 30.']}
 
 .. note::
 
