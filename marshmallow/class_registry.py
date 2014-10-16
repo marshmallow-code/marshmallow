@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""A registry of serializer classes. This allows for string lookup of
-serializers, which may be used with
+"""A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string lookup of
+schemas, which may be used with
 :class:`fields.Nested <marshmallow.fields.Nested>`.
 """
 from marshmallow.exceptions import RegistryError

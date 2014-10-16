@@ -4,7 +4,7 @@
 Quickstart
 ==========
 
-This guide will walk you through the basics of creating an object serializer.
+This guide will walk you through the basics of creating schemas for serializing and deserializing data.
 
 Declaring Schemas
 -----------------
@@ -28,7 +28,7 @@ Let's start with a basic user model.
             return '<User(name={self.name!r})>'.format(self=self)
 
 
-Create a serializer by defining a class with variables mapping attribute names to a :class:`Field <fields.Field>` objects.
+Create a schema by defining a class with variables mapping attribute names to a :class:`Field <fields.Field>` objects.
 
 .. code-block:: python
 
@@ -39,19 +39,21 @@ Create a serializer by defining a class with variables mapping attribute names t
         email = fields.Email()
         created_at = fields.DateTime()
 
-For a full reference on the field classes, see the :ref:`API Docs <api_fields>`.
+.. seealso::
+
+    For a full reference on the available field classes, see the :ref:`API Docs <api_fields>`.
 
 
 Serializing Objects
 -------------------
 
-Serialize objects by passing them to your serializer's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, as we'll see later).
+Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, which we'll revisit later).
 
 .. code-block:: python
 
     user = User(name="Monty", email="monty@python.org")
-    serializer = UserSchema()
-    result = serializer.dump(user)
+    schema = UserSchema()
+    result = schema.dump(user)
     pprint(result.data)
     # {"name": "Monty",
     #  "email": "monty@python.org",
@@ -65,19 +67,19 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
 
 .. code-block:: python
 
-    json_result = serializer.dumps(user)
+    json_result = schema.dumps(user)
     pprint(json_result.data)
     # '{"name": "Monty", "email": "monty@python.org", "created_at": "2014-08-17T14:54:16.049594+00:00"}'
 
 Filtering output
 ++++++++++++++++
 
-You may not need to output all declared fields every time you use a serializer. You can specify which fields to output with the ``only`` parameter.
+You may not need to output all declared fields every time you use a schema. You can specify which fields to output with the ``only`` parameter.
 
 .. code-block:: python
 
-    summary_serializer = UserSchema(only=('name', 'email'))
-    summary_serializer.dump(user).data
+    summary_schema = UserSchema(only=('name', 'email'))
+    summary_schema.dump(user).data
     # {"name": "Monty Python", "email": "monty@python.org"}
 
 You can also exclude fields by passing in the ``exclude`` parameter.
@@ -99,8 +101,8 @@ By default, :meth:`load <Schema.load>` will return a dictionary of field names m
         'email': u'ken@yahoo.com',
         'name': u'Ken'
     }
-    serializer = UserSchema()
-    result = serializer.load(user_data)
+    schema = UserSchema()
+    result = schema.load(user_data)
     pprint(result.data)
     # {'name': 'Ken',
     #  'email': 'ken@yahoo.com',
@@ -133,8 +135,8 @@ Now, the :meth:`load <Schema.load>` method will return a ``User`` object.
         'name': 'Ronnie',
         'email': 'ronnie@stones.com'
     }
-    serializer = UserSchema()
-    result = serializer.load(user_data)
+    schema = UserSchema()
+    result = schema.load(user_data)
     result.data  # => <User(name='Ronnie')>
 
 Handling Collections of Objects
@@ -147,8 +149,8 @@ Iterable collections of objects are also serializable and deserializable. Just s
     user1 = User(name="Mick", email="mick@stones.com")
     user2 = User(name="Keith", email="keith@stones.com")
     users = [user1, user2]
-    serializer = UserSchema(many=True)
-    result = serializer.dump(users)
+    schema = UserSchema(many=True)
+    result = schema.dump(users)
     result.data
     # [{'name': u'Mick',
     #   'email': u'mick@stones.com',
@@ -167,23 +169,16 @@ Validation
     result, errors = UserSchema().load({'email': 'foo'})
     errors  # => {'email': ['foo is not a valid email address.']}
 
-You can give fields a custom error message by passing the ``error`` parameter to a field's constructor.
-
-.. code-block:: python
-
-    email = fields.Email(error='Invalid email address. Try again.')
-
-You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined) which evaluates to a boolean.
+You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python
 
     class ValidatedUserSchema(UserSchema):
-        age = fields.Number(validate=lambda n: 18 <= n <= 40,
-                            error='User is over the hill')
+        age = fields.Number(validate=lambda n: 18 <= n <= 40)
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
     result, errors = ValidatedUserSchema().load(in_data)
-    errors  # => {'age': ['User is over the hill']}
+    errors  # => {'age': ['Validator <lambda>(71.0) is not True']}
 
 
 Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.
@@ -219,11 +214,11 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
     .. code-block:: python
 
-        UserSchema(strict=True).load({'email': foo})
+        UserSchema(strict=True).load({'email': 'foo'})
         # => UnmarshallingError: "foo" is not a valid email address.
 
 
-    Alternatively, you can also register a custom error handler function for a serializer using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
+    Alternatively, you can also register a custom error handler function for a schema using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
 
 
 .. seealso::
@@ -233,7 +228,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 Required Fields
 +++++++++++++++
 
-You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.dump`.
+You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.load`.
 
 .. code-block:: python
 
@@ -242,13 +237,13 @@ You can make a field required by passing ``required=True``. An error will be sto
         email = fields.Email()
 
     data, errors = UserSchema().load({'email': 'foo@bar.com'})
-    errors  # {'name': 'Missing data for required field.'}
+    errors  # {'name': ['Missing data for required field.']}
 
 
 Specifying Attribute Names
 --------------------------
 
-By default, serializers will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
+By default, `Schemas` will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
 .. code-block:: python
 
@@ -275,11 +270,11 @@ When your model has many attributes, specifying the field type for every attribu
 
 The *class Meta* paradigm allows you to specify which attributes you want to serialize. Marshmallow will choose an appropriate field type based on the attribute's type.
 
-Let's refactor our User serializer to be more concise.
+Let's refactor our User schema to be more concise.
 
 .. code-block:: python
 
-    # Refactored serializer
+    # Refactored schema
     class UserSchema(Schema):
         uppername = fields.Function(lambda obj: obj.name.upper())
         class Meta:
@@ -290,7 +285,7 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
 .. note::
     If instead you want to specify which field names to include *in addition* to the explicitly declared fields, you can use the ``additional`` option.
 
-    The serializer below is equivalent to above:
+    The schema below is equivalent to above:
 
     .. code-block:: python
 
@@ -340,112 +335,6 @@ When you serialize the blog, you will see the nested user representation.
 
         collaborators = fields.Nested(UserSchema, many=True)
 
-
-Two-way Nesting
-+++++++++++++++
-
-If you have two objects that nest each other, you can refer to a nested serializer by its class name. This allows you to nest serializers that have not yet been defined.
-
-
-For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
-
-.. code-block:: python
-
-    class AuthorSchema(Schema):
-        # Make sure to use the 'only' or 'exclude' params
-        # to avoid infinite recursion
-        books = fields.Nested('BookSchema', many=True, exclude=('author', ))
-        class Meta:
-            fields = ('id', 'name', 'books')
-
-    class BookSchema(Schema):
-        author = fields.Nested('AuthorSchema', only=('id', 'name'))
-        class Meta:
-            fields = ('id', 'title', 'author')
-
-.. note::
-    If you need to, you can also pass the full, module-qualified path to the `fields.Nested`. ::
-
-        books = fields.Nested('path.to.BookSchema',
-                              many=True, exclude=('author', ))
-
-
-.. code-block:: python
-
-    from marshmallow import pprint
-    from mymodels import Author, Book
-
-    author = Author(name='William Faulkner')
-    book = Book(title='As I Lay Dying', author=author)
-    book_result, errors = BookSchema().dump(book)
-    pprint(book_result, indent=2)
-    # {
-    #   "id": 124,
-    #   "title": "As I Lay Dying",
-    #   "author": {
-    #     "id": 8,
-    #     "name": "William Faulkner"
-    #   }
-    # }
-
-    author_result, errors = AuthorSchema().dump(author)
-    pprint(author_result, indent=2)
-    # {
-    #   "id": 8,
-    #   "name": "William Faulkner",
-    #   "books": [
-    #     {
-    #       "id": 124,
-    #       "title": "As I Lay Dying"
-    #     }
-    #   ]
-    # }
-
-
-Nesting A Schema Within Itself
-++++++++++++++++++++++++++++++
-
-If the object to be serialized has a relationship to an object of the same type, you can nest the serializer within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
-
-.. code-block:: python
-
-    class UserSchema(Schema):
-        name = fields.String()
-        email = fields.Email()
-        friends = fields.Nested('self', many=True)
-        # Use the 'exclude' argument to avoid infinite recursion
-        employer = fields.Nested('self', exclude=('employer', ), default=None)
-
-    user = User("Steve", 'steve@example.com')
-    user.friends.append(User("Mike", 'mike@example.com'))
-    user.friends.append(User('Joe', 'joe@example.com'))
-    user.employer = User('Dirk', 'dirk@example.com')
-    result, errors = UserSchema().dump(user)
-    pprint(result, indent=2)
-    # {
-    #     "name": "Steve",
-    #     "email": "steve@example.com",
-    #     "friends": [
-    #         {
-    #             "name": "Mike",
-    #             "email": "mike@example.com",
-    #             "friends": [],
-    #             "employer": null
-    #         },
-    #         {
-    #             "name": "Joe",
-    #             "email": "joe@example.com",
-    #             "friends": [],
-    #             "employer": null
-    #         }
-    #     ],
-    #     "employer": {
-    #         "name": "Dirk",
-    #         "email": "dirk@example.com",
-    #         "friends": []
-    #     }
-    # }
-
 Specifying Nested Attributes
 ++++++++++++++++++++++++++++
 
@@ -486,12 +375,117 @@ You can explicitly specify which attributes in the nested fields you want to ser
 You can also exclude fields by passing in an ``exclude`` list.
 
 
+Two-way Nesting
++++++++++++++++
+
+If you have two objects that nest each other, you can refer to a nested schema by its class name. This allows you to nest Schemas that have not yet been defined.
+
+
+For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
+
+.. code-block:: python
+
+    class AuthorSchema(Schema):
+        # Make sure to use the 'only' or 'exclude' params
+        # to avoid infinite recursion
+        books = fields.Nested('BookSchema', many=True, exclude=('author', ))
+        class Meta:
+            fields = ('id', 'name', 'books')
+
+    class BookSchema(Schema):
+        author = fields.Nested('AuthorSchema', only=('id', 'name'))
+        class Meta:
+            fields = ('id', 'title', 'author')
+
+.. code-block:: python
+
+    from marshmallow import pprint
+    from mymodels import Author, Book
+
+    author = Author(name='William Faulkner')
+    book = Book(title='As I Lay Dying', author=author)
+    book_result, errors = BookSchema().dump(book)
+    pprint(book_result, indent=2)
+    # {
+    #   "id": 124,
+    #   "title": "As I Lay Dying",
+    #   "author": {
+    #     "id": 8,
+    #     "name": "William Faulkner"
+    #   }
+    # }
+
+    author_result, errors = AuthorSchema().dump(author)
+    pprint(author_result, indent=2)
+    # {
+    #   "id": 8,
+    #   "name": "William Faulkner",
+    #   "books": [
+    #     {
+    #       "id": 124,
+    #       "title": "As I Lay Dying"
+    #     }
+    #   ]
+    # }
+
+.. note::
+    If you need to, you can also pass the full, module-qualified path to `fields.Nested`. ::
+
+        books = fields.Nested('path.to.BookSchema',
+                              many=True, exclude=('author', ))
+
+Nesting A Schema Within Itself
+++++++++++++++++++++++++++++++
+
+If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+        friends = fields.Nested('self', many=True)
+        # Use the 'exclude' argument to avoid infinite recursion
+        employer = fields.Nested('self', exclude=('employer', ), default=None)
+
+    user = User("Steve", 'steve@example.com')
+    user.friends.append(User("Mike", 'mike@example.com'))
+    user.friends.append(User('Joe', 'joe@example.com'))
+    user.employer = User('Dirk', 'dirk@example.com')
+    result, errors = UserSchema().dump(user)
+    pprint(result, indent=2)
+    # {
+    #     "name": "Steve",
+    #     "email": "steve@example.com",
+    #     "friends": [
+    #         {
+    #             "name": "Mike",
+    #             "email": "mike@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         },
+    #         {
+    #             "name": "Joe",
+    #             "email": "joe@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         }
+    #     ],
+    #     "employer": {
+    #         "name": "Dirk",
+    #         "email": "dirk@example.com",
+    #         "friends": []
+    #     }
+    # }
+
+
+
 Custom Fields
 -------------
 
-There are three ways to create a custom-formatted field for a serializer:
+There are three ways to create a custom-formatted field for a `Schema`:
 
-- Create a custom :class:`Field` class
+- Create a custom :class:`Field <marshmallow.fields.Field>` class
 - Use a :class:`Method <marshmallow.fields.Method>` field
 - Use a :class:`Function <marshmallow.fields.Function>` field
 
@@ -557,7 +551,7 @@ You may wish to include other objects when computing a :class:`Function <marshma
 
 As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog``.
 
-In these cases, you can set the ``context`` attribute (a dictionary) of a serializer. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
 
 .. code-block:: python
 
@@ -569,13 +563,13 @@ In these cases, you can set the ``context`` attribute (a dictionary) of a serial
         def writes_about_bikes(self, user, ctx):
             return 'bicycle' in ctx['blog'].title.lower()
 
-    serializer = UserSchema()
+    schema = UserSchema()
 
     user = User('Freddie Mercury', 'fred@queen.com')
     blog = Blog('Bicycle Blog', author=user)
 
-    serializer.context = {'blog': blog}
-    data, errors = serializer.dump(user)
+    schema.context = {'blog': blog}
+    data, errors = schema.dump(user)
     data['is_author']  # => True
     data['likes_bikes']  # => True
 
@@ -585,6 +579,6 @@ Next Steps
 
 Check out the :ref:`API Reference <api>` for a full listing of available fields.
 
-Need to add custom post-processing or error handling behavior? See the :ref:`Extending Serializers <extending>` page.
+Need to add custom post-processing or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
 
 For example applications using marshmallow, check out the :ref:`Examples <examples>` page.

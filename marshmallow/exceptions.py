@@ -40,7 +40,11 @@ class ForcedError(_WrappingException):
 
 
 class ValidationError(MarshmallowError):
-    """Raised when validation fails on a field."""
+    """Raised when validation fails on a field.
+
+    :param message: An error message, list of error messages, or dict of
+        error messages.
+    """
 
     def __init__(self, message):
         if not isinstance(message, dict) and not isinstance(message, list):
