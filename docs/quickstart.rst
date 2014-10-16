@@ -178,7 +178,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
     result, errors = ValidatedUserSchema().load(in_data)
-    errors  # => {'age': ['Validator <lambda>(71.0) is not True']}
+    errors  # => {'age': ['Validator <lambda>(71.0) is False']}
 
 
 Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.

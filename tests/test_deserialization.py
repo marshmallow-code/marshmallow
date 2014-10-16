@@ -234,7 +234,7 @@ class TestFieldDeserialization:
         assert field.deserialize('Valid') == 'Valid'
         with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('invalid')
-        assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+        assert 'Validator <lambda>(invalid) is False' in str(excinfo)
         assert type(excinfo.value.underlying_exception) == ValidationError
 
     def test_validator_must_return_false_to_raise_error(self):
@@ -268,7 +268,7 @@ class TestFieldDeserialization:
             assert field.deserialize('Valid') == 'Valid'
             with pytest.raises(UnmarshallingError) as excinfo:
                 field.deserialize('invalid')
-            assert 'Validator <lambda>(invalid) is not True' in str(excinfo)
+            assert 'Validator <lambda>(invalid) is False' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
@@ -711,7 +711,7 @@ class TestValidation:
         assert MethodSerializer(strict=True).load({'name': 'joe'})
         with pytest.raises(UnmarshallingError) as excinfo:
             MethodSerializer(strict=True).load({'name': 'joseph'})
-        assert 'is not True' in str(excinfo)
+        assert 'is False' in str(excinfo)
 
 @pytest.mark.parametrize('FieldClass', [
     fields.String,

@@ -192,7 +192,7 @@ class Unmarshaller(object):
             try:
                 if validator_func(output) is False:
                     func_name = utils.get_func_name(validator_func)
-                    raise ValidationError(u'Schema validator {0}({1}) is not True'.format(
+                    raise ValidationError(u'Schema validator {0}({1}) is False'.format(
                         func_name, dict(output)
                     ))
             except ValidationError as err:
@@ -324,7 +324,7 @@ class Field(FieldABC):
         errors = []
         for validator in self.validators:
             func_name = utils.get_func_name(validator)
-            msg = u'Validator {0}({1}) is not True'.format(
+            msg = u'Validator {0}({1}) is False'.format(
                 func_name, value
             )
             try:

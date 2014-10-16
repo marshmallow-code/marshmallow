@@ -58,7 +58,7 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
     schema = NumberSchema()
     result, errors = schema.load({'field_a': 2, 'field_b': 1})
     errors['_schema']
-    # => ["Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is not True"]
+    # => ["Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is False"]
 
 
 Pre-processing Input Data

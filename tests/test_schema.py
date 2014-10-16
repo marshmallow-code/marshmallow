@@ -651,7 +651,7 @@ class TestSchemaValidator:
         with pytest.raises(UnmarshallingError) as excinfo:
             schema.load(in_data)
         assert 'Schema validator' in str(excinfo)
-        assert 'is not True' in str(excinfo)
+        assert 'is False' in str(excinfo)
 
         # underlying exception is a ValidationError
         exc = excinfo.value
