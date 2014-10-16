@@ -5,7 +5,9 @@ from __future__ import absolute_import
 import copy
 import datetime as dt
 import json
+import types
 import uuid
+import warnings
 from collections import namedtuple
 from functools import partial
 
@@ -13,6 +15,7 @@ from marshmallow import base, fields, utils, class_registry
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
+
 
 #: Return type of :meth:`Schema.dump`
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])

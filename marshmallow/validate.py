@@ -27,7 +27,7 @@ RELATIVE_URL_REGEX = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
 
-def url(value, relative=False):
+def url(value, relative, error):
     """Validate a URL.
 
     :param string value: The URL to validate
@@ -36,11 +36,11 @@ def url(value, relative=False):
     :raises: ValidationError if url is invalid.
     """
     regex = RELATIVE_URL_REGEX if relative else URL_REGEX
-    if not regex.search(value):
+    if value and not regex.search(value):
         message = u'"{0}" is not a valid URL'.format(value)
         if regex.search('http://' + value):
             message += u'. Did you mean: "http://{0}"?'.format(value)
-        raise ValidationError(message)
+        raise ValidationError(error or message)
     return value
 
 USER_REGEX = re.compile(
@@ -57,14 +57,17 @@ DOMAIN_REGEX = re.compile(
 DOMAIN_WHITELIST = ("localhost", )
 
 
-def email(value):
+def email(value, error=None):
     """Validate an email address.
 
+    :param str error: Error message to show.
     :param string value: The email address to validate.
     :returns: The email address if valid.
     :raises: ValidationError if email is invalid
     """
-    error_message = '"{0}" is not a valid email address.'.format(value)
+    if value is None:
+        return None
+    error_message = error or '"{0}" is not a valid email address.'.format(value)
     if not value or '@' not in value:
         raise ValidationError(error_message)
 

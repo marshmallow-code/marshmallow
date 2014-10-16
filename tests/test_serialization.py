@@ -32,7 +32,7 @@ class TestFieldSerialization:
             bad_field = fields.Method('invalid')
         u = User('Foo')
         with pytest.raises(MarshallingError):
-            BadSerializer(u, strict=True)
+            BadSerializer(strict=True).dump(u)
 
     def test_method_field_with_uncallable_attribute(self):
         class BadSerializer(Schema):
@@ -40,7 +40,7 @@ class TestFieldSerialization:
             bad_field = fields.Method('foo')
         u = User('Foo')
         with pytest.raises(MarshallingError):
-            BadSerializer(u, strict=True)
+            BadSerializer(strict=True).dump(u)
 
     def test_datetime_deserializes_to_iso_by_default(self):
         field = fields.DateTime()  # No format specified
@@ -148,28 +148,6 @@ class TestFieldSerialization:
 
 class TestMarshaller:
 
-    def test_stores_errors(self):
-        u = User("Foo", email="foobar")
-        marshal = fields.Marshaller()
-        marshal(u, {"email": fields.Email()})
-        assert "email" in marshal.errors
-
-    def test_strict_mode_raises_errors(self):
-        u = User("Foo", email="foobar")
-        marshal = fields.Marshaller()
-        with pytest.raises(MarshallingError):
-            marshal(u, {"email": fields.Email()}, strict=True)
-
-    def test_strict_mode_many(self):
-        users = [
-            User("Foo", email="foobar"),
-            User('Bar', email='bar@example.com')
-        ]
-        marshal = fields.Marshaller()
-        with pytest.raises(MarshallingError) as excinfo:
-            marshal(users, {'email': fields.Email()}, strict=True, many=True)
-        assert 'foobar' in str(excinfo)
-
     def test_prefix(self):
         u = User("Foo", email="foo@bar.com")
         marshal = fields.Marshaller(prefix='usr_')
@@ -206,6 +184,6 @@ def test_serializing_named_tuple_with_meta():
         class Meta:
             fields = ('x', 'y')
 
-    serialized = PointSerializer(p)
+    serialized = PointSerializer().dump(p)
     assert serialized.data['x'] == 4
     assert serialized.data['y'] == 2

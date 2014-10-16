@@ -107,7 +107,10 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         if (hasattr(err, 'underlying_exception') and
                 isinstance(err.underlying_exception, ValidationError)):
             validation_error = err.underlying_exception
-            errors_dict.setdefault(field_name, []).extend(validation_error.messages)
+            if isinstance(validation_error.messages, dict):
+                errors_dict[field_name] = validation_error.messages
+            else:
+                errors_dict.setdefault(field_name, []).extend(validation_error.messages)
         else:
             errors_dict.setdefault(field_name, []).append(text_type(err))
         value = None
@@ -544,7 +547,10 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
-        return self.schema.load(value).data
+        data, errors = self.schema.load(value)
+        if errors:
+            raise ValidationError(errors)
+        return data
 
 
 class List(Field):
@@ -964,25 +970,12 @@ class Url(Field):
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+
     def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
         super(Url, self).__init__(default=default, attribute=attribute,
                 *args, **kwargs)
         self.relative = relative
-
-    def _validated(self, value, exception_class):
-        try:
-            return validate.url(value, relative=self.relative)
-        except ValueError as ve:
-            raise exception_class(ve)
-
-    def _format(self, value):
-        if value:
-            return self._validated(value, MarshallingError)
-
-    def _deserialize(self, value):
-        if value is None:
-            return self.default
-        return self._validated(value, UnmarshallingError)
+        self.validators.insert(0, partial(validate.url, relative=self.relative, error=getattr(self, 'error')))
 
 URL = Url
 
@@ -991,19 +984,9 @@ class Email(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-
-    def _validated(self, value, exception_class):
-        try:
-            return validate.email(value)
-        except ValueError as ve:
-            raise exception_class(ve)
-
-    def _format(self, value):
-        if value:
-            return self._validated(value, MarshallingError)
-
-    def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+    def __init__(self, *args, **kwargs):
+        super(Email, self).__init__(*args, **kwargs)
+        self.validators.insert(0, partial(validate.email, error=getattr(self, 'error')))
 
 
 def _get_args(func):

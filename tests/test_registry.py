@@ -61,7 +61,7 @@ def test_two_way_nesting():
 def test_nesting_with_class_name_many():
     c_obj = C(1, bs=[B(2), B(3), B(4)])
 
-    c_serialized = CSchema(c_obj)
+    c_serialized = CSchema().dump(c_obj)
 
     assert len(c_serialized.data['bs']) == len(c_obj.bs)
     assert c_serialized.data['bs'][0]['id'] == c_obj.bs[0].id

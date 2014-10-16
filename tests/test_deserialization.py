@@ -483,6 +483,30 @@ class TestSchemaDeserialization:
         assert type(errors['foo']) == list
         assert len(errors['foo']) == 2
 
+    def test_multiple_errors_can_be_stored_for_an_email_field(self):
+        def validate_with_bool(val):
+            return False
+
+        class MySchema(Schema):
+            email = fields.Email(validate=[
+                validate_with_bool,
+            ])
+        _, errors = MySchema().load({'email': 'foo'})
+        assert len(errors['email']) == 2
+        assert 'not a valid email address' in errors['email'][0]
+
+    def test_multiple_errors_can_be_stored_for_a_url_field(self):
+        def validate_with_bool(val):
+            return False
+
+        class MySchema(Schema):
+            url = fields.Url(validate=[
+                validate_with_bool,
+            ])
+        _, errors = MySchema().load({'url': 'foo'})
+        assert len(errors['url']) == 2
+        assert 'not a valid URL' in errors['url'][0]
+
     def test_required_value_only_passed_to_validators_if_provided(self):
         class MySchema(Schema):
             foo = fields.Field(required=True, validate=lambda f: False)
@@ -498,6 +522,20 @@ class TestUnMarshaller:
     @pytest.fixture
     def unmarshal(self):
         return fields.Unmarshaller()
+
+    def test_strict_mode_many(self, unmarshal):
+        users = [
+            {'email': 'foobar'},
+            {'email': 'bar@example.com'}
+        ]
+        with pytest.raises(UnmarshallingError) as excinfo:
+            unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
+        assert 'foobar' in str(excinfo)
+
+    def test_stores_errors(self, unmarshal):
+        data = {'email': 'invalid-email'}
+        unmarshal(data, {"email": fields.Email()})
+        assert "email" in unmarshal.errors
 
     def test_deserialize(self, unmarshal):
         user_data = {
