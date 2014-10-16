@@ -536,9 +536,6 @@ class Nested(Field):
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
                             '"many=True".'.format(err))
-        # Parent should get any errors stored after marshalling
-        if self.schema.errors:
-            self.parent.errors[attr] = self.schema.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
