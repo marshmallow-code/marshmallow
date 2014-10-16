@@ -16,6 +16,7 @@ Changelog
 * *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
 * *Backwards-incompatible*: Remove `Serializer.factory` method.
 * *Backwards-incompatible*: Allow nesting a serializer within itself recursively. Use ``exclude`` or ``only`` to prevent infinite recursion.
+* *Backwards-incompatible*: Multiple errors can be stored for a single field. The errors dictionary returned by ``load`` and ``dump`` have lists of error messages keyed by field name.
 * ``Nested`` fields inherit context from their parent.
 * Fix ordering of field output.
 * Fix behavior of the ``required`` parameter on ``Nested`` fields.

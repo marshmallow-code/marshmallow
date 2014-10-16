@@ -41,7 +41,7 @@ def create_tables():
     User.create_table(True)
     Todo.create_table(True)
 
-##### SERIALIZERS #####
+##### SCHEMAS #####
 
 class UserSchema(Schema):
     class Meta:

@@ -455,12 +455,87 @@ class TestSchemaDeserialization:
         with pytest.raises(UnmarshallingError):
             v.load(bad_data)
 
+    def test_uncaught_validation_errors_are_stored(self):
+        def validate_field(val):
+            raise ValidationError('Something went wrong')
+
+        class MySchema(Schema):
+            foo = fields.Field(validate=validate_field)
+
+        _, errors = MySchema().load({'foo': 42})
+        assert 'Something went wrong' in errors['foo']
+
+    def test_multiple_errors_can_be_stored_for_a_field(self):
+
+        def validate_with_bool(n):
+            return False
+
+        def validate_with_error(n):
+            raise ValidationError('foo is not valid')
+
+        class MySchema(Schema):
+            foo = fields.Field(required=True, validate=[
+                validate_with_bool,
+                validate_with_error,
+            ])
+        _, errors = MySchema().load({'foo': 'bar'})
+
+        assert type(errors['foo']) == list
+        assert len(errors['foo']) == 2
+
+    def test_multiple_errors_can_be_stored_for_an_email_field(self):
+        def validate_with_bool(val):
+            return False
+
+        class MySchema(Schema):
+            email = fields.Email(validate=[
+                validate_with_bool,
+            ])
+        _, errors = MySchema().load({'email': 'foo'})
+        assert len(errors['email']) == 2
+        assert 'not a valid email address' in errors['email'][0]
+
+    def test_multiple_errors_can_be_stored_for_a_url_field(self):
+        def validate_with_bool(val):
+            return False
+
+        class MySchema(Schema):
+            url = fields.Url(validate=[
+                validate_with_bool,
+            ])
+        _, errors = MySchema().load({'url': 'foo'})
+        assert len(errors['url']) == 2
+        assert 'not a valid URL' in errors['url'][0]
+
+    def test_required_value_only_passed_to_validators_if_provided(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True, validate=lambda f: False)
+
+        _, errors = MySchema().load({})
+        # required value missing
+        assert len(errors['foo']) == 1
+        assert 'Missing data for required field.' in errors['foo']
+
 
 class TestUnMarshaller:
 
     @pytest.fixture
     def unmarshal(self):
         return fields.Unmarshaller()
+
+    def test_strict_mode_many(self, unmarshal):
+        users = [
+            {'email': 'foobar'},
+            {'email': 'bar@example.com'}
+        ]
+        with pytest.raises(UnmarshallingError) as excinfo:
+            unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
+        assert 'foobar' in str(excinfo)
+
+    def test_stores_errors(self, unmarshal):
+        data = {'email': 'invalid-email'}
+        unmarshal(data, {"email": fields.Email()})
+        assert "email" in unmarshal.errors
 
     def test_deserialize(self, unmarshal):
         user_data = {
@@ -657,6 +732,6 @@ def test_required_field_failure(FieldClass):
     class RequireSchema(Schema):
         age = FieldClass(required=True)
     user_data = {"name": "Phil"}
-    with pytest.raises(UnmarshallingError) as excinfo:
-        RequireSchema(strict=True).load(user_data)
-    assert "Missing data for required field." in str(excinfo)
+    data, errs = RequireSchema().load(user_data)
+    assert "Missing data for required field." in errs['age']
+    assert data == {}

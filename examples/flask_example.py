@@ -33,7 +33,7 @@ class Quote(db.Model):
         self.content = content
         self.posted_at = datetime.utcnow()
 
-##### SERIALIZERS #####
+##### SCHEMAS #####
 
 class AuthorSchema(Schema):
     formatted_name = fields.Method("format_name")

@@ -1,8 +1,8 @@
 .. _extending:
 .. module:: marshmallow
 
-Extending Serializers
-=====================
+Extending Schemas
+=================
 
 Handling Errors
 ---------------
@@ -35,6 +35,8 @@ You can register a custom error-handling function for a :class:`Schema` using th
     schema.dump(invalid)  # raises AppError
     schema.load({'email': 'invalid-email'})  # raises AppError
 
+.. _schemavalidation:
+
 Schema-level Validation
 -----------------------
 
@@ -56,7 +58,7 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
     schema = NumberSchema()
     result, errors = schema.load({'field_a': 2, 'field_b': 1})
     errors['_schema']
-    # => "Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is not True"
+    # => ["Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is not True"]
 
 
 Pre-processing Input Data
@@ -86,7 +88,7 @@ Data pre-processing functions can be registered using :meth:`Schema.preprocessor
 Transforming Data
 -----------------
 
-The :meth:`Schema.data_handler <Schema.data_handler>` decorator can be used to register data post-processing functions for transforming serialized data. The function receives the serializer instance, the serialized data dictionary, and the original object to be serialized. It should return the transformed data.
+The :meth:`Schema.data_handler` decorator can be used to register data post-processing functions for transforming serialized data. The function receives the serializer instance, the serialized data dictionary, and the original object to be serialized. It should return the transformed data.
 
 One use case might be to add a "root" namespace for a serialized object.
 
@@ -106,7 +108,7 @@ One use case might be to add a "root" namespace for a serialized object.
         }
 
     user = User('Monty Python', email='monty@python.org')
-    UserSchema(user).data
+    UserSchema().dump(user).data
     # {
     #     'user': {
     #         'name': 'Monty Python',
@@ -126,7 +128,6 @@ You can register error handlers, validators, and data handlers as optional class
 .. code-block:: python
 
     class BaseSchema(Schema):
-        """A customized serializer with error handling and post-processing behavior."""
         __error_handler__ = handle_errors  # A function
         __data_handlers__ = [add_root]      # List of functions
         __validators__ = [validate_schema]  # List of functions

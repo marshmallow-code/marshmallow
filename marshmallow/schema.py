@@ -16,6 +16,7 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
 
+
 #: Return type of :meth:`Schema.dump`
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`
@@ -201,16 +202,11 @@ class BaseSchema(base.SchemaABC):
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False,
                 context=None):
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
-            warnings.warn('Implicit collection handling is deprecated. Set '
-                            'many=True to serialize a collection.',
-                            category=DeprecationWarning)
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = OrderedDict()
         self._data = None  # the cached, serialized data
-        self.obj = obj
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
         self.only = only or ()
@@ -225,18 +221,20 @@ class BaseSchema(base.SchemaABC):
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context or {}
+        self._update_fields()
 
-        if isinstance(obj, types.GeneratorType):
-            self.obj = list(obj)
-        else:
-            self.obj = obj
-        self._update_fields(self.obj)
+        # For backwards compatibility, allow object to be passed in.
+        self.obj = obj
+        self._data = None
         # If object is passed in, marshal it immediately so that errors are stored
         if self.obj is not None:
             warnings.warn('Serializing objects in the Schema constructor is a '
                           'deprecated API. Use the Schema.dump method instead.',
                           category=DeprecationWarning)
+            self._update_fields(self.obj)
             self._update_data()
+        else:
+            self._update_fields()
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
@@ -384,8 +382,13 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        if obj != self.obj:
-            self._update_fields(obj)
+        if not self.many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+            warnings.warn('Implicit collection handling is deprecated. Set '
+                            'many=True to serialize a collection.',
+                            category=DeprecationWarning)
+        if isinstance(obj, types.GeneratorType):
+            obj = list(obj)
+        self._update_fields(obj)
         preresult = self._marshal(
             obj,
             self.fields,
@@ -482,7 +485,7 @@ class BaseSchema(base.SchemaABC):
         warnings.warn('Accessing data through Schema.data is deprecated. '
                       'Use the return value of Schema.dump instead.',
                       category=DeprecationWarning)
-        if not self._data:  # Cache the data
+        if not self._data:
             self._update_data()
         return self._data
 
@@ -493,40 +496,16 @@ class BaseSchema(base.SchemaABC):
         .. deprecated:: 1.0.0
             Use the return value of `dump` instead.
         """
-        warnings.warn('Accessing errors through Schema.errors is deprecated. '
-                      'Use the return value of Schema.dump instead.',
-                      category=DeprecationWarning)
         return self._marshal.errors
 
-    def is_valid(self, field_names=None):
-        """Return ``True`` if all data are valid, ``False`` otherwise.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
-
-        :param field_names: List of field names (strings) to validate.
-            If ``None``, all fields will be validated.
-        """
-        warnings.warn('Schema.is_valid() is deprecated. Use Schema.dump '
-                      'instead.', category=DeprecationWarning)
-        if field_names is not None and type(field_names) not in (list, tuple):
-            raise ValueError("field_names param must be a list or tuple")
-        fields_to_validate = field_names or self.fields.keys()
-        field_set, error_set = set(self.fields), set(self.errors)
-        for fname in fields_to_validate:
-            if fname not in field_set:
-                raise KeyError('"{0}" is not a valid field name.'.format(fname))
-            if fname in error_set:
-                return False
-        return True
-
-    ##### Private helpers #####
-
     def _update_data(self):
-        result = self._marshal(self.obj, self.fields, many=self.many, strict=self.strict)
-        self._data = self._postprocess(result, obj=self.obj)
+        if not self._data:
+            self._data = self.dump(self.obj).data
+        return self._data
 
-    def _update_fields(self, obj):
+    ##### Private Helpers #####
+
+    def _update_fields(self, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:

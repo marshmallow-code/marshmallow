@@ -18,12 +18,12 @@ class BlobSchema(Schema):
         else:
             return 'neutral'
 
-blob_serializer = BlobSchema()
+blob_schema = BlobSchema()
 
 @route("/api/v1/analyze", method="POST")
 def analyze():
     blob = TextBlob(request.json['text'])
-    result = blob_serializer.dump(blob)
+    result = blob_schema.dump(blob)
     return result.data
 
 

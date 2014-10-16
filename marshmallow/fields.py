@@ -104,14 +104,22 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         if strict:
             raise err
         # Warning: Mutation!
-        errors_dict[field_name] = text_type(err)
+        if (hasattr(err, 'underlying_exception') and
+                isinstance(err.underlying_exception, ValidationError)):
+            validation_error = err.underlying_exception
+            if isinstance(validation_error.messages, dict):
+                errors_dict[field_name] = validation_error.messages
+            else:
+                errors_dict.setdefault(field_name, []).extend(validation_error.messages)
+        else:
+            errors_dict.setdefault(field_name, []).append(text_type(err))
         value = None
     except TypeError:
         # field declared as a class, not an instance
         if (isinstance(field_obj, type) and
                 issubclass(field_obj, FieldABC)):
             msg = ('Field for "{0}" must be declared as a '
-                            "Field instance, not a class. "
+                            'Field instance, not a class. '
                             'Did you mean "fields.{1}()"?'
                             .format(field_name, field_obj.__name__))
             raise TypeError(msg)
@@ -191,7 +199,7 @@ class Unmarshaller(object):
                 if strict:
                     raise UnmarshallingError(err)
                 # Store errors
-                self.errors['_schema'] = text_type(err)
+                self.errors.setdefault('_schema', []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
@@ -285,9 +293,18 @@ class Field(FieldABC):
         self.default = default
         self.attribute = attribute
         self.error = error
-        self.validate = validate
+        if utils.is_iterable_but_not_string(validate):
+            if not utils.is_generator(validate):
+                self.validators = validate
+            else:
+                self.validators = [i for i in validate()]
+        elif callable(validate):
+            self.validators = [validate]
+        elif validate is None:
+            self.validators = []
+        else:
+            raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
         self.required = required
-        # Save creation index so that fields can be sorted
         self._creation_index = Field._creation_index
         Field._creation_index += 1
         self.parent = FieldABC.parent
@@ -304,43 +321,29 @@ class Field(FieldABC):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
         does not succeed.
         """
-        if utils.is_iterable_but_not_string(self.validate):
-            if not utils.is_generator(self.validate):
-                validators = self.validate
-            else:
-                validators = [i for i in self.validate()]
-        elif callable(self.validate):
-            validators = [self.validate]
-        else:
-            raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
-        for validator in validators:
+        errors = []
+        for validator in self.validators:
             func_name = utils.get_func_name(validator)
             msg = u'Validator {0}({1}) is not True'.format(
                 func_name, value
             )
-            if validator(value) is False:
-                raise ValidationError(getattr(self, 'error', None) or msg)
+            try:
+                if validator(value) is False:
+                    raise ValidationError(getattr(self, 'error', None) or msg)
+            except ValidationError as err:
+                errors.extend(err.messages)
+        if errors:
+            raise ValidationError(errors)
 
-    def _call_with_validation(self, method, exception_class, call_validator=True, *args, **kwargs):
-        """Utility method to invoke ``method`` and validate the output. Call ``self.validate`` when
-        appropriate, and raise ``exception_class`` if a validation or formatting error
+    def _call_and_reraise(self, func, exception_class):
+        """Utility method to invoke a function and raise ``exception_class`` if an error
         occurs.
 
-        :param str method: Name of the method to call.
+        :param callable function: Function to call. Must take no arguments.
         :param Exception exception_class: Type of exception to raise when an error occurs.
-        :param bool call_validator: Whether to call custom validation functions. This allows
-            validation functions to only be run during deserialization.
-        :param args: Positional arguments to pass to the method.
-        :param kwargs: Keyword arguments to pass to the method.
         """
         try:
-            func = getattr(self, method)
-            output = func(*args, **kwargs)
-            # NOTE: Use getattr instead of direct attribute access here so that
-            # subclasses aren't required to define the `validate` attribute
-            if call_validator and getattr(self, 'validate', False):
-                self._validate(output)
-            return output
+            return func()
         # TypeErrors should be raised if fields are not declared as instances
         except TypeError:
             raise
@@ -368,8 +371,8 @@ class Field(FieldABC):
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
                 return self._format(self.default)
-        return self._call_with_validation('_serialize', MarshallingError, False,
-                                          value, attr, obj)
+        func = partial(self._serialize, value, attr, obj)
+        return self._call_and_reraise(func, MarshallingError)
 
     def deserialize(self, value):
         """Deserialize ``value``.
@@ -377,10 +380,16 @@ class Field(FieldABC):
         :raise UnmarshallingError: If an invalid value is passed or if a required value
             is missing.
         """
-        if value is missing:
-            if hasattr(self, 'required') and self.required:
-                raise UnmarshallingError('Missing data for required field.')
-        return self._call_with_validation('_deserialize', UnmarshallingError, True, value)
+        # Validate required fields, deserialize, then validate
+        # deserialized value
+        def do_deserialization():
+            if value is missing:
+                if hasattr(self, 'required') and self.required:
+                    raise ValidationError('Missing data for required field.')
+            output = self._deserialize(value)
+            self._validate(output)
+            return output
+        return self._call_and_reraise(do_deserialization, UnmarshallingError)
 
     # Methods for concrete classes to override.
 
@@ -530,9 +539,6 @@ class Nested(Field):
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
                             '"many=True".'.format(err))
-        # Parent should get any errors stored after marshalling
-        if self.schema.errors:
-            self.parent.errors[attr] = self.schema.errors
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
@@ -541,7 +547,10 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
-        return self.schema.load(value).data
+        data, errors = self.schema.load(value)
+        if errors:
+            raise ValidationError(errors)
+        return data
 
 
 class List(Field):
@@ -597,7 +606,7 @@ class String(Field):
 
     def _deserialize(self, value):
         if value is None:
-            return self.default
+            return ''
         result = utils.ensure_text_type(value)
         return result
 
@@ -961,25 +970,12 @@ class Url(Field):
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+
     def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
         super(Url, self).__init__(default=default, attribute=attribute,
                 *args, **kwargs)
         self.relative = relative
-
-    def _validated(self, value, exception_class):
-        try:
-            return validate.url(value, relative=self.relative)
-        except ValueError as ve:
-            raise exception_class(ve)
-
-    def _format(self, value):
-        if value:
-            return self._validated(value, MarshallingError)
-
-    def _deserialize(self, value):
-        if value is None:
-            return self.default
-        return self._validated(value, UnmarshallingError)
+        self.validators.insert(0, partial(validate.url, relative=self.relative, error=getattr(self, 'error')))
 
 URL = Url
 
@@ -988,19 +984,9 @@ class Email(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-
-    def _validated(self, value, exception_class):
-        try:
-            return validate.email(value)
-        except ValueError as ve:
-            raise exception_class(ve)
-
-    def _format(self, value):
-        if value:
-            return self._validated(value, MarshallingError)
-
-    def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+    def __init__(self, *args, **kwargs):
+        super(Email, self).__init__(*args, **kwargs)
+        self.validators.insert(0, partial(validate.email, error=getattr(self, 'error')))
 
 
 def _get_args(func):
