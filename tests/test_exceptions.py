@@ -11,3 +11,8 @@ class TestValidationError:
     def test_can_pass_list_of_messages(self):
         err = ValidationError(['foo', 'bar'])
         assert err.messages == ['foo', 'bar']
+
+    def test_stores_dictionaries(self):
+        messages = {'user': {'email': ['email is invalid']}}
+        err = ValidationError(messages)
+        assert err.messages == messages
