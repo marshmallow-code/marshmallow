@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Validation functions for various types of data."""
 import re
+from marshmallow.exceptions import ValidationError
 
 
 URL_REGEX = re.compile(
@@ -32,14 +33,14 @@ def url(value, relative=False):
     :param string value: The URL to validate
     :param bool relative: Whether to allow relative URLs.
     :returns: The URL if valid.
-    :raises: ValueError if url is invalid.
+    :raises: ValidationError if url is invalid.
     """
     regex = RELATIVE_URL_REGEX if relative else URL_REGEX
     if not regex.search(value):
         message = u'"{0}" is not a valid URL'.format(value)
         if regex.search('http://' + value):
             message += u'. Did you mean: "http://{0}"?'.format(value)
-        raise ValueError(message)
+        raise ValidationError(message)
     return value
 
 USER_REGEX = re.compile(
@@ -61,16 +62,16 @@ def email(value):
 
     :param string value: The email address to validate.
     :returns: The email address if valid.
-    :raises: ValueError if email is invalid
+    :raises: ValidationError if email is invalid
     """
     error_message = '"{0}" is not a valid email address.'.format(value)
     if not value or '@' not in value:
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
 
     user_part, domain_part = value.rsplit('@', 1)
 
     if not USER_REGEX.match(user_part):
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
 
     if (domain_part not in DOMAIN_WHITELIST and
             not DOMAIN_REGEX.match(domain_part)):
@@ -78,8 +79,8 @@ def email(value):
         try:
             domain_part = domain_part.encode('idna').decode('ascii')
             if not DOMAIN_REGEX.match(domain_part):
-                raise ValueError(error_message)
+                raise ValidationError(error_message)
         except UnicodeError:
             pass
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
     return value
