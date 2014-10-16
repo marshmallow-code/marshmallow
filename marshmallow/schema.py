@@ -199,7 +199,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=None,
+    def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False,
                 context=None):
         # copy declared fields from metaclass
@@ -221,7 +221,20 @@ class BaseSchema(base.SchemaABC):
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context or {}
-        self._update_fields(None)
+        self._update_fields()
+
+        # For backwards compatibility, allow object to be passed in.
+        self.obj = obj
+        self._data = None
+        # If object is passed in, marshal it immediately so that errors are stored
+        if self.obj is not None:
+            warnings.warn('Serializing objects in the Schema constructor is a '
+                          'deprecated API. Use the Schema.dump method instead.',
+                          category=DeprecationWarning)
+            self._update_fields(self.obj)
+            self._update_data()
+        else:
+            self._update_fields()
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
@@ -460,7 +473,39 @@ class BaseSchema(base.SchemaABC):
         """
         return data
 
-    def _update_fields(self, obj):
+    ##### Legacy API #####
+
+    @property
+    def data(self):
+        """The serialized data as an :class:`OrderedDict`.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+        """
+        warnings.warn('Accessing data through Schema.data is deprecated. '
+                      'Use the return value of Schema.dump instead.',
+                      category=DeprecationWarning)
+        if not self._data:
+            self._update_data()
+        return self._data
+
+    @property
+    def errors(self):
+        """Dictionary of errors raised during serialization.
+
+        .. deprecated:: 1.0.0
+            Use the return value of `dump` instead.
+        """
+        return self._marshal.errors
+
+    def _update_data(self):
+        if not self._data:
+            self._data = self.dump(self.obj).data
+        return self._data
+
+    ##### Private Helpers #####
+
+    def _update_fields(self, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
