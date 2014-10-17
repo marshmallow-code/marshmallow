@@ -199,7 +199,8 @@ class Unmarshaller(object):
                 if strict:
                     raise UnmarshallingError(err)
                 # Store errors
-                self.errors.setdefault('_schema', []).append(text_type(err))
+                field_key = err.field or '_schema'
+                self.errors.setdefault(field_key, []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,

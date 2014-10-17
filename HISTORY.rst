@@ -18,6 +18,8 @@ Changelog
 * *Backwards-incompatible*: Allow nesting a serializer within itself recursively. Use ``exclude`` or ``only`` to prevent infinite recursion.
 * *Backwards-incompatible*: Multiple errors can be stored for a single field. The errors dictionary returned by ``load`` and ``dump`` have lists of error messages keyed by field name.
 * ``Nested`` fields inherit context from their parent.
+* Add ``Schema.preprocessor`` and ``Schema.validator`` decorators for registering preprocessing and schema-level validation functions respectively.
+* Custom error messages can be specified by raising a ``ValidationError`` within a validation function.
 * Fix ordering of field output.
 * Fix behavior of the ``required`` parameter on ``Nested`` fields.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.

@@ -46,12 +46,14 @@ class ValidationError(MarshmallowError):
         error messages.
     """
 
-    def __init__(self, message):
+    def __init__(self, message, field=None):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
             messages = message
         self.messages = messages
+        self.field = field
+        MarshmallowError.__init__(self, message)
 
 
 class RegistryError(ForcedError, NameError):

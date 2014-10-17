@@ -45,7 +45,7 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields
+    from marshmallow import Schema, fields, ValidationError
 
     class NumberSchema(Schema):
         field_a = fields.Integer()
@@ -53,13 +53,30 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
 
     @NumberSchema.validator
     def validate_numbers(schama, input_data):
-        return input_data['field_b'] > input_data['field_a']
+        if input_data['field_b'] >= input_data['field_a']:
+            raise ValidationError('field_a must be greater than field_b')
 
     schema = NumberSchema()
     result, errors = schema.load({'field_a': 2, 'field_b': 1})
-    errors['_schema']
-    # => ["Schema validator validate_numbers({'field_b': 1, 'field_a': 2}) is False"]
+    errors['_schema'] # => ["field_a must be greater than field_b"]
 
+
+Storing Errors on Specific Fields
++++++++++++++++++++++++++++++++++
+
+If you want to store schema-level validation errors on a specific field, you can pass a field name to the :exc:`ValidationError`.
+
+.. code-block:: python
+
+    @NumberSchema.validator
+    def validate_numbers(schama, input_data):
+        if input_data['field_b'] >= input_data['field_a']:
+            # Store error on field_a
+            raise ValidationError('field_a must be greater than field_b', 'field_a')
+
+    schema = NumberSchema()
+    result, errors = schema.load({'field_a': 2, 'field_b': 1})
+    errors['field_a'] # => ["field_a must be greater than field_b"]
 
 Pre-processing Input Data
 -------------------------
