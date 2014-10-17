@@ -710,6 +710,20 @@ class TestSchemaValidator:
         _, errors = schema.load({'foo': 42})
         assert errors['_schema'] == ['Something went wrong']
 
+    def test_store_schema_validation_errors_on_specified_field(self):
+        def validate_schema(schema, input_vals):
+            raise ValidationError('Something went wrong with field bar', 'bar')
+
+        class MySchema(Schema):
+            __validators__ = [validate_schema]
+            foo = fields.String()
+            bar = fields.Field()
+
+        schema = MySchema()
+        _, errors = schema.load({'bar': 42, 'foo': 123})
+        assert '_schema' not in errors
+        assert 'Something went wrong with field bar' in errors['bar']
+
 
 class TestPreprocessors:
 

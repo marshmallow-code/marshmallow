@@ -16,3 +16,14 @@ class TestValidationError:
         messages = {'user': {'email': ['email is invalid']}}
         err = ValidationError(messages)
         assert err.messages == messages
+
+    def test_can_store_field_name(self):
+        err = ValidationError('invalid email', field='email')
+        assert err.field == 'email'
+
+    def test_str(self):
+        err = ValidationError('invalid email')
+        assert str(err) == 'invalid email'
+
+        err2 = ValidationError('invalid email', 'email')
+        assert str(err2) == 'invalid email'
