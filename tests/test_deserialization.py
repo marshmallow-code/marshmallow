@@ -715,25 +715,20 @@ class TestValidation:
             MethodSerializer(strict=True).load({'name': 'joseph'})
         assert 'is False' in str(excinfo)
 
-@pytest.mark.parametrize('FieldClass', [
-    fields.String,
-    fields.Integer,
-    fields.Boolean,
-    fields.Float,
-    fields.Number,
-    fields.DateTime,
-    fields.LocalDateTime,
-    fields.Time,
-    fields.Date,
-    fields.TimeDelta,
-    fields.Fixed,
-    fields.Url,
-    fields.Email,
-])
+FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.Enum, fields.FormattedString]]
+@pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
 def test_required_field_failure(FieldClass):
     class RequireSchema(Schema):
         age = FieldClass(required=True)
     user_data = {"name": "Phil"}
     data, errs = RequireSchema().load(user_data)
     assert "Missing data for required field." in errs['age']
+    assert data == {}
+
+def test_required_enum():
+    class ColorSchema(Schema):
+        color = fields.Enum(['red', 'white', 'blue'], required=True)
+    in_data = {'name': 'Phil'}
+    data, errs = ColorSchema().load(in_data)
+    assert "Missing data for required field." in errs['color']
     assert data == {}

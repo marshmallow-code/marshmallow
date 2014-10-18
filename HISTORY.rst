@@ -22,6 +22,7 @@ Major reworking and simplification of the public API, centered around support fo
 * ``Nested`` fields inherit context from their parent.
 * Add ``Schema.preprocessor`` and ``Schema.validator`` decorators for registering preprocessing and schema-level validation functions respectively.
 * Custom error messages can be specified by raising a ``ValidationError`` within a validation function.
+* Extra keyword arguments passed to a Field are stored as metadata.
 * Fix ordering of field output.
 * Fix behavior of the ``required`` parameter on ``Nested`` fields.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.

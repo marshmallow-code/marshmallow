@@ -8,6 +8,7 @@ from functools import partial
 import datetime as dt
 import inspect
 import uuid
+import warnings
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -282,6 +283,7 @@ class Field(FieldABC):
         If it returns ``False``, an :exc:`UnmarshallingError` is raised.
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
+    :param metadata: Extra arguments to be stored as metadata.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -290,7 +292,7 @@ class Field(FieldABC):
     _creation_index = 0
 
     def __init__(self, default=None, attribute=None, error=None,
-                 validate=None, required=False):
+                 validate=None, required=False, **metadata):
         self.default = default
         self.attribute = attribute
         self.error = error
@@ -306,6 +308,7 @@ class Field(FieldABC):
         else:
             raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
         self.required = required
+        self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
         self.parent = FieldABC.parent
@@ -718,8 +721,8 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
-    def __init__(self, src_str):
-        Field.__init__(self)
+    def __init__(self, src_str, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)
 
     def _serialize(self, value, attr, obj):

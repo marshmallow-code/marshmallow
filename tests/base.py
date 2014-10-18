@@ -10,6 +10,26 @@ from marshmallow.exceptions import MarshallingError
 
 central = pytz.timezone("US/Central")
 
+
+ALL_FIELDS = [
+    fields.String,
+    fields.Integer,
+    fields.Boolean,
+    fields.Float,
+    fields.Number,
+    fields.DateTime,
+    fields.LocalDateTime,
+    fields.Time,
+    fields.Date,
+    fields.TimeDelta,
+    fields.Fixed,
+    fields.Url,
+    fields.Email,
+    fields.FormattedString,
+    fields.UUID,
+    fields.Enum,
+]
+
 ##### Custom asserts #####
 
 def assert_almost_equal(a, b, precision=5):

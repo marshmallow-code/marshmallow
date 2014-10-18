@@ -111,3 +111,7 @@ Other notable changes:
 - ``datetime`` objects serialize to ISO8601 formatted strings by default (instead of RFC821 format).
 - The ``fields.validated`` decorator was removed, as it is no longer necessary given the new Fields interface.
 - `Schema.factory` class method was removed.
+
+.. seealso::
+
+    See the :ref:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.
