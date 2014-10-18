@@ -293,6 +293,7 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
             uppername = fields.Function(lambda obj: obj.name.upper())
             class Meta:
                 additional = ("name", "email", "created_at")  # No need to include 'uppername'
+.. _nesting:
 
 Nesting Schemas
 ---------------
@@ -335,6 +336,8 @@ When you serialize the blog, you will see the nested user representation.
 
         collaborators = fields.Nested(UserSchema, many=True)
 
+.. _nested-attributes:
+
 Specifying Nested Attributes
 ++++++++++++++++++++++++++++
 
@@ -346,7 +349,9 @@ You can explicitly specify which attributes in the nested fields you want to ser
         title = fields.String()
         author = fields.Nested(UserSchema, only=["email"])
 
-    BlogSchema2(blog).data
+    schema = BlogSchema2()
+    result, errors = schema.dump(blog)
+    pprint(result)
     # {
     #     'title': u'Something Completely Different',
     #     'author': {'email': u'monty@python.org'}
@@ -374,6 +379,7 @@ You can explicitly specify which attributes in the nested fields you want to ser
 
 You can also exclude fields by passing in an ``exclude`` list.
 
+.. _two-way-nesting:
 
 Two-way Nesting
 +++++++++++++++
@@ -433,6 +439,8 @@ For example, a representation of an ``Author`` model might include the books tha
 
         books = fields.Nested('path.to.BookSchema',
                               many=True, exclude=('author', ))
+
+.. _self-nesting:
 
 Nesting A Schema Within Itself
 ++++++++++++++++++++++++++++++
