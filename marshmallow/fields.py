@@ -1116,4 +1116,8 @@ class Select(Field):
     def _deserialize(self, value):
         return self._validated(value, UnmarshallingError)
 
+# Aliases
 Enum = Select
+Str = String
+Bool = Boolean
+Int = Integer
