@@ -161,11 +161,6 @@ class TestMarshaller:
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert len(res) == 2
 
-
-def test_enum_is_select():
-    assert fields.Select is fields.Enum
-
-
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
 
