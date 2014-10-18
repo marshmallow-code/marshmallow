@@ -52,6 +52,9 @@ __all__ = [
     'Function',
     'Select',
     'Enum',
+    'Str',
+    'Bool',
+    'Int',
 ]
 
 class _null(object):

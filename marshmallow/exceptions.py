@@ -44,6 +44,8 @@ class ValidationError(MarshmallowError):
 
     :param message: An error message, list of error messages, or dict of
         error messages.
+    :param str field: Name of the field to store the error on. If None,
+        the error is stored in its default location.
     """
 
     def __init__(self, message, field=None):
