@@ -22,7 +22,6 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
-
 def _get_fields(attrs, field_class, pop=False):
     """Get fields from a class, sorted by creation index.
 
@@ -40,6 +39,8 @@ def _get_fields(attrs, field_class, pop=False):
         key=lambda pair: pair[1]._creation_index,
     )
 
+# This function allows Schemas to inherit from non-Schema classes and ensures
+#   inheritance according to the MRO
 def _get_fields_by_mro(klass, field_class):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get

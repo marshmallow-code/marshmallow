@@ -346,6 +346,23 @@ def test_custom_error_message():
     assert "Bad homepage." in errors['homepage']
     assert "Invalid email" in errors['email']
 
+
+def test_load_errors_with_many():
+    class ErrorSchema(Schema):
+        email = fields.Email()
+
+    data = [
+        {'email': 'bademail'},
+        {'email': 'goo@email.com'},
+        {'email': 'anotherbademail'},
+    ]
+
+    data, errors = ErrorSchema(many=True).load(data)
+    assert 'email' in errors
+    assert len(errors['email']) == 2
+    assert 'bademail' in errors['email'][0]
+    assert 'anotherbademail' in errors['email'][1]
+
 def test_error_raised_if_fields_option_is_not_list():
     class BadSchema(Schema):
         name = fields.String()

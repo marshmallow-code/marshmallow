@@ -156,7 +156,7 @@ class Marshaller(object):
             return [self.serialize(d, fields_dict, many=False, strict=strict) for d in obj]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
-            key = self.prefix + attr_name
+            key = ''.join([self.prefix, attr_name])
             value = _call_and_store(
                 getter_func=partial(field_obj.serialize, attr_name),
                 data=obj,

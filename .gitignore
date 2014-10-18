@@ -51,3 +51,4 @@ Vagrantfile
 *.db
 *.ai
 .konchrc
+_sandbox
