@@ -29,9 +29,9 @@ else:
     string_types = (str,)
     unicode = str
     basestring = (str, bytes)
-    iterkeys = lambda d: iter(d.keys())
-    itervalues = lambda d: iter(d.values())
-    iteritems = lambda d: iter(d.items())
+    iterkeys = lambda d: d.keys()
+    itervalues = lambda d: d.values()
+    iteritems = lambda d: d.items()
     from collections import OrderedDict
     OrderedDict = OrderedDict
 
