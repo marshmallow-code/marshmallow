@@ -1,3 +1,4 @@
+.. _why:
 .. module:: marshmallow
 
 Why marshmallow?
@@ -5,7 +6,7 @@ Why marshmallow?
 
 The Python ecosystem has many great libraries for data formatting and schema validation.
 
-In fact, marshmallow was influenced by a number of these libraries. Marshmallow is inspired by `Django REST Framework`_, `Flask-RESTful`_, and `colander <http://docs.pylonsproject.org/projects/colander/en/latest/>`_. It borrows a number of implementation and design ideas from these libraries to create a flexible and productive solution for marshalling and unmarshalling Python objects.
+In fact, marshmallow was influenced by a number of these libraries. Marshmallow is inspired by `Django REST Framework`_, `Flask-RESTful`_, and `colander <http://docs.pylonsproject.org/projects/colander/en/latest/>`_. It borrows a number of implementation and design ideas from these libraries to create a flexible and productive solution for marshalling, unmarshalling, and validating data.
 
 Here are just a few reasons why you might use marshmallow.
 
@@ -27,9 +28,9 @@ Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marsh
 Consistency meets flexibility.
 ------------------------------
 
-Marshmallow makes it easy to modify a schema's output at runtime. A single :class:`Schema` can produce multiple outputs formats while keeping the individual field outputs consistent. Why might that be useful?
+Marshmallow makes it easy to modify a schema's output at application runtime. A single :class:`Schema` can produce multiple outputs formats while keeping the individual field outputs consistent.
 
-As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints could be handled by the same :class:`Schema`.
+As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints can be handled by the same :class:`Schema`.
 
 .. code-block:: python
 
@@ -55,10 +56,11 @@ In this example, a single schema produced three different outputs! The dynamic n
 .. _Django REST Framework: http://www.django-rest-framework.org/
 .. _Flask-RESTful: http://flask-restful.readthedocs.org/
 
+
 Context-aware serialization.
 ----------------------------
 
-Marshmallow serializers can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
+Marshmallow schemas can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
 
 Here's a simple example that how a :class:`Schema` can anonymize a person's name when a boolean is set on the context.
 
@@ -80,3 +82,12 @@ Here's a simple example that how a :class:`Schema` can anonymize a person's name
     # In a different context, anonymize the name
     schema.context['anonymize'] = True
     schema.dump(person)  # {'id': 143, 'name': '<anonymized>'}
+
+Advanced schema nesting.
+------------------------
+
+Other serialization libraries provide a means for nesting schemas within each other, but they often fail to meet common use cases in clean way. Marshmallow aims to fill these gaps by adding a few nice features for :ref:`nesting schemas <nesting>`:
+
+- You can specify which :ref:`subset of fields <nested-attributes>` to include on nested schemas.
+- :ref:`Two-way nesting <two-way-nesting>`. Two different schemas can nest each other.
+- :ref:`Self-nesting <self-nesting>`. A schema can be nested within itself.

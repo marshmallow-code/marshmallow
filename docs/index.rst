@@ -13,6 +13,12 @@ Migrating from a pre-1.0 version?
 
 See the :ref:`Migrating from Older Versions <migrating>` page for notes on getting your code up-to-date with the latest version.
 
+Why another library?
+=====================
+
+See :ref:`this document <why>` to learn about what makes marshmallow unique.
+
+
 Guide
 =====
 
