@@ -7,7 +7,7 @@ from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 from functools import partial
 import datetime as dt
 import inspect
-import warnings
+import uuid
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -614,7 +614,9 @@ class String(Field):
 
 class UUID(String):
     """A UUID field."""
-    pass
+
+    def _deserialize(self, value):
+        return uuid.UUID(value)
 
 
 class Number(Field):

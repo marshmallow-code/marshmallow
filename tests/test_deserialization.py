@@ -185,7 +185,9 @@ class TestFieldDeserialization:
     def test_uuid_field_deserialization(self):
         field = fields.UUID()
         uuid_str = str(uuid.uuid4())
-        assert field.deserialize(uuid_str) == uuid_str
+        result = field.deserialize(uuid_str)
+        assert isinstance(result, uuid.UUID)
+        assert str(result) == uuid_str
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):
