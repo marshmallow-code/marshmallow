@@ -88,7 +88,7 @@ You can also exclude fields by passing in the ``exclude`` parameter.
 Deserializing Objects
 ---------------------
 
-The opposite of the :meth:`dump <Schema.dump>` method is the :meth:`load <Schema.load>` method, which deserializes an input dictionary to an application-level data structure (e.g. an ORM object in a web application).
+The opposite of the :meth:`dump <Schema.dump>` method is the :meth:`load <Schema.load>` method, which deserializes an input dictionary to an application-level data structure.
 
 By default, :meth:`load <Schema.load>` will return a dictionary of field names mapped to the deserialized values.
 
@@ -162,12 +162,16 @@ Iterable collections of objects are also serializable and deserializable. Just s
 Validation
 ----------
 
-:meth:`Schema.load` (and its JSON-encoding counterpart, :meth:`Schema.loads`) returns a dictionary of validation errors as the second element of its return value.
+:meth:`Schema.load` (and its JSON-encoding counterpart, :meth:`Schema.loads`) returns a dictionary of validation errors as the second element of its return value. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
 
 .. code-block:: python
 
-    result, errors = UserSchema().load({'email': 'foo'})
+    data, errors = UserSchema().load({'email': 'foo'})
     errors  # => {'email': ['foo is not a valid email address.']}
+    # OR, equivalently
+    result = UserSchema().load({'email': 'foo'})
+    result.errors  # => {'email': ['foo is not a valid email address.']}
+
 
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
@@ -177,8 +181,8 @@ You can perform additional validation for a field by passing it a ``validate`` c
         age = fields.Number(validate=lambda n: 18 <= n <= 40)
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
-    result, errors = ValidatedUserSchema().load(in_data)
-    errors  # => {'age': ['Validator <lambda>(71.0) is False']}
+    result = ValidatedUserSchema().load(in_data)
+    result.errors  # => {'age': ['Validator <lambda>(71.0) is False']}
 
 
 Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.
@@ -497,7 +501,7 @@ There are three ways to create a custom-formatted field for a `Schema`:
 - Use a :class:`Method <marshmallow.fields.Method>` field
 - Use a :class:`Function <marshmallow.fields.Function>` field
 
-The method you choose will depend on personal preference and the manner in which you intend to reuse the field.
+The method you choose will depend on the manner in which you intend to reuse the field.
 
 Creating A Field Class
 ++++++++++++++++++++++
@@ -553,23 +557,23 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
 Adding Context to Method and Function Fields
 ++++++++++++++++++++++++++++++++++++++++++++
 
-New in version ``0.5.3``.
-
-You may wish to include other objects when computing a :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field.
-
-As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog``.
+A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
 
 In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+
+As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether the a certain word appears in a ``Blog's`` title.
 
 .. code-block:: python
 
     class UserSchema(Schema):
         name = fields.String()
-        is_author = fields.Function(lambda user, ctx: user == ctx['blog'].author)
+        # Function fields optionally receive context argument
+        is_author = fields.Function(lambda user, context: user == context['blog'].author)
         likes_bikes = fields.Method('writes_about_bikes')
 
-        def writes_about_bikes(self, user, ctx):
-            return 'bicycle' in ctx['blog'].title.lower()
+        # Method fields also optionally receive context argument
+        def writes_about_bikes(self, user, context):
+            return 'bicycle' in context['blog'].title.lower()
 
     schema = UserSchema()
 
@@ -587,6 +591,6 @@ Next Steps
 
 Check out the :ref:`API Reference <api>` for a full listing of available fields.
 
-Need to add custom post-processing or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
+Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
 
 For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
