@@ -267,12 +267,6 @@ class Unmarshaller(object):
     __call__ = deserialize
 
 
-# Singleton marshaller function for use in this module
-marshal = Marshaller()
-# Singleton unmarshaller function for use in this module
-unmarshal = Unmarshaller()
-
-
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
