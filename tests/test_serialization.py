@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
 from collections import namedtuple
+import datetime as dt
 
 import pytest
 
@@ -9,6 +10,10 @@ from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import total_seconds, text_type
 
 from tests.base import User
+
+class DateTimeList:
+    def __init__(self, dtimes):
+        self.dtimes = dtimes
 
 class TestFieldSerialization:
 
@@ -119,11 +124,40 @@ class TestFieldSerialization:
         assert field.serialize("since_created", self.user) == expected
 
     def test_select_field(self):
-        field = fields.Select(['male', 'female'])
+        field = fields.Select(['male', 'female', 'transexual', 'asexual'])
         assert field.serialize("sex", self.user) == "male"
         invalid = User('foo', sex='alien')
         with pytest.raises(MarshallingError):
             field.serialize('sex', invalid)
+
+    def test_datetime_list_field(self):
+        obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert all([type(each) == str for each in result])
+
+    def test_list_field_with_error(self):
+        obj = DateTimeList(['invaliddate'])
+        field = fields.List(fields.DateTime)
+        with pytest.raises(MarshallingError):
+            field.serialize('dtimes', obj)
+
+    def test_datetime_list_serialize_single_value(self):
+        obj = DateTimeList(dt.datetime.utcnow())
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 1
+        assert type(result[0]) == str
+
+    def test_list_field_serialize_none_returns_empty_list_by_default(self):
+        obj = DateTimeList(None)
+        field = fields.List(fields.DateTime)
+        assert field.serialize('dtimes', obj) == []
+
+    def test_list_field_serialize_allow_none(self):
+        obj = DateTimeList(None)
+        field = fields.List(fields.DateTime, allow_none=True)
+        assert field.serialize('dtimes', obj) is None
 
     def test_bad_list_field(self):
         class ASchema(Schema):

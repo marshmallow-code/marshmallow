@@ -564,32 +564,35 @@ class List(Field):
         numbers = fields.List(fields.Float)
 
     :param Field cls_or_instance: A field class or instance.
+    :param bool default: Default value for serialization.
+    :param bool allow_none: If ``True``, ``None`` will be serialized to ``None``.
+        If ``False``, ``None`` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    def __init__(self, cls_or_instance, **kwargs):
+    def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
         super(List, self).__init__(**kwargs)
+        if not allow_none and default is None:
+            self.default = []
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise MarshallingError("The type of the list elements "
-                                           "must be a subclass of "
-                                           "marshmallow.base.FieldABC")
+                raise MarshallingError('The type of the list elements '
+                                           'must be a subclass of '
+                                           'marshmallow.base.FieldABC')
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise MarshallingError("The instances of the list "
-                                           "elements must be of type "
-                                           "marshmallow.base.FieldABC")
+                raise MarshallingError('The instances of the list '
+                                           'elements must be of type '
+                                           'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
     def _serialize(self, value, attr, obj):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
-            # Convert all instances in typed list to container type
             return [self.container.serialize(idx, value) for idx
                     in range(len(value))]
         if value is None:
             return self.default
-
-        return [marshal(value, self.container.nested, strict=True)]
+        return [self.container.serialize(attr, obj)]
 
     def _deserialize(self, value):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
