@@ -62,7 +62,7 @@ Context-aware serialization.
 
 Marshmallow schemas can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
 
-Here's a simple example that how a :class:`Schema` can anonymize a person's name when a boolean is set on the context.
+Here's a simple example that shows how a :class:`Schema` can anonymize a person's name when a boolean is set on the context.
 
 .. code-block:: python
 
@@ -83,11 +83,16 @@ Here's a simple example that how a :class:`Schema` can anonymize a person's name
     schema.context['anonymize'] = True
     schema.dump(person)  # {'id': 143, 'name': '<anonymized>'}
 
+
+.. seealso::
+
+    See the relevant section of the :ref:`Quickstart guide <adding-context>` to learn more about context-aware serialization.
+
 Advanced schema nesting.
 ------------------------
 
 Other serialization libraries provide a means for nesting schemas within each other, but they often fail to meet common use cases in clean way. Marshmallow aims to fill these gaps by adding a few nice features for :ref:`nesting schemas <nesting>`:
 
-- You can specify which :ref:`subset of fields <nested-attributes>` to include on nested schemas.
+- You can specify which :ref:`subset of fields <specifying-nested-fields>` to include on nested schemas.
 - :ref:`Two-way nesting <two-way-nesting>`. Two different schemas can nest each other.
 - :ref:`Self-nesting <self-nesting>`. A schema can be nested within itself.

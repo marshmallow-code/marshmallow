@@ -378,7 +378,7 @@ class BaseSchema(base.SchemaABC):
         Schema's fields.
 
         :param obj: The object to serialize.
-        :return: A tuple of the form (``result``, ``errors``)
+        :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
@@ -404,7 +404,7 @@ class BaseSchema(base.SchemaABC):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
+        :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
@@ -423,7 +423,7 @@ class BaseSchema(base.SchemaABC):
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
+        :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
@@ -457,7 +457,7 @@ class BaseSchema(base.SchemaABC):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
-        :return: A tuple of the form (``result``, ``errors``)
+        :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
@@ -495,7 +495,7 @@ class BaseSchema(base.SchemaABC):
         """Dictionary of errors raised during serialization.
 
         .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
+            Use the return value of `load` instead.
         """
         return self._marshal.errors
 

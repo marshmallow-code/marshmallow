@@ -8,10 +8,10 @@ Release v\ |version|. (:ref:`Changelog <changelog>`)
 
 .. include:: about.rst.inc
 
-Migrating from a pre-1.0 version?
+Upgrading from a pre-1.0 version?
 =================================
 
-See the :ref:`Migrating from Older Versions <migrating>` page for notes on getting your code up-to-date with the latest version.
+See the :ref:`Upgrading to Newer Releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
 
 Why another library?
 =====================
@@ -29,6 +29,7 @@ Guide
     quickstart
     extending
     examples
+    upgrading
 
 
 API Reference

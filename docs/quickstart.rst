@@ -267,8 +267,8 @@ By default, `Schemas` will marshal the object attributes that have the same name
 
 .. _meta_options:
 
-Refactoring (Meta Options)
---------------------------
+Refactoring: Implicit Field Creation
+------------------------------------
 
 When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
 
@@ -312,7 +312,7 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
             self.title = title
             self.author = author  # A User object
 
-Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in the ``UserSchema`` class.
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in nested schema class.
 
 .. code-block:: python
 
@@ -340,10 +340,10 @@ When you serialize the blog, you will see the nested user representation.
 
         collaborators = fields.Nested(UserSchema, many=True)
 
-.. _nested-attributes:
+.. _specifying-nested-fields:
 
-Specifying Nested Attributes
-++++++++++++++++++++++++++++
+Specifying Which Fields to Nest
++++++++++++++++++++++++++++++++
 
 You can explicitly specify which attributes in the nested fields you want to serialize with the ``only`` argument.
 
@@ -553,6 +553,9 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         email = fields.String()
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
+
+
+.. _adding-context:
 
 Adding Context to Method and Function Fields
 ++++++++++++++++++++++++++++++++++++++++++++
