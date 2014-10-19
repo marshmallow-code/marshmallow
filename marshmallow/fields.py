@@ -814,9 +814,9 @@ class DateTime(Field):
 
     def __init__(self, format=None, default=None, attribute=None, **kwargs):
         super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
-        # Allow this to be None. It may be set later in the ``format`` method
-        # This allows a Schema to dynamically set the dateformat, e.g.
-        # from a Meta option
+        # Allow this to be None. It may be set later in the ``_serialize``
+        # or ``_desrialize`` methods This allows a Schema to dynamically set the
+        # dateformat, e.g. from a Meta option
         self.dateformat = format
 
     def _serialize(self, value, attr, obj):
@@ -832,7 +832,8 @@ class DateTime(Field):
         err = UnmarshallingError(
             'Cannot deserialize {0!r} to a datetime'.format(value)
         )
-        func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat, None)
+        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
+        func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
         if func:
             try:
                 return func(value)

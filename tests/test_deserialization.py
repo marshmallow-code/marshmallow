@@ -266,9 +266,8 @@ class TestFieldDeserialization:
 
     def test_list_field_deserialize_invalid_value(self):
         field = fields.List(fields.DateTime)
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
-        assert 'Cannot deserialize {0!r} to a datetime'.format('badvalue') in str(excinfo)
 
     def test_field_deserialization_with_user_validator(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
