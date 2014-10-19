@@ -9,11 +9,10 @@ import copy
 class FieldABC(object):
     """Abstract base class from which all Field classes inherit.
     """
+    #: The `Schema` the field is attached to.
     parent = None
+    #: The field's name.
     name = None
-
-    def _format(self, value):
-        raise NotImplementedError
 
     def _serialize(self, value, key, obj):
         raise NotImplementedError

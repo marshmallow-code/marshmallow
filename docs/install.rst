@@ -67,7 +67,7 @@ Perhaps the largest change is in how objects get serialized. Serialization occur
 
 .. module:: marshmallow.fields
 
-The Fields interface was also reworked in 1.0 to make it easier to define custom fields with their own serialization and deserialization behavior. Custom fields now implement one or more of: :meth:`Field._serialize`, :meth:`Field._format`, and :meth:`Field._deserialize`.
+The Fields interface was also reworked in 1.0 to make it easier to define custom fields with their own serialization and deserialization behavior. Custom fields now implement :meth:`Field._serialize` and :meth:`Field._deserialize`.
 
 .. code-block:: python
 

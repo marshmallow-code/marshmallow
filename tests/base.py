@@ -107,12 +107,13 @@ class Blog(object):
     def __contains__(self, item):
         return item.name in [each.name for each in self.collaborators]
 
-###### Serializers #####
+###### Schemas #####
 
 
 class Uppercased(fields.Field):
-    '''Custom field formatting example.'''
-    def _format(self, value):
+    """Custom field formatting example."""
+
+    def _serialize(self, value, attr, obj):
         if value:
             return value.upper()
 
