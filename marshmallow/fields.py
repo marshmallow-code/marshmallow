@@ -269,6 +269,8 @@ class Unmarshaller(object):
 
 # Singleton marshaller function for use in this module
 marshal = Marshaller()
+# Singleton unmarshaller function for use in this module
+unmarshal = Unmarshaller()
 
 
 class Field(FieldABC):
@@ -402,33 +404,24 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _format(self, value):
-        """Formats a field's value. No-op by default. Concrete :class:`Field` should
-        override this and apply the appropriate formatting.
+    def _serialize(self, value, attr, obj):
+        """Serializes ``value`` to a basic Python datatype. Noop by default.
+        Concrete :class:`Field` classes should implement this method.
 
-        :param value: The value to format
-        :raise MarshallingError: In case of formatting or validation failure.
-
-        Ex::
+        Example: ::
 
             class TitleCase(Field):
-                def _format(self, value):
+                def _serialize(self, value, attr, obj):
                     if not value:
                         return ''
                     return unicode(value).title()
-        """
-        return value
-
-    def _serialize(self, value, attr, obj):
-        """Serializes ``value`` to a basic Python datatype. Concrete :class:`Field` classes
-        should implement this method.
 
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
-        :param obj: The object the value was pulled from.
+        :param object obj: The object the value was pulled from.
         :raise MarshallingError: In case of formatting or validation failure.
         """
-        return self._format(value)
+        return value
 
     def _deserialize(self, value):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
@@ -571,35 +564,43 @@ class List(Field):
         numbers = fields.List(fields.Float)
 
     :param Field cls_or_instance: A field class or instance.
+    :param bool default: Default value for serialization.
+    :param bool allow_none: If ``True``, ``None`` will be serialized to ``None``.
+        If ``False``, ``None`` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    def __init__(self, cls_or_instance, **kwargs):
+    def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
         super(List, self).__init__(**kwargs)
+        if not allow_none and default is None:
+            self.default = []
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise MarshallingError("The type of the list elements "
-                                           "must be a subclass of "
-                                           "marshmallow.base.FieldABC")
+                raise MarshallingError('The type of the list elements '
+                                           'must be a subclass of '
+                                           'marshmallow.base.FieldABC')
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise MarshallingError("The instances of the list "
-                                           "elements must be of type "
-                                           "marshmallow.base.FieldABC")
+                raise MarshallingError('The instances of the list '
+                                           'elements must be of type '
+                                           'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
-            # Convert all instances in typed list to container type
             return [self.container.serialize(idx, value) for idx
                     in range(len(value))]
         if value is None:
             return self.default
+        return [self.container.serialize(attr, obj)]
 
-        return [marshal(value, self.container.nested, strict=True)]
-
-    # Deserialization is identical to _format behavior
-    _deserialize = _format
+    def _deserialize(self, value):
+        if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
+            # Convert all instances in typed list to container type
+            return [self.container.deserialize(each) for each in value]
+        if value is None:
+            return []
+        return [self.container.deserialize(value)]
 
 
 class String(Field):
@@ -611,7 +612,7 @@ class String(Field):
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value):
@@ -660,7 +661,7 @@ class Number(Field):
         except ValueError as ve:
             raise exception_class(ve)
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -693,7 +694,7 @@ class Boolean(Field):
     #: Values that will deserialize to ``False``.
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return bool(value)
 
     def _deserialize(self, value):
@@ -772,7 +773,7 @@ class Arbitrary(Number):
         except ValueError as ve:
             raise exception_class(ve)
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -818,7 +819,7 @@ class DateTime(Field):
         # from a Meta option
         self.dateformat = format
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         if value:
             self.dateformat = self.dateformat or self.DEFAULT_FORMAT
             format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
@@ -864,7 +865,7 @@ class Time(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         try:
             ret = value.isoformat()
         except AttributeError:
@@ -889,7 +890,7 @@ class Date(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         try:
             return value.isoformat()
         except AttributeError:
@@ -916,7 +917,7 @@ class TimeDelta(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         try:
             return total_seconds(value)
         except AttributeError:
@@ -948,9 +949,7 @@ class Fixed(Number):
                             *args, **kwargs)
         self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
 
-    # Override _format instead of _serialize so that default value also gets
-    # formatted
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -1130,7 +1129,7 @@ class Select(Field):
             )
         return value
 
-    def _format(self, value):
+    def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):

@@ -11,7 +11,7 @@ Major reworking and simplification of the public API, centered around support fo
 * Use the ``Schema.dump`` and ``Schema.load`` methods for serializing and deserializing, respectively.
 * *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Schema.dumps`` instead.
 * Reworked fields interface.
-* *Backwards-incompatible*: ``Field`` classes implement ``_format``, ``_serialize`` and ``_deserialize`` methods. ``serialize`` and ``deserialize`` comprise the public API for a ``Field``. ``Field.format`` and ``Field.output`` have been removed.
+* *Backwards-incompatible*: ``Field`` classes implement ``_serialize`` and ``_deserialize`` methods. ``serialize`` and ``deserialize`` comprise the public API for a ``Field``. ``Field.format`` and ``Field.output`` have been removed.
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 * *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
 * *Backwards-incompatible*: Remove `Serializer.factory` method. It is no longer necessary with the ``dump`` method.

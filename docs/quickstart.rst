@@ -513,7 +513,7 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
     from marshmallow import fields
 
     class Titlecased(fields.Field):
-        def _format(self, value):
+        def _serialize(self, value, attr, obj):
             if value is None:
                 return ''
             return value.title()

@@ -237,12 +237,38 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize('notvalid')
 
-    def test_list_field_deserialization(self):
+    def test_fixed_list_field_deserialization(self):
         field = fields.List(fields.Fixed(3))
         nums = (1, 2, 3)
         assert field.deserialize(nums) == ['1.000', '2.000', '3.000']
         with pytest.raises(UnmarshallingError):
             field.deserialize((1, 2, 'invalid'))
+
+    def test_datetime_list_field_deserialization(self):
+        dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
+        dstrings = [each.isoformat() for each in dtimes]
+        field = fields.List(fields.DateTime())
+        result = field.deserialize(dstrings)
+        assert all([isinstance(each, dt.datetime) for each in result])
+        for actual, expected in zip(result, dtimes):
+            assert_date_equal(actual, expected)
+
+    def test_list_field_deserialize_none_to_empty_list(self):
+        field = fields.List(fields.String)
+        assert field.deserialize(None) == []
+
+    def test_list_field_deserialize_single_value(self):
+        field = fields.List(fields.DateTime)
+        dtime = dt.datetime.utcnow()
+        result = field.deserialize(dtime.isoformat())
+        assert type(result) == list
+        assert_datetime_equal(result[0], dtime)
+
+    def test_list_field_deserialize_invalid_value(self):
+        field = fields.List(fields.DateTime)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize('badvalue')
+        assert 'Cannot deserialize {0!r} to a datetime'.format('badvalue') in str(excinfo)
 
     def test_field_deserialization_with_user_validator(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
