@@ -973,8 +973,8 @@ class Price(Fixed):
 
     :param kwargs: The same keyword arguments that :class:`Fixed` receives.
     """
-    def __init__(self, decimals=2, **kwargs):
-        super(Price, self).__init__(decimals=decimals, **kwargs)
+    def __init__(self, decimals=2, default='0.00', **kwargs):
+        super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
 
 
 class Url(Field):

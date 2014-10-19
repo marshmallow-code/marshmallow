@@ -136,9 +136,15 @@ class TestFieldSerialization:
         self.user.age = 12.3
         result = field.serialize('age', self.user)
         assert result == text_type(utils.float_to_decimal(self.user.age))
+
+    def test_arbitrary_field_default(self):
+        field = fields.Arbitrary()
         self.user.age = None
         result = field.serialize('age', self.user)
-        assert result == text_type(utils.float_to_decimal(0.0))
+        assert result == '0'
+
+    def test_arbitrary_field_invalid_value(self):
+        field = fields.Arbitrary()
         with pytest.raises(MarshallingError):
             self.user.age = 'invalidvalue'
             field.serialize('age', self.user)
@@ -148,11 +154,27 @@ class TestFieldSerialization:
         self.user.age = 42
         result = field.serialize('age', self.user)
         assert result == '42.000'
+
+    def test_fixed_field_default(self):
+        field = fields.Fixed()
         self.user.age = None
         assert field.serialize('age', self.user) == '0.000'
+
+    def test_fixed_field_invalid_value(self):
+        field = fields.Fixed()
         with pytest.raises(MarshallingError):
             self.user.age = 'invalidvalue'
             field.serialize('age', self.user)
+
+    def test_price_field(self):
+        field = fields.Price()
+        self.user.balance = 100
+        assert field.serialize('balance', self.user) == '100.00'
+
+    def test_price_field_default(self):
+        field = fields.Price()
+        self.user.balance = None
+        assert field.serialize('price', self.user) == '0.00'
 
     def test_serialize_does_not_apply_validators(self):
         field = fields.Field(validate=lambda x: False)

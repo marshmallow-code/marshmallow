@@ -26,7 +26,7 @@ Major reworking and simplification of the public API, centered around support fo
 * Fix ordering of field output.
 * Fix behavior of the ``required`` parameter on ``Nested`` fields.
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
-* Fix default value for ``Fixed`` field.
+* Fix default value for ``Fixed`` and ``Price`` fields.
 * Fix serialization of binary strings.
 * ``Schemas`` can inherit fields from non-``Schema`` base classes (e.g. mixins). Also, fields are inherited according to the MRO (rather than recursing over base classes). Thanks Josh Carp.
 
