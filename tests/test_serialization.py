@@ -8,7 +8,7 @@ from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import total_seconds, text_type
 
-from tests.base import User, UserSchema
+from tests.base import User
 
 class TestFieldSerialization:
 
@@ -126,10 +126,15 @@ class TestFieldSerialization:
             field.serialize('sex', invalid)
 
     def test_bad_list_field(self):
+        class ASchema(Schema):
+            id = fields.Int()
         with pytest.raises(MarshallingError):
             fields.List("string")
-        with pytest.raises(MarshallingError):
-            fields.List(UserSchema)
+        with pytest.raises(MarshallingError) as excinfo:
+            fields.List(ASchema)
+        expected_msg = ('The type of the list elements must be a subclass '
+                'of marshmallow.base.FieldABC')
+        assert expected_msg in str(excinfo)
 
     def test_arbitrary_field(self):
         field = fields.Arbitrary()

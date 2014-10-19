@@ -195,8 +195,8 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``strict``: If ``True``, raise errors during marshalling rather than
             storing them.
-        - ``json_module``: JSON module to use. Defaults to the ``json`` module
-            in the stdlib.
+        - ``json_module``: JSON module to use for `loads` and `dumps`.
+            Defaults to the ``json`` module in the stdlib.
         """
         pass
 

@@ -71,11 +71,18 @@ def test_loads_returns_an_unmarshalresult(user):
     assert isinstance(result.data, User)
     assert isinstance(result.errors, dict)
 
+def test_loads_deserializes_from_json():
+    user_dict = {'name': 'Monty', 'age': '42.3'}
+    user_json = json.dumps(user_dict)
+    result, errors = UserSchema().loads(user_json)
+    assert isinstance(result, User)
+    assert result.name == 'Monty'
+    assert_almost_equal(result.age, 42.3)
+
 def test_serializing_none():
     s = UserSchema().dump(None)
     assert s.data['name'] == ''
     assert s.data['age'] == 0
-
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])

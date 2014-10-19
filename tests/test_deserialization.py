@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
-import pytest
-import json
+import datetime as dt
 import uuid
+
+import pytest
 
 from marshmallow import fields, utils, Schema
 from marshmallow.exceptions import UnmarshallingError, ValidationError
 from marshmallow.compat import text_type, total_seconds
 
-from tests.base import *  # noqa
+from tests.base import (
+    assert_almost_equal,
+    assert_date_equal,
+    assert_datetime_equal,
+    assert_time_equal,
+    central,
+    ALL_FIELDS,
+    User,
+)
 
 class TestFieldDeserialization:
 
@@ -114,7 +123,11 @@ class TestFieldDeserialization:
         field = fields.Fixed(decimals=3)
         assert field.deserialize(None) == '0.000'
         assert field.deserialize('12.3456') == '12.346'
+        field.deserialize('12.3456') == '12.346'
         assert field.deserialize(12.3456) == '12.346'
+
+    def test_fixed_field_deserialize_invalid_value(self):
+        field = fields.Fixed(decimals=3)
         with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
@@ -347,14 +360,6 @@ class TestSchemaDeserialization:
         result, errors = SimpleUserSchema3(many=True).load(users_data)
         assert len(result) == len(users_data)
         assert all([isinstance(each, User) for each in result])
-
-    def test_loads_deserializes_from_json(self):
-        user_dict = {'name': 'Monty', 'age': '42.3'}
-        user_json = json.dumps(user_dict)
-        result, errors = UserSchema().loads(user_json)
-        assert isinstance(result, User)
-        assert result.name == 'Monty'
-        assert_almost_equal(result.age, 42.3)
 
     def test_exclude(self):
         schema = SimpleUserSchema(exclude=('age', ))
