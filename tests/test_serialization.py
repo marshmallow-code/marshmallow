@@ -23,6 +23,20 @@ class TestFieldSerialization:
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", self.user)
 
+    def test_integer_field(self):
+        field = fields.Integer()
+        assert field.serialize('age', self.user) == 42
+
+    def test_integer_field_default(self):
+        self.user.age = None
+        field = fields.Integer()
+        assert field.serialize('age', self.user) == 0
+
+    def test_integer_field_default_set_to_none(self):
+        self.user.age = None
+        field = fields.Integer(default=None)
+        assert field.serialize('age', self.user) is None
+
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
             fields.Function("uncallable")

@@ -379,7 +379,7 @@ class Field(FieldABC):
         value = self.get_value(attr, obj)
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
-                return self._format(self.default)
+                return self.default
         func = partial(self._serialize, value, attr, obj)
         return self._call_and_reraise(func, MarshallingError)
 
@@ -655,7 +655,7 @@ class Number(Field):
         """Format the value or raise ``exception_class`` if an error occurs."""
         try:
             if value is None:
-                return self._format_num(self.default)
+                return self.default
             return self._format_num(value)
         except ValueError as ve:
             raise exception_class(ve)
@@ -760,14 +760,14 @@ class Arbitrary(Number):
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
     # No as_string param
-    def __init__(self, default=0, attribute=None, **kwargs):
+    def __init__(self, default='0', attribute=None, **kwargs):
         super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
     def _validated(self, value, exception_class):
         """Format ``value`` or raise ``exception_class`` if an error occurs."""
         try:
             if value is None:
-                return text_type(utils.float_to_decimal(float(self.default)))
+                return self.default
             return text_type(utils.float_to_decimal(float(value)))
         except ValueError as ve:
             raise exception_class(ve)
@@ -933,6 +933,8 @@ class TimeDelta(Field):
 
 ZERO = MyDecimal()
 
+def _to_fixed(value, precision):
+    return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
 
 class Fixed(Number):
     """A fixed-precision number as a string.
@@ -940,7 +942,7 @@ class Fixed(Number):
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
-    def __init__(self, decimals=5, default=0, attribute=None, error=None,
+    def __init__(self, decimals=5, default='0.000', attribute=None, error=None,
                  *args, **kwargs):
         super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
                             *args, **kwargs)
@@ -963,7 +965,7 @@ class Fixed(Number):
             raise exception_class(err)
         if not dvalue.is_normal() and dvalue != ZERO:
             raise exception_class('Invalid Fixed precision number.')
-        return text_type(dvalue.quantize(self.precision, rounding=ROUND_HALF_EVEN))
+        return _to_fixed(dvalue, self.precision)
 
 
 class Price(Fixed):
