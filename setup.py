@@ -60,7 +60,8 @@ setup(
     tests_require=TEST_REQUIREMENTS,
     license=read("LICENSE"),
     zip_safe=False,
-    keywords=('serialization', "rest", "json", "api", "marshal", "marshalling"),
+    keywords=('serialization', 'rest', 'json', 'api', 'marshal',
+        'marshalling', 'deserialization', 'validation', 'schema'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
