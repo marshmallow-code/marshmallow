@@ -1,6 +1,34 @@
 Changelog
 ---------
 
+1.0.0-a (2014-10-19)
+++++++++++++++++++++
+
+Major reworking and simplification of the public API, centered around support for deserialization, improved validation, and a less stateful ``Schema`` class.
+
+* Rename ``Serializer`` to ``Schema``.
+* Support for deserialization.
+* Use the ``Schema.dump`` and ``Schema.load`` methods for serializing and deserializing, respectively.
+* *Backwards-incompatible*: Remove ``Serializer.json`` and ``Serializer.to_json``. Use ``Schema.dumps`` instead.
+* Reworked fields interface.
+* *Backwards-incompatible*: ``Field`` classes implement ``_serialize`` and ``_deserialize`` methods. ``serialize`` and ``deserialize`` comprise the public API for a ``Field``. ``Field.format`` and ``Field.output`` have been removed.
+* Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
+* *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
+* *Backwards-incompatible*: Remove `Serializer.factory` method. It is no longer necessary with the ``dump`` method.
+* *Backwards-incompatible*: Allow nesting a serializer within itself recursively. Use ``exclude`` or ``only`` to prevent infinite recursion.
+* *Backwards-incompatible*: Multiple errors can be stored for a single field. The errors dictionary returned by ``load`` and ``dump`` have lists of error messages keyed by field name.
+* Remove ``validated`` decorator. Validation occurs within ``Field`` methods.
+* ``Function`` field raises a ``ValueError`` if an uncallable object is passed to its constructor.
+* ``Nested`` fields inherit context from their parent.
+* Add ``Schema.preprocessor`` and ``Schema.validator`` decorators for registering preprocessing and schema-level validation functions respectively.
+* Custom error messages can be specified by raising a ``ValidationError`` within a validation function.
+* Extra keyword arguments passed to a Field are stored as metadata.
+* Fix ordering of field output.
+* Fix behavior of the ``required`` parameter on ``Nested`` fields.
+* Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
+* Fix default value for ``Fixed`` and ``Price`` fields.
+* Fix serialization of binary strings.
+* ``Schemas`` can inherit fields from non-``Schema`` base classes (e.g. mixins). Also, fields are inherited according to the MRO (rather than recursing over base classes). Thanks Josh Carp.
 
 0.7.0 (2014-06-22)
 ++++++++++++++++++
@@ -34,13 +62,13 @@ Changelog
 ++++++++++++++++++
 
 * Add ``json_module`` class Meta option.
-* Add ``required`` option to fields . Thanks @DeaconDesperado.
+* Add ``required`` option to fields . Thanks `@DeaconDesperado <http://github.com/DeaconDesperado>`_.
 * Tested on Python 3.4 and PyPy.
 
 0.5.3 (2014-03-02)
 ++++++++++++++++++
 
-* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_
+* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_.
 * Add ``context`` param to ``Serializer``. Allows accessing arbitrary objects in ``Function`` and ``Method`` fields.
 * ``Function`` and ``Method`` fields raise ``MarshallingError`` if their argument is uncallable.
 
@@ -79,7 +107,7 @@ Changelog
 0.4.0 (2013-11-24)
 ++++++++++++++++++
 
-* Add ``additional`` `clas Meta` option.
+* Add ``additional`` `class Meta` option.
 * Add ``dateformat`` `class Meta` option.
 * Support for serializing UUID, date, time, and timedelta objects.
 * Remove ``Serializer.to_data`` method. Just use ``Serialize.data`` property.

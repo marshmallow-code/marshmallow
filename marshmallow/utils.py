@@ -1,31 +1,48 @@
 # -*- coding: utf-8 -*-
 """Utility methods for marshmallow."""
 from __future__ import absolute_import
-import json
-import datetime
-import time
-from email.utils import formatdate, parsedate
-from calendar import timegm
-import types
 
+import datetime
+import functools
+import inspect
+import json
+import time
+import types
+from calendar import timegm
 from decimal import Decimal, Context, Inexact
+from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
-from marshmallow.compat import OrderedDict
+from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
+
+
+dateutil_available = False
+try:
+    from dateutil import parser
+    dateutil_available = True
+except ImportError:
+    dateutil_available = False
+
+
+def is_generator(obj):
+    """Return True if ``obj`` is a generator
+    """
+    return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
+
 
 def is_iterable_but_not_string(obj):
-    '''Return True if ``obj`` is an iterable object that isn't a string.'''
-    return hasattr(obj, "__iter__") and not hasattr(obj, "strip")
+    """Return True if ``obj`` is an iterable object that isn't a string."""
+    return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
 
 def is_indexable_but_not_string(obj):
-    '''Return True if ``obj`` is indexable but isn't a string.'''
+    """Return True if ``obj`` is indexable but isn't a string."""
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
 
 def is_collection(obj):
-    '''Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
-    '''
+    """Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
+    """
     return is_iterable_but_not_string(obj) and not isinstance(obj, dict)
 
 
@@ -37,6 +54,11 @@ def is_instance_or_subclass(val, class_):
     except TypeError:
         return isinstance(val, class_)
 
+def is_keyed_tuple(obj):
+    """Return True if ``obj`` has keyed tuple behavior, such as
+    namedtuples or SQLAlchemy's KeyedTuples.
+    """
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
 
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
@@ -62,7 +84,7 @@ def to_marshallable_type(obj, field_names=None):
     if hasattr(obj, '__marshallable__'):
         return obj.__marshallable__()
 
-    if hasattr(obj, '__getitem__'):
+    if hasattr(obj, '__getitem__') and not is_keyed_tuple(obj):
         return obj  # it is indexable it is ok
 
     if isinstance(obj, types.GeneratorType):
@@ -77,9 +99,10 @@ def to_marshallable_type(obj, field_names=None):
 
 
 def pprint(obj, *args, **kwargs):
-    '''Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries.
-    '''
+    """Pretty-printing function that can pretty-print OrderedDicts
+    like regular dictionaries. Useful for printing the output of
+    :meth:`marshmallow.Schema.dump`.
+    """
     if isinstance(obj, OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
     else:
@@ -116,9 +139,6 @@ class UTC(datetime.tzinfo):
     def dst(self, dt):
         return ZERO
 
-    def __reduce__(self):
-        return _UTC, ()
-
     def localize(self, dt, is_dst=False):
         '''Convert naive time to local time'''
         if dt.tzinfo is not None:
@@ -141,6 +161,7 @@ class UTC(datetime.tzinfo):
 
 UTC = utc = UTC()  # UTC is a singleton
 
+
 def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
@@ -151,6 +172,7 @@ def local_rfcformat(dt):
     tz_offset = dt.strftime("%z")
     return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
         dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+
 
 def rfcformat(dt, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
@@ -178,10 +200,112 @@ def isoformat(dt, localtime=False, *args, **kwargs):
             localized = dt.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
-def from_rfc(datestring):
+
+def from_datestring(datestring):
+    """Parse an arbitrary datestring and return a datetime object using
+    dateutils' parser.
+    """
+    if dateutil_available:
+        return parser.parse(datestring)
+    else:
+        raise RuntimeError('from_datestring requires the python-dateutils to be'
+                           'installed.')
+
+def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
+
+    Use dateutil's parser if possible.
+
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
     """
-    parsed = parsedate(datestring)  # as a tuple
-    timestamp = time.mktime(parsed)
-    return datetime.datetime.fromtimestamp(timestamp)
+    # Use dateutil's parser if possible
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring)
+    else:
+        parsed = parsedate(datestring)  # as a tuple
+        timestamp = time.mktime(parsed)
+        return datetime.datetime.fromtimestamp(timestamp)
+
+
+def from_iso(datestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime object.
+
+    Use dateutil's parser if possible and return a timezone-aware datetime.
+    """
+    # Use dateutil's parser if possible
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring)
+    else:
+        # Strip off timezone info.
+        return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+
+
+def from_iso_time(timestring, use_dateutil=True):
+    """Parse an ISO8601-formatted datetime string and return a datetime.time
+    object.
+    """
+    if dateutil_available and use_dateutil:
+        return parser.parse(timestring).time()
+    else:
+        if len(timestring) > 8:  # has microseconds
+            fmt = '%H:%M:%S.%f'
+        else:
+            fmt = '%H:%M:%S'
+        return datetime.datetime.strptime(timestring, fmt).time()
+
+def from_iso_date(datestring, use_dateutil=True):
+    if dateutil_available and use_dateutil:
+        return parser.parse(datestring).date()
+    else:
+        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d')
+
+def ensure_text_type(val):
+    if isinstance(val, binary_type):
+        val = val.decode('utf-8')
+    return text_type(val)
+
+def pluck(dictlist, key):
+    """Extracts a list of dictionary values from a list of dictionaries.
+    ::
+
+        >>> dlist = [{'id': 1, 'name': 'foo'}, {'id': 2, 'name': 'bar'}]
+        >>> pluck(dlist, 'id')
+        [1, 2]
+    """
+    return [d[key] for d in dictlist]
+
+# Various utilities for pulling keyed values from objects
+
+def get_value(key, obj, default=None):
+    """Helper for pulling a keyed value off various types of objects"""
+    if type(key) == int:
+        return _get_value_for_key(key, obj, default)
+    else:
+        return _get_value_for_keys(key.split('.'), obj, default)
+
+
+def _get_value_for_keys(keys, obj, default):
+    if len(keys) == 1:
+        return _get_value_for_key(keys[0], obj, default)
+    else:
+        return _get_value_for_keys(
+            keys[1:], _get_value_for_key(keys[0], obj, default), default)
+
+
+def _get_value_for_key(key, obj, default):
+    if isinstance(key, basestring) and hasattr(obj, key):
+        return getattr(obj, key)
+    if is_indexable_but_not_string(obj):
+        try:
+            return obj[key]
+        except KeyError:
+            return default
+    return default
+
+
+def get_func_name(func):
+    """Given a function object, return its name. Handles `functools.partial` objects.
+    """
+    if isinstance(func, functools.partial):
+        return func.func.__name__
+    return func.__name__

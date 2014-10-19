@@ -29,14 +29,14 @@ else:
     string_types = (str,)
     unicode = str
     basestring = (str, bytes)
-    iterkeys = lambda d: iter(d.keys())
-    itervalues = lambda d: iter(d.values())
-    iteritems = lambda d: iter(d.items())
+    iterkeys = lambda d: d.keys()
+    itervalues = lambda d: d.values()
+    iteritems = lambda d: d.items()
     from collections import OrderedDict
     OrderedDict = OrderedDict
 
 def with_metaclass(meta, *bases):
-    '''Defines a metaclass.
+    """Defines a metaclass.
 
     Creates a dummy class with a dummy metaclass. When subclassed, the dummy
     metaclass is used, which has a constructor that instantiates a
@@ -44,7 +44,7 @@ def with_metaclass(meta, *bases):
     dummy metaclass are not in the inheritance tree.
 
     Credit to Armin Ronacher.
-    '''
+    """
     class metaclass(meta):
         __call__ = type.__call__
         __init__ = type.__init__
@@ -56,8 +56,8 @@ def with_metaclass(meta, *bases):
 
 
 def total_seconds(td):
-    '''Return the total number of seconds contained in the duration.
+    """Return the total number of seconds contained in the duration.
 
     Needed for python 2.6 compatibility.
-    '''
+    """
     return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6

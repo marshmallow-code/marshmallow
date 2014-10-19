@@ -1,4 +1,5 @@
 .. _examples:
+.. module:: marshmallow
 
 ********
 Examples
@@ -61,13 +62,14 @@ Then send a POST request with some text.
     }
 
 
-Quotes API (Flask + SQL-Alchemy)
+Quotes API (Flask + SQLAlchemy)
 ================================
 
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
-    - *class Meta* to specify which fields to serialize
+    - `class Meta` to specify which fields to serialize
     - Output filtering using ``only`` param
+    - Using the :func:`error_handler <Serlalizer.error_handler>` decorator
 
 
 .. literalinclude:: ../examples/flask_example.py
@@ -161,30 +163,30 @@ After registering a user and creating some todo items in the database, here is a
                 "content": "Refactor everything",
                 "done": false,
                 "id": 3,
-                "posted_on": "Thu, 14 Nov 2013 14:18:58 -0000",
+                "posted_on": ""2014-08-17T14:42:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             },
             {
                 "content": "Learn python",
                 "done": false,
                 "id": 2,
-                "posted_on": "Thu, 14 Nov 2013 14:18:27 -0000",
+                "posted_on": "2014-08-15T17:41:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             },
             {
                 "content": "Install marshmallow",
                 "done": false,
                 "id": 1,
-                "posted_on": "Thu, 14 Nov 2013 14:17:41 -0000",
+                "posted_on": "2014-08-15T09:15:12.479650+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "Thu, 14 Nov 2013 14:10:56 -0000"
+                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
                 }
             }
         ]

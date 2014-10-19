@@ -1,5 +1,5 @@
-from marshmallow import Serializer, fields
+from marshmallow import Schema, fields
 
 
-class FooSerializer(Serializer):
+class FooSerializer(Schema):
     _id = fields.Integer()

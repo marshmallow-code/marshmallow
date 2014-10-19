@@ -5,3 +5,5 @@ sphinx
 wheel
 invoke
 pytz
+python-dateutil
+flake8

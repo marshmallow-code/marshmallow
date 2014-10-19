@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""A registry of serializer classes. This allows for string lookup of
-serializers, which may be used with
-:class:`fields.Nested <marshmallow.fields.Nested>`.
+"""A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string
+lookup of schemas, which may be used with
+class:`fields.Nested <marshmallow.fields.Nested>`.
 """
 from marshmallow.exceptions import RegistryError
 
@@ -33,7 +33,7 @@ def register(classname, cls):
     # Module where the class is located
     module = cls.__module__
     # Full module path to the class
-    # e.g. user.serializers.UserSerializer
+    # e.g. user.schemas.UserSchema
     fullpath = '.'.join([module, classname])
     # If the class is already registered; need to check if the entries are
     # in the same module as cls to avoid having multiple instances of the same

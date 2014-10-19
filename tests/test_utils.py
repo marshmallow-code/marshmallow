@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
+from collections import namedtuple
+from functools import partial
 
-import pytz
+import pytest
 
 from marshmallow import utils
+from tests.base import (
+    assert_datetime_equal,
+    central,
+    assert_time_equal,
+    assert_date_equal,
+)
 
-
-central = pytz.timezone("US/Central")
 
 def test_to_marshallable_type():
     class Foo(object):
@@ -27,6 +33,63 @@ def test_to_marshallable_type():
 
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
+
+PointNT = namedtuple('Point', ['x', 'y'])
+
+def test_to_marshallable_type_with_namedtuple():
+    p = PointNT(24, 42)
+    result = utils.to_marshallable_type(p)
+    assert result['x'] == p.x
+    assert result['y'] == p.y
+
+class PointClass(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+@pytest.mark.parametrize('obj', [
+    PointNT(24, 42),
+    PointClass(24, 42),
+    {'x': 24, 'y': 42}
+])
+def test_get_value(obj):
+    result = utils.get_value('x', obj)
+    assert result == 24
+    result2 = utils.get_value('y', obj)
+    assert result2 == 42
+
+def test_get_value_default():
+    p = PointClass(x=42, y=None)
+    # Default is only returned if key is not found
+    assert utils.get_value('z', p, default=123) == 123
+    # since 'y' is an attribute, None is returned instead of the default
+    assert utils.get_value('y', p, default=123) is None
+
+class Triangle(object):
+    def __init__(self, p1, p2, p3):
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.points = [p1, p2, p3]
+
+def test_get_value_for_nested_object():
+    tri = Triangle(p1=PointClass(1, 2), p2=PointNT(3, 4), p3={'x': 5, 'y': 6})
+    assert utils.get_value('p1.x', tri) == 1
+    assert utils.get_value('p2.x', tri) == 3
+    assert utils.get_value('p3.x', tri) == 5
+
+def test_is_keyed_tuple():
+    Point = namedtuple('Point', ['x', 'y'])
+    p = Point(24, 42)
+    assert utils.is_keyed_tuple(p) is True
+    t = (24, 42)
+    assert utils.is_keyed_tuple(t) is False
+    d = {'x': 42, 'y': 24}
+    assert utils.is_keyed_tuple(d) is False
+    s = 'xy'
+    assert utils.is_keyed_tuple(s) is False
+    l = [24, 42]
+    assert utils.is_keyed_tuple(l) is False
 
 def test_to_marshallable_type_list():
     assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']
@@ -77,7 +140,58 @@ def test_isoformat_localtime():
 def test_from_rfc():
     d = dt.datetime.now()
     rfc = utils.rfcformat(d)
-    output = utils.from_rfc(rfc)
-    assert output.year == d.year
-    assert output.month == d.month
-    assert output.day == d.day
+    result = utils.from_rfc(rfc)
+    assert isinstance(result, dt.datetime)
+    assert_datetime_equal(result, d)
+
+def test_from_iso():
+    d = dt.datetime.now()
+    formatted = d.isoformat()
+    result = utils.from_iso(formatted)
+    assert isinstance(result, dt.datetime)
+    assert_datetime_equal(result, d)
+
+def test_from_iso_with_tz():
+    d = central.localize(dt.datetime.now())
+    formatted = d.isoformat()
+    result = utils.from_iso(formatted)
+    assert_datetime_equal(result, d)
+    if utils.dateutil_available:
+        # Note a naive datetime
+        assert result.tzinfo is not None
+
+# Test with and without dateutil
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_time_with_microseconds(use_dateutil):
+    t = dt.time(1, 23, 45, 6789)
+    formatted = t.isoformat()
+    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
+    assert isinstance(result, dt.time)
+    assert_time_equal(result, t, microseconds=True)
+
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_time_without_microseconds(use_dateutil):
+    t = dt.time(1, 23, 45)
+    formatted = t.isoformat()
+    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
+    assert isinstance(result, dt.time)
+    assert_time_equal(result, t, microseconds=True)
+
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_from_iso_date(use_dateutil):
+    d = dt.date(2014, 8, 21)
+    iso_date = d.isoformat()
+    result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
+    assert isinstance(result, dt.date)
+    assert_date_equal(result, d)
+
+
+def test_get_func_name():
+    def foo(a, b):
+        return a + b
+
+    assert utils.get_func_name(foo) == 'foo'
+    # Works for partials, too
+    foo_partial = partial(foo, 1)
+
+    assert utils.get_func_name(foo_partial) == 'foo'

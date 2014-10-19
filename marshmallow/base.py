@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
-'''Abstract base classes.
+"""Abstract base classes.
 
 These are necessary to avoid circular imports between core.py and fields.py.
-'''
+"""
 import copy
 
 
 class FieldABC(object):
-    '''Abstract base class from which all Field classes inherit.
-    '''
+    """Abstract base class from which all Field classes inherit.
+    """
+    #: The `Schema` the field is attached to.
     parent = None
+    #: The field's name.
     name = None
 
-    def format(self, value):
+    def _serialize(self, value, key, obj):
         raise NotImplementedError
 
-    def output(self, key, obj):
+    def _deserialize(self, value):
         raise NotImplementedError
 
     def __deepcopy__(self, memo):
@@ -23,17 +25,22 @@ class FieldABC(object):
         return ret
 
     def __repr__(self):
-        return "<{0} Field>".format(self.__class__.__name__)
+        return '<{0} Field>'.format(self.__class__.__name__)
 
     __str__ = __repr__
 
 
-class SerializerABC(object):
-    '''Abstract base class from which all Serializers inherit.'''
+class SchemaABC(object):
+    """Abstract base class from which all Schemas inherit."""
 
-    @property
-    def errors(self):
+    def dump(self, obj):
         raise NotImplementedError
 
-    def is_valid(self, fields=None):
+    def dumps(self, obj, *args, **kwargs):
+        raise NotImplementedError
+
+    def load(self, data):
+        raise NotImplementedError
+
+    def loads(self, data):
         raise NotImplementedError

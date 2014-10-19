@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Validation functions for various types of data."""
 import re
+from marshmallow.exceptions import ValidationError
 
 
 URL_REGEX = re.compile(
@@ -15,36 +16,37 @@ URL_REGEX = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 RELATIVE_URL_REGEX = re.compile(
-        r'^((?:http|ftp)s?://' # http:// or https://
-        r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
-        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
-        r'(?::\d+)?)?' # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE) # host is optional, allow for relative URLs
+    r'^((?:http|ftp)s?://'  # http:// or https://
+    r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
+    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+    r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+    r'localhost|'  # localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
+    r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
+    r'(?::\d+)?)?'  # optional port
+    r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
 
-def url(value, relative=False):
+def url(value, relative, error):
     """Validate a URL.
 
     :param string value: The URL to validate
     :param bool relative: Whether to allow relative URLs.
     :returns: The URL if valid.
-    :raises: ValueError if url is invalid.
+    :raises: ValidationError if url is invalid.
     """
     regex = RELATIVE_URL_REGEX if relative else URL_REGEX
-    if not regex.search(value):
+    if value and not regex.search(value):
         message = u'"{0}" is not a valid URL'.format(value)
         if regex.search('http://' + value):
             message += u'. Did you mean: "http://{0}"?'.format(value)
-        raise ValueError(message)
+        raise ValidationError(error or message)
     return value
 
 USER_REGEX = re.compile(
     r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*"$)',  # quoted-string
+    # quoted-string
+    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*"$)',
     re.IGNORECASE)
 
 DOMAIN_REGEX = re.compile(
@@ -56,30 +58,33 @@ DOMAIN_REGEX = re.compile(
 DOMAIN_WHITELIST = ("localhost", )
 
 
-def email(value):
+def email(value, error=None):
     """Validate an email address.
 
+    :param str error: Error message to show.
     :param string value: The email address to validate.
     :returns: The email address if valid.
-    :raises: ValueError if email is invalid
+    :raises: ValidationError if email is invalid
     """
-    error_message = '"{0}" is not a valid email address.'.format(value)
+    if value is None:
+        return None
+    error_message = error or '"{0}" is not a valid email address.'.format(value)
     if not value or '@' not in value:
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
 
     user_part, domain_part = value.rsplit('@', 1)
 
     if not USER_REGEX.match(user_part):
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
 
-    if (not domain_part in DOMAIN_WHITELIST and
+    if (domain_part not in DOMAIN_WHITELIST and
             not DOMAIN_REGEX.match(domain_part)):
         # Try for possible IDN domain-part
         try:
             domain_part = domain_part.encode('idna').decode('ascii')
             if not DOMAIN_REGEX.match(domain_part):
-                raise ValueError(error_message)
+                raise ValidationError(error_message)
         except UnicodeError:
             pass
-        raise ValueError(error_message)
+        raise ValidationError(error_message)
     return value
