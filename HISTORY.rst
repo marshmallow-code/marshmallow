@@ -1,10 +1,10 @@
 Changelog
 ---------
 
-1.0.0-a (unreleased)
+1.0.0-a (2014-10-19)
 ++++++++++++++++++++
 
-Major reworking and simplification of the public API, centered around support for deserialization and improved validation.
+Major reworking and simplification of the public API, centered around support for deserialization, improved validation, and a less stateful ``Schema`` class.
 
 * Rename ``Serializer`` to ``Schema``.
 * Support for deserialization.
