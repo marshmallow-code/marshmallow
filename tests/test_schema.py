@@ -939,7 +939,9 @@ class TestNestedSchema:
         assert serialized['categories'] == ["humor", "violence"]
 
     def test_nested_errors(self):
-        _, errors = BlogSchema().load({'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}})
+        _, errors = BlogSchema().load(
+            {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
+        )
         assert "email" in errors['user']
         assert len(errors['user']['email']) == 1
         assert "not a valid email address." in errors['user']['email'][0]
@@ -1094,8 +1096,8 @@ def test_deserialization_with_none_passed_to_required_field():
 def test_deserialization_with_required_field_and_custom_validator():
     class ValidatingSchema(Schema):
         color = fields.String(required=True,
-                               validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
-                               error="Color must be red or blue")
+                        validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
+                        error="Color must be red or blue")
 
     data, errors = ValidatingSchema().load({'name': 'foo'})
     assert errors

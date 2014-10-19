@@ -15,6 +15,6 @@ install:
   - pip install flake8
 
 before_script:
-  - flake8 marshmallow
+  - flake8 .
 
 script: python setup.py test

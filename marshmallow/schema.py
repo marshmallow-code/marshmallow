@@ -520,7 +520,8 @@ class BaseSchema(base.SchemaABC):
             field_names = OrderedSet(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
-            field_names = OrderedSet(self.declared_fields.keys()) | OrderedSet(self.opts.additional)
+            field_names = (OrderedSet(self.declared_fields.keys()) |
+                            OrderedSet(self.opts.additional))
         else:
             field_names = OrderedSet(self.declared_fields.keys())
 

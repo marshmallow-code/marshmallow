@@ -70,7 +70,9 @@ class User(object):
         # A naive datetime
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
-        self.updated = central.localize(dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False)
+        self.updated = central.localize(
+            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False
+        )
         self.id = id_
         self.homepage = homepage
         self.email = email

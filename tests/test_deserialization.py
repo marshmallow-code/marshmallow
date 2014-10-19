@@ -261,8 +261,10 @@ class TestFieldDeserialization:
             yield lambda s: s.lower()[::-1] == 'dilav'
 
         m_colletion_type = [
-            fields.String(validate=[lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav']),
-            fields.String(validate=(lambda s: s.lower() == 'valid', lambda s: s.lower()[::-1] == 'dilav')),
+            fields.String(validate=[lambda s: s.lower() == 'valid',
+                lambda s: s.lower()[::-1] == 'dilav']),
+            fields.String(validate=(lambda s: s.lower() == 'valid',
+                lambda s: s.lower()[::-1] == 'dilav')),
             fields.String(validate=validators_gen)
         ]
 
@@ -633,7 +635,8 @@ class TestUnMarshaller:
             in_vals['a'] += 1
             return in_vals
 
-        result = unmarshal.deserialize(data, fields_dict, preprocess=[preprocessor], many=True)
+        result = unmarshal.deserialize(data,
+            fields_dict, preprocess=[preprocessor], many=True)
         assert result[0]['a'] == 13
         assert result[1]['a'] == 35
 
@@ -694,9 +697,12 @@ class TestValidation:
             field.deserialize('joseph')
 
     @pytest.mark.parametrize('field', [
-        fields.Function(lambda d: d.name.upper(), validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']),
-        fields.Function(lambda d: d.name.upper(), validate=(lambda n: len(n) == 3, lambda n: n[1].lower() == 'o')),
-        fields.Function(lambda d: d.name.upper(), validate=validators_gen_str)
+        fields.Function(lambda d: d.name.upper(),
+            validate=[lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']),
+        fields.Function(lambda d: d.name.upper(),
+            validate=(lambda n: len(n) == 3, lambda n: n[1].lower() == 'o')),
+        fields.Function(lambda d: d.name.upper(),
+            validate=validators_gen_str)
     ])
     def test_function_validators(self, field):
         assert field.deserialize('joe')

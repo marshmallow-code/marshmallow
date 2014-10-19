@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string lookup of
-schemas, which may be used with
-:class:`fields.Nested <marshmallow.fields.Nested>`.
+"""A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string
+lookup of schemas, which may be used with
+class:`fields.Nested <marshmallow.fields.Nested>`.
 """
 from marshmallow.exceptions import RegistryError
 

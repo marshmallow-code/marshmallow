@@ -157,7 +157,8 @@ class Marshaller(object):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self.serialize(d, fields_dict, many=False, strict=strict) for d in obj]
+            return [self.serialize(d, fields_dict, many=False, strict=strict)
+                    for d in obj]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
@@ -225,8 +226,8 @@ class Unmarshaller(object):
         """
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False,
-                        validators=validators, preprocess=preprocess, postprocess=postprocess,
-                        strict=strict)
+                        validators=validators, preprocess=preprocess,
+                        postprocess=postprocess, strict=strict)
                     for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -309,7 +310,8 @@ class Field(FieldABC):
         elif validate is None:
             self.validators = []
         else:
-            raise ValueError("The 'validate' parameter must be a callable or a collection of callables.")
+            raise ValueError("The 'validate' parameter must be a callable "
+                            'or a collection of callables.')
         self.required = required
         self.metadata = metadata
         self._creation_index = Field._creation_index
@@ -522,8 +524,9 @@ class Nested(Field):
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(None, many=self.many)
             else:
-                raise ForcedError(ValueError("Nested fields must be passed a Schema, not {0}."
-                                .format(self.nested.__class__)))
+                raise ForcedError(ValueError('Nested fields must be passed a '
+                                    'Schema, not {0}.'
+                                    .format(self.nested.__class__)))
         # Inherit context from parent
         self.__schema.context.update(getattr(self.parent, 'context', {}))
         return self.__schema
@@ -633,7 +636,8 @@ class Number(Field):
 
     num_type = float
 
-    def __init__(self, default=0.0, attribute=None, as_string=False, error=None, **kwargs):
+    def __init__(self, default=0.0, attribute=None, as_string=False,
+                error=None, **kwargs):
         self.as_string = as_string
         super(Number, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
@@ -713,7 +717,8 @@ class Boolean(Field):
 
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
-    the source string is the same as the string `str.format` method from the python stdlib.
+    the source string is the same as the string `str.format` method
+    from the python stdlib.
     ::
 
         class UserSer(Schema):
@@ -984,7 +989,8 @@ class Url(Field):
         super(Url, self).__init__(default=default, attribute=attribute,
                 *args, **kwargs)
         self.relative = relative
-        self.validators.insert(0, partial(validate.url, relative=self.relative, error=getattr(self, 'error')))
+        self.validators.insert(0, partial(validate.url,
+            relative=self.relative, error=getattr(self, 'error')))
 
 URL = Url
 
@@ -1049,7 +1055,9 @@ class Method(Field):
     def _deserialize(self, value):
         if self.deserialize_method_name:
             try:
-                method = _callable(getattr(self.parent, self.deserialize_method_name, None))
+                method = _callable(
+                    getattr(self.parent, self.deserialize_method_name, None)
+                )
                 return method(value)
             except AttributeError:
                 pass
@@ -1115,7 +1123,9 @@ class Select(Field):
 
     def _validated(self, value, exception_class, *args, **kwargs):
         if value not in self.choices:
-            raise exception_class("{0!r} is not a valid choice for this field.".format(value))
+            raise exception_class(
+                "{0!r} is not a valid choice for this field.".format(value)
+            )
         return value
 
     def _format(self, value):
