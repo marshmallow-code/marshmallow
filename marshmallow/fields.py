@@ -3,7 +3,7 @@
 """
 from __future__ import absolute_import
 
-from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from decimal import Decimal
 from functools import partial
 import datetime as dt
 import inspect
@@ -43,7 +43,6 @@ __all__ = [
     'Date',
     'TimeDelta',
     'Fixed',
-    'ZERO',
     'Price',
     'Url',
     'URL',
@@ -927,11 +926,6 @@ class TimeDelta(Field):
         return dt.timedelta(seconds=float(value))
 
 
-ZERO = MyDecimal()
-
-def _to_fixed(value, precision):
-    return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
-
 class Fixed(Number):
     """A fixed-precision number as a string.
 
@@ -942,7 +936,7 @@ class Fixed(Number):
                  *args, **kwargs):
         super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
                             *args, **kwargs)
-        self.precision = MyDecimal('0.' + '0' * (decimals - 1) + '1')
+        self.precision = Decimal('0.' + '0' * (decimals - 1) + '1')
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
@@ -957,9 +951,9 @@ class Fixed(Number):
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
             raise exception_class(err)
-        if not dvalue.is_normal() and dvalue != ZERO:
+        if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
             raise exception_class('Invalid Fixed precision number.')
-        return _to_fixed(dvalue, self.precision)
+        return utils.decimal_to_fixed(dvalue, self.precision)
 
 
 class Price(Fixed):

@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import datetime
+from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
 import functools
 import inspect
 import json
@@ -41,14 +42,12 @@ def is_indexable_but_not_string(obj):
 
 
 def is_collection(obj):
-    """Return True if ``obj`` is a collection type, e.g list, tuple, queryset.
-    """
+    """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, dict)
 
 
 def is_instance_or_subclass(val, class_):
-    '''Return True if ``val`` is either a subclass or instance of ``class_``.
-    '''
+    """Return True if ``val`` is either a subclass or instance of ``class_``."""
     try:
         return issubclass(val, class_)
     except TypeError:
@@ -73,6 +72,12 @@ def float_to_decimal(f):
         ctx.prec *= 2
         result = ctx.divide(numerator, denominator)
     return result
+
+ZERO_DECIMAL = MyDecimal()
+
+def decimal_to_fixed(value, precision):
+    """Convert a `Decimal` to a fixed-precision number as a string."""
+    return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
 
 
 def to_marshallable_type(obj, field_names=None):
