@@ -294,6 +294,7 @@ class Field(FieldABC):
         self.default = default
         self.attribute = attribute
         self.error = error
+        self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
                 self.validators = validate
@@ -311,6 +312,12 @@ class Field(FieldABC):
         self._creation_index = Field._creation_index
         Field._creation_index += 1
         self.parent = FieldABC.parent
+
+    def __repr__(self):
+        return ('<fields.{ClassName}(default={self.default!r}, '
+                'attribute={self.attribute!r}, error={self.error!r}, '
+                'validate={self.validate}, required={self.required})>'
+                .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, attr, obj):
         """Return the value for a given key from an object."""

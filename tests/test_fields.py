@@ -19,6 +19,17 @@ class TestFieldAliases:
     def test_bool_is_boolean(self):
         assert fields.Bool is fields.Boolean
 
+class TestField:
+
+    def test_repr(self):
+        default = u'œ∑´'
+        field = fields.Field(default=default, attribute=None)
+        assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
+                                'error=None, validate=None, required=False)>'
+                                .format(default))
+        int_field = fields.Integer(validate=lambda x: True)
+        assert '<fields.Integer' in repr(int_field)
+
 
 class TestMetadata:
 

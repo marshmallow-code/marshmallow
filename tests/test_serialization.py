@@ -20,10 +20,6 @@ class TestFieldSerialization:
     def setup_method(self, method):
         self.user = User("Foo", email="foo@bar.com", age=42)
 
-    def test_repr(self):
-        field = fields.String()
-        assert repr(field) == "<String Field>"
-
     def test_function_field(self):
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", self.user)

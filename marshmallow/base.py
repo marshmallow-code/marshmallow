@@ -24,11 +24,6 @@ class FieldABC(object):
         ret = copy.copy(self)
         return ret
 
-    def __repr__(self):
-        return '<{0} Field>'.format(self.__class__.__name__)
-
-    __str__ = __repr__
-
 
 class SchemaABC(object):
     """Abstract base class from which all Schemas inherit."""
