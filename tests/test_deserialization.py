@@ -208,17 +208,17 @@ class TestFieldDeserialization:
                             deserialize='notvalid')
 
     def test_method_field_deserialization_is_noop_by_default(self):
-        class MiniUserSerializer(Schema):
+        class MiniUserSchema(Schema):
             uppername = fields.Method('uppercase_name')
 
             def uppercase_name(self, obj):
                 return obj.upper()
         user = User(name='steve')
-        s = MiniUserSerializer(user)
+        s = MiniUserSchema(user)
         assert s.fields['uppername'].deserialize('steve') == 'steve'
 
     def test_deserialization_method(self):
-        class MiniUserSerializer(Schema):
+        class MiniUserSchema(Schema):
             uppername = fields.Method('uppercase_name', deserialize='lowercase_name')
 
             def uppercase_name(self, obj):
@@ -227,9 +227,16 @@ class TestFieldDeserialization:
             def lowercase_name(self, value):
                 return value.lower()
 
-        user = User(name='steve')
-        s = MiniUserSerializer(user)
+        s = MiniUserSchema()
         assert s.fields['uppername'].deserialize('STEVE') == 'steve'
+
+    def test_deserialization_method_must_be_a_method(self):
+        class BadSchema(Schema):
+            uppername = fields.Method('uppercase_name', deserialize='lowercase_name')
+
+        s = BadSchema()
+        with pytest.raises(UnmarshallingError):
+            s.fields['uppername'].deserialize('STEVE')
 
     def test_enum_field_deserialization(self):
         field = fields.Enum(['red', 'blue'])

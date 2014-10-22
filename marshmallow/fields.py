@@ -150,7 +150,7 @@ class Marshaller(object):
             a collection.
         :param bool strict: If ``True``, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
-        :return: An OrderedDict of the marshalled data
+        :return: An `OrderedDict` of the marshalled data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
