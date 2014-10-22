@@ -314,3 +314,16 @@ def get_func_name(func):
     if isinstance(func, functools.partial):
         return func.func.__name__
     return func.__name__
+
+
+def callable_or_raise(obj):
+    """Check that an object is callable, else raise a :exc:`ValueError`.
+    """
+    if not callable(obj):
+        raise ValueError('Object {0!r} is not callable.'.format(obj))
+    return obj
+
+
+def get_func_args(func):
+    """Return a tuple of argument names for a function."""
+    return inspect.getargspec(func).args

@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from decimal import Decimal
 from functools import partial
 import datetime as dt
-import inspect
 import uuid
 import warnings
 
@@ -994,19 +993,6 @@ class Email(Field):
         self.validators.insert(0, partial(validate.email, error=getattr(self, 'error')))
 
 
-def _get_args(func):
-    """Return a tuple of argument names for a function."""
-    return inspect.getargspec(func).args
-
-
-def _callable(obj):
-    """Check that an object is callable, else raise a :exc:`ValueError`.
-    """
-    if not callable(obj):
-        raise ValueError('Object {0!r} is not callable.'.format(obj))
-    return obj
-
-
 class Method(Field):
     """A field that takes the value returned by a Schema method.
 
@@ -1031,8 +1017,8 @@ class Method(Field):
 
     def _serialize(self, value, attr, obj):
         try:
-            method = _callable(getattr(self.parent, self.method_name, None))
-            if len(_get_args(method)) > 2:
+            method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
+            if len(utils.get_func_args(method)) > 2:
                 if self.parent.context is None:
                     msg = 'No context available for Method field {0!r}'.format(attr)
                     raise MarshallingError(msg)
@@ -1045,7 +1031,7 @@ class Method(Field):
     def _deserialize(self, value):
         if self.deserialize_method_name:
             try:
-                method = _callable(
+                method = utils.callable_or_raise(
                     getattr(self.parent, self.deserialize_method_name, None)
                 )
                 return method(value)
@@ -1068,15 +1054,15 @@ class Function(Field):
 
     def __init__(self, func, deserialize=None, **kwargs):
         super(Function, self).__init__(**kwargs)
-        self.func = _callable(func)
+        self.func = utils.callable_or_raise(func)
         if deserialize:
-            self.deserialize_func = _callable(deserialize)
+            self.deserialize_func = utils.callable_or_raise(deserialize)
         else:
             self.deserialize_func = None
 
     def _serialize(self, value, attr, obj):
         try:
-            if len(_get_args(self.func)) > 1:
+            if len(utils.get_func_args(self.func)) > 1:
                 if self.parent.context is None:
                     msg = 'No context available for Function field {0!r}'.format(attr)
                     raise MarshallingError(msg)
