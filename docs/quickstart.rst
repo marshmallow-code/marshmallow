@@ -159,6 +159,9 @@ Iterable collections of objects are also serializable and deserializable. Just s
     #   'email': u'keith@stones.com',
     #   'created_at': '2014-08-17T14:58:57.600623+00:00'}]
 
+
+.. _validation:
+
 Validation
 ----------
 

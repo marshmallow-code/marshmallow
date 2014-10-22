@@ -35,7 +35,7 @@ Setting Up for Local Development
 
 3. Install marshmallow in develop mode. ::
 
-   $ python setup.py develop
+   $ pip install -e .
 
 Git Branch Structure
 ++++++++++++++++++++
@@ -90,6 +90,11 @@ To build the docs: ::
     $ invoke docs -b
 
 The ``-b`` (for "browse") automatically opens up the docs in your browser after building.
+
+Contributing Examples
++++++++++++++++++++++
+
+Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/sloria/marshmallow/tree/dev/examples>`_ directory and send a pull request.
 
 
 .. _Sphinx: http://sphinx.pocoo.org/
