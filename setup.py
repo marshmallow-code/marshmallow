@@ -21,9 +21,9 @@ class PyTest(TestCommand):
 
 
 def find_version(fname):
-    '''Attempts to find the version number in the file names fname.
+    """Attempts to find the version number in the file names fname.
     Raises RuntimeError if not found.
-    '''
+    """
     version = ''
     with open(fname, 'r') as fp:
         reg = re.compile(r'__version__ = [\'"]([^\'"]*)[\'"]')
@@ -49,16 +49,16 @@ setup(
     version=__version__,
     description=('A lightweight library for converting complex '
                 'datatypes into native Python datatypes.'),
-    long_description=(read("README.rst") + '\n\n' +
-                        read("HISTORY.rst")),
+    long_description=(read('README.rst') + '\n\n' +
+                        read('HISTORY.rst')),
     author='Steven Loria',
     author_email='sloria1@gmail.com',
     url='https://github.com/sloria/marshmallow',
-    packages=find_packages(exclude=("test*", )),
+    packages=find_packages(exclude=('test*', 'examples')),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
     tests_require=TEST_REQUIREMENTS,
-    license=read("LICENSE"),
+    license=read('LICENSE'),
     zip_safe=False,
     keywords=('serialization', 'rest', 'json', 'api', 'marshal',
         'marshalling', 'deserialization', 'validation', 'schema'),
@@ -67,7 +67,7 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
