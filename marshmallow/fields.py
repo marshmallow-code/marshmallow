@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Field classes for formatting and validating the serialized object.
+"""Field classes for various types of data.
 """
 from __future__ import absolute_import
 

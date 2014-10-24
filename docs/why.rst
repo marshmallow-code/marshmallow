@@ -20,8 +20,8 @@ Concise, familiar syntax.
 
 If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the :class:`Schema` constructor. The :meth:`dump <Schema.dump>` and :meth:`load <Schema.load>` methods are used for serialization and deserialization (of course!).
 
-Class-based schemas allow for inheritance and configuration.
-------------------------------------------------------------
+Class-based schemas allow for code reuse and configuration.
+-----------------------------------------------------------
 
 Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marshmallow uses classes. This allows for easy code reuse and configuration. It also allows for powerful means for configuring and extending schemas, such as adding :ref:`post-processing and error handling behavior <extending>`.
 
@@ -91,7 +91,7 @@ Here's a simple example that shows how a :class:`Schema` can anonymize a person'
 Advanced schema nesting.
 ------------------------
 
-Other serialization libraries provide a means for nesting schemas within each other, but they often fail to meet common use cases in clean way. Marshmallow aims to fill these gaps by adding a few nice features for :ref:`nesting schemas <nesting>`:
+Most serialization libraries provide some means for nesting schemas within each other, but they often fail to meet common use cases in clean way. Marshmallow aims to fill these gaps by adding a few nice features for :ref:`nesting schemas <nesting>`:
 
 - You can specify which :ref:`subset of fields <specifying-nested-fields>` to include on nested schemas.
 - :ref:`Two-way nesting <two-way-nesting>`. Two different schemas can nest each other.

@@ -4,7 +4,8 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
-- Move ``fields._to_fixed`` to ``utils.decimal_to_fixed``.
+- Move a number of utility functions from fields.py to utils.py.
+- More useful ``repr`` for ``Field`` classes.
 
 1.0.0-a (2014-10-19)
 ++++++++++++++++++++
