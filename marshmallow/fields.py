@@ -169,7 +169,8 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
-            items.append((key, value))
+            if value is not missing:
+                items.append((key, value))
         return OrderedDict(items)
 
     # Make an instance callable
