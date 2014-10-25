@@ -6,6 +6,8 @@ Changelog
 
 - Move a number of utility functions from fields.py to utils.py.
 - More useful ``repr`` for ``Field`` classes.
+- If a field's default is ``fields.missing`` and it's serialized value is ``None``, it will not be included in the final serialized result.
+- Add ``skip_missing`` ``class Meta`` option.
 
 1.0.0-a (2014-10-19)
 ++++++++++++++++++++
