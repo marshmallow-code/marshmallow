@@ -1299,3 +1299,26 @@ class TestFieldInheritance:
         class SerializerD(SerializerB, SerializerC):
             field_d = expected['field_d']
         assert SerializerD._declared_fields == expected
+
+class UserSkipSchema(Schema):
+    name = fields.Str()
+    email = fields.Email()
+    age = fields.Int(default=None)
+
+    class Meta:
+        skip_missing = True
+
+class TestSkipMissing:
+
+    def test_skip_missing_opt(self):
+        schema = UserSkipSchema()
+        assert schema.opts.skip_missing is True
+        assert schema.skip_missing is True
+
+    def test_missing_values_are_skipped(self):
+        user = User(name='Joe', email=None, age=None)
+        schema = UserSkipSchema()
+        result = schema.dump(user)
+        assert 'name' in result.data
+        assert 'email' not in result.data
+        assert 'age' not in result.data

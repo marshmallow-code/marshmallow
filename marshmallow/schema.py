@@ -95,6 +95,7 @@ class SchemaOpts(object):
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
+        self.skip_missing = getattr(meta, 'skip_missing', False)
 
 
 class BaseSchema(base.SchemaABC):
@@ -193,15 +194,17 @@ class BaseSchema(base.SchemaABC):
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
-        - ``strict``: If ``True``, raise errors during marshalling rather than
+        - ``strict``: If `True`, raise errors during marshalling rather than
             storing them.
         - ``json_module``: JSON module to use for `loads` and `dumps`.
             Defaults to the ``json`` module in the stdlib.
+        - ``skip_missing``: If `True`, don't include key:value pairs in
+            serialized results if ``value`` is `None`.
         """
         pass
 
     def __init__(self, obj=None, extra=None, only=None,
-                exclude=None, prefix='', strict=False, many=False,
+                exclude=None, prefix='', strict=False, many=False, skip_missing=False,
                 context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
@@ -214,6 +217,7 @@ class BaseSchema(base.SchemaABC):
         self.exclude = exclude or ()
         self.prefix = prefix
         self.strict = strict or self.opts.strict
+        self.skip_missing = skip_missing or self.opts.skip_missing
         #: Callable marshalling object
         self._marshal = fields.Marshaller(
             prefix=self.prefix
@@ -394,7 +398,8 @@ class BaseSchema(base.SchemaABC):
             obj,
             self.fields,
             many=self.many,
-            strict=self.strict
+            strict=self.strict,
+            skip_missing=self.skip_missing
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors

@@ -232,6 +232,15 @@ class TestMarshaller:
         res = marshal(gen, {"name": fields.String()}, many=True)
         assert len(res) == 2
 
+    def test_default_to_missing(self):
+        u = User('Foo', email=None)
+        marshal = fields.Marshaller()
+        res = marshal(u, {'name': fields.String(),
+                         'email': fields.Email(default=fields.missing)})
+        assert res['name'] == u.name
+        assert 'email' not in res
+
+
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
 

@@ -139,16 +139,17 @@ class Marshaller(object):
         #: Dictionary of errors stored during serialization
         self.errors = {}
 
-    def serialize(self, obj, fields_dict, many=False, strict=False):
+    def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
         :param obj: The actual object(s) from which the fields are taken from
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
-        :param bool many: Set to ``True`` if ``data`` should be serialized as
+        :param bool many: Set to `True` if ``data`` should be serialized as
             a collection.
-        :param bool strict: If ``True``, raise errors if invalid data are passed in
+        :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
+        :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :return: An `OrderedDict` of the marshalled data
 
         .. versionchanged:: 1.0.0
@@ -169,6 +170,8 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
+            if (value is missing) or (value is None and skip_missing):
+                continue
             items.append((key, value))
         return OrderedDict(items)
 
