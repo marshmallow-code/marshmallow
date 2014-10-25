@@ -321,6 +321,18 @@ def test_invalid_date():
     s = UserSchema().dump(u)
     assert "'foo' cannot be formatted as a date." in s.errors['birthdate']
 
+def test_invalid_email():
+    u = User('Joe', email='bademail')
+    s = UserSchema().dump(u)
+    assert 'email' in s.errors
+    assert 'bademail' in s.errors['email'][0]
+
+def test_invalid_url():
+    u = User('Joe', homepage='badurl')
+    s = UserSchema().dump(u)
+    assert 'homepage' in s.errors
+    assert 'badurl' in s.errors['homepage'][0]
+
 def test_invalid_selection():
     u = User('Jonhy')
     u.sex = 'hybrid'

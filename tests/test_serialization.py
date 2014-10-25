@@ -42,6 +42,18 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             fields.Function("uncallable")
 
+    def test_email_field_validates(self):
+        self.user.email = 'bademail'
+        field = fields.Email()
+        with pytest.raises(MarshallingError):
+            field.serialize('email', self.user)
+
+    def test_url_field_validates(self):
+        self.user.homepage = 'badhomepage'
+        field = fields.URL()
+        with pytest.raises(MarshallingError):
+            field.serialize('homepage', self.user)
+
     def test_method_field_with_method_missing(self):
         class BadSerializer(Schema):
             bad_field = fields.Method('invalid')

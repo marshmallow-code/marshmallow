@@ -973,8 +973,17 @@ class Price(Fixed):
     def __init__(self, decimals=2, default='0.00', **kwargs):
         super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
 
+class ValidatedField(Field):
+    """A field that is validates input on serialization."""
 
-class Url(Field):
+    def _validated(self, value):
+        raise NotImplementedError('Must implement _validate method')
+
+    def _serialize(self, value, *args, **kwargs):
+        ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
+        return self._validated(ret)
+
+class Url(ValidatedField):
     """A validated URL field.
 
     :param default: Default value for the field if the attribute is not set.
@@ -988,19 +997,29 @@ class Url(Field):
         super(Url, self).__init__(default=default, attribute=attribute,
                 *args, **kwargs)
         self.relative = relative
+        # Insert validation into self.validators so that multiple errors can be
+        # stored.
         self.validators.insert(0, partial(validate.url,
             relative=self.relative, error=getattr(self, 'error')))
 
+    def _validated(self, value):
+        return validate.url(value, relative=self.relative, error=getattr(self, 'error'))
+
 URL = Url
 
-class Email(Field):
+class Email(ValidatedField):
     """A validated email field.
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, *args, **kwargs):
         super(Email, self).__init__(*args, **kwargs)
+        # Insert validation into self.validators so that multiple errors can be
+        # stored.
         self.validators.insert(0, partial(validate.email, error=getattr(self, 'error')))
+
+    def _validated(self, value):
+        return validate.email(value, error=getattr(self, 'error'))
 
 
 class Method(Field):
