@@ -192,7 +192,7 @@ class Unmarshaller(object):
         self.errors = {}
 
     def _validate(self, validators, output, strict=False):
-        """Perform schema-level validation. Stores errors if ``strict`` is ``False``.
+        """Perform schema-level validation. Stores errors if ``strict`` is `False`.
         """
         for validator_func in validators:
             try:
@@ -215,13 +215,13 @@ class Unmarshaller(object):
 
         :param dict data: The data to deserialize.
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
-        :param bool many: Set to ``True`` if ``data`` should be deserialized as
+        :param bool many: Set to `True` if ``data`` should be deserialized as
             a collection.
         :param list validators: List of validation functions to apply to the
             deserialized dictionary.
         :param list preprocess: List of pre-processing functions.
         :param list postprocess: List of post-processing functions.
-        :param bool strict: If ``True``, raise errors if invalid data are passed in
+        :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :return: An OrderedDict of the deserialized data.
         """
@@ -274,14 +274,14 @@ class Field(FieldABC):
     data does not need to be formatted before being serialized or deserialized.
 
     :param default: Default serialization value for the field if the attribute is
-        ``None``.
+        `None`.
     :param str attribute: The name of the attribute to get the value from. If
-        ``None``, assumes the attribute has the same name as the field.
+        `None`, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
-        If it returns ``False``, an :exc:`UnmarshallingError` is raised.
+        If it returns `False`, an :exc:`UnmarshallingError` is raised.
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
     :param metadata: Extra arguments to be stored as metadata.
@@ -456,7 +456,7 @@ class Nested(Field):
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
-    :param only: A tuple or string of the field(s) to marshal. If ``None``, all fields
+    :param only: A tuple or string of the field(s) to marshal. If `None`, all fields
         will be marshalled. If a field name (string) is given, only a single
         value will be returned as output instead of a dictionary.
         This parameter takes precedence over ``exclude``.
@@ -567,8 +567,8 @@ class List(Field):
 
     :param Field cls_or_instance: A field class or instance.
     :param bool default: Default value for serialization.
-    :param bool allow_none: If ``True``, ``None`` will be serialized to ``None``.
-        If ``False``, ``None`` will serialize to an empty list.
+    :param bool allow_none: If `True`, `None` will be serialized to `None`.
+        If `False`, `None` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
@@ -690,10 +690,10 @@ class Boolean(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    #: Values that will deserialize to ``True``. If an empty set, any non-falsy
-    #  value will deserialize to ``True``.
+    #: Values that will deserialize to `True`. If an empty set, any non-falsy
+    #  value will deserialize to `True`.
     truthy = set()
-    #: Values that will deserialize to ``False``.
+    #: Values that will deserialize to `False`.
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
     def _serialize(self, value, attr, obj):
@@ -803,10 +803,10 @@ class DateTime(Field):
         ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If ``None``, defaults to "rfc".
+        or a date format string. If `None`, defaults to "rfc".
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
-        ``None``, assumes the attribute has the same name as the field.
+        `None`, assumes the attribute has the same name as the field.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
@@ -979,7 +979,7 @@ class Url(Field):
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
-        ``None``, assumes the attribute has the same name as the field.
+        `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
@@ -1097,7 +1097,7 @@ class Select(Field):
     :param choices: A list of valid values.
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
-        ``None``, assumes the attribute has the same name as the field.
+        `None`, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Fixed` receives.
 

@@ -132,15 +132,15 @@ class BaseSchema(base.SchemaABC):
         parameter is deprecated. Pass the object to the :meth:`dump` method
         instead.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
-    :param tuple only: A list or tuple of fields to serialize. If ``None``, all
+    :param tuple only: A list or tuple of fields to serialize. If `None`, all
         fields will be serialized.
     :param tuple exclude: A list or tuple of fields to exclude from the
         serialized result.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
-    :param bool strict: If ``True``, raise errors if invalid data are passed in
+    :param bool strict: If `True`, raise errors if invalid data are passed in
         instead of failing silently and storing the errors.
-    :param bool many: Should be set to ``True`` if ``obj`` is a collection
+    :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
@@ -163,10 +163,10 @@ class BaseSchema(base.SchemaABC):
 
     OPTIONS_CLASS = SchemaOpts
 
-    #: Custom error handler function. May be ``None``.
+    #: Custom error handler function. May be `None`.
     __error_handler__ = None
 
-    #  NOTE: The below class attributes must initially be ``None`` so that
+    #  NOTE: The below class attributes must initially be `None` so that
     #  every subclass references a different list of functions
 
     #: List of registered post-processing functions.
@@ -324,7 +324,7 @@ class BaseSchema(base.SchemaABC):
     def validator(cls, func):
         """Decorator that registers a schema validation function to be applied during
         deserialization. The function receives the :class:`Schema` instance and the
-        input data as arguments and should return ``False`` if validation fails.
+        input data as arguments and should return `False` if validation fails.
 
         Example: ::
 

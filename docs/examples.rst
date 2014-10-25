@@ -17,8 +17,7 @@ Assume that ``TextBlob`` objects have ``polarity``, ``subjectivity``, ``noun_phr
 .. literalinclude:: ../examples/textblob_example.py
     :language: python
 
-Using The API
--------------
+**Using The API**
 
 First, run the app.
 
@@ -76,8 +75,7 @@ Below is a full example of a REST API for a quotes app using `Flask <http://flas
     :language: python
 
 
-Using the API
--------------
+**Using The API**
 
 Run the app.
 
@@ -149,8 +147,7 @@ Notice how ``__marshallable__`` is used to define how Peewee model objects get m
 .. literalinclude:: ../examples/peewee_example.py
     :language: python
 
-Using the API
--------------
+**Using the API**
 
 After registering a user and creating some todo items in the database, here is an example response.
 

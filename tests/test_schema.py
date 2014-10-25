@@ -529,6 +529,23 @@ def test_inherit_meta(user):
     expected = UserMetaSchema().dump(user).data
     assert result == expected
 
+def test_inherit_meta_override():
+    class Parent(Schema):
+        class Meta:
+            strict = True
+            fields = ('name', 'email')
+            skip_missing = True
+
+    class Child(Schema):
+        class Meta(Parent.Meta):
+            skip_missing = False
+
+    child = Child()
+    assert child.opts.strict is True
+    assert child.opts.fields == ('name', 'email')
+    assert child.opts.skip_missing is False
+
+
 def test_additional(user):
     s = UserAdditionalSchema().dump(user)
     assert s.data['lowername'] == user.name.lower()
