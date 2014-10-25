@@ -96,6 +96,7 @@ class SchemaOpts(object):
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
         self.skip_missing = getattr(meta, 'skip_missing', False)
+        self.accessor = getattr(meta, 'accessor', utils.get_value)
 
 
 class BaseSchema(base.SchemaABC):
@@ -142,6 +143,10 @@ class BaseSchema(base.SchemaABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
+    :param bool skip_missing: If `True`, don't include key:value pairs in
+        serialized results if ``value`` is `None`.
+    :param callable accessor: Custom function to use for accessing object's data
+        during deserialization. Defaults to `utils.get_value`.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
     """
@@ -200,12 +205,14 @@ class BaseSchema(base.SchemaABC):
             Defaults to the ``json`` module in the stdlib.
         - ``skip_missing``: If `True`, don't include key:value pairs in
             serialized results if ``value`` is `None`.
+        -  ``accessor``: Custom function to use for accessing object's data
+            during deserialization. Defaults to `utils.get_value`.
         """
         pass
 
     def __init__(self, obj=None, extra=None, only=None,
                 exclude=None, prefix='', strict=False, many=False, skip_missing=False,
-                context=None):
+                accessor=None, context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -218,6 +225,7 @@ class BaseSchema(base.SchemaABC):
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
+        self.accessor = accessor or self.opts.accessor
         #: Callable marshalling object
         self._marshal = fields.Marshaller(
             prefix=self.prefix
@@ -399,7 +407,8 @@ class BaseSchema(base.SchemaABC):
             self.fields,
             many=self.many,
             strict=self.strict,
-            skip_missing=self.skip_missing
+            skip_missing=self.skip_missing,
+            accessor=self.accessor
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors

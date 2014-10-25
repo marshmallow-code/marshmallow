@@ -1337,7 +1337,7 @@ class UserSkipSchema(Schema):
     class Meta:
         skip_missing = True
 
-class TestSkipMissing:
+class TestSkipMissingOption:
 
     def test_skip_missing_opt(self):
         schema = UserSkipSchema()
@@ -1351,3 +1351,32 @@ class TestSkipMissing:
         assert 'name' in result.data
         assert 'email' not in result.data
         assert 'age' not in result.data
+
+def get_from_dict(key, obj, default=None):
+    return obj.get(key, default)
+
+class UserDictSchema(Schema):
+    name = fields.Str()
+    email = fields.Email()
+
+    class Meta:
+        accessor = get_from_dict
+
+class TestAccessorOption:
+
+    def test_accessor_opt(self):
+        schema = UserDictSchema()
+        assert schema.opts.accessor is get_from_dict
+        assert schema.accessor is get_from_dict
+
+    def test_accessor_is_used(self):
+        user_dict = {'name': 'joe', 'email': 'joe@shmoe.com'}
+        schema = UserDictSchema()
+        result = schema.dump(user_dict)
+        assert result.data['name'] == user_dict['name']
+        assert result.data['email'] == user_dict['email']
+        assert not result.errors
+        # can't serialize User object
+        user = User(name='joe', email='joe@shmoe.com')
+        with pytest.raises(AttributeError):
+            schema.dump(user)

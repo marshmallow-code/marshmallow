@@ -139,7 +139,8 @@ class Marshaller(object):
         #: Dictionary of errors stored during serialization
         self.errors = {}
 
-    def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False):
+    def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
+                  accessor=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -150,6 +151,7 @@ class Marshaller(object):
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
+        :param callable accessor: Function to use for getting values from ``obj``.
         :return: An `OrderedDict` of the marshalled data
 
         .. versionchanged:: 1.0.0
@@ -162,7 +164,7 @@ class Marshaller(object):
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
             value = _call_and_store(
-                getter_func=partial(field_obj.serialize, attr_name),
+                getter_func=partial(field_obj.serialize, attr_name, accessor=accessor),
                 data=obj,
                 field_name=key,
                 field_obj=field_obj,
@@ -322,13 +324,14 @@ class Field(FieldABC):
                 'validate={self.validate}, required={self.required})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
-    def get_value(self, attr, obj):
+    def get_value(self, attr, obj, accessor=None):
         """Return the value for a given key from an object."""
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
+        accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
-        return utils.get_value(check_key, obj)
+        return accessor_func(check_key, obj)
 
     def _validate(self, value):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -372,15 +375,16 @@ class Field(FieldABC):
         except Exception as error:
             raise exception_class(getattr(self, 'error', None) or error)
 
-    def serialize(self, attr, obj):
+    def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
         :param str attr: The attibute or key to get from the object.
         :param str obj: The object to pull the key from.
+        :param callable accessor: Function used to pull values from ``obj``.
         :raise MarshallingError: In case of formatting problem
         """
-        value = self.get_value(attr, obj)
+        value = self.get_value(attr, obj, accessor=accessor)
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
                 return self.default
