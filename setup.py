@@ -48,7 +48,7 @@ setup(
     name='marshmallow',
     version=__version__,
     description=('A lightweight library for converting complex '
-                'datatypes into native Python datatypes.'),
+                'datatypes to and from native Python datatypes.'),
     long_description=(read('README.rst') + '\n\n' +
                         read('HISTORY.rst')),
     author='Steven Loria',
@@ -63,16 +63,17 @@ setup(
     keywords=('serialization', 'rest', 'json', 'api', 'marshal',
         'marshalling', 'deserialization', 'validation', 'schema'),
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
     ],
     test_suite='tests',
     cmdclass={'test': PyTest},

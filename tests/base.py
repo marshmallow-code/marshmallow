@@ -154,7 +154,6 @@ class UserSchema(Schema):
         return User(**data)
 
 
-
 class UserMetaSchema(Schema):
     """The equivalent of the UserSchema, using the ``fields`` option."""
     uppername = Uppercased(attribute='name')
