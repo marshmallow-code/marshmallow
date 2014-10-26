@@ -20,6 +20,16 @@ class TestFieldSerialization:
     def setup_method(self, method):
         self.user = User("Foo", email="foo@bar.com", age=42)
 
+    def test_default(self):
+        self.user.age = None
+        field = fields.Field(default='nan')
+        assert field.serialize('age', self.user) == 'nan'
+
+    def test_callable_default(self):
+        self.user.age = None
+        field = fields.Field(default=lambda: 'nan')
+        assert field.serialize('age', self.user) == 'nan'
+
     def test_function_field(self):
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", self.user)
