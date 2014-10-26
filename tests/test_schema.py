@@ -886,32 +886,37 @@ def test_schema_repr():
 
 class TestNestedSchema:
 
-    def setup_method(self, method):
-        self.user = User(name="Monty", age=81)
+    @pytest.fixture
+    def user(self):
+        return User(name="Monty", age=81)
+
+    @pytest.fixture
+    def blog(self, user):
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
-        self.blog = Blog("Monty's blog", user=self.user, categories=["humor", "violence"],
+        blog = Blog("Monty's blog", user=user, categories=["humor", "violence"],
                          collaborators=[col1, col2])
+        return blog
 
-    def test_flat_nested(self):
+    def test_flat_nested(self, blog):
         class FlatBlogSchema(Schema):
             name = fields.String()
             user = fields.Nested(UserSchema, only='name')
             collaborators = fields.Nested(UserSchema, only='name', many=True)
         s = FlatBlogSchema()
-        data, _ = s.dump(self.blog)
-        assert data['user'] == self.blog.user.name
+        data, _ = s.dump(blog)
+        assert data['user'] == blog.user.name
         for i, name in enumerate(data['collaborators']):
-            assert name == self.blog.collaborators[i].name
+            assert name == blog.collaborators[i].name
 
-    def test_flat_nested2(self):
+    def test_flat_nested2(self, blog):
         class FlatBlogSchema(Schema):
             name = fields.String()
             collaborators = fields.Nested(UserSchema, many=True, only='uid')
 
         s = FlatBlogSchema()
-        data, _ = s.dump(self.blog)
-        assert data['collaborators'][0] == str(self.blog.collaborators[0].uid)
+        data, _ = s.dump(blog)
+        assert data['collaborators'][0] == str(blog.collaborators[0].uid)
 
     def test_nested_field_does_not_vaidate_required(self):
         class BlogRequiredSchema(Schema):
@@ -937,41 +942,41 @@ class TestNestedSchema:
         data, _ = BlogDefaultSchema().dump(b)
         assert data['user'] is None
 
-    def test_nested(self):
+    def test_nested(self, user, blog):
         blog_serializer = BlogSchema()
-        serialized_blog, _ = blog_serializer.dump(self.blog)
+        serialized_blog, _ = blog_serializer.dump(blog)
         user_serializer = UserSchema()
-        serialized_user, _ = user_serializer.dump(self.user)
+        serialized_user, _ = user_serializer.dump(user)
         assert serialized_blog['user'] == serialized_user
 
-    def test_nested_many_fields(self):
-        serialized_blog, _ = BlogSchema().dump(self.blog)
-        expected = [UserSchema().dump(col)[0] for col in self.blog.collaborators]
+    def test_nested_many_fields(self, blog):
+        serialized_blog, _ = BlogSchema().dump(blog)
+        expected = [UserSchema().dump(col)[0] for col in blog.collaborators]
         assert serialized_blog['collaborators'] == expected
 
-    def test_nested_meta_many(self):
-        serialized_blog = BlogUserMetaSchema().dump(self.blog)[0]
+    def test_nested_meta_many(self, blog):
+        serialized_blog = BlogUserMetaSchema().dump(blog)[0]
         assert len(serialized_blog['collaborators']) == 2
-        expected = [UserMetaSchema().dump(col)[0] for col in self.blog.collaborators]
+        expected = [UserMetaSchema().dump(col)[0] for col in blog.collaborators]
         assert serialized_blog['collaborators'] == expected
 
-    def test_nested_only(self):
+    def test_nested_only(self, blog):
         col1 = User(name="Mick", age=123, id_="abc")
         col2 = User(name="Keith", age=456, id_="def")
-        self.blog.collaborators = [col1, col2]
-        serialized_blog = BlogOnlySchema().dump(self.blog)[0]
+        blog.collaborators = [col1, col2]
+        serialized_blog = BlogOnlySchema().dump(blog)[0]
         assert serialized_blog['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
 
-    def test_exclude(self):
-        serialized = BlogSchemaExclude().dump(self.blog)[0]
+    def test_exclude(self, blog):
+        serialized = BlogSchemaExclude().dump(blog)[0]
         assert "uppername" not in serialized['user'].keys()
 
-    def test_only_takes_precedence_over_exclude(self):
-        serialized = BlogSchemaOnlyExclude().dump(self.blog)[0]
-        assert serialized['user']['name'] == self.user.name
+    def test_only_takes_precedence_over_exclude(self, blog, user):
+        serialized = BlogSchemaOnlyExclude().dump(blog)[0]
+        assert serialized['user']['name'] == user.name
 
-    def test_list_field(self):
-        serialized = BlogSchema().dump(self.blog)[0]
+    def test_list_field(self, blog):
+        serialized = BlogSchema().dump(blog)[0]
         assert serialized['categories'] == ["humor", "violence"]
 
     def test_nested_errors(self):
@@ -984,96 +989,100 @@ class TestNestedSchema:
         # No problems with collaborators
         assert "collaborators" not in errors
 
-    def test_nested_method_field(self):
-        data = BlogSchema().dump(self.blog)[0]
+    def test_nested_method_field(self, blog):
+        data = BlogSchema().dump(blog)[0]
         assert data['user']['is_old']
         assert data['collaborators'][0]['is_old']
 
-    def test_nested_function_field(self):
-        data = BlogSchema().dump(self.blog)[0]
-        assert data['user']['lowername'] == self.user.name.lower()
-        expected = self.blog.collaborators[0].name.lower()
+    def test_nested_function_field(self, blog, user):
+        data = BlogSchema().dump(blog)[0]
+        assert data['user']['lowername'] == user.name.lower()
+        expected = blog.collaborators[0].name.lower()
         assert data['collaborators'][0]['lowername'] == expected
 
-    def test_nested_prefixed_field(self):
-        data = BlogSchemaPrefixedUser().dump(self.blog)[0]
-        assert data['user']['usr_name'] == self.user.name
-        assert data['user']['usr_lowername'] == self.user.name.lower()
+    def test_nested_prefixed_field(self, blog, user):
+        data = BlogSchemaPrefixedUser().dump(blog)[0]
+        assert data['user']['usr_name'] == user.name
+        assert data['user']['usr_lowername'] == user.name.lower()
 
-    def test_nested_prefixed_many_field(self):
-        data = BlogSchemaPrefixedUser().dump(self.blog)[0]
-        assert data['collaborators'][0]['usr_name'] == self.blog.collaborators[0].name
+    def test_nested_prefixed_many_field(self, blog):
+        data = BlogSchemaPrefixedUser().dump(blog)[0]
+        assert data['collaborators'][0]['usr_name'] == blog.collaborators[0].name
 
     def test_invalid_float_field(self):
         user = User("Joe", age="1b2")
         _, errors = UserSchema().dump(user)
         assert "age" in errors
 
-    def test_serializer_meta_with_nested_fields(self):
-        data = BlogSchemaMeta().dump(self.blog)[0]
-        assert data['title'] == self.blog.title
-        assert data['user'] == UserSchema().dump(self.user).data
+    def test_serializer_meta_with_nested_fields(self, blog, user):
+        data = BlogSchemaMeta().dump(blog)[0]
+        assert data['title'] == blog.title
+        assert data['user'] == UserSchema().dump(user).data
         assert data['collaborators'] == [UserSchema().dump(c).data
-                                               for c in self.blog.collaborators]
-        assert data['categories'] == self.blog.categories
+                                               for c in blog.collaborators]
+        assert data['categories'] == blog.categories
 
-    def test_serializer_with_nested_meta_fields(self):
+    def test_serializer_with_nested_meta_fields(self, blog):
         # Schema has user = fields.Nested(UserMetaSerializer)
-        s = BlogUserMetaSchema().dump(self.blog)
-        assert s.data['user'] == UserMetaSchema().dump(self.blog.user).data
+        s = BlogUserMetaSchema().dump(blog)
+        assert s.data['user'] == UserMetaSchema().dump(blog.user).data
 
-    def test_nested_fields_must_be_passed_a_serializer(self):
+    def test_nested_fields_must_be_passed_a_serializer(self, blog):
         class BadNestedFieldSchema(BlogSchema):
             user = fields.Nested(fields.String)
         with pytest.raises(ValueError):
-            BadNestedFieldSchema().dump(self.blog)
+            BadNestedFieldSchema().dump(blog)
 
 
 class TestSelfReference:
 
-    def setup_method(self, method):
-        self.employer = User(name="Joe", age=59)
-        self.user = User(name="Tom", employer=self.employer, age=28)
+    @pytest.fixture
+    def employer(self):
+        return User(name="Joe", age=59)
 
-    def test_nesting_serializer_within_itself(self):
+    @pytest.fixture
+    def user(self, employer):
+        return User(name="Tom", employer=employer, age=28)
+
+    def test_nesting_serializer_within_itself(self, user, employer):
         class SelfSchema(Schema):
             name = fields.String()
             age = fields.Integer()
             employer = fields.Nested('self', exclude=('employer', ))
 
-        data, errors = SelfSchema().dump(self.user)
+        data, errors = SelfSchema().dump(user)
         assert not errors
-        assert data['name'] == self.user.name
-        assert data['employer']['name'] == self.employer.name
-        assert data['employer']['age'] == self.employer.age
+        assert data['name'] == user.name
+        assert data['employer']['name'] == employer.name
+        assert data['employer']['age'] == employer.age
 
-    def test_nesting_within_itself_meta(self):
+    def test_nesting_within_itself_meta(self, user, employer):
         class SelfSchema(Schema):
             employer = fields.Nested("self", exclude=('employer', ))
 
             class Meta:
                 additional = ('name', 'age')
 
-        data, errors = SelfSchema().dump(self.user)
+        data, errors = SelfSchema().dump(user)
         assert not errors
-        assert data['name'] == self.user.name
-        assert data['age'] == self.user.age
-        assert data['employer']['name'] == self.employer.name
-        assert data['employer']['age'] == self.employer.age
+        assert data['name'] == user.name
+        assert data['age'] == user.age
+        assert data['employer']['name'] == employer.name
+        assert data['employer']['age'] == employer.age
 
-    def test_nested_self_with_only_param(self):
+    def test_nested_self_with_only_param(self, user, employer):
         class SelfSchema(Schema):
             employer = fields.Nested('self', only=('name', ))
 
             class Meta:
                 fields = ('name', 'employer')
 
-        data = SelfSchema().dump(self.user)[0]
-        assert data['name'] == self.user.name
-        assert data['employer']['name'] == self.employer.name
+        data = SelfSchema().dump(user)[0]
+        assert data['name'] == user.name
+        assert data['employer']['name'] == employer.name
         assert 'age' not in data['employer']
 
-    def test_multiple_nested_self_fields(self):
+    def test_multiple_nested_self_fields(self, user):
         class MultipleSelfSchema(Schema):
             emp = fields.Nested('self', only='name', attribute='employer')
             rels = fields.Nested('self', only='name',
@@ -1083,12 +1092,12 @@ class TestSelfReference:
                 fields = ('name', 'emp', 'rels')
 
         schema = MultipleSelfSchema()
-        self.user.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
-        data, errors = schema.dump(self.user)
+        user.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
+        data, errors = schema.dump(user)
         assert not errors
-        assert len(data['rels']) == len(self.user.relatives)
+        assert len(data['rels']) == len(user.relatives)
         relative = data['rels'][0]
-        assert relative == self.user.relatives[0].name
+        assert relative == user.relatives[0].name
 
     def test_nested_many(self):
         class SelfManySchema(Schema):

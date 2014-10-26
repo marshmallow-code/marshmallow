@@ -278,7 +278,7 @@ class Field(FieldABC):
     data does not need to be formatted before being serialized or deserialized.
 
     :param default: Default serialization value for the field if the attribute is
-        `None`.
+        `None`. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param str error: Error message stored upon validation failure.
@@ -389,7 +389,10 @@ class Field(FieldABC):
         value = self.get_value(attr, obj, accessor=accessor)
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
-                return self.default
+                if callable(self.default):
+                    return self.default()
+                else:
+                    return self.default
         func = partial(self._serialize, value, attr, obj)
         return self._call_and_reraise(func, MarshallingError)
 
