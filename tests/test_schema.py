@@ -1352,24 +1352,16 @@ class TestSkipMissingOption:
         assert 'email' not in result.data
         assert 'age' not in result.data
 
-def get_from_dict(key, obj, default=None):
+def get_from_dict(schema, key, obj, default=None):
     return obj.get(key, default)
 
-class UserDictSchema(Schema):
-    name = fields.Str()
-    email = fields.Email()
-
-    class Meta:
-        accessor = get_from_dict
-
-class TestAccessorOption:
-
-    def test_accessor_opt(self):
-        schema = UserDictSchema()
-        assert schema.opts.accessor is get_from_dict
-        assert schema.accessor is get_from_dict
+class TestAccessor:
 
     def test_accessor_is_used(self):
+        class UserDictSchema(Schema):
+            __accessor__ = get_from_dict
+            name = fields.Str()
+            email = fields.Email()
         user_dict = {'name': 'joe', 'email': 'joe@shmoe.com'}
         schema = UserDictSchema()
         result = schema.dump(user_dict)
