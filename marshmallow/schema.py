@@ -75,7 +75,6 @@ class SchemaMeta(type):
         class_registry.register(name, klass)
         return klass
 
-
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
@@ -142,6 +141,8 @@ class BaseSchema(base.SchemaABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
+    :param bool skip_missing: If `True`, don't include key:value pairs in
+        serialized results if ``value`` is `None`.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
     """
@@ -175,6 +176,8 @@ class BaseSchema(base.SchemaABC):
     __validators__ = None
     #: List of registered pre-processing functions.
     __preprocessors__ = None
+    #: Function used to get values of an object.
+    __accessor__ = None
 
     class Meta(object):
         """Options object for a Schema.
@@ -375,6 +378,16 @@ class BaseSchema(base.SchemaABC):
         cls.__preprocessors__.append(func)
         return func
 
+    @classmethod
+    def accessor(cls, func):
+        """Decorator that registers a function for pulling values from an object
+        to serialize. The function receives the :class:`Schema` instance, the
+        ``key`` of the value to get, the ``obj`` to serialize, and an optional
+        ``default`` value.
+        """
+        cls.__accessor__ = func
+        return func
+
     ##### Serialization/Deserialization API #####
 
     def dump(self, obj):
@@ -399,7 +412,8 @@ class BaseSchema(base.SchemaABC):
             self.fields,
             many=self.many,
             strict=self.strict,
-            skip_missing=self.skip_missing
+            skip_missing=self.skip_missing,
+            accessor=self.__accessor__
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
