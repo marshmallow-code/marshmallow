@@ -55,7 +55,7 @@ __all__ = [
     'Int',
 ]
 
-class _null(object):
+class _Null(object):
 
     def __bool__(self):
         return False
@@ -65,7 +65,7 @@ class _null(object):
     def __repr__(self):
         return '<marshmallow.fields.null>'
 
-class _missing(_null):
+class _Missing(_Null):
 
     def __repr__(self):
         return '<marshmallow.fields.missing>'
@@ -74,12 +74,12 @@ class _missing(_null):
 # fields so that `Field._call_with_validation` is invoked, even when the
 # object to serialize has the nested attribute set to None. Therefore,
 # `RegistryErrors` are properly raised.
-null = _null()
+null = _Null()
 
 # Singleton value that indicates that a field's value is missing from input
 # dict passed to :meth:`Schema.load`. If the field's value is not required,
 # it's ``default`` value is used.
-missing = _missing()
+missing = _Missing()
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):
