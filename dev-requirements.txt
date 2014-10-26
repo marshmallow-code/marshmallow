@@ -1,4 +1,4 @@
-pytest
+pytest>=2.6.3
 pytest-xdist  # for test watching
 tox>=1.5.0
 sphinx
@@ -6,4 +6,4 @@ wheel
 invoke
 pytz
 python-dateutil
-flake8
+flake8>=2.2.2

@@ -30,6 +30,10 @@ class TestField:
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 
+    def test_error_raised_if_uncallable_validator_passed(self):
+        with pytest.raises(ValueError):
+            fields.Field(validate='notcallable')
+
 
 class TestMetadata:
 
@@ -39,7 +43,7 @@ class TestMetadata:
     ]
 
     @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
-    def test_extra_metadata_may_be_added_to_field(self, FieldClass):
+    def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
         field = FieldClass(required=True, default=None, validate=lambda v: True,

@@ -27,7 +27,7 @@ RELATIVE_URL_REGEX = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
 
-def url(value, relative, error):
+def url(value, relative=False, error=None):
     """Validate a URL.
 
     :param string value: The URL to validate

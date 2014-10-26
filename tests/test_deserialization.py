@@ -760,7 +760,7 @@ class TestValidation:
 
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.Enum, fields.FormattedString]]
 @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
-def test_required_field_failure(FieldClass):
+def test_required_field_failure(FieldClass):  # noqa
     class RequireSchema(Schema):
         age = FieldClass(required=True)
     user_data = {"name": "Phil"}

@@ -256,7 +256,7 @@ class BlogSchemaPrefixedUser(BlogSchema):
     collaborators = fields.Nested(UserSchema(prefix="usr_"), many=True)
 
 
-class mockjson(object):
+class mockjson(object):  # noqa
 
     @staticmethod
     def dumps(val):
