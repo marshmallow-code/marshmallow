@@ -3,14 +3,13 @@
 from __future__ import absolute_import
 
 import datetime
-from decimal import Decimal as MyDecimal, ROUND_HALF_EVEN
+from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 import functools
 import inspect
 import json
 import time
 import types
 from calendar import timegm
-from decimal import Decimal, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
@@ -73,7 +72,7 @@ def float_to_decimal(f):
         result = ctx.divide(numerator, denominator)
     return result
 
-ZERO_DECIMAL = MyDecimal()
+ZERO_DECIMAL = Decimal()
 
 def decimal_to_fixed(value, precision):
     """Convert a `Decimal` to a fixed-precision number as a string."""

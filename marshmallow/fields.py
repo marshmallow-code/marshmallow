@@ -1130,7 +1130,7 @@ class Select(Field):
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
-    def _validated(self, value, exception_class, *args, **kwargs):
+    def _validated(self, value, exception_class):
         if value not in self.choices:
             raise exception_class(
                 "{0!r} is not a valid choice for this field.".format(value)

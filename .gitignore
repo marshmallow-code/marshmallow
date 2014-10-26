@@ -52,3 +52,4 @@ Vagrantfile
 *.ai
 .konchrc
 _sandbox
+pylintrc
