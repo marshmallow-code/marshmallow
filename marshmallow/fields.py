@@ -685,7 +685,7 @@ class Integer(Number):
 
     def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
         self.as_string = as_string
-        super(Number, self).__init__(default=default, attribute=attribute,
+        super(Integer, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
 
 class Boolean(Field):
