@@ -8,7 +8,7 @@ Changelog
 - More useful ``repr`` for ``Field`` classes.
 - If a field's default is ``fields.missing`` and it's serialized value is ``None``, it will not be included in the final serialized result.
 - Add ``skip_missing`` ``class Meta`` option.
-- Allow accessor function to be configured via the ``__accessor__`` class member.
+- Allow accessor function to be configured via the ``Schema.accessor`` decorator or the ``__accessor__`` class member.
 - ``URL`` and ``Email`` fields are validated upon serialization.
 
 1.0.0-a (2014-10-19)

@@ -1372,3 +1372,22 @@ class TestAccessor:
         user = User(name='joe', email='joe@shmoe.com')
         with pytest.raises(AttributeError):
             schema.dump(user)
+
+    def test_accessor_decorator(self):
+        class UserDictSchema(Schema):
+            name = fields.Str()
+            email = fields.Email()
+
+        @UserDictSchema.accessor
+        def get_from_dict2(schema, key, obj, default=None):
+            return obj.get(key, default)
+        user_dict = {'name': 'joe', 'email': 'joe@shmoe.com'}
+        schema = UserDictSchema()
+        result = schema.dump(user_dict)
+        assert result.data['name'] == user_dict['name']
+        assert result.data['email'] == user_dict['email']
+        assert not result.errors
+        # can't serialize User object
+        user = User(name='joe', email='joe@shmoe.com')
+        with pytest.raises(AttributeError):
+            schema.dump(user)

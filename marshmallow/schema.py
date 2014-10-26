@@ -378,6 +378,16 @@ class BaseSchema(base.SchemaABC):
         cls.__preprocessors__.append(func)
         return func
 
+    @classmethod
+    def accessor(cls, func):
+        """Decorator that registers a function for pulling values from an object
+        to serialize. The function receives the :class:`Schema` instance, the
+        ``key`` of the value to get, the ``obj`` to serialize, and an optional
+        ``default`` value.
+        """
+        cls.__accessor__ = func
+        return func
+
     ##### Serialization/Deserialization API #####
 
     def dump(self, obj):

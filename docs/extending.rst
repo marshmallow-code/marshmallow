@@ -137,6 +137,27 @@ One use case might be to add a "root" namespace for a serialized object.
 
     It is possible to register multiple data handlers for a single serializer.
 
+
+Overriding how attributes are accessed
+--------------------------------------
+
+By default, marshmallow uses the `utils.get_value` function to pull attributes from various types of objects for serialization. This will work for *most* use cases.
+
+However, if you want to specify how values are accessed from an object, you can use the :meth:`Schema.accessor` decorator.
+
+.. code-block:: python
+
+    class UserDictSchema(Schema):
+        name = fields.Str()
+        email = fields.Email()
+
+    # If we know we're only serializing dictionaries, we can
+    # override the accessor function
+    @UserDictSchema.accessor
+    def get_from_dict(schema, key, obj, default=None):
+        return obj.get(key, default)
+
+
 Handler Functions as Class Members
 ----------------------------------
 
@@ -149,6 +170,7 @@ You can register error handlers, validators, and data handlers as optional class
         __data_handlers__ = [add_root]      # List of functions
         __validators__ = [validate_schema]  # List of functions
         __preprocessors__ = [preprocess_data]  # List of functions
+        __accessor__ = get_from_dict  # A function
 
 
 Extending "class Meta" Options
