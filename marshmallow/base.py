@@ -14,6 +14,12 @@ class FieldABC(object):
     #: The field's name.
     name = None
 
+    def serialize(self, attr, obj, accessor=None):
+        raise NotImplementedError
+
+    def deserialize(self, value):
+        raise NotImplementedError
+
     def _serialize(self, value, key, obj):
         raise NotImplementedError
 
