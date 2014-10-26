@@ -9,7 +9,12 @@ build_dir = os.path.join(docs_dir, '_build')
 @task
 def test():
     """Run the tests."""
-    run('python setup.py test', pty=True)
+    flake()
+    run('python setup.py test', echo=True, pty=True)
+
+@task
+def flake():
+    run('flake8 .', echo=True)
 
 @task
 def watch():
