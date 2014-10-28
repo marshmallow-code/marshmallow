@@ -23,13 +23,14 @@ Guide
 =====
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
 
     install
     quickstart
+    nesting
+    custom_fields
     extending
     examples
-    upgrading
 
 
 API Reference
@@ -48,6 +49,7 @@ Project Info
 
     why
     changelog
+    upgrading
     license
     authors
     contributing

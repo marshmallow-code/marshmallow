@@ -1,0 +1,220 @@
+
+.. _nesting:
+
+Nesting Schemas
+===============
+
+Schemas can be nested to represent relationships between objects (e.g. foreign key relationships). For example, a ``Blog`` may have an author represented by a User object.
+
+.. code-block:: python
+    :emphasize-lines: 14
+
+    import datetime as dt
+
+    class User(object):
+        def __init__(self, name, email):
+            self.name = name
+            self.email = email
+            self.created_at = dt.datetime.now()
+            self.friends = []
+            self.employer = None
+
+    class Blog(object):
+        def __init__(self, title, author):
+            self.title = title
+            self.author = author  # A User object
+
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in nested schema class.
+
+.. code-block:: python
+    :emphasize-lines: 10
+
+    from marshmallow import Schema, fields, pprint
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+        created_at = fields.DateTime()
+
+    class BlogSchema(Schema):
+        title = fields.String()
+        author = fields.Nested(UserSchema)
+
+When you serialize the blog, you will see the nested user representation.
+
+.. code-block:: python
+
+    user = User(name="Monty", email="monty@python.org")
+    blog = Blog(title="Something Completely Different", author=user)
+    result, errors = BlogSchema().dump(blog)
+    pprint(result)
+    # {'title': u'Something Completely Different',
+    # {'author': {'name': u'Monty',
+    #             'email': u'monty@python.org',
+    #             'created_at': '2014-08-17T14:58:57.600623+00:00'}}
+
+.. note::
+    If the field is a collection of nested objects, you must set ``many=True``.
+
+    .. code-block:: python
+
+        collaborators = fields.Nested(UserSchema, many=True)
+
+.. _specifying-nested-fields:
+
+Specifying Which Fields to Nest
+-------------------------------
+
+You can explicitly specify which attributes in the nested fields you want to serialize with the ``only`` argument.
+
+.. code-block:: python
+
+    class BlogSchema2(Schema):
+        title = fields.String()
+        author = fields.Nested(UserSchema, only=["email"])
+
+    schema = BlogSchema2()
+    result, errors = schema.dump(blog)
+    pprint(result)
+    # {
+    #     'title': u'Something Completely Different',
+    #     'author': {'email': u'monty@python.org'}
+    # }
+
+.. note::
+
+    If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
+
+    .. code-block:: python
+
+        class UserSchema(Schema):
+            name = fields.String()
+            email = fields.Email()
+            friends = fields.Nested('self', only='name', many=True)
+        # ... create ``user`` ...
+        result, errors = UserSchema().dump(user)
+        pprint(result)
+        # {
+        #     "name": "Steve",
+        #     "email": "steve@example.com",
+        #     "friends": ["Mike", "Joe"]
+        # }
+
+
+You can also exclude fields by passing in an ``exclude`` list.
+
+.. _two-way-nesting:
+
+Two-way Nesting
+---------------
+
+If you have two objects that nest each other, you can refer to a nested schema by its class name. This allows you to nest Schemas that have not yet been defined.
+
+
+For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
+
+.. code-block:: python
+    :emphasize-lines: 4
+
+    class AuthorSchema(Schema):
+        # Make sure to use the 'only' or 'exclude' params
+        # to avoid infinite recursion
+        books = fields.Nested('BookSchema', many=True, exclude=('author', ))
+        class Meta:
+            fields = ('id', 'name', 'books')
+
+    class BookSchema(Schema):
+        author = fields.Nested(AuthorSchema, only=('id', 'name'))
+        class Meta:
+            fields = ('id', 'title', 'author')
+
+.. code-block:: python
+
+    from marshmallow import pprint
+    from mymodels import Author, Book
+
+    author = Author(name='William Faulkner')
+    book = Book(title='As I Lay Dying', author=author)
+    book_result, errors = BookSchema().dump(book)
+    pprint(book_result, indent=2)
+    # {
+    #   "id": 124,
+    #   "title": "As I Lay Dying",
+    #   "author": {
+    #     "id": 8,
+    #     "name": "William Faulkner"
+    #   }
+    # }
+
+    author_result, errors = AuthorSchema().dump(author)
+    pprint(author_result, indent=2)
+    # {
+    #   "id": 8,
+    #   "name": "William Faulkner",
+    #   "books": [
+    #     {
+    #       "id": 124,
+    #       "title": "As I Lay Dying"
+    #     }
+    #   ]
+    # }
+
+.. note::
+    If you need to, you can also pass the full, module-qualified path to `fields.Nested`. ::
+
+        books = fields.Nested('path.to.BookSchema',
+                              many=True, exclude=('author', ))
+
+.. _self-nesting:
+
+Nesting A Schema Within Itself
+------------------------------
+
+If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
+
+.. code-block:: python
+    :emphasize-lines: 4,6
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+        friends = fields.Nested('self', many=True)
+        # Use the 'exclude' argument to avoid infinite recursion
+        employer = fields.Nested('self', exclude=('employer', ), default=None)
+
+    user = User("Steve", 'steve@example.com')
+    user.friends.append(User("Mike", 'mike@example.com'))
+    user.friends.append(User('Joe', 'joe@example.com'))
+    user.employer = User('Dirk', 'dirk@example.com')
+    result, errors = UserSchema().dump(user)
+    pprint(result, indent=2)
+    # {
+    #     "name": "Steve",
+    #     "email": "steve@example.com",
+    #     "friends": [
+    #         {
+    #             "name": "Mike",
+    #             "email": "mike@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         },
+    #         {
+    #             "name": "Joe",
+    #             "email": "joe@example.com",
+    #             "friends": [],
+    #             "employer": null
+    #         }
+    #     ],
+    #     "employer": {
+    #         "name": "Dirk",
+    #         "email": "dirk@example.com",
+    #         "friends": []
+    #     }
+    # }
+
+Next Steps
+----------
+
+- Want to create your own field type? See the :ref:`Custom Fields <custom_fields>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
+- For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
