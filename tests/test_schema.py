@@ -1044,7 +1044,7 @@ class TestSelfReference:
     def user(self, employer):
         return User(name="Tom", employer=employer, age=28)
 
-    def test_nesting_serializer_within_itself(self, user, employer):
+    def test_nesting_schema_within_itself(self, user, employer):
         class SelfSchema(Schema):
             name = fields.String()
             age = fields.Integer()
@@ -1052,6 +1052,16 @@ class TestSelfReference:
 
         data, errors = SelfSchema().dump(user)
         assert not errors
+        assert data['name'] == user.name
+        assert data['employer']['name'] == employer.name
+        assert data['employer']['age'] == employer.age
+
+    def test_nesting_schema_by_passing_class_name(self, user, employer):
+        class _SelfReferencingSchema(Schema):
+            name = fields.Str()
+            age = fields.Int()
+            employer = fields.Nested('_SelfReferencingSchema', exclude=('employer, '))
+        data, errors = _SelfReferencingSchema().dump(user)
         assert data['name'] == user.name
         assert data['employer']['name'] == employer.name
         assert data['employer']['age'] == employer.age
