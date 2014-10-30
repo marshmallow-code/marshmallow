@@ -406,12 +406,13 @@ class TestSchemaDeserialization:
 
         blog_dict = {
             'title': 'Gimme Shelter',
-            'author': {'name': 'Mick', 'age': '914'}
+            'author': {'name': 'Mick', 'age': '914', 'email': 'mick@stones.com'}
         }
         result, errors = SimpleBlogSerializer().load(blog_dict)
         author = result['author']
         assert author['name'] == 'Mick'
         assert author['age'] == 914
+        assert 'email' not in author
 
     def test_nested_list_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
