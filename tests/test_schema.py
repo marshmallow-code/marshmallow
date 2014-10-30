@@ -1410,3 +1410,18 @@ class TestAccessor:
         user = User(name='joe', email='joe@shmoe.com')
         with pytest.raises(AttributeError):
             schema.dump(user)
+
+class UnorderedSchema(Schema):
+    name = fields.Str()
+    email = fields.Str()
+
+    class Meta:
+        ordered = False
+
+class TestUnordered:
+    def test_unordered_dump_returns_dict(self):
+        schema = UnorderedSchema()
+        u = User('steve', email='steve@steve.steve')
+        result = schema.dump(u)
+        assert not isinstance(result.data, OrderedDict)
+        assert type(result.data) is dict

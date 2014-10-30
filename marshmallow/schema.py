@@ -22,7 +22,7 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
-def _get_fields(attrs, field_class, pop=False):
+def _get_fields(attrs, field_class, pop=False, sort=True):
     """Get fields from a class, sorted by creation index.
 
     :param attrs: Mapping of class attributes
@@ -30,18 +30,22 @@ def _get_fields(attrs, field_class, pop=False):
     :param bool pop: Remove matching fields
     """
     getter = getattr(attrs, 'pop' if pop else 'get')
-    return sorted(
-        [
-            (field_name, getter(field_name))
-            for field_name, field_value in list(iteritems(attrs))
-            if utils.is_instance_or_subclass(field_value, field_class)
-        ],
-        key=lambda pair: pair[1]._creation_index,
-    )
+    fields = [
+        (field_name, getter(field_name))
+        for field_name, field_value in list(iteritems(attrs))
+        if utils.is_instance_or_subclass(field_value, field_class)
+    ]
+    if sort:
+        return sorted(
+            fields,
+            key=lambda pair: pair[1]._creation_index,
+        )
+    else:
+        return fields
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
-def _get_fields_by_mro(klass, field_class):
+def _get_fields_by_mro(klass, field_class, sort=True):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
@@ -53,7 +57,8 @@ def _get_fields_by_mro(klass, field_class):
         (
             _get_fields(
                 getattr(base, '_declared_fields', base.__dict__),
-                field_class
+                field_class,
+                sort=sort
             )
             for base in klass.mro()[:0:-1]
         ),
@@ -68,10 +73,13 @@ class SchemaMeta(type):
     """
 
     def __new__(mcs, name, bases, attrs):
-        fields = _get_fields(attrs, base.FieldABC, pop=True)
+        meta = attrs.get('Meta')
+        sort = getattr(meta, 'ordered', True)
+        fields = _get_fields(attrs, base.FieldABC, pop=True, sort=sort)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
-        klass._declared_fields = OrderedDict(fields)
+        dict_cls = OrderedDict if sort else dict
+        klass._declared_fields = dict_cls(fields)
         class_registry.register(name, klass)
         return klass
 
@@ -95,6 +103,7 @@ class SchemaOpts(object):
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
         self.skip_missing = getattr(meta, 'skip_missing', False)
+        self.ordered = getattr(meta, 'ordered', True)
 
 
 class BaseSchema(base.SchemaABC):
@@ -211,8 +220,6 @@ class BaseSchema(base.SchemaABC):
                 context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
-        #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = OrderedDict()
         self._data = None  # the cached, serialized data
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
@@ -221,6 +228,10 @@ class BaseSchema(base.SchemaABC):
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
+        self.ordered = self.opts.ordered
+        self.dict_class = OrderedDict if self.ordered else dict
+        #: Dictionary mapping field_names -> :class:`Field` objects
+        self.fields = self.dict_class()
         #: Callable marshalling object
         self._marshal = fields.Marshaller(
             prefix=self.prefix
@@ -413,7 +424,8 @@ class BaseSchema(base.SchemaABC):
             many=self.many,
             strict=self.strict,
             skip_missing=self.skip_missing,
-            accessor=self.__accessor__
+            accessor=self.__accessor__,
+            dict_class=self.dict_class
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
@@ -497,7 +509,7 @@ class BaseSchema(base.SchemaABC):
 
     @property
     def data(self):
-        """The serialized data as an :class:`OrderedDict`.
+        """The serialized data as an dictionary.
 
         .. deprecated:: 1.0.0
             Use the return value of `dump` instead.
@@ -528,6 +540,7 @@ class BaseSchema(base.SchemaABC):
     def _update_fields(self, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
+        set_class = OrderedSet if self.ordered else set
         if self.only:
             ret = self.__filter_fields(self.only, obj)
             self.__set_field_attrs(ret)
@@ -536,13 +549,13 @@ class BaseSchema(base.SchemaABC):
 
         if self.opts.fields:
             # Return only fields specified in fields option
-            field_names = OrderedSet(self.opts.fields)
+            field_names = set_class(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
-            field_names = (OrderedSet(self.declared_fields.keys()) |
-                            OrderedSet(self.opts.additional))
+            field_names = (set_class(self.declared_fields.keys()) |
+                            set_class(self.opts.additional))
         else:
-            field_names = OrderedSet(self.declared_fields.keys())
+            field_names = set_class(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
@@ -574,7 +587,7 @@ class BaseSchema(base.SchemaABC):
 
         :param set field_names: Field names to include in the final
             return dictionary.
-        :returns: An OrderedDict of field_name:field_obj pairs.
+        :returns: An dict of field_name:field_obj pairs.
         """
         # Convert obj to a dict
         obj_marshallable = utils.to_marshallable_type(obj,
@@ -588,7 +601,7 @@ class BaseSchema(base.SchemaABC):
                 field_names=field_names)
         else:
             obj_dict = obj_marshallable
-        ret = OrderedDict()
+        ret = self.dict_class()
         for key in field_names:
             if key in self.declared_fields:
                 ret[key] = self.declared_fields[key]

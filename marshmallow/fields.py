@@ -142,7 +142,7 @@ class Marshaller(object):
         self.errors = {}
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None):
+                  accessor=None, dict_class=OrderedDict):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -160,7 +160,8 @@ class Marshaller(object):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self.serialize(d, fields_dict, many=False, strict=strict)
+            return [self.serialize(d, fields_dict, many=False, strict=strict,
+                                    dict_class=dict_class)
                     for d in obj]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -178,7 +179,7 @@ class Marshaller(object):
             if (value is missing) or (value is None and skip_missing):
                 continue
             items.append((key, value))
-        return OrderedDict(items)
+        return dict_class(items)
 
     # Make an instance callable
     __call__ = serialize
@@ -487,10 +488,10 @@ class Nested(Field):
         self.__updated_fields = False  # ensures serializer fields are updated only once
         super(Nested, self).__init__(default=default, **kwargs)
 
-    def __get_fields_to_marshal(self, all_fields):
+    def __get_fields_to_marshal(self, all_fields, dict_class=OrderedDict):
         """Filter all_fields based on self.only and self.exclude """
         # Default 'only' to all the nested fields
-        ret = OrderedDict()
+        ret = dict_class()
         if all_fields is None:
             return ret
         elif isinstance(self.only, basestring):
@@ -505,7 +506,7 @@ class Nested(Field):
             exclude = set([]) if self.exclude is None else set(self.exclude)
         filtered = ((k, v) for k, v in iteritems(all_fields)
                     if k in only and k not in exclude)
-        return OrderedDict(filtered)
+        return dict_class(filtered)
 
     @property
     def schema(self):
@@ -532,11 +533,13 @@ class Nested(Field):
                 raise ForcedError(ValueError('Nested fields must be passed a '
                                     'Schema, not {0}.'
                                     .format(self.nested.__class__)))
+        self.__schema.ordered = getattr(self.parent, 'ordered', True)
         # Inherit context from parent
         self.__schema.context.update(getattr(self.parent, 'context', {}))
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
+        dict_class = OrderedDict if self.schema.ordered else dict
         if self.allow_null and nested_obj is None:
             return None
         self.schema.many = self.many
@@ -544,12 +547,13 @@ class Nested(Field):
         if not self.__updated_fields:
             self.__updated_fields = True
             self.schema._update_fields(nested_obj)
-        fields = self.__get_fields_to_marshal(self.schema.fields)
+        fields = self.__get_fields_to_marshal(self.schema.fields, dict_class=dict_class)
         try:
             # We call the protected _marshal method instead of _dump
             # because we need to pass the this field's ``many`` attribute as
             # an argument, which dump would not allow
-            ret = self.schema._marshal(nested_obj, fields, many=self.many)
+            ret = self.schema._marshal(nested_obj, fields,
+                    many=self.many, dict_class=dict_class)
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
