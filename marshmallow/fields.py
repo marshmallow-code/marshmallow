@@ -165,8 +165,9 @@ class Marshaller(object):
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
+            getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = _call_and_store(
-                getter_func=partial(field_obj.serialize, attr_name, accessor=accessor),
+                getter_func=getter,
                 data=obj,
                 field_name=key,
                 field_obj=field_obj,
@@ -393,7 +394,7 @@ class Field(FieldABC):
                     return self.default()
                 else:
                     return self.default
-        func = partial(self._serialize, value, attr, obj)
+        func = lambda: self._serialize(value, attr, obj)
         return self._call_and_reraise(func, MarshallingError)
 
     def deserialize(self, value):
