@@ -419,6 +419,9 @@ def test_meta_serializer_fields():
     assert s.data['finger_count'] == 10
 
 class KeepOrder(Schema):
+    class Meta:
+        ordered = True
+
     name = fields.String()
     email = fields.Email()
     age = fields.Integer()
@@ -427,42 +430,60 @@ class KeepOrder(Schema):
     homepage = fields.Url()
     birthdate = fields.DateTime()
 
-def test_declared_field_order_is_maintained(user):
-    ser = KeepOrder()
-    data, errs = ser.dump(user)
-    keys = list(data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
-def test_nested_field_order_with_only_arg_is_maintained(user):
-    class HasNestedOnly(Schema):
-        user = fields.Nested(KeepOrder, only=('name', 'email', 'age',
-                                              'created', 'id', 'homepage'))
-    ser = HasNestedOnly()
-    data, errs = ser.dump({'user': user})
-    user_data = data['user']
-    keys = list(user_data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+class TestFieldOrdering:
 
-def test_nested_field_order_with_exlude_arg_is_maintained(user):
-    class HasNestedExclude(Schema):
-        user = fields.Nested(KeepOrder, exclude=('birthdate', ))
+    def test_ordering_is_off_by_default(self):
+        class DummySchema(Schema):
+            pass
 
-    ser = HasNestedExclude()
-    data, errs = ser.dump({'user': user})
-    user_data = data['user']
-    keys = list(user_data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+        schema = DummySchema()
+        assert schema.ordered is False
 
+    def test_declared_field_order_is_maintained(self, user):
+        ser = KeepOrder()
+        data, errs = ser.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
-def test_meta_fields_order_is_maintained(user):
-    class MetaSchema(Schema):
-        class Meta:
-            fields = ('name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate')
+    def test_nested_field_order_with_only_arg_is_maintained(self, user):
+        class HasNestedOnly(Schema):
+            class Meta:
+                ordered = True
 
-    ser = MetaSchema()
-    data, errs = ser.dump(user)
-    keys = list(data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+            user = fields.Nested(KeepOrder, only=('name', 'email', 'age',
+                                                'created', 'id', 'homepage'))
+
+        ser = HasNestedOnly()
+        data, errs = ser.dump({'user': user})
+        user_data = data['user']
+        keys = list(user_data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+
+    def test_nested_field_order_with_exlude_arg_is_maintained(self, user):
+        class HasNestedExclude(Schema):
+            class Meta:
+                ordered = True
+
+            user = fields.Nested(KeepOrder, exclude=('birthdate', ))
+
+        ser = HasNestedExclude()
+        data, errs = ser.dump({'user': user})
+        user_data = data['user']
+        keys = list(user_data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+
+    def test_meta_fields_order_is_maintained(self, user):
+        class MetaSchema(Schema):
+            class Meta:
+                fields = ('name', 'email', 'age', 'created',
+                            'id', 'homepage', 'birthdate')
+                ordered = True
+
+        ser = MetaSchema()
+        data, errs = ser.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
 
 def test_meta_fields_mapping(user):
@@ -1208,7 +1229,7 @@ class TestContext:
             def get_is_owner(self, user, context):
                 return context['blog'].user.name == user.name
         owner = User('Joe')
-        serializer = UserContextSchema(strict=True)
+        serializer = UserMethodContextSchema(strict=True)
         serializer.context = None
         with pytest.raises(MarshallingError) as excinfo:
             serializer.dump(owner)

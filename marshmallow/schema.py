@@ -22,7 +22,7 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
-def _get_fields(attrs, field_class, pop=False, sort=True):
+def _get_fields(attrs, field_class, pop=False, ordered=False):
     """Get fields from a class, sorted by creation index.
 
     :param attrs: Mapping of class attributes
@@ -35,7 +35,7 @@ def _get_fields(attrs, field_class, pop=False, sort=True):
         for field_name, field_value in list(iteritems(attrs))
         if utils.is_instance_or_subclass(field_value, field_class)
     ]
-    if sort:
+    if ordered:
         return sorted(
             fields,
             key=lambda pair: pair[1]._creation_index,
@@ -45,7 +45,7 @@ def _get_fields(attrs, field_class, pop=False, sort=True):
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
-def _get_fields_by_mro(klass, field_class, sort=True):
+def _get_fields_by_mro(klass, field_class, ordered=False):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
@@ -58,7 +58,7 @@ def _get_fields_by_mro(klass, field_class, sort=True):
             _get_fields(
                 getattr(base, '_declared_fields', base.__dict__),
                 field_class,
-                sort=sort
+                ordered=ordered
             )
             for base in klass.mro()[:0:-1]
         ),
@@ -74,11 +74,11 @@ class SchemaMeta(type):
 
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get('Meta')
-        sort = getattr(meta, 'ordered', True)
-        fields = _get_fields(attrs, base.FieldABC, pop=True, sort=sort)
+        ordered = getattr(meta, 'ordered', False)
+        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
-        dict_cls = OrderedDict if sort else dict
+        dict_cls = OrderedDict if ordered else dict
         klass._declared_fields = dict_cls(fields)
         class_registry.register(name, klass)
         return klass
@@ -103,7 +103,7 @@ class SchemaOpts(object):
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
         self.skip_missing = getattr(meta, 'skip_missing', False)
-        self.ordered = getattr(meta, 'ordered', True)
+        self.ordered = getattr(meta, 'ordered', False)
 
 
 class BaseSchema(base.SchemaABC):
@@ -113,28 +113,27 @@ class BaseSchema(base.SchemaABC):
 
     .. code-block:: python
 
-        from datetime import datetime
+        import datetime as dt
         from marshmallow import Schema, fields
 
-        class Person(object):
-            def __init__(self, name):
-                self.name = name
-                self.date_born = datetime.now()
+        class Album(object):
+            def __init__(self, title, release_date):
+                self.title = title
+                self.release_date = release_date
 
-        class PersonSchema(Schema):
-            name = fields.String()
-            date_born = fields.DateTime()
+        class AlbumSchema(Schema):
+            title = fields.Str()
+            release_date = fields.Date()
 
         # Or, equivalently
-        class PersonSchema2(Schema):
+        class AlbumSchema2(Schema):
             class Meta:
-                fields = ("name", "date_born")
+                fields = ("title", "release_date")
 
-        person = Person("Guido van Rossum")
-        schema = PersonSchema()
-        data, errors = schema.dump(person)
-        data  # OrderedDict([('name', u'Guido van Rossum'),
-              #              ('date_born', '2014-08-19T21:06:10.620408')])
+        album = Album("Beggars Banquet", dt.date(1968, 12, 6))
+        schema = AlbumSchema()
+        data, errors = schema.dump(album)
+        data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
     :param obj: The object or collection of objects to be serialized. NOTE: This
         parameter is deprecated. Pass the object to the :meth:`dump` method
@@ -212,6 +211,9 @@ class BaseSchema(base.SchemaABC):
             Defaults to the ``json`` module in the stdlib.
         - ``skip_missing``: If `True`, don't include key:value pairs in
             serialized results if ``value`` is `None`.
+        - ``ordered``: If `True`, order serialization output according to the
+            order in which fields were declared. Output will of `Schema.dump` will be an
+            `OrderedDict`.
         """
         pass
 

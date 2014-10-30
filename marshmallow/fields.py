@@ -142,7 +142,7 @@ class Marshaller(object):
         self.errors = {}
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None, dict_class=OrderedDict):
+                  accessor=None, dict_class=dict):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -533,7 +533,7 @@ class Nested(Field):
                 raise ForcedError(ValueError('Nested fields must be passed a '
                                     'Schema, not {0}.'
                                     .format(self.nested.__class__)))
-        self.__schema.ordered = getattr(self.parent, 'ordered', True)
+        self.__schema.ordered = getattr(self.parent, 'ordered', False)
         # Inherit context from parent
         self.__schema.context.update(getattr(self.parent, 'context', {}))
         return self.__schema
