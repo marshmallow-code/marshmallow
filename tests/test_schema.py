@@ -3,6 +3,7 @@
 
 import json
 import random
+import datetime as dt
 
 import pytest
 
@@ -419,6 +420,9 @@ def test_meta_serializer_fields():
     assert s.data['finger_count'] == 10
 
 class KeepOrder(Schema):
+    class Meta:
+        ordered = True
+
     name = fields.String()
     email = fields.Email()
     age = fields.Integer()
@@ -427,42 +431,85 @@ class KeepOrder(Schema):
     homepage = fields.Url()
     birthdate = fields.DateTime()
 
-def test_declared_field_order_is_maintained(user):
-    ser = KeepOrder()
-    data, errs = ser.dump(user)
-    keys = list(data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+class OrderedMetaSchema(Schema):
+    class Meta:
+        fields = ('name', 'email', 'age', 'created',
+                    'id', 'homepage', 'birthdate')
+        ordered = True
 
-def test_nested_field_order_with_only_arg_is_maintained(user):
-    class HasNestedOnly(Schema):
-        user = fields.Nested(KeepOrder, only=('name', 'email', 'age',
-                                              'created', 'id', 'homepage'))
-    ser = HasNestedOnly()
-    data, errs = ser.dump({'user': user})
-    user_data = data['user']
-    keys = list(user_data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+class OrderedNestedOnly(Schema):
+    class Meta:
+        ordered = True
 
-def test_nested_field_order_with_exlude_arg_is_maintained(user):
-    class HasNestedExclude(Schema):
-        user = fields.Nested(KeepOrder, exclude=('birthdate', ))
+    user = fields.Nested(KeepOrder)
 
-    ser = HasNestedExclude()
-    data, errs = ser.dump({'user': user})
-    user_data = data['user']
-    keys = list(user_data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+class TestFieldOrdering:
 
+    def test_ordering_is_off_by_default(self):
+        class DummySchema(Schema):
+            pass
 
-def test_meta_fields_order_is_maintained(user):
-    class MetaSchema(Schema):
-        class Meta:
-            fields = ('name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate')
+        schema = DummySchema()
+        assert schema.ordered is False
 
-    ser = MetaSchema()
-    data, errs = ser.dump(user)
-    keys = list(data)
-    assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+    def test_declared_field_order_is_maintained_on_dump(self, user):
+        ser = KeepOrder()
+        data, errs = ser.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+    def test_declared_field_order_is_maintained_on_load(self, serialized_user):
+        schema = KeepOrder()
+        data, errs = schema.load(serialized_user.data)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+    def test_nested_field_order_with_only_arg_is_maintained_on_dump(self, user):
+        schema = OrderedNestedOnly()
+        data, errs = schema.dump({'user': user})
+        user_data = data['user']
+        keys = list(user_data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+    def test_nested_field_order_with_only_arg_is_maintained_on_load(self):
+        schema = OrderedNestedOnly()
+        data, errs = schema.load({'user': {
+            'name': 'Foo',
+            'email': 'Foo@bar.com',
+            'age': 42,
+            'created': dt.datetime.now().isoformat(),
+            'id': 123,
+            'homepage': 'http://foo.com',
+            'birthdate': dt.datetime.now().isoformat(),
+        }})
+        user_data = data['user']
+        keys = list(user_data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+    def test_nested_field_order_with_exlude_arg_is_maintained(self, user):
+        class HasNestedExclude(Schema):
+            class Meta:
+                ordered = True
+
+            user = fields.Nested(KeepOrder, exclude=('birthdate', ))
+
+        ser = HasNestedExclude()
+        data, errs = ser.dump({'user': user})
+        user_data = data['user']
+        keys = list(user_data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
+
+    def test_meta_fields_order_is_maintained_on_dump(self, user):
+        ser = OrderedMetaSchema()
+        data, errs = ser.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+    def test_meta_fields_order_is_maintained_on_load(self, serialized_user):
+        schema = OrderedMetaSchema()
+        data, errs = schema.load(serialized_user.data)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
 
 def test_meta_fields_mapping(user):
@@ -1208,7 +1255,7 @@ class TestContext:
             def get_is_owner(self, user, context):
                 return context['blog'].user.name == user.name
         owner = User('Joe')
-        serializer = UserContextSchema(strict=True)
+        serializer = UserMethodContextSchema(strict=True)
         serializer.context = None
         with pytest.raises(MarshallingError) as excinfo:
             serializer.dump(owner)
@@ -1410,3 +1457,24 @@ class TestAccessor:
         user = User(name='joe', email='joe@shmoe.com')
         with pytest.raises(AttributeError):
             schema.dump(user)
+
+class UnorderedSchema(Schema):
+    name = fields.Str()
+    email = fields.Str()
+
+    class Meta:
+        ordered = False
+
+class TestUnordered:
+    def test_unordered_dump_returns_dict(self):
+        schema = UnorderedSchema()
+        u = User('steve', email='steve@steve.steve')
+        result = schema.dump(u)
+        assert not isinstance(result.data, OrderedDict)
+        assert type(result.data) is dict
+
+    def test_unordered_load_returns_dict(self):
+        schema = UnorderedSchema()
+        result = schema.load({'name': 'steve', 'email': 'steve@steve.steve'})
+        assert not isinstance(result.data, OrderedDict)
+        assert type(result.data) is dict
