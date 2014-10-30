@@ -142,7 +142,7 @@ class Marshaller(object):
         self.errors = {}
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None, dict_class=dict):
+                  accessor=None, dict_class=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -154,11 +154,13 @@ class Marshaller(object):
             instead of failing silently and storing the errors.
         :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :param callable accessor: Function to use for getting values from ``obj``.
-        :return: An `OrderedDict` of the marshalled data
+        :param type dict_class: Dictionary class used to construct the output.
+        :return: A dictionary of the marshalled data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
+        dict_class = dict_class or dict
         if many and obj is not None:
             return [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class)
@@ -216,7 +218,7 @@ class Unmarshaller(object):
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
-            preprocess=None, postprocess=None, strict=False):
+            preprocess=None, postprocess=None, strict=False, dict_class=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -229,12 +231,14 @@ class Unmarshaller(object):
         :param list postprocess: List of post-processing functions.
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
-        :return: An OrderedDict of the deserialized data.
+        :param type dict_class: Dictionary class used to construct the output.
+        :return: A dictionary of the deserialized data.
         """
+        dict_class = dict_class or dict
         if many and data is not None:
             return [self.deserialize(d, fields_dict, many=False,
                         validators=validators, preprocess=preprocess,
-                        postprocess=postprocess, strict=strict)
+                        postprocess=postprocess, strict=strict, dict_class=dict_class)
                     for d in data]
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -255,7 +259,7 @@ class Unmarshaller(object):
             )
             if raw_value is not missing:
                 items.append((key, value))
-        ret = OrderedDict(items)
+        ret = dict_class(items)
 
         if preprocess:
             preprocess = preprocess or []

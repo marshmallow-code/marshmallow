@@ -1446,3 +1446,9 @@ class TestUnordered:
         result = schema.dump(u)
         assert not isinstance(result.data, OrderedDict)
         assert type(result.data) is dict
+
+    def test_unordered_load_returns_dict(self):
+        schema = UnorderedSchema()
+        result = schema.load({'name': 'steve', 'email': 'steve@steve.steve'})
+        assert not isinstance(result.data, OrderedDict)
+        assert type(result.data) is dict

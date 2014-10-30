@@ -4,7 +4,7 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
-- *Backwards-incompatible*: Serialized output is no longer an ``OrderedDict`` by default. If you want ordered field output, you must explicitly set the ``ordered`` option to ``True``.
+- *Backwards-incompatible*: Schema output is no longer an ``OrderedDict`` by default. If you want ordered field output, you must explicitly set the ``ordered`` option to ``True``.
 - Move a number of utility functions from fields.py to utils.py.
 - More useful ``repr`` for ``Field`` classes.
 - If a field's default is ``fields.missing`` and its serialized value is ``None``, it will not be included in the final serialized result.
