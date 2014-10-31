@@ -492,8 +492,9 @@ class Nested(Field):
         self.__updated_fields = False  # ensures serializer fields are updated only once
         super(Nested, self).__init__(default=default, **kwargs)
 
-    def __get_fields_to_marshal(self, all_fields, dict_class=OrderedDict):
+    def __get_fields_to_marshal(self, all_fields, dict_class=None):
         """Filter all_fields based on self.only and self.exclude """
+        dict_class = dict_class or dict
         # Default 'only' to all the nested fields
         ret = dict_class()
         if all_fields is None:

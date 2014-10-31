@@ -82,6 +82,7 @@ Another major change in 1.0 is that multiple validation errors can be stored for
 
 Other notable changes:
 
+- Serialized output is no longer an `OrderedDict` by default. You must explicitly set the `ordered` class Meta option to `True` .
 - :class:`Serializer` has been renamed to :class:`Schema`, but you can still import `marshmallow.Serializer` (which is aliased to :class:`Schema`).
 - ``datetime`` objects serialize to ISO8601-formatted strings by default (instead of RFC821 format).
 - The ``fields.validated`` decorator was removed, as it is no longer necessary given the new Fields interface.

@@ -59,10 +59,6 @@ Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Sche
     #  "email": "monty@python.org",
     #  "created_at": "2014-08-17T14:54:16.049594+00:00"}
 
-.. note::
-
-    Marshmallow provides a :func:`pprint` function for pretty-printing the ``OrderedDicts`` returned by the :meth:`dump <marshmallow.Schema.dump>` method.
-
 You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.Schema.dumps>`.
 
 .. code-block:: python
@@ -290,6 +286,7 @@ Let's refactor our User schema to be more concise.
 Note that ``name`` will be automatically formatted as a :class:`String <marshmallow.fields.String>` and ``created_at`` will be formatted as a :class:`DateTime <marshmallow.fields.DateTime>`.
 
 .. note::
+
     If instead you want to specify which field names to include *in addition* to the explicitly declared fields, you can use the ``additional`` option.
 
     The schema below is equivalent to above:
@@ -301,6 +298,34 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
             class Meta:
                 additional = ("name", "email", "created_at")  # No need to include 'uppername'
 
+Ordering Output
+---------------
+
+For some use cases, it may be useful to maintain field ordering of serialized output. To enable ordering, set the ``ordered`` option to `True`. This will instruct marshmallow to serialize data to a `collections.OrderedDict`.
+
+.. code-block:: python
+    :emphasize-lines: 7
+
+    from collections import OrderedDict
+
+    class UserSchema(Schema):
+        uppername = fields.Function(lambda obj: obj.name.upper())
+        class Meta:
+            fields = ("name", "email", "created_at", "uppername")
+            ordered = True
+
+    u = User('Charlie', 'charlie@stones.com')
+    schema = UserSchema()
+    result = schema.dump(u)
+    assert isinstance(result.data, OrderedDict)
+    # marshmallow's pprint function maintains order
+    pprint(result.data, indent=2)
+    # {
+    #   "name": "Charlie",
+    #   "email": "charlie@stones.com",
+    #   "created_at": "2014-10-30T08:27:48.515735+00:00",
+    #   "uppername": "CHARLIE"
+    # }
 
 Next Steps
 ----------
