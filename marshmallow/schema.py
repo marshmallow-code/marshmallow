@@ -444,11 +444,6 @@ class BaseSchema(base.SchemaABC):
         """
         deserialized, errors = self.dump(obj)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
-        # # On Python 2, json.dumps returns bytestrings
-        # # On Python 3, json.dumps returns unicode
-        # # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            ret = bytes(ret.encode('utf-8'))
         return MarshalResult(ret, errors)
 
     def load(self, data):

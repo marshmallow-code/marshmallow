@@ -13,6 +13,7 @@ Adds new features, peformance improvements, and updated documentation.
 - Move a number of utility functions from fields.py to utils.py.
 - More useful ``repr`` for ``Field`` classes.
 - If a field's default is ``fields.missing`` and its serialized value is ``None``, it will not be included in the final serialized result.
+- Schema.dumps no longer coerces its result to a binary string on Python 3.
 - *Backwards-incompatible*: Schema output is no longer an ``OrderedDict`` by default. If you want ordered field output, you must explicitly set the ``ordered`` option to ``True``.
 - Expanded test coverage.
 - Updated docs.

@@ -45,18 +45,20 @@ def test_dump_returns_dict_of_errors():
 def test_dump_returns_a_marshalresult(user):
     s = UserSchema()
     result = s.dump(user)
-    assert isinstance(result, MarshalResult)
+    assert type(result) == MarshalResult
     data = result.data
-    assert isinstance(data, dict)
+    assert type(data) == dict
     errors = result.errors
-    assert isinstance(errors, dict)
+    assert type(errors) == dict
 
 def test_dumps_returns_a_marshalresult(user):
     s = UserSchema()
     result = s.dumps(user)
-    assert isinstance(result, MarshalResult)
-    assert isinstance(result.data, binary_type)
-    assert isinstance(result.errors, dict)
+    assert type(result) == MarshalResult
+    assert type(result.data) == str
+    assert type(result.errors) == dict
+
+
 
 def test_load_returns_an_unmarshalresult():
     s = UserSchema()
