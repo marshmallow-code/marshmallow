@@ -99,15 +99,9 @@ def test_dumps_returns_json(user):
     ser = UserSchema()
     serialized, errors = ser.dump(user)
     json_data, errors = ser.dumps(user)
-    expected = binary_type(json.dumps(serialized).encode("utf-8"))
+    assert type(json_data) == str
+    expected = json.dumps(serialized)
     assert json_data == expected
-
-
-def test_dumps_returns_bytestring(user):
-    s = UserSchema()
-    result, errors = s.dumps(user)
-    assert isinstance(result, binary_type)
-
 
 def test_naive_datetime_field(user, serialized_user):
     expected = utils.isoformat(user.created)
