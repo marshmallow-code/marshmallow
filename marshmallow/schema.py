@@ -403,17 +403,19 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj):
+    def dump(self, obj, many=False):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
+        :param bool many: Whether to serialize `obj` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        if not self.many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+        many = many or self.many
+        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
@@ -423,7 +425,7 @@ class BaseSchema(base.SchemaABC):
         preresult = self._marshal(
             obj,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
@@ -433,29 +435,32 @@ class BaseSchema(base.SchemaABC):
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
-    def dumps(self, obj, *args, **kwargs):
+    def dumps(self, obj, many=False, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :param bool many: Whether to serialize `obj` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj)
+        deserialized, errors = self.dump(obj, many=many)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
-    def load(self, data):
+    def load(self, data, many=False):
         """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
+        :param bool many: Whether to deserialize `data` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
+        many = many or self.many
         # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
@@ -470,7 +475,7 @@ class BaseSchema(base.SchemaABC):
         result = self._unmarshal(
             data,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
@@ -482,16 +487,18 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
-    def loads(self, json_data, *args, **kwargs):
+    def loads(self, json_data, many=False, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :param bool many: Whether to deserialize `json_data` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        return self.load(self.opts.json_module.loads(json_data, *args, **kwargs))
+        data = self.opts.json_module.loads(json_data, *args, **kwargs)
+        return self.load(data, many=many)
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization

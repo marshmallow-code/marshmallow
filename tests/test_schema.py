@@ -9,7 +9,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
-from marshmallow.compat import unicode, binary_type, OrderedDict
+from marshmallow.compat import unicode, OrderedDict
 
 from tests.base import *  # noqa
 
@@ -42,6 +42,13 @@ def test_dump_returns_dict_of_errors():
     result, errors = s.dump(bad_user)
     assert 'age' in errors
 
+def test_dump_many():
+    s = UserSchema()
+    u1, u2 = User('Mick'), User('Keith')
+    data, errors = s.dump([u1, u2], many=True)
+    assert len(data) == 2
+    assert data[0] == s.dump(u1).data
+
 def test_dump_returns_a_marshalresult(user):
     s = UserSchema()
     result = s.dump(user)
@@ -58,21 +65,44 @@ def test_dumps_returns_a_marshalresult(user):
     assert type(result.data) == str
     assert type(result.errors) == dict
 
+def test_dumps_many():
+    s = UserSchema()
+    u1, u2 = User('Mick'), User('Keith')
+    json_result = s.dumps([u1, u2], many=True)
+    data = json.loads(json_result.data)
+    assert len(data) == 2
+    assert data[0] == s.dump(u1).data
 
 
 def test_load_returns_an_unmarshalresult():
     s = UserSchema()
     result = s.load({'name': 'Monty'})
-    assert isinstance(result, UnmarshalResult)
-    assert isinstance(result.data, User)
-    assert isinstance(result.errors, dict)
+    assert type(result) == UnmarshalResult
+    assert type(result.data) == User
+    assert type(result.errors) == dict
+
+def test_load_many():
+    s = UserSchema()
+    in_data = [{'name': 'Mick'}, {'name': 'Keith'}]
+    result = s.load(in_data, many=True)
+    assert type(result.data) == list
+    assert type(result.data[0]) == User
+    assert result.data[0].name == 'Mick'
 
 def test_loads_returns_an_unmarshalresult(user):
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))
-    assert isinstance(result, UnmarshalResult)
-    assert isinstance(result.data, User)
-    assert isinstance(result.errors, dict)
+    assert type(result) == UnmarshalResult
+    assert type(result.data) == User
+    assert type(result.errors) == dict
+
+def test_loads_many():
+    s = UserSchema()
+    in_data = [{'name': 'Mick'}, {'name': 'Keith'}]
+    in_json_data = json.dumps(in_data)
+    result = s.loads(in_json_data, many=True)
+    assert type(result.data) == list
+    assert result.data[0].name == 'Mick'
 
 def test_loads_deserializes_from_json():
     user_dict = {'name': 'Monty', 'age': '42.3'}
