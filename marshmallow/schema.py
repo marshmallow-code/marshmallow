@@ -231,7 +231,6 @@ class BaseSchema(base.SchemaABC):
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
         self.ordered = self.opts.ordered
-        self.dict_class = OrderedDict if self.ordered else dict
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -279,6 +278,10 @@ class BaseSchema(base.SchemaABC):
                 if callable(callback):
                     data = callback(self, data, obj)
         return data
+
+    @property
+    def dict_class(self):
+        return OrderedDict if self.ordered else dict
 
     ##### Handler decorators #####
 
