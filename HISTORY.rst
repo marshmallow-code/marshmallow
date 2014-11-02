@@ -4,7 +4,7 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
-Adds new features, performance improvements, and updated documentation.
+Adds new features, speed improvements, and updated documentation.
 
 - Add ``skip_missing`` ``class Meta`` option.
 - A field's ``default`` may be a callable.

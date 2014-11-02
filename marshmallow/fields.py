@@ -509,7 +509,7 @@ class Nested(Field):
                 self.__schema = self.nested
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
-                self.__schema = self.nested(None, many=self.many,
+                self.__schema = self.nested(many=self.many,
                         only=only, exclude=self.exclude)
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
@@ -518,7 +518,7 @@ class Nested(Field):
                             exclude=self.exclude)
                 else:
                     schema_class = class_registry.get_class(self.nested)
-                    self.__schema = schema_class(None, many=self.many,
+                    self.__schema = schema_class(many=self.many,
                             only=only, exclude=self.exclude)
             else:
                 raise ForcedError(ValueError('Nested fields must be passed a '
