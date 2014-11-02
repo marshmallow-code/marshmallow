@@ -283,6 +283,10 @@ class BaseSchema(base.SchemaABC):
     def dict_class(self):
         return OrderedDict if self.ordered else dict
 
+    @property
+    def set_class(self):
+        return OrderedSet if self.ordered else set
+
     ##### Handler decorators #####
 
     @classmethod
@@ -550,7 +554,6 @@ class BaseSchema(base.SchemaABC):
     def _update_fields(self, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
-        set_class = OrderedSet if self.ordered else set
         if self.only:
             ret = self.__filter_fields(self.only, obj)
             self.__set_field_attrs(ret)
@@ -559,13 +562,13 @@ class BaseSchema(base.SchemaABC):
 
         if self.opts.fields:
             # Return only fields specified in fields option
-            field_names = set_class(self.opts.fields)
+            field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
-            field_names = (set_class(self.declared_fields.keys()) |
-                            set_class(self.opts.additional))
+            field_names = (self.set_class(self.declared_fields.keys()) |
+                            self.set_class(self.opts.additional))
         else:
-            field_names = set_class(self.declared_fields.keys())
+            field_names = self.set_class(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
