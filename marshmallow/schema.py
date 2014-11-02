@@ -212,8 +212,8 @@ class BaseSchema(base.SchemaABC):
         - ``skip_missing``: If `True`, don't include key:value pairs in
             serialized results if ``value`` is `None`.
         - ``ordered``: If `True`, order serialization output according to the
-            order in which fields were declared. Output will of `Schema.dump` will be an
-            `OrderedDict`.
+            order in which fields were declared. Output of `Schema.dump` will be a
+            `collections.OrderedDict`.
         """
         pass
 
@@ -450,7 +450,7 @@ class BaseSchema(base.SchemaABC):
     def dumps(self, obj, many=False, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
-        :param str json_data: A JSON string of the data to deserialize.
+        :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection.
         :param bool update_fields: Whether to update the schema's field classes. Typically
             set to `True`, but may be `False` when serializing a homogenous collection.

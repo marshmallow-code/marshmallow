@@ -40,7 +40,7 @@ Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relatio
         title = fields.String()
         author = fields.Nested(UserSchema)
 
-When you serialize the blog, you will see the nested user representation.
+The serialized blog will have the nested user representation.
 
 .. code-block:: python
 
@@ -65,9 +65,10 @@ When you serialize the blog, you will see the nested user representation.
 Specifying Which Fields to Nest
 -------------------------------
 
-You can explicitly specify which attributes in the nested fields you want to serialize with the ``only`` argument.
+You can explicitly specify which attributes of the nested objects you want to serialize with the ``only`` argument.
 
 .. code-block:: python
+    :emphasize-lines: 3
 
     class BlogSchema2(Schema):
         title = fields.String()
@@ -86,6 +87,7 @@ You can explicitly specify which attributes in the nested fields you want to ser
     If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
 
     .. code-block:: python
+        :emphasize-lines: 4, 11
 
         class UserSchema(Schema):
             name = fields.String()
@@ -186,8 +188,8 @@ If the object to be marshalled has a relationship to an object of the same type,
     user.friends.append(User("Mike", 'mike@example.com'))
     user.friends.append(User('Joe', 'joe@example.com'))
     user.employer = User('Dirk', 'dirk@example.com')
-    result, errors = UserSchema().dump(user)
-    pprint(result, indent=2)
+    result = UserSchema().dump(user)
+    pprint(result.data, indent=2)
     # {
     #     "name": "Steve",
     #     "email": "steve@example.com",

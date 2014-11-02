@@ -15,7 +15,7 @@ The method you choose will depend on the manner in which you intend to reuse the
 Creating A Field Class
 ----------------------
 
-To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_format <marshmallow.fields.Field._format>`, :meth:`_serialize <marshmallow.fields.Field._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_serialize <marshmallow.fields.Field._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
 
 .. code-block:: python
 

@@ -9,7 +9,7 @@ This guide will walk you through the basics of creating schemas for serializing 
 Declaring Schemas
 -----------------
 
-Let's start with a basic user model.
+Let's start with a basic user "model".
 
 .. code-block:: python
 
@@ -28,7 +28,7 @@ Let's start with a basic user model.
             return '<User(name={self.name!r})>'.format(self=self)
 
 
-Create a schema by defining a class with variables mapping attribute names to a :class:`Field <fields.Field>` objects.
+Create a schema by defining a class with variables mapping attribute names to :class:`Field <fields.Field>` objects.
 
 .. code-block:: python
 
@@ -47,7 +47,7 @@ Create a schema by defining a class with variables mapping attribute names to a 
 Serializing Objects
 -------------------
 
-Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, which we'll revisit later).
+Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
 
 .. code-block:: python
 
@@ -104,7 +104,7 @@ By default, :meth:`load <Schema.load>` will return a dictionary of field names m
     #  'email': 'ken@yahoo.com',
     #  'created_at': datetime.datetime(2014, 8, 11, 5, 26, 3, 869245)},
 
-Notice that the datetime string was converted to a datetime object.
+Notice that the datetime string was converted to a `datetime` object.
 
 Deserializing to Objects
 ++++++++++++++++++++++++
@@ -161,7 +161,7 @@ Iterable collections of objects are also serializable and deserializable. Just s
 Validation
 ----------
 
-:meth:`Schema.load` (and its JSON-encoding counterpart, :meth:`Schema.loads`) returns a dictionary of validation errors as the second element of its return value. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
+:meth:`Schema.load` (and its JSON-decoding counterpart, :meth:`Schema.loads`) returns a dictionary of validation errors as the second element of its return value. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
 
 .. code-block:: python
 
@@ -276,6 +276,7 @@ The *class Meta* paradigm allows you to specify which attributes you want to ser
 Let's refactor our User schema to be more concise.
 
 .. code-block:: python
+    :emphasize-lines: 4,5
 
     # Refactored schema
     class UserSchema(Schema):

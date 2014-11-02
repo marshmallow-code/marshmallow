@@ -50,33 +50,11 @@ class QuoteSchema(Schema):
     class Meta:
         fields = ("id", "content", "posted_at", 'author')
 
-class SchemaError(Exception):
-    """Error that is raised when a marshalling or umarshalling error occurs.
-    Stores the dictionary of validation errors that occurred.
-    """
-    def __init__(self, message, errors):
-        Exception.__init__(self, message)
-        self.errors = errors
-
-# When a marshalling/unmarshalling error occurs, raise a SchemaError
-@AuthorSchema.error_handler
-@QuoteSchema.error_handler
-def handle_errors(serializer, errors, obj):
-    raise SchemaError('There was a problem marshalling or unmarshalling {}'
-            .format(obj), errors=errors)
-
 author_serializer = AuthorSchema()
 quote_serializer = QuoteSchema()
 quotes_serializer = QuoteSchema(many=True, only=('id', 'content'))
 
 ##### API #####
-
-@app.errorhandler(SchemaError)
-def handle_marshalling_error(err):
-    """When a `SchemaError` is raised, return a 400 response with the
-    jsonified error dictionary.
-    """
-    return jsonify(err.errors), 400
 
 @app.route("/api/v1/authors")
 def get_authors():

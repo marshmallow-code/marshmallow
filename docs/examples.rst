@@ -29,7 +29,7 @@ Then send a POST request with some text.
 
 .. code-block:: bash
 
-    $ http POST localhost:5000/api/v1/analyze text="Simple is better"
+    $ http POST :5000/api/v1/analyze text="Simple is better"
     HTTP/1.0 200 OK
     Content-Length: 189
     Content-Type: application/json
@@ -67,9 +67,8 @@ Quotes API (Flask + SQLAlchemy)
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
     - `class Meta` to specify which fields to serialize
-    - Output filtering using ``only`` param
-    - Using the :func:`error_handler <Serlalizer.error_handler>` decorator
-
+    - Nesting fields
+    - Output filtering using the ``only`` parameter
 
 .. literalinclude:: ../examples/flask_example.py
     :language: python
@@ -87,15 +86,15 @@ First we'll POST some quotes.
 
 .. code-block:: bash
 
-    $ http POST localhost:5000/api/v1/quotes/new author="Tim Peters" quote="Beautiful is better than ugly."
-    $ http POST localhost:5000/api/v1/quotes/new author="Tim Peters" quote="Now is better than never."
-    $ http POST localhost:5000/api/v1/quotes/new author="Peter Hintjens" quote="Simplicity is always better than functionality."
+    $ http POST :5000/api/v1/quotes/new author="Tim Peters" quote="Beautiful is better than ugly."
+    $ http POST :5000/api/v1/quotes/new author="Tim Peters" quote="Now is better than never."
+    $ http POST :5000/api/v1/quotes/new author="Peter Hintjens" quote="Simplicity is always better than functionality."
 
 Now we can GET a list of all the quotes.
 
 .. code-block:: bash
 
-    $ http localhost:5000/api/v1/quotes
+    $ http :5000/api/v1/quotes
     {
         "quotes": [
             {
@@ -117,7 +116,7 @@ We can also GET the quotes for a single author.
 
 .. code-block:: bash
 
-    $ http localhost:5000/api/v1/authors/1
+    $ http :5000/api/v1/authors/1
     {
         "author": {
             "first": "Tim",
@@ -153,7 +152,7 @@ After registering a user and creating some todo items in the database, here is a
 
 .. code-block:: bash
 
-    $ http GET localhost:5000/api/v1/todos
+    $ http GET :5000/api/v1/todos
     {
         "todos": [
             {

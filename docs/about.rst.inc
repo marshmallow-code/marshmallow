@@ -2,28 +2,28 @@
 
 .. code-block:: python
 
-    from datetime import datetime
+    from datetime import date
     from marshmallow import Schema, fields, pprint
 
-    # A "model"
-    class Person(object):
-        def __init__(self, name):
-            self.name = name
-            self.date_born = datetime.now()
+    class ArtistSchema(Schema):
+        name = fields.Str()
 
-    # A serializer schema
-    class PersonSchema(Schema):
-        name = fields.String()
-        date_born = fields.DateTime()
+    class AlbumSchema(Schema):
+        title = fields.Str()
+        release_date = fields.Date()
+        artist = fields.Nested(ArtistSchema)
 
-    person = Person("Guido van Rossum")
-    schema = PersonSchema()
-    result = schema.dump(person)
-    pprint(result.data)
-    # {"name": "Guido van Rossum", "date_born": "2014-08-17T14:42:12.479650+00:00"}
+    bowie = dict(name='David Bowie')
+    album = dict(artist=bowie, title='Hunky Dory', release_date=date(1971, 12, 17))
 
+    schema = AlbumSchema()
+    result = schema.dump(album)
+    pprint(result.data, indent=2)
+    # { 'artist': {'name': 'David Bowie'},
+    #   'release_date': '1971-12-17',
+    #   'title': 'Hunky Dory'}
 
-In short, marshmallow schemas are used to:
+In short, marshmallow schemas can be used to:
 
 - **Validate** input data.
 - **Deserialize** input data to app-level objects.

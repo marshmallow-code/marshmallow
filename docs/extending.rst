@@ -81,7 +81,7 @@ If you want to store schema-level validation errors on a specific field, you can
 Pre-processing Input Data
 -------------------------
 
-Data pre-processing functions can be registered using :meth:`Schema.preprocessor`. A pre-processing function reeives the schema instace and the input data as arguments and must return the dictionary of processed data.
+Data pre-processing functions can be registered using :meth:`Schema.preprocessor`. A pre-processing function receives the schema instace and the input data as arguments and must return the dictionary of processed data.
 
 
 .. code-block:: python
@@ -161,7 +161,7 @@ However, if you want to specify how values are accessed from an object, you can 
 Handler Functions as Class Members
 ----------------------------------
 
-You can register error handlers, validators, and data handlers as optional class members. This might be useful if when defining an abstract serializer class.
+You can register error handlers, validators, and data handlers as optional class members. This might be useful for defining an abstract `Schema` class.
 
 .. code-block:: python
 
@@ -203,6 +203,7 @@ Let's build upon the example above for adding a root namespace to serialized out
 First, we'll add our namespace configuration to a custom options class.
 
 .. code-block:: python
+    :emphasize-lines: 3
 
     from marshmallow import Schema, SchemaOpts
 
@@ -220,7 +221,7 @@ First, we'll add our namespace configuration to a custom options class.
 Then we create a custom :class:`Schema` that uses our options class.
 
 .. code-block:: python
-
+    :emphasize-lines: 1,2
 
     class NamespacedSchema(Schema):
         OPTIONS_CLASS = NamespaceOpts
@@ -241,6 +242,7 @@ Then we create a custom :class:`Schema` that uses our options class.
 Our application schemas can now inherit from our custom schema class.
 
 .. code-block:: python
+    :emphasize-lines: 1,6,7
 
     class UserSchema(NamespacedSchema):
         name = fields.String()
