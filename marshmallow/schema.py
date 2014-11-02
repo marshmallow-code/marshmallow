@@ -406,7 +406,7 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=False):
+    def dump(self, obj, many=False, **kwargs):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -432,7 +432,8 @@ class BaseSchema(base.SchemaABC):
             strict=self.strict,
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
-            dict_class=self.dict_class
+            dict_class=self.dict_class,
+            **kwargs
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors

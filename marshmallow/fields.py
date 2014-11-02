@@ -488,30 +488,8 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = many
-        self.__schema = None
-        self.__updated_fields = False  # ensures serializer fields are updated only once
+        self.__schema = None  # Cached Schema instance
         super(Nested, self).__init__(default=default, **kwargs)
-
-    def __get_fields_to_marshal(self, all_fields, dict_class=None):
-        """Filter all_fields based on self.only and self.exclude """
-        dict_class = dict_class or dict
-        # Default 'only' to all the nested fields
-        ret = dict_class()
-        if all_fields is None:
-            return ret
-        elif isinstance(self.only, basestring):
-            ret[self.only] = all_fields[self.only]
-            return ret
-        else:
-            only = set(all_fields) if self.only is None else set(self.only)
-        if self.exclude and self.only:
-            # Make sure that only takes precedence
-            exclude = set(self.exclude) - only
-        else:
-            exclude = set([]) if self.exclude is None else set(self.exclude)
-        filtered = ((k, v) for k, v in iteritems(all_fields)
-                    if k in only and k not in exclude)
-        return dict_class(filtered)
 
     @property
     def schema(self):
@@ -520,20 +498,27 @@ class Nested(Field):
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
         """
-        # Cache the serializer instance
+        # Ensure that only parameter is a tuple
+        if isinstance(self.only, basestring):
+            only = (self.only, )
+        else:
+            only = self.only
         if not self.__schema:
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
-                self.__schema = self.nested(None, many=self.many)
+                self.__schema = self.nested(None, many=self.many,
+                        only=only, exclude=self.exclude)
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
                     parent_class = self.parent.__class__
-                    self.__schema = parent_class(many=self.many)
+                    self.__schema = parent_class(many=self.many, only=only,
+                            exclude=self.exclude)
                 else:
                     schema_class = class_registry.get_class(self.nested)
-                    self.__schema = schema_class(None, many=self.many)
+                    self.__schema = schema_class(None, many=self.many,
+                            only=only, exclude=self.exclude)
             else:
                 raise ForcedError(ValueError('Nested fields must be passed a '
                                     'Schema, not {0}.'
@@ -544,21 +529,10 @@ class Nested(Field):
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
-        dict_class = OrderedDict if self.schema.ordered else dict
         if self.allow_null and nested_obj is None:
             return None
-        self.schema.many = self.many
-        self.schema.obj = nested_obj
-        if not self.__updated_fields:
-            self.__updated_fields = True
-            self.schema._update_fields(nested_obj)
-        fields = self.__get_fields_to_marshal(self.schema.fields, dict_class=dict_class)
         try:
-            # We call the protected _marshal method instead of _dump
-            # because we need to pass the this field's ``many`` attribute as
-            # an argument, which dump would not allow
-            ret = self.schema._marshal(nested_obj, fields,
-                    many=self.many, dict_class=dict_class)
+            ret = self.schema.dump(nested_obj, many=self.many).data
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
