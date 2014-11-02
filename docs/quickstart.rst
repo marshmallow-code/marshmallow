@@ -112,6 +112,7 @@ Deserializing to Objects
 In order to deserialize to an object, define the :meth:`make_object <Schema.make_object>` method of your :class:`Schema`. The method receives a dictionary of deserialized data as its only parameter.
 
 .. code-block:: python
+    :emphasize-lines: 8,9
 
     # Same as above, but this time we define ``make_object``
     class UserSchema(Schema):
@@ -141,12 +142,13 @@ Handling Collections of Objects
 Iterable collections of objects are also serializable and deserializable. Just set ``many=True``.
 
 .. code-block:: python
+    :emphasize-lines: 3,4
 
     user1 = User(name="Mick", email="mick@stones.com")
     user2 = User(name="Keith", email="keith@stones.com")
     users = [user1, user2]
     schema = UserSchema(many=True)
-    result = schema.dump(users)
+    result = schema.dump(users)  # OR UserSchema().dump(users, many=True)
     result.data
     # [{'name': u'Mick',
     #   'email': u'mick@stones.com',
@@ -175,6 +177,7 @@ Validation
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python
+    :emphasize-lines: 2
 
     class ValidatedUserSchema(UserSchema):
         age = fields.Number(validate=lambda n: 18 <= n <= 40)
@@ -234,6 +237,7 @@ Required Fields
 You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.load`.
 
 .. code-block:: python
+    :emphasize-lines: 2,6
 
     class UserSchema(Schema):
         name = fields.String(required=True)
@@ -249,6 +253,7 @@ Specifying Attribute Names
 By default, `Schemas` will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
 .. code-block:: python
+    :emphasize-lines: 3,4,11,12
 
     class UserSchema(Schema):
         name = fields.String()
