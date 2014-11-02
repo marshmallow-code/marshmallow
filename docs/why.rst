@@ -86,7 +86,7 @@ Here's a simple example that shows how a :class:`Schema` can anonymize a person'
 
 .. seealso::
 
-    See the relevant section of the :ref:`Quickstart guide <adding-context>` to learn more about context-aware serialization.
+    See the relevant section of the :ref:`usage guide <adding-context>` to learn more about context-aware serialization.
 
 Advanced schema nesting.
 ------------------------
