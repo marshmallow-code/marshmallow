@@ -1052,6 +1052,17 @@ class TestNestedSchema:
         serialized = BlogSchema().dump(blog)[0]
         assert serialized['categories'] == ["humor", "violence"]
 
+    def test_nested_load_many(self):
+        in_data = {'title': 'Shine A Light', 'collaborators': [
+            {'name': 'Mick', 'email': 'mick@stones.com'},
+            {'name': 'Keith', 'email': 'keith@stones.com'}
+        ]}
+        data, errors = BlogSchema().load(in_data)
+        collabs = data['collaborators']
+        assert len(collabs) == 2
+        assert all(type(each) == User for each in collabs)
+        assert collabs[0].name == in_data['collaborators'][0]['name']
+
     def test_nested_errors(self):
         _, errors = BlogSchema().load(
             {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
@@ -1061,6 +1072,13 @@ class TestNestedSchema:
         assert "not a valid email address." in errors['user']['email'][0]
         # No problems with collaborators
         assert "collaborators" not in errors
+
+    def test_nested_strict(self):
+        with pytest.raises(UnmarshallingError) as excinfo:
+            _, errors = BlogSchema(strict=True).load(
+                {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
+            )
+        assert 'email' in str(excinfo)
 
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)[0]
