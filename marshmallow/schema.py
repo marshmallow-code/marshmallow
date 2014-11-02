@@ -231,7 +231,6 @@ class BaseSchema(base.SchemaABC):
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
         self.ordered = self.opts.ordered
-        self.dict_class = OrderedDict if self.ordered else dict
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -279,6 +278,14 @@ class BaseSchema(base.SchemaABC):
                 if callable(callback):
                     data = callback(self, data, obj)
         return data
+
+    @property
+    def dict_class(self):
+        return OrderedDict if self.ordered else dict
+
+    @property
+    def set_class(self):
+        return OrderedSet if self.ordered else set
 
     ##### Handler decorators #####
 
@@ -403,64 +410,66 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj):
+    def dump(self, obj, many=False, update_fields=True, **kwargs):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
+        :param bool many: Whether to serialize `obj` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        if not self.many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+        many = many or self.many
+        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
-        self._update_fields(obj)
+        if update_fields:
+            self._update_fields(obj)
         preresult = self._marshal(
             obj,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
-            dict_class=self.dict_class
+            dict_class=self.dict_class,
+            **kwargs
         )
         result = self._postprocess(preresult, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
-    def dumps(self, obj, *args, **kwargs):
+    def dumps(self, obj, many=False, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :param bool many: Whether to serialize `obj` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj)
+        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
-        # # On Python 2, json.dumps returns bytestrings
-        # # On Python 3, json.dumps returns unicode
-        # # Ensure that a bytestring is returned
-        if isinstance(ret, text_type):
-            ret = bytes(ret.encode('utf-8'))
         return MarshalResult(ret, errors)
 
-    def load(self, data):
+    def load(self, data, many=False):
         """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
+        :param bool many: Whether to deserialize `data` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
+        many = many or self.many
         # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
@@ -475,7 +484,7 @@ class BaseSchema(base.SchemaABC):
         result = self._unmarshal(
             data,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
@@ -487,16 +496,18 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
-    def loads(self, json_data, *args, **kwargs):
+    def loads(self, json_data, many=False, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
+        :param bool many: Whether to deserialize `json_data` as a collection.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        return self.load(self.opts.json_module.loads(json_data, *args, **kwargs))
+        data = self.opts.json_module.loads(json_data, *args, **kwargs)
+        return self.load(data, many=many)
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
@@ -543,7 +554,6 @@ class BaseSchema(base.SchemaABC):
     def _update_fields(self, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
-        set_class = OrderedSet if self.ordered else set
         if self.only:
             ret = self.__filter_fields(self.only, obj)
             self.__set_field_attrs(ret)
@@ -552,13 +562,13 @@ class BaseSchema(base.SchemaABC):
 
         if self.opts.fields:
             # Return only fields specified in fields option
-            field_names = set_class(self.opts.fields)
+            field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
-            field_names = (set_class(self.declared_fields.keys()) |
-                            set_class(self.opts.additional))
+            field_names = (self.set_class(self.declared_fields.keys()) |
+                            self.set_class(self.opts.additional))
         else:
-            field_names = set_class(self.declared_fields.keys())
+            field_names = self.set_class(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
@@ -625,5 +635,6 @@ class BaseSchema(base.SchemaABC):
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
     __doc__ = BaseSchema.__doc__
+
 
 Serializer = Schema
