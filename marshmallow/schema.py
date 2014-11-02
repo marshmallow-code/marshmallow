@@ -416,6 +416,9 @@ class BaseSchema(base.SchemaABC):
 
         :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection.
+        :param bool update_fields: Whether to update the schema's field classes. Typically
+            set to `True`, but may be `False` when serializing a homogenous collection.
+            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 
@@ -449,6 +452,9 @@ class BaseSchema(base.SchemaABC):
 
         :param str json_data: A JSON string of the data to deserialize.
         :param bool many: Whether to serialize `obj` as a collection.
+        :param bool update_fields: Whether to update the schema's field classes. Typically
+            set to `True`, but may be `False` when serializing a homogenous collection.
+            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `MarshalResult`, a `collections.namedtuple`
 

@@ -4,12 +4,13 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
-Adds new features, peformance improvements, and updated documentation.
+Adds new features, performance improvements, and updated documentation.
 
 - Add ``skip_missing`` ``class Meta`` option.
 - A field's ``default`` may be a callable.
 - Allow accessor function to be configured via the ``Schema.accessor`` decorator or the ``__accessor__`` class member.
 - ``URL`` and ``Email`` fields are validated upon serialization.
+- ``dump`` and ``load`` can receive the ``many`` argument.
 - Move a number of utility functions from fields.py to utils.py.
 - More useful ``repr`` for ``Field`` classes.
 - If a field's default is ``fields.missing`` and its serialized value is ``None``, it will not be included in the final serialized result.
