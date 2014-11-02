@@ -406,7 +406,7 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=False, **kwargs):
+    def dump(self, obj, many=False, update_fields=True, **kwargs):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -424,7 +424,8 @@ class BaseSchema(base.SchemaABC):
                             category=DeprecationWarning)
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
-        self._update_fields(obj)
+        if update_fields:
+            self._update_fields(obj)
         preresult = self._marshal(
             obj,
             self.fields,
@@ -439,7 +440,7 @@ class BaseSchema(base.SchemaABC):
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
-    def dumps(self, obj, many=False, *args, **kwargs):
+    def dumps(self, obj, many=False, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param str json_data: A JSON string of the data to deserialize.
@@ -449,7 +450,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj, many=many)
+        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
@@ -631,5 +632,6 @@ class BaseSchema(base.SchemaABC):
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
     __doc__ = BaseSchema.__doc__
+
 
 Serializer = Schema

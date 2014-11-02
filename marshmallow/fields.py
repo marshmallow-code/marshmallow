@@ -3,16 +3,15 @@
 """
 from __future__ import absolute_import
 
-from decimal import Decimal
-from functools import partial
 import datetime as dt
 import uuid
 import warnings
+from decimal import Decimal
+from functools import partial
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.compat import (text_type, OrderedDict, iteritems, total_seconds,
-                                basestring)
+from marshmallow.compat import text_type, iteritems, total_seconds, basestring
 from marshmallow.exceptions import (
     MarshallingError,
     UnmarshallingError,
@@ -20,6 +19,7 @@ from marshmallow.exceptions import (
     RegistryError,
     ValidationError,
 )
+
 
 __all__ = [
     'Marshaller',
@@ -489,6 +489,7 @@ class Nested(Field):
         self.exclude = exclude
         self.many = many
         self.__schema = None  # Cached Schema instance
+        self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
 
     @property
@@ -531,8 +532,12 @@ class Nested(Field):
     def _serialize(self, nested_obj, attr, obj):
         if self.allow_null and nested_obj is None:
             return None
+        if not self.__updated_fields:
+            self.schema._update_fields(nested_obj)
+            self.__updated_fields = True
         try:
-            ret = self.schema.dump(nested_obj, many=self.many).data
+            ret = self.schema.dump(nested_obj, many=self.many,
+                    update_fields=not self.__updated_fields).data
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
