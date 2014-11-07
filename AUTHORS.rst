@@ -20,3 +20,4 @@ Contributors (chronological)
 - Austin Macdonald `@asmacdo <https://github.com/asmacdo>`_
 - Josh Carp `@jmcarp <https://github.com/jmcarp>`_
 - `@amikholap <https://github.com/amikholap>`_
+- Sven-Hendrik Haase `@svenstaro <https://github.com/svenstaro>`_
