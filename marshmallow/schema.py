@@ -356,7 +356,7 @@ class BaseSchema(base.SchemaABC):
                 field_b = fields.Integer()
 
             @NumberSchema.validator
-            def validate_numbers(schama, input_data):
+            def validate_numbers(schema, input_data):
                 return input_data['field_b'] > input_data['field_a']
 
         .. note::
@@ -383,7 +383,7 @@ class BaseSchema(base.SchemaABC):
                 field_b = fields.Integer()
 
             @NumberSchema.preprocessor
-            def add_to_field_a(schama, input_data):
+            def add_to_field_a(schema, input_data):
                 input_data['field_a'] += 1
                 return input_data
 

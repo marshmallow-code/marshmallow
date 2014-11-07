@@ -52,7 +52,7 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
         field_b = fields.Integer()
 
     @NumberSchema.validator
-    def validate_numbers(schama, input_data):
+    def validate_numbers(schema, input_data):
         if input_data['field_b'] >= input_data['field_a']:
             raise ValidationError('field_a must be greater than field_b')
 
@@ -69,7 +69,7 @@ If you want to store schema-level validation errors on a specific field, you can
 .. code-block:: python
 
     @NumberSchema.validator
-    def validate_numbers(schama, input_data):
+    def validate_numbers(schema, input_data):
         if input_data['field_b'] >= input_data['field_a']:
             # Store error on field_a
             raise ValidationError('field_a must be greater than field_b', 'field_a')
