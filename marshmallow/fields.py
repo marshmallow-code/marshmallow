@@ -575,13 +575,13 @@ class List(Field):
             self.default = []
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise MarshallingError('The type of the list elements '
+                raise ValueError('The type of the list elements '
                                            'must be a subclass of '
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise MarshallingError('The instances of the list '
+                raise ValueError('The instances of the list '
                                            'elements must be of type '
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance

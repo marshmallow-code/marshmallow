@@ -181,9 +181,9 @@ class TestFieldSerialization:
     def test_bad_list_field(self):
         class ASchema(Schema):
             id = fields.Int()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValueError):
             fields.List("string")
-        with pytest.raises(MarshallingError) as excinfo:
+        with pytest.raises(ValueError) as excinfo:
             fields.List(ASchema)
         expected_msg = ('The type of the list elements must be a subclass '
                 'of marshmallow.base.FieldABC')
