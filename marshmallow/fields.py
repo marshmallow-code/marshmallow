@@ -295,6 +295,9 @@ class Field(FieldABC):
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
     :param metadata: Extra arguments to be stored as metadata.
+
+    .. versionchanged:: 1.0.0
+        Deprecated `error` parameter. Raise a :exc:`marshmallow.ValidationError` instead.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -306,6 +309,10 @@ class Field(FieldABC):
                  validate=None, required=False, **metadata):
         self.default = default
         self.attribute = attribute
+        if error:
+            warnings.warn('The error parameter is deprecated. Raise a '
+                          'marshmallow.ValidationError in your validators '
+                          'instead.', category=DeprecationWarning)
         self.error = error
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):

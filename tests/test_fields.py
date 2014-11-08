@@ -34,6 +34,11 @@ class TestField:
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
 
+    def test_error_parameter_is_deprecated(self, recwarn):
+        fields.Field(error='This is deprecated')
+        w = recwarn.pop()
+        assert issubclass(w.category, DeprecationWarning)
+
 
 class TestMetadata:
 
