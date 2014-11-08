@@ -722,11 +722,11 @@ class FormattedString(Field):
     from the python stdlib.
     ::
 
-        class UserSer(Schema):
+        class UserSchema(Schema):
             name = fields.String()
             greeting = fields.FormattedString('Hello {name}')
 
-        ser = UserSer()
+        ser = UserSchema()
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
@@ -739,7 +739,7 @@ class FormattedString(Field):
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
-            raise MarshallingError(error)
+            raise MarshallingError(getattr(self, 'error', None) or error)
 
 
 class Float(Number):
@@ -875,8 +875,8 @@ class Time(Field):
         try:
             ret = value.isoformat()
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a time.'
-                                    .format(repr(value)))
+            msg = '{0!r} cannot be formatted as a time.'.format(value)
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         if value.microsecond:
             return ret[:12]
         return ret
@@ -886,9 +886,8 @@ class Time(Field):
         try:
             return utils.from_iso_time(value)
         except TypeError:
-            raise UnmarshallingError(
-                'Could not deserialize {0!r} to a time object.'.format(value)
-            )
+            msg = 'Could not deserialize {0!r} to a time object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 class Date(Field):
     """ISO8601-formatted date string.
@@ -900,8 +899,8 @@ class Date(Field):
         try:
             return value.isoformat()
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a date.'
-                                    .format(repr(value)))
+            msg = '{0} cannot be formatted as a date.'.format(repr(value))
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         return value
 
     def _deserialize(self, value):
@@ -911,9 +910,8 @@ class Date(Field):
         try:
             return utils.from_iso_date(value)
         except TypeError:
-            raise UnmarshallingError(
-                'Could not deserialize {0!r} to a date object.'.format(value)
-            )
+            msg = 'Could not deserialize {0!r} to a date object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 
 class TimeDelta(Field):
@@ -967,7 +965,9 @@ class Fixed(Number):
         except (TypeError, ValueError) as err:
             raise exception_class(getattr(self, 'error', None) or err)
         if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
-            raise exception_class('Invalid Fixed precision number.')
+            raise exception_class(
+                getattr(self, 'error', None) or 'Invalid Fixed precision number.'
+            )
         return utils.decimal_to_fixed(dvalue, self.precision)
 
 
@@ -1135,6 +1135,7 @@ class Select(Field):
     def _validated(self, value, exception_class):
         if value not in self.choices:
             raise exception_class(
+                getattr(self, 'error', None) or
                 "{0!r} is not a valid choice for this field.".format(value)
             )
         return value
