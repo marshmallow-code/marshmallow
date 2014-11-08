@@ -1148,11 +1148,12 @@ class TestSelfReference:
         assert data['employer']['age'] == employer.age
 
     def test_nesting_schema_by_passing_class_name(self, user, employer):
-        class _SelfReferencingSchema(Schema):
+        class SelfReferencingSchema(Schema):
             name = fields.Str()
             age = fields.Int()
-            employer = fields.Nested('_SelfReferencingSchema', exclude=('employer, '))
-        data, errors = _SelfReferencingSchema().dump(user)
+            employer = fields.Nested('SelfReferencingSchema', exclude=('employer',))
+        data, errors = SelfReferencingSchema().dump(user)
+        assert not errors
         assert data['name'] == user.name
         assert data['employer']['name'] == employer.name
         assert data['employer']['age'] == employer.age

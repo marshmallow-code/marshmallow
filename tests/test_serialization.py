@@ -69,16 +69,16 @@ class TestFieldSerialization:
         class BadSerializer(Schema):
             bad_field = fields.Method('invalid')
         u = User('Foo')
-        with pytest.raises(MarshallingError):
-            BadSerializer(strict=True).dump(u)
+        with pytest.raises(ValueError):
+            BadSerializer().dump(u)
 
     def test_method_field_with_uncallable_attribute(self):
         class BadSerializer(Schema):
             foo = 'not callable'
             bad_field = fields.Method('foo')
         u = User('Foo')
-        with pytest.raises(MarshallingError):
-            BadSerializer(strict=True).dump(u)
+        with pytest.raises(ValueError):
+            BadSerializer().dump(u)
 
     def test_datetime_deserializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
@@ -181,9 +181,9 @@ class TestFieldSerialization:
     def test_bad_list_field(self):
         class ASchema(Schema):
             id = fields.Int()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValueError):
             fields.List("string")
-        with pytest.raises(MarshallingError) as excinfo:
+        with pytest.raises(ValueError) as excinfo:
             fields.List(ASchema)
         expected_msg = ('The type of the list elements must be a subclass '
                 'of marshmallow.base.FieldABC')

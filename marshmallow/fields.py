@@ -295,6 +295,9 @@ class Field(FieldABC):
     :param bool required: Raise an :exc:`UnmarshallingError` if the field value
         is not supplied during deserialization.
     :param metadata: Extra arguments to be stored as metadata.
+
+    .. versionchanged:: 1.0.0
+        Deprecated `error` parameter. Raise a :exc:`marshmallow.ValidationError` instead.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -306,6 +309,10 @@ class Field(FieldABC):
                  validate=None, required=False, **metadata):
         self.default = default
         self.attribute = attribute
+        if error:
+            warnings.warn('The error parameter is deprecated. Raise a '
+                          'marshmallow.ValidationError in your validators '
+                          'instead.', category=DeprecationWarning)
         self.error = error
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
@@ -380,8 +387,8 @@ class Field(FieldABC):
         except ValidationError as err:
             raise exception_class(err)
         # Reraise errors, wrapping with exception_class
-        except Exception as error:
-            raise exception_class(getattr(self, 'error', None) or error)
+        # except Exception as error:
+        #     raise exception_class(getattr(self, 'error', None) or error)
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
@@ -575,13 +582,13 @@ class List(Field):
             self.default = []
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise MarshallingError('The type of the list elements '
+                raise ValueError('The type of the list elements '
                                            'must be a subclass of '
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise MarshallingError('The instances of the list '
+                raise ValueError('The instances of the list '
                                            'elements must be of type '
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance
@@ -658,8 +665,8 @@ class Number(Field):
             if value is None:
                 return self.default
             return self._format_num(value)
-        except ValueError as ve:
-            raise exception_class(ve)
+        except (TypeError, ValueError) as err:
+            raise exception_class(getattr(self, 'error', None) or err)
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
@@ -722,11 +729,11 @@ class FormattedString(Field):
     from the python stdlib.
     ::
 
-        class UserSer(Schema):
+        class UserSchema(Schema):
             name = fields.String()
             greeting = fields.FormattedString('Hello {name}')
 
-        ser = UserSer()
+        ser = UserSchema()
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
@@ -739,7 +746,7 @@ class FormattedString(Field):
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
-            raise MarshallingError(error)
+            raise MarshallingError(getattr(self, 'error', None) or error)
 
 
 class Float(Number):
@@ -824,7 +831,10 @@ class DateTime(Field):
             self.dateformat = self.dateformat or self.DEFAULT_FORMAT
             format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
             if format_func:
-                return format_func(value, localtime=self.localtime)
+                try:
+                    return format_func(value, localtime=self.localtime)
+                except (AttributeError, ValueError) as err:
+                    raise MarshallingError(getattr(self, 'error', None) or err)
             else:
                 return value.strftime(self.dateformat)
 
@@ -839,6 +849,8 @@ class DateTime(Field):
                 return func(value)
             except TypeError:
                 raise err
+            except (AttributeError, ValueError) as err:
+                raise UnmarshallingError(getattr(self, 'error', None) or err)
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
@@ -870,8 +882,8 @@ class Time(Field):
         try:
             ret = value.isoformat()
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a time.'
-                                    .format(repr(value)))
+            msg = '{0!r} cannot be formatted as a time.'.format(value)
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         if value.microsecond:
             return ret[:12]
         return ret
@@ -881,9 +893,8 @@ class Time(Field):
         try:
             return utils.from_iso_time(value)
         except TypeError:
-            raise UnmarshallingError(
-                'Could not deserialize {0!r} to a time object.'.format(value)
-            )
+            msg = 'Could not deserialize {0!r} to a time object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 class Date(Field):
     """ISO8601-formatted date string.
@@ -895,8 +906,8 @@ class Date(Field):
         try:
             return value.isoformat()
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a date.'
-                                    .format(repr(value)))
+            msg = '{0} cannot be formatted as a date.'.format(repr(value))
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         return value
 
     def _deserialize(self, value):
@@ -906,9 +917,8 @@ class Date(Field):
         try:
             return utils.from_iso_date(value)
         except TypeError:
-            raise UnmarshallingError(
-                'Could not deserialize {0!r} to a date object.'.format(value)
-            )
+            msg = 'Could not deserialize {0!r} to a date object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 
 class TimeDelta(Field):
@@ -922,15 +932,18 @@ class TimeDelta(Field):
         try:
             return total_seconds(value)
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a timedelta.'
-                                    .format(repr(value)))
+            msg = '{0} cannot be formatted as a timedelta.'.format(repr(value))
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         return value
 
     def _deserialize(self, value):
         """Deserialize a value in seconds to a :class:`datetime.timedelta`
         object.
         """
-        return dt.timedelta(seconds=float(value))
+        try:
+            return dt.timedelta(seconds=float(value))
+        except (AttributeError, ValueError) as err:
+            raise UnmarshallingError(getattr(self, 'error', None) or err)
 
 
 class Fixed(Number):
@@ -957,9 +970,11 @@ class Fixed(Number):
         try:
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
-            raise exception_class(err)
+            raise exception_class(getattr(self, 'error', None) or err)
         if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
-            raise exception_class('Invalid Fixed precision number.')
+            raise exception_class(
+                getattr(self, 'error', None) or 'Invalid Fixed precision number.'
+            )
         return utils.decimal_to_fixed(dvalue, self.precision)
 
 
@@ -1127,6 +1142,7 @@ class Select(Field):
     def _validated(self, value, exception_class):
         if value not in self.choices:
             raise exception_class(
+                getattr(self, 'error', None) or
                 "{0!r} is not a valid choice for this field.".format(value)
             )
         return value

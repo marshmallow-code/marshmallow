@@ -235,7 +235,7 @@ class TestFieldDeserialization:
             uppername = fields.Method('uppercase_name', deserialize='lowercase_name')
 
         s = BadSchema()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(ValueError):
             s.fields['uppername'].deserialize('STEVE')
 
     def test_enum_field_deserialization(self):

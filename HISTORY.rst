@@ -4,7 +4,7 @@ Changelog
 1.0.0 (unreleased)
 ++++++++++++++++++
 
-Adds new features, speed improvements, and updated documentation.
+Adds new features, speed improvements, better error andling, and updated documentation.
 
 - Add ``skip_missing`` ``class Meta`` option.
 - A field's ``default`` may be a callable.
@@ -16,6 +16,7 @@ Adds new features, speed improvements, and updated documentation.
 - If a field's default is ``fields.missing`` and its serialized value is ``None``, it will not be included in the final serialized result.
 - Schema.dumps no longer coerces its result to a binary string on Python 3.
 - *Backwards-incompatible*: Schema output is no longer an ``OrderedDict`` by default. If you want ordered field output, you must explicitly set the ``ordered`` option to ``True``.
+- *Backwards-incompatible*: `error` parameter of the `Field` constructor is deprecated. Raise a `ValidationError` instead.
 - Expanded test coverage.
 - Updated docs.
 
