@@ -380,8 +380,8 @@ class Field(FieldABC):
         except ValidationError as err:
             raise exception_class(err)
         # Reraise errors, wrapping with exception_class
-        except Exception as error:
-            raise exception_class(getattr(self, 'error', None) or error)
+        # except Exception as error:
+        #     raise exception_class(getattr(self, 'error', None) or error)
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
@@ -658,8 +658,8 @@ class Number(Field):
             if value is None:
                 return self.default
             return self._format_num(value)
-        except ValueError as ve:
-            raise exception_class(ve)
+        except (TypeError, ValueError) as err:
+            raise exception_class(getattr(self, 'error', None) or err)
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
@@ -824,7 +824,10 @@ class DateTime(Field):
             self.dateformat = self.dateformat or self.DEFAULT_FORMAT
             format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
             if format_func:
-                return format_func(value, localtime=self.localtime)
+                try:
+                    return format_func(value, localtime=self.localtime)
+                except (AttributeError, ValueError) as err:
+                    raise MarshallingError(getattr(self, 'error', None) or err)
             else:
                 return value.strftime(self.dateformat)
 
@@ -839,6 +842,8 @@ class DateTime(Field):
                 return func(value)
             except TypeError:
                 raise err
+            except (AttributeError, ValueError) as err:
+                raise UnmarshallingError(getattr(self, 'error', None) or err)
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
@@ -922,15 +927,18 @@ class TimeDelta(Field):
         try:
             return total_seconds(value)
         except AttributeError:
-            raise MarshallingError('{0} cannot be formatted as a timedelta.'
-                                    .format(repr(value)))
+            msg = '{0} cannot be formatted as a timedelta.'.format(repr(value))
+            raise MarshallingError(getattr(self, 'error', None) or msg)
         return value
 
     def _deserialize(self, value):
         """Deserialize a value in seconds to a :class:`datetime.timedelta`
         object.
         """
-        return dt.timedelta(seconds=float(value))
+        try:
+            return dt.timedelta(seconds=float(value))
+        except (AttributeError, ValueError) as err:
+            raise UnmarshallingError(getattr(self, 'error', None) or err)
 
 
 class Fixed(Number):
@@ -957,7 +965,7 @@ class Fixed(Number):
         try:
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
-            raise exception_class(err)
+            raise exception_class(getattr(self, 'error', None) or err)
         if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
             raise exception_class('Invalid Fixed precision number.')
         return utils.decimal_to_fixed(dvalue, self.precision)
