@@ -35,7 +35,7 @@ Get It Now
 
 .. code-block:: bash
 
-    $ pip install -U marshmallow==1.0.0-a
+    $ pip install -U marshmallow
 
 
 Ready to get started? Go on to the :ref:`Quickstart tutorial <quickstart>` or check out some :ref:`Examples <examples>`.

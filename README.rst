@@ -49,7 +49,7 @@ Get It Now
 
 ::
 
-    $ pip install -U marshmallow==1.0.0-a
+    $ pip install -U marshmallow
 
 
 Documentation
