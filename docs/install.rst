@@ -20,7 +20,7 @@ To install the latest version from the PyPI:
 
 ::
 
-    $ pip install -U marshmallow==1.0.0-a
+    $ pip install -U marshmallow
 
 Get the Bleeding Edge Version
 -----------------------------
