@@ -850,6 +850,16 @@ class TestSchemaValidator:
         assert '_schema' not in errors
         assert 'Something went wrong with field bar' in errors['bar']
 
+    def test_errors_are_cleared_on_load(self):
+        class MySchema(Schema):
+            foo = fields.Str(validate=lambda x: False)
+
+        schema = MySchema()
+        _, errors = schema.load({'foo': 'bar'})
+        assert len(errors['foo']) == 1
+        _, errors2 = schema.load({'foo': 'bar'})
+        assert len(errors2['foo']) == 1
+
 
 class TestPreprocessors:
 

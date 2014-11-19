@@ -190,14 +190,13 @@ class Marshaller(object):
 class Unmarshaller(object):
     """Callable class responsible for deserializing data and storing errors.
 
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
-
     .. versionadded:: 1.0.0
     """
-    def __init__(self, prefix=''):
+    def __init__(self):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
+        #: True while deserializing a collection
+        self.__pending = False
 
     def _validate(self, validators, output, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
@@ -235,7 +234,11 @@ class Unmarshaller(object):
         :return: A dictionary of the deserialized data.
         """
         dict_class = dict_class or dict
+        # Reset errors if not deserializing a collection
+        if not self.__pending:
+            self.errors = {}
         if many and data is not None:
+            self.__pending = True
             return [self.deserialize(d, fields_dict, many=False,
                         validators=validators, preprocess=preprocess,
                         postprocess=postprocess, strict=strict, dict_class=dict_class)
