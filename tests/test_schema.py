@@ -42,6 +42,19 @@ def test_dump_returns_dict_of_errors():
     result, errors = s.dump(bad_user)
     assert 'age' in errors
 
+
+def test_dump_resets_errors():
+    class MySchema(Schema):
+        email = fields.Email()
+
+    schema = MySchema()
+    result = schema.dump(User('Joe', email='notvalid'))
+    assert len(result.errors['email']) == 1
+    assert 'notvalid' in result.errors['email'][0]
+    result = schema.dump(User('Steve', email='__invalid'))
+    assert len(result.errors['email']) == 1
+    assert '__invalid' in result.errors['email'][0]
+
 def test_dump_many():
     s = UserSchema()
     u1, u2 = User('Mick'), User('Keith')
@@ -857,6 +870,19 @@ class TestSchemaValidator:
         schema = MySchema()
         _, errors = schema.load({'foo': 'bar'})
         assert len(errors['foo']) == 1
+        _, errors2 = schema.load({'foo': 'bar'})
+        assert len(errors2['foo']) == 1
+
+    def test_errors_are_cleared_after_loading_collection(self):
+        class MySchema(Schema):
+            foo = fields.Str(validate=lambda x: False)
+
+        schema = MySchema()
+        _, errors = schema.load([
+            {'foo': 'bar'},
+            {'foo': 'baz'}
+        ], many=True)
+        assert len(errors['foo']) == 2
         _, errors2 = schema.load({'foo': 'bar'})
         assert len(errors2['foo']) == 1
 
