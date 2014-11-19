@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+1.0.1 (2014-11-18)
+++++++++++++++++++
+
+Hotfix release.
+
+- Ensure that errors dictionary is correctly cleared on each call to Schema.dump and Schema.load.
+
 1.0.0 (2014-11-16)
 ++++++++++++++++++
 

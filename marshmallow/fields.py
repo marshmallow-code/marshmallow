@@ -140,6 +140,8 @@ class Marshaller(object):
         self.prefix = prefix
         #: Dictionary of errors stored during serialization
         self.errors = {}
+        #: True while serializing a collection
+        self.__pending = False
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
                   accessor=None, dict_class=None):
@@ -161,10 +163,16 @@ class Marshaller(object):
             Renamed from ``marshal``.
         """
         dict_class = dict_class or dict
+        # Reset errors dict if not serializing a collection
+        if not self.__pending:
+            self.errors = {}
         if many and obj is not None:
-            return [self.serialize(d, fields_dict, many=False, strict=strict,
+            self.__pending = True
+            ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class)
                     for d in obj]
+            self.__pending = False
+            return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
@@ -190,14 +198,13 @@ class Marshaller(object):
 class Unmarshaller(object):
     """Callable class responsible for deserializing data and storing errors.
 
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
-
     .. versionadded:: 1.0.0
     """
-    def __init__(self, prefix=''):
+    def __init__(self):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
+        #: True while deserializing a collection
+        self.__pending = False
 
     def _validate(self, validators, output, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
@@ -235,11 +242,17 @@ class Unmarshaller(object):
         :return: A dictionary of the deserialized data.
         """
         dict_class = dict_class or dict
+        # Reset errors if not deserializing a collection
+        if not self.__pending:
+            self.errors = {}
         if many and data is not None:
-            return [self.deserialize(d, fields_dict, many=False,
+            self.__pending = True
+            ret = [self.deserialize(d, fields_dict, many=False,
                         validators=validators, preprocess=preprocess,
                         postprocess=postprocess, strict=strict, dict_class=dict_class)
                     for d in data]
+            self.__pending = False
+            return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             if attr_name not in fields_dict:
