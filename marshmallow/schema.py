@@ -424,8 +424,9 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        many = many or self.many
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+        if many:
+            self.many = many
+        if not self.many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
@@ -436,7 +437,7 @@ class BaseSchema(base.SchemaABC):
         preresult = self._marshal(
             obj,
             self.fields,
-            many=many,
+            many=self.many,
             strict=self.strict,
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
@@ -475,7 +476,8 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        many = many or self.many
+        if many:
+            self.many = many
         # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
@@ -490,7 +492,7 @@ class BaseSchema(base.SchemaABC):
         result = self._unmarshal(
             data,
             self.fields,
-            many=many,
+            many=self.many,
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
