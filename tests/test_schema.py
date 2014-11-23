@@ -1059,6 +1059,16 @@ class TestNestedSchema:
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
 
+    # regression test for https://github.com/sloria/marshmallow/issues/64
+    def test_nested_many_with_missing_attribute(self, user):
+        class SimpleBlogSchema(Schema):
+            title = fields.Str()
+            wat = fields.Nested(UserSchema, many=True)
+        blog = Blog('Simple blog', user=user, collaborators=None)
+        schema = SimpleBlogSchema(blog)
+        result = schema.dump(blog)
+        assert result.data['wat'] == []
+
     def test_flat_nested2(self, blog):
         class FlatBlogSchema(Schema):
             name = fields.String()
@@ -1068,7 +1078,7 @@ class TestNestedSchema:
         data, _ = s.dump(blog)
         assert data['collaborators'][0] == str(blog.collaborators[0].uid)
 
-    def test_nested_field_does_not_vaidate_required(self):
+    def test_nested_field_does_not_validate_required(self):
         class BlogRequiredSchema(Schema):
             user = fields.Nested(UserSchema, required=True, allow_null=True)
 

@@ -557,8 +557,11 @@ class Nested(Field):
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
-        if self.allow_null and nested_obj is None:
-            return None
+        if nested_obj is None:
+            if self.many:
+                return []
+            if self.allow_null:
+                return None
         if not self.__updated_fields:
             self.schema._update_fields(nested_obj)
             self.__updated_fields = True

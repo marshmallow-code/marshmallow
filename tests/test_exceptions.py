@@ -36,7 +36,8 @@ class TestMarshallingError:
     def test_can_store_field_and_field_name(self):
         field_name = 'foo'
         field = fields.Str()
-        err = MarshallingError('something went wrong', field=field, field_name=field_name)
+        err = MarshallingError('something went wrong', field=field,
+                               field_name=field_name)
         assert err.field == field
         assert err.field_name == field_name
 
@@ -45,6 +46,7 @@ class TestUnmarshallingError:
     def test_can_store_field_and_field_name(self):
         field_name = 'foo'
         field = fields.Str()
-        err = UnmarshallingError('something went wrong', field=field, field_name=field_name)
+        err = UnmarshallingError('something went wrong', field=field,
+                                 field_name=field_name)
         assert err.field == field
         assert err.field_name == field_name
