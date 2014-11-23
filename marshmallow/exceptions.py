@@ -13,11 +13,13 @@ class _WrappingException(MarshmallowError):
     :exc:`MarshmallowError <MarshmallowError>`.
     """
 
-    def __init__(self, underlying_exception):
+    def __init__(self, underlying_exception, field=None, field_name=None):
         if isinstance(underlying_exception, Exception):
             self.underlying_exception = underlying_exception
         else:
             self.underlying_exception = None
+        self.field = field
+        self.field_name = field_name
         super(_WrappingException, self).__init__(
             text_type(underlying_exception)
         )

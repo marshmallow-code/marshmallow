@@ -43,6 +43,16 @@ def test_dump_returns_dict_of_errors():
     assert 'age' in errors
 
 
+def test_dump_with_strict_mode_raises_error():
+    s = UserSchema(strict=True)
+    bad_user = User(name='Monty', email='invalid-email')
+    with pytest.raises(MarshallingError) as excinfo:
+        s.dump(bad_user)
+    exc = excinfo.value
+    assert type(exc.field) == fields.Email
+    assert exc.field_name == 'email'
+
+
 def test_dump_resets_errors():
     class MySchema(Schema):
         email = fields.Email()
@@ -774,6 +784,37 @@ class TestSchemaValidator:
         assert '_schema' in errors
         assert len(errors['_schema']) == 2
         assert errors['_schema'][0] == 'Something went wrong.'
+
+    def test_schema_validation_error_with_stict_stores_correct_field_name(self):
+        def validate_with_bool(schema, in_vals):
+            return False
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_bool]
+            field_a = fields.Field()
+
+        schema = ValidatingSchema(strict=True)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            schema.load({'field_a': 1})
+        exc = excinfo.value
+        assert exc.field is None
+        assert exc.field_name == '_schema'
+
+    def test_schema_validation_error_with_strict_when_field_is_specified(self):
+        def validate_with_err(schema, inv_vals):
+            raise ValidationError('Something went wrong.', 'field_a')
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_err]
+            field_a = fields.Str()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema(strict=True)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            schema.load({'field_a': 1})
+        exc = excinfo.value
+        assert type(exc.field) == fields.Str
+        assert exc.field_name == 'field_a'
 
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):

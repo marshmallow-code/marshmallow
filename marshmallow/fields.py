@@ -106,6 +106,8 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         raise
     except exception_class as err:  # Store errors
         if strict:
+            err.field = field_obj
+            err.field_name = field_name
             raise err
         # Warning: Mutation!
         if (hasattr(err, 'underlying_exception') and
@@ -206,7 +208,7 @@ class Unmarshaller(object):
         #: True while deserializing a collection
         self.__pending = False
 
-    def _validate(self, validators, output, strict=False):
+    def _validate(self, validators, output, fields_dict, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
         """
         for validator_func in validators:
@@ -217,11 +219,16 @@ class Unmarshaller(object):
                         func_name, dict(output)
                     ))
             except ValidationError as err:
+                # Store or reraise errors
+                if err.field:
+                    field_name = err.field
+                    field_obj = fields_dict[field_name]
+                else:
+                    field_name = '_schema'
+                    field_obj = None
                 if strict:
-                    raise UnmarshallingError(err)
-                # Store errors
-                field_key = err.field or '_schema'
-                self.errors.setdefault(field_key, []).append(text_type(err))
+                    raise UnmarshallingError(err, field=field_obj, field_name=field_name)
+                self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
@@ -280,7 +287,7 @@ class Unmarshaller(object):
                 ret = func(ret)
         if validators:
             validators = validators or []
-            ret = self._validate(validators, ret, strict=strict)
+            ret = self._validate(validators, ret, fields_dict=fields_dict, strict=strict)
         if postprocess:
             postprocess = postprocess or []
             for func in postprocess:

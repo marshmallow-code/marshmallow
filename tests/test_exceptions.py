@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from marshmallow.exceptions import ValidationError
+from marshmallow.exceptions import ValidationError, MarshallingError, UnmarshallingError
+from marshmallow import fields
+
 
 class TestValidationError:
 
@@ -27,3 +29,22 @@ class TestValidationError:
 
         err2 = ValidationError('invalid email', 'email')
         assert str(err2) == 'invalid email'
+
+
+class TestMarshallingError:
+
+    def test_can_store_field_and_field_name(self):
+        field_name = 'foo'
+        field = fields.Str()
+        err = MarshallingError('something went wrong', field=field, field_name=field_name)
+        assert err.field == field
+        assert err.field_name == field_name
+
+class TestUnmarshallingError:
+
+    def test_can_store_field_and_field_name(self):
+        field_name = 'foo'
+        field = fields.Str()
+        err = UnmarshallingError('something went wrong', field=field, field_name=field_name)
+        assert err.field == field
+        assert err.field_name == field_name
