@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+1.1.0 (unreleased)
+++++++++++++++++++
+
+- Store field name and instance on exceptions raised in ``strict`` mode.
+- Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``).
+
 1.0.1 (2014-11-18)
 ++++++++++++++++++
 
