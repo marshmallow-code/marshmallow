@@ -88,3 +88,27 @@ def email(value, error=None):
             pass
         raise ValidationError(error_message)
     return value
+
+
+def length(value, min=None, max=None, error_min=None, error_max=None):
+    """Validator which succeeds if the value passed to it has a
+    length between a minimum and maximum. Uses len(), so
+    it can work for strings, lists, or anything with length.
+
+    :param int min: Minimum length.
+    :param int max: Maximum length.
+    :param str error_min: Error message to show if length is less than min.
+    :param str error_max: Error message to show if length is less than max.
+    """
+    if value is None:
+        return None
+
+    if min is not None and len(value) < min:
+        error_message = error_min or 'Shorter than minimum length {min}.'
+        raise ValidationError(error_message.format(min=min))
+
+    if max is not None and len(value) > max:
+        error_message = error_max or 'Longer than maximum length {max}.'
+        raise ValidationError(error_message.format(max=max))
+
+    return value
