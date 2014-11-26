@@ -831,7 +831,7 @@ class DateTime(Field):
         ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If `None`, defaults to "rfc".
+        or a date format string. If `None`, defaults to "iso".
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
