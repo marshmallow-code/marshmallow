@@ -241,7 +241,7 @@ class BaseSchema(base.SchemaABC):
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context or {}
-        self._update_fields()
+        self._update_fields(many)
 
         # For backwards compatibility, allow object to be passed in.
         self.obj = obj
@@ -251,19 +251,19 @@ class BaseSchema(base.SchemaABC):
             warnings.warn('Serializing objects in the Schema constructor is a '
                           'deprecated API. Use the Schema.dump method instead.',
                           category=DeprecationWarning)
-            self._update_fields(self.obj)
+            self._update_fields(many, self.obj)
             self._update_data()
         else:
-            self._update_fields()
+            self._update_fields(many)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
 
-    def _postprocess(self, data, obj):
+    def _postprocess(self, data, many, obj):
         if self.extra:
-            if self.many:
+            if many:
                 for each in data:
                     each.update(self.extra)
             else:
@@ -425,26 +425,26 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 1.0.0
         """
         if many:
-            self.many = many
-        if not self.many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+            many = many if many else self.many
+        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
         if update_fields:
-            self._update_fields(obj)
+            self._update_fields(many, obj)
         preresult = self._marshal(
             obj,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
             dict_class=self.dict_class,
             **kwargs
         )
-        result = self._postprocess(preresult, obj=obj)
+        result = self._postprocess(preresult, many, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
@@ -477,7 +477,7 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 1.0.0
         """
         if many:
-            self.many = many
+            many = many if many else self.many
         # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
@@ -492,7 +492,7 @@ class BaseSchema(base.SchemaABC):
         result = self._unmarshal(
             data,
             self.fields,
-            many=self.many,
+            many=many,
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
@@ -559,11 +559,11 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _update_fields(self, obj=None):
+    def _update_fields(self, many, obj=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only, obj)
+            ret = self.__filter_fields(self.only, many, obj)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -582,7 +582,7 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj)
+        ret = self.__filter_fields(field_names, many, obj)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -602,7 +602,7 @@ class BaseSchema(base.SchemaABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __filter_fields(self, field_names, obj):
+    def __filter_fields(self, field_names, many, obj):
         """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
@@ -613,7 +613,7 @@ class BaseSchema(base.SchemaABC):
         # Convert obj to a dict
         obj_marshallable = utils.to_marshallable_type(obj,
             field_names=field_names)
-        if obj_marshallable and self.many:
+        if obj_marshallable and many:
             try:  # Homogeneous collection
                 obj_prototype = obj_marshallable[0]
             except IndexError:  # Nothing to serialize
