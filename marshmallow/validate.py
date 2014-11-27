@@ -112,3 +112,29 @@ def length(value, min=None, max=None, error_min=None, error_max=None):
         raise ValidationError(error_message.format(max=max))
 
     return value
+
+
+def ranging(value, min=None, max=None, error_min=None, error_max=None):
+    """Validator which succeeds if the value it is passed is greater
+    or equal to ``min`` and less than or equal to ``max``. If ``min``
+    is not specified, or is specified as ``None``, no lower bound
+    exists. If ``max`` is not specified, or is specified as ``None``,
+    no upper bound exists.
+
+    :param int min: Lower bound.
+    :param int min: Upper bound.
+    :param str error_min: Error message to show if value is less than min.
+    :param str error_max: Error message to show if value is less than max.
+    """
+    if value is None:
+        return None
+
+    if min is not None and value < min:
+        error_message = error_min or '{val} is less than minimum value {min}.'
+        raise ValidationError(error_message.format(val=value, min=min))
+
+    if max is not None and value > max:
+        error_message = error_max or '{val} is greater than maximum value {max}.'
+        raise ValidationError(error_message.format(val=value, max=max))
+
+    return value
