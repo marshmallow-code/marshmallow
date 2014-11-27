@@ -44,3 +44,20 @@ def test_max_length():
 
 def test_validate_length_none():
     assert validate.length(None) is None
+
+def test_min_ranging():
+    with pytest.raises(ValidationError):
+        validate.ranging(1, 2, 3)
+    assert validate.ranging(1, 1, 2) == 1
+    with pytest.raises(ValidationError):
+        validate.ranging(1, 2)
+
+def test_max_ranging():
+    with pytest.raises(ValidationError):
+        validate.ranging(2, 0, 1)
+    assert validate.ranging(2, 1, 2) == 2
+    with pytest.raises(ValidationError):
+        validate.ranging(2, None, 1)
+
+def test_validate_ranging_none():
+    assert validate.ranging(None) is None
