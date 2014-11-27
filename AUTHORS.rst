@@ -21,3 +21,5 @@ Contributors (chronological)
 - Josh Carp `@jmcarp <https://github.com/jmcarp>`_
 - `@amikholap <https://github.com/amikholap>`_
 - Sven-Hendrik Haase `@svenstaro <https://github.com/svenstaro>`_
+- Eric Wang `@ewang <https://github.com/ewang>`_
+- `@philtay <https://github.com/philtay>`_
