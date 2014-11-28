@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import pytest
 
 from marshmallow import validate, ValidationError
