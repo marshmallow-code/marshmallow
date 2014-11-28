@@ -111,12 +111,16 @@ def test_predicate():
     class Dummy(object):
         def _true(self):
             return True
+
         def _false(self):
             return False
+
         def _list(self):
             return [1, 2, 3]
+
         def _empty(self):
             return []
+
         def _identity(self, arg):
             return arg
 
