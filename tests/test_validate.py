@@ -106,3 +106,38 @@ def test_regexp():
         validate.regexp('A', re.compile(r'a'))
     with pytest.raises(ValidationError):
         validate.regexp('A', re.compile(r'a'), re.IGNORECASE)
+
+def test_predicate():
+    class Dummy(object):
+        def _true(self):
+            return True
+        def _false(self):
+            return False
+        def _list(self):
+            return [1, 2, 3]
+        def _empty(self):
+            return []
+        def _identity(self, arg):
+            return arg
+
+    d = Dummy()
+
+    assert validate.predicate(d, '_true') == d
+    assert validate.predicate(d, '_list') == d
+    assert validate.predicate(d, '_identity', arg=True) == d
+    assert validate.predicate(d, '_identity', arg=1) == d
+    assert validate.predicate(d, '_identity', arg='abc') == d
+    assert validate.predicate(None, '_true') is None
+    assert validate.predicate(None, '_false') is None
+    assert validate.predicate(None, '_identity', arg=True) is None
+    assert validate.predicate(None, '_identity', arg=False) is None
+    with pytest.raises(ValidationError):
+        validate.predicate(d, '_false')
+    with pytest.raises(ValidationError):
+        validate.predicate(d, '_empty')
+    with pytest.raises(ValidationError):
+        validate.predicate(d, '_identity', arg=False)
+    with pytest.raises(ValidationError):
+        validate.predicate(d, '_identity', arg=0)
+    with pytest.raises(ValidationError):
+        validate.predicate(d, '_identity', arg='')
