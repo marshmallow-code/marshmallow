@@ -7,7 +7,7 @@ Changelog
 - Store field name and instance on exceptions raised in ``strict`` mode.
 - Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``).
 - If a Nested field has ``many=True``, ``None`` serializes to an empty list.
-- Add several new validators.
+- Add several new validators. Thanks @philtay.
 
 1.0.1 (2014-11-18)
 ++++++++++++++++++
