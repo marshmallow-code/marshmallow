@@ -553,7 +553,7 @@ class Nested(Field):
         if self.allow_null and nested_obj is None:
             return None
         if not self.__updated_fields:
-            self.schema._update_fields(many=self.many, obj=nested_obj)
+            self.schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
         try:
             ret = self.schema.dump(nested_obj, many=self.many,

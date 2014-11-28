@@ -241,7 +241,7 @@ class BaseSchema(base.SchemaABC):
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context or {}
-        self._update_fields(many)
+        self._update_fields(many=many)
 
         # For backwards compatibility, allow object to be passed in.
         self.obj = obj
@@ -251,10 +251,10 @@ class BaseSchema(base.SchemaABC):
             warnings.warn('Serializing objects in the Schema constructor is a '
                           'deprecated API. Use the Schema.dump method instead.',
                           category=DeprecationWarning)
-            self._update_fields(many, self.obj)
+            self._update_fields(self.obj, many=many)
             self._update_data()
         else:
-            self._update_fields(many)
+            self._update_fields(many=many)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
@@ -433,7 +433,7 @@ class BaseSchema(base.SchemaABC):
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
         if update_fields:
-            self._update_fields(many, obj)
+            self._update_fields(obj, many=many)
         preresult = self._marshal(
             obj,
             self.fields,
@@ -561,11 +561,11 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _update_fields(self, many, obj=None):
+    def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only, many, obj)
+            ret = self.__filter_fields(self.only, obj, many=many)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -584,7 +584,7 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, many, obj)
+        ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -604,7 +604,7 @@ class BaseSchema(base.SchemaABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __filter_fields(self, field_names, many, obj):
+    def __filter_fields(self, field_names, obj, many=False):
         """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
