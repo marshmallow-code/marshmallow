@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Validation functions for various types of data."""
 import re
+from marshmallow.compat import string_types
 from marshmallow.exceptions import ValidationError
 
 
@@ -193,7 +194,7 @@ def regexp(value, regex, flags=0, error=None):
     if value is None:
         return None
 
-    if isinstance(regex, basestring):
+    if isinstance(regex, string_types):
         regex = re.compile(regex, flags)
 
     if regex.match(value) is None:
