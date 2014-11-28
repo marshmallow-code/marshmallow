@@ -156,3 +156,23 @@ def ranging(value, min=None, max=None, error=None):
         raise ValidationError(message.format(min=min, max=max))
 
     return value
+
+
+def equal(value, comparable, error=None):
+    """Validator which succeeds if the value passed to it is
+    equal to ``comparable``.
+
+    :param comparable:
+        The object to compare to.
+    :param str error:
+        Error message to raise in case of a validation error.
+        Can be interpolated using `{cmp}`.
+    """
+    if value is None:
+        return None
+
+    if value != comparable:
+        message = error or 'Must be equal to "{cmp}".'
+        raise ValidationError(message.format(cmp=comparable))
+
+    return value
