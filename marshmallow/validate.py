@@ -201,3 +201,25 @@ def regexp(value, regex, flags=0, error=None):
         raise ValidationError(error or 'String does not match expected pattern.')
 
     return value
+
+
+def predicate(value, method, error=None, **kwargs):
+    """Calls the specified ``method`` on the ``value`` object. The
+    validator succeeds if the invoked method returns a value that
+    evaluates to True in a Boolean context. Any additional keyword
+    argument will be passed to the method.
+
+    :param str method:
+        The name of the method to invoke.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    if value is None:
+        return None
+
+    method = getattr(value, method)
+
+    if not method(**kwargs):
+        raise ValidationError(error or 'Invalid input.')
+
+    return value
