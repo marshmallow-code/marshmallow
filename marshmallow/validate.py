@@ -176,3 +176,27 @@ def equal(value, comparable, error=None):
         raise ValidationError(message.format(cmp=comparable))
 
     return value
+
+
+def regexp(value, regex, flags=0, error=None):
+    """Validates ``value`` against the provided regexp.
+
+    :param regex:
+        The regular expression string to use. Can also be a compiled
+        regular expression pattern.
+    :param flags:
+        The regexp flags to use, for example re.IGNORECASE. Ignored
+        if ``regex`` is not a string.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    if value is None:
+        return None
+
+    if isinstance(regex, basestring):
+        regex = re.compile(regex, flags)
+
+    if regex.match(value) is None:
+        raise ValidationError(error or 'String does not match expected pattern.')
+
+    return value
