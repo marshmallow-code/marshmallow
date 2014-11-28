@@ -8,6 +8,7 @@ Changelog
 - Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``).
 - If a Nested field has ``many=True``, ``None`` serializes to an empty list.
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
+- Add several new validators. Thanks @philtay.
 
 1.0.1 (2014-11-18)
 ++++++++++++++++++
