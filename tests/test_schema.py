@@ -88,6 +88,20 @@ def test_dumps_returns_a_marshalresult(user):
     assert type(result.data) == str
     assert type(result.errors) == dict
 
+def test_dumping_single_object_with_collection_schema():
+    s = UserSchema(many=True)
+    user = UserSchema('Mick')
+    result = s.dump(user, many=False)
+    assert type(result.data) == dict
+    assert result.data == UserSchema().dump(user).data
+
+def test_loading_single_object_with_collection_schema():
+    s = UserSchema(many=True)
+    in_data = {'name': 'Mick', 'email': 'mick@stones.com'}
+    result = s.load(in_data, many=False)
+    assert type(result.data) == User
+    assert result.data.name == UserSchema().load(in_data).data.name
+
 def test_dumps_many():
     s = UserSchema()
     u1, u2 = User('Mick'), User('Keith')
