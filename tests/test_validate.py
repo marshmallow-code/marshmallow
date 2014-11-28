@@ -72,3 +72,36 @@ def test_equal():
         validate.equal('a', 'b')
     with pytest.raises(ValidationError):
         validate.equal(1, 2)
+
+def test_regexp():
+    assert validate.regexp('a', r'a') == 'a'
+    assert validate.regexp('_', r'\w') == '_'
+    assert validate.regexp(' ', r'\s') == ' '
+    assert validate.regexp('1', r'1') == '1'
+    assert validate.regexp('1', r'[0-9]+') == '1'
+    assert validate.regexp('A', r'a', re.IGNORECASE) == 'A'
+    assert validate.regexp('a', re.compile(r'a')) == 'a'
+    assert validate.regexp('_', re.compile(r'\w')) == '_'
+    assert validate.regexp(' ', re.compile(r'\s')) == ' '
+    assert validate.regexp('1', re.compile(r'1')) == '1'
+    assert validate.regexp('1', re.compile(r'[0-9]+')) == '1'
+    assert validate.regexp('A', re.compile(r'a', re.IGNORECASE)) == 'A'
+    assert validate.regexp('A', re.compile(r'a', re.IGNORECASE), re.IGNORECASE) == 'A'
+    assert validate.regexp(None, r'a') is None
+    assert validate.regexp(None, r'a', re.IGNORECASE) is None
+    assert validate.regexp(None, re.compile(r'a')) is None
+    assert validate.regexp(None, re.compile(r'a', re.IGNORECASE)) is None
+    with pytest.raises(ValidationError):
+        validate.regexp('a', r'[0-9]+')
+    with pytest.raises(ValidationError):
+        validate.regexp('1', r'[a-z]+')
+    with pytest.raises(ValidationError):
+        validate.regexp('A', r'a')
+    with pytest.raises(ValidationError):
+        validate.regexp('a', re.compile(r'[0-9]+'))
+    with pytest.raises(ValidationError):
+        validate.regexp('1', re.compile(r'[a-z]+'))
+    with pytest.raises(ValidationError):
+        validate.regexp('A', re.compile(r'a'))
+    with pytest.raises(ValidationError):
+        validate.regexp('A', re.compile(r'a'), re.IGNORECASE)
