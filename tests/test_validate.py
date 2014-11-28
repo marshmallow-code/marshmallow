@@ -61,3 +61,14 @@ def test_max_ranging():
 
 def test_validate_ranging_none():
     assert validate.ranging(None) is None
+
+def test_equal():
+    assert validate.equal('a', 'a') == 'a'
+    assert validate.equal(1, 1) == 1
+    assert validate.ranging(None, None) is None
+    assert validate.ranging(None, 'a') is None
+    assert validate.ranging(None, 1) is None
+    with pytest.raises(ValidationError):
+        validate.equal('a', 'b')
+    with pytest.raises(ValidationError):
+        validate.equal(1, 2)
