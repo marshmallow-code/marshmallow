@@ -251,6 +251,39 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize((1, 2, 'invalid'))
 
+    def test_query_select_field_deserialization(self):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __eq__(self, other):
+                return self.foo == other.foo
+
+            def __str__(self):
+                return 'bar {}'.format(self.foo)
+
+        query = lambda: [Dummy(c) for c in 'abc']
+
+        field = fields.QuerySelect(query, str)
+        assert field.deserialize('bar a') == Dummy('a')
+        assert field.deserialize('bar b') == Dummy('b')
+        assert field.deserialize('bar c') == Dummy('c')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('bar d')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('c')
+        assert field.choices == ['bar ' + c for c in 'abc']
+
+        field = fields.QuerySelect(query, 'foo')
+        assert field.deserialize('a') == Dummy('a')
+        assert field.deserialize('b') == Dummy('b')
+        assert field.deserialize('c') == Dummy('c')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('d')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('bar d')
+        assert field.choices == list('abc')
+
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
         dstrings = [each.isoformat() for each in dtimes]
