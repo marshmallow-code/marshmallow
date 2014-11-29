@@ -1221,7 +1221,7 @@ class QuerySelect(Field):
     @property
     def choices(self):
         """Convenience property to get the list of valid values."""
-        return map(self.key, self.query())
+        return [self.key(item) for item in self.query()]
 
 # Aliases
 Enum = Select
