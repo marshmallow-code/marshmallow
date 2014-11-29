@@ -260,7 +260,7 @@ class TestFieldSerialization:
         with pytest.raises(MarshallingError):
             field.serialize('du4', user)
 
-        field = fields.QuerySelect(test_query, 'foo')
+        field = fields.QuerySelect(query, 'foo')
         assert field.serialize('du1', user) == 'a'
         assert field.serialize('du2', user) == 'b'
         assert field.serialize('du3', user) == 'c'
