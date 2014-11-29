@@ -245,7 +245,7 @@ class TestFieldSerialization:
                 self.foo = foo
 
             def __str__(self):
-                return 'bar {}'.format(self.foo)
+                return 'bar {0}'.format(self.foo)
 
         user.du1 = Dummy('a')
         user.du2 = Dummy('b')
