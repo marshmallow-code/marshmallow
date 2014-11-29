@@ -260,7 +260,7 @@ class TestFieldDeserialization:
                 return self.foo == other.foo
 
             def __str__(self):
-                return 'bar {}'.format(self.foo)
+                return 'bar {0}'.format(self.foo)
 
         query = lambda: [Dummy(c) for c in 'abc']
 
