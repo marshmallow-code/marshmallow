@@ -8,6 +8,7 @@ import uuid
 import warnings
 from decimal import Decimal
 from functools import partial
+from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -1175,6 +1176,52 @@ class Select(Field):
 
     def _deserialize(self, value):
         return self._validated(value, UnmarshallingError)
+
+
+class QuerySelect(Field):
+    """A field that (de)serializes an ORM-mapped object to its primary
+    key and vice versa. A nonexistent primary key will result in a
+    validation error. Although this field is ORM agnostic, the use of
+    SQLAlchemy is encouraged.
+
+    :param callable query:
+        The query which will be executed at each (de)serialization
+        to find the list of valid objects and primary keys.
+    :param key:
+        Can be a callable or a string. In the former case, it must
+        be a one-argument callable which returns a unique comparable
+        key. In the latter case, the string specifies the name of
+        an attribute of the ORM-mapped object.
+    :param str error:
+        Error message stored upon validation failure.
+    """
+    def __init__(self, query, key, error=None, **kwargs):
+        self.query = query
+        self.key = key if callable(key) else attrgetter(key)
+        super(QuerySelect, self).__init__(error, **kwargs)
+
+    def _serialize(self, value, attr, obj):
+        value = self.key(value)
+
+        for item in self.query():
+            if self.key(item) == value:
+                return value
+
+        error = getattr(self, 'error', None) or 'Invalid object.'
+        raise MarshallingError(error)
+
+    def _deserialize(self, value):
+        for item in self.query():
+            if self.key(item) == value:
+                return item
+
+        error = getattr(self, 'error', None) or 'Invalid value.'
+        raise UnmarshallingError(error)
+
+    @property
+    def choices(self):
+        """Convenience property to get the list of valid values."""
+        return map(self.key, self.query())
 
 # Aliases
 Enum = Select
