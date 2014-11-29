@@ -239,6 +239,34 @@ class TestFieldSerialization:
         # No validation error raised
         assert field.serialize('age', user) == user.age
 
+    def test_query_select_field(self, user):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __str__(self):
+                return 'bar {}'.format(self.foo)
+
+        user.du1 = Dummy('a')
+        user.du2 = Dummy('b')
+        user.du3 = Dummy('c')
+        user.du4 = Dummy('d')
+        query = lambda: [Dummy(c) for c in 'abc']
+
+        field = fields.QuerySelect(query, str)
+        assert field.serialize('du1', user) == 'bar a'
+        assert field.serialize('du2', user) == 'bar b'
+        assert field.serialize('du3', user) == 'bar c'
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
+        field = fields.QuerySelect(test_query, 'foo')
+        assert field.serialize('du1', user) == 'a'
+        assert field.serialize('du2', user) == 'b'
+        assert field.serialize('du3', user) == 'c'
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
 
 class TestMarshaller:
 
