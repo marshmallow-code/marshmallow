@@ -1223,6 +1223,57 @@ class QuerySelect(Field):
         """Convenience property to get the list of valid values."""
         return [self.key(item) for item in self.query()]
 
+
+class QuerySelectList(QuerySelect):
+    """A field that (de)serializes a list of ORM-mapped objects to
+    a list of their primary keys and vice versa. If any of the
+    items in the list cannot be found in the query, this will
+    result in a validation error. Do not use this field with very
+    long lists as the algorithmic complexity of the (de)serialization
+    methods is O(n*m), where n and m are the length of the query
+    result and of the input list.
+
+    :param callable query: Same as :class:`QuerySelect`.
+    :param key: Same as :class:`QuerySelect`.
+    :param str error: Error message stored upon validation failure.
+    """
+    def _serialize(self, value, attr, obj):
+        items = [self.key(v) for v in value]
+
+        if not items:
+            return []
+
+        choices = self.choices
+
+        for item in items:
+            try:
+                choices.remove(item)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid objects.'
+                raise MarshallingError(error)
+
+        return items
+
+    def _deserialize(self, value):
+        if not value:
+            return []
+
+        results = self.query()
+        keys = [self.key(result) for result in results]
+        items = []
+
+        for val in value:
+            try:
+                index = keys.index(val)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid values.'
+                raise UnmarshallingError(error)
+            else:
+                keys.pop(index)
+                items.append(results.pop(index))
+
+        return items
+
 # Aliases
 Enum = Select
 Str = String
