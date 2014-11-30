@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
 from collections import namedtuple
+from decimal import Decimal, ROUND_DOWN
 import datetime as dt
 
 import pytest
@@ -238,6 +239,105 @@ class TestFieldSerialization:
         field = fields.Field(validate=lambda x: False)
         # No validation error raised
         assert field.serialize('age', user) == user.age
+
+    def test_query_select_field(self, user):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __str__(self):
+                return 'bar {0}'.format(self.foo)
+
+        user.du1 = Dummy('a')
+        user.du2 = Dummy('b')
+        user.du3 = Dummy('c')
+        user.du4 = Dummy('d')
+        query = lambda: [Dummy(c) for c in 'abc']
+
+        field = fields.QuerySelect(query, str)
+        assert field.serialize('du1', user) == 'bar a'
+        assert field.serialize('du2', user) == 'bar b'
+        assert field.serialize('du3', user) == 'bar c'
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
+        field = fields.QuerySelect(query, 'foo')
+        assert field.serialize('du1', user) == 'a'
+        assert field.serialize('du2', user) == 'b'
+        assert field.serialize('du3', user) == 'c'
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
+    def test_query_select_list_field(self, user):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __str__(self):
+                return 'bar {0}'.format(self.foo)
+
+        user.du1 = [Dummy('a'), Dummy('c'), Dummy('b')]
+        user.du2 = [Dummy('d'), Dummy('e'), Dummy('e')]
+        user.du3 = [Dummy('a'), Dummy('b'), Dummy('f')]
+        user.du4 = [Dummy('a'), Dummy('b'), Dummy('b')]
+        user.du5 = []
+        query = lambda: [Dummy(c) for c in 'abcdee']
+
+        field = fields.QuerySelectList(query, str)
+        assert field.serialize('du1', user) == ['bar a', 'bar c', 'bar b']
+        assert field.serialize('du2', user) == ['bar d', 'bar e', 'bar e']
+        assert field.serialize('du5', user) == []
+        with pytest.raises(MarshallingError):
+            field.serialize('du3', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
+        field = fields.QuerySelectList(query, 'foo')
+        assert field.serialize('du1', user) == ['a', 'c', 'b']
+        assert field.serialize('du2', user) == ['d', 'e', 'e']
+        assert field.serialize('du5', user) == []
+        with pytest.raises(MarshallingError):
+            field.serialize('du3', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('du4', user)
+
+    def test_numeric_field(self, user):
+        user.m1 = 12
+        user.m2 = '12.355'
+        user.m3 = None
+        user.m4 = Decimal(1)
+        user.m5 = 'abc'
+        user.m6 = [1, 2]
+
+        field = fields.Numeric()
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.355')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Numeric(1)
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.4')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Numeric(1, ROUND_DOWN)
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.3')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
 
 
 class TestMarshaller:

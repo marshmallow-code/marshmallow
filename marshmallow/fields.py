@@ -6,8 +6,9 @@ from __future__ import absolute_import
 import datetime as dt
 import uuid
 import warnings
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from functools import partial
+from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -1169,6 +1170,145 @@ class Select(Field):
                 "{0!r} is not a valid choice for this field.".format(value)
             )
         return value
+
+    def _serialize(self, value, attr, obj):
+        return self._validated(value, MarshallingError)
+
+    def _deserialize(self, value):
+        return self._validated(value, UnmarshallingError)
+
+
+class QuerySelect(Field):
+    """A field that (de)serializes an ORM-mapped object to its primary
+    key and vice versa. A nonexistent primary key will result in a
+    validation error. Although this field is ORM agnostic, the use of
+    SQLAlchemy is encouraged.
+
+    :param callable query:
+        The query which will be executed at each (de)serialization
+        to find the list of valid objects and primary keys.
+    :param key:
+        Can be a callable or a string. In the former case, it must
+        be a one-argument callable which returns a unique comparable
+        key. In the latter case, the string specifies the name of
+        an attribute of the ORM-mapped object.
+    :param str error:
+        Error message stored upon validation failure.
+    """
+    def __init__(self, query, key, error=None, **kwargs):
+        self.query = query
+        self.key = key if callable(key) else attrgetter(key)
+        super(QuerySelect, self).__init__(error, **kwargs)
+
+    def _serialize(self, value, attr, obj):
+        value = self.key(value)
+
+        for item in self.query():
+            if self.key(item) == value:
+                return value
+
+        error = getattr(self, 'error', None) or 'Invalid object.'
+        raise MarshallingError(error)
+
+    def _deserialize(self, value):
+        for item in self.query():
+            if self.key(item) == value:
+                return item
+
+        error = getattr(self, 'error', None) or 'Invalid value.'
+        raise UnmarshallingError(error)
+
+    @property
+    def choices(self):
+        """Convenience property to get the list of valid values."""
+        return [self.key(item) for item in self.query()]
+
+
+class QuerySelectList(QuerySelect):
+    """A field that (de)serializes a list of ORM-mapped objects to
+    a list of their primary keys and vice versa. If any of the
+    items in the list cannot be found in the query, this will
+    result in a validation error. Do not use this field with very
+    long lists as the algorithmic complexity of the (de)serialization
+    methods is O(n*m), where n and m are the length of the query
+    result and of the input list.
+
+    :param callable query: Same as :class:`QuerySelect`.
+    :param key: Same as :class:`QuerySelect`.
+    :param str error: Error message stored upon validation failure.
+    """
+    def _serialize(self, value, attr, obj):
+        items = [self.key(v) for v in value]
+
+        if not items:
+            return []
+
+        choices = self.choices
+
+        for item in items:
+            try:
+                choices.remove(item)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid objects.'
+                raise MarshallingError(error)
+
+        return items
+
+    def _deserialize(self, value):
+        if not value:
+            return []
+
+        results = self.query()
+        keys = [self.key(result) for result in results]
+        items = []
+
+        for val in value:
+            try:
+                index = keys.index(val)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid values.'
+                raise UnmarshallingError(error)
+            else:
+                keys.pop(index)
+                items.append(results.pop(index))
+
+        return items
+
+
+class Numeric(Field):
+    """A field that serializes and deserializes to the Python
+    ``decimal.Decimal`` type. It's safe to use when handling
+    money.
+
+    :param int places:
+        How many decimal places to quantize the value. If
+        None, does not quantize value.
+    :param rounding:
+        How to round the value during quantize, for example
+        `decimal.ROUND_UP`. If None, uses the rounding
+        value from the current thread's context.
+    """
+    def __init__(self, places=None, rounding=None, default=Decimal(), **kwargs):
+        self.places = Decimal((0, (1,), -places)) if places is not None else None
+        self.rounding = rounding
+        super(Numeric, self).__init__(default=default, **kwargs)
+
+    def _validated(self, value, exception_class):
+        """Format the value or raise ``exception_class`` if an error occurs."""
+        if value is None:
+            return self.default
+
+        try:
+            num = Decimal(value)
+        except (TypeError, ValueError, InvalidOperation) as err:
+            raise exception_class(getattr(self, 'error', None) or err)
+        else:
+            if self.places is not None:
+                if self.rounding is None:
+                    num = num.quantize(self.places)
+                else:
+                    num = num.quantize(self.places, rounding=self.rounding)
+            return num
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)

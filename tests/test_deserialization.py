@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
 import uuid
+from decimal import Decimal, ROUND_DOWN
 
 import pytest
 
@@ -250,6 +251,110 @@ class TestFieldDeserialization:
         assert field.deserialize(nums) == ['1.000', '2.000', '3.000']
         with pytest.raises(UnmarshallingError):
             field.deserialize((1, 2, 'invalid'))
+
+    def test_query_select_field_deserialization(self):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __eq__(self, other):
+                return self.foo == other.foo
+
+            def __str__(self):
+                return 'bar {0}'.format(self.foo)
+
+        query = lambda: [Dummy(c) for c in 'abc']
+
+        field = fields.QuerySelect(query, str)
+        assert field.deserialize('bar a') == Dummy('a')
+        assert field.deserialize('bar b') == Dummy('b')
+        assert field.deserialize('bar c') == Dummy('c')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('bar d')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('c')
+        assert field.choices == ['bar ' + c for c in 'abc']
+
+        field = fields.QuerySelect(query, 'foo')
+        assert field.deserialize('a') == Dummy('a')
+        assert field.deserialize('b') == Dummy('b')
+        assert field.deserialize('c') == Dummy('c')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('d')
+        with pytest.raises(UnmarshallingError):
+            field.deserialize('bar d')
+        assert field.choices == list('abc')
+
+    def test_query_select_list_field_deserialization(self):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __eq__(self, other):
+                return self.foo == other.foo
+
+            def __str__(self):
+                return 'bar {0}'.format(self.foo)
+
+        query = lambda: [Dummy(c) for c in 'abcdee']
+
+        field = fields.QuerySelectList(query, str)
+        assert field.deserialize(['bar a', 'bar c', 'bar b']) == \
+               [Dummy('a'), Dummy('c'), Dummy('b')]
+        assert field.deserialize(['bar d', 'bar e', 'bar e']) == \
+               [Dummy('d'), Dummy('e'), Dummy('e')]
+        assert field.deserialize([]) == []
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'f'])
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'b'])
+
+        field = fields.QuerySelectList(query, 'foo')
+        assert field.deserialize(['a', 'c', 'b']) == [Dummy('a'), Dummy('c'), Dummy('b')]
+        assert field.deserialize(['d', 'e', 'e']) == [Dummy('d'), Dummy('e'), Dummy('e')]
+        assert field.deserialize([]) == []
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'f'])
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'b'])
+
+    def test_numeric_field_deserialization(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = None
+        m4 = Decimal(1)
+        m5 = 'abc'
+        m6 = [1, 2]
+
+        field = fields.Numeric()
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.355')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Numeric(1)
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.4')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Numeric(1, ROUND_DOWN)
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.3')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
 
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
