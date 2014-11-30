@@ -296,10 +296,12 @@ class TestFieldDeserialization:
                 return 'bar {0}'.format(self.foo)
 
         query = lambda: [Dummy(c) for c in 'abcdee']
-        
+
         field = fields.QuerySelectList(query, str)
-        assert field.deserialize(['bar a', 'bar c', 'bar b']) == [Dummy('a'), Dummy('c'), Dummy('b')]
-        assert field.deserialize(['bar d', 'bar e', 'bar e']) == [Dummy('d'), Dummy('e'), Dummy('e')]
+        assert field.deserialize(['bar a', 'bar c', 'bar b']) == \
+               [Dummy('a'), Dummy('c'), Dummy('b')]
+        assert field.deserialize(['bar d', 'bar e', 'bar e']) == \
+               [Dummy('d'), Dummy('e'), Dummy('e')]
         assert field.deserialize([]) == []
         with pytest.raises(UnmarshallingError):
             field.deserialize(['a', 'b', 'f'])
