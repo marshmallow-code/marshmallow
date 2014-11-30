@@ -1276,9 +1276,9 @@ class QuerySelectList(QuerySelect):
 
 
 class Numeric(Field):
-    """A field that serializes and serializes to the Python
-    ``decimal.Decimal`` type. It's safe to use when
-    handling money.
+    """A field that serializes and deserializes to the Python
+    ``decimal.Decimal`` type. It's safe to use when handling
+    money.
 
     :param int places:
         How many decimal places to quantize the value. If
