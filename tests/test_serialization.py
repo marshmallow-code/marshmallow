@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
 from collections import namedtuple
+from decimal import Decimal, ROUND_DOWN
 import datetime as dt
 
 import pytest
@@ -299,6 +300,45 @@ class TestFieldSerialization:
             field.serialize('du3', user)
         with pytest.raises(MarshallingError):
             field.serialize('du4', user)
+
+    def test_numeric_field(self, user):
+        user.m1 = 12
+        user.m2 = '12.355'
+        user.m3 = None
+        user.m4 = Decimal(1)
+        user.m5 = 'abc'
+        user.m6 = [1, 2]
+
+        field = fields.Numeric()
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.355')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Numeric(1)
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.4')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Numeric(1, ROUND_DOWN)
+        assert field.serialize('m1', user) == Decimal(12)
+        assert field.serialize('m2', user) == Decimal('12.3')
+        assert field.serialize('m3', user) == Decimal()
+        assert field.serialize('m4', user) == Decimal(1)
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
 
 class TestMarshaller:
 
