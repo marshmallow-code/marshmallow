@@ -284,6 +284,37 @@ class TestFieldDeserialization:
             field.deserialize('bar d')
         assert field.choices == list('abc')
 
+    def test_query_select_list_field_deserialization(self):
+        class Dummy(object):
+            def __init__(self, foo):
+                self.foo = foo
+
+            def __eq__(self, other):
+                return self.foo == other.foo
+
+            def __str__(self):
+                return 'bar {0}'.format(self.foo)
+
+        query = lambda: [Dummy(c) for c in 'abcdee']
+        
+        field = fields.QuerySelectList(query, str)
+        assert field.deserialize(['bar a', 'bar c', 'bar b']) == [Dummy('a'), Dummy('c'), Dummy('b')]
+        assert field.deserialize(['bar d', 'bar e', 'bar e']) == [Dummy('d'), Dummy('e'), Dummy('e')]
+        assert field.deserialize([]) == []
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'f'])
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'b'])
+
+        field = fields.QuerySelectList(query, 'foo')
+        assert field.deserialize(['a', 'c', 'b']) == [Dummy('a'), Dummy('c'), Dummy('b')]
+        assert field.deserialize(['d', 'e', 'e']) == [Dummy('d'), Dummy('e'), Dummy('e')]
+        assert field.deserialize([]) == []
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'f'])
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(['a', 'b', 'b'])
+
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
         dstrings = [each.isoformat() for each in dtimes]
