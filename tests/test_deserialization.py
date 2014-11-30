@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
 import uuid
+from decimal import Decimal, ROUND_DOWN
 
 import pytest
 
@@ -316,6 +317,44 @@ class TestFieldDeserialization:
             field.deserialize(['a', 'b', 'f'])
         with pytest.raises(UnmarshallingError):
             field.deserialize(['a', 'b', 'b'])
+
+    def test_numeric_field_deserialization(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = None
+        m4 = Decimal(1)
+        m5 = 'abc'
+        m6 = [1, 2]
+
+        field = fields.Numeric()
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.355')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Numeric(1)
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.4')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Numeric(1, ROUND_DOWN)
+        assert field.deserialize(m1) == Decimal(12)
+        assert field.deserialize(m2) == Decimal('12.3')
+        assert field.deserialize(m3) == Decimal()
+        assert field.deserialize(m4) == Decimal(1)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
 
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
