@@ -10,6 +10,7 @@ Changelog
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
 - Add several new validators. Thanks @philtay.
 - Add fields for seamless integration with ORMs (``QuerySelect`` and ``QuerySelectList``).
+- Add a field that (de)serializes to the Python ``decimal.Decimal`` type (``Numeric``).
 
 1.0.1 (2014-11-18)
 ++++++++++++++++++
