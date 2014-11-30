@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import datetime as dt
 import uuid
 import warnings
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from functools import partial
 from operator import attrgetter
 
@@ -1273,6 +1273,48 @@ class QuerySelectList(QuerySelect):
                 items.append(results.pop(index))
 
         return items
+
+
+class Numeric(Field):
+    """A field that serializes and serializes to the Python
+    ``decimal.Decimal`` type. It's safe to use when
+    handling money.
+
+    :param int places:
+        How many decimal places to quantize the value. If
+        None, does not quantize value.
+    :param rounding:
+        How to round the value during quantize, for example
+        `decimal.ROUND_UP`. If None, uses the rounding
+        value from the current thread's context.
+    """
+    def __init__(self, places=None, rounding=None, default=Decimal(), **kwargs):
+        self.places = Decimal((0, (1,), -places)) if places is not None else None
+        self.rounding = rounding
+        super(Numeric, self).__init__(default=default, **kwargs)
+
+    def _validated(self, value, exception_class):
+        """Format the value or raise ``exception_class`` if an error occurs."""
+        if value is None:
+            return self.default
+
+        try:
+            num = Decimal(value)
+        except (TypeError, ValueError, InvalidOperation) as err:
+            raise exception_class(getattr(self, 'error', None) or err)
+        else:
+            if self.places is not None:
+                if self.rounding is None:
+                    num = num.quantize(self.places)
+                else:
+                    num = num.quantize(self.places, rounding=self.rounding)
+            return num
+
+    def _serialize(self, value, attr, obj):
+        return self._validated(value, MarshallingError)
+
+    def _deserialize(self, value):
+        return self._validated(value, UnmarshallingError)
 
 # Aliases
 Enum = Select
