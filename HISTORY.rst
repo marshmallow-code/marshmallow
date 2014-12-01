@@ -4,11 +4,17 @@ Changelog
 1.1.0 (unreleased)
 ++++++++++++++++++
 
+Features:
+
 - Store field name and instance on exceptions raised in ``strict`` mode.
+- Add ``Schema.validate`` method which validates input data against a schema. Similar to ``Schema.load``, but does not call ``make_object`` and only returns the errors dictionary.
+- Add several utility functions to the ``validate`` module. Thanks @philtay.
+
+Bug fixes:
+
 - Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``).
-- If a Nested field has ``many=True``, ``None`` serializes to an empty list.
+- If a Nested field is passed ``many=True``, ``None`` serializes to an empty list.
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
-- Add several new validators. Thanks @philtay.
 
 1.0.1 (2014-11-18)
 ++++++++++++++++++
@@ -49,7 +55,7 @@ Major reworking and simplification of the public API, centered around support fo
 * *Backwards-incompatible*: ``Field`` classes implement ``_serialize`` and ``_deserialize`` methods. ``serialize`` and ``deserialize`` comprise the public API for a ``Field``. ``Field.format`` and ``Field.output`` have been removed.
 * Add ``exceptions.ForcedError`` which allows errors to be raised during serialization (instead of storing errors in the ``errors`` dict).
 * *Backwards-incompatible*: ``DateTime`` field serializes to ISO8601 format by default (instead of RFC822).
-* *Backwards-incompatible*: Remove `Serializer.factory` method. It is no longer necessary with the ``dump`` method.
+* *Backwards-incompatible*: Remove ``Serializer.factory`` method. It is no longer necessary with the ``dump`` method.
 * *Backwards-incompatible*: Allow nesting a serializer within itself recursively. Use ``exclude`` or ``only`` to prevent infinite recursion.
 * *Backwards-incompatible*: Multiple errors can be stored for a single field. The errors dictionary returned by ``load`` and ``dump`` have lists of error messages keyed by field name.
 * Remove ``validated`` decorator. Validation occurs within ``Field`` methods.
