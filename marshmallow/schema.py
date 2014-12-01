@@ -471,36 +471,14 @@ class BaseSchema(base.SchemaABC):
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
-        :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
+        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        many = self.many if many is None else bool(many)
-        # Bind self as the first argument of validators and preprocessors
-        if self.__validators__:
-            validators = [partial(func, self)
-                         for func in self.__validators__]
-        else:
-            validators = []
-        if self.__preprocessors__:
-            preprocessors = [partial(func, self)
-                            for func in self.__preprocessors__]
-        else:
-            preprocessors = []
-        result = self._unmarshal(
-            data,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            validators=validators,
-            preprocess=preprocessors,
-            postprocess=[self.make_object],
-            dict_class=self.dict_class
-        )
-        errors = self._unmarshal.errors
+        result, errors = self._do_load(data, many, postprocess=True)
         if self._unmarshal.errors and callable(self.__error_handler__):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
@@ -518,6 +496,21 @@ class BaseSchema(base.SchemaABC):
         """
         data = self.opts.json_module.loads(json_data, *args, **kwargs)
         return self.load(data, many=many)
+
+    def validate(self, data, many=None):
+        """Validate `data` against the schema, returning a dictionary of
+        validation errors.
+
+        :param dict data: The data to validate.
+        :param bool many: Whether to validate `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :return: A dictionary of validation errors.
+        :rtype: dict
+
+        .. versionadded:: 1.1.0
+        """
+        _, errors = self._do_load(data, many, postprocess=False)
+        return errors
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
@@ -560,6 +553,43 @@ class BaseSchema(base.SchemaABC):
         return self._data
 
     ##### Private Helpers #####
+
+    def _do_load(self, data, many=None, postprocess=True):
+        """Deserialize `data`, returning the deserialized result and a dictonary of
+        validation errors.
+
+        :param data: The data to deserialize.
+        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param bool postprocess: Whether to postprocess the data with `make_object`.
+        :return: A tuple of the form (`data`, `errors`)
+        """
+        many = self.many if many is None else bool(many)
+        # Bind self as the first argument of validators and preprocessors
+        if self.__validators__:
+            validators = [partial(func, self)
+                         for func in self.__validators__]
+        else:
+            validators = []
+        if self.__preprocessors__:
+            preprocessors = [partial(func, self)
+                            for func in self.__preprocessors__]
+        else:
+            preprocessors = []
+
+        postprocess_funcs = [self.make_object] if postprocess else []
+        result = self._unmarshal(
+            data,
+            self.fields,
+            many=many,
+            strict=self.strict,
+            validators=validators,
+            preprocess=preprocessors,
+            postprocess=postprocess_funcs,
+            dict_class=self.dict_class
+        )
+        errors = self._unmarshal.errors
+        return result, errors
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""

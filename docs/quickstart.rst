@@ -246,6 +246,16 @@ You can make a field required by passing ``required=True``. An error will be sto
     data, errors = UserSchema().load({'email': 'foo@bar.com'})
     errors  # {'name': ['Missing data for required field.']}
 
+Schema.validate
++++++++++++++++
+
+If you only need to validate input data (without deserializing to an object), you can use :meth:`Schema.validate`.
+
+.. code-block:: python
+
+    errors = UserSchema().validate({'name': 'Ronnie', 'email': 'invalid-email'})
+    errors  # {'email': ['"invalid-email" is not a valid email address.']}
+
 
 Specifying Attribute Names
 --------------------------
