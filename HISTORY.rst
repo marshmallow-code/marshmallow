@@ -6,15 +6,16 @@ Changelog
 
 Features:
 
-- Store field name and instance on exceptions raised in ``strict`` mode.
 - Add ``Schema.validate`` method which validates input data against a schema. Similar to ``Schema.load``, but does not call ``make_object`` and only returns the errors dictionary.
 - Add several utility functions to the ``validate`` module. Thanks @philtay.
+- Store field name and instance on exceptions raised in ``strict`` mode.
 
 Bug fixes:
 
-- Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``).
-- If a Nested field is passed ``many=True``, ``None`` serializes to an empty list.
+- Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``). Thanks @rozenm for reporting.
+- If a Nested field is passed ``many=True``, ``None`` serializes to an empty list. Thanks @nickretallack for reporting.
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
+- Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks @malexer for reporting.
 
 1.0.1 (2014-11-18)
 ++++++++++++++++++

@@ -188,7 +188,8 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
-            if (value is missing) or (value is None and skip_missing):
+            if (value is missing) or (skip_missing and
+                                      value in field_obj.SKIPPABLE_VALUES):
                 continue
             items.append((key, value))
         return dict_class(items)
@@ -324,6 +325,8 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, error=None,
                  validate=None, required=False, **metadata):
@@ -599,6 +602,9 @@ class List(Field):
         If `False`, `None` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, [], tuple())
+
     def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
         super(List, self).__init__(**kwargs)
         if not allow_none and default is None:
@@ -638,6 +644,8 @@ class String(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
@@ -760,6 +768,9 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, '')
+
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)

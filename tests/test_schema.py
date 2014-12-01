@@ -1579,6 +1579,7 @@ class UserSkipSchema(Schema):
     name = fields.Str()
     email = fields.Email()
     age = fields.Int(default=None)
+    nicknames = fields.List(fields.String)
 
     class Meta:
         skip_missing = True
@@ -1597,6 +1598,21 @@ class TestSkipMissingOption:
         assert 'name' in result.data
         assert 'email' not in result.data
         assert 'age' not in result.data
+
+    # Regression test for https://github.com/sloria/marshmallow/issues/71
+    def test_missing_string_values_can_be_skipped(self):
+        user = dict(email='foo@bar.com', age=42)
+        schema = UserSkipSchema()
+        result = schema.dump(user)
+        assert 'name' not in result.data
+        assert 'email' in result.data
+        assert 'age' in result.data
+
+    def test_empty_list_can_be_skipped(self):
+        schema = UserSkipSchema()
+        user = dict(age=42, nicknames=['foo', 'bar'])
+        result = schema.dump(user)
+        assert 'nicknames' in result.data
 
 def get_from_dict(schema, key, obj, default=None):
     return obj.get(key, default)
