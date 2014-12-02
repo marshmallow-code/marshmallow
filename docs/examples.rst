@@ -69,6 +69,7 @@ Below is a full example of a REST API for a quotes app using `Flask <http://flas
     - `class Meta` to specify which fields to serialize
     - Nesting fields
     - Output filtering using the ``only`` parameter
+    - Validation using :meth:`Schema.validate`.
 
 .. literalinclude:: ../examples/flask_example.py
     :language: python
@@ -86,15 +87,27 @@ First we'll POST some quotes.
 
 .. code-block:: bash
 
-    $ http POST :5000/api/v1/quotes/new author="Tim Peters" quote="Beautiful is better than ugly."
-    $ http POST :5000/api/v1/quotes/new author="Tim Peters" quote="Now is better than never."
-    $ http POST :5000/api/v1/quotes/new author="Peter Hintjens" quote="Simplicity is always better than functionality."
+    $ http POST :5000/api/v1/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
+    $ http POST :5000/api/v1/quotes/ author="Tim Peters" content="Now is better than never."
+    $ http POST :5000/api/v1/quotes/ author="Peter Hintjens" content="Simplicity is always better than functionality."
+
+
+If we provide invalid input data, we get 400 error response. Let's omit "author" from the input data.
+
+.. code-block:: bash
+
+    $ http POST :5000/api/v1/quotes/ content="I have no author"
+    {
+        "author": [
+            "Data not provided."
+        ]
+    }
 
 Now we can GET a list of all the quotes.
 
 .. code-block:: bash
 
-    $ http :5000/api/v1/quotes
+    $ http :5000/api/v1/quotes/
     {
         "quotes": [
             {
