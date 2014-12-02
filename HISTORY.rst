@@ -17,6 +17,10 @@ Bug fixes:
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
 - Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks @malexer for reporting.
 
+Docs:
+
+- Update Flask and Peewee examples.
+
 1.0.1 (2014-11-18)
 ++++++++++++++++++
 

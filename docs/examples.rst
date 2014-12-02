@@ -154,7 +154,7 @@ ToDo API (Flask + Peewee)
 
 This example uses Flask and the `Peewee <http://peewee.readthedocs.org/en/latest/index.html>`_ ORM to create a basic Todo application.
 
-Notice how ``__marshallable__`` is used to define how Peewee model objects get marshalled.
+Notice how ``__marshallable__`` is used to define how Peewee model objects get marshalled. We also use the :meth:`Schema.load` method to deserialize input data to an ORM object (see the ``new_todo()`` view).
 
 .. literalinclude:: ../examples/peewee_example.py
     :language: python
@@ -165,37 +165,37 @@ After registering a user and creating some todo items in the database, here is a
 
 .. code-block:: bash
 
-    $ http GET :5000/api/v1/todos
+    $ http GET :5000/api/v1/todos/
     {
         "todos": [
             {
-                "content": "Refactor everything",
-                "done": false,
-                "id": 3,
-                "posted_on": ""2014-08-17T14:42:12.479650+00:00",
-                "user": {
-                    "email": "foo@bar.com",
-                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
-                }
-            },
-            {
-                "content": "Learn python",
-                "done": false,
-                "id": 2,
-                "posted_on": "2014-08-15T17:41:12.479650+00:00",
-                "user": {
-                    "email": "foo@bar.com",
-                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
-                }
-            },
-            {
                 "content": "Install marshmallow",
                 "done": false,
-                "id": 1,
-                "posted_on": "2014-08-15T09:15:12.479650+00:00",
+                "id": 3,
+                "posted_on": "2014-12-02T02:58:14.070877+00:00",
                 "user": {
                     "email": "foo@bar.com",
-                    "joined_on": "2014-08-14T13:12:19.179650+00:00"
+                    "id": 1
+                }
+            },
+            {
+                "content": "Learn Python",
+                "done": false,
+                "id": 2,
+                "posted_on": "2014-12-02T02:58:08.910516+00:00",
+                "user": {
+                    "email": "foo@bar.com",
+                    "id": 1
+                }
+            },
+            {
+                "content": "Refactor everything",
+                "done": false,
+                "id": 1,
+                "posted_on": "2014-12-02T02:58:04.207961+00:00",
+                "user": {
+                    "email": "foo@bar.com",
+                    "id": 1
                 }
             }
         ]
