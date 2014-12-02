@@ -154,39 +154,42 @@ def test_serializing_none():
     assert s.data['name'] == ''
     assert s.data['age'] == 0
 
-def test_validate_returns_errors_dict():
-    s = UserSchema()
-    errors = s.validate({'email': 'bad-email', 'name': 'Valid Name'})
-    assert type(errors) is dict
-    assert 'email' in errors
-    assert 'name' not in errors
 
-    valid_data = {'name': 'Valid Name', 'email': 'valid@email.com'}
-    errors = s.validate(valid_data)
-    assert errors == {}
+class TestValidate:
 
-def test_validate_many():
-    s = UserSchema()
-    in_data = [{'name': 'Valid Name', 'email': 'Valid Email'},
-               {'name': 'Valid Name2', 'email': 'invalid'}]
-    errors = s.validate(in_data, many=True)
-    assert type(errors) is dict
-    assert 'email' in errors
-    assert 'name' not in errors
+    def test_validate_returns_errors_dict(self):
+        s = UserSchema()
+        errors = s.validate({'email': 'bad-email', 'name': 'Valid Name'})
+        assert type(errors) is dict
+        assert 'email' in errors
+        assert 'name' not in errors
 
-def test_validate_strict():
-    s = UserSchema(strict=True)
-    with pytest.raises(UnmarshallingError):
-        s.validate({'email': 'bad-email'})
+        valid_data = {'name': 'Valid Name', 'email': 'valid@email.com'}
+        errors = s.validate(valid_data)
+        assert errors == {}
 
-def test_validate_required():
-    class MySchema(Schema):
-        foo = fields.Field(required=True)
+    def test_validate_many(self):
+        s = UserSchema()
+        in_data = [{'name': 'Valid Name', 'email': 'Valid Email'},
+                {'name': 'Valid Name2', 'email': 'invalid'}]
+        errors = s.validate(in_data, many=True)
+        assert type(errors) is dict
+        assert 'email' in errors
+        assert 'name' not in errors
 
-    s = MySchema()
-    errors = s.validate({'bar': 42})
-    assert 'foo' in errors
-    assert 'required' in errors['foo'][0]
+    def test_validate_strict(self):
+        s = UserSchema(strict=True)
+        with pytest.raises(UnmarshallingError):
+            s.validate({'email': 'bad-email'})
+
+    def test_validate_required(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True)
+
+        s = MySchema()
+        errors = s.validate({'bar': 42})
+        assert 'foo' in errors
+        assert 'required' in errors['foo'][0]
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
