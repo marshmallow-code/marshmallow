@@ -43,6 +43,16 @@ def test_dump_returns_dict_of_errors():
     assert 'age' in errors
 
 
+def test_dump_with_strict_mode_raises_error():
+    s = UserSchema(strict=True)
+    bad_user = User(name='Monty', email='invalid-email')
+    with pytest.raises(MarshallingError) as excinfo:
+        s.dump(bad_user)
+    exc = excinfo.value
+    assert type(exc.field) == fields.Email
+    assert exc.field_name == 'email'
+
+
 def test_dump_resets_errors():
     class MySchema(Schema):
         email = fields.Email()
@@ -77,6 +87,20 @@ def test_dumps_returns_a_marshalresult(user):
     assert type(result) == MarshalResult
     assert type(result.data) == str
     assert type(result.errors) == dict
+
+def test_dumping_single_object_with_collection_schema():
+    s = UserSchema(many=True)
+    user = UserSchema('Mick')
+    result = s.dump(user, many=False)
+    assert type(result.data) == dict
+    assert result.data == UserSchema().dump(user).data
+
+def test_loading_single_object_with_collection_schema():
+    s = UserSchema(many=True)
+    in_data = {'name': 'Mick', 'email': 'mick@stones.com'}
+    result = s.load(in_data, many=False)
+    assert type(result.data) == User
+    assert result.data.name == UserSchema().load(in_data).data.name
 
 def test_dumps_many():
     s = UserSchema()
@@ -129,6 +153,43 @@ def test_serializing_none():
     s = UserSchema().dump(None)
     assert s.data['name'] == ''
     assert s.data['age'] == 0
+
+
+class TestValidate:
+
+    def test_validate_returns_errors_dict(self):
+        s = UserSchema()
+        errors = s.validate({'email': 'bad-email', 'name': 'Valid Name'})
+        assert type(errors) is dict
+        assert 'email' in errors
+        assert 'name' not in errors
+
+        valid_data = {'name': 'Valid Name', 'email': 'valid@email.com'}
+        errors = s.validate(valid_data)
+        assert errors == {}
+
+    def test_validate_many(self):
+        s = UserSchema()
+        in_data = [{'name': 'Valid Name', 'email': 'Valid Email'},
+                {'name': 'Valid Name2', 'email': 'invalid'}]
+        errors = s.validate(in_data, many=True)
+        assert type(errors) is dict
+        assert 'email' in errors
+        assert 'name' not in errors
+
+    def test_validate_strict(self):
+        s = UserSchema(strict=True)
+        with pytest.raises(UnmarshallingError):
+            s.validate({'email': 'bad-email'})
+
+    def test_validate_required(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True)
+
+        s = MySchema()
+        errors = s.validate({'bar': 42})
+        assert 'foo' in errors
+        assert 'required' in errors['foo'][0]
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
@@ -775,6 +836,37 @@ class TestSchemaValidator:
         assert len(errors['_schema']) == 2
         assert errors['_schema'][0] == 'Something went wrong.'
 
+    def test_schema_validation_error_with_stict_stores_correct_field_name(self):
+        def validate_with_bool(schema, in_vals):
+            return False
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_bool]
+            field_a = fields.Field()
+
+        schema = ValidatingSchema(strict=True)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            schema.load({'field_a': 1})
+        exc = excinfo.value
+        assert exc.field is None
+        assert exc.field_name == '_schema'
+
+    def test_schema_validation_error_with_strict_when_field_is_specified(self):
+        def validate_with_err(schema, inv_vals):
+            raise ValidationError('Something went wrong.', 'field_a')
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_err]
+            field_a = fields.Str()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema(strict=True)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            schema.load({'field_a': 1})
+        exc = excinfo.value
+        assert type(exc.field) == fields.Str
+        assert exc.field_name == 'field_a'
+
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):
             assert isinstance(instance, Schema)
@@ -1018,6 +1110,16 @@ class TestNestedSchema:
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
 
+    # regression test for https://github.com/sloria/marshmallow/issues/64
+    def test_nested_many_with_missing_attribute(self, user):
+        class SimpleBlogSchema(Schema):
+            title = fields.Str()
+            wat = fields.Nested(UserSchema, many=True)
+        blog = Blog('Simple blog', user=user, collaborators=None)
+        schema = SimpleBlogSchema(blog)
+        result = schema.dump(blog)
+        assert result.data['wat'] == []
+
     def test_flat_nested2(self, blog):
         class FlatBlogSchema(Schema):
             name = fields.String()
@@ -1027,7 +1129,7 @@ class TestNestedSchema:
         data, _ = s.dump(blog)
         assert data['collaborators'][0] == str(blog.collaborators[0].uid)
 
-    def test_nested_field_does_not_vaidate_required(self):
+    def test_nested_field_does_not_validate_required(self):
         class BlogRequiredSchema(Schema):
             user = fields.Nested(UserSchema, required=True, allow_null=True)
 
@@ -1480,6 +1582,7 @@ class UserSkipSchema(Schema):
     name = fields.Str()
     email = fields.Email()
     age = fields.Int(default=None)
+    nicknames = fields.List(fields.String)
 
     class Meta:
         skip_missing = True
@@ -1498,6 +1601,21 @@ class TestSkipMissingOption:
         assert 'name' in result.data
         assert 'email' not in result.data
         assert 'age' not in result.data
+
+    # Regression test for https://github.com/sloria/marshmallow/issues/71
+    def test_missing_string_values_can_be_skipped(self):
+        user = dict(email='foo@bar.com', age=42)
+        schema = UserSkipSchema()
+        result = schema.dump(user)
+        assert 'name' not in result.data
+        assert 'email' in result.data
+        assert 'age' in result.data
+
+    def test_empty_list_can_be_skipped(self):
+        schema = UserSkipSchema()
+        user = dict(age=42, nicknames=['foo', 'bar'])
+        result = schema.dump(user)
+        assert 'nicknames' in result.data
 
 def get_from_dict(schema, key, obj, default=None):
     return obj.get(key, default)

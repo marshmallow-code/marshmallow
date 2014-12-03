@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Validation functions for various types of data."""
 import re
+from marshmallow.compat import basestring
 from marshmallow.exceptions import ValidationError
 
 
@@ -87,4 +88,138 @@ def email(value, error=None):
         except UnicodeError:
             pass
         raise ValidationError(error_message)
+    return value
+
+
+def length(value, min=None, max=None, error=None):
+    """Validator which succeeds if the value passed to it has a
+    length between a minimum and maximum. Uses len(), so
+    it can work for strings, lists, or anything with length.
+
+    :param int min:
+        The minimum length. If not provided, minimum length
+        will not be checked.
+    :param int max:
+        The maximum length. If not provided, maximum length
+        will not be checked.
+    :param str error:
+        Error message to raise in case of a validation error.
+        Can be interpolated using `{min}` and `{max}`.
+    """
+    if value is None:
+        return None
+
+    len_ = len(value)
+
+    if (min is not None and len_ < min) or (max is not None and len_ > max):
+        message = error
+        if message is None:
+            if min is None:
+                message = 'Longer than maximum length {max}.'
+            elif max is None:
+                message = 'Shorter than minimum length {min}.'
+            else:
+                message = 'Length must be between {min} and {max}.'
+        raise ValidationError(message.format(min=min, max=max))
+
+    return value
+
+
+def ranging(value, min=None, max=None, error=None):
+    """Validator which succeeds if the value it is passed is greater
+    or equal to ``min`` and less than or equal to ``max``. If ``min``
+    is not specified, or is specified as ``None``, no lower bound
+    exists. If ``max`` is not specified, or is specified as ``None``,
+    no upper bound exists.
+
+    :param min:
+        The minimum value (lower bound). If not provided, minimum
+        value will not be checked.
+    :param max:
+        The maximum value (upper bound). If not provided, maximum
+        value will not be checked.
+    :param str error:
+        Error message to raise in case of a validation error.
+        Can be interpolated using `{min}` and `{max}`.
+    """
+    if value is None:
+        return None
+
+    if (min is not None and value < min) or (max is not None and value > max):
+        message = error
+        if message is None:
+            if min is None:
+                message = 'Must be at most {max}.'
+            elif max is None:
+                message = 'Must be at least {min}.'
+            else:
+                message = 'Must be between {min} and {max}.'
+        raise ValidationError(message.format(min=min, max=max))
+
+    return value
+
+
+def equal(value, comparable, error=None):
+    """Validator which succeeds if the value passed to it is
+    equal to ``comparable``.
+
+    :param comparable:
+        The object to compare to.
+    :param str error:
+        Error message to raise in case of a validation error.
+        Can be interpolated using `{cmp}`.
+    """
+    if value is None:
+        return None
+
+    if value != comparable:
+        message = error or 'Must be equal to "{cmp}".'
+        raise ValidationError(message.format(cmp=comparable))
+
+    return value
+
+
+def regexp(value, regex, flags=0, error=None):
+    """Validates ``value`` against the provided regexp.
+
+    :param regex:
+        The regular expression string to use. Can also be a compiled
+        regular expression pattern.
+    :param flags:
+        The regexp flags to use, for example re.IGNORECASE. Ignored
+        if ``regex`` is not a string.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    if value is None:
+        return None
+
+    if isinstance(regex, basestring):
+        regex = re.compile(regex, flags)
+
+    if regex.match(value) is None:
+        raise ValidationError(error or 'String does not match expected pattern.')
+
+    return value
+
+
+def predicate(value, method, error=None, **kwargs):
+    """Calls the specified ``method`` on the ``value`` object. The
+    validator succeeds if the invoked method returns a value that
+    evaluates to True in a Boolean context. Any additional keyword
+    argument will be passed to the method.
+
+    :param str method:
+        The name of the method to invoke.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    if value is None:
+        return None
+
+    method = getattr(value, method)
+
+    if not method(**kwargs):
+        raise ValidationError(error or 'Invalid input.')
+
     return value

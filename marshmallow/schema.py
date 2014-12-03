@@ -241,7 +241,7 @@ class BaseSchema(base.SchemaABC):
         self._unmarshal = fields.Unmarshaller()
         self.extra = extra
         self.context = context or {}
-        self._update_fields()
+        self._update_fields(many=many)
 
         # For backwards compatibility, allow object to be passed in.
         self.obj = obj
@@ -251,19 +251,19 @@ class BaseSchema(base.SchemaABC):
             warnings.warn('Serializing objects in the Schema constructor is a '
                           'deprecated API. Use the Schema.dump method instead.',
                           category=DeprecationWarning)
-            self._update_fields(self.obj)
+            self._update_fields(self.obj, many=many)
             self._update_data()
         else:
-            self._update_fields()
+            self._update_fields(many=many)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
 
-    def _postprocess(self, data, obj):
+    def _postprocess(self, data, many, obj):
         if self.extra:
-            if self.many:
+            if many:
                 for each in data:
                     each.update(self.extra)
             else:
@@ -410,12 +410,13 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=False, update_fields=True, **kwargs):
+    def dump(self, obj, many=None, update_fields=True, **kwargs):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
-        :param bool many: Whether to serialize `obj` as a collection.
+        :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
+            for `self.many` is used.
         :param bool update_fields: Whether to update the schema's field classes. Typically
             set to `True`, but may be `False` when serializing a homogenous collection.
             This parameter is used by `fields.Nested` to avoid multiple updates.
@@ -424,7 +425,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        many = many or self.many
+        many = self.many if many is None else bool(many)
         if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
@@ -432,7 +433,7 @@ class BaseSchema(base.SchemaABC):
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
         if update_fields:
-            self._update_fields(obj)
+            self._update_fields(obj, many=many)
         preresult = self._marshal(
             obj,
             self.fields,
@@ -443,15 +444,16 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             **kwargs
         )
-        result = self._postprocess(preresult, obj=obj)
+        result = self._postprocess(preresult, many, obj=obj)
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
-    def dumps(self, obj, many=False, update_fields=True, *args, **kwargs):
+    def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
-        :param bool many: Whether to serialize `obj` as a collection.
+        :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
+            for `self.many` is used.
         :param bool update_fields: Whether to update the schema's field classes. Typically
             set to `True`, but may be `False` when serializing a homogenous collection.
             This parameter is used by `fields.Nested` to avoid multiple updates.
@@ -464,40 +466,19 @@ class BaseSchema(base.SchemaABC):
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
-    def load(self, data, many=False):
+    def load(self, data, many=None):
         """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
-        :param bool many: Whether to deserialize `data` as a collection.
+        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
+            value for `self.many` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        many = many or self.many
-        # Bind self as the first argument of validators and preprocessors
-        if self.__validators__:
-            validators = [partial(func, self)
-                         for func in self.__validators__]
-        else:
-            validators = []
-        if self.__preprocessors__:
-            preprocessors = [partial(func, self)
-                            for func in self.__preprocessors__]
-        else:
-            preprocessors = []
-        result = self._unmarshal(
-            data,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            validators=validators,
-            preprocess=preprocessors,
-            postprocess=[self.make_object],
-            dict_class=self.dict_class
-        )
-        errors = self._unmarshal.errors
+        result, errors = self._do_load(data, many, postprocess=True)
         if self._unmarshal.errors and callable(self.__error_handler__):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
@@ -506,7 +487,8 @@ class BaseSchema(base.SchemaABC):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
-        :param bool many: Whether to deserialize `json_data` as a collection.
+        :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
+            value for `self.many` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
@@ -514,6 +496,21 @@ class BaseSchema(base.SchemaABC):
         """
         data = self.opts.json_module.loads(json_data, *args, **kwargs)
         return self.load(data, many=many)
+
+    def validate(self, data, many=None):
+        """Validate `data` against the schema, returning a dictionary of
+        validation errors.
+
+        :param dict data: The data to validate.
+        :param bool many: Whether to validate `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :return: A dictionary of validation errors.
+        :rtype: dict
+
+        .. versionadded:: 1.1.0
+        """
+        _, errors = self._do_load(data, many, postprocess=False)
+        return errors
 
     def make_object(self, data):
         """Override-able method that defines how to create the final deserialization
@@ -557,11 +554,48 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _update_fields(self, obj=None):
+    def _do_load(self, data, many=None, postprocess=True):
+        """Deserialize `data`, returning the deserialized result and a dictonary of
+        validation errors.
+
+        :param data: The data to deserialize.
+        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
+            value for `self.many` is used.
+        :param bool postprocess: Whether to postprocess the data with `make_object`.
+        :return: A tuple of the form (`data`, `errors`)
+        """
+        many = self.many if many is None else bool(many)
+        # Bind self as the first argument of validators and preprocessors
+        if self.__validators__:
+            validators = [partial(func, self)
+                         for func in self.__validators__]
+        else:
+            validators = []
+        if self.__preprocessors__:
+            preprocessors = [partial(func, self)
+                            for func in self.__preprocessors__]
+        else:
+            preprocessors = []
+
+        postprocess_funcs = [self.make_object] if postprocess else []
+        result = self._unmarshal(
+            data,
+            self.fields,
+            many=many,
+            strict=self.strict,
+            validators=validators,
+            preprocess=preprocessors,
+            postprocess=postprocess_funcs,
+            dict_class=self.dict_class
+        )
+        errors = self._unmarshal.errors
+        return result, errors
+
+    def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only, obj)
+            ret = self.__filter_fields(self.only, obj, many=many)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields
@@ -580,7 +614,7 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj)
+        ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
@@ -600,7 +634,7 @@ class BaseSchema(base.SchemaABC):
                     field_obj.dateformat = self.opts.dateformat
         return fields_dict
 
-    def __filter_fields(self, field_names, obj):
+    def __filter_fields(self, field_names, obj, many=False):
         """Return only those field_name:field_obj pairs specified by
         ``field_names``.
 
@@ -611,7 +645,7 @@ class BaseSchema(base.SchemaABC):
         # Convert obj to a dict
         obj_marshallable = utils.to_marshallable_type(obj,
             field_names=field_names)
-        if obj_marshallable and self.many:
+        if obj_marshallable and many:
             try:  # Homogeneous collection
                 obj_prototype = obj_marshallable[0]
             except IndexError:  # Nothing to serialize

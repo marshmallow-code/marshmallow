@@ -106,6 +106,8 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         raise
     except exception_class as err:  # Store errors
         if strict:
+            err.field = field_obj
+            err.field_name = field_name
             raise err
         # Warning: Mutation!
         if (hasattr(err, 'underlying_exception') and
@@ -186,7 +188,8 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
-            if (value is missing) or (value is None and skip_missing):
+            if (value is missing) or (skip_missing and
+                                      value in field_obj.SKIPPABLE_VALUES):
                 continue
             items.append((key, value))
         return dict_class(items)
@@ -206,7 +209,7 @@ class Unmarshaller(object):
         #: True while deserializing a collection
         self.__pending = False
 
-    def _validate(self, validators, output, strict=False):
+    def _validate(self, validators, output, fields_dict, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
         """
         for validator_func in validators:
@@ -217,11 +220,16 @@ class Unmarshaller(object):
                         func_name, dict(output)
                     ))
             except ValidationError as err:
+                # Store or reraise errors
+                if err.field:
+                    field_name = err.field
+                    field_obj = fields_dict[field_name]
+                else:
+                    field_name = '_schema'
+                    field_obj = None
                 if strict:
-                    raise UnmarshallingError(err)
-                # Store errors
-                field_key = err.field or '_schema'
-                self.errors.setdefault(field_key, []).append(text_type(err))
+                    raise UnmarshallingError(err, field=field_obj, field_name=field_name)
+                self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
@@ -280,7 +288,7 @@ class Unmarshaller(object):
                 ret = func(ret)
         if validators:
             validators = validators or []
-            ret = self._validate(validators, ret, strict=strict)
+            ret = self._validate(validators, ret, fields_dict=fields_dict, strict=strict)
         if postprocess:
             postprocess = postprocess or []
             for func in postprocess:
@@ -317,6 +325,8 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, error=None,
                  validate=None, required=False, **metadata):
@@ -550,10 +560,13 @@ class Nested(Field):
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
-        if self.allow_null and nested_obj is None:
-            return None
+        if nested_obj is None:
+            if self.many:
+                return []
+            if self.allow_null:
+                return None
         if not self.__updated_fields:
-            self.schema._update_fields(nested_obj)
+            self.schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
         try:
             ret = self.schema.dump(nested_obj, many=self.many,
@@ -589,6 +602,9 @@ class List(Field):
         If `False`, `None` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, [], tuple())
+
     def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
         super(List, self).__init__(**kwargs)
         if not allow_none and default is None:
@@ -628,6 +644,8 @@ class String(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, default='', attribute=None, *args, **kwargs):
         return super(String, self).__init__(default, attribute, *args, **kwargs)
@@ -750,6 +768,9 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
+    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    SKIPPABLE_VALUES = (None, '')
+
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)
@@ -821,7 +842,7 @@ class DateTime(Field):
         ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If `None`, defaults to "rfc".
+        or a date format string. If `None`, defaults to "iso".
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
@@ -863,7 +884,8 @@ class DateTime(Field):
             except TypeError:
                 raise err
             except (AttributeError, ValueError) as err:
-                raise UnmarshallingError(getattr(self, 'error', None) or err)
+                msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
+                raise UnmarshallingError(getattr(self, 'error', None) or msg)
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
@@ -905,7 +927,7 @@ class Time(Field):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         try:
             return utils.from_iso_time(value)
-        except TypeError:
+        except (TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a time object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -929,7 +951,7 @@ class Date(Field):
         """
         try:
             return utils.from_iso_date(value)
-        except TypeError:
+        except (TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a date object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -955,8 +977,9 @@ class TimeDelta(Field):
         """
         try:
             return dt.timedelta(seconds=float(value))
-        except (AttributeError, ValueError) as err:
-            raise UnmarshallingError(getattr(self, 'error', None) or err)
+        except (AttributeError, ValueError):
+            msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 
 class Fixed(Number):

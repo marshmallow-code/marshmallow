@@ -58,7 +58,7 @@ def test_get_value(obj):
     result2 = utils.get_value('y', obj)
     assert result2 == 42
 
-def test_get_value_default():
+def test_get_value_from_namedtuple_with_default():
     p = PointClass(x=42, y=None)
     # Default is only returned if key is not found
     assert utils.get_value('z', p, default=123) == 123
@@ -77,6 +77,12 @@ def test_get_value_for_nested_object():
     assert utils.get_value('p1.x', tri) == 1
     assert utils.get_value('p2.x', tri) == 3
     assert utils.get_value('p3.x', tri) == 5
+
+# regression test for https://github.com/sloria/marshmallow/issues/62
+def test_get_value_from_dict():
+    d = dict(items=['foo', 'bar'], keys=['baz', 'quux'])
+    assert utils.get_value('items', d) == ['foo', 'bar']
+    assert utils.get_value('keys', d) == ['baz', 'quux']
 
 def test_is_keyed_tuple():
     Point = namedtuple('Point', ['x', 'y'])
