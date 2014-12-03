@@ -884,7 +884,8 @@ class DateTime(Field):
             except TypeError:
                 raise err
             except (AttributeError, ValueError) as err:
-                raise UnmarshallingError(getattr(self, 'error', None) or err)
+                msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
+                raise UnmarshallingError(getattr(self, 'error', None) or msg)
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
@@ -926,7 +927,7 @@ class Time(Field):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         try:
             return utils.from_iso_time(value)
-        except TypeError:
+        except (TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a time object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -950,7 +951,7 @@ class Date(Field):
         """
         try:
             return utils.from_iso_date(value)
-        except TypeError:
+        except (TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a date object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -976,8 +977,9 @@ class TimeDelta(Field):
         """
         try:
             return dt.timedelta(seconds=float(value))
-        except (AttributeError, ValueError) as err:
-            raise UnmarshallingError(getattr(self, 'error', None) or err)
+        except (AttributeError, ValueError):
+            msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 
 class Fixed(Number):

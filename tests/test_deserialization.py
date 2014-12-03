@@ -74,8 +74,10 @@ class TestFieldDeserialization:
 
     def test_invalid_datetime_deserialization(self):
         field = fields.DateTime()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('not-a-datetime')
+        msg = 'Could not deserialize {0!r} to a datetime object.'.format('not-a-datetime')
+        assert msg in str(excinfo)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
@@ -116,8 +118,10 @@ class TestFieldDeserialization:
 
     def test_invalid_time_field_deserialization(self):
         field = fields.Time()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('badvalue')
+        msg = 'Could not deserialize {0!r} to a time object.'.format('badvalue')
+        assert msg in str(excinfo)
 
     def test_fixed_field_deserialization(self):
         field = fields.Fixed(decimals=3)
@@ -143,8 +147,10 @@ class TestFieldDeserialization:
 
     def test_invalid_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('badvalue')
+        msg = 'Could not deserialize {0!r} to a timedelta object'.format('badvalue')
+        assert msg in str(excinfo)
 
     def test_date_field_deserialization(self):
         field = fields.Date()
@@ -156,8 +162,10 @@ class TestFieldDeserialization:
 
     def test_invalid_date_field_deserialization(self):
         field = fields.Date()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('badvalue')
+        msg = 'Could not deserialize {0!r} to a date object.'.format('badvalue')
+        assert msg in str(excinfo)
 
     def test_price_field_deserialization(self):
         field = fields.Price()

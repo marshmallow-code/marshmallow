@@ -7,7 +7,7 @@ Changelog
 Features:
 
 - Add ``Schema.validate`` method which validates input data against a schema. Similar to ``Schema.load``, but does not call ``make_object`` and only returns the errors dictionary.
-- Add several utility functions to the ``validate`` module. Thanks @philtay.
+- Add several validation functions to the ``validate`` module. Thanks @philtay.
 - Store field name and instance on exceptions raised in ``strict`` mode.
 
 Bug fixes:
@@ -16,6 +16,8 @@ Bug fixes:
 - If a Nested field is passed ``many=True``, ``None`` serializes to an empty list. Thanks @nickretallack for reporting.
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
 - Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks @malexer for reporting.
+- Fix compatibility with python-dateutil 2.3.
+- More consistent error messages across DateTime, TimeDelta, Date, and Time fields.
 
 Docs:
 
