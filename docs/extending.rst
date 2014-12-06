@@ -226,11 +226,11 @@ Then we create a custom :class:`Schema` that uses our options class.
     class NamespacedSchema(Schema):
         OPTIONS_CLASS = NamespaceOpts
 
-        def _postprocess(self, data, obj):
+        def _postprocess(self, data, many, obj):
             """Execute any postprocessing steps, including adding a namespace to the final
             output.
             """
-            data = Schema._postprocess(self, data)
+            data = Schema._postprocess(self, data, many, obj)
             if self.opts.name:   # Add namespace
                 namespace = self.opts.name
                 if self.many:
