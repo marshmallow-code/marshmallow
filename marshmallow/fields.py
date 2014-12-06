@@ -1196,7 +1196,13 @@ class Select(Field):
 class QuerySelect(Field):
     """A field that (de)serializes an ORM-mapped object to its primary
     (or otherwise unique) key and vice versa. A nonexistent key will
-    result in a validation error. This field is ORM agnostic.
+    result in a validation error. This field is ORM-agnostic.
+
+    Example: ::
+
+        query = session.query(User).order_by(User.id).all
+        keygetter = 'id'
+        field = fields.QuerySelect(query, keygetter)
 
     :param callable query:
         The query which will be executed at each (de)serialization
@@ -1208,6 +1214,8 @@ class QuerySelect(Field):
         an attribute of the ORM-mapped object.
     :param str error:
         Error message stored upon validation failure.
+    :param kwargs:
+        The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, query, keygetter, error=None, **kwargs):
         self.query = query
@@ -1215,19 +1223,19 @@ class QuerySelect(Field):
         super(QuerySelect, self).__init__(error=error, **kwargs)
 
     def keys(self):
-        """Returns a generator over the valid keys."""
+        """Return a generator over the valid keys."""
         return (self.keygetter(item) for item in self.query())
 
     def results(self):
-        """Returns a generator over the query results."""
+        """Return a generator over the query results."""
         return (item for item in self.query())
 
     def pairs(self):
-        """Returns a generator over the (key, result) pairs."""
+        """Return a generator over the (key, result) pairs."""
         return ((self.keygetter(item), item) for item in self.query())
 
     def labels(self, labelgetter=text_type):
-        """Returns a generator over the (key, label) pairs, where
+        """Return a generator over the (key, label) pairs, where
         label is a string associated with each query result. This
         convenience method is useful to populate, for instance,
         a form select field.
@@ -1266,11 +1274,12 @@ class QuerySelectList(QuerySelect):
     a list of their primary (or otherwise unique) keys and vice
     versa. If any of the items in the list cannot be found in the
     query, this will result in a validation error. This field
-    is ORM agnostic.
+    is ORM-agnostic.
 
     :param callable query: Same as :class:`QuerySelect`.
     :param keygetter: Same as :class:`QuerySelect`.
     :param str error: Error message stored upon validation failure.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def _serialize(self, value, attr, obj):
         items = [self.keygetter(v) for v in value]
