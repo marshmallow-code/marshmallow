@@ -261,7 +261,7 @@ def from_iso_date(datestring, use_dateutil=True):
     if dateutil_available and use_dateutil:
         return parser.parse(datestring).date()
     else:
-        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d')
+        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
 
 def ensure_text_type(val):
     if isinstance(val, binary_type):
