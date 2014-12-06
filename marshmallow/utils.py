@@ -212,8 +212,7 @@ def from_datestring(datestring):
     if dateutil_available:
         return parser.parse(datestring)
     else:
-        raise RuntimeError('from_datestring requires the python-dateutils to be'
-                           'installed.')
+        raise RuntimeError('from_datestring requires the python-dateutil library')
 
 def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
