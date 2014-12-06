@@ -107,6 +107,17 @@ class Blog(object):
     def __contains__(self, item):
         return item.name in [each.name for each in self.collaborators]
 
+
+class Dummy(object):
+    def __init__(self, foo):
+        self.foo = foo
+
+    def __eq__(self, other):
+        return self.foo == other.foo
+
+    def __str__(self):
+        return 'bar {0}'.format(self.foo)
+
 ###### Schemas #####
 
 
