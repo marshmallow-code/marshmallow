@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+1.1.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
+
 1.1.0 (2014-12-02)
 ++++++++++++++++++
 
