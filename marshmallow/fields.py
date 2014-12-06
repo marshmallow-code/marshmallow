@@ -325,7 +325,7 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
+    #: Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, error=None,
