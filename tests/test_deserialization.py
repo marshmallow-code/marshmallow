@@ -16,6 +16,7 @@ from tests.base import (
     central,
     ALL_FIELDS,
     User,
+    Dummy,
 )
 
 class TestFieldDeserialization:
@@ -252,17 +253,7 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize('notvalid')
 
-    def test_query_select_field_deserialization(self):
-        class Dummy(object):
-            def __init__(self, foo):
-                self.foo = foo
-
-            def __eq__(self, other):
-                return self.foo == other.foo
-
-            def __str__(self):
-                return 'bar {0}'.format(self.foo)
-
+    def test_query_select_field_func_key_deserialization(self):
         query = lambda: [Dummy(ch) for ch in 'abc']
 
         field = fields.QuerySelect(query, str)
@@ -280,6 +271,9 @@ class TestFieldDeserialization:
         assert list(field.labels('foo')) == [('bar ' + ch, ch) for ch in 'abc']
         assert list(field.labels(str)) == [('bar ' + ch, 'bar ' + ch) for ch in 'abc']
 
+    def test_query_select_field_string_key_deserialization(self):
+        query = lambda: [Dummy(ch) for ch in 'abc']
+
         field = fields.QuerySelect(query, 'foo')
         assert field.deserialize('a') == Dummy('a')
         assert field.deserialize('b') == Dummy('b')
@@ -295,17 +289,7 @@ class TestFieldDeserialization:
         assert list(field.labels('foo')) == [(ch, ch) for ch in 'abc']
         assert list(field.labels(str)) == [(ch, 'bar ' + ch) for ch in 'abc']
 
-    def test_query_select_list_field_deserialization(self):
-        class Dummy(object):
-            def __init__(self, foo):
-                self.foo = foo
-
-            def __eq__(self, other):
-                return self.foo == other.foo
-
-            def __str__(self):
-                return 'bar {0}'.format(self.foo)
-
+    def test_query_select_list_field_func_key_deserialization(self):
         query = lambda: [Dummy(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, str)
@@ -318,6 +302,9 @@ class TestFieldDeserialization:
             field.deserialize(['a', 'b', 'f'])
         with pytest.raises(UnmarshallingError):
             field.deserialize(['a', 'b', 'b'])
+
+    def test_query_select_list_field_string_key_deserialization(self):
+        query = lambda: [Dummy(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, 'foo')
         assert field.deserialize(['a', 'c', 'b']) == \
