@@ -8,6 +8,7 @@ import uuid
 import warnings
 from decimal import Decimal
 from functools import partial
+from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -1188,6 +1189,122 @@ class Select(Field):
 
     def _deserialize(self, value):
         return self._validated(value, UnmarshallingError)
+
+
+class QuerySelect(Field):
+    """A field that (de)serializes an ORM-mapped object to its primary
+    (or otherwise unique) key and vice versa. A nonexistent key will
+    result in a validation error. This field is ORM agnostic.
+
+    :param callable query:
+        The query which will be executed at each (de)serialization
+        to find the list of valid objects and keys.
+    :param keygetter:
+        Can be a callable or a string. In the former case, it must
+        be a one-argument callable which returns a unique comparable
+        key. In the latter case, the string specifies the name of
+        an attribute of the ORM-mapped object.
+    :param str error:
+        Error message stored upon validation failure.
+    """
+    def __init__(self, query, keygetter, error=None, **kwargs):
+        self.query = query
+        self.keygetter = keygetter if callable(keygetter) else attrgetter(keygetter)
+        super(QuerySelect, self).__init__(error=error, **kwargs)
+
+    def keys(self):
+        """Returns a generator over the valid keys."""
+        return (self.keygetter(item) for item in self.query())
+
+    def results(self):
+        """Returns a generator over the query results."""
+        return (item for item in self.query())
+
+    def pairs(self):
+        """Returns a generator over the (key, result) pairs."""
+        return ((self.keygetter(item), item) for item in self.query())
+
+    def labels(self, labelgetter=text_type):
+        """Returns a generator over the (key, label) pairs, where
+        label is a string associated with each query result. This
+        convenience method is useful to populate, for instance,
+        a form select field.
+
+        :param labelgetter:
+            Can be a callable or a string. In the former case, it must be a
+            one-argument callable which returns the label text. In the
+            latter case, the string specifies the name of an attribute of
+            the ORM-mapped object. If not provided the ORM-mapped object's
+            `__str__` or `__unicode__` method will be used.
+        """
+        labelgetter = labelgetter if callable(labelgetter) else attrgetter(labelgetter)
+        return ((self.keygetter(item), labelgetter(item)) for item in self.query())
+
+    def _serialize(self, value, attr, obj):
+        value = self.keygetter(value)
+
+        for key in self.keys():
+            if key == value:
+                return value
+
+        error = getattr(self, 'error', None) or 'Invalid object.'
+        raise MarshallingError(error)
+
+    def _deserialize(self, value):
+        for key, result in self.pairs():
+            if key == value:
+                return result
+
+        error = getattr(self, 'error', None) or 'Invalid key.'
+        raise UnmarshallingError(error)
+
+
+class QuerySelectList(QuerySelect):
+    """A field that (de)serializes a list of ORM-mapped objects to
+    a list of their primary (or otherwise unique) keys and vice
+    versa. If any of the items in the list cannot be found in the
+    query, this will result in a validation error. This field
+    is ORM agnostic.
+
+    :param callable query: Same as :class:`QuerySelect`.
+    :param keygetter: Same as :class:`QuerySelect`.
+    :param str error: Error message stored upon validation failure.
+    """
+    def _serialize(self, value, attr, obj):
+        items = [self.keygetter(v) for v in value]
+
+        if not items:
+            return []
+
+        keys = list(self.keys())
+
+        for item in items:
+            try:
+                keys.remove(item)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid objects.'
+                raise MarshallingError(error)
+
+        return items
+
+    def _deserialize(self, value):
+        if not value:
+            return []
+
+        keys, results = (list(t) for t in zip(*self.pairs()))
+        items = []
+
+        for val in value:
+            try:
+                index = keys.index(val)
+            except ValueError:
+                error = getattr(self, 'error', None) or 'Invalid keys.'
+                raise UnmarshallingError(error)
+            else:
+                del keys[index]
+                items.append(results.pop(index))
+
+        return items
 
 # Aliases
 Enum = Select
