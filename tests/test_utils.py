@@ -155,7 +155,7 @@ def test_from_rfc(use_dateutil):
     d = dt.datetime.now()
     rfc = utils.rfcformat(d)
     result = utils.from_rfc(rfc, use_dateutil=use_dateutil)
-    assert isinstance(result, dt.datetime)
+    assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
@@ -163,7 +163,7 @@ def test_from_iso(use_dateutil):
     d = dt.datetime.now()
     formatted = d.isoformat()
     result = utils.from_iso(formatted, use_dateutil=use_dateutil)
-    assert isinstance(result, dt.datetime)
+    assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
 def test_from_iso_with_tz():
@@ -181,7 +181,7 @@ def test_from_iso_time_with_microseconds(use_dateutil):
     t = dt.time(1, 23, 45, 6789)
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
-    assert isinstance(result, dt.time)
+    assert type(result) == dt.time
     assert_time_equal(result, t, microseconds=True)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
@@ -189,7 +189,7 @@ def test_from_iso_time_without_microseconds(use_dateutil):
     t = dt.time(1, 23, 45)
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
-    assert isinstance(result, dt.time)
+    assert type(result) == dt.time
     assert_time_equal(result, t, microseconds=True)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
@@ -197,7 +197,7 @@ def test_from_iso_date(use_dateutil):
     d = dt.date(2014, 8, 21)
     iso_date = d.isoformat()
     result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
-    assert isinstance(result, dt.date)
+    assert type(result) == dt.date
     assert_date_equal(result, d)
 
 
