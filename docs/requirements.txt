@@ -1,0 +1,2 @@
+sphinx
+git+https://github.com/sloria/alabaster.git@sloria
