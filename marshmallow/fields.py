@@ -50,6 +50,8 @@ __all__ = [
     'Method',
     'Function',
     'Select',
+    'QuerySelect',
+    'QuerySelectList',
     'Enum',
     'Str',
     'Bool',
