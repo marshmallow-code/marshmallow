@@ -9,7 +9,7 @@ from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import total_seconds, text_type
 
-from tests.base import User
+from tests.base import User, Dummy
 
 class DateTimeList:
     def __init__(self, dtimes):
@@ -239,14 +239,7 @@ class TestFieldSerialization:
         # No validation error raised
         assert field.serialize('age', user) == user.age
 
-    def test_query_select_field(self, user):
-        class Dummy(object):
-            def __init__(self, foo):
-                self.foo = foo
-
-            def __str__(self):
-                return 'bar {0}'.format(self.foo)
-
+    def test_query_select_field_func_key(self, user):
         user.du1 = Dummy('a')
         user.du2 = Dummy('b')
         user.du3 = Dummy('c')
@@ -260,6 +253,13 @@ class TestFieldSerialization:
         with pytest.raises(MarshallingError):
             field.serialize('du4', user)
 
+    def test_query_select_field_string_key(self, user):
+        user.du1 = Dummy('a')
+        user.du2 = Dummy('b')
+        user.du3 = Dummy('c')
+        user.du4 = Dummy('d')
+        query = lambda: [Dummy(ch) for ch in 'abc']
+
         field = fields.QuerySelect(query, 'foo')
         assert field.serialize('du1', user) == 'a'
         assert field.serialize('du2', user) == 'b'
@@ -267,14 +267,7 @@ class TestFieldSerialization:
         with pytest.raises(MarshallingError):
             field.serialize('du4', user)
 
-    def test_query_select_list_field(self, user):
-        class Dummy(object):
-            def __init__(self, foo):
-                self.foo = foo
-
-            def __str__(self):
-                return 'bar {0}'.format(self.foo)
-
+    def test_query_select_list_field_func_key(self, user):
         user.du1 = [Dummy('a'), Dummy('c'), Dummy('b')]
         user.du2 = [Dummy('d'), Dummy('e'), Dummy('e')]
         user.du3 = [Dummy('a'), Dummy('b'), Dummy('f')]
@@ -290,6 +283,14 @@ class TestFieldSerialization:
             field.serialize('du3', user)
         with pytest.raises(MarshallingError):
             field.serialize('du4', user)
+
+    def test_query_select_list_field_string_key(self, user):
+        user.du1 = [Dummy('a'), Dummy('c'), Dummy('b')]
+        user.du2 = [Dummy('d'), Dummy('e'), Dummy('e')]
+        user.du3 = [Dummy('a'), Dummy('b'), Dummy('f')]
+        user.du4 = [Dummy('a'), Dummy('b'), Dummy('b')]
+        user.du5 = []
+        query = lambda: [Dummy(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, 'foo')
         assert field.serialize('du1', user) == ['a', 'c', 'b']
