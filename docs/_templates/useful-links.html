@@ -1,0 +1,7 @@
+
+<h3>Useful Links</h3>
+<ul>
+  {% for text, uri in theme_extra_nav_links.items() %}
+    <li><a href="{{uri}}">{{text}}</a></li>
+  {% endfor %}
+</ul>

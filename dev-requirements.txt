@@ -1,9 +1,19 @@
+# Task execution
+invoke
+
+# Soft dependencies
+python-dateutil
+pytz
+
+# Distribution
+wheel
+
+# Testing
 pytest>=2.6.3
 pytest-xdist  # for test watching
 tox>=1.5.0
-sphinx
-wheel
-invoke
-pytz
-python-dateutil
 flake8>=2.2.2
+
+# Docs
+sphinx
+git+https://github.com/sloria/alabaster.git@sloria
