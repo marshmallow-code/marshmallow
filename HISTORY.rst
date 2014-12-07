@@ -6,11 +6,16 @@ Changelog
 
 Features:
 
-- Add `QuerySelect` and `QuerySelectList` fields. Thanks @philtay.
+- Add ``QuerySelect`` and ``QuerySelectList`` fields. Thanks @philtay.
 
 Bug fixes:
 
 - ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
+
+Support:
+
+- Updated docs theme.
+- Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
 
 1.1.0 (2014-12-02)
 ++++++++++++++++++
@@ -30,7 +35,7 @@ Bug fixes:
 - Fix compatibility with python-dateutil 2.3.
 - More consistent error messages across DateTime, TimeDelta, Date, and Time fields.
 
-Docs:
+Support:
 
 - Update Flask and Peewee examples.
 
