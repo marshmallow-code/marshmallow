@@ -1,8 +1,12 @@
 Changelog
 ---------
 
-1.1.1 (unreleased)
+1.2.0 (unreleased)
 ++++++++++++++++++
+
+Features:
+
+- Add `QuerySelect` and `QuerySelectList` fields. Thanks @philtay.
 
 Bug fixes:
 
