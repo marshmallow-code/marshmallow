@@ -40,13 +40,18 @@ Setting Up for Local Development
 Git Branch Structure
 ++++++++++++++++++++
 
-Marshmallow loosely follows Vincent Driessen's `Successful Git Branching Model <http://http://nvie.com/posts/a-successful-git-branching-model/>`_ . In practice, the following branch conventions are used:
+Marshmallow abides by the following branching model:
+
 
 ``dev``
-    The next release branch.
+    Current development branch. **New features should branch off here**.
 
 ``master``
     Current production release on PyPI.
+
+``X.Y-maintenance``
+    Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.**. The maintainer will forward-port the fix to ``dev``.
+
 
 Pull Requests
 ++++++++++++++
@@ -54,7 +59,11 @@ Pull Requests
 1. Create a new local branch.
 ::
 
-    $ git checkout -b name-of-feature
+    # For a new feature
+    $ git checkout -b name-of-feature dev
+
+    # For a bugfix
+    $ git checkout -b fix-something 1.2-maintenance
 
 2. Commit your changes. Write `good commit messages <http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
 ::
