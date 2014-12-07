@@ -108,7 +108,7 @@ class Blog(object):
         return item.name in [each.name for each in self.collaborators]
 
 
-class Dummy(object):
+class DummyModel(object):
     def __init__(self, foo):
         self.foo = foo
 

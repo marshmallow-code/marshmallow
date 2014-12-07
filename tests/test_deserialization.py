@@ -16,7 +16,7 @@ from tests.base import (
     central,
     ALL_FIELDS,
     User,
-    Dummy,
+    DummyModel,
 )
 
 class TestFieldDeserialization:
@@ -254,49 +254,49 @@ class TestFieldDeserialization:
             field.deserialize('notvalid')
 
     def test_query_select_field_func_key_deserialization(self):
-        query = lambda: [Dummy(ch) for ch in 'abc']
+        query = lambda: [DummyModel(ch) for ch in 'abc']
 
         field = fields.QuerySelect(query, str)
-        assert field.deserialize('bar a') == Dummy('a')
-        assert field.deserialize('bar b') == Dummy('b')
-        assert field.deserialize('bar c') == Dummy('c')
+        assert field.deserialize('bar a') == DummyModel('a')
+        assert field.deserialize('bar b') == DummyModel('b')
+        assert field.deserialize('bar c') == DummyModel('c')
         with pytest.raises(UnmarshallingError):
             field.deserialize('bar d')
         with pytest.raises(UnmarshallingError):
             field.deserialize('c')
         assert list(field.keys()) == ['bar ' + ch for ch in 'abc']
-        assert list(field.results()) == [Dummy(ch) for ch in 'abc']
-        assert list(field.pairs()) == [('bar ' + ch, Dummy(ch)) for ch in 'abc']
+        assert list(field.results()) == [DummyModel(ch) for ch in 'abc']
+        assert list(field.pairs()) == [('bar ' + ch, DummyModel(ch)) for ch in 'abc']
         assert list(field.labels()) == [('bar ' + ch, 'bar ' + ch) for ch in 'abc']
         assert list(field.labels('foo')) == [('bar ' + ch, ch) for ch in 'abc']
         assert list(field.labels(str)) == [('bar ' + ch, 'bar ' + ch) for ch in 'abc']
 
     def test_query_select_field_string_key_deserialization(self):
-        query = lambda: [Dummy(ch) for ch in 'abc']
+        query = lambda: [DummyModel(ch) for ch in 'abc']
 
         field = fields.QuerySelect(query, 'foo')
-        assert field.deserialize('a') == Dummy('a')
-        assert field.deserialize('b') == Dummy('b')
-        assert field.deserialize('c') == Dummy('c')
+        assert field.deserialize('a') == DummyModel('a')
+        assert field.deserialize('b') == DummyModel('b')
+        assert field.deserialize('c') == DummyModel('c')
         with pytest.raises(UnmarshallingError):
             field.deserialize('d')
         with pytest.raises(UnmarshallingError):
             field.deserialize('bar d')
         assert list(field.keys()) == [ch for ch in 'abc']
-        assert list(field.results()) == [Dummy(ch) for ch in 'abc']
-        assert list(field.pairs()) == [(ch, Dummy(ch)) for ch in 'abc']
+        assert list(field.results()) == [DummyModel(ch) for ch in 'abc']
+        assert list(field.pairs()) == [(ch, DummyModel(ch)) for ch in 'abc']
         assert list(field.labels()) == [(ch, 'bar ' + ch) for ch in 'abc']
         assert list(field.labels('foo')) == [(ch, ch) for ch in 'abc']
         assert list(field.labels(str)) == [(ch, 'bar ' + ch) for ch in 'abc']
 
     def test_query_select_list_field_func_key_deserialization(self):
-        query = lambda: [Dummy(ch) for ch in 'abecde']
+        query = lambda: [DummyModel(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, str)
         assert field.deserialize(['bar a', 'bar c', 'bar b']) == \
-               [Dummy('a'), Dummy('c'), Dummy('b')]
+               [DummyModel('a'), DummyModel('c'), DummyModel('b')]
         assert field.deserialize(['bar d', 'bar e', 'bar e']) == \
-               [Dummy('d'), Dummy('e'), Dummy('e')]
+               [DummyModel('d'), DummyModel('e'), DummyModel('e')]
         assert field.deserialize([]) == []
         with pytest.raises(UnmarshallingError):
             field.deserialize(['a', 'b', 'f'])
@@ -304,13 +304,13 @@ class TestFieldDeserialization:
             field.deserialize(['a', 'b', 'b'])
 
     def test_query_select_list_field_string_key_deserialization(self):
-        query = lambda: [Dummy(ch) for ch in 'abecde']
+        query = lambda: [DummyModel(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, 'foo')
         assert field.deserialize(['a', 'c', 'b']) == \
-               [Dummy('a'), Dummy('c'), Dummy('b')]
+               [DummyModel('a'), DummyModel('c'), DummyModel('b')]
         assert field.deserialize(['d', 'e', 'e']) == \
-               [Dummy('d'), Dummy('e'), Dummy('e')]
+               [DummyModel('d'), DummyModel('e'), DummyModel('e')]
         assert field.deserialize([]) == []
         with pytest.raises(UnmarshallingError):
             field.deserialize(['a', 'b', 'f'])

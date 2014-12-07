@@ -9,7 +9,7 @@ from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
 from marshmallow.compat import total_seconds, text_type
 
-from tests.base import User, Dummy
+from tests.base import User, DummyModel
 
 class DateTimeList:
     def __init__(self, dtimes):
@@ -240,11 +240,11 @@ class TestFieldSerialization:
         assert field.serialize('age', user) == user.age
 
     def test_query_select_field_func_key(self, user):
-        user.du1 = Dummy('a')
-        user.du2 = Dummy('b')
-        user.du3 = Dummy('c')
-        user.du4 = Dummy('d')
-        query = lambda: [Dummy(ch) for ch in 'abc']
+        user.du1 = DummyModel('a')
+        user.du2 = DummyModel('b')
+        user.du3 = DummyModel('c')
+        user.du4 = DummyModel('d')
+        query = lambda: [DummyModel(ch) for ch in 'abc']
 
         field = fields.QuerySelect(query, str)
         assert field.serialize('du1', user) == 'bar a'
@@ -254,11 +254,11 @@ class TestFieldSerialization:
             field.serialize('du4', user)
 
     def test_query_select_field_string_key(self, user):
-        user.du1 = Dummy('a')
-        user.du2 = Dummy('b')
-        user.du3 = Dummy('c')
-        user.du4 = Dummy('d')
-        query = lambda: [Dummy(ch) for ch in 'abc']
+        user.du1 = DummyModel('a')
+        user.du2 = DummyModel('b')
+        user.du3 = DummyModel('c')
+        user.du4 = DummyModel('d')
+        query = lambda: [DummyModel(ch) for ch in 'abc']
 
         field = fields.QuerySelect(query, 'foo')
         assert field.serialize('du1', user) == 'a'
@@ -268,12 +268,12 @@ class TestFieldSerialization:
             field.serialize('du4', user)
 
     def test_query_select_list_field_func_key(self, user):
-        user.du1 = [Dummy('a'), Dummy('c'), Dummy('b')]
-        user.du2 = [Dummy('d'), Dummy('e'), Dummy('e')]
-        user.du3 = [Dummy('a'), Dummy('b'), Dummy('f')]
-        user.du4 = [Dummy('a'), Dummy('b'), Dummy('b')]
+        user.du1 = [DummyModel('a'), DummyModel('c'), DummyModel('b')]
+        user.du2 = [DummyModel('d'), DummyModel('e'), DummyModel('e')]
+        user.du3 = [DummyModel('a'), DummyModel('b'), DummyModel('f')]
+        user.du4 = [DummyModel('a'), DummyModel('b'), DummyModel('b')]
         user.du5 = []
-        query = lambda: [Dummy(ch) for ch in 'abecde']
+        query = lambda: [DummyModel(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, str)
         assert field.serialize('du1', user) == ['bar a', 'bar c', 'bar b']
@@ -285,12 +285,12 @@ class TestFieldSerialization:
             field.serialize('du4', user)
 
     def test_query_select_list_field_string_key(self, user):
-        user.du1 = [Dummy('a'), Dummy('c'), Dummy('b')]
-        user.du2 = [Dummy('d'), Dummy('e'), Dummy('e')]
-        user.du3 = [Dummy('a'), Dummy('b'), Dummy('f')]
-        user.du4 = [Dummy('a'), Dummy('b'), Dummy('b')]
+        user.du1 = [DummyModel('a'), DummyModel('c'), DummyModel('b')]
+        user.du2 = [DummyModel('d'), DummyModel('e'), DummyModel('e')]
+        user.du3 = [DummyModel('a'), DummyModel('b'), DummyModel('f')]
+        user.du4 = [DummyModel('a'), DummyModel('b'), DummyModel('b')]
         user.du5 = []
-        query = lambda: [Dummy(ch) for ch in 'abecde']
+        query = lambda: [DummyModel(ch) for ch in 'abecde']
 
         field = fields.QuerySelectList(query, 'foo')
         assert field.serialize('du1', user) == ['a', 'c', 'b']
