@@ -49,8 +49,8 @@ Marshmallow abides by the following branching model:
 ``master``
     Current production release on PyPI.
 
-``X.Y-maintenance``
-    Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.**. The maintainer will forward-port the fix to ``dev``.
+``X.Y-line``
+    Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.**. The maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.
 
 
 Pull Requests
@@ -63,7 +63,7 @@ Pull Requests
     $ git checkout -b name-of-feature dev
 
     # For a bugfix
-    $ git checkout -b fix-something 1.2-maintenance
+    $ git checkout -b fix-something 1.2-line
 
 2. Commit your changes. Write `good commit messages <http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
 ::
