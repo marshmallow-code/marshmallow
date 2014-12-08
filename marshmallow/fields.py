@@ -1026,7 +1026,7 @@ class Price(Fixed):
         super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
 
 class ValidatedField(Field):
-    """A field that is validates input on serialization."""
+    """A field that validates input on serialization."""
 
     def _validated(self, value):
         raise NotImplementedError('Must implement _validate method')

@@ -210,3 +210,10 @@ def test_get_func_name():
     foo_partial = partial(foo, 1)
 
     assert utils.get_func_name(foo_partial) == 'foo'
+
+def test_get_func_name_of_callable_class():
+    class Foo(object):
+        def __call__(self, val):
+            return False
+    foo = Foo()
+    assert utils.get_func_name(foo) == 'Foo'

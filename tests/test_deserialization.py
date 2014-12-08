@@ -349,13 +349,26 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize('badvalue')
 
-    def test_field_deserialization_with_user_validator(self):
+    def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
         assert field.deserialize('Valid') == 'Valid'
         with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize('invalid')
         assert 'Validator <lambda>(invalid) is False' in str(excinfo)
         assert type(excinfo.value.underlying_exception) == ValidationError
+
+    def test_field_deserialization_with_user_validator_class_that_returns_bool(self):
+        class Validator(object):
+            def __call__(self, val):
+                if val == 'valid':
+                    return True
+                return False
+
+        field = fields.Field(validate=Validator())
+        assert field.deserialize('valid') == 'valid'
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize('invalid')
+        assert 'Validator Validator(invalid) is False' in str(excinfo)
 
     def test_validator_must_return_false_to_raise_error(self):
         # validator returns None, so anything validates
