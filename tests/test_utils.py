@@ -201,19 +201,19 @@ def test_from_iso_date(use_dateutil):
     assert_date_equal(result, d)
 
 
-def test_get_func_name():
+def test_get_callable_name():
     def foo(a, b):
         return a + b
 
-    assert utils.get_func_name(foo) == 'foo'
+    assert utils.get_callable_name(foo) == 'foo'
     # Works for partials, too
     foo_partial = partial(foo, 1)
 
-    assert utils.get_func_name(foo_partial) == 'foo'
+    assert utils.get_callable_name(foo_partial) == 'foo'
 
-def test_get_func_name_of_callable_class():
+def test_get_callable_name_of_callable_class():
     class Foo(object):
         def __call__(self, val):
             return False
     foo = Foo()
-    assert utils.get_func_name(foo) == 'Foo'
+    assert utils.get_callable_name(foo) == 'Foo'
