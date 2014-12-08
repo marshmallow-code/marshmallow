@@ -11,6 +11,7 @@ Features:
 Bug fixes:
 
 - ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
+- Fix bug that raised an ``AttributeError`` when using a class-based validator.
 
 Support:
 

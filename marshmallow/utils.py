@@ -3,15 +3,16 @@
 from __future__ import absolute_import
 
 import datetime
-from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 import functools
 import inspect
 import json
 import time
 import types
 from calendar import timegm
+from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
+import warnings
 
 from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
 
@@ -308,12 +309,27 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
-def get_func_name(func):
-    """Given a function object, return its name. Handles `functools.partial` objects.
+def get_callable_name(func):
+    """Given a callable, return its name. Handles `functools.partial` objects
+    and class-based callables.
     """
-    if isinstance(func, functools.partial):
+    if inspect.isfunction(func):
+        return func.__name__
+    elif isinstance(func, functools.partial):
         return func.func.__name__
-    return func.__name__
+    else:  # Callable class
+        return func.__class__.__name__
+
+
+def get_func_name(func):
+    """Given a callable, return its name. Handles `functools.partial` objects.
+
+    .. deprecated:: 1.2.0
+        Renamed to :func:`get_callable_name`.
+    """
+    warnings.warn('get_func_name was renamed to get_callable_name. get_func_name '
+                  'will be removed in version 2.0', DeprecationWarning)
+    return get_callable_name(func)
 
 
 def callable_or_raise(obj):
