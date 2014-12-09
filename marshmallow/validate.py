@@ -92,7 +92,7 @@ class Email(object):
         if not self.USER_REGEX.match(user_part):
             raise ValidationError(message)
 
-        if not domain_part in self.DOMAIN_WHITELIST:
+        if domain_part not in self.DOMAIN_WHITELIST:
             if not self.DOMAIN_REGEX.match(domain_part):
                 try:
                     domain_part = domain_part.encode('idna').decode('ascii')
