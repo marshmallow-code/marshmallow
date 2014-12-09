@@ -52,6 +52,7 @@ Marshmallow abides by the following branching model:
 ``X.Y-line``
     Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.**. The maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.
 
+**Always make a new branch for your work**, no matter how small. Also, **do not put unrelated changes in the same branch or pull request**. This makes it more difficult to merge your changes.
 
 Pull Requests
 ++++++++++++++
