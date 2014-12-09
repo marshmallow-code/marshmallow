@@ -48,6 +48,8 @@ Marshmallow loosely follows Vincent Driessen's `Successful Git Branching Model <
 ``master``
     Current production release on PyPI.
 
+**Always make a new branch for your work**, no matter how small. Also, **do not put unrelated changes in the same branch or pull request**. This makes it more difficult to merge your changes.
+
 Pull Requests
 ++++++++++++++
 
