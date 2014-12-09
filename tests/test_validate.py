@@ -292,7 +292,7 @@ def test_function():
     def dummy2(foo, bar):
         return foo + bar
 
-    assert validate.Function(dummy1)(True) == True
+    assert validate.Function(dummy1)(True) is True
     assert validate.Function(dummy1)(1) == 1
     assert validate.Function(dummy1)([1, 2]) == [1, 2]
     assert validate.Function(dummy1)(None) is None
