@@ -4,124 +4,121 @@ import pytest
 
 from marshmallow import validate, ValidationError
 
-def test_url_absolute():
+@pytest.mark.parametrize('valid_url', [
+    'http://example.org',
+    'https://example.org',
+    'ftp://example.org',
+    'ftps://example.org',
+    'http://example.co.jp',
+    'http://www.example.com/a%C2%B1b',
+    'http://www.example.com/~username/',
+    'http://info.example.com/?fred',
+    'http://xn--mgbh0fb.xn--kgbechtv/',
+    'http://example.com/blue/red%3Fand+green',
+    'http://www.example.com/?array%5Bkey%5D=value',
+    'http://xn--rsum-bpad.example.org/',
+    'http://123.45.67.8/',
+    'http://2001:db8::ff00:42:8329',
+    'http://www.example.com:8000/foo',
+    '',
+])
+def test_url_absolute_valid(valid_url):
     validator = validate.URL(relative=False)
+    assert validator(valid_url) == valid_url
 
-    valid_urls = (
-        'http://example.org',
-        'https://example.org',
-        'ftp://example.org',
-        'ftps://example.org',
-        'http://example.co.jp',
-        'http://www.example.com/a%C2%B1b',
-        'http://www.example.com/~username/',
-        'http://info.example.com/?fred',
-        'http://xn--mgbh0fb.xn--kgbechtv/',
-        'http://example.com/blue/red%3Fand+green',
-        'http://www.example.com/?array%5Bkey%5D=value',
-        'http://xn--rsum-bpad.example.org/',
-        'http://123.45.67.8/',
-        'http://2001:db8::ff00:42:8329',
-        'http://www.example.com:8000/foo',
-    )
+@pytest.mark.parametrize('invalid_url', [
+    'http:///example.com/',
+    'https:///example.com/',
+    'https://example.org\\',
+    'ftp:///example.com/',
+    'ftps:///example.com/',
+    'http//example.org',
+    'http:///',
+    'http:/example.org',
+    'foo://example.org',
+    '../icons/logo.gif',
+    'abc',
+    '..',
+    '/',
+    ' ',
+])
+def test_url_absolute_invalid(invalid_url):
+    validator = validate.URL(relative=False)
+    with pytest.raises(ValidationError):
+        validator(invalid_url)
 
-    for valid_url in valid_urls:
-        assert validator(valid_url) == valid_url
-
-    invalid_urls = (
-        'http:///example.com/',
-        'https:///example.com/',
-        'https://example.org\\',
-        'ftp:///example.com/',
-        'ftps:///example.com/',
-        'http//example.org',
-        'http:///',
-        'http:/example.org',
-        'foo://example.org',
-        '../icons/logo.gif',
-        'abc',
-        '..',
-        ' ',
-        '/'
-        '',
-    )
-
-    for invalid_url in invalid_urls:
-        with pytest.raises(ValidationError):
-            validator(invalid_url)
-
+def test_url_absolute_none():
+    validator = validate.URL(relative=False)
     assert validator(None) is None
 
-def test_url_relative():
+@pytest.mark.parametrize('valid_url', [
+    'http://example.org',
+    'http://123.45.67.8/',
+    'http://example.com/foo/bar/../baz',
+    'https://example.com/../icons/logo.gif',
+    'http://example.com/./icons/logo.gif',
+    'ftp://example.com/../../../../g',
+    'http://example.com/g?y/./x',
+    '',
+])
+def test_url_relative_valid(valid_url):
     validator = validate.URL(relative=True)
+    assert validator(valid_url) == valid_url
 
-    valid_urls = (
-        'http://example.org',
-        'http://123.45.67.8/',
-        'http://example.com/foo/bar/../baz',
-        'https://example.com/../icons/logo.gif',
-        'http://example.com/./icons/logo.gif',
-        'ftp://example.com/../../../../g',
-        'http://example.com/g?y/./x',
-        '',
-    )
+@pytest.mark.parametrize('invalid_url', [
+    'http//example.org',
+    'suppliers.html',
+    '../icons/logo.gif',
+    '\icons/logo.gif',
+    '../.../g',
+    '...',
+    '\\',
+    ' ',
+])
+def test_url_relative_invalid(invalid_url):
+    validator = validate.URL(relative=True)
+    with pytest.raises(ValidationError):
+        validator(invalid_url)
 
-    for valid_url in valid_urls:
-        assert validator(valid_url) == valid_url
-
-    invalid_urls = (
-        'http//example.org',
-        'suppliers.html',
-        '../icons/logo.gif',
-        '\icons/logo.gif',
-        '../.../g',
-        '...',
-        '\\',
-        ' ',
-    )
-
-    for invalid_url in invalid_urls:
-        with pytest.raises(ValidationError):
-            validator(invalid_url)
-
+def test_url_relative_none():
+    validator = validate.URL(relative=True)
     assert validator(None) is None
 
-def test_email():
+@pytest.mark.parametrize('valid_email', [
+    'niceandsimple@example.com',
+    'NiCeAnDsImPlE@eXaMpLe.CoM',
+    'very.common@example.com',
+    'a.little.lengthy.but.fine@a.iana-servers.net',
+    'disposable.style.email.with+symbol@example.com',
+    '"very.unusual.@.unusual.com"@example.com',
+    "!#$%&'*+-/=?^_`{}|~@example.org",
+    'niceandsimple@[64.233.160.0]',
+    'niceandsimple@localhost',
+])
+def test_email_valid(valid_email):
     validator = validate.Email()
+    assert validator(valid_email) == valid_email
 
-    valid_emails = (
-        'niceandsimple@example.com',
-        'NiCeAnDsImPlE@eXaMpLe.CoM',
-        'very.common@example.com',
-        'a.little.lengthy.but.fine@a.iana-servers.net',
-        'disposable.style.email.with+symbol@example.com',
-        '"very.unusual.@.unusual.com"@example.com',
-        "!#$%&'*+-/=?^_`{}|~@example.org",
-        'niceandsimple@[64.233.160.0]',
-        'niceandsimple@localhost',
-    )
+@pytest.mark.parametrize('invalid_email', [
+    'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
+    'just"not"right@example.com',
+    'this is"not\allowed@example.com',
+    'this\\ still\\"not\\\\allowed@example.com',
+    '"much.more unusual"@example.com',
+    '"very.(),:;<>[]\".VERY.\"very@\\ \"very\".unusual"@strange.example.com',
+    '" "@example.org',
+    'user@example',
+    '@nouser.com',
+    'example.com',
+    'user',
+])
+def test_email_invalid(invalid_email):
+    validator = validate.Email()
+    with pytest.raises(ValidationError):
+        validator(invalid_email)
 
-    for valid_email in valid_emails:
-        assert validator(valid_email) == valid_email
-
-    invalid_emails = (
-        'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
-        'just"not"right@example.com',
-        'this is"not\allowed@example.com',
-        'this\\ still\\"not\\\\allowed@example.com',
-        '"much.more unusual"@example.com',
-        '"very.(),:;<>[]\".VERY.\"very@\\ \"very\".unusual"@strange.example.com',
-        '" "@example.org',
-        'user@example',
-        '@nouser.com',
-        'example.com',
-        'user',
-    )
-
-    for invalid_email in invalid_emails:
-        with pytest.raises(ValidationError):
-            validator(invalid_email)
-
+def test_email_none():
+    validator = validate.Email()
     assert validator(None) is None
 
 def test_range_min():
