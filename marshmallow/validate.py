@@ -255,6 +255,64 @@ class Predicate(object):
         return value
 
 
+class Function(object):
+    """Call ``function`` passing ``value`` as the first positional argument.
+    The validator succeeds if the invoked function returns an object that
+    evaluates to True in a Boolean context, unless it's a *not* empty string.
+    In such a case the validation fails and the error message will be the
+    returned string. Any additional keyword argument will be passed to
+    the function.
+
+    :param callable function:
+        The function to invoke.
+    :param str error:
+        Error message to raise in case of a validation error.
+    :param kwargs:
+        Additional keyword arguments to pass to the function.
+    """
+    def __init__(self, function, error=None, **kwargs):
+        self.function = function
+        self.error = error or 'Invalid input.'
+        self.kwargs = kwargs
+
+    def __call__(self, value):
+        if value is None:
+            return None
+
+        result = self.function(value, **self.kwargs)
+
+        if not result:
+            raise ValidationError(self.error)
+
+        if isinstance(result, basestring):
+            raise ValidationError(result)
+
+        return value
+
+
+class NoneOf(object):
+    """Validator which fails if ``value`` is a member of ``iterable``.
+
+    :param iterable iterable:
+        A sequence of invalid values.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    def __init__(self, iterable, error=None):
+        self.iterable = iterable
+        self.error = error or 'Invalid input.'
+
+    def __call__(self, value):
+        if value is None:
+            return None
+
+        for item in self.iterable:
+            if item == value:
+                raise ValidationError(self.error)
+
+        return value
+
+
 #
 # Backward compatibility
 #
