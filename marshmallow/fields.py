@@ -695,7 +695,7 @@ class Number(Field):
         try:
             ret = self._format_num(value)
             if self.as_string:
-                return text_type(ret)
+                return str(ret)
             else:
                 return ret
         except (TypeError, ValueError) as err:
