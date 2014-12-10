@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import datetime as dt
 import uuid
 import warnings
-from decimal import Decimal
+import decimal
 from functools import partial
 from operator import attrgetter
 
@@ -44,6 +44,7 @@ __all__ = [
     'TimeDelta',
     'Fixed',
     'Price',
+    'Decimal',
     'Url',
     'URL',
     'Email',
@@ -995,7 +996,7 @@ class Fixed(Number):
                  *args, **kwargs):
         super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
                             *args, **kwargs)
-        self.precision = Decimal('0.' + '0' * (decimals - 1) + '1')
+        self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
@@ -1024,6 +1025,55 @@ class Price(Fixed):
     """
     def __init__(self, decimals=2, default='0.00', **kwargs):
         super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
+
+
+class Decimal(Field):
+    """A field that serializes and deserializes to the Python
+    ``decimal.Decimal`` type. It's safe to use when dealing with
+    money values, percentages, ratios or other numbers where
+    precision is critical.
+
+    :param int places:
+        How many decimal places to quantize the value. If
+        None, does not quantize value.
+    :param rounding:
+        How to round the value during quantize, for example
+        `decimal.ROUND_UP`. If None, uses the rounding
+        value from the current thread's context.
+    :param bool as_string:
+        If True, serialize to a string instead of a Python
+        ``decimal.Decimal`` type.
+    :param kwargs:
+        The same keyword arguments that :class:`Field` receives.
+    """
+    def __init__(self, places=None, rounding=None, as_string=False, **kwargs):
+        self.places = decimal.Decimal((0, (1,), -places)) if places is not None else None
+        self.rounding = rounding
+        self.as_string = as_string
+        super(Decimal, self).__init__(**kwargs)
+
+    def _validated(self, value, exception_class):
+        """Format the value or raise ``exception_class`` if an error occurs."""
+        if value is None:
+            return self.default
+
+        try:
+            num = decimal.Decimal(value)
+        except (TypeError, ValueError, decimal.InvalidOperation) as err:
+            raise exception_class(getattr(self, 'error', None) or err)
+
+        if self.places is not None:
+            num = num.quantize(self.places, rounding=self.rounding)
+
+        return num
+
+    def _serialize(self, value, attr, obj):
+        value = self._validated(value, MarshallingError)
+        return value if not self.as_string else text_type(value)
+
+    def _deserialize(self, value):
+        return self._validated(value, UnmarshallingError)
+
 
 class ValidatedField(Field):
     """A field that validates input on serialization."""
