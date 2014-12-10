@@ -685,20 +685,19 @@ class Number(Field):
             error=error, **kwargs)
 
     def _format_num(self, value):
-        """Return the correct value for a number, given the passed in
-        arguments to __init__.
-        """
-        if self.as_string:
-            return repr(self.num_type(value))
-        else:
-            return self.num_type(value)
+        """Return the correct value for a number"""
+        return self.num_type(value)
 
     def _validated(self, value, exception_class):
         """Format the value or raise ``exception_class`` if an error occurs."""
+        if value is None:
+            return self.default
         try:
-            if value is None:
-                return self.default
-            return self._format_num(value)
+            ret = self._format_num(value)
+            if self.as_string:
+                return text_type(ret)
+            else:
+                return ret
         except (TypeError, ValueError) as err:
             raise exception_class(getattr(self, 'error', None) or err)
 
