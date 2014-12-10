@@ -183,18 +183,18 @@ class Equal(object):
         The object to compare to.
     :param str error:
         Error message to raise in case of a validation error.
-        Can be interpolated using `{cmp}`.
+        Can be interpolated using `{0}`.
     """
     def __init__(self, comparable, error=None):
         self.comparable = comparable
-        self.error = error or 'Must be equal to "{cmp}".'
+        self.error = error or 'Must be equal to {0}.'
 
     def __call__(self, value):
         if value is None:
             return None
 
         if value != self.comparable:
-            raise ValidationError(self.error.format(cmp=self.comparable))
+            raise ValidationError(self.error.format(self.comparable))
 
         return value
 
