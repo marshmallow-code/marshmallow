@@ -2,12 +2,13 @@
 """Tests for field serialization."""
 from collections import namedtuple
 import datetime as dt
+import decimal
 
 import pytest
 
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import total_seconds, text_type
+from marshmallow.compat import total_seconds, text_type, basestring
 
 from tests.base import User, DummyModel
 
@@ -238,6 +239,88 @@ class TestFieldSerialization:
         field = fields.Field(validate=lambda x: False)
         # No validation error raised
         assert field.serialize('age', user) == user.age
+
+    def test_decimal_field(self, user):
+        user.m1 = 12
+        user.m2 = '12.355'
+        user.m3 = decimal.Decimal(1)
+        user.m4 = None
+        user.m5 = 'abc'
+        user.m6 = [1, 2]
+
+        field = fields.Decimal()
+        assert isinstance(field.serialize('m1', user), decimal.Decimal)
+        assert field.serialize('m1', user) == decimal.Decimal(12)
+        assert isinstance(field.serialize('m2', user), decimal.Decimal)
+        assert field.serialize('m2', user) == decimal.Decimal('12.355')
+        assert isinstance(field.serialize('m3', user), decimal.Decimal)
+        assert field.serialize('m3', user) == decimal.Decimal(1)
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Decimal(1)
+        assert field.serialize('m1', user) == decimal.Decimal(12)
+        assert field.serialize('m2', user) == decimal.Decimal('12.4')
+        assert field.serialize('m3', user) == decimal.Decimal(1)
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Decimal(1, decimal.ROUND_DOWN)
+        assert field.serialize('m1', user) == decimal.Decimal(12)
+        assert field.serialize('m2', user) == decimal.Decimal('12.3')
+        assert field.serialize('m3', user) == decimal.Decimal(1)
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+    def test_decimal_field_string(self, user):
+        user.m1 = 12
+        user.m2 = '12.355'
+        user.m3 = decimal.Decimal(1)
+        user.m4 = None
+        user.m5 = 'abc'
+        user.m6 = [1, 2]
+
+        field = fields.Decimal(as_string=True)
+        assert isinstance(field.serialize('m1', user), basestring)
+        assert field.serialize('m1', user) == '12'
+        assert isinstance(field.serialize('m2', user), basestring)
+        assert field.serialize('m2', user) == '12.355'
+        assert isinstance(field.serialize('m3', user), basestring)
+        assert field.serialize('m3', user) == '1'
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Decimal(1, as_string=True)
+        assert field.serialize('m1', user) == '12.0'
+        assert field.serialize('m2', user) == '12.4'
+        assert field.serialize('m3', user) == '1.0'
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
+
+        field = fields.Decimal(1, decimal.ROUND_DOWN, as_string=True)
+        assert field.serialize('m1', user) == '12.0'
+        assert field.serialize('m2', user) == '12.3'
+        assert field.serialize('m3', user) == '1.0'
+        assert field.serialize('m4', user) is None
+        with pytest.raises(MarshallingError):
+            field.serialize('m5', user)
+        with pytest.raises(MarshallingError):
+            field.serialize('m6', user)
 
     def test_query_select_field_func_key(self, user):
         user.du1 = DummyModel('a')
