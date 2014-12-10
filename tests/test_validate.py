@@ -284,3 +284,57 @@ def test_predicate():
         validate.Predicate('_identity', arg=0)(d)
     with pytest.raises(ValidationError):
         validate.Predicate('_identity', arg='')(d)
+
+def test_function():
+    def dummy1(foo):
+        return foo
+
+    def dummy2(foo, bar):
+        return foo + bar
+
+    assert validate.Function(dummy1)(True) is True
+    assert validate.Function(dummy1)(1) == 1
+    assert validate.Function(dummy1)([1, 2]) == [1, 2]
+    assert validate.Function(dummy1)(None) is None
+
+    assert validate.Function(dummy2, bar=1)(0) == 0
+    assert validate.Function(dummy2, bar=[1, 2])([]) == []
+    assert validate.Function(dummy2, bar=1)(None) is None
+    assert validate.Function(dummy2, bar=[1, 2])(None) is None
+
+    with pytest.raises(ValidationError):
+        validate.Function(dummy1)(False)
+    with pytest.raises(ValidationError):
+        validate.Function(dummy1)(0)
+    with pytest.raises(ValidationError):
+        validate.Function(dummy1)([])
+    with pytest.raises(ValidationError):
+        validate.Function(dummy1)('')
+    with pytest.raises(ValidationError):
+        validate.Function(dummy1)('abc')
+
+    with pytest.raises(ValidationError):
+        validate.Function(dummy2, bar=-1)(1)
+    with pytest.raises(ValidationError):
+        validate.Function(dummy2, bar=[])([])
+    with pytest.raises(ValidationError):
+        validate.Function(dummy2, bar='')('')
+    with pytest.raises(ValidationError):
+        validate.Function(dummy2, bar='abc')('')
+
+def test_noneof():
+    assert validate.NoneOf([1, 2, 3])(4) == 4
+    assert validate.NoneOf('abc')('d') == 'd'
+    assert validate.NoneOf((i for i in [1, 2]))(3) == 3
+    assert validate.NoneOf('')([]) == []
+    assert validate.NoneOf([])('') == ''
+    assert validate.NoneOf('')('') == ''
+    assert validate.NoneOf([])([]) == []
+    assert validate.NoneOf([1, 2, 3])(None) is None
+
+    with pytest.raises(ValidationError):
+        validate.NoneOf([1, 2, 3])(3)
+    with pytest.raises(ValidationError):
+        validate.NoneOf('abc')('c')
+    with pytest.raises(ValidationError):
+        validate.NoneOf((i for i in [1, 2]))(2)
