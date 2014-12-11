@@ -176,7 +176,6 @@ class TestFieldDeserialization:
     def test_url_field_deserialization(self):
         field = fields.Url()
         assert field.deserialize('https://duckduckgo.com') == 'https://duckduckgo.com'
-        assert field.deserialize(None) is None
         with pytest.raises(UnmarshallingError):
             field.deserialize('badurl')
         # Relative URLS not allowed by default
