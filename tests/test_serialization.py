@@ -26,6 +26,27 @@ class TestFieldSerialization:
         field = fields.Field(default='nan')
         assert field.serialize('age', user) == 'nan'
 
+    @pytest.mark.parametrize(('value', 'expected'),
+    [
+        (42, float(42)),
+        (0, float(0)),
+        (None, 0.0),
+    ])
+    def test_number(self, value, expected, user):
+        field = fields.Number()
+        user.age = value
+        assert field.serialize('age', user) == expected
+
+    def test_number_as_string(self, user):
+        user.age = 42
+        field = fields.Number(as_string=True)
+        assert field.serialize('age', user) == str(float(user.age))
+
+    def test_number_as_string_default(self, user):
+        user.age = None
+        field = fields.Number(as_string=True)
+        assert field.serialize('age', user) == str(0.0)
+
     def test_callable_default(self, user):
         user.age = None
         field = fields.Field(default=lambda: 'nan')

@@ -685,7 +685,7 @@ class Number(Field):
             error=error, **kwargs)
 
     def _format_num(self, value):
-        """Return the correct value for a number"""
+        """Return the number value for value, given this field's `num_type`."""
         return self.num_type(value)
 
     def _validated(self, value, exception_class):
@@ -693,13 +693,18 @@ class Number(Field):
         if value is None:
             return self.default
         try:
-            ret = self._format_num(value)
-            if self.as_string:
-                return str(ret)
-            else:
-                return ret
+            return self._format_num(value)
         except (TypeError, ValueError) as err:
             raise exception_class(getattr(self, 'error', None) or err)
+
+    def serialize(self, attr, obj, accessor=None):
+        """Pulls the value for the given key from the object and returns the
+        serialized number representation. Return a string if `self.as_string=True`,
+        othewise return this field's `num_type`. Receives the same `args` and `kwargs`
+        as `Field`.
+        """
+        ret = Field.serialize(self, attr, obj, accessor=accessor)
+        return str(ret) if self.as_string else ret
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
