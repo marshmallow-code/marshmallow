@@ -7,7 +7,6 @@ import datetime as dt
 import uuid
 import warnings
 from decimal import Decimal
-from functools import partial
 from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
@@ -1055,11 +1054,11 @@ class Url(ValidatedField):
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, partial(validate.url,
-            relative=self.relative, error=getattr(self, 'error')))
+        self.validators.insert(0, validate.URL(relative=self.relative,
+            error=getattr(self, 'error')))
 
     def _validated(self, value):
-        return validate.url(value, relative=self.relative, error=getattr(self, 'error'))
+        return validate.URL(relative=self.relative, error=getattr(self, 'error'))(value)
 
 URL = Url
 
@@ -1072,10 +1071,10 @@ class Email(ValidatedField):
         super(Email, self).__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, partial(validate.email, error=getattr(self, 'error')))
+        self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
 
     def _validated(self, value):
-        return validate.email(value, error=getattr(self, 'error'))
+        return validate.Email(error=getattr(self, 'error'))(value)
 
 
 class Method(Field):
