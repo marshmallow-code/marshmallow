@@ -2,6 +2,8 @@
 """Validation classes for various types of data."""
 from __future__ import unicode_literals
 import re
+import functools
+import warnings
 
 from marshmallow.compat import basestring
 from marshmallow.exceptions import ValidationError
@@ -240,9 +242,6 @@ class Predicate(object):
 #
 # Backward compatibility
 #
-
-import functools
-import warnings
 
 def _deprecated(func):
     @functools.wraps(func)
