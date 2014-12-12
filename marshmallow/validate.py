@@ -44,10 +44,14 @@ class URL(object):
         self.error = error
 
     def __call__(self, value):
+        message = '"{0}" is not a valid URL.'.format(value)
+
+        if not value:
+            raise ValidationError(self.error or message)
+
         regex = self.RELATIVE_URL_REGEX if self.relative else self.URL_REGEX
 
         if not regex.search(value):
-            message = '"{0}" is not a valid URL.'.format(value)
             if regex.search('http://' + value):
                 message += ' Did you mean: "http://{0}"?'.format(value)
             raise ValidationError(self.error or message)
