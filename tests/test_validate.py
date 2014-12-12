@@ -41,6 +41,7 @@ def test_url_absolute_valid(valid_url):
     '/',
     ' ',
     '',
+    None,
 ])
 def test_url_absolute_invalid(invalid_url):
     validator = validate.URL(relative=False)
@@ -55,7 +56,6 @@ def test_url_absolute_invalid(invalid_url):
     'http://example.com/./icons/logo.gif',
     'ftp://example.com/../../../../g',
     'http://example.com/g?y/./x',
-    '',
 ])
 def test_url_relative_valid(valid_url):
     validator = validate.URL(relative=True)
@@ -70,6 +70,8 @@ def test_url_relative_valid(valid_url):
     '...',
     '\\',
     ' ',
+    '',
+    None,
 ])
 def test_url_relative_invalid(invalid_url):
     validator = validate.URL(relative=True)
@@ -103,6 +105,8 @@ def test_email_valid(valid_email):
     '@nouser.com',
     'example.com',
     'user',
+    '',
+    None,
 ])
 def test_email_invalid(invalid_email):
     validator = validate.Email()
