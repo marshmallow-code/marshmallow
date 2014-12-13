@@ -933,7 +933,7 @@ class Time(Field):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         try:
             return utils.from_iso_time(value)
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a time object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -957,7 +957,7 @@ class Date(Field):
         """
         try:
             return utils.from_iso_date(value)
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             msg = 'Could not deserialize {0!r} to a date object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
@@ -983,7 +983,7 @@ class TimeDelta(Field):
         """
         try:
             return dt.timedelta(seconds=float(value))
-        except (AttributeError, ValueError):
+        except (TypeError, AttributeError, ValueError):
             msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 

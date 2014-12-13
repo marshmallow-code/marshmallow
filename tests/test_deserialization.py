@@ -163,6 +163,11 @@ class TestFieldDeserialization:
         msg = 'Could not deserialize {0!r} to a timedelta object'.format('badvalue')
         assert msg in str(excinfo)
 
+    def test_empty_timedelta_field_deserialization(self):
+        field = fields.TimeDelta()
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize(None)
+
     def test_date_field_deserialization(self):
         field = fields.Date()
         d = dt.date(2014, 8, 21)
