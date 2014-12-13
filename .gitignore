@@ -54,3 +54,7 @@ Vagrantfile
 .konchrc
 _sandbox
 pylintrc
+
+# Virtualenvs
+env
+venv

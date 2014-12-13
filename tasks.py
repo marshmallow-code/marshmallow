@@ -9,12 +9,12 @@ build_dir = os.path.join(docs_dir, '_build')
 @task
 def test():
     """Run the tests."""
-    flake()
     run('python setup.py test', echo=True, pty=True)
 
 @task
 def flake():
-    run('flake8 .', echo=True)
+    """Run flake8 on codebase."""
+    run('flake8 --exclude=.svn,CVS,.bzr,.hg,.git,__pycache__,env,venv .', echo=True)
 
 @task
 def watch():
@@ -61,6 +61,7 @@ def docs(clean=False, browse=False, watch=False):
 
 @task
 def watch_docs():
+    """Run build the docs when a file changes."""
     try:
         import sphinx_autobuild  # noqa
     except ImportError:
