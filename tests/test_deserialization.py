@@ -80,6 +80,11 @@ class TestFieldDeserialization:
         msg = 'Could not deserialize {0!r} to a datetime object.'.format('not-a-datetime')
         assert msg in str(excinfo)
 
+    def test_empty_datetime_deserialization(self):
+        field = fields.DateTime()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(None)
+
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
         dtime = dt.datetime.now()
@@ -124,6 +129,11 @@ class TestFieldDeserialization:
         msg = 'Could not deserialize {0!r} to a time object.'.format('badvalue')
         assert msg in str(excinfo)
 
+    def test_empty_time_field_deserialization(self):
+        field = fields.Time()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(None)
+
     def test_fixed_field_deserialization(self):
         field = fields.Fixed(decimals=3)
         assert field.deserialize(None) == '0.000'
@@ -167,6 +177,11 @@ class TestFieldDeserialization:
             field.deserialize('badvalue')
         msg = 'Could not deserialize {0!r} to a date object.'.format('badvalue')
         assert msg in str(excinfo)
+
+    def test_empty_date_field_deserialization(self):
+        field = fields.Date()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(None)
 
     def test_price_field_deserialization(self):
         field = fields.Price()
