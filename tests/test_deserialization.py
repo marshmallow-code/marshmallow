@@ -165,7 +165,7 @@ class TestFieldDeserialization:
 
     def test_empty_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(UnmarshallingError):
             field.deserialize(None)
 
     def test_date_field_deserialization(self):
