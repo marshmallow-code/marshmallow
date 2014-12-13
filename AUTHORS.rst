@@ -23,6 +23,5 @@ Contributors (chronological)
 - Sven-Hendrik Haase `@svenstaro <https://github.com/svenstaro>`_
 - Eric Wang `@ewang <https://github.com/ewang>`_
 - `@philtay <https://github.com/philtay>`_
-- Sven-Hendrik Haase `@svenstaro <https://github.com/svenstaro>`_
 - `@malexer <https://github.com/malexer>`_
 - Andriy Yurchuk `@Ch00k <https://github.com/Ch00k>`_
