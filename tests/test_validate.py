@@ -4,108 +4,219 @@ import pytest
 
 from marshmallow import validate, ValidationError
 
-def test_invalid_email():
-    invalid1 = "user@example"
-    with pytest.raises(ValidationError):
-        validate.email(invalid1)
-    invalid2 = "example.com"
-    with pytest.raises(ValidationError):
-        validate.email(invalid2)
-    invalid3 = "user"
-    with pytest.raises(ValidationError):
-        validate.email(invalid3)
-    with pytest.raises(ValidationError):
-        validate.email('@nouser.com')
+@pytest.mark.parametrize('valid_url', [
+    'http://example.org',
+    'https://example.org',
+    'ftp://example.org',
+    'ftps://example.org',
+    'http://example.co.jp',
+    'http://www.example.com/a%C2%B1b',
+    'http://www.example.com/~username/',
+    'http://info.example.com/?fred',
+    'http://xn--mgbh0fb.xn--kgbechtv/',
+    'http://example.com/blue/red%3Fand+green',
+    'http://www.example.com/?array%5Bkey%5D=value',
+    'http://xn--rsum-bpad.example.org/',
+    'http://123.45.67.8/',
+    'http://2001:db8::ff00:42:8329',
+    'http://www.example.com:8000/foo',
+])
+def test_url_absolute_valid(valid_url):
+    validator = validate.URL(relative=False)
+    assert validator(valid_url) == valid_url
 
-def test_validate_email_none():
-    assert validate.email(None) is None
+@pytest.mark.parametrize('invalid_url', [
+    'http:///example.com/',
+    'https:///example.com/',
+    'https://example.org\\',
+    'ftp:///example.com/',
+    'ftps:///example.com/',
+    'http//example.org',
+    'http:///',
+    'http:/example.org',
+    'foo://example.org',
+    '../icons/logo.gif',
+    'abc',
+    '..',
+    '/',
+    ' ',
+    '',
+    None,
+])
+def test_url_absolute_invalid(invalid_url):
+    validator = validate.URL(relative=False)
+    with pytest.raises(ValidationError):
+        validator(invalid_url)
 
-def test_validate_url_none():
-    assert validate.url(None) is None
+@pytest.mark.parametrize('valid_url', [
+    'http://example.org',
+    'http://123.45.67.8/',
+    'http://example.com/foo/bar/../baz',
+    'https://example.com/../icons/logo.gif',
+    'http://example.com/./icons/logo.gif',
+    'ftp://example.com/../../../../g',
+    'http://example.com/g?y/./x',
+])
+def test_url_relative_valid(valid_url):
+    validator = validate.URL(relative=True)
+    assert validator(valid_url) == valid_url
 
-def test_min_length():
+@pytest.mark.parametrize('invalid_url', [
+    'http//example.org',
+    'suppliers.html',
+    '../icons/logo.gif',
+    '\icons/logo.gif',
+    '../.../g',
+    '...',
+    '\\',
+    ' ',
+    '',
+    None,
+])
+def test_url_relative_invalid(invalid_url):
+    validator = validate.URL(relative=True)
     with pytest.raises(ValidationError):
-        validate.length('foo', 4, 5)
-    assert validate.length('foo', 3, 5) == 'foo'
-    with pytest.raises(ValidationError):
-        validate.length([1, 2, 3], 4, 5)
-    assert validate.length([1, 2, 3], 3, 5) == [1, 2, 3]
-    with pytest.raises(ValidationError):
-        validate.length('foo', 5)
+        validator(invalid_url)
 
-def test_max_length():
-    with pytest.raises(ValidationError):
-        validate.length('foo', 1, 2)
-    assert validate.length('foo', 1, 3) == 'foo'
-    with pytest.raises(ValidationError):
-        validate.length([1, 2, 3], 1, 2)
-    assert validate.length([1, 2, 3], 1, 3) == [1, 2, 3]
-    with pytest.raises(ValidationError):
-        validate.length('foo', None, 2)
+@pytest.mark.parametrize('valid_email', [
+    'niceandsimple@example.com',
+    'NiCeAnDsImPlE@eXaMpLe.CoM',
+    'very.common@example.com',
+    'a.little.lengthy.but.fine@a.iana-servers.net',
+    'disposable.style.email.with+symbol@example.com',
+    '"very.unusual.@.unusual.com"@example.com',
+    "!#$%&'*+-/=?^_`{}|~@example.org",
+    'niceandsimple@[64.233.160.0]',
+    'niceandsimple@localhost',
+])
+def test_email_valid(valid_email):
+    validator = validate.Email()
+    assert validator(valid_email) == valid_email
 
-def test_validate_length_none():
-    assert validate.length(None) is None
+@pytest.mark.parametrize('invalid_email', [
+    'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
+    'just"not"right@example.com',
+    'this is"not\allowed@example.com',
+    'this\\ still\\"not\\\\allowed@example.com',
+    '"much.more unusual"@example.com',
+    '"very.(),:;<>[]\".VERY.\"very@\\ \"very\".unusual"@strange.example.com',
+    '" "@example.org',
+    'user@example',
+    '@nouser.com',
+    'example.com',
+    'user',
+    '',
+    None,
+])
+def test_email_invalid(invalid_email):
+    validator = validate.Email()
+    with pytest.raises(ValidationError):
+        validator(invalid_email)
 
-def test_min_ranging():
-    with pytest.raises(ValidationError):
-        validate.ranging(1, 2, 3)
-    assert validate.ranging(1, 1, 2) == 1
-    with pytest.raises(ValidationError):
-        validate.ranging(1, 2)
+def test_range_min():
+    assert validate.Range(1, 2)(1) == 1
+    assert validate.Range(0)(1) == 1
+    assert validate.Range()(1) == 1
+    assert validate.Range(1, 1)(1) == 1
 
-def test_max_ranging():
     with pytest.raises(ValidationError):
-        validate.ranging(2, 0, 1)
-    assert validate.ranging(2, 1, 2) == 2
+        validate.Range(2, 3)(1)
     with pytest.raises(ValidationError):
-        validate.ranging(2, None, 1)
+        validate.Range(2)(1)
 
-def test_validate_ranging_none():
-    assert validate.ranging(None) is None
+def test_range_max():
+    assert validate.Range(1, 2)(2) == 2
+    assert validate.Range(None, 2)(2) == 2
+    assert validate.Range()(2) == 2
+    assert validate.Range(2, 2)(2) == 2
+
+    with pytest.raises(ValidationError):
+        validate.Range(0, 1)(2)
+    with pytest.raises(ValidationError):
+        validate.Range(None, 1)(2)
+
+def test_length_min():
+    assert validate.Length(3, 5)('foo') == 'foo'
+    assert validate.Length(3, 5)([1, 2, 3]) == [1, 2, 3]
+    assert validate.Length(0)('a') == 'a'
+    assert validate.Length(0)([1]) == [1]
+    assert validate.Length()('') == ''
+    assert validate.Length()([]) == []
+    assert validate.Length(1, 1)('a') == 'a'
+    assert validate.Length(1, 1)([1]) == [1]
+
+    with pytest.raises(ValidationError):
+        validate.Length(4, 5)('foo')
+    with pytest.raises(ValidationError):
+        validate.Length(4, 5)([1, 2, 3])
+    with pytest.raises(ValidationError):
+        validate.Length(5)('foo')
+    with pytest.raises(ValidationError):
+        validate.Length(5)([1, 2, 3])
+
+def test_length_max():
+    assert validate.Length(1, 3)('foo') == 'foo'
+    assert validate.Length(1, 3)([1, 2, 3]) == [1, 2, 3]
+    assert validate.Length(None, 1)('a') == 'a'
+    assert validate.Length(None, 1)([1]) == [1]
+    assert validate.Length()('') == ''
+    assert validate.Length()([]) == []
+    assert validate.Length(2, 2)('ab') == 'ab'
+    assert validate.Length(2, 2)([1, 2]) == [1, 2]
+
+    with pytest.raises(ValidationError):
+        validate.Length(1, 2)('foo')
+    with pytest.raises(ValidationError):
+        validate.Length(1, 2)([1, 2, 3])
+    with pytest.raises(ValidationError):
+        validate.Length(None, 2)('foo')
+    with pytest.raises(ValidationError):
+        validate.Length(None, 2)([1, 2, 3])
 
 def test_equal():
-    assert validate.equal('a', 'a') == 'a'
-    assert validate.equal(1, 1) == 1
-    assert validate.equal(None, None) is None
-    assert validate.equal(None, 'a') is None
-    assert validate.equal(None, 1) is None
-    with pytest.raises(ValidationError):
-        validate.equal('a', 'b')
-    with pytest.raises(ValidationError):
-        validate.equal(1, 2)
+    assert validate.Equal('a')('a') == 'a'
+    assert validate.Equal(1)(1) == 1
+    assert validate.Equal([1])([1]) == [1]
 
-def test_regexp():
-    assert validate.regexp('a', r'a') == 'a'
-    assert validate.regexp('_', r'\w') == '_'
-    assert validate.regexp(' ', r'\s') == ' '
-    assert validate.regexp('1', r'1') == '1'
-    assert validate.regexp('1', r'[0-9]+') == '1'
-    assert validate.regexp('A', r'a', re.IGNORECASE) == 'A'
-    assert validate.regexp('a', re.compile(r'a')) == 'a'
-    assert validate.regexp('_', re.compile(r'\w')) == '_'
-    assert validate.regexp(' ', re.compile(r'\s')) == ' '
-    assert validate.regexp('1', re.compile(r'1')) == '1'
-    assert validate.regexp('1', re.compile(r'[0-9]+')) == '1'
-    assert validate.regexp('A', re.compile(r'a', re.IGNORECASE)) == 'A'
-    assert validate.regexp('A', re.compile(r'a', re.IGNORECASE), re.IGNORECASE) == 'A'
-    assert validate.regexp(None, r'a') is None
-    assert validate.regexp(None, r'a', re.IGNORECASE) is None
-    assert validate.regexp(None, re.compile(r'a')) is None
-    assert validate.regexp(None, re.compile(r'a', re.IGNORECASE)) is None
     with pytest.raises(ValidationError):
-        validate.regexp('a', r'[0-9]+')
+        validate.Equal('b')('a')
     with pytest.raises(ValidationError):
-        validate.regexp('1', r'[a-z]+')
+        validate.Equal(2)(1)
     with pytest.raises(ValidationError):
-        validate.regexp('A', r'a')
+        validate.Equal([2])([1])
+
+def test_regexp_str():
+    assert validate.Regexp(r'a')('a') == 'a'
+    assert validate.Regexp(r'\w')('_') == '_'
+    assert validate.Regexp(r'\s')(' ') == ' '
+    assert validate.Regexp(r'1')('1') == '1'
+    assert validate.Regexp(r'[0-9]+')('1') == '1'
+    assert validate.Regexp(r'a', re.IGNORECASE)('A') == 'A'
+
     with pytest.raises(ValidationError):
-        validate.regexp('a', re.compile(r'[0-9]+'))
+        validate.Regexp(r'[0-9]+')('a')
     with pytest.raises(ValidationError):
-        validate.regexp('1', re.compile(r'[a-z]+'))
+        validate.Regexp(r'[a-z]+')('1')
     with pytest.raises(ValidationError):
-        validate.regexp('A', re.compile(r'a'))
+        validate.Regexp(r'a')('A')
+
+def test_regexp_compile():
+    assert validate.Regexp(re.compile(r'a'))('a') == 'a'
+    assert validate.Regexp(re.compile(r'\w'))('_') == '_'
+    assert validate.Regexp(re.compile(r'\s'))(' ') == ' '
+    assert validate.Regexp(re.compile(r'1'))('1') == '1'
+    assert validate.Regexp(re.compile(r'[0-9]+'))('1') == '1'
+    assert validate.Regexp(re.compile(r'a', re.IGNORECASE))('A') == 'A'
+    assert validate.Regexp(re.compile(r'a', re.IGNORECASE), re.IGNORECASE)('A') == 'A'
+
     with pytest.raises(ValidationError):
-        validate.regexp('A', re.compile(r'a'), re.IGNORECASE)
+        validate.Regexp(re.compile(r'[0-9]+'))('a')
+    with pytest.raises(ValidationError):
+        validate.Regexp(re.compile(r'[a-z]+'))('1')
+    with pytest.raises(ValidationError):
+        validate.Regexp(re.compile(r'a'))('A')
+    with pytest.raises(ValidationError):
+        validate.Regexp(re.compile(r'a'), re.IGNORECASE)('A')
 
 def test_predicate():
     class Dummy(object):
@@ -126,22 +237,19 @@ def test_predicate():
 
     d = Dummy()
 
-    assert validate.predicate(d, '_true') == d
-    assert validate.predicate(d, '_list') == d
-    assert validate.predicate(d, '_identity', arg=True) == d
-    assert validate.predicate(d, '_identity', arg=1) == d
-    assert validate.predicate(d, '_identity', arg='abc') == d
-    assert validate.predicate(None, '_true') is None
-    assert validate.predicate(None, '_false') is None
-    assert validate.predicate(None, '_identity', arg=True) is None
-    assert validate.predicate(None, '_identity', arg=False) is None
+    assert validate.Predicate('_true')(d) == d
+    assert validate.Predicate('_list')(d) == d
+    assert validate.Predicate('_identity', arg=True)(d) == d
+    assert validate.Predicate('_identity', arg=1)(d) == d
+    assert validate.Predicate('_identity', arg='abc')(d) == d
+
     with pytest.raises(ValidationError):
-        validate.predicate(d, '_false')
+        validate.Predicate('_false')(d)
     with pytest.raises(ValidationError):
-        validate.predicate(d, '_empty')
+        validate.Predicate('_empty')(d)
     with pytest.raises(ValidationError):
-        validate.predicate(d, '_identity', arg=False)
+        validate.Predicate('_identity', arg=False)(d)
     with pytest.raises(ValidationError):
-        validate.predicate(d, '_identity', arg=0)
+        validate.Predicate('_identity', arg=0)(d)
     with pytest.raises(ValidationError):
-        validate.predicate(d, '_identity', arg='')
+        validate.Predicate('_identity', arg='')(d)
