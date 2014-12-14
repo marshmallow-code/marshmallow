@@ -243,6 +243,28 @@ class Predicate(object):
         return value
 
 
+class NoneOf(object):
+    """Validator which fails if ``value`` is a member of ``iterable``.
+
+    :param iterable iterable:
+        A sequence of invalid values.
+    :param str error:
+        Error message to raise in case of a validation error.
+    """
+    def __init__(self, iterable, error=None):
+        self.iterable = iterable
+        self.error = error or 'Invalid input.'
+
+    def __call__(self, value):
+        try:
+            if value in self.iterable:
+                raise ValidationError(self.error)
+        except TypeError:
+            pass
+
+        return value
+
+
 #
 # Backward compatibility
 #
