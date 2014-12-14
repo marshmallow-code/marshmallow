@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import datetime as dt
 import uuid
 import warnings
-from decimal import Decimal
+import decimal
 from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
@@ -32,6 +32,7 @@ __all__ = [
     'UUID',
     'Number',
     'Integer',
+    'Decimal',
     'Boolean',
     'FormattedString',
     'Float',
@@ -693,7 +694,7 @@ class Number(Field):
             return self.default
         try:
             return self._format_num(value)
-        except (TypeError, ValueError) as err:
+        except (TypeError, ValueError, decimal.InvalidOperation) as err:
             raise exception_class(getattr(self, 'error', None) or err)
 
     def serialize(self, attr, obj, accessor=None):
@@ -725,6 +726,44 @@ class Integer(Number):
         self.as_string = as_string
         super(Integer, self).__init__(default=default, attribute=attribute,
             error=error, **kwargs)
+
+
+class Decimal(Number):
+    """A field that (de)serializes to the Python ``decimal.Decimal`` type.
+    It's safe to use when dealing with money values, percentages, ratios
+    or other numbers where precision is critical.
+
+    :param int places:
+        How many decimal places to quantize the value. If None, does
+        not quantize the value.
+    :param rounding:
+        How to round the value during quantize, for example
+        `decimal.ROUND_UP`. If None, uses the rounding value from
+        the current thread's context.
+    :param default:
+        The value this field defaults to. If not specified is the
+        `decimal.Decimal` zero.
+    :param bool as_string:
+        If True, serialize to a string instead of a Python
+        `decimal.Decimal` type.
+    :param kwargs:
+        The same keyword arguments that :class:`Number` receives.
+    """
+
+    num_type = decimal.Decimal
+
+    def __init__(self, places=None, rounding=None, default=decimal.Decimal(),
+                 as_string=False, **kwargs):
+        self.places = decimal.Decimal((0, (1,), -places)) if places is not None else None
+        self.rounding = rounding
+        super(Decimal, self).__init__(default=default, as_string=as_string, **kwargs)
+
+    def _format_num(self, value):
+        num = decimal.Decimal(value)
+        if self.places is not None:
+            num = num.quantize(self.places, rounding=self.rounding)
+        return num
+
 
 class Boolean(Field):
     """A boolean field.
@@ -998,7 +1037,7 @@ class Fixed(Number):
                  *args, **kwargs):
         super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
                             *args, **kwargs)
-        self.precision = Decimal('0.' + '0' * (decimals - 1) + '1')
+        self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
 
     def _serialize(self, value, attr, obj):
         return self._validated(value, MarshallingError)
