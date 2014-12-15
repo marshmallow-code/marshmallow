@@ -73,12 +73,31 @@ class TestFieldDeserialization:
         expected = text_type(utils.float_to_decimal(float(42)))
         assert field.deserialize('42') == expected
 
-    def test_invalid_datetime_deserialization(self):
+    @pytest.mark.parametrize('in_value',
+    [
+        'not-a-datetime',
+        42,
+        '',
+        [],
+    ])
+    def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
         with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('not-a-datetime')
-        msg = 'Could not deserialize {0!r} to a datetime object.'.format('not-a-datetime')
+            field.deserialize(in_value)
+        msg = 'Could not deserialize {0!r} to a datetime object.'.format(in_value)
         assert msg in str(excinfo)
+
+    @pytest.mark.parametrize('timefield',
+    [
+        fields.DateTime(),
+        fields.Date(),
+        fields.TimeDelta(),
+        fields.Time(),
+    ])
+    def test_time_fields_deserialize_none_error(self, timefield):
+        with pytest.raises(UnmarshallingError) as excinfo:
+            timefield.deserialize(None)
+        assert 'Could not deserialize' in str(excinfo)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
@@ -117,11 +136,18 @@ class TestFieldDeserialization:
         result2 = field.deserialize(t2_formatted)
         assert_time_equal(result2, t2)
 
-    def test_invalid_time_field_deserialization(self):
+    @pytest.mark.parametrize('in_data',
+    [
+        'badvalue',
+        '',
+        [],
+        42,
+    ])
+    def test_invalid_time_field_deserialization(self, in_data):
         field = fields.Time()
         with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('badvalue')
-        msg = 'Could not deserialize {0!r} to a time object.'.format('badvalue')
+            field.deserialize(in_data)
+        msg = 'Could not deserialize {0!r} to a time object.'.format(in_data)
         assert msg in str(excinfo)
 
     def test_fixed_field_deserialization(self):
@@ -146,11 +172,17 @@ class TestFieldDeserialization:
         result = field.deserialize(12.3)
         assert_almost_equal(total_seconds(result), 12.3)
 
-    def test_invalid_timedelta_field_deserialization(self):
+    @pytest.mark.parametrize('in_value',
+    [
+        '',
+        'badvalue',
+        [],
+    ])
+    def test_invalid_timedelta_field_deserialization(self, in_value):
         field = fields.TimeDelta()
         with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('badvalue')
-        msg = 'Could not deserialize {0!r} to a timedelta object'.format('badvalue')
+            field.deserialize(in_value)
+        msg = 'Could not deserialize {0!r} to a timedelta object'.format(in_value)
         assert msg in str(excinfo)
 
     def test_date_field_deserialization(self):
@@ -161,11 +193,17 @@ class TestFieldDeserialization:
         assert isinstance(result, dt.date)
         assert_date_equal(result, d)
 
-    def test_invalid_date_field_deserialization(self):
+    @pytest.mark.parametrize('in_value',
+    [
+        '',
+        123,
+        [],
+    ])
+    def test_invalid_date_field_deserialization(self, in_value):
         field = fields.Date()
         with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('badvalue')
-        msg = 'Could not deserialize {0!r} to a date object.'.format('badvalue')
+            field.deserialize(in_value)
+        msg = 'Could not deserialize {0!r} to a date object.'.format(in_value)
         assert msg in str(excinfo)
 
     def test_price_field_deserialization(self):

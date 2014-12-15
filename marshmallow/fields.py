@@ -879,19 +879,17 @@ class DateTime(Field):
                 return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
-        err = UnmarshallingError(
-            'Cannot deserialize {0!r} to a datetime'.format(value)
-        )
+        msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        if not value:  # Falsy values, e.g. '', None, [] are not valid
+            raise err
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
         func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
         if func:
             try:
                 return func(value)
-            except TypeError:
+            except (TypeError, AttributeError, ValueError):
                 raise err
-            except (AttributeError, ValueError) as err:
-                msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
-                raise UnmarshallingError(getattr(self, 'error', None) or msg)
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
@@ -931,11 +929,14 @@ class Time(Field):
 
     def _deserialize(self, value):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
+        msg = 'Could not deserialize {0!r} to a time object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        if not value:   # falsy values are invalid
+            raise err
         try:
             return utils.from_iso_time(value)
-        except (TypeError, ValueError):
-            msg = 'Could not deserialize {0!r} to a time object.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+        except (AttributeError, TypeError, ValueError):
+            raise err
 
 class Date(Field):
     """ISO8601-formatted date string.
@@ -955,11 +956,14 @@ class Date(Field):
         """Deserialize an ISO8601-formatted date string to a
         :class:`datetime.date` object.
         """
+        msg = 'Could not deserialize {0!r} to a date object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        if not value:  # falsy values are invalid
+            raise err
         try:
             return utils.from_iso_date(value)
-        except (TypeError, ValueError):
-            msg = 'Could not deserialize {0!r} to a date object.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+        except (AttributeError, TypeError, ValueError):
+            raise err
 
 
 class TimeDelta(Field):
@@ -983,7 +987,7 @@ class TimeDelta(Field):
         """
         try:
             return dt.timedelta(seconds=float(value))
-        except (AttributeError, ValueError):
+        except (TypeError, AttributeError, ValueError):
             msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
