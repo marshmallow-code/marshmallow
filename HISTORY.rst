@@ -16,10 +16,12 @@ Bug fixes:
 - ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
 - Fix bug that raised an ``AttributeError`` when using a class-based validator.
 - Fix `as_string` behavior of Number fields when serializing to default value.
+- Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this.
 
 Support:
 
 - Updated docs theme.
+- Update contributing docs.
 - Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
 
 1.1.0 (2014-12-02)
