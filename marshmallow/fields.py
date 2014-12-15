@@ -929,11 +929,14 @@ class Time(Field):
 
     def _deserialize(self, value):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
+        msg = 'Could not deserialize {0!r} to a time object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        if not value:   # falsy values are invalid
+            raise err
         try:
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
-            msg = 'Could not deserialize {0!r} to a time object.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise err
 
 class Date(Field):
     """ISO8601-formatted date string.
@@ -953,11 +956,14 @@ class Date(Field):
         """Deserialize an ISO8601-formatted date string to a
         :class:`datetime.date` object.
         """
+        msg = 'Could not deserialize {0!r} to a date object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        if not value:  # falsy values are invalid
+            raise err
         try:
             return utils.from_iso_date(value)
         except (AttributeError, TypeError, ValueError):
-            msg = 'Could not deserialize {0!r} to a date object.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise err
 
 
 class TimeDelta(Field):
