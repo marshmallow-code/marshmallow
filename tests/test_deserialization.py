@@ -73,11 +73,18 @@ class TestFieldDeserialization:
         expected = text_type(utils.float_to_decimal(float(42)))
         assert field.deserialize('42') == expected
 
-    def test_invalid_datetime_deserialization(self):
+    @pytest.mark.parametrize('in_value',
+    [
+        'not-a-datetime',
+        42,
+        '',
+        [],
+    ])
+    def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
         with pytest.raises(UnmarshallingError) as excinfo:
-            field.deserialize('not-a-datetime')
-        msg = 'Could not deserialize {0!r} to a datetime object.'.format('not-a-datetime')
+            field.deserialize(in_value)
+        msg = 'Could not deserialize {0!r} to a datetime object.'.format(in_value)
         assert msg in str(excinfo)
 
     @pytest.mark.parametrize('timefield',
