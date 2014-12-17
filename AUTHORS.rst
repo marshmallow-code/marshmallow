@@ -25,3 +25,4 @@ Contributors (chronological)
 - `@philtay <https://github.com/philtay>`_
 - `@malexer <https://github.com/malexer>`_
 - Andriy Yurchuk `@Ch00k <https://github.com/Ch00k>`_
+- Vesa Uimonen `@vesauimonen <https://github.com/vesauimonen>`_
