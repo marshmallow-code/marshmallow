@@ -666,7 +666,12 @@ class UUID(String):
     """A UUID field."""
 
     def _deserialize(self, value):
-        return uuid.UUID(value)
+        msg = 'Could not deserialize {0!r} to a UUID object.'.format(value)
+        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        try:
+            return uuid.UUID(value)
+        except (ValueError, AttributeError):
+            raise err
 
 
 class Number(Field):

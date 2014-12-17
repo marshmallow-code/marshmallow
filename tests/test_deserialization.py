@@ -248,6 +248,19 @@ class TestFieldDeserialization:
         assert isinstance(result, uuid.UUID)
         assert str(result) == uuid_str
 
+    @pytest.mark.parametrize('in_value',
+    [
+        'malformed',
+        123,
+        [],
+    ])
+    def test_invalid_uuid_deserialization(self, in_value):
+        field = fields.UUID()
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize(in_value)
+        msg = 'Could not deserialize {0!r} to a UUID object.'.format(in_value)
+        assert msg in str(excinfo)
+
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):
             fields.Function(lambda x: None,
