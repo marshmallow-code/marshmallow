@@ -483,7 +483,7 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
-    def loads(self, json_data, many=False, *args, **kwargs):
+    def loads(self, json_data, many=None, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.

@@ -154,6 +154,16 @@ def test_serializing_none():
     assert s.data['name'] == ''
     assert s.data['age'] == 0
 
+def test_default_many_symmetry():
+    """The dump/load(s) methods should all default to the many value of the schema."""
+    s_many = UserSchema(many=True, only=('name',))
+    s_single = UserSchema(only=('name',))
+    u1, u2 = User('King Arthur'), User('Sir Lancelot')
+    s_single.load(s_single.dump(u1).data)
+    s_single.loads(s_single.dumps(u1).data)
+    s_many.load(s_many.dump([u1, u2]).data)
+    s_many.loads(s_many.dumps([u1, u2]).data)
+
 
 class TestValidate:
 
