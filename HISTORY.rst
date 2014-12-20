@@ -21,6 +21,7 @@ Support:
 
 - Updated docs theme.
 - Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
+- Exclude virtualenv directories from syntax checking. Thanks @svenstaro.
 
 1.1.0 (2014-12-02)
 ++++++++++++++++++
