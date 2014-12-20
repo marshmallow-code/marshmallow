@@ -828,6 +828,65 @@ class TestSchemaValidator:
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
 
+    def test_registered_validators_are_not_shared_with_ancestors(self):
+        class ParentSchema(Schema):
+            pass
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.validator
+        def validate_parent(schema, in_data):
+            raise ValidationError('Parent validator called')
+
+        @ChildSchema.validator
+        def validate_child(schema, in_data):
+            assert False, 'Child validator should not be called'
+
+        parent = ParentSchema()
+        errors = parent.validate({})
+        assert 'Parent validator called' in errors['_schema']
+
+    def test_registered_validators_are_not_shared_with_children(self):
+        class ParentSchema(Schema):
+            pass
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.validator
+        def validate_parent(schema, in_data):
+            assert False, 'Parent validator should not be called'
+
+        @ChildSchema.validator
+        def validate_child(schema, in_data):
+            raise ValidationError('Child validator called')
+
+        child = ChildSchema()
+        errors = child.validate({})
+        assert 'Child validator called' in errors['_schema']
+
+    def test_inheriting_then_registering_validator(self):
+        def validate_parent(schema, data):
+            raise ValidationError('Parent validator called')
+
+        class ParentSchema(Schema):
+            __validators__ = [validate_parent]
+            pass
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ChildSchema.validator
+        def validate_child(schema, data):
+            raise ValidationError('Child validator called')
+
+        child = ChildSchema()
+        errors = child.validate({})
+        assert len(errors['_schema']) == 2
+        assert 'Parent validator called' in errors['_schema']
+        assert 'Child validator called' in errors['_schema']
+
     def test_multiple_schema_errors_can_be_stored(self):
         def validate_with_bool(schema, in_vals):
             return False
@@ -1005,6 +1064,46 @@ class TestPreprocessors:
         result, errors = schema.load({'field_a': 10})
         assert result['field_a'] == 11
 
+    def test_registered_preprocessors_are_not_shared_with_ancestors(self):
+        class ParentSchema(Schema):
+            foo = fields.Field()
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.preprocessor
+        def parent_preprocessor(schema, data):
+            data['sentinel'] = True
+            return data
+
+        @ChildSchema.preprocessor
+        def child_preprocessor(schema, data):
+            assert False, 'Child preprocessor should not be called'
+
+        parent = ParentSchema()
+        result = parent.load({})
+        assert result.data['sentinel'] is True
+
+    def test_registered_preprocessors_are_not_shared_with_children(self):
+        class ParentSchema(Schema):
+            pass
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.preprocessor
+        def parent_preprocessor(schema, data):
+            assert False, 'Parent preprocessor should not be called'
+
+        @ChildSchema.preprocessor
+        def child_preprocessor(schema, data):
+            data['sentinel'] = True
+            return data
+
+        child = ChildSchema()
+        result = child.load({})
+        assert result.data['sentinel'] is True
+
     def test_preprocessors_defined_by_decorator(self):
 
         class PreprocessingSchema(Schema):
@@ -1034,6 +1133,45 @@ class TestDataHandler:
         ser = CallbackSchema()
         data, _ = ser.dump(user)
         assert data['meaning'] == 42
+
+    def test_registered_data_handlers_are_not_shared_with_ancestors(self):
+        class ParentSchema(Schema):
+            foo = fields.Field()
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.data_handler
+        def parent_handler(schema, data, obj):
+            data['sentinel'] = True
+            return data
+
+        @ChildSchema.data_handler
+        def child_handler(schema, data, obj):
+            assert False, 'Child data handler should not be called'
+
+        parent = ParentSchema()
+        result = parent.dump({'foo': 42})
+        assert result.data['sentinel'] is True
+
+    def test_registered_data_handlers_are_not_shared_with_children(self):
+        class ParentSchema(Schema):
+            pass
+
+        class ChildSchema(ParentSchema):
+            pass
+
+        @ParentSchema.data_handler
+        def parent_handler(schema, data, obj):
+            assert False, 'Parent data handler should not be called'
+
+        @ChildSchema.data_handler
+        def child_handler(schema, data, obj):
+            data['sentinel'] = True
+            return data
+
+        child = ChildSchema()
+        assert child.dump({}).data['sentinel'] is True
 
     def test_serializer_with_multiple_data_handlers(self, user):
         class CallbackSchema2(Schema):
