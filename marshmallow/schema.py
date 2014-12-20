@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import copy
 import datetime as dt
+import decimal
 import json
 import types
 import uuid
@@ -175,6 +176,7 @@ class BaseSchema(base.SchemaABC):
         dt.time: fields.Time,
         dt.date: fields.Date,
         dt.timedelta: fields.TimeDelta,
+        decimal.Decimal: fields.Decimal,
     }
 
     OPTIONS_CLASS = SchemaOpts
