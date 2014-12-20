@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime as dt
 import uuid
+import decimal
 
 import pytest
 
@@ -41,6 +42,78 @@ class TestFieldDeserialization:
             field.deserialize('42.0')
         with pytest.raises(UnmarshallingError):
             field.deserialize('bad')
+
+    def test_decimal_field_deserialization(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = decimal.Decimal(1)
+        m4 = None
+        m5 = 'abc'
+        m6 = [1, 2]
+
+        field = fields.Decimal()
+        assert isinstance(field.deserialize(m1), decimal.Decimal)
+        assert field.deserialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.deserialize(m2), decimal.Decimal)
+        assert field.deserialize(m2) == decimal.Decimal('12.355')
+        assert isinstance(field.deserialize(m3), decimal.Decimal)
+        assert field.deserialize(m3) == decimal.Decimal(1)
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Decimal(1)
+        assert isinstance(field.deserialize(m1), decimal.Decimal)
+        assert field.deserialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.deserialize(m2), decimal.Decimal)
+        assert field.deserialize(m2) == decimal.Decimal('12.4')
+        assert isinstance(field.deserialize(m3), decimal.Decimal)
+        assert field.deserialize(m3) == decimal.Decimal(1)
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+        field = fields.Decimal(1, decimal.ROUND_DOWN)
+        assert isinstance(field.deserialize(m1), decimal.Decimal)
+        assert field.deserialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.deserialize(m2), decimal.Decimal)
+        assert field.deserialize(m2) == decimal.Decimal('12.3')
+        assert isinstance(field.deserialize(m3), decimal.Decimal)
+        assert field.deserialize(m3) == decimal.Decimal(1)
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
+
+    def test_decimal_field_deserialization_string(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = decimal.Decimal(1)
+        m4 = None
+        m5 = 'abc'
+        m6 = [1, 2]
+
+        field = fields.Decimal(as_string=True)
+        assert isinstance(field.deserialize(m1), decimal.Decimal)
+        assert field.deserialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.deserialize(m2), decimal.Decimal)
+        assert field.deserialize(m2) == decimal.Decimal('12.355')
+        assert isinstance(field.deserialize(m3), decimal.Decimal)
+        assert field.deserialize(m3) == decimal.Decimal(1)
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m5)
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m6)
 
     def test_string_field_deserialization(self):
         field = fields.String()
