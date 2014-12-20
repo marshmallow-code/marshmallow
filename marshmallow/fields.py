@@ -853,6 +853,10 @@ class Arbitrary(Number):
     """
     # No as_string param
     def __init__(self, default='0', attribute=None, **kwargs):
+        warnings.warn(
+            'The Arbitrary field is deprecated. Use the Decimal field instead.',
+            category=DeprecationWarning
+        )
         super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
     def _validated(self, value, exception_class):
@@ -1044,6 +1048,10 @@ class Fixed(Number):
 
     def __init__(self, decimals=5, default='0.000', attribute=None, error=None,
                  *args, **kwargs):
+        warnings.warn(
+            'The Fixed field is deprecated. Use the Decimal field instead.',
+            category=DeprecationWarning
+        )
         super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
                             *args, **kwargs)
         self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
@@ -1074,6 +1082,11 @@ class Price(Fixed):
     :param kwargs: The same keyword arguments that :class:`Fixed` receives.
     """
     def __init__(self, decimals=2, default='0.00', **kwargs):
+        warnings.warn(
+            'The Price field is deprecated. Use the Decimal field for dealing with '
+            'money values.',
+            category=DeprecationWarning
+        )
         super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
 
 class ValidatedField(Field):

@@ -6,8 +6,9 @@ Changelog
 
 Features:
 
-- Add ``QuerySelect`` and ``QuerySelectList`` fields. Thanks @philtay.
+- Add ``QuerySelect`` and ``QuerySelectList`` fields.
 - Convert validators in ``marshmallow.validate`` into class-based validator factories to make them easier to use when declaring fields. The previous validator functions are deprecated.
+- Add ``Decimal`` field which is safe to use when dealing with precise numbers.
 
 Thanks @philtay for these contributions.
 
@@ -15,15 +16,21 @@ Bug fixes:
 
 - ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
 - Fix bug that raised an ``AttributeError`` when using a class-based validator.
-- Fix `as_string` behavior of Number fields when serializing to default value.
+- Fix ``as_string`` behavior of Number fields when serializing to default value.
 - Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this.
 - Fix error handling when deserializing invalid UUIDs. Thanks @vesauimonen for the catch and patch.
 
+Deprecation:
+
+- The validator functions in the ``validate`` module are deprecated in favor of the class-based validators.
+- The ``Arbitrary``, ``Price``, and ``Fixed`` fields are deprecated in favor of the ``Decimal`` field.
+
 Support:
 
-- Updated docs theme.
+- Update docs theme.
 - Update contributing docs.
 - Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
+
 
 1.1.0 (2014-12-02)
 ++++++++++++++++++
