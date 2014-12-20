@@ -71,6 +71,7 @@ class SchemaMeta(type):
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field objects.
     """
+    FUNC_LISTS = ('__validators__', '__data_handlers__', '__preprocessors__')
 
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get('Meta')
@@ -81,7 +82,13 @@ class SchemaMeta(type):
         dict_cls = OrderedDict if ordered else dict
         klass._declared_fields = dict_cls(fields)
         class_registry.register(name, klass)
+        # Need to copy validators, data handlers, and preprocessors lists
+        # so they are not shared among subclasses and ancestors
+        for attr in mcs.FUNC_LISTS:
+            attr_copy = copy.copy(getattr(klass, attr))
+            setattr(klass, attr, attr_copy)
         return klass
+
 
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
