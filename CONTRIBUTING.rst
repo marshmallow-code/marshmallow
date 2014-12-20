@@ -46,7 +46,7 @@ Marshmallow abides by the following branching model:
 ``dev``
     Current development branch. **New features should branch off here**.
 
-``master``
+``pypi``
     Current production release on PyPI.
 
 ``X.Y-line``
