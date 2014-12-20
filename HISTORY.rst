@@ -20,6 +20,7 @@ Bug fixes:
 - Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this.
 - Fix error handling when deserializing invalid UUIDs. Thanks @vesauimonen for the catch and patch.
 - ``Schema.loads`` correctly defaults to use the value of ``self.many`` rather than defaulting to ``False``. Thanks @davidism for the catch and patch.
+- Validators, data handlers, and preprocessors are no longer shared between schema subclasses. Thanks @amikholap for reporting.
 
 Deprecation:
 

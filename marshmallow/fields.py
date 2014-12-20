@@ -396,7 +396,7 @@ class Field(FieldABC):
         """Utility method to invoke a function and raise ``exception_class`` if an error
         occurs.
 
-        :param callable function: Function to call. Must take no arguments.
+        :param callable func: Function to call. Must take no arguments.
         :param Exception exception_class: Type of exception to raise when an error occurs.
         """
         try:
@@ -737,6 +737,14 @@ class Decimal(Number):
     """A field that (de)serializes to the Python ``decimal.Decimal`` type.
     It's safe to use when dealing with money values, percentages, ratios
     or other numbers where precision is critical.
+
+    .. warning::
+
+        This field serializes to a `decimal.Decimal` object by default. If you need
+        to render your data as JSON, keep in mind that the `json` module from the
+        standard library does not encode `decimal.Decimal`. Therefore, you must use
+        a JSON library that can handle decimals, such as `simplejson`, or serialize
+        to a string by passing ``as_string=True``.
 
     :param int places:
         How many decimal places to quantize the value. If None, does
