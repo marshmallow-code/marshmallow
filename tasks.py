@@ -14,6 +14,7 @@ def test():
 
 @task
 def flake():
+    """Run flake8 on codebase."""
     run('flake8 .', echo=True)
 
 @task
@@ -61,6 +62,7 @@ def docs(clean=False, browse=False, watch=False):
 
 @task
 def watch_docs():
+    """Run build the docs when a file changes."""
     try:
         import sphinx_autobuild  # noqa
     except ImportError:
