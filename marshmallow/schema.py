@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import copy
 import datetime as dt
