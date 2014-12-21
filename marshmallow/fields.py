@@ -746,21 +746,18 @@ class Decimal(Number):
         a JSON library that can handle decimals, such as `simplejson`, or serialize
         to a string by passing ``as_string=True``.
 
-    :param int places:
-        How many decimal places to quantize the value. If None, does
+    :param int places: How many decimal places to quantize the value. If `None`, does
         not quantize the value.
-    :param rounding:
-        How to round the value during quantize, for example
+    :param rounding: How to round the value during quantize, for example
         `decimal.ROUND_UP`. If None, uses the rounding value from
         the current thread's context.
-    :param default:
-        The value this field defaults to. If not specified is the
+    :param default: The value this field defaults to. If not specified is the
         `decimal.Decimal` zero.
-    :param bool as_string:
-        If True, serialize to a string instead of a Python
+    :param bool as_string: If True, serialize to a string instead of a Python
         `decimal.Decimal` type.
-    :param kwargs:
-        The same keyword arguments that :class:`Number` receives.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
+
+    .. versionadded:: 1.2.0
     """
 
     num_type = decimal.Decimal
@@ -858,6 +855,9 @@ class Arbitrary(Number):
     ex: 634271127864378216478362784632784678324.23432
 
     :param kwargs: The same keyword arguments that :class:`Number` receives.
+
+    .. deprecated:: 1.2.0
+        Use `Decimal` instead.
     """
     # No as_string param
     def __init__(self, default='0', attribute=None, **kwargs):
@@ -1052,6 +1052,9 @@ class Fixed(Number):
     """A fixed-precision number as a string.
 
     :param kwargs: The same keyword arguments that :class:`Number` receives.
+
+    .. deprecated:: 1.2.0
+        Use `Decimal` instead.
     """
 
     def __init__(self, decimals=5, default='0.000', attribute=None, error=None,
@@ -1088,6 +1091,9 @@ class Price(Fixed):
     """A Price field with fixed precision.
 
     :param kwargs: The same keyword arguments that :class:`Fixed` receives.
+
+    .. deprecated:: 1.2.0
+        Use `Decimal` instead.
     """
     def __init__(self, decimals=2, default='0.00', **kwargs):
         warnings.warn(
@@ -1276,18 +1282,16 @@ class QuerySelect(Field):
         keygetter = 'id'
         field = fields.QuerySelect(query, keygetter)
 
-    :param callable query:
-        The query which will be executed at each (de)serialization
-        to find the list of valid objects and keys.
-    :param keygetter:
-        Can be a callable or a string. In the former case, it must
+    :param callable query: The query which will be executed at each
+        (de)serialization to find the list of valid objects and keys.
+    :param keygetter: Can be a callable or a string. In the former case, it must
         be a one-argument callable which returns a unique comparable
         key. In the latter case, the string specifies the name of
         an attribute of the ORM-mapped object.
-    :param str error:
-        Error message stored upon validation failure.
-    :param kwargs:
-        The same keyword arguments that :class:`Field` receives.
+    :param str error: Error message stored upon validation failure.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 1.2.0
     """
     def __init__(self, query, keygetter, error=None, **kwargs):
         self.query = query
@@ -1312,9 +1316,8 @@ class QuerySelect(Field):
         convenience method is useful to populate, for instance,
         a form select field.
 
-        :param labelgetter:
-            Can be a callable or a string. In the former case, it must be a
-            one-argument callable which returns the label text. In the
+        :param labelgetter: Can be a callable or a string. In the former case,
+            it must be a one-argument callable which returns the label text. In the
             latter case, the string specifies the name of an attribute of
             the ORM-mapped object. If not provided the ORM-mapped object's
             `__str__` or `__unicode__` method will be used.
@@ -1352,6 +1355,8 @@ class QuerySelectList(QuerySelect):
     :param keygetter: Same as :class:`QuerySelect`.
     :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 1.2.0
     """
     def _serialize(self, value, attr, obj):
         items = [self.keygetter(v) for v in value]
