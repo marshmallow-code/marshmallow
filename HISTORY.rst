@@ -7,7 +7,7 @@ Changelog
 Features:
 
 - Add ``QuerySelect`` and ``QuerySelectList`` fields.
-- Convert validators in ``marshmallow.validate`` into class-based validator factories to make them easier to use when declaring fields. The previous validator functions are deprecated.
+- Convert validators in ``marshmallow.validate`` into class-based callables to make them easier to use when declaring fields.
 - Add ``Decimal`` field which is safe to use when dealing with precise numbers.
 
 Thanks @philtay for these contributions.

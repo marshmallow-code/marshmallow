@@ -3,12 +3,59 @@
 
 
 Upgrading to Newer Releases
----------------------------
+===========================
 
-.. module:: marshmallow
+Upgrading to 1.2
+++++++++++++++++
+
+.. module:: marshmallow.fields
+
+Validators
+**********
+
+Validators were rewritten as class-based callables, making them easier to use when declaring fields.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+    # 1.2
+    from marshmallow.validate import Range
+
+    age = fields.Int(validate=[Range(min=0, max=999)])
+
+    # Pre-1.0
+    from marshmallow.validate import ranging
+
+    age = fields.Int(validate=[lambda val: ranging(val, min=0, max=999)])
+
+
+The validator functions from 1.1 are deprecated and will be removed in 2.0.
+
+Deserializing the Empty String
+******************************
+
+
+In version 1.2, deserialization of the empty string (``''``) with `DateTime`, `Date`, `Time`, or `TimeDelta` fields results in consistent error messages, regardless of whether or not `python-dateutil` is installed.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+    fields.Date().deserialize('')
+    # UnmarshallingError: Could not deserialize '' to a date object.
+
+
+Decimal
+*******
+
+The `Decimal` field was added to support serialization/deserialization of `decimal.Decimal` numbers. You should use this field when dealing with numbers where precision is critical. The `Fixed`, `Price`, and `Arbitrary` fields are deprecated in favor the `Decimal` field.
+
 
 Upgrading to 1.0
 ++++++++++++++++
+
+.. module:: marshmallow
 
 Version 1.0 marks the first major release of marshmallow. Many big changes were made from the pre-1.0 releases in order to provide a cleaner API, support object deserialization, and improve field validation.
 

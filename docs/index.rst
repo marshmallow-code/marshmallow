@@ -8,8 +8,8 @@ Release v\ |version|. (:ref:`Changelog <changelog>`)
 
 .. include:: about.rst.inc
 
-Upgrading from a pre-1.0 version?
-=================================
+Upgrading from an older version?
+================================
 
 See the :ref:`Upgrading to Newer Releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
 
