@@ -21,7 +21,6 @@ import alabaster
 sys.path.insert(0, os.path.abspath('..'))
 import marshmallow
 from marshmallow.compat import OrderedDict
-sys.path.append(os.path.abspath("_themes"))
 
 # -- General configuration -----------------------------------------------------
 
@@ -35,6 +34,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'alabaster',
+    'sphinx_issues',
 ]
 
 primary_domain = 'py'
@@ -43,6 +43,8 @@ default_role = 'py:obj'
 intersphinx_mapping = {
     'python': ('http://python.readthedocs.org/en/latest/', None),
 }
+
+issues_github_path = 'sloria/marshmallow'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -58,7 +60,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'marshmallow'
-copyright = ' {0:%Y} <a href="http://stevenloria.com">Steven Loria</a>'.format(dt.datetime.utcnow())
+copyright = ' {0:%Y} <a href="http://stevenloria.com">Steven Loria</a>'.format(
+    dt.datetime.utcnow()
+)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

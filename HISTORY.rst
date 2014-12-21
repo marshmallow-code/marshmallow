@@ -6,33 +6,33 @@ Changelog
 
 Features:
 
-- Add ``QuerySelect`` and ``QuerySelectList`` fields.
-- Convert validators in ``marshmallow.validate`` into class-based callables to make them easier to use when declaring fields.
-- Add ``Decimal`` field which is safe to use when dealing with precise numbers.
+- Add ``QuerySelect`` and ``QuerySelectList`` fields (:issue:`84`).
+- Convert validators in ``marshmallow.validate`` into class-based callables to make them easier to use when declaring fields (:issue:`85`).
+- Add ``Decimal`` field which is safe to use when dealing with precise numbers (:issue:`86`).
 
 Thanks @philtay for these contributions.
 
 Bug fixes:
 
-- ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed. Thanks @malexer for the catch and patch.
+- ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed (:issue:`79`). Thanks @malexer for the catch and patch.
 - Fix bug that raised an ``AttributeError`` when using a class-based validator.
 - Fix ``as_string`` behavior of Number fields when serializing to default value.
-- Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this.
-- Fix error handling when deserializing invalid UUIDs. Thanks @vesauimonen for the catch and patch.
-- ``Schema.loads`` correctly defaults to use the value of ``self.many`` rather than defaulting to ``False``. Thanks @davidism for the catch and patch.
-- Validators, data handlers, and preprocessors are no longer shared between schema subclasses. Thanks @amikholap for reporting.
+- Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this (:issue:`96`).
+- Fix error handling when deserializing invalid UUIDs (:issue:`106`). Thanks @vesauimonen for the catch and patch.
+- ``Schema.loads`` correctly defaults to use the value of ``self.many`` rather than defaulting to ``False`` (:issue:`108`). Thanks @davidism for the catch and patch.
+- Validators, data handlers, and preprocessors are no longer shared between schema subclasses (:issue:`88`). Thanks @amikholap for reporting.
 
 Deprecation:
 
-- The validator functions in the ``validate`` module are deprecated in favor of the class-based validators.
+- The validator functions in the ``validate`` module are deprecated in favor of the class-based validators (:issue:`85`).
 - The ``Arbitrary``, ``Price``, and ``Fixed`` fields are deprecated in favor of the ``Decimal`` field.
 
 Support:
 
 - Update docs theme.
-- Update contributing docs.
+- Update contributing docs (:issue:`77`).
 - Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
-- Exclude virtualenv directories from syntax checking. Thanks @svenstaro.
+- Exclude virtualenv directories from syntax checking (:issue:`99`). Thanks @svenstaro.
 
 
 1.1.0 (2014-12-02)
