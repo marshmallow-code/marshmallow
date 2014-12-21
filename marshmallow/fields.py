@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Field classes for various types of data.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import datetime as dt
 import uuid
@@ -219,7 +219,7 @@ class Unmarshaller(object):
             try:
                 if validator_func(output) is False:
                     func_name = utils.get_callable_name(validator_func)
-                    raise ValidationError(u'Schema validator {0}({1}) is False'.format(
+                    raise ValidationError('Schema validator {0}({1}) is False'.format(
                         func_name, dict(output)
                     ))
             except ValidationError as err:
@@ -381,7 +381,7 @@ class Field(FieldABC):
         errors = []
         for validator in self.validators:
             func_name = utils.get_callable_name(validator)
-            msg = u'Validator {0}({1}) is False'.format(
+            msg = 'Validator {0}({1}) is False'.format(
                 func_name, value
             )
             try:
