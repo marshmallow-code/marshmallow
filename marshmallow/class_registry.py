@@ -3,6 +3,8 @@
 lookup of schemas, which may be used with
 class:`fields.Nested <marshmallow.fields.Nested>`.
 """
+from __future__ import unicode_literals
+
 from marshmallow.exceptions import RegistryError
 
 # {
