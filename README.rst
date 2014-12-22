@@ -57,13 +57,20 @@ Documentation
 
 Full documentation is available at http://marshmallow.rtfd.org/ .
 
-
 Requirements
 ============
 
 - Python >= 2.6 or >= 3.3
 
 marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
+
+Project Links
+=============
+
+- Docs: http://marshmallow.rtfd.org/
+- Changelog: http://marshmallow.rtfd.org/changelog
+- PyPI:
+- Issues: https://github.com/sloria/marshmallow/issues
 
 
 License

@@ -24,7 +24,7 @@ Validators were rewritten as class-based callables, making them easier to use wh
 
     age = fields.Int(validate=[Range(min=0, max=999)])
 
-    # Pre-1.0
+    # Pre-1.2
     from marshmallow.validate import ranging
 
     age = fields.Int(validate=[lambda val: ranging(val, min=0, max=999)])

@@ -3,7 +3,7 @@
 import re
 import sys
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
+from setuptools.command.test import test as TestCommand  # noqa
 
 TEST_REQUIREMENTS = ['pytest', 'pytz']
 
@@ -49,8 +49,7 @@ setup(
     version=__version__,
     description=('A lightweight library for converting complex '
                 'datatypes to and from native Python datatypes.'),
-    long_description=(read('README.rst') + '\n\n' +
-                        read('HISTORY.rst')),
+    long_description=read('README.rst'),
     author='Steven Loria',
     author_email='sloria1@gmail.com',
     url='https://github.com/sloria/marshmallow',
