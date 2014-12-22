@@ -909,7 +909,8 @@ DATEFORMAT_DESERIALIZATION_FUNCS = {
 
 class DateTime(Field):
     """A formatted datetime string in UTC.
-        ex. ``"Sun, 10 Nov 2013 07:23:45 -0000"``
+
+    Example: ``'2014-12-22T03:12:58.019077+00:00'``
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
