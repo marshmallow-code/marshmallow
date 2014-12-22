@@ -1047,6 +1047,29 @@ class TestSchemaValidator:
         _, errors2 = schema.load({'foo': 'bar'})
         assert len(errors2['foo']) == 1
 
+    def test_raises_error_with_list(self):
+        def validator(val):
+            raise ValidationError(['err1', 'err2'])
+
+        class MySchema(Schema):
+            foo = fields.Field(validate=validator)
+
+        s = MySchema()
+        errors = s.validate({'foo': 42})
+        assert errors['foo'] == ['err1', 'err2']
+
+    # https://github.com/sloria/marshmallow/issues/110
+    def test_raises_error_with_dict(self):
+        def validator(val):
+            raise ValidationError({'code': 'invalid_foo'})
+
+        class MySchema(Schema):
+            foo = fields.Field(validate=validator)
+
+        s = MySchema()
+        errors = s.validate({'foo': 42})
+        assert errors['foo'] == [{'code': 'invalid_foo'}]
+
 
 class TestPreprocessors:
 

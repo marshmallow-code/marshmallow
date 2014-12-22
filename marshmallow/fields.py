@@ -388,7 +388,10 @@ class Field(FieldABC):
                 if validator(value) is False:
                     raise ValidationError(getattr(self, 'error', None) or msg)
             except ValidationError as err:
-                errors.extend(err.messages)
+                if isinstance(err.messages, dict):
+                    errors.append(err.messages)
+                else:
+                    errors.extend(err.messages)
         if errors:
             raise ValidationError(errors)
 
