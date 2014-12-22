@@ -10,30 +10,30 @@ Features:
 - Convert validators in ``marshmallow.validate`` into class-based callables to make them easier to use when declaring fields (:issue:`85`).
 - Add ``Decimal`` field which is safe to use when dealing with precise numbers (:issue:`86`).
 
-Thanks @philtay for these contributions.
+Thanks :user:`philtay` for these contributions.
 
 Bug fixes:
 
-- ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed (:issue:`79`). Thanks @malexer for the catch and patch.
+- ``Date`` fields correctly deserializes to a ``datetime.date`` object when ``python-dateutil`` is not installed (:issue:`79`). Thanks :user:`malexer` for the catch and patch.
 - Fix bug that raised an ``AttributeError`` when using a class-based validator.
 - Fix ``as_string`` behavior of Number fields when serializing to default value.
-- Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors. Thanks @svenstaro for reporting and helping with this (:issue:`96`).
-- Fix error handling when deserializing invalid UUIDs (:issue:`106`). Thanks @vesauimonen for the catch and patch.
-- ``Schema.loads`` correctly defaults to use the value of ``self.many`` rather than defaulting to ``False`` (:issue:`108`). Thanks @davidism for the catch and patch.
-- Validators, data handlers, and preprocessors are no longer shared between schema subclasses (:issue:`88`). Thanks @amikholap for reporting.
-- Fix error handling when passing a ``dict`` or ``list`` to a ``ValidationError`` (:issue:`110`). Thanks @ksesong for reporting.
+- Deserializing ``None`` or the empty string with either a ``DateTime``, ``Date``, ``Time`` or ``TimeDelta`` results in the correct unmarshalling errors (:issue:`96`). Thanks :user:`svenstaro` for reporting and helping with this.
+- Fix error handling when deserializing invalid UUIDs (:issue:`106`). Thanks :user:`vesauimonen` for the catch and patch.
+- ``Schema.loads`` correctly defaults to use the value of ``self.many`` rather than defaulting to ``False`` (:issue:`108`). Thanks :user:`davidism` for the catch and patch.
+- Validators, data handlers, and preprocessors are no longer shared between schema subclasses (:issue:`88`). Thanks :user:`amikholap` for reporting.
+- Fix error handling when passing a ``dict`` or ``list`` to a ``ValidationError`` (:issue:`110`). Thanks :user:`ksesong` for reporting.
 
 Deprecation:
 
 - The validator functions in the ``validate`` module are deprecated in favor of the class-based validators (:issue:`85`).
-- The ``Arbitrary``, ``Price``, and ``Fixed`` fields are deprecated in favor of the ``Decimal`` field.
+- The ``Arbitrary``, ``Price``, and ``Fixed`` fields are deprecated in favor of the ``Decimal`` field (:issue:`86`).
 
 Support:
 
 - Update docs theme.
 - Update contributing docs (:issue:`77`).
-- Fix namespacing example in "Extending Schema" docs. Thanks @Ch00k.
-- Exclude virtualenv directories from syntax checking (:issue:`99`). Thanks @svenstaro.
+- Fix namespacing example in "Extending Schema" docs. Thanks :user:`Ch00k`.
+- Exclude virtualenv directories from syntax checking (:issue:`99`). Thanks :user:`svenstaro`.
 
 
 1.1.0 (2014-12-02)
@@ -42,15 +42,15 @@ Support:
 Features:
 
 - Add ``Schema.validate`` method which validates input data against a schema. Similar to ``Schema.load``, but does not call ``make_object`` and only returns the errors dictionary.
-- Add several validation functions to the ``validate`` module. Thanks @philtay.
+- Add several validation functions to the ``validate`` module. Thanks :user:`philtay`.
 - Store field name and instance on exceptions raised in ``strict`` mode.
 
 Bug fixes:
 
-- Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``). Thanks @rozenm for reporting.
-- If a Nested field is passed ``many=True``, ``None`` serializes to an empty list. Thanks @nickretallack for reporting.
-- Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks @svenstaro for reporting and helping with this.
-- Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks @malexer for reporting.
+- Fix serializing dictionaries when field names are methods of ``dict`` (e.g. ``"items"``). Thanks :user:`rozenm` for reporting.
+- If a Nested field is passed ``many=True``, ``None`` serializes to an empty list. Thanks :user:`nickretallack` for reporting.
+- Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks :user:`svenstaro` for reporting and helping with this.
+- Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks :user:`malexer` for reporting.
 - Fix compatibility with python-dateutil 2.3.
 - More consistent error messages across DateTime, TimeDelta, Date, and Time fields.
 
@@ -111,7 +111,7 @@ Major reworking and simplification of the public API, centered around support fo
 * Fix serializing keyed tuple types (e.g. ``namedtuple``) with ``class Meta`` options.
 * Fix default value for ``Fixed`` and ``Price`` fields.
 * Fix serialization of binary strings.
-* ``Schemas`` can inherit fields from non-``Schema`` base classes (e.g. mixins). Also, fields are inherited according to the MRO (rather than recursing over base classes). Thanks Josh Carp.
+* ``Schemas`` can inherit fields from non-``Schema`` base classes (e.g. mixins). Also, fields are inherited according to the MRO (rather than recursing over base classes). Thanks :user:`jmcarp`.
 * Add ``Str``, ``Bool``, and ``Int`` field class aliases.
 
 0.7.0 (2014-06-22)
@@ -120,8 +120,8 @@ Major reworking and simplification of the public API, centered around support fo
 * Add ``Serializer.error_handler`` decorator that registers a custom error handler.
 * Add ``Serializer.data_handler`` decorator that registers data post-processing callbacks.
 * *Backwards-incompatible*: ``process_data`` method is deprecated. Use the ``data_handler`` decorator instead.
-* Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks Joe Alcorn for reporting.
-* If ``required=True`` validation is violated for a given ``Field``, it will raise an error message that is different from the message specified by the ``error`` argument. Thanks Anders Steinlein.
+* Fix bug that raised error when passing ``extra`` data together with ``many=True``. Thanks :user:`buttsicles` for reporting.
+* If ``required=True`` validation is violated for a given ``Field``, it will raise an error message that is different from the message specified by the ``error`` argument. Thanks :user:`asteinlein`.
 * More generic error message raised when required field is missing.
 * ``validated`` decorator should only wrap a ``Field`` class's ``output`` method.
 
@@ -146,13 +146,13 @@ Major reworking and simplification of the public API, centered around support fo
 ++++++++++++++++++
 
 * Add ``json_module`` class Meta option.
-* Add ``required`` option to fields . Thanks `@DeaconDesperado <http://github.com/DeaconDesperado>`_.
+* Add ``required`` option to fields . Thanks :user:`DeaconDesperado`.
 * Tested on Python 3.4 and PyPy.
 
 0.5.3 (2014-03-02)
 ++++++++++++++++++
 
-* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks `@kalasjocke <http://github.com/kalasjocke>`_.
+* Fix ``Integer`` field default. It is now ``0`` instead of ``0.0``. Thanks :user:`kalasjocke`.
 * Add ``context`` param to ``Serializer``. Allows accessing arbitrary objects in ``Function`` and ``Method`` fields.
 * ``Function`` and ``Method`` fields raise ``MarshallingError`` if their argument is uncallable.
 
@@ -174,7 +174,7 @@ Major reworking and simplification of the public API, centered around support fo
 
 * Can customize validation error messages by passing the ``error`` parameter to a field.
 * *Backwards-incompatible*: Rename ``fields.NumberField`` -> ``fields.Number``.
-* Add ``fields.Select``. Thanks @ecarreras.
+* Add ``fields.Select``. Thanks :user:`ecarreras`.
 * Support nesting a Serializer within itself by passing ``"self"`` into ``fields.Nested`` (only up to depth=1).
 * *Backwards-incompatible*: No implicit serializing of collections. Must set ``many=True`` if serializing to a list. This ensures that marshmallow handles singular objects correctly, even if they are iterable.
 * If Nested field ``only`` parameter is a field name, only return a single value for the nested object (instead of a dict) or a flat list of values.

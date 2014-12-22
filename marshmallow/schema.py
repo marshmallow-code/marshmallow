@@ -18,9 +18,9 @@ from marshmallow.compat import (with_metaclass, iteritems, text_type,
 from marshmallow.orderedset import OrderedSet
 
 
-#: Return type of :meth:`Schema.dump`
+#: Return type of :meth:`Schema.dump` including serialized data and errors
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
-#: Return type of :meth:`Schema.load`
+#: Return type of :meth:`Schema.load`, including deserialized data and errors
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
