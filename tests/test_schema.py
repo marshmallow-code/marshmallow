@@ -828,6 +828,53 @@ class TestSchemaValidator:
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
 
+    def test_validator_that_raises_error_with_dict(self):
+        def validate_schema(instance, input_vals):
+            raise ValidationError({'code': 'Invalid schema'})
+
+        class MySchema(Schema):
+            __validators__ = [validate_schema]
+
+        schema = MySchema()
+        errors = schema.validate({})
+        assert errors['_schema'] == [{'code': 'Invalid schema'}]
+
+    def test_validator_that_raises_error_with_list(self):
+        def validate_schema(instance, input_vals):
+            raise ValidationError(['error1', 'error2'])
+
+        class MySchema(Schema):
+            __validators__ = [validate_schema]
+
+        schema = MySchema()
+        errors = schema.validate({})
+        assert errors['_schema'] == ['error1', 'error2']
+
+    def test_mixed_schema_validators(self):
+        def validate_with_list(schema, in_vals):
+            raise ValidationError(['err1'])
+
+        def validate_with_dict(schema, in_vals):
+            raise ValidationError({'code': 'err2'})
+
+        def validate_with_str(schema, in_vals):
+            raise ValidationError('err3')
+
+        class MySchema(Schema):
+            __validators__ = [
+                validate_with_list,
+                validate_with_dict,
+                validate_with_str,
+            ]
+
+        schema = MySchema()
+        errors = schema.validate({})
+        assert errors['_schema'] == [
+            'err1',
+            {'code': 'err2'},
+            'err3',
+        ]
+
     def test_registered_validators_are_not_shared_with_ancestors(self):
         class ParentSchema(Schema):
             pass

@@ -232,7 +232,12 @@ class Unmarshaller(object):
                     field_obj = None
                 if strict:
                     raise UnmarshallingError(err, field=field_obj, field_name=field_name)
-                self.errors.setdefault(field_name, []).append(text_type(err))
+                if isinstance(err.messages, (list, tuple)):
+                    self.errors.setdefault(field_name, []).extend(err.messages)
+                elif isinstance(err.messages, dict):
+                    self.errors.setdefault(field_name, []).append(err.messages)
+                else:
+                    self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
