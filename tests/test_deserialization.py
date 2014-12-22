@@ -27,8 +27,16 @@ class TestFieldDeserialization:
         assert_almost_equal(field.deserialize('12.3'), 12.3)
         assert_almost_equal(field.deserialize(12.3), 12.3)
         assert field.deserialize(None) == 0.0
+
+    @pytest.mark.parametrize('in_val',
+    [
+        'bad',
+        '',
+    ])
+    def test_invalid_float_field_deserialization(self, in_val):
+        field = fields.Float()
         with pytest.raises(UnmarshallingError):
-            field.deserialize('bad')
+            field.deserialize(in_val)
 
     def test_float_field_deserialization_with_default(self):
         field = fields.Float(default=1.0)
@@ -65,6 +73,14 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize(m6)
 
+    def test_decimal_field_with_places(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = decimal.Decimal(1)
+        m4 = None
+        m5 = 'abc'
+        m6 = [1, 2]
+
         field = fields.Decimal(1)
         assert isinstance(field.deserialize(m1), decimal.Decimal)
         assert field.deserialize(m1) == decimal.Decimal(12)
@@ -78,6 +94,14 @@ class TestFieldDeserialization:
             field.deserialize(m5)
         with pytest.raises(UnmarshallingError):
             field.deserialize(m6)
+
+    def test_decimal_field_with_places_and_rounding(self):
+        m1 = 12
+        m2 = '12.355'
+        m3 = decimal.Decimal(1)
+        m4 = None
+        m5 = 'abc'
+        m6 = [1, 2]
 
         field = fields.Decimal(1, decimal.ROUND_DOWN)
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -132,14 +156,29 @@ class TestFieldDeserialization:
         assert field.deserialize('false') is False
         assert field.deserialize('1') is True
         assert field.deserialize('0') is False
+        assert field.deserialize(1) is True
+        assert field.deserialize(0) is False
+        assert field.deserialize(-1) is True
 
     def test_boolean_field_deserialization_with_custom_truthy_values(self):
         class MyBoolean(fields.Boolean):
             truthy = set(['yep'])
         field = MyBoolean()
         assert field.deserialize('yep') is True
+        assert field.deserialize(None) is False
+
+    @pytest.mark.parametrize('in_val',
+    [
+        'notvalid',
+        123
+    ])
+    def test_boolean_field_deserialization_with_custom_truthy_values_invalid(
+            self, in_val):
+        class MyBoolean(fields.Boolean):
+            truthy = set(['yep'])
+        field = MyBoolean()
         with pytest.raises(UnmarshallingError):
-            field.deserialize('notvalid')
+            field.deserialize(in_val)
 
     def test_arbitrary_field_deserialization(self):
         field = fields.Arbitrary()
