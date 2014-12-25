@@ -532,6 +532,16 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Validator MyValidator(invalid) is False' in str(excinfo)
 
+    def test_field_deserialization_with_user_validator_that_raises_error_with_list(self):
+        def validator(val):
+            raise ValidationError(['err1', 'err2'])
+
+        class MySchema(Schema):
+            foo = fields.Field(validate=validator)
+
+        errors = MySchema().validate({'foo': 42})
+        assert errors['foo'] == ['err1', 'err2']
+
     def test_validator_must_return_false_to_raise_error(self):
         # validator returns None, so anything validates
         field = fields.String(validate=lambda s: None)
