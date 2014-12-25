@@ -97,7 +97,7 @@ html_theme_options = {
     # Used to populate the useful-links.html template
     'extra_nav_links': OrderedDict([
         ('marshmallow @ PyPI', 'http://pypi.python.org/pypi/marshmallow'),
-        ('marshamallow @ GitHub', 'http://github.com/sloria/marshmallow'),
+        ('marshmallow @ GitHub', 'http://github.com/sloria/marshmallow'),
         ('Issue Tracker', 'http://github.com/sloria/marshmallow/issues'),
     ])
 }

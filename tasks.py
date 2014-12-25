@@ -19,7 +19,7 @@ def flake():
 
 @task
 def watch():
-    """Run tests when a file changes."""
+    """Run tests when a file changes. Requires pytest-xdist."""
     run('py.test -f tests/', pty=True)
 
 @task
