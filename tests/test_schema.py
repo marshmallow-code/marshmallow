@@ -1338,6 +1338,24 @@ class TestNestedSchema:
         result = schema.dump(blog)
         assert result.data['wat'] == []
 
+    def test_nested_with_attribute_none(self):
+        class InnerSchema(Schema):
+            bar = fields.Field()
+
+        class MySchema(Schema):
+            foo = fields.Nested(InnerSchema)
+
+        class MySchema2(Schema):
+            foo = fields.Nested(InnerSchema, allow_null=True)
+
+        s = MySchema()
+        result = s.dump({'foo': None})
+        assert result.data['foo'] == {'bar': None}
+
+        s2 = MySchema2()
+        result2 = s2.dump({'foo': None})
+        assert result2.data['foo'] is None
+
     def test_flat_nested2(self, blog):
         class FlatBlogSchema(Schema):
             name = fields.String()
