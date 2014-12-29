@@ -70,7 +70,7 @@ Project Links
 - Docs: http://marshmallow.rtfd.org/
 - Changelog: http://marshmallow.readthedocs.org/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
-- Issues: https://github.com/sloria/marshmallow/issues
+- Issues: https://github.com/marshmallow-code/marshmallow/issues
 
 
 License
