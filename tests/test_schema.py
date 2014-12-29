@@ -1105,7 +1105,7 @@ class TestSchemaValidator:
         errors = s.validate({'foo': 42})
         assert errors['foo'] == ['err1', 'err2']
 
-    # https://github.com/marshmallow-update/marshmallow/issues/110
+    # https://github.com/marshmallow-code/marshmallow/issues/110
     def test_raises_error_with_dict(self):
         def validator(val):
             raise ValidationError({'code': 'invalid_foo'})
@@ -1328,7 +1328,7 @@ class TestNestedSchema:
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
 
-    # regression test for https://github.com/marshmallow-update/marshmallow/issues/64
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/64
     def test_nested_many_with_missing_attribute(self, user):
         class SimpleBlogSchema(Schema):
             title = fields.Str()
@@ -1838,7 +1838,7 @@ class TestSkipMissingOption:
         assert 'email' not in result.data
         assert 'age' not in result.data
 
-    # Regression test for https://github.com/marshmallow-update/marshmallow/issues/71
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/71
     def test_missing_string_values_can_be_skipped(self):
         user = dict(email='foo@bar.com', age=42)
         schema = UserSkipSchema()
