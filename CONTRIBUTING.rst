@@ -18,14 +18,14 @@ Questions, Feature Requests, Bug Reports, and Feedback. . .
 
 . . .should all be reported on the `Github Issue Tracker`_ .
 
-.. _`Github Issue Tracker`: https://github.com/sloria/marshmallow/issues?state=open
+.. _`Github Issue Tracker`: https://github.com/marshmallow-code/marshmallow/issues?state=open
 
 Setting Up for Local Development
 ++++++++++++++++++++++++++++++++
 
 1. Fork marshmallow_ on Github. ::
 
-    $ git clone https://github.com/sloria/marshmallow.git
+    $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
 
 2. Install development requirements. It is highly recommended that you use a virtualenv. ::
@@ -77,7 +77,7 @@ Pull Requests
 - If the pull request adds functionality, it is tested and the docs are updated.
 - You've added yourself to ``AUTHORS.rst``.
 
-4. Submit a pull request to ``sloria:dev`` or the appropriate maintenance branch. The `Travis CI <https://travis-ci.org/sloria/marshmallow>`_ build must be passing before your pull request is merged.
+4. Submit a pull request to ``marshmallow-code:dev`` or the appropriate maintenance branch. The `Travis CI <https://travis-ci.org/marshmallow-code/marshmallow>`_ build must be passing before your pull request is merged.
 
 Running tests
 +++++++++++++
@@ -108,9 +108,9 @@ The ``-b`` (for "browse") automatically opens up the docs in your browser after 
 Contributing Examples
 +++++++++++++++++++++
 
-Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/sloria/marshmallow/tree/dev/examples>`_ directory and send a pull request.
+Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.
 
 
 .. _Sphinx: http://sphinx.pocoo.org/
 .. _`reStructured Text`: http://docutils.sourceforge.net/rst.html
-.. _marshmallow: https://github.com/sloria/marshmallow
+.. _marshmallow: https://github.com/marshmallow-code/marshmallow

@@ -44,7 +44,7 @@ intersphinx_mapping = {
     'python': ('http://python.readthedocs.org/en/latest/', None),
 }
 
-issues_github_path = 'sloria/marshmallow'
+issues_github_path = 'marshmallow-code/marshmallow'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -88,17 +88,17 @@ html_theme_options = {
     'logo': 'marshmallow-logo.png',
     'description': 'Object serialization and deserialization, lightweight and fluffy.',
     'description_font_style': 'italic',
-    'github_user': 'sloria',
+    'github_user': 'marshmallow-code',
     'github_repo': 'marshmallow',
     'github_banner': True,
-    'gratipay_user': 'sloria',
+    'gratipay_user': 'marshmallow-code',
     'code_font_size': '0.8em',
     'show_source': False,
     # Used to populate the useful-links.html template
     'extra_nav_links': OrderedDict([
         ('marshmallow @ PyPI', 'http://pypi.python.org/pypi/marshmallow'),
-        ('marshmallow @ GitHub', 'http://github.com/sloria/marshmallow'),
-        ('Issue Tracker', 'http://github.com/sloria/marshmallow/issues'),
+        ('marshmallow @ GitHub', 'http://github.com/marshmallow-code/marshmallow'),
+        ('Issue Tracker', 'http://github.com/marshmallow-code/marshmallow/issues'),
     ])
 }
 

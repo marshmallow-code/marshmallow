@@ -29,7 +29,7 @@ To get the latest development version of marshmallow, run
 
 ::
 
-    $ pip install -U git+https://github.com/sloria/marshmallow.git@dev
+    $ pip install -U git+https://github.com/marshmallow-code/marshmallow.git@dev
 
 
 .. seealso::

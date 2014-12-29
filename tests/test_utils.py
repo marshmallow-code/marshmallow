@@ -78,7 +78,7 @@ def test_get_value_for_nested_object():
     assert utils.get_value('p2.x', tri) == 3
     assert utils.get_value('p3.x', tri) == 5
 
-# regression test for https://github.com/sloria/marshmallow/issues/62
+# regression test for https://github.com/marshmallow-update/marshmallow/issues/62
 def test_get_value_from_dict():
     d = dict(items=['foo', 'bar'], keys=['baz', 'quux'])
     assert utils.get_value('items', d) == ['foo', 'bar']

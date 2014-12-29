@@ -52,7 +52,7 @@ setup(
     long_description=read('README.rst'),
     author='Steven Loria',
     author_email='sloria1@gmail.com',
-    url='https://github.com/sloria/marshmallow',
+    url='https://github.com/marshmallow-code/marshmallow',
     packages=find_packages(exclude=('test*', 'examples')),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
