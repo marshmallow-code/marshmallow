@@ -6,8 +6,8 @@ marshmallow: simplified object serialization
     :target: http://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/sloria/marshmallow.png?branch=master
-    :target: https://travis-ci.org/sloria/marshmallow
+.. image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=master
+    :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
 Homepage: http://marshmallow.rtfd.org/
