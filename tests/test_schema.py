@@ -775,6 +775,14 @@ class TestErrorHandler:
         with pytest.raises(CustomError):
             MySchema().load({'email': 'invalid'})
 
+    def test_validate_with_custom_error_handler(self):
+        @MySchema.error_handler
+        def handle_errors(schema, errors, data):
+            raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().validate({'email': 'invalid'})
+
     def test_multiple_serializers_with_same_error_handler(self, user):
 
         @MySchema.error_handler
