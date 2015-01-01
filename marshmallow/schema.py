@@ -488,8 +488,6 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 1.0.0
         """
         result, errors = self._do_load(data, many, postprocess=True)
-        if self._unmarshal.errors and callable(self.__error_handler__):
-            self.__error_handler__(self._unmarshal.errors, data)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data, many=None, *args, **kwargs):
@@ -598,6 +596,8 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class
         )
         errors = self._unmarshal.errors
+        if errors and callable(self.__error_handler__):
+            self.__error_handler__(errors, data)
         return result, errors
 
     def _update_fields(self, obj=None, many=False):
