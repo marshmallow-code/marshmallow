@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
-from marshmallow.compat import text_type
+from marshmallow.compat import text_type, basestring
 
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
@@ -13,13 +13,13 @@ class _WrappingException(MarshmallowError):
     :exc:`MarshmallowError <MarshmallowError>`.
     """
 
-    def __init__(self, underlying_exception, field=None, field_name=None):
+    def __init__(self, underlying_exception, fields=None, field_names=None):
         if isinstance(underlying_exception, Exception):
             self.underlying_exception = underlying_exception
         else:
             self.underlying_exception = None
-        self.field = field
-        self.field_name = field_name
+        self.fields = fields
+        self.field_names = field_names
         super(_WrappingException, self).__init__(
             text_type(underlying_exception)
         )
@@ -46,8 +46,8 @@ class ValidationError(MarshmallowError):
 
     :param message: An error message, list of error messages, or dict of
         error messages.
-    :param str field: Name of the field to store the error on. If None,
-        the error is stored in its default location.
+    :param str field: Field name (or list of field names) to store the error on.
+        If `None`, the error is stored in its default location.
     """
 
     def __init__(self, message, field=None):
@@ -57,6 +57,10 @@ class ValidationError(MarshmallowError):
             messages = message
         self.messages = messages
         self.field = field
+        if isinstance(field, basestring):
+            self.fields = [field]
+        else:  # field is a list or None
+            self.fields = field
         MarshmallowError.__init__(self, message)
 
 
