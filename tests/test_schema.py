@@ -972,8 +972,8 @@ class TestSchemaValidator:
         with pytest.raises(UnmarshallingError) as excinfo:
             schema.load({'field_a': 1})
         exc = excinfo.value
-        assert exc.field is None
-        assert exc.field_name == '_schema'
+        assert exc.fields == []
+        assert exc.field_names == ['_schema']
 
     def test_schema_validation_error_with_strict_when_field_is_specified(self):
         def validate_with_err(schema, inv_vals):
@@ -988,8 +988,8 @@ class TestSchemaValidator:
         with pytest.raises(UnmarshallingError) as excinfo:
             schema.load({'field_a': 1})
         exc = excinfo.value
-        assert type(exc.field) == fields.Str
-        assert exc.field_name == 'field_a'
+        assert type(exc.fields[0]) == fields.Str
+        assert exc.field_names[0] == 'field_a'
 
     def test_schema_validation_error_stored_on_multiple_fields(self):
         def validate_with_err(schema, inv_vals):
