@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+1.2.1 (unreleased)
+++++++++++++++++++
+
+- A ``Schema's`` ``error_handler``--if defined--will execute if ``Schema.validate`` returns validation errors (:issue:`121`).
+
 1.2.0 (2014-12-22)
 ++++++++++++++++++
 
