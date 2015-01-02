@@ -991,6 +991,22 @@ class TestSchemaValidator:
         assert type(exc.field) == fields.Str
         assert exc.field_name == 'field_a'
 
+    def test_schema_validation_error_stored_on_multiple_fields(self):
+        def validate_with_err(schema, inv_vals):
+            raise ValidationError('Something went wrong.', ['field_a', 'field_b'])
+
+        class ValidatingSchema(Schema):
+            __validators__ = [validate_with_err]
+            field_a = fields.Str()
+            field_b = fields.Field()
+
+        schema = ValidatingSchema()
+        result = schema.load({'field_a': 1})
+        assert 'field_a' in result.errors
+        assert 'field_b' in result.errors
+        assert result.errors['field_a'] == ['Something went wrong.']
+        assert result.errors['field_b'] == ['Something went wrong.']
+
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):
             assert isinstance(instance, Schema)

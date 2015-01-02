@@ -224,20 +224,22 @@ class Unmarshaller(object):
                     ))
             except ValidationError as err:
                 # Store or reraise errors
-                if err.field:
-                    field_name = err.field
-                    field_obj = fields_dict[field_name]
+                if err.fields:
+                    field_names = err.fields
+                    field_objs = [fields_dict[each] for each in field_names]
                 else:
-                    field_name = '_schema'
-                    field_obj = None
+                    field_names = ['_schema']
+                    field_objs = []
                 if strict:
-                    raise UnmarshallingError(err, field=field_obj, field_name=field_name)
-                if isinstance(err.messages, (list, tuple)):
-                    self.errors.setdefault(field_name, []).extend(err.messages)
-                elif isinstance(err.messages, dict):
-                    self.errors.setdefault(field_name, []).append(err.messages)
-                else:
-                    self.errors.setdefault(field_name, []).append(text_type(err))
+                    raise UnmarshallingError(err, fields=field_objs,
+                                             field_names=field_names)
+                for field_name in field_names:
+                    if isinstance(err.messages, (list, tuple)):
+                        self.errors.setdefault(field_name, []).extend(err.messages)
+                    elif isinstance(err.messages, dict):
+                        self.errors.setdefault(field_name, []).append(err.messages)
+                    else:
+                        self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
