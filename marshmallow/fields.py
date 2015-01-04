@@ -352,7 +352,7 @@ class Field(FieldABC):
             if not utils.is_generator(validate):
                 self.validators = validate
             else:
-                self.validators = [i for i in validate()]
+                self.validators = list(validate)
         elif callable(validate):
             self.validators = [validate]
         elif validate is None:
