@@ -558,10 +558,8 @@ class TestFieldDeserialization:
         assert type(excinfo.value.underlying_exception) == ValidationError
 
     def test_field_deserialization_with_user_validators(self):
-
-        def validators_gen():
-            yield lambda s: s.lower() == 'valid'
-            yield lambda s: s.lower()[::-1] == 'dilav'
+        validators_gen = (func for func in (lambda s: s.lower() == 'valid',
+                                            lambda s: s.lower()[::-1] == 'dilav'))
 
         m_colletion_type = [
             fields.String(validate=[lambda s: s.lower() == 'valid',
@@ -937,17 +935,13 @@ class TestUnMarshaller:
         assert result[1]['a'] == 35
 
 
-def validators_gen():
-    yield lambda x: x <= 24
-    yield lambda x: 18 <= x
+validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
-def validators_gen_float():
-    yield lambda f: f <= 4.1
-    yield lambda f: f >= 1.0
+validators_gen_float = (func for func in
+                         [lambda f: f <= 4.1, lambda f: f >= 1.0])
 
-def validators_gen_str():
-    yield lambda n: len(n) == 3
-    yield lambda n: n[1].lower() == 'o'
+validators_gen_str = (func for func in
+                        [lambda n: len(n) == 3, lambda n: n[1].lower() == 'o'])
 
 class TestValidation:
 
