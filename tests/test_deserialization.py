@@ -1021,10 +1021,23 @@ def test_required_field_failure(FieldClass):  # noqa
     assert "Missing data for required field." in errs['age']
     assert data == {}
 
+
 def test_required_enum():
     class ColorSchema(Schema):
         color = fields.Enum(['red', 'white', 'blue'], required=True)
     in_data = {'name': 'Phil'}
     data, errs = ColorSchema().load(in_data)
     assert "Missing data for required field." in errs['color']
+    assert data == {}
+
+
+def test_required_message_can_be_changed():
+    message = 'My custom required message'
+
+    class RequireSchema(Schema):
+        age = fields.Integer(required=message)
+
+    user_data = {"name": "Phil"}
+    data, errs = RequireSchema().load(user_data)
+    assert message in errs['age']
     assert data == {}
