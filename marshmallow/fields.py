@@ -361,10 +361,7 @@ class Field(FieldABC):
             self.validators = []
         else:
             raise ValueError("The 'validate' parameter must be a callable "
-                            'or a collection of callables.')
-
-        if not (isinstance(required, bool) or isinstance(required, basestring)):
-            raise ValueError("The 'required' parameter must be a string or a bool")
+                             "or a collection of callables.")
 
         self.required = required
         self.metadata = metadata
@@ -462,8 +459,8 @@ class Field(FieldABC):
         def do_deserialization():
             if value is missing:
                 if hasattr(self, 'required') and self.required:
-                    message = self.required if isinstance(self.required, basestring) else \
-                        'Missing data for required field.'
+                    message = (self.required if isinstance(self.required, basestring) else
+                               'Missing data for required field.')
                     raise ValidationError(message)
             output = self._deserialize(value)
             self._validate(output)

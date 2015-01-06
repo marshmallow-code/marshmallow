@@ -61,3 +61,7 @@ pylintrc
 # Virtualenvs
 env
 venv
+
+# Other
+.directory
+
