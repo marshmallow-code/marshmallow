@@ -236,11 +236,11 @@ Required Fields
 
 You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.load`.
 
-Alternatively, you can provide a custom error message by passing ``required='My custom message'`` (and the required validation will be enabled when ``if required`` succeeds).
+Alternatively, you can provide a custom error message by passing ``required='My custom message'``.
 Dictionaries or lists are also accepted as the custom error message, in case you want to provide more information with the error.
 
 .. code-block:: python
-    :emphasize-lines: 2,6
+    :emphasize-lines: 2,3,4
 
     class UserSchema(Schema):
         name = fields.String(required=True)

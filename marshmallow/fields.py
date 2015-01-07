@@ -324,11 +324,11 @@ class Field(FieldABC):
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`UnmarshallingError` is raised.
     :param required: Raise an :exc:`UnmarshallingError` if the field value
-        is not supplied during deserialization. If it is not a bool, this validation
-        will be enabled when `if required` succeeds, and the provided value will be
-        used as the message of the ValidationError instead of the built in one.
-        In this case, message can be anything that the ValidationError constructor
-        accepts (a string, list or dict)
+        is not supplied during deserialization. If not a `bool`,
+        the provided value will be used as the message of the
+        :exc:`ValidationError` instead of the default one.
+        In this case, the value can be anything that the :exc:`ValidationError`
+        constructor accepts (a `str`, `list` or `dict`).
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
