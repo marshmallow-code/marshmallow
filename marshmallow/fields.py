@@ -323,8 +323,12 @@ class Field(FieldABC):
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`UnmarshallingError` is raised.
-    :param bool required: Raise an :exc:`UnmarshallingError` if the field value
-        is not supplied during deserialization.
+    :param required: Raise an :exc:`UnmarshallingError` if the field value
+        is not supplied during deserialization. If not a `bool`,
+        the provided value will be used as the message of the
+        :exc:`ValidationError` instead of the default one.
+        In this case, the value can be anything that the :exc:`ValidationError`
+        constructor accepts (a `str`, `list` or `dict`).
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -359,7 +363,8 @@ class Field(FieldABC):
             self.validators = []
         else:
             raise ValueError("The 'validate' parameter must be a callable "
-                            'or a collection of callables.')
+                             "or a collection of callables.")
+
         self.required = required
         self.metadata = metadata
         self._creation_index = Field._creation_index
@@ -456,7 +461,10 @@ class Field(FieldABC):
         def do_deserialization():
             if value is missing:
                 if hasattr(self, 'required') and self.required:
-                    raise ValidationError('Missing data for required field.')
+                    default_message = 'Missing data for required field.'
+                    message = (default_message if isinstance(self.required, bool) else
+                               self.required)
+                    raise ValidationError(message)
             output = self._deserialize(value)
             self._validate(output)
             return output

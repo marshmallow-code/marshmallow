@@ -32,8 +32,11 @@ nosetests.xml
 
 # Mr Developer
 .mr.developer.cfg
+
+# IDE
 .project
 .pydevproject
+.idea
 
 # Coverage
 cover
@@ -58,3 +61,7 @@ pylintrc
 # Virtualenvs
 env
 venv
+
+# Other
+.directory
+
