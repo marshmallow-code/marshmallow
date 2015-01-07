@@ -7,7 +7,7 @@ import pytest
 
 from marshmallow import fields, utils, Schema
 from marshmallow.exceptions import UnmarshallingError, ValidationError
-from marshmallow.compat import text_type, total_seconds
+from marshmallow.compat import text_type, total_seconds, basestring
 
 from tests.base import (
     assert_almost_equal,
@@ -1031,13 +1031,15 @@ def test_required_enum():
     assert data == {}
 
 
-def test_required_message_can_be_changed():
-    message = 'My custom required message'
-
+@pytest.mark.parametrize('message', ['My custom required message',
+                                     {'error': 'something', 'code': 400},
+                                     ['first error', 'second error']])
+def test_required_message_can_be_changed(message):
     class RequireSchema(Schema):
         age = fields.Integer(required=message)
 
     user_data = {"name": "Phil"}
     data, errs = RequireSchema().load(user_data)
-    assert message in errs['age']
+    expected = [message] if isinstance(message, basestring) else message
+    assert expected == errs['age']
     assert data == {}
