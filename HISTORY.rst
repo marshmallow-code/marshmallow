@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+2.0.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Schema-level validators can store error messages for multiple fields (:issue:`118`).
+- Error message for ``required`` validation is configurable. (:issue:`122`).
+
+
+Deprecation/Removals
+
+- Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
+
+
 1.2.1 (unreleased)
 ++++++++++++++++++
 
