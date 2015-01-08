@@ -269,26 +269,29 @@ class Unmarshaller(object):
                     for d in data]
             self.__pending = False
             return ret
-        items = []
-        for attr_name, field_obj in iteritems(fields_dict):
-            if attr_name not in fields_dict:
-                continue
-            key = fields_dict[attr_name].attribute or attr_name
-            raw_value = data.get(attr_name, missing)
-            if raw_value is missing and not field_obj.required:
-                continue
-            value = _call_and_store(
-                getter_func=field_obj.deserialize,
-                data=raw_value,
-                field_name=key,
-                field_obj=field_obj,
-                errors_dict=self.errors,
-                exception_class=UnmarshallingError,
-                strict=strict
-            )
-            if raw_value is not missing:
-                items.append((key, value))
-        ret = dict_class(items)
+        if data is not None:
+            items = []
+            for attr_name, field_obj in iteritems(fields_dict):
+                if attr_name not in fields_dict:
+                    continue
+                key = fields_dict[attr_name].attribute or attr_name
+                raw_value = data.get(attr_name, missing)
+                if raw_value is missing and not field_obj.required:
+                    continue
+                value = _call_and_store(
+                    getter_func=field_obj.deserialize,
+                    data=raw_value,
+                    field_name=key,
+                    field_obj=field_obj,
+                    errors_dict=self.errors,
+                    exception_class=UnmarshallingError,
+                    strict=strict
+                )
+                if raw_value is not missing:
+                    items.append((key, value))
+            ret = dict_class(items)
+        else:
+            ret = None
 
         if preprocess:
             preprocess = preprocess or []
