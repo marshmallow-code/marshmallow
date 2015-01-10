@@ -27,3 +27,4 @@ Contributors (chronological)
 - Vesa Uimonen `@vesauimonen <https://github.com/vesauimonen>`_
 - David Lord `@davidism <https://github.com/davidism>`_
 - Daniel Castro `@0xDCA <https://github.com/0xDCA>`_
+- Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
