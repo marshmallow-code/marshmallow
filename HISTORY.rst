@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++
 
 - A ``Schema's`` ``error_handler``--if defined--will execute if ``Schema.validate`` returns validation errors (:issue:`121`).
+- Deserializing `None` returns `None` rather than raising an ``AttributeError`` (:issue:`123`). Thanks :user:`RealSalmon` for the catch and patch.
 
 1.2.0 (2014-12-22)
 ++++++++++++++++++

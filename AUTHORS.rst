@@ -26,3 +26,4 @@ Contributors (chronological)
 - Andriy Yurchuk `@Ch00k <https://github.com/Ch00k>`_
 - Vesa Uimonen `@vesauimonen <https://github.com/vesauimonen>`_
 - David Lord `@davidism <https://github.com/davidism>`_
+- Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
