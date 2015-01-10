@@ -7,7 +7,7 @@ Changelog
 Features:
 
 - Schema-level validators can store error messages for multiple fields (:issue:`118`).
-- Error message for ``required`` validation is configurable. (:issue:`122`).
+- Error message for ``required`` validation is configurable. (:issue:`78`). Thanks :user:`svenstaro` for the suggestion. Thanks :user:`0xDCA` for the implementation.
 
 
 Deprecation/Removals
