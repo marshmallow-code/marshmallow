@@ -690,6 +690,23 @@ class TestSchemaDeserialization:
         assert author['name'] == 'Mick'
         assert author['age'] == 914
 
+    def test_none_deserialization(self):
+        result, errors = SimpleUserSchema().load(None)
+        assert result is None
+
+    def test_nested_none_deserialization(self):
+        class SimpleBlogSerializer(Schema):
+            title = fields.String()
+            author = fields.Nested(SimpleUserSchema)
+
+        blog_dict = {
+            'title': 'Gimme Shelter',
+            'author': None
+        }
+        result, errors = SimpleBlogSerializer().load(blog_dict)
+        assert result['author'] is None
+        assert result['title'] == blog_dict['title']
+
     def test_deserialize_with_attribute_param(self):
         class AliasingUserSerializer(Schema):
             username = fields.Email(attribute='email')
