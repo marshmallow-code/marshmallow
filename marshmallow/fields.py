@@ -323,7 +323,8 @@ class Field(FieldABC):
         `None`. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
-    :param str load_from: Additional key to look for when deserializing.
+    :param str load_from: Additional key to look for when deserializing. Will only
+        be checked if the field name is not found.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
