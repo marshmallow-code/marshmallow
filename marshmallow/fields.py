@@ -56,6 +56,7 @@ __all__ = [
     'Int',
 ]
 
+
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where

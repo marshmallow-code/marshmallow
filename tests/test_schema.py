@@ -179,13 +179,14 @@ class TestValidate:
         assert errors == {}
 
     def test_validate_many(self):
-        s = UserSchema()
-        in_data = [{'name': 'Valid Name', 'email': 'Valid Email'},
-                {'name': 'Valid Name2', 'email': 'invalid'}]
+        s = UserSchema(many=True)
+        in_data = [
+            {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
+            {'name': 'Valid Name2', 'email': 'invalid'}
+        ]
         errors = s.validate(in_data, many=True)
-        assert type(errors) is dict
-        assert 'email' in errors
-        assert 'name' not in errors
+        assert 1 in errors
+        assert 'email' in errors[1]
 
     def test_validate_strict(self):
         s = UserSchema(strict=True)
@@ -488,10 +489,10 @@ def test_load_errors_with_many():
     ]
 
     data, errors = ErrorSchema(many=True).load(data)
-    assert 'email' in errors
-    assert len(errors['email']) == 2
-    assert 'bademail' in errors['email'][0]
-    assert 'anotherbademail' in errors['email'][1]
+    assert 0 in errors
+    assert 2 in errors
+    assert 'bademail' in errors[0]['email'][0]
+    assert 'anotherbademail' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
     class BadSchema(Schema):
@@ -1114,7 +1115,8 @@ class TestSchemaValidator:
             {'foo': 'bar'},
             {'foo': 'baz'}
         ], many=True)
-        assert len(errors['foo']) == 2
+        assert len(errors[0]['foo']) == 1
+        assert len(errors[1]['foo']) == 1
         _, errors2 = schema.load({'foo': 'bar'})
         assert len(errors2['foo']) == 1
 
