@@ -332,6 +332,7 @@ class Field(FieldABC):
         :exc:`ValidationError` instead of the default one.
         In this case, the value can be anything that the :exc:`ValidationError`
         constructor accepts (a `str`, `list` or `dict`).
+    :param allow_none: Set to `True` if `None` should be considered a valid value.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -346,7 +347,7 @@ class Field(FieldABC):
     SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, error=None,
-                 validate=None, required=False, **metadata):
+                 validate=None, required=False, allow_none=False, **metadata):
         self.default = default
         self.attribute = attribute
         if error:
@@ -369,6 +370,7 @@ class Field(FieldABC):
                              "or a collection of callables.")
 
         self.required = required
+        self.allow_none = allow_none
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
@@ -434,6 +436,20 @@ class Field(FieldABC):
         # except Exception as error:
         #     raise exception_class(getattr(self, 'error', None) or error)
 
+    def _validate_missing(self, value):
+        """Validate missing values. Raise a :exc:`ValidationError` if
+        `value` should be considered missing.
+        """
+        if value is missing:
+            if hasattr(self, 'required') and self.required:
+                default_message = 'Missing data for required field.'
+                message = (default_message if isinstance(self.required, bool) else
+                            self.required)
+                raise ValidationError(message)
+        if value is None:
+            if hasattr(self, 'allow_none') and not self.allow_none:
+                raise ValidationError('Field may not be null.')
+
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
@@ -462,12 +478,7 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         def do_deserialization():
-            if value is missing:
-                if hasattr(self, 'required') and self.required:
-                    default_message = 'Missing data for required field.'
-                    message = (default_message if isinstance(self.required, bool) else
-                               self.required)
-                    raise ValidationError(message)
+            self._validate_missing(value)
             output = self._deserialize(value)
             self._validate(output)
             return output
@@ -671,8 +682,14 @@ class String(Field):
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
 
-    def __init__(self, default='', attribute=None, *args, **kwargs):
+    def __init__(self, default='', attribute=None, allow_blank=False, *args, **kwargs):
+        self.allow_blank = allow_blank
         return super(String, self).__init__(default, attribute, *args, **kwargs)
+
+    def _validate_missing(self, value):
+        super(String, self)._validate_missing(value)
+        if value is '' and not self.allow_blank:
+            raise ValidationError('Field may not be blank.')
 
     def _serialize(self, value, attr, obj):
         return utils.ensure_text_type(value)

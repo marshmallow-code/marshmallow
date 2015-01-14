@@ -1631,13 +1631,6 @@ def test_deserialization_with_required_field():
     # field value should also not be in output data
     assert 'name' not in data
 
-def test_deserialization_with_none_passed_to_required_field():
-    in_data = {'name': None}
-    data, errors = RequiredUserSchema().load(in_data)
-    # None is a valid value, so no errors
-    assert 'name' not in errors
-    assert data['name'] is None
-
 def test_deserialization_with_required_field_and_custom_validator():
     class ValidatingSchema(Schema):
         color = fields.String(required=True,
@@ -1937,3 +1930,39 @@ class TestUnordered:
         result = schema.load({'name': 'steve', 'email': 'steve@steve.steve'})
         assert not isinstance(result.data, OrderedDict)
         assert type(result.data) is dict
+
+
+class TestEmpty:
+
+    class StringSchema(Schema):
+        required_field = fields.Str(required=True)
+        allow_none_field = fields.Str(required=True, allow_none=True)
+        allow_blank_field = fields.Str(required=True, allow_blank=True)
+
+    @pytest.fixture()
+    def string_schema(self):
+        return self.StringSchema()
+
+    @pytest.fixture()
+    def data(self):
+        return dict(
+            required_field='foo',
+            allow_none_field='bar',
+            allow_blank_field='baz',
+        )
+
+    def test_required_string_field_missing(self, string_schema, data):
+        del data['required_field']
+        errors = string_schema.validate(data)
+        assert errors['required_field'] == ['Missing data for required field.']
+
+    @pytest.mark.parametrize(('invalid_value', 'message'),
+    [
+        (None, 'Field may not be null.'),
+        ('', 'Field may not be blank.'),
+    ])
+    def test_required_string_field_failure(self, string_schema,
+            data, invalid_value, message):
+        data['required_field'] = invalid_value
+        errors = string_schema.validate(data)
+        assert errors['required_field'] == [message]
