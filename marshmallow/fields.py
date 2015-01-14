@@ -327,12 +327,12 @@ class Field(FieldABC):
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`UnmarshallingError` is raised.
     :param required: Raise an :exc:`UnmarshallingError` if the field value
-        is not supplied during deserialization. If not a `bool`,
+        is not supplied during deserialization. If not a `bool`(e.g. a `str`),
         the provided value will be used as the message of the
-        :exc:`ValidationError` instead of the default one.
-        In this case, the value can be anything that the :exc:`ValidationError`
-        constructor accepts (a `str`, `list` or `dict`).
-    :param allow_none: Set to `True` if `None` should be considered a valid value.
+        :exc:`ValidationError` instead of the default message.
+    :param allow_none: Set to `True` if `None` should be considered a valid value. If not
+        a `bool` (e.g. a `str`), the provided value will be used as the message of the
+        :exc:`ValidationError` instead of the default message.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -447,8 +447,11 @@ class Field(FieldABC):
                             self.required)
                 raise ValidationError(message)
         if value is None:
-            if hasattr(self, 'allow_none') and not self.allow_none:
-                raise ValidationError('Field may not be null.')
+            if hasattr(self, 'allow_none') and self.allow_none is not True:
+                default_message = 'Field may not be null.'
+                message = (default_message if isinstance(self.allow_none, bool) else
+                            self.allow_none)
+                raise ValidationError(message)
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
@@ -677,6 +680,10 @@ class List(Field):
 class String(Field):
     """A string field.
 
+    :param allow_blank: Set to `True` if the empty string should be considered a
+        valid value. If not a `bool` (e.g. a `str`), the provided value will
+        be used as the message of the :exc:`ValidationError` instead
+        of the default message.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
@@ -688,8 +695,11 @@ class String(Field):
 
     def _validate_missing(self, value):
         super(String, self)._validate_missing(value)
-        if value is '' and not self.allow_blank:
-            raise ValidationError('Field may not be blank.')
+        if value is '' and self.allow_blank is not True:
+            default_message = 'Field may not be blank.'
+            message = (default_message if isinstance(self.allow_blank, bool) else
+                        self.allow_blank)
+            raise ValidationError(message)
 
     def _serialize(self, value, attr, obj):
         return utils.ensure_text_type(value)
