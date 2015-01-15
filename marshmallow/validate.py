@@ -39,13 +39,16 @@ class URL(object):
         r'(?::\d+)?)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
-    def __init__(self, relative=False, error=None):
+    def __init__(self, relative=False, allow_blank=False, error=None):
         self.relative = relative
+        self.allow_blank = allow_blank
         self.error = error
 
     def __call__(self, value):
-        message = '"{0}" is not a valid URL.'.format(value)
+        if value == '' and self.allow_blank is True:
+            return value
 
+        message = '"{0}" is not a valid URL.'.format(value)
         if not value:
             raise ValidationError(self.error or message)
 
@@ -81,10 +84,13 @@ class Email(object):
 
     DOMAIN_WHITELIST = ('localhost',)
 
-    def __init__(self, error=None):
+    def __init__(self, allow_blank=False, error=None):
+        self.allow_blank = allow_blank
         self.error = error or '"{0}" is not a valid email address.'
 
     def __call__(self, value):
+        if value == '' and self.allow_blank is True:
+            return value
         message = self.error.format(value)
 
         if not value or '@' not in value:

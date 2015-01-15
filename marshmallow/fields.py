@@ -1162,40 +1162,48 @@ class ValidatedField(Field):
         ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
         return self._validated(ret)
 
-class Url(ValidatedField):
+class Url(ValidatedField, String):
     """A validated URL field.
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
-    def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
-        super(Url, self).__init__(default=default, attribute=attribute,
-                *args, **kwargs)
+    def __init__(self, default=None, attribute=None, relative=False, allow_blank=False,
+                 *args, **kwargs):
+        String.__init__(self, default=default,
+                        attribute=attribute, allow_blank=allow_blank,
+                        *args, **kwargs)
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, validate.URL(relative=self.relative,
-            error=getattr(self, 'error')))
+        self.validators.insert(0, validate.URL(
+            relative=self.relative,
+            allow_blank=allow_blank,
+            error=getattr(self, 'error')
+        ))
 
     def _validated(self, value):
         return validate.URL(relative=self.relative, error=getattr(self, 'error'))(value)
 
 URL = Url
 
-class Email(ValidatedField):
+class Email(ValidatedField, String):
     """A validated email field.
 
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    :param kwargs: The same keyword arguments that :class:`String` receives.
     """
-    def __init__(self, *args, **kwargs):
-        super(Email, self).__init__(*args, **kwargs)
+    def __init__(self, default=None, attribute=None, allow_blank=False,
+                 *args, **kwargs):
+        String.__init__(self, default=default, attribute=attribute,
+                        allow_blank=allow_blank, *args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
+        self.validators.insert(0, validate.Email(allow_blank=allow_blank,
+                                                 error=getattr(self, 'error')))
 
     def _validated(self, value):
         return validate.Email(error=getattr(self, 'error'))(value)

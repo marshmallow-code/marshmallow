@@ -2012,3 +2012,22 @@ class TestEmpty:
         schema = MySchema()
         errors = schema.validate({'allow_blank_field': ''})
         assert errors['allow_blank_field'][0] == '<custom>'
+
+    @pytest.mark.parametrize('FieldClass',
+    [
+        fields.String,
+        fields.URL,
+        fields.Email,
+    ])
+    def test_allow_blank_string_fields(self, FieldClass):
+        class MySchema(Schema):
+            blank_allowed = FieldClass(allow_blank=True)
+            blank_disallowed = FieldClass(allow_blank=False)
+
+        schema = MySchema()
+        data = {'blank_allowed': '', 'blank_disallowed': ''}
+
+        errors = schema.validate(data)
+        assert 'blank_allowed' not in errors
+        assert 'blank_disallowed' in errors
+        assert errors['blank_disallowed'][0] == 'Field may not be blank.'
