@@ -278,6 +278,8 @@ class Unmarshaller(object):
                     continue
                 key = fields_dict[attr_name].attribute or attr_name
                 raw_value = data.get(attr_name, missing)
+                if raw_value is missing and field_obj.load_from:
+                    raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing and not field_obj.required:
                     continue
                 value = _call_and_store(
@@ -321,6 +323,8 @@ class Field(FieldABC):
         `None`. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
+    :param str load_from: Additional key to look for when deserializing. Will only
+        be checked if the field's name is not found on the input dictionary.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
@@ -350,10 +354,11 @@ class Field(FieldABC):
     #: Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, )
 
-    def __init__(self, default=None, attribute=None, error=None,
+    def __init__(self, default=None, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, **metadata):
         self.default = default
         self.attribute = attribute
+        self.load_from = load_from  # this flag is used by Unmarshaller
         if error:
             warnings.warn('The error parameter is deprecated. Raise a '
                           'marshmallow.ValidationError in your validators '

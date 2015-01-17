@@ -10,6 +10,7 @@ Features:
 - Error message for ``required`` validation is configurable. (:issue:`78`). Thanks :user:`svenstaro` for the suggestion. Thanks :user:`0xDCA` for the implementation.
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`).
 - Add ``allow_blank`` parameter to ``fields.String`` fields (incl. ``fields.URL``, ``fields.Email``). If ``False`` (the default), validation fails when the field's value is the empty string (:issue:`76`).
+- Add ``load_from`` parameter to fields (:issue:`125`). Thanks :user:`hakjoon`.
 
 
 Deprecation/Removals

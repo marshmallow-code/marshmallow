@@ -268,7 +268,7 @@ If you only need to validate input data (without deserializing to an object), yo
 Specifying Attribute Names
 --------------------------
 
-By default, `Schemas` will marshal the object attributes that have the same name as the fields. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
+By default, `Schemas` will marshal the object attributes that are identical to the schema's field names. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
 .. code-block:: python
     :emphasize-lines: 3,4,11,12
@@ -286,6 +286,27 @@ By default, `Schemas` will marshal the object attributes that have the same name
     #  'email_addr': 'keith@stones.com',
     #  'date_created': '2014-08-17T14:58:57.600623+00:00'}
 
+
+Specifying Deserialization Keys
+-------------------------------
+
+By default `Schemas` will unmarshal an input dictionary to an output dictionary whose keys are identical to the field names.  However, if you are consuming data that does not exactly match your schema, you can specify additional keys to load values from.
+
+.. code-block:: python
+    :emphasize-lines: 2,3,11,12
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email(load_from='email_address')
+
+    data = {
+        'name': 'Mike',
+        'email_address': 'foo@bar.com'
+    }
+    ser = UserSchema()
+    result, errors = ser.load(data)
+    #{'name': u'Mike',
+    # 'email': 'foo@bar.com'}
 
 .. _meta_options:
 
