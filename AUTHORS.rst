@@ -28,3 +28,4 @@ Contributors (chronological)
 - David Lord `@davidism <https://github.com/davidism>`_
 - Daniel Castro `@0xDCA <https://github.com/0xDCA>`_
 - Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
+- Patrick Woods `@hakjoon <https://github.com/hakjoon>`_

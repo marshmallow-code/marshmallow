@@ -324,7 +324,7 @@ class Field(FieldABC):
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param str load_from: Additional key to look for when deserializing. Will only
-        be checked if the field name is not found.
+        be checked if the field's name is not found on the input dictionary.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
@@ -353,7 +353,7 @@ class Field(FieldABC):
                  error=None, validate=None, required=False, **metadata):
         self.default = default
         self.attribute = attribute
-        self.load_from = load_from
+        self.load_from = load_from  # this flag is used by Unmarshaller
         if error:
             warnings.warn('The error parameter is deprecated. Raise a '
                           'marshmallow.ValidationError in your validators '
