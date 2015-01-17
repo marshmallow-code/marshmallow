@@ -295,9 +295,9 @@ class TestFieldSerialization:
         field = fields.List(fields.DateTime)
         assert field.serialize('dtimes', obj) == []
 
-    def test_list_field_serialize_allow_none(self):
+    def test_list_field_serialize_default_none(self):
         obj = DateTimeList(None)
-        field = fields.List(fields.DateTime, allow_none=True)
+        field = fields.List(fields.DateTime, default=None)
         assert field.serialize('dtimes', obj) is None
 
     def test_bad_list_field(self):
