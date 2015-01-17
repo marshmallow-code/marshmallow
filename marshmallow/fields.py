@@ -706,7 +706,7 @@ class String(Field):
 
     def _validate_missing(self, value):
         super(String, self)._validate_missing(value)
-        if value is '' and self.allow_blank is not True:
+        if value == '' and self.allow_blank is not True:
             default_message = 'Field may not be blank.'
             message = (default_message if isinstance(self.allow_blank, bool) else
                         self.allow_blank)
