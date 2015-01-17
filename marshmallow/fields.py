@@ -696,6 +696,10 @@ class String(Field):
         be used as the message of the :exc:`ValidationError` instead
         of the default message.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 2.0.0
+        Add `allow_blank` parameter. By default, the empty string will fail
+        validation.
     """
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
@@ -1182,6 +1186,9 @@ class Url(ValidatedField, String):
         `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`String` receives.
+
+    .. versionchanged:: 2.0.0
+        Subclasses `String` and add the `allow_blank` parameter.
     """
 
     def __init__(self, default=None, attribute=None, relative=False, allow_blank=False,
@@ -1208,6 +1215,9 @@ class Email(ValidatedField, String):
     deserialization.
 
     :param kwargs: The same keyword arguments that :class:`String` receives.
+
+    .. versionchanged:: 2.0.0
+        Subclasses `String` and add the `allow_blank` parameter.
     """
     def __init__(self, default=None, attribute=None, allow_blank=False,
                  *args, **kwargs):
