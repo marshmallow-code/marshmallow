@@ -628,7 +628,8 @@ class Nested(Field):
 
 
 class List(Field):
-    """A list field.
+    """A list field, composed with another `Field` class or
+    instance.
 
     Example: ::
 
@@ -636,17 +637,18 @@ class List(Field):
 
     :param Field cls_or_instance: A field class or instance.
     :param bool default: Default value for serialization.
-    :param bool allow_none: If `True`, `None` will be serialized to `None`.
-        If `False`, `None` will serialize to an empty list.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 2.0.0
+        The ``allow_none`` parameter now applies to deserialization and
+        has the same semantics as the other fields.
     """
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, [], tuple())
 
-    def __init__(self, cls_or_instance, default=None, allow_none=False, **kwargs):
+    def __init__(self, cls_or_instance, default=list, **kwargs):
         super(List, self).__init__(**kwargs)
-        if not allow_none and default is None:
-            self.default = []
+        self.default = default
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
                 raise ValueError('The type of the list elements '
