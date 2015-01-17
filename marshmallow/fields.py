@@ -337,6 +337,10 @@ class Field(FieldABC):
 
     .. versionchanged:: 1.0.0
         Deprecated `error` parameter. Raise a :exc:`marshmallow.ValidationError` instead.
+
+    .. versionchanged:: 2.0.0
+        Added `allow_none` parameter, which makes validation/deserialization of `None`
+        consistent across fields.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -1165,7 +1169,8 @@ class ValidatedField(Field):
         return self._validated(ret)
 
 class Url(ValidatedField, String):
-    """A validated URL field.
+    """A validated URL field. Validation occurs during both serialization and
+    deserialization.
 
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
@@ -1194,7 +1199,8 @@ class Url(ValidatedField, String):
 URL = Url
 
 class Email(ValidatedField, String):
-    """A validated email field.
+    """A validated email field. Validation occurs during both serialization and
+    deserialization.
 
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
@@ -1212,7 +1218,7 @@ class Email(ValidatedField, String):
 
 
 class Method(Field):
-    """A field that takes the value returned by a Schema method.
+    """A field that takes the value returned by a `Schema` method.
 
     :param str method_name: The name of the Schema method from which
         to retrieve the value. The method must take an argument ``obj``
