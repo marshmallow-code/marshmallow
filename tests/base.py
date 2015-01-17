@@ -28,6 +28,7 @@ ALL_FIELDS = [
     fields.FormattedString,
     fields.UUID,
     fields.Enum,
+    fields.Decimal,
 ]
 
 ##### Custom asserts #####

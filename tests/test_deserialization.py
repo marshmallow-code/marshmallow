@@ -20,13 +20,70 @@ from tests.base import (
     DummyModel,
 )
 
+class TestDeserializingNone:
+
+    @pytest.mark.parametrize('FieldClass',
+    [
+        fields.DateTime,
+        fields.Date,
+        fields.TimeDelta,
+        fields.Time,
+    ])
+    def test_time_fields_none(self, FieldClass):
+        field_allow_none = FieldClass(allow_none=True)
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field_allow_none.deserialize(None)
+        assert 'Could not deserialize' in str(excinfo)
+
+    # https://github.com/marshmallow-code/marshmallow/issues/111
+    @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
+    def test_fields_dont_allow_none_by_default(self, FieldClass):
+        # by default, allow_none=False
+        if FieldClass == fields.FormattedString:
+            field = FieldClass(src_str='foo')
+        elif FieldClass == fields.Enum:
+            field = FieldClass(choices=['foo', 'bar'])
+        else:
+            field = FieldClass()
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field.deserialize(None)
+        assert 'Field may not be null.' in str(excinfo)
+
+    def test_string_field_none(self):
+        field = fields.String(allow_none=True)
+        assert field.deserialize(None) == ''
+
+    def test_float_field_none(self):
+        field = fields.Float(allow_none=True)
+        assert field.deserialize(None) == 0.0
+
+    def test_float_field_none_with_default(self):
+        field = fields.Float(allow_none=True, default=1.0)
+        assert field.deserialize(None) == 1.0
+
+    def test_int_field_none(self):
+        field = fields.Integer(allow_none=True)
+        assert field.deserialize(None) == 0
+
+    def test_decimal_field_none(self):
+        field = fields.Decimal(allow_none=True)
+        assert field.deserialize(None) == decimal.Decimal()
+
+    def test_boolean_field_none(self):
+        field = fields.Boolean(allow_none=True)
+        assert field.deserialize(None) is False
+
+    def test_list_field_deserialize_none_to_empty_list(self):
+        field = fields.List(fields.String(allow_none=True), allow_none=True)
+        assert field.deserialize(None) == []
+
+
 class TestFieldDeserialization:
 
     def test_float_field_deserialization(self):
         field = fields.Float()
         assert_almost_equal(field.deserialize('12.3'), 12.3)
         assert_almost_equal(field.deserialize(12.3), 12.3)
-        assert field.deserialize(None) == 0.0
 
     @pytest.mark.parametrize('in_val',
     [
@@ -38,14 +95,9 @@ class TestFieldDeserialization:
         with pytest.raises(UnmarshallingError):
             field.deserialize(in_val)
 
-    def test_float_field_deserialization_with_default(self):
-        field = fields.Float(default=1.0)
-        assert field.deserialize(None) == 1.0
-
     def test_integer_field_deserialization(self):
         field = fields.Integer()
         assert field.deserialize('42') == 42
-        assert field.deserialize(None) == 0
         with pytest.raises(UnmarshallingError):
             field.deserialize('42.0')
         with pytest.raises(UnmarshallingError):
@@ -55,9 +107,8 @@ class TestFieldDeserialization:
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = None
-        m5 = 'abc'
-        m6 = [1, 2]
+        m4 = 'abc'
+        m5 = [1, 2]
 
         field = fields.Decimal()
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -66,20 +117,17 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.355')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        assert isinstance(field.deserialize(m4), decimal.Decimal)
-        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m4)
         with pytest.raises(UnmarshallingError):
             field.deserialize(m5)
-        with pytest.raises(UnmarshallingError):
-            field.deserialize(m6)
 
     def test_decimal_field_with_places(self):
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = None
-        m5 = 'abc'
-        m6 = [1, 2]
+        m4 = 'abc'
+        m5 = [1, 2]
 
         field = fields.Decimal(1)
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -88,20 +136,17 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.4')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        assert isinstance(field.deserialize(m4), decimal.Decimal)
-        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m4)
         with pytest.raises(UnmarshallingError):
             field.deserialize(m5)
-        with pytest.raises(UnmarshallingError):
-            field.deserialize(m6)
 
     def test_decimal_field_with_places_and_rounding(self):
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = None
-        m5 = 'abc'
-        m6 = [1, 2]
+        m4 = 'abc'
+        m5 = [1, 2]
 
         field = fields.Decimal(1, decimal.ROUND_DOWN)
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -110,20 +155,17 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.3')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        assert isinstance(field.deserialize(m4), decimal.Decimal)
-        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m4)
         with pytest.raises(UnmarshallingError):
             field.deserialize(m5)
-        with pytest.raises(UnmarshallingError):
-            field.deserialize(m6)
 
     def test_decimal_field_deserialization_string(self):
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = None
-        m5 = 'abc'
-        m6 = [1, 2]
+        m4 = 'abc'
+        m5 = [1, 2]
 
         field = fields.Decimal(as_string=True)
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -132,16 +174,13 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.355')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        assert isinstance(field.deserialize(m4), decimal.Decimal)
-        assert field.deserialize(m4) == decimal.Decimal()
+        with pytest.raises(UnmarshallingError):
+            field.deserialize(m4)
         with pytest.raises(UnmarshallingError):
             field.deserialize(m5)
-        with pytest.raises(UnmarshallingError):
-            field.deserialize(m6)
 
     def test_string_field_deserialization(self):
         field = fields.String()
-        assert field.deserialize(None) == ''
         assert field.deserialize(42) == '42'
         assert field.deserialize(b'foo') == 'foo'
 
@@ -149,7 +188,6 @@ class TestFieldDeserialization:
         field = fields.Boolean()
         assert field.deserialize(True) is True
         assert field.deserialize(False) is False
-        assert field.deserialize(None) is False
         assert field.deserialize('True') is True
         assert field.deserialize('False') is False
         assert field.deserialize('true') is True
@@ -165,7 +203,6 @@ class TestFieldDeserialization:
             truthy = set(['yep'])
         field = MyBoolean()
         assert field.deserialize('yep') is True
-        assert field.deserialize(None) is False
 
     @pytest.mark.parametrize('in_val',
     [
@@ -198,18 +235,6 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
         msg = 'Could not deserialize {0!r} to a datetime object.'.format(in_value)
         assert msg in str(excinfo)
-
-    @pytest.mark.parametrize('timefield',
-    [
-        fields.DateTime(),
-        fields.Date(),
-        fields.TimeDelta(),
-        fields.Time(),
-    ])
-    def test_time_fields_deserialize_none_error(self, timefield):
-        with pytest.raises(UnmarshallingError) as excinfo:
-            timefield.deserialize(None)
-        assert 'Could not deserialize' in str(excinfo)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
@@ -264,7 +289,6 @@ class TestFieldDeserialization:
 
     def test_fixed_field_deserialization(self):
         field = fields.Fixed(decimals=3)
-        assert field.deserialize(None) == '0.000'
         assert field.deserialize('12.3456') == '12.346'
         field.deserialize('12.3456') == '12.346'
         assert field.deserialize(12.3456) == '12.346'
@@ -320,7 +344,6 @@ class TestFieldDeserialization:
 
     def test_price_field_deserialization(self):
         field = fields.Price()
-        assert field.deserialize(None) == '0.00'
         assert field.deserialize('12.345') == '12.35'
 
     def test_url_field_deserialization(self):
@@ -494,10 +517,6 @@ class TestFieldDeserialization:
         assert all([isinstance(each, dt.datetime) for each in result])
         for actual, expected in zip(result, dtimes):
             assert_date_equal(actual, expected)
-
-    def test_list_field_deserialize_none_to_empty_list(self):
-        field = fields.List(fields.String)
-        assert field.deserialize(None) == []
 
     def test_list_field_deserialize_single_value(self):
         field = fields.List(fields.DateTime)
