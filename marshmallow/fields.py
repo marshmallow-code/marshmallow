@@ -243,7 +243,7 @@ class Unmarshaller(object):
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
-            preprocess=None, postprocess=None, strict=False, dict_class=None):
+            preprocess=None, postprocess=None, strict=False, dict_class=dict):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -259,7 +259,6 @@ class Unmarshaller(object):
         :param type dict_class: Dictionary class used to construct the output.
         :return: A dictionary of the deserialized data.
         """
-        dict_class = dict_class or dict
         # Reset errors if not deserializing a collection
         if not self.__pending:
             self.errors = {}
