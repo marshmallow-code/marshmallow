@@ -13,7 +13,7 @@ Deserializing empty values, ``allow_none``, and ``allow_blank``
 
 Two new parameters were added to the field classes: ``allow_none`` and ``allow_blank``.
 
-In 2.0, validation/deserialization of `None` is consistent across fields. If ``allow_none`` equals `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` equals `True`, `None` deserializes to the field's default value.
+In 2.0, validation/deserialization of `None` is consistent across fields. If ``allow_none`` equals `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` equals `True`, `None` is considered valid, and the field deserialized to `None`.
 
 
 .. code-block:: python
@@ -31,10 +31,8 @@ In 2.0, validation/deserialization of `None` is consistent across fields. If ``a
     fields.Str().deserialize(None)  # error: Field may not be null.
     fields.DateTime().deserialize(None)  # error: Field may not be null.
 
-    # allow_none makes None deserialize to the field's default
-    fields.Int(allow_none=True).deserialize(None)  # 0
-    fields.Str(allow_none=True).deserialize(None)  # ''
-    fields.Str(allow_none=True, default='null').deserialize(None)  # 'null'
+    # allow_none makes None a valid value
+    fields.Int(allow_none=True).deserialize(None)  # None
 
 Similarly, the ``allow_blank`` parameter determines whether the empty string is valid input for string fields.
 

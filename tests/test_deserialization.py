@@ -22,18 +22,15 @@ from tests.base import (
 
 class TestDeserializingNone:
 
-    @pytest.mark.parametrize('FieldClass',
-    [
-        fields.DateTime,
-        fields.Date,
-        fields.TimeDelta,
-        fields.Time,
-    ])
-    def test_time_fields_none(self, FieldClass):
-        field_allow_none = FieldClass(allow_none=True)
-        with pytest.raises(UnmarshallingError) as excinfo:
-            field_allow_none.deserialize(None)
-        assert 'Could not deserialize' in str(excinfo)
+    @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
+    def test_fields_allow_none_deserialize_to_none(self, FieldClass):
+        if FieldClass == fields.FormattedString:
+            field = FieldClass(src_str='foo', allow_none=True)
+        elif FieldClass == fields.Enum:
+            field = FieldClass(choices=['foo', 'bar'], allow_none=True)
+        else:
+            field = FieldClass(allow_none=True)
+        field.deserialize(None) is None
 
     # https://github.com/marshmallow-code/marshmallow/issues/111
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
@@ -49,33 +46,9 @@ class TestDeserializingNone:
             field.deserialize(None)
         assert 'Field may not be null.' in str(excinfo)
 
-    def test_string_field_none(self):
-        field = fields.String(allow_none=True)
-        assert field.deserialize(None) == ''
-
-    def test_float_field_none(self):
-        field = fields.Float(allow_none=True)
-        assert field.deserialize(None) == 0.0
-
-    def test_float_field_none_with_default(self):
-        field = fields.Float(allow_none=True, default=1.0)
-        assert field.deserialize(None) == 1.0
-
-    def test_int_field_none(self):
-        field = fields.Integer(allow_none=True)
-        assert field.deserialize(None) == 0
-
-    def test_decimal_field_none(self):
-        field = fields.Decimal(allow_none=True)
-        assert field.deserialize(None) == decimal.Decimal()
-
-    def test_boolean_field_none(self):
-        field = fields.Boolean(allow_none=True)
-        assert field.deserialize(None) is False
-
     def test_list_field_deserialize_none_to_empty_list(self):
         field = fields.List(fields.String(allow_none=True), allow_none=True)
-        assert field.deserialize(None) == []
+        assert field.deserialize(None) is None
 
 
 class TestFieldDeserialization:

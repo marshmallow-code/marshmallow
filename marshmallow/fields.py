@@ -333,9 +333,10 @@ class Field(FieldABC):
         is not supplied during deserialization. If not a `bool`(e.g. a `str`),
         the provided value will be used as the message of the
         :exc:`ValidationError` instead of the default message.
-    :param allow_none: Set to `True` if `None` should be considered a valid value. If not
-        a `bool` (e.g. a `str`), the provided value will be used as the message of the
-        :exc:`ValidationError` instead of the default message.
+    :param allow_none: Set to `True` if `None` should be considered a valid value during
+        validation/deserialization. If not a `bool` (e.g. a `str`), the provided
+        value will be used as the message of the :exc:`ValidationError` instead 
+        of the default message.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -490,6 +491,8 @@ class Field(FieldABC):
         # deserialized value
         def do_deserialization():
             self._validate_missing(value)
+            if getattr(self, 'allow_none', False) is True and value is None:
+                return None
             output = self._deserialize(value)
             self._validate(output)
             return output
@@ -719,8 +722,6 @@ class String(Field):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value):
-        if value is None:
-            return ''
         result = utils.ensure_text_type(value)
         return result
 
