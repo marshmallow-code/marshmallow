@@ -335,7 +335,7 @@ class Field(FieldABC):
         :exc:`ValidationError` instead of the default message.
     :param allow_none: Set to `True` if `None` should be considered a valid value during
         validation/deserialization. If not a `bool` (e.g. a `str`), the provided
-        value will be used as the message of the :exc:`ValidationError` instead 
+        value will be used as the message of the :exc:`ValidationError` instead
         of the default message.
     :param metadata: Extra arguments to be stored as metadata.
 
