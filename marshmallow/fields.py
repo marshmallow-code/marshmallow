@@ -191,8 +191,12 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
-            if (value is missing) or (skip_missing and
-                                      value in field_obj.SKIPPABLE_VALUES):
+            skip_conds = (
+                field_obj.load_only,
+                value is missing,
+                skip_missing and value in field_obj.SKIPPABLE_VALUES,
+            )
+            if any(skip_conds):
                 continue
             items.append((key, value))
         return dict_class(items)
@@ -290,6 +294,8 @@ class Unmarshaller(object):
                     exception_class=UnmarshallingError,
                     strict=strict
                 )
+                if field_obj.dump_only:
+                    continue
                 if raw_value is not missing:
                     items.append((key, value))
             ret = dict_class(items)
@@ -355,7 +361,8 @@ class Field(FieldABC):
     SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, load_from=None, error=None,
-                 validate=None, required=False, allow_none=False, **metadata):
+                 validate=None, required=False, allow_none=False, load_only=False,
+                 dump_only=False, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -380,6 +387,8 @@ class Field(FieldABC):
 
         self.required = required
         self.allow_none = allow_none
+        self.load_only = load_only
+        self.dump_only = dump_only
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
