@@ -279,6 +279,8 @@ class Unmarshaller(object):
             for attr_name, field_obj in iteritems(fields_dict):
                 if attr_name not in fields_dict:
                     continue
+                if field_obj.dump_only:
+                    continue
                 key = fields_dict[attr_name].attribute or attr_name
                 raw_value = data.get(attr_name, missing)
                 if raw_value is missing and field_obj.load_from:
@@ -294,8 +296,6 @@ class Unmarshaller(object):
                     exception_class=UnmarshallingError,
                     strict=strict
                 )
-                if field_obj.dump_only:
-                    continue
                 if raw_value is not missing:
                     items.append((key, value))
             ret = dict_class(items)
