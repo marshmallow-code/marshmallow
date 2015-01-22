@@ -343,6 +343,10 @@ class Field(FieldABC):
         validation/deserialization. If not a `bool` (e.g. a `str`), the provided
         value will be used as the message of the :exc:`ValidationError` instead
         of the default message.
+    :param bool load_only: If `True` skip this field during serialization, otherwise
+        its value will be present in the serialized data.
+    :param bool dump_only: If `True` skip this field during deserialization, otherwise
+        its value will be present in the deserialized object.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -351,6 +355,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         Added `allow_none` parameter, which makes validation/deserialization of `None`
         consistent across fields.
+
+    .. versionchanged:: 2.0.0
+        Added `load_only` and `dump_only` parameters, which allow field skipping
+        during the (de)serialization process.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
