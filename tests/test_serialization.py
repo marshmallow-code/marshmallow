@@ -447,6 +447,17 @@ class TestMarshaller:
         assert res['name'] == u.name
         assert 'email' not in res
 
+    def test_serialize_fields_with_load_only_param(self):
+        u = User('Foo', email='foo@bar.com')
+        fields_dict = {
+            'name': fields.String(),
+            'email': fields.Email(load_only=True),
+        }
+        marshal = fields.Marshaller()
+        result = marshal(u, fields_dict)
+        assert result['name'] == 'Foo'
+        assert 'email' not in result
+
 
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
