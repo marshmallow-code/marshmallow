@@ -724,6 +724,18 @@ class TestSchemaDeserialization:
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
 
+    def test_deserialize_with_dump_only_param(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            years = fields.Integer(dump_only=True)
+        data = {
+            'name': 'Mick',
+            'years': '42',
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert result['name'] == 'Mick'
+        assert 'years' not in result
+
     def test_deserialization_returns_errors(self):
         bad_data = {
             'email': 'invalid-email',
@@ -942,6 +954,19 @@ class TestUnMarshaller:
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
+
+    def test_deserialize_fields_with_dump_only_param(self, unmarshal):
+        data = {
+            'name': 'Mick',
+            'years': '42',
+        }
+        fields_dict = {
+            'name': fields.String(),
+            'years': fields.Integer(dump_only=True),
+        }
+        result = unmarshal.deserialize(data, fields_dict)
+        assert result['name'] == 'Mick'
+        assert 'years' not in result
 
     def test_preprocessing_function(self, unmarshal):
         data = {'a': 10}
