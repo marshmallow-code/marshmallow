@@ -191,8 +191,12 @@ class Marshaller(object):
                 exception_class=MarshallingError,
                 strict=strict
             )
-            if (value is missing) or (skip_missing and
-                                      value in field_obj.SKIPPABLE_VALUES):
+            skip_conds = (
+                field_obj.load_only,
+                value is missing,
+                skip_missing and value in field_obj.SKIPPABLE_VALUES,
+            )
+            if any(skip_conds):
                 continue
             items.append((key, value))
         return dict_class(items)
@@ -275,6 +279,8 @@ class Unmarshaller(object):
             for attr_name, field_obj in iteritems(fields_dict):
                 if attr_name not in fields_dict:
                     continue
+                if field_obj.dump_only:
+                    continue
                 key = fields_dict[attr_name].attribute or attr_name
                 raw_value = data.get(attr_name, missing)
                 if raw_value is missing and field_obj.load_from:
@@ -337,6 +343,10 @@ class Field(FieldABC):
         validation/deserialization. If not a `bool` (e.g. a `str`), the provided
         value will be used as the message of the :exc:`ValidationError` instead
         of the default message.
+    :param bool load_only: If `True` skip this field during serialization, otherwise
+        its value will be present in the serialized data.
+    :param bool dump_only: If `True` skip this field during deserialization, otherwise
+        its value will be present in the deserialized object.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -345,6 +355,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         Added `allow_none` parameter, which makes validation/deserialization of `None`
         consistent across fields.
+
+    .. versionchanged:: 2.0.0
+        Added `load_only` and `dump_only` parameters, which allow field skipping
+        during the (de)serialization process.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -355,7 +369,8 @@ class Field(FieldABC):
     SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=None, attribute=None, load_from=None, error=None,
-                 validate=None, required=False, allow_none=False, **metadata):
+                 validate=None, required=False, allow_none=False, load_only=False,
+                 dump_only=False, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -380,6 +395,8 @@ class Field(FieldABC):
 
         self.required = required
         self.allow_none = allow_none
+        self.load_only = load_only
+        self.dump_only = dump_only
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
