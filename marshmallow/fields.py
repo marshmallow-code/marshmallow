@@ -346,7 +346,8 @@ class Field(FieldABC):
     :param bool load_only: If `True` skip this field during serialization, otherwise
         its value will be present in the serialized data.
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
-        its value will be present in the deserialized object.
+        its value will be present in the deserialized object. In the context of an
+        HTTP API, this effectively marks the field as "read-only".
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0

@@ -11,6 +11,7 @@ Features:
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
 - Add ``allow_blank`` parameter to ``fields.String`` fields (incl. ``fields.URL``, ``fields.Email``). If ``False`` (the default), validation fails when the field's value is the empty string (:issue:`76`).
 - Add ``load_from`` parameter to fields (:issue:`125`). Thanks :user:`hakjoon`.
+- Add ``load_only`` and ``dump_only`` parameters to fields (:issue:`61`, :issue:`87`). Thanks :user:`philtay`.
 
 Deprecation/Removals
 
