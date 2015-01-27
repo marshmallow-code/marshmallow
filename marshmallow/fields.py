@@ -285,6 +285,9 @@ class Unmarshaller(object):
                 raw_value = data.get(attr_name, missing)
                 if raw_value is missing and field_obj.load_from:
                     raw_value = data.get(field_obj.load_from, missing)
+                if raw_value is missing and field_obj.missing is not None:
+                    _miss = field_obj.missing
+                    raw_value = _miss() if callable(_miss) else _miss
                 if raw_value is missing and not field_obj.required:
                     continue
                 value = _call_and_store(
@@ -371,7 +374,7 @@ class Field(FieldABC):
 
     def __init__(self, default=None, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
-                 dump_only=False, **metadata):
+                 dump_only=False, missing=None, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -398,6 +401,7 @@ class Field(FieldABC):
         self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
+        self.missing = missing
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
