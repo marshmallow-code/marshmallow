@@ -736,6 +736,39 @@ class TestSchemaDeserialization:
         assert result['name'] == 'Mick'
         assert 'years' not in result
 
+    def test_deserialize_with_missing_param_value(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            years = fields.Integer(missing=10)
+        data = {
+            'name': 'Mick',
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert result['name'] == 'Mick'
+        assert result['years'] == 10
+
+    def test_deserialize_with_missing_param_callable(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            years = fields.Integer(missing=lambda: 13 + 7)
+        data = {
+            'name': 'Mick',
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert result['name'] == 'Mick'
+        assert result['years'] == 20
+
+    def test_deserialize_with_missing_param_none(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            years = fields.Integer(missing=None)
+        data = {
+            'name': 'Mick',
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert result['name'] == 'Mick'
+        assert result['years'] is None
+
     def test_deserialization_returns_errors(self):
         bad_data = {
             'email': 'invalid-email',

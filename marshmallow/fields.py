@@ -285,6 +285,9 @@ class Unmarshaller(object):
                 raw_value = data.get(attr_name, missing)
                 if raw_value is missing and field_obj.load_from:
                     raw_value = data.get(field_obj.load_from, missing)
+                if raw_value is missing and field_obj.missing is not null:
+                    _miss = field_obj.missing
+                    raw_value = _miss() if callable(_miss) else _miss
                 if raw_value is missing and not field_obj.required:
                     continue
                 value = _call_and_store(
@@ -348,6 +351,8 @@ class Field(FieldABC):
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
+    :param missing: Default deserialization value for the field if the field is not
+        found in the input data. May be a value or a callable.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 1.0.0
@@ -360,6 +365,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         Added `load_only` and `dump_only` parameters, which allow field skipping
         during the (de)serialization process.
+
+    .. versionchanged:: 2.0.0
+        Added `missing` parameter, which indicates the value for a field if the field
+        is not found during deserialization.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -371,7 +380,7 @@ class Field(FieldABC):
 
     def __init__(self, default=None, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
-                 dump_only=False, **metadata):
+                 dump_only=False, missing=null, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -398,6 +407,7 @@ class Field(FieldABC):
         self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
+        self.missing = missing
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
