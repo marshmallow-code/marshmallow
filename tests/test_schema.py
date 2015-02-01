@@ -2031,3 +2031,21 @@ class TestEmpty:
         assert 'blank_allowed' not in errors
         assert 'blank_disallowed' in errors
         assert errors['blank_disallowed'][0] == 'Field may not be blank.'
+
+    # Regression test for: https://github.com/marshmallow-code/marshmallow/issues/136
+    @pytest.mark.parametrize('FieldClass',
+    [
+        fields.URL,
+        fields.Email,
+    ])
+    def test_allow_blank_on_serialization(self, FieldClass):
+        class MySchema(Schema):
+            blank_allowed = FieldClass(allow_blank=True)
+            blank_disallowed = FieldClass(allow_blank=False)
+
+        schema = MySchema()
+        data = {'blank_allowed': '', 'blank_disallowed': ''}
+        _, errors = schema.dump(data)
+        assert 'blank_allowed' not in errors
+        assert 'blank_disallowed' in errors
+        assert errors['blank_disallowed'][0] == 'Field may not be blank.'
