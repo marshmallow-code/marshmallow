@@ -1234,7 +1234,12 @@ class Url(ValidatedField, String):
         ))
 
     def _validated(self, value):
-        return validate.URL(relative=self.relative, error=getattr(self, 'error'))(value)
+        self._validate_missing(value)
+        return validate.URL(
+            relative=self.relative,
+            allow_blank=self.allow_blank,
+            error=getattr(self, 'error')
+        )(value)
 
 URL = Url
 
@@ -1257,7 +1262,11 @@ class Email(ValidatedField, String):
                                                  error=getattr(self, 'error')))
 
     def _validated(self, value):
-        return validate.Email(error=getattr(self, 'error'))(value)
+        self._validate_missing(value)
+        return validate.Email(
+            allow_blank=self.allow_blank,
+            error=getattr(self, 'error')
+        )(value)
 
 
 class Method(Field):
