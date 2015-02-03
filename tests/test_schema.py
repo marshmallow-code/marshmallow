@@ -1862,7 +1862,7 @@ class TestSkipMissingOption:
         assert 'nicknames' in result.data
 
 def get_from_dict(schema, key, obj, default=None):
-    return obj.get(key, default)
+    return obj.get('_' + key, default)
 
 class TestAccessor:
 
@@ -1871,16 +1871,36 @@ class TestAccessor:
             __accessor__ = get_from_dict
             name = fields.Str()
             email = fields.Email()
-        user_dict = {'name': 'joe', 'email': 'joe@shmoe.com'}
+        user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
         schema = UserDictSchema()
         result = schema.dump(user_dict)
-        assert result.data['name'] == user_dict['name']
-        assert result.data['email'] == user_dict['email']
+        assert result.data['name'] == user_dict['_name']
+        assert result.data['email'] == user_dict['_email']
         assert not result.errors
         # can't serialize User object
         user = User(name='joe', email='joe@shmoe.com')
         with pytest.raises(AttributeError):
             schema.dump(user)
+
+    def test_accessor_with_many(self):
+        class UserDictSchema(Schema):
+            __accessor__ = get_from_dict
+            name = fields.Str()
+            email = fields.Email()
+
+        user_dicts = [{'_name': 'joe', '_email': 'joe@shmoe.com'},
+                      {'_name': 'jane', '_email': 'jane@shmane.com'}]
+        schema = UserDictSchema(many=True)
+        results = schema.dump(user_dicts)
+        for result, user_dict in zip(results.data, user_dicts):
+            assert result['name'] == user_dict['_name']
+            assert result['email'] == user_dict['_email']
+        assert not results.errors
+        # can't serialize User object
+        users = [User(name='joe', email='joe@shmoe.com'),
+                 User(name='jane', email='jane@shmane.com')]
+        with pytest.raises(AttributeError):
+            schema.dump(users)
 
     def test_accessor_decorator(self):
         class UserDictSchema(Schema):
@@ -1889,12 +1909,12 @@ class TestAccessor:
 
         @UserDictSchema.accessor
         def get_from_dict2(schema, key, obj, default=None):
-            return obj.get(key, default)
-        user_dict = {'name': 'joe', 'email': 'joe@shmoe.com'}
+            return obj.get('_' + key, default)
+        user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
         schema = UserDictSchema()
         result = schema.dump(user_dict)
-        assert result.data['name'] == user_dict['name']
-        assert result.data['email'] == user_dict['email']
+        assert result.data['name'] == user_dict['_name']
+        assert result.data['email'] == user_dict['_email']
         assert not result.errors
         # can't serialize User object
         user = User(name='joe', email='joe@shmoe.com')
