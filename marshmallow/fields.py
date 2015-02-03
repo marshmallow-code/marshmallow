@@ -174,7 +174,8 @@ class Marshaller(object):
         if many and obj is not None:
             self.__pending = True
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
-                                    dict_class=dict_class, accessor=accessor)
+                                    dict_class=dict_class, accessor=accessor,
+                                    skip_missing=skip_missing)
                     for d in obj]
             self.__pending = False
             return ret

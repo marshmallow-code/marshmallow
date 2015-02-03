@@ -1846,6 +1846,16 @@ class TestSkipMissingOption:
         assert 'email' not in result.data
         assert 'age' not in result.data
 
+    def test_missing_values_are_skipped_with_many(self):
+        users = [User(name='Joe', email=None, age=None),
+                 User(name='Jane', email=None, age=None)]
+        schema = UserSkipSchema(many=True)
+        results = schema.dump(users)
+        for data in results.data:
+            assert 'name' in data
+            assert 'email' not in data
+            assert 'age' not in data
+
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/71
     def test_missing_string_values_can_be_skipped(self):
         user = dict(email='foo@bar.com', age=42)
