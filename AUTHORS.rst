@@ -29,4 +29,4 @@ Contributors (chronological)
 - Daniel Castro `@0xDCA <https://github.com/0xDCA>`_
 - Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
 - Patrick Woods `@hakjoon <https://github.com/hakjoon>`_
-- Lukas Heiniger `@3rdcycle <https://github.com/3rdcycle`_
+- Lukas Heiniger `@3rdcycle <https://github.com/3rdcycle>`_
