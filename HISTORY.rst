@@ -14,10 +14,16 @@ Features:
 - Add ``load_only`` and ``dump_only`` parameters to fields (:issue:`61`, :issue:`87`). Thanks :user:`philtay`.
 - Add `missing` parameter to fields (:issue:`115`). Thanks :user:`philtay`.
 
-Deprecation/Removals
+Deprecation/Removals:
 
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 
+1.2.2 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior of ``skip_missing`` and ``accessor`` options when ``many=True`` (:issue:`137`). Thanks :user:`3rdcycle`.
 
 1.2.1 (2015-01-11)
 ++++++++++++++++++
