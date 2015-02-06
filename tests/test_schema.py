@@ -1141,6 +1141,20 @@ class TestSchemaValidator:
         errors = s.validate({'foo': 42})
         assert errors['foo'] == [{'code': 'invalid_foo'}]
 
+    def test_raw_data_validation(self):
+        class MySchema(Schema):
+            foo = fields.Integer()
+
+        @MySchema.validator
+        def check_unknown_fields(schema, data, raw_data):
+            for k in raw_data:
+                if k not in schema.fields:
+                    raise ValidationError({'code': 'invalid_bar'})
+
+        s = MySchema()
+        errors = s.validate({'foo': 1, 'bar': 42})
+        assert errors['_schema'] == [{'code': 'invalid_bar'}]
+
 
 class TestPreprocessors:
 
