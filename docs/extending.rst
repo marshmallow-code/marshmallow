@@ -61,6 +61,24 @@ as arguments. Schema-level validation errors will be stored on the ``_schema`` k
     errors['_schema'] # => ["field_a must be greater than field_b"]
 
 
+Validating Raw Input Data
++++++++++++++++++++++++++
+
+Normally, unspecified field names are ignored by the validator. If you would like access to the raw input (e.g. to fail validation if an unknown field name is sent), an optional third argument will contain the raw input data.
+
+.. code-block:: python
+
+    @NumberSchema.validator
+    def check_unknown_fields(schema, input_data, raw_data):
+        for k in raw_data:
+            if k not in schema.fields:
+                raise ValidationError('Unknown field name')
+
+    schema = NumberSchema()
+    result, errors = schema.load({'field_c': 0})
+    errors['_schema'] # => ["Unknown field name"]
+
+
 Storing Errors on Specific Fields
 +++++++++++++++++++++++++++++++++
 
