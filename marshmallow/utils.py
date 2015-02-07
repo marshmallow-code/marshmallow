@@ -341,8 +341,14 @@ def callable_or_raise(obj):
 
 
 def get_func_args(func):
-    """Return a tuple of argument names for a function."""
-    return inspect.getargspec(func).args
+    """Return a tuple of argument names for a function.
+
+    .. deprecated:: 1.2.0
+        Renamed to :func:`get_callable_args`.
+    """
+    warnings.warn('get_func_ars was renamed to get_callable_args. get_func_args '
+                  'will be removed in version 2.0', DeprecationWarning)
+    return get_callable_args(func)
 
 
 def get_callable_args(func):
@@ -351,7 +357,7 @@ def get_callable_args(func):
     """
     if isinstance(func, functools.partial):
         return inspect.getargspec(func.func).args
-    if inspect.isfunction(func):
+    if inspect.isfunction(func) or inspect.ismethod(func):
         return inspect.getargspec(func).args
     # Callable class
     return inspect.getargspec(func.__call__).args

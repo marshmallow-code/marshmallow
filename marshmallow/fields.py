@@ -1302,7 +1302,7 @@ class Method(Field):
     def _serialize(self, value, attr, obj):
         try:
             method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
-            if len(utils.get_func_args(method)) > 2:
+            if len(utils.get_callable_args(method)) > 2:
                 if self.parent.context is None:
                     msg = 'No context available for Method field {0!r}'.format(attr)
                     raise MarshallingError(msg)
@@ -1346,7 +1346,7 @@ class Function(Field):
 
     def _serialize(self, value, attr, obj):
         try:
-            if len(utils.get_func_args(self.func)) > 1:
+            if len(utils.get_callable_args(self.func)) > 1:
                 if self.parent.context is None:
                     msg = 'No context available for Function field {0!r}'.format(attr)
                     raise MarshallingError(msg)
