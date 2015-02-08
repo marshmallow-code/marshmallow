@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-__version__ = '2.0.0-dev'
-__author__ = 'Steven Loria'
-__license__ = 'MIT'
-
 from marshmallow.schema import (
     Schema,
     SchemaOpts,
@@ -14,6 +10,10 @@ from marshmallow.schema import (
 )
 from marshmallow.utils import pprint
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
+
+__version__ = '2.0.0-dev'
+__author__ = 'Steven Loria'
+__license__ = 'MIT'
 
 
 __all__ = [
