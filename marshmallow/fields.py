@@ -222,13 +222,13 @@ class Unmarshaller(object):
         """
         for validator_func in validators:
             try:
-                func_args = utils.get_callable_args(validator_func)
+                func_args = utils.get_func_args(validator_func)
                 if len(func_args) < 3:
                     res = validator_func(output)
                 else:
                     res = validator_func(output, raw_data)
                 if res is False:
-                    func_name = utils.get_callable_name(validator_func)
+                    func_name = utils.get_func_name(validator_func)
                     raise ValidationError('Schema validator {0}({1}) is False'.format(
                         func_name, dict(output)
                     ))
@@ -442,7 +442,7 @@ class Field(FieldABC):
         """
         errors = []
         for validator in self.validators:
-            func_name = utils.get_callable_name(validator)
+            func_name = utils.get_func_name(validator)
             msg = 'Validator {0}({1}) is False'.format(
                 func_name, value
             )
@@ -1302,7 +1302,7 @@ class Method(Field):
     def _serialize(self, value, attr, obj):
         try:
             method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
-            if len(utils.get_callable_args(method)) > 2:
+            if len(utils.get_func_args(method)) > 2:
                 if self.parent.context is None:
                     msg = 'No context available for Method field {0!r}'.format(attr)
                     raise MarshallingError(msg)
@@ -1346,7 +1346,7 @@ class Function(Field):
 
     def _serialize(self, value, attr, obj):
         try:
-            if len(utils.get_callable_args(self.func)) > 1:
+            if len(utils.get_func_args(self.func)) > 1:
                 if self.parent.context is None:
                     msg = 'No context available for Function field {0!r}'.format(attr)
                     raise MarshallingError(msg)

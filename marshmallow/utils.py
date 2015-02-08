@@ -341,17 +341,6 @@ def callable_or_raise(obj):
 
 
 def get_func_args(func):
-    """Return a tuple of argument names for a function.
-
-    .. deprecated:: 1.2.0
-        Renamed to :func:`get_callable_args`.
-    """
-    warnings.warn('get_func_ars was renamed to get_callable_args. get_func_args '
-                  'will be removed in version 2.0', DeprecationWarning)
-    return get_callable_args(func)
-
-
-def get_callable_args(func):
     """Given a callable, return a tuple of argument names. Handles
     `functools.partial` objects and class-based callables.
     """
