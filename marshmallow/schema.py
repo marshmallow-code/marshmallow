@@ -368,11 +368,23 @@ class BaseSchema(base.SchemaABC):
             def validate_numbers(schema, input_data):
                 return input_data['field_b'] > input_data['field_a']
 
+        A validator may take an optional third argument which will contain the raw input
+        data. ::
+
+            @NumberSchema.validator
+            def check_unknown_fields(schema, input_data, raw_data):
+                for k in raw_data:
+                    if k not in schema.fields:
+                        raise ValidationError('Unknown field name')
+
         .. note::
 
             You can register multiple validators for the same schema.
 
         .. versionadded:: 1.0
+        .. versionchanged:: 2.0
+            Validators can receive an optional third argument which is the
+            raw input data.
 
         """
         cls.__validators__ = cls.__validators__ or []

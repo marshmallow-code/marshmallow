@@ -217,13 +217,18 @@ class Unmarshaller(object):
         #: True while deserializing a collection
         self.__pending = False
 
-    def _validate(self, validators, output, fields_dict, strict=False):
+    def _validate(self, validators, output, raw_data, fields_dict, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
         """
         for validator_func in validators:
             try:
-                if validator_func(output) is False:
-                    func_name = utils.get_callable_name(validator_func)
+                func_args = utils.get_func_args(validator_func)
+                if len(func_args) < 3:
+                    res = validator_func(output)
+                else:
+                    res = validator_func(output, raw_data)
+                if res is False:
+                    func_name = utils.get_func_name(validator_func)
                     raise ValidationError('Schema validator {0}({1}) is False'.format(
                         func_name, dict(output)
                     ))
@@ -275,6 +280,7 @@ class Unmarshaller(object):
                     for d in data]
             self.__pending = False
             return ret
+        raw_data = data
         if data is not None:
             items = []
             for attr_name, field_obj in iteritems(fields_dict):
@@ -312,7 +318,8 @@ class Unmarshaller(object):
                 ret = func(ret)
         if validators:
             validators = validators or []
-            ret = self._validate(validators, ret, fields_dict=fields_dict, strict=strict)
+            ret = self._validate(validators, ret, raw_data, fields_dict=fields_dict,
+                                 strict=strict)
         if postprocess:
             postprocess = postprocess or []
             for func in postprocess:
@@ -435,7 +442,7 @@ class Field(FieldABC):
         """
         errors = []
         for validator in self.validators:
-            func_name = utils.get_callable_name(validator)
+            func_name = utils.get_func_name(validator)
             msg = 'Validator {0}({1}) is False'.format(
                 func_name, value
             )

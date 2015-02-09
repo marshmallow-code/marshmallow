@@ -341,5 +341,12 @@ def callable_or_raise(obj):
 
 
 def get_func_args(func):
-    """Return a tuple of argument names for a function."""
-    return inspect.getargspec(func).args
+    """Given a callable, return a tuple of argument names. Handles
+    `functools.partial` objects and class-based callables.
+    """
+    if isinstance(func, functools.partial):
+        return inspect.getargspec(func.func).args
+    if inspect.isfunction(func) or inspect.ismethod(func):
+        return inspect.getargspec(func).args
+    # Callable class
+    return inspect.getargspec(func.__call__).args

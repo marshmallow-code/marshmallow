@@ -30,3 +30,4 @@ Contributors (chronological)
 - Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
 - Patrick Woods `@hakjoon <https://github.com/hakjoon>`_
 - Lukas Heiniger `@3rdcycle <https://github.com/3rdcycle>`_
+- Ryan Lowe `@ryanlowe0 <https://github.com/ryanlowe0>`_
