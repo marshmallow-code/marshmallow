@@ -217,3 +217,17 @@ def test_get_callable_name_of_callable_class():
             return False
     foo = Foo()
     assert utils.get_callable_name(foo) == 'Foo'
+
+def test_get_func_args():
+    def f1(self, foo, bar):
+        pass
+
+    f2 = partial(f1, 'baz')
+
+    class F3(object):
+        def __call__(self, foo, bar):
+            pass
+    f3 = F3()
+
+    for func in [f1, f2, f3]:
+        assert utils.get_func_args(func) == ['self', 'foo', 'bar']
