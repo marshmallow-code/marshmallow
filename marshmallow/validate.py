@@ -282,19 +282,25 @@ class OneOf(object):
     :param iterable labels:
         Optional sequence of labels to pair with the choices.
     :param str error:
-        Error message to raise in case of a validation error.
+        Error message to raise in case of a validation error. Can be
+        interpolated using `{value}`, `{choices}` and `{labels}`.
     """
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
         self.labels = labels if labels is not None else []
         self.error = error or 'Not a valid choice.'
 
+        choices_text = ', '.join(text_type(choice) for choice in self.choices)
+        labels_text = ', '.join(text_type(label) for label in self.labels)
+
+        self.error.format(choices=choices_text, labels=labels_text, value='{value}')
+
     def __call__(self, value):
         try:
             if value not in self.choices:
-                raise ValidationError(self.error)
+                raise ValidationError(self.error.format(value=value))
         except TypeError:
-            raise ValidationError(self.error)
+            raise ValidationError(self.error.format(value=value))
 
         return value
 
