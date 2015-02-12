@@ -298,7 +298,7 @@ class OneOf(object):
 
         return value
 
-    def pairs(self, valuegetter=text_type):
+    def options(self, valuegetter=text_type):
         """Return a generator over the (value, label) pairs, where value
         is a string associated with each choice. This convenience method
         is useful to populate, for instance, a form select field.
@@ -311,9 +311,9 @@ class OneOf(object):
             or `unicode()`.
         """
         valuegetter = valuegetter if callable(valuegetter) else attrgetter(valuegetter)
-        paired = zip_longest(self.choices, self.labels, fillvalue='')
+        pairs = zip_longest(self.choices, self.labels, fillvalue='')
 
-        return ((valuegetter(choice), label) for choice, label in paired)
+        return ((valuegetter(choice), label) for choice, label in pairs)
 
 
 #
