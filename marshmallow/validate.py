@@ -287,20 +287,23 @@ class OneOf(object):
     """
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
+        self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
+
         self.labels = labels if labels is not None else []
-        self.error = error or 'Not a valid choice.'
+        self.labels_text = ', '.join(text_type(label) for label in self.labels)
 
-        choices_text = ', '.join(text_type(choice) for choice in self.choices)
-        labels_text = ', '.join(text_type(label) for label in self.labels)
-
-        self.error.format(choices=choices_text, labels=labels_text, value='{value}')
+        self._error = lambda v: (error or 'Not a valid choice.').format(
+            choices=self.choices_text,
+            labels=self.labels_text,
+            value=v,
+        )
 
     def __call__(self, value):
         try:
             if value not in self.choices:
-                raise ValidationError(self.error.format(value=value))
+                raise ValidationError(self._error(value))
         except TypeError:
-            raise ValidationError(self.error.format(value=value))
+            raise ValidationError(self._error(value))
 
         return value
 
