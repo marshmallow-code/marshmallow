@@ -14,6 +14,7 @@ Features:
 - Add ``load_only`` and ``dump_only`` parameters to fields (:issue:`61`, :issue:`87`). Thanks :user:`philtay`.
 - Add `missing` parameter to fields (:issue:`115`). Thanks :user:`philtay`.
 - Schema validators can take an optional ``raw_data`` argument which contains raw input data, incl. data not specified in the schema (:issue:`127`). Thanks :user:`ryanlowe0`.
+- Add ``validate.OneOf`` validator (:issue:`135`). Thanks :user:`philtay`.
 
 Deprecation/Removals:
 
