@@ -336,7 +336,7 @@ def test_oneof_text():
     assert oneof.labels_text == ''
 
 def test_one_of_custom_error_message():
-    oneof = validate.OneOf([1, 2, 3], error='{value} is not one of {choices}')
+    oneof = validate.OneOf([1, 2, 3], error='{input} is not one of {choices}')
     expected = '4 is not one of 1, 2, 3'
     with pytest.raises(ValidationError) as excinfo:
         oneof(4)
@@ -344,7 +344,7 @@ def test_one_of_custom_error_message():
 
     oneof = validate.OneOf([1, 2, 3],
         ['one', 'two', 'three'],
-        error='{value} is not one of {labels}'
+        error='{input} is not one of {labels}'
     )
     expected = '4 is not one of one, two, three'
     with pytest.raises(ValidationError) as excinfo:
