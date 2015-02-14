@@ -242,13 +242,16 @@ class NoneOf(object):
     :param str error: Error message to raise in case of a validation error. Can be
         interpolated using `{input}` and `{values}`.
     """
+    default_message = 'Invalid input.'
 
     def __init__(self, iterable, error=None):
         self.iterable = iterable
-        self.values_text = ', '.join(text_type(choice) for choice in self.iterable)
-        self.error = error
-        self._format_error = lambda v: (error or 'Invalid input.').format(
-            input=v,
+        self.values_text = ', '.join(text_type(each) for each in self.iterable)
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(
+            input=value,
             values=self.values_text,
         )
 

@@ -257,18 +257,16 @@ def test_predicate():
 def test_noneof():
     assert validate.NoneOf([1, 2, 3])(4) == 4
     assert validate.NoneOf('abc')('d') == 'd'
-    assert validate.NoneOf((i for i in [1, 2]))(3) == 3
     assert validate.NoneOf('')([]) == []
     assert validate.NoneOf([])('') == ''
     assert validate.NoneOf([])([]) == []
     assert validate.NoneOf([1, 2, 3])(None) is None
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         validate.NoneOf([1, 2, 3])(3)
+    assert 'Invalid input.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.NoneOf('abc')('c')
-    with pytest.raises(ValidationError):
-        validate.NoneOf((i for i in [1, 2]))(2)
     with pytest.raises(ValidationError):
         validate.NoneOf([1, 2, None])(None)
     with pytest.raises(ValidationError):
