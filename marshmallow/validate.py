@@ -15,10 +15,8 @@ from marshmallow.exceptions import ValidationError
 class URL(object):
     """Validate a URL.
 
-    :param bool relative:
-        Whether to allow relative URLs.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param bool relative: Whether to allow relative URLs.
+    :param str error: Error message to raise in case of a validation error.
     """
     URL_REGEX = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
@@ -68,8 +66,7 @@ class URL(object):
 class Email(object):
     """Validate an email address.
 
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error.
     """
     USER_REGEX = re.compile(
         r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
@@ -125,14 +122,11 @@ class Range(object):
     exists. If ``max`` is not specified, or is specified as `None`,
     no upper bound exists.
 
-    :param min:
-        The minimum value (lower bound). If not provided, minimum
+    :param min: The minimum value (lower bound). If not provided, minimum
         value will not be checked.
-    :param max:
-        The maximum value (upper bound). If not provided, maximum
+    :param max: The maximum value (upper bound). If not provided, maximum
         value will not be checked.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error.
         Can be interpolated using `{min}` and `{max}`.
     """
     message_min = 'Must be at least {min}.'
@@ -162,14 +156,11 @@ class Length(Range):
     length between a minimum and maximum. Uses len(), so it
     can work for strings, lists, or anything with length.
 
-    :param int min:
-        The minimum length. If not provided, minimum length
+    :param int min: The minimum length. If not provided, minimum length
         will not be checked.
-    :param int max:
-        The maximum length. If not provided, maximum length
+    :param int max: The maximum length. If not provided, maximum length
         will not be checked.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error.
         Can be interpolated using `{min}` and `{max}`.
     """
     message_min = 'Shorter than minimum length {min}.'
@@ -185,10 +176,8 @@ class Equal(object):
     """Validator which succeeds if the ``value`` passed to it is
     equal to ``comparable``.
 
-    :param comparable:
-        The object to compare to.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param comparable: The object to compare to.
+    :param str error: Error message to raise in case of a validation error.
         Can be interpolated using `{other}`.
     """
     def __init__(self, comparable, error=None):
@@ -205,14 +194,11 @@ class Equal(object):
 class Regexp(object):
     """Validate ``value`` against the provided regex.
 
-    :param regex:
-        The regular expression string to use. Can also be a compiled
+    :param regex: The regular expression string to use. Can also be a compiled
         regular expression pattern.
-    :param flags:
-        The regexp flags to use, for example re.IGNORECASE. Ignored
+    :param flags: The regexp flags to use, for example re.IGNORECASE. Ignored
         if ``regex`` is not a string.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error.
     """
     def __init__(self, regex, flags=0, error=None):
         self.regex = re.compile(regex, flags) if isinstance(regex, basestring) else regex
@@ -231,12 +217,9 @@ class Predicate(object):
     evaluates to True in a Boolean context. Any additional keyword
     argument will be passed to the method.
 
-    :param str method:
-        The name of the method to invoke.
-    :param str error:
-        Error message to raise in case of a validation error.
-    :param kwargs:
-        Additional keyword arguments to pass to the method.
+    :param str method: The name of the method to invoke.
+    :param str error: Error message to raise in case of a validation error.
+    :param kwargs: Additional keyword arguments to pass to the method.
     """
     def __init__(self, method, error=None, **kwargs):
         self.method = method
@@ -255,10 +238,8 @@ class Predicate(object):
 class NoneOf(object):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
-    :param iterable iterable:
-        A sequence of invalid values.
-    :param str error:
-        Error message to raise in case of a validation error.
+    :param iterable iterable: A sequence of invalid values.
+    :param str error: Error message to raise in case of a validation error.
     """
     def __init__(self, iterable, error=None):
         self.iterable = iterable
@@ -277,12 +258,9 @@ class NoneOf(object):
 class OneOf(object):
     """Validator which succeeds if ``value`` is a member of ``choices``.
 
-    :param iterable choices:
-        A sequence of valid values.
-    :param iterable labels:
-        Optional sequence of labels to pair with the choices.
-    :param str error:
-        Error message to raise in case of a validation error. Can be
+    :param iterable choices: A sequence of valid values.
+    :param iterable labels: Optional sequence of labels to pair with the choices.
+    :param str error: Error message to raise in case of a validation error. Can be
         interpolated using `{value}`, `{choices}` and `{labels}`.
     """
     def __init__(self, choices, labels=None, error=None):
@@ -312,8 +290,7 @@ class OneOf(object):
         is a string associated with each choice. This convenience method
         is useful to populate, for instance, a form select field.
 
-        :param valuegetter:
-            Can be a callable or a string. In the former case, it must
+        :param valuegetter: Can be a callable or a string. In the former case, it must
             be a one-argument callable which returns the value of a
             choice. In the latter case, the string specifies the name
             of an attribute of the choice objects. Defaults to `str()`
