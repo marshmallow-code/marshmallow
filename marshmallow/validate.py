@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 """Validation classes for various types of data."""
+
 from __future__ import unicode_literals
+
 import re
 import functools
 import warnings
+from operator import attrgetter
 
-from marshmallow.compat import basestring
+from marshmallow.compat import basestring, text_type, zip_longest
 from marshmallow.exceptions import ValidationError
 
 
@@ -269,6 +272,57 @@ class NoneOf(object):
             pass
 
         return value
+
+
+class OneOf(object):
+    """Validator which succeeds if ``value`` is a member of ``choices``.
+
+    :param iterable choices:
+        A sequence of valid values.
+    :param iterable labels:
+        Optional sequence of labels to pair with the choices.
+    :param str error:
+        Error message to raise in case of a validation error. Can be
+        interpolated using `{value}`, `{choices}` and `{labels}`.
+    """
+    def __init__(self, choices, labels=None, error=None):
+        self.choices = choices
+        self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
+
+        self.labels = labels if labels is not None else []
+        self.labels_text = ', '.join(text_type(label) for label in self.labels)
+
+        self._error = lambda v: (error or 'Not a valid choice.').format(
+            choices=self.choices_text,
+            labels=self.labels_text,
+            value=v,
+        )
+
+    def __call__(self, value):
+        try:
+            if value not in self.choices:
+                raise ValidationError(self._error(value))
+        except TypeError:
+            raise ValidationError(self._error(value))
+
+        return value
+
+    def options(self, valuegetter=text_type):
+        """Return a generator over the (value, label) pairs, where value
+        is a string associated with each choice. This convenience method
+        is useful to populate, for instance, a form select field.
+
+        :param valuegetter:
+            Can be a callable or a string. In the former case, it must
+            be a one-argument callable which returns the value of a
+            choice. In the latter case, the string specifies the name
+            of an attribute of the choice objects. Defaults to `str()`
+            or `unicode()`.
+        """
+        valuegetter = valuegetter if callable(valuegetter) else attrgetter(valuegetter)
+        pairs = zip_longest(self.choices, self.labels, fillvalue='')
+
+        return ((valuegetter(choice), label) for choice, label in pairs)
 
 
 #

@@ -89,7 +89,7 @@ missing = _Missing()
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):
     """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
-    :meth:`UnMarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
+    :meth:`Unmarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
     argument, and store any errors of type ``exception_class`` in ``error_dict``.
 
     :param callable getter_func: Function for getting the serialized/deserialized
