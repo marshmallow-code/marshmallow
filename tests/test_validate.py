@@ -78,6 +78,13 @@ def test_url_relative_invalid(invalid_url):
     with pytest.raises(ValidationError):
         validator(invalid_url)
 
+def test_url_custom_message():
+    validator = validate.URL(error='{input} ain\'t an URL')
+    with pytest.raises(ValidationError) as excinfo:
+        validator('invalid')
+    assert 'invalid ain\'t an URL' in str(excinfo)
+
+
 @pytest.mark.parametrize('valid_email', [
     'niceandsimple@example.com',
     'NiCeAnDsImPlE@eXaMpLe.CoM',
@@ -113,6 +120,12 @@ def test_email_invalid(invalid_email):
     with pytest.raises(ValidationError):
         validator(invalid_email)
 
+def test_email_custom_message():
+    validator = validate.Email(error='{input} is not an email addy.')
+    with pytest.raises(ValidationError) as excinfo:
+        validator('invalid')
+    assert 'invalid is not an email addy.' in str(excinfo)
+
 def test_range_min():
     assert validate.Range(1, 2)(1) == 1
     assert validate.Range(0)(1) == 1
@@ -123,6 +136,12 @@ def test_range_min():
         validate.Range(2, 3)(1)
     with pytest.raises(ValidationError):
         validate.Range(2)(1)
+
+def test_range_min_message():
+    v = validate.Range(2, 3, error='{input} is not between {min} and {max}')
+    with pytest.raises(ValidationError) as excinfo:
+        v(1)
+    assert '1 is not between 2 and 3' in str(excinfo)
 
 def test_range_max():
     assert validate.Range(1, 2)(2) == 2
@@ -185,6 +204,12 @@ def test_equal():
     with pytest.raises(ValidationError):
         validate.Equal([2])([1])
 
+def test_equal_custom_message():
+    v = validate.Equal('a', error='{input} is not equal to {other}.')
+    with pytest.raises(ValidationError) as excinfo:
+        v('b')
+    assert 'b is not equal to a.' in str(excinfo)
+
 def test_regexp_str():
     assert validate.Regexp(r'a')('a') == 'a'
     assert validate.Regexp(r'\w')('_') == '_'
@@ -199,6 +224,13 @@ def test_regexp_str():
         validate.Regexp(r'[a-z]+')('1')
     with pytest.raises(ValidationError):
         validate.Regexp(r'a')('A')
+
+def test_regexp_custom_message():
+    rex = r'[0-9]+'
+    v = validate.Regexp(rex, error='{input} does not match {regex}')
+    with pytest.raises(ValidationError) as excinfo:
+        v('a')
+    assert 'a does not match [0-9]+' in str(excinfo)
 
 def test_regexp_compile():
     assert validate.Regexp(re.compile(r'a'))('a') == 'a'
@@ -243,8 +275,9 @@ def test_predicate():
     assert validate.Predicate('_identity', arg=1)(d) == d
     assert validate.Predicate('_identity', arg='abc')(d) == d
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         validate.Predicate('_false')(d)
+    assert 'Invalid input.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.Predicate('_empty')(d)
     with pytest.raises(ValidationError):
@@ -253,6 +286,18 @@ def test_predicate():
         validate.Predicate('_identity', arg=0)(d)
     with pytest.raises(ValidationError):
         validate.Predicate('_identity', arg='')(d)
+
+def test_predicate_custom_message():
+    class Dummy(object):
+        def _false(self):
+            return False
+
+        def __str__(self):
+            return 'Dummy'
+    d = Dummy()
+    with pytest.raises(ValidationError) as excinfo:
+        validate.Predicate('_false', error='{input}.{method} is invalid!')(d)
+    assert 'Dummy._false is invalid!' in str(excinfo)
 
 def test_noneof():
     assert validate.NoneOf([1, 2, 3])(4) == 4
