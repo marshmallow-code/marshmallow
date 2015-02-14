@@ -17,6 +17,7 @@ class URL(object):
 
     :param bool relative: Whether to allow relative URLs.
     :param str error: Error message to raise in case of a validation error.
+        Can be interpolated with `{input}`.
     """
     URL_REGEX = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
@@ -40,25 +41,29 @@ class URL(object):
         r'(?::\d+)?)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
+    default_message = '"{input}" is not a valid URL.'
+
     def __init__(self, relative=False, allow_blank=False, error=None):
         self.relative = relative
         self.allow_blank = allow_blank
-        self.error = error
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(input=value)
 
     def __call__(self, value):
+        message = self._format_error(value)
         if value == '' and self.allow_blank is True:
             return value
-
-        message = '"{0}" is not a valid URL.'.format(value)
         if not value:
-            raise ValidationError(self.error or message)
+            raise ValidationError(message)
 
         regex = self.RELATIVE_URL_REGEX if self.relative else self.URL_REGEX
 
         if not regex.search(value):
             if regex.search('http://' + value):
                 message += ' Did you mean: "http://{0}"?'.format(value)
-            raise ValidationError(self.error or message)
+            raise ValidationError(message)
 
         return value
 
@@ -66,7 +71,8 @@ class URL(object):
 class Email(object):
     """Validate an email address.
 
-    :param str error: Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error. Can be
+        interpolated with `{input}`.
     """
     USER_REGEX = re.compile(
         r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
@@ -84,14 +90,19 @@ class Email(object):
 
     DOMAIN_WHITELIST = ('localhost',)
 
+    default_message = '"{input}" is not a valid email address.'
+
     def __init__(self, allow_blank=False, error=None):
         self.allow_blank = allow_blank
-        self.error = error or '"{0}" is not a valid email address.'
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(input=value)
 
     def __call__(self, value):
         if value == '' and self.allow_blank is True:
             return value
-        message = self.error.format(value)
+        message = self._format_error(value)
 
         if not value or '@' not in value:
             raise ValidationError(message)
@@ -127,7 +138,7 @@ class Range(object):
     :param max: The maximum value (upper bound). If not provided, maximum
         value will not be checked.
     :param str error: Error message to raise in case of a validation error.
-        Can be interpolated using `{min}` and `{max}`.
+        Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
     message_min = 'Must be at least {min}.'
     message_max = 'Must be at most {max}.'
@@ -137,16 +148,18 @@ class Range(object):
         self.min = min
         self.max = max
         self.error = error
-        self._format = lambda m: (self.error or m).format(min=self.min, max=self.max)
+
+    def _format_error(self, value, message):
+        return (self.error or message).format(input=value, min=self.min, max=self.max)
 
     def __call__(self, value):
         if self.min is not None and value < self.min:
             message = self.message_min if self.max is None else self.message_all
-            raise ValidationError(self._format(message))
+            raise ValidationError(self._format_error(value, message))
 
         if self.max is not None and value > self.max:
             message = self.message_max if self.min is None else self.message_all
-            raise ValidationError(self._format(message))
+            raise ValidationError(self._format_error(value, message))
 
         return value
 
@@ -161,7 +174,7 @@ class Length(Range):
     :param int max: The maximum length. If not provided, maximum length
         will not be checked.
     :param str error: Error message to raise in case of a validation error.
-        Can be interpolated using `{min}` and `{max}`.
+        Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
     message_min = 'Shorter than minimum length {min}.'
     message_max = 'Longer than maximum length {max}.'
@@ -178,16 +191,20 @@ class Equal(object):
 
     :param comparable: The object to compare to.
     :param str error: Error message to raise in case of a validation error.
-        Can be interpolated using `{other}`.
+        Can be interpolated with `{input}` and `{other}`.
     """
+    default_message = 'Must be equal to {other}.'
+
     def __init__(self, comparable, error=None):
         self.comparable = comparable
-        self.error = error or 'Must be equal to {other}.'
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(input=value, other=self.comparable)
 
     def __call__(self, value):
         if value != self.comparable:
-            raise ValidationError(self.error.format(other=self.comparable))
-
+            raise ValidationError(self._format_error(value))
         return value
 
 
@@ -199,14 +216,20 @@ class Regexp(object):
     :param flags: The regexp flags to use, for example re.IGNORECASE. Ignored
         if ``regex`` is not a string.
     :param str error: Error message to raise in case of a validation error.
+        Can be interpolated with `{input}` and `{regex}`.
     """
+    default_message = 'String does not match expected pattern.'
+
     def __init__(self, regex, flags=0, error=None):
         self.regex = re.compile(regex, flags) if isinstance(regex, basestring) else regex
-        self.error = error or 'String does not match expected pattern.'
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(input=value, regex=self.regex.pattern)
 
     def __call__(self, value):
         if self.regex.match(value) is None:
-            raise ValidationError(self.error)
+            raise ValidationError(self._format_error(value))
 
         return value
 
@@ -219,18 +242,24 @@ class Predicate(object):
 
     :param str method: The name of the method to invoke.
     :param str error: Error message to raise in case of a validation error.
+        Can be interpolated with `{input}` and `{method}`.
     :param kwargs: Additional keyword arguments to pass to the method.
     """
+    default_message = 'Invalid input.'
+
     def __init__(self, method, error=None, **kwargs):
         self.method = method
-        self.error = error or 'Invalid input.'
+        self.error = error or self.default_message
         self.kwargs = kwargs
+
+    def _format_error(self, value):
+        return self.error.format(input=value, method=self.method)
 
     def __call__(self, value):
         method = getattr(value, self.method)
 
         if not method(**self.kwargs):
-            raise ValidationError(self.error)
+            raise ValidationError(self._format_error(value))
 
         return value
 
@@ -239,16 +268,26 @@ class NoneOf(object):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
     :param iterable iterable: A sequence of invalid values.
-    :param str error: Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error. Can be
+        interpolated using `{input}` and `{values}`.
     """
+    default_message = 'Invalid input.'
+
     def __init__(self, iterable, error=None):
         self.iterable = iterable
-        self.error = error or 'Invalid input.'
+        self.values_text = ', '.join(text_type(each) for each in self.iterable)
+        self.error = error or self.default_message
+
+    def _format_error(self, value):
+        return self.error.format(
+            input=value,
+            values=self.values_text,
+        )
 
     def __call__(self, value):
         try:
             if value in self.iterable:
-                raise ValidationError(self.error)
+                raise ValidationError(self._format_error(value))
         except TypeError:
             pass
 
@@ -261,27 +300,31 @@ class OneOf(object):
     :param iterable choices: A sequence of valid values.
     :param iterable labels: Optional sequence of labels to pair with the choices.
     :param str error: Error message to raise in case of a validation error. Can be
-        interpolated using `{value}`, `{choices}` and `{labels}`.
+        interpolated using `{input}`, `{choices}` and `{labels}`.
     """
+    default_message = 'Not a valid choice.'
+
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
         self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
 
         self.labels = labels if labels is not None else []
         self.labels_text = ', '.join(text_type(label) for label in self.labels)
+        self.error = error or self.default_message
 
-        self._error = lambda v: (error or 'Not a valid choice.').format(
+    def _format_error(self, value):
+        return self.error.format(
+            input=value,
             choices=self.choices_text,
             labels=self.labels_text,
-            value=v,
         )
 
     def __call__(self, value):
         try:
             if value not in self.choices:
-                raise ValidationError(self._error(value))
+                raise ValidationError(self._format_error(value))
         except TypeError:
-            raise ValidationError(self._error(value))
+            raise ValidationError(self._format_error(value))
 
         return value
 
