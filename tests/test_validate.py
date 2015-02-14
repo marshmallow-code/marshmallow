@@ -307,6 +307,10 @@ def test_oneof_options():
     expected = [('1', 'one'), ('2', 'two'), ('', 'three')]
     assert list(oneof.options()) == expected
 
+    oneof = validate.OneOf([1, 2])
+    expected = [('1', ''), ('2', '')]
+    assert list(oneof.options()) == expected
+
 def test_oneof_text():
     oneof = validate.OneOf([1, 2, 3], ['one', 'two', 'three'])
     assert oneof.choices_text == '1, 2, 3'
@@ -319,3 +323,21 @@ def test_oneof_text():
     oneof = validate.OneOf(dict(a=0, b=1))
     assert ', '.join(sorted(oneof.choices_text.split(', '))) == 'a, b'
     assert oneof.labels_text == ''
+
+def test_one_of_custom_error_message():
+    oneof = validate.OneOf([1, 2, 3], error='{value} is not one of {choices}')
+    expected = '4 is not one of 1, 2, 3'
+    with pytest.raises(ValidationError) as excinfo:
+        oneof(4)
+    assert expected in str(expected)
+
+    oneof = validate.OneOf([1, 2, 3],
+        ['one', 'two', 'three'],
+        error='{value} is not one of {labels}'
+    )
+    expected = '4 is not one of one, two, three'
+    with pytest.raises(ValidationError) as excinfo:
+        oneof(4)
+    assert expected in str(expected)
+
+
