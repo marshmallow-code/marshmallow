@@ -274,6 +274,19 @@ def test_noneof():
     with pytest.raises(ValidationError):
         validate.NoneOf('')('')
 
+def test_noneof_custom_message():
+    with pytest.raises(ValidationError) as excinfo:
+        validate.NoneOf([1, 2], error='<not valid>')(1)
+    assert '<not valid>' in str(excinfo)
+
+    none_of = validate.NoneOf(
+        [1, 2],
+        error='{input} cannot be one of {values}'
+    )
+    with pytest.raises(ValidationError) as excinfo:
+        none_of(1)
+    assert '1 cannot be one of 1, 2' in str(excinfo)
+
 def test_oneof():
     assert validate.OneOf([1, 2, 3])(2) == 2
     assert validate.OneOf('abc')('b') == 'b'
@@ -339,5 +352,3 @@ def test_one_of_custom_error_message():
     with pytest.raises(ValidationError) as excinfo:
         oneof(4)
     assert expected in str(expected)
-
-

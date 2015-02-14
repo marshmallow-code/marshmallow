@@ -239,16 +239,23 @@ class NoneOf(object):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
     :param iterable iterable: A sequence of invalid values.
-    :param str error: Error message to raise in case of a validation error.
+    :param str error: Error message to raise in case of a validation error. Can be
+        interpolated using `{input}` and `{values}`.
     """
+
     def __init__(self, iterable, error=None):
         self.iterable = iterable
-        self.error = error or 'Invalid input.'
+        self.values_text = ', '.join(text_type(choice) for choice in self.iterable)
+        self.error = error
+        self._format_error = lambda v: (error or 'Invalid input.').format(
+            input=v,
+            values=self.values_text,
+        )
 
     def __call__(self, value):
         try:
             if value in self.iterable:
-                raise ValidationError(self.error)
+                raise ValidationError(self._format_error(value))
         except TypeError:
             pass
 
