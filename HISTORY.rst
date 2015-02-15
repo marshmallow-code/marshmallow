@@ -7,6 +7,7 @@ Changelog
 Bug fixes:
 
 - Fix behavior of ``skip_missing`` and ``accessor`` options when ``many=True`` (:issue:`137`). Thanks :user:`3rdcycle`.
+- Fix bug that could cause an ``AttributeError`` when nesting schemas with schema-level validators (:issue:`144`). Thanks :user:`vovanbo` for reporting.
 
 1.2.1 (2015-01-11)
 ++++++++++++++++++
