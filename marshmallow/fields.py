@@ -234,7 +234,11 @@ class Unmarshaller(object):
                 if strict:
                     raise UnmarshallingError(err, field=field_obj, field_name=field_name)
                 if isinstance(err.messages, (list, tuple)):
-                    self.errors.setdefault(field_name, []).extend(err.messages)
+                    # self.errors[field_name] may be a dict if schemas are nested
+                    if isinstance(self.errors.get(field_name), dict):
+                        self.errors[field_name].setdefault('_schema', []).extend(err.messages)
+                    else:
+                        self.errors.setdefault(field_name, []).extend(err.messages)
                 elif isinstance(err.messages, dict):
                     self.errors.setdefault(field_name, []).append(err.messages)
                 else:
