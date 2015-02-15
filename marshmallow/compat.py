@@ -56,11 +56,3 @@ def with_metaclass(meta, *bases):
                 return type.__new__(cls, name, (), d)
             return meta(name, bases, d)
     return metaclass('temporary_class', None, {})
-
-
-def total_seconds(td):
-    """Return the total number of seconds contained in the duration.
-
-    Needed for python 2.6 compatibility.
-    """
-    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
