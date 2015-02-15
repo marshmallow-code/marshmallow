@@ -1382,6 +1382,8 @@ class Select(Field):
     :raise: MarshallingError if attribute's value is not one of the given choices.
     """
     def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
+        warnings.warn('The Select field is deprecated. Use the marshmallow.validate.OneOf validator '
+                      'instead.', category=DeprecationWarning)
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
