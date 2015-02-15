@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Field classes for various types of data.
-"""
+"""Field classes for various types of data."""
+
 from __future__ import absolute_import, unicode_literals
 
 import datetime as dt
@@ -11,7 +11,7 @@ from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.compat import text_type, iteritems, total_seconds, basestring
+from marshmallow.compat import text_type, iteritems, basestring
 from marshmallow.exceptions import (
     MarshallingError,
     UnmarshallingError,
@@ -1127,27 +1127,54 @@ class Date(Field):
 
 
 class TimeDelta(Field):
-    """Formats time delta objects, returning the total number of seconds
-    as a float.
+    """A field that (de)serializes a :class:`datetime.timedelta` object to an
+    integer and vice versa. The integer can represent the number of days,
+    seconds or microseconds.
 
+    :param str precision: Influences how the integer is interpreted during
+        (de)serialization. Must be 'days', 'seconds' or 'microseconds'.
+    :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    DAYS = 'days'
+    SECONDS = 'seconds'
+    MICROSECONDS = 'microseconds'
+
+    def __init__(self, precision='seconds', error=None, **kwargs):
+        precision = precision.lower()
+        units = (self.DAYS, self.SECONDS, self.MICROSECONDS)
+
+        if precision not in units:
+            msg = 'The precision must be "{0}", "{1}" or "{2}".'.format(*units)
+            raise ValueError(msg)
+
+        self.precision = precision
+        super(TimeDelta, self).__init__(error=error, **kwargs)
+
     def _serialize(self, value, attr, obj):
         try:
-            return total_seconds(value)
+            days = value.days
+            seconds = days * 86400 + value.seconds
+            microseconds = seconds * 10**6 + value.microseconds
         except AttributeError:
-            msg = '{0} cannot be formatted as a timedelta.'.format(repr(value))
+            msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
             raise MarshallingError(getattr(self, 'error', None) or msg)
-        return value
+
+        return locals()[self.precision]
 
     def _deserialize(self, value):
-        """Deserialize a value in seconds to a :class:`datetime.timedelta`
-        object.
-        """
         try:
-            return dt.timedelta(seconds=float(value))
-        except (TypeError, AttributeError, ValueError):
+            value = int(value)
+        except (TypeError, ValueError):
+            msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
+            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+
+        kwargs = {self.precision: value}
+
+        try:
+            return dt.timedelta(**kwargs)
+        except OverflowError:
             msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
