@@ -1125,6 +1125,38 @@ class TestSchemaValidator:
         errors = s.validate({'foo': 42})
         assert errors['foo'] == [{'code': 'invalid_foo'}]
 
+    # https://github.com/marshmallow-code/marshmallow/issues/144
+    def test_nested_schema_validators(self):
+
+        class ThirdLevel(Schema):
+            name = fields.String()
+
+        class SecondLevel(Schema):
+            third = fields.Nested(ThirdLevel)
+
+        @SecondLevel.validator
+        def validate_third(schema, in_data):
+            raise ValidationError('from second level', 'third')
+
+        class FirstLevel(Schema):
+            second = fields.Nested(SecondLevel)
+
+        @FirstLevel.validator
+        def validate_second(schema, in_data):
+            raise ValidationError('from first level', 'second')
+
+        schema = FirstLevel()
+
+        bad_data = {'second': {'third': None}}
+        _, errors = schema.load(bad_data)
+        expected = {
+            'second': {
+                'third': ['from second level'],
+                '_schema': ['from first level'],
+            }
+        }
+        assert errors == expected
+
 
 class TestPreprocessors:
 
