@@ -8,7 +8,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import MarshallingError
-from marshmallow.compat import total_seconds, text_type, basestring
+from marshmallow.compat import text_type, basestring
 
 from tests.base import User, DummyModel
 
@@ -260,9 +260,46 @@ class TestFieldSerialization:
         assert field.serialize('birthdate', user) == user.birthdate.isoformat()
 
     def test_timedelta_field(self, user):
-        field = fields.TimeDelta()
-        expected = total_seconds(user.since_created)
-        assert field.serialize("since_created", user) == expected
+        user.d1 = dt.timedelta(days=1, seconds=1, microseconds=1)
+        user.d2 = dt.timedelta(days=0, seconds=86401, microseconds=1)
+        user.d3 = dt.timedelta(days=0, seconds=0, microseconds=86401000001)
+        user.d4 = dt.timedelta(days=0, seconds=0, microseconds=0)
+        user.d5 = dt.timedelta(days=-1, seconds=0, microseconds=0)
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
+        assert field.serialize('d1', user) == 1
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize('d1', user) == 86401
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        assert field.serialize('d1', user) == 86401000001
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
+        assert field.serialize('d2', user) == 1
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize('d2', user) == 86401
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        assert field.serialize('d2', user) == 86401000001
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
+        assert field.serialize('d3', user) == 1
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize('d3', user) == 86401
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        assert field.serialize('d3', user) == 86401000001
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
+        assert field.serialize('d4', user) == 0
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize('d4', user) == 0
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        assert field.serialize('d4', user) == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
+        assert field.serialize('d5', user) == -1
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize('d5', user) == -86400
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        assert field.serialize('d5', user) == -86401000000
 
     def test_select_field(self, user):
         field = fields.Select(['male', 'female', 'transexual', 'asexual'])
