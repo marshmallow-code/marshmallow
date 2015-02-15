@@ -413,7 +413,7 @@ def test_oneof_text():
     assert ', '.join(sorted(oneof.choices_text.split(', '))) == 'a, b'
     assert oneof.labels_text == ''
 
-def test_one_of_custom_message():
+def test_oneof_custom_message():
     oneof = validate.OneOf([1, 2, 3], error='{input} is not one of {choices}')
     expected = '4 is not one of 1, 2, 3'
     with pytest.raises(ValidationError) as excinfo:
