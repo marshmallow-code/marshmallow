@@ -19,6 +19,7 @@ class URL(object):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
     """
+
     URL_REGEX = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
         r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
@@ -74,6 +75,7 @@ class Email(object):
     :param str error: Error message to raise in case of a validation error. Can be
         interpolated with `{input}`.
     """
+
     USER_REGEX = re.compile(
         r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
         # quoted-string
@@ -140,6 +142,7 @@ class Range(object):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
+
     message_min = 'Must be at least {min}.'
     message_max = 'Must be at most {max}.'
     message_all = 'Must be between {min} and {max}.'
@@ -176,12 +179,22 @@ class Length(Range):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
+
     message_min = 'Shorter than minimum length {min}.'
     message_max = 'Longer than maximum length {max}.'
     message_all = 'Length must be between {min} and {max}.'
 
     def __call__(self, value):
-        super(Length, self).__call__(len(value))
+        length = len(value)
+
+        if self.min is not None and length < self.min:
+            message = self.message_min if self.max is None else self.message_all
+            raise ValidationError(self._format_error(value, message))
+
+        if self.max is not None and length > self.max:
+            message = self.message_max if self.min is None else self.message_all
+            raise ValidationError(self._format_error(value, message))
+
         return value
 
 
@@ -193,6 +206,7 @@ class Equal(object):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{other}`.
     """
+
     default_message = 'Must be equal to {other}.'
 
     def __init__(self, comparable, error=None):
@@ -218,6 +232,7 @@ class Regexp(object):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{regex}`.
     """
+
     default_message = 'String does not match expected pattern.'
 
     def __init__(self, regex, flags=0, error=None):
@@ -245,6 +260,7 @@ class Predicate(object):
         Can be interpolated with `{input}` and `{method}`.
     :param kwargs: Additional keyword arguments to pass to the method.
     """
+
     default_message = 'Invalid input.'
 
     def __init__(self, method, error=None, **kwargs):
@@ -271,6 +287,7 @@ class NoneOf(object):
     :param str error: Error message to raise in case of a validation error. Can be
         interpolated using `{input}` and `{values}`.
     """
+
     default_message = 'Invalid input.'
 
     def __init__(self, iterable, error=None):
@@ -302,6 +319,7 @@ class OneOf(object):
     :param str error: Error message to raise in case of a validation error. Can be
         interpolated using `{input}`, `{choices}` and `{labels}`.
     """
+
     default_message = 'Not a valid choice.'
 
     def __init__(self, choices, labels=None, error=None):
