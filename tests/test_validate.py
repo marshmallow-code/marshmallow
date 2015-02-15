@@ -79,10 +79,10 @@ def test_url_relative_invalid(invalid_url):
         validator(invalid_url)
 
 def test_url_custom_message():
-    validator = validate.URL(error='{input} ain\'t an URL')
+    validator = validate.URL(error="{input} ain't an URL")
     with pytest.raises(ValidationError) as excinfo:
         validator('invalid')
-    assert 'invalid ain\'t an URL' in str(excinfo)
+    assert "invalid ain't an URL" in str(excinfo)
 
 
 @pytest.mark.parametrize('valid_email', [
@@ -126,6 +126,7 @@ def test_email_custom_message():
         validator('invalid')
     assert 'invalid is not an email addy.' in str(excinfo)
 
+
 def test_range_min():
     assert validate.Range(1, 2)(1) == 1
     assert validate.Range(0)(1) == 1
@@ -137,12 +138,6 @@ def test_range_min():
     with pytest.raises(ValidationError):
         validate.Range(2)(1)
 
-def test_range_min_message():
-    v = validate.Range(2, 3, error='{input} is not between {min} and {max}')
-    with pytest.raises(ValidationError) as excinfo:
-        v(1)
-    assert '1 is not between 2 and 3' in str(excinfo)
-
 def test_range_max():
     assert validate.Range(1, 2)(2) == 2
     assert validate.Range(None, 2)(2) == 2
@@ -153,6 +148,23 @@ def test_range_max():
         validate.Range(0, 1)(2)
     with pytest.raises(ValidationError):
         validate.Range(None, 1)(2)
+
+def test_range_custom_message():
+    v = validate.Range(2, 3, error='{input} is not between {min} and {max}')
+    with pytest.raises(ValidationError) as excinfo:
+        v(1)
+    assert '1 is not between 2 and 3' in str(excinfo)
+
+    v = validate.Range(2, None, error='{input} is less than {min}')
+    with pytest.raises(ValidationError) as excinfo:
+        v(1)
+    assert '1 is less than 2' in str(excinfo)
+
+    v = validate.Range(None, 3, error='{input} is greater than {max}')
+    with pytest.raises(ValidationError) as excinfo:
+        v(4)
+    assert '4 is greater than 3' in str(excinfo)
+
 
 def test_length_min():
     assert validate.Length(3, 5)('foo') == 'foo'
@@ -192,6 +204,23 @@ def test_length_max():
     with pytest.raises(ValidationError):
         validate.Length(None, 2)([1, 2, 3])
 
+def test_length_custom_message():
+    v = validate.Length(5, 6, error='{input} is not between {min} and {max}')
+    with pytest.raises(ValidationError) as excinfo:
+        v('foo')
+    assert 'foo is not between 5 and 6' in str(excinfo)
+
+    v = validate.Length(5, None, error='{input} is shorter than {min}')
+    with pytest.raises(ValidationError) as excinfo:
+        v('foo')
+    assert 'foo is shorter than 5' in str(excinfo)
+
+    v = validate.Length(None, 2, error='{input} is longer than {max}')
+    with pytest.raises(ValidationError) as excinfo:
+        v('foo')
+    assert 'foo is longer than 2' in str(excinfo)
+
+
 def test_equal():
     assert validate.Equal('a')('a') == 'a'
     assert validate.Equal(1)(1) == 1
@@ -210,6 +239,7 @@ def test_equal_custom_message():
         v('b')
     assert 'b is not equal to a.' in str(excinfo)
 
+
 def test_regexp_str():
     assert validate.Regexp(r'a')('a') == 'a'
     assert validate.Regexp(r'\w')('_') == '_'
@@ -224,13 +254,6 @@ def test_regexp_str():
         validate.Regexp(r'[a-z]+')('1')
     with pytest.raises(ValidationError):
         validate.Regexp(r'a')('A')
-
-def test_regexp_custom_message():
-    rex = r'[0-9]+'
-    v = validate.Regexp(rex, error='{input} does not match {regex}')
-    with pytest.raises(ValidationError) as excinfo:
-        v('a')
-    assert 'a does not match [0-9]+' in str(excinfo)
 
 def test_regexp_compile():
     assert validate.Regexp(re.compile(r'a'))('a') == 'a'
@@ -249,6 +272,14 @@ def test_regexp_compile():
         validate.Regexp(re.compile(r'a'))('A')
     with pytest.raises(ValidationError):
         validate.Regexp(re.compile(r'a'), re.IGNORECASE)('A')
+
+def test_regexp_custom_message():
+    rex = r'[0-9]+'
+    v = validate.Regexp(rex, error='{input} does not match {regex}')
+    with pytest.raises(ValidationError) as excinfo:
+        v('a')
+    assert 'a does not match [0-9]+' in str(excinfo)
+
 
 def test_predicate():
     class Dummy(object):
@@ -299,6 +330,7 @@ def test_predicate_custom_message():
         validate.Predicate('_false', error='{input}.{method} is invalid!')(d)
     assert 'Dummy._false is invalid!' in str(excinfo)
 
+
 def test_noneof():
     assert validate.NoneOf([1, 2, 3])(4) == 4
     assert validate.NoneOf('abc')('d') == 'd'
@@ -329,6 +361,7 @@ def test_noneof_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         none_of(1)
     assert '1 cannot be one of 1, 2' in str(excinfo)
+
 
 def test_oneof():
     assert validate.OneOf([1, 2, 3])(2) == 2
@@ -380,7 +413,7 @@ def test_oneof_text():
     assert ', '.join(sorted(oneof.choices_text.split(', '))) == 'a, b'
     assert oneof.labels_text == ''
 
-def test_one_of_custom_error_message():
+def test_oneof_custom_message():
     oneof = validate.OneOf([1, 2, 3], error='{input} is not one of {choices}')
     expected = '4 is not one of 1, 2, 3'
     with pytest.raises(ValidationError) as excinfo:
