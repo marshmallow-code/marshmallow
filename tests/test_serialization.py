@@ -299,7 +299,7 @@ class TestFieldSerialization:
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
         assert field.serialize('d5', user) == -86400
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize('d5', user) == -86401000000
+        assert field.serialize('d5', user) == -86400000000
 
     def test_select_field(self, user):
         field = fields.Select(['male', 'female', 'transexual', 'asexual'])
