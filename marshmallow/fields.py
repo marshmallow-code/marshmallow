@@ -247,7 +247,9 @@ class Unmarshaller(object):
                     if isinstance(err.messages, (list, tuple)):
                         # self.errors[field_name] may be a dict if schemas are nested
                         if isinstance(self.errors.get(field_name), dict):
-                            self.errors[field_name].setdefault('_schema', []).extend(err.messages)
+                            self.errors[field_name].setdefault(
+                                '_schema', []
+                            ).extend(err.messages)
                         else:
                             self.errors.setdefault(field_name, []).extend(err.messages)
                     elif isinstance(err.messages, dict):
@@ -1382,8 +1384,11 @@ class Select(Field):
     :raise: MarshallingError if attribute's value is not one of the given choices.
     """
     def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
-        warnings.warn('The Select field is deprecated. Use the marshmallow.validate.OneOf validator '
-                      'instead.', category=DeprecationWarning)
+        warnings.warn(
+            'The Select field is deprecated. Use the '
+            'marshmallow.validate.OneOf validator '
+            'instead.', category=DeprecationWarning
+        )
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
