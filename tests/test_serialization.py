@@ -424,41 +424,6 @@ class TestFieldSerialization:
             field.serialize('du4', user)
 
 
-class TestMarshaller:
-
-    def test_prefix(self):
-        u = User("Foo", email="foo@bar.com")
-        marshal = fields.Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
-        assert result['usr_name'] == u.name
-        assert result['usr_email'] == u.email
-
-    def test_marshalling_generator(self):
-        gen = (u for u in [User("Foo"), User("Bar")])
-        marshal = fields.Marshaller()
-        res = marshal(gen, {"name": fields.String()}, many=True)
-        assert len(res) == 2
-
-    def test_default_to_missing(self):
-        u = User('Foo', email=None)
-        marshal = fields.Marshaller()
-        res = marshal(u, {'name': fields.String(),
-                         'email': fields.Email(default=fields.missing)})
-        assert res['name'] == u.name
-        assert 'email' not in res
-
-    def test_serialize_fields_with_load_only_param(self):
-        u = User('Foo', email='foo@bar.com')
-        fields_dict = {
-            'name': fields.String(),
-            'email': fields.Email(load_only=True),
-        }
-        marshal = fields.Marshaller()
-        result = marshal(u, fields_dict)
-        assert result['name'] == 'Foo'
-        assert 'email' not in result
-
-
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
 
