@@ -1175,7 +1175,7 @@ class TimeDelta(Field):
         try:
             return dt.timedelta(**kwargs)
         except OverflowError:
-            msg = 'Could not deserialize {0!r} to a timedelta object.'.format(value)
+            msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
             raise UnmarshallingError(getattr(self, 'error', None) or msg)
 
 
