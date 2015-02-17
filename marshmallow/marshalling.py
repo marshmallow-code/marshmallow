@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from marshmallow import base, utils
-from marshmallow.fields import missing, null
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
@@ -12,7 +11,36 @@ from marshmallow.exceptions import (
 __all__ = [
     'Marshaller',
     'Unmarshaller',
+    'null',
+    'missing',
 ]
+
+class _Null(object):
+
+    def __bool__(self):
+        return False
+
+    __nonzero__ = __bool__  # PY2 compat
+
+    def __repr__(self):
+        return '<marshmallow.fields.null>'
+
+class _Missing(_Null):
+
+    def __repr__(self):
+        return '<marshmallow.fields.missing>'
+
+# Singleton that represents an empty value. Used as the default for Nested
+# fields so that `Field._call_with_validation` is invoked, even when the
+# object to serialize has the nested attribute set to None. Therefore,
+# `RegistryErrors` are properly raised.
+null = _Null()
+
+# Singleton value that indicates that a field's value is missing from input
+# dict passed to :meth:`Schema.load`. If the field's value is not required,
+# it's ``default`` value is used.
+missing = _Missing()
+
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
                exception_class, strict=False):

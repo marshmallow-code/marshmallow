@@ -11,6 +11,7 @@ from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
+from marshmallow.marshalling import null, missing
 from marshmallow.compat import text_type, total_seconds, basestring
 from marshmallow.exceptions import (
     MarshallingError,
@@ -53,35 +54,7 @@ __all__ = [
     'Str',
     'Bool',
     'Int',
-    'null',
-    'missing',
 ]
-
-class _Null(object):
-
-    def __bool__(self):
-        return False
-
-    __nonzero__ = __bool__  # PY2 compat
-
-    def __repr__(self):
-        return '<marshmallow.fields.null>'
-
-class _Missing(_Null):
-
-    def __repr__(self):
-        return '<marshmallow.fields.missing>'
-
-# Singleton that represents an empty value. Used as the default for Nested
-# fields so that `Field._call_with_validation` is invoked, even when the
-# object to serialize has the nested attribute set to None. Therefore,
-# `RegistryErrors` are properly raised.
-null = _Null()
-
-# Singleton value that indicates that a field's value is missing from input
-# dict passed to :meth:`Schema.load`. If the field's value is not required,
-# it's ``default`` value is used.
-missing = _Missing()
 
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
