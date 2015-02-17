@@ -7,6 +7,9 @@ and from primitive types.
     This module is treated as private API.
     Users should not need to use this module directly.
 """
+
+from __future__ import unicode_literals
+
 from marshmallow import base, utils
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -31,12 +34,14 @@ class _Null(object):
     __nonzero__ = __bool__  # PY2 compat
 
     def __repr__(self):
-        return '<marshmallow.fields.null>'
+        return '<marshmallow.marshalling.null>'
+
 
 class _Missing(_Null):
 
     def __repr__(self):
-        return '<marshmallow.fields.missing>'
+        return '<marshmallow.marshalling.missing>'
+
 
 # Singleton that represents an empty value. Used as the default for Nested
 # fields so that `Field._call_with_validation` is invoked, even when the
