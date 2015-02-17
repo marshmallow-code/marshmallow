@@ -22,6 +22,10 @@ Deprecation/Removals:
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 - The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
 
+Other changes:
+
+- ``Marshaller``, ``Unmarshaller``, ``null``, and ``missing`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
+
 1.2.2 (unreleased)
 ++++++++++++++++++
 

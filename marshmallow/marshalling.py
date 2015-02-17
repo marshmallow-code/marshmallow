@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""Utility classes and values used for marshalling and unmarshalling objects to
+and from primitive types.
+
+.. warning::
+
+    This module is treated as private API.
+    Users should not need to use this module directly.
+"""
 from marshmallow import base, utils
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
