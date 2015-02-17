@@ -2,6 +2,11 @@
 """A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string
 lookup of schemas, which may be used with
 class:`fields.Nested <marshmallow.fields.Nested>`.
+
+.. warning::
+
+    This module is treated as private API.
+    Users should not need to use this module directly.
 """
 from __future__ import unicode_literals
 

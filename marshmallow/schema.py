@@ -12,7 +12,7 @@ import warnings
 from collections import namedtuple
 from functools import partial
 
-from marshmallow import base, fields, utils, class_registry
+from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
@@ -243,11 +243,11 @@ class BaseSchema(base.SchemaABC):
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
-        self._marshal = fields.Marshaller(
+        self._marshal = marshalling.Marshaller(
             prefix=self.prefix
         )
         #: Callable unmarshalling object
-        self._unmarshal = fields.Unmarshaller()
+        self._unmarshal = marshalling.Unmarshaller()
         self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)
