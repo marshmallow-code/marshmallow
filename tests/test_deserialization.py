@@ -324,6 +324,8 @@ class TestFieldDeserialization:
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize(in_value)
+        msg = '{0!r} cannot be interpreted as a valid period of time.'.format(in_value)
+        assert msg in str(excinfo)
 
     def test_date_field_deserialization(self):
         field = fields.Date()
