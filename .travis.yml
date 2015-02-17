@@ -10,9 +10,7 @@ python:
   - "pypy"
 
 install:
-  - pip install pytz
-  - pip install python-dateutil
-  - pip install flake8
+  - pip install -U -r dev-requirements.txt
   - pip install -U .
 
 before_script:

@@ -299,6 +299,3 @@ class Unmarshaller(object):
 
     # Make an instance callable
     __call__ = deserialize
-
-
-
