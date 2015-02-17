@@ -44,6 +44,21 @@ Similarly, the ``allow_blank`` parameter determines whether the empty string is 
     fields.Str().deserialize('')  # error: Field may not be blank.
     fields.Str(allow_blank=True).deserialize('')  # ''
 
+Use ``OneOf`` instead of ``fields.Select``
+******************************************
+
+The `fields.Select` field was deprecated in favor of the newly-added `OneOf` validator.
+
+.. code-block:: python
+
+    from marshmallow import fields
+    from marshmallow.validate import OneOf
+
+    # 1.0
+    fields.Select(['red', 'blue'])
+
+    # 2.0
+    fields.Str(validate=OneOf(['red', 'blue']))
 
 Upgrading to 1.2
 ++++++++++++++++
