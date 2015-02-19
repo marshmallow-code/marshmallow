@@ -100,12 +100,12 @@ def test_multiple_classes_with_all():
 def test_can_use_full_module_path_to_class():
     from .foo_serializer import FooSerializer as FooSerializer1  # noqa
     # Using full paths is ok
-    field = fields.Nested('tests.foo_serializer.FooSerializer')
+    field = fields.Nested('tests.foo_serializer.FooSerializer', allow_null=False)
 
     # Note: The arguments here don't matter. What matters is that no
     # error is raised
     assert field.serialize('bar', {'foo': {'_id': 42}})
 
-    field2 = fields.Nested('tests.test_registry.FooSerializer')
+    field2 = fields.Nested('tests.test_registry.FooSerializer', allow_null=False)
 
     assert field2.serialize('bar', {'foo': {'_id': 42}})

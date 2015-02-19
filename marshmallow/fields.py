@@ -316,13 +316,13 @@ class Nested(Field):
         will be marshalled. If a field name (string) is given, only a single
         value will be returned as output instead of a dictionary.
         This parameter takes precedence over ``exclude``.
-    :param bool allow_null: Whether to return None instead of a dictionary
-        with null keys, if a nested dictionary has all-null keys
+    :param bool allow_null: Whether to return `None` instead of a dictionary
+        with null keys, if a nested dictionary has all-null keys.
     :param bool many: Whether the field is a collection of objects.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def __init__(self, nested, default=null, exclude=tuple(), only=None, allow_null=False,
+    def __init__(self, nested, default=null, exclude=tuple(), only=None, allow_null=True,
                 many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
@@ -371,6 +371,9 @@ class Nested(Field):
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
+        # Load up the schema first. This allows a RegistryError to be raised
+        # if an invalid schema name was passed
+        schema = self.schema
         if nested_obj is None:
             if self.many:
                 return []

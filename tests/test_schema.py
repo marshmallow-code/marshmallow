@@ -1420,7 +1420,7 @@ class TestNestedSchema:
 
         s = MySchema()
         result = s.dump({'foo': None})
-        assert result.data['foo'] == {'bar': None}
+        assert result.data['foo'] is None
 
         s2 = MySchema2()
         result2 = s2.dump({'foo': None})
