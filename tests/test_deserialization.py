@@ -7,7 +7,7 @@ import pytest
 
 from marshmallow import fields, utils, Schema
 from marshmallow.exceptions import UnmarshallingError, ValidationError
-from marshmallow.compat import text_type, total_seconds, basestring
+from marshmallow.compat import text_type, basestring
 
 from tests.base import (
     assert_almost_equal,
@@ -275,23 +275,56 @@ class TestFieldDeserialization:
         field = fields.TimeDelta()
         result = field.deserialize('42')
         assert isinstance(result, dt.timedelta)
-        assert total_seconds(result) == 42.0
+        assert result.days == 0
+        assert result.seconds == 42
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        result = field.deserialize(100000)
+        assert result.days == 1
+        assert result.seconds == 13600
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
         result = field.deserialize('-42')
-        assert total_seconds(result) == -42.0
-        result = field.deserialize(12.3)
-        assert_almost_equal(total_seconds(result), 12.3)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == -42
+        assert result.seconds == 0
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        result = field.deserialize(10**6 + 1)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 0
+        assert result.seconds == 1
+        assert result.microseconds == 1
+
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
+        result = field.deserialize(10**6 + 1)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 0
+        assert result.seconds == 1
+        assert result.microseconds == 1
+
+        field = fields.TimeDelta()
+        result = field.deserialize(12.9)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 0
+        assert result.seconds == 12
+        assert result.microseconds == 0
 
     @pytest.mark.parametrize('in_value',
     [
         '',
         'badvalue',
         [],
+        9999999999,
     ])
     def test_invalid_timedelta_field_deserialization(self, in_value):
-        field = fields.TimeDelta()
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
         with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Could not deserialize {0!r} to a timedelta object'.format(in_value)
+        msg = '{0!r} cannot be interpreted as a valid period of time.'.format(in_value)
         assert msg in str(excinfo)
 
     def test_date_field_deserialization(self):
