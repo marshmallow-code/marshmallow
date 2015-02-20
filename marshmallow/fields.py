@@ -1135,6 +1135,10 @@ class TimeDelta(Field):
         (de)serialization. Must be 'days', 'seconds' or 'microseconds'.
     :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 2.0.0
+        Always serializes to an integer value to avoid rounding errors.
+        Add `precision` parameter.
     """
 
     DAYS = 'days'
