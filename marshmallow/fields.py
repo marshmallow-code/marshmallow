@@ -1155,13 +1155,17 @@ class TimeDelta(Field):
     def _serialize(self, value, attr, obj):
         try:
             days = value.days
-            seconds = days * 86400 + value.seconds
-            microseconds = seconds * 10**6 + value.microseconds
+            if self.precision == self.DAYS:
+                return days
+            else:
+                seconds = days * 86400 + value.seconds
+                if self.precision == self.SECONDS:
+                    return seconds
+                else:  # microseconds
+                    return seconds * 10**6 + value.microseconds
         except AttributeError:
-            msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
+            msg = '{0!r} cannot be formatted as a timedelta.'.format()
             raise MarshallingError(getattr(self, 'error', None) or msg)
-
-        return locals()[self.precision]
 
     def _deserialize(self, value):
         try:
