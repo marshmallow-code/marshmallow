@@ -893,7 +893,7 @@ class TimeDelta(Field):
                 else:  # microseconds
                     return seconds * 10**6 + value.microseconds
         except AttributeError:
-            msg = '{0!r} cannot be formatted as a timedelta.'.format()
+            msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
             raise MarshallingError(getattr(self, 'error', None) or msg)
 
     def _deserialize(self, value):
