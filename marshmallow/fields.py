@@ -711,22 +711,6 @@ class Arbitrary(Number):
         return self._validated(value, UnmarshallingError)
 
 
-DATEFORMAT_SERIALIZATION_FUNCS = {
-    'iso': utils.isoformat,
-    'iso8601': utils.isoformat,
-
-    'rfc': utils.rfcformat,
-    'rfc822': utils.rfcformat,
-}
-
-DATEFORMAT_DESERIALIZATION_FUNCS = {
-    'iso': utils.from_iso,
-    'iso8601': utils.from_iso,
-
-    'rfc': utils.from_rfc,
-    'rfc822': utils.from_rfc,
-}
-
 class DateTime(Field):
     """A formatted datetime string in UTC.
 
@@ -740,6 +724,21 @@ class DateTime(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
+
+    DATEFORMAT_SERIALIZATION_FUNCS = {
+        'iso': utils.isoformat,
+        'iso8601': utils.isoformat,
+        'rfc': utils.rfcformat,
+        'rfc822': utils.rfcformat,
+    }
+
+    DATEFORMAT_DESERIALIZATION_FUNCS = {
+        'iso': utils.from_iso,
+        'iso8601': utils.from_iso,
+        'rfc': utils.from_rfc,
+        'rfc822': utils.from_rfc,
+    }
+
     DEFAULT_FORMAT = 'iso'
 
     localtime = False
@@ -754,7 +753,7 @@ class DateTime(Field):
     def _serialize(self, value, attr, obj):
         if value:
             self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-            format_func = DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+            format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
             if format_func:
                 try:
                     return format_func(value, localtime=self.localtime)
@@ -769,7 +768,7 @@ class DateTime(Field):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise err
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
+        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
         if func:
             try:
                 return func(value)
