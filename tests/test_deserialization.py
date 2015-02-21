@@ -300,10 +300,10 @@ class TestFieldDeserialization:
         assert result.microseconds == 1
 
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        result = field.deserialize(10**6 + 1)
+        result = field.deserialize(86400 * 10**6 + 1)
         assert isinstance(result, dt.timedelta)
-        assert result.days == 0
-        assert result.seconds == 1
+        assert result.days == 1
+        assert result.seconds == 0
         assert result.microseconds == 1
 
         field = fields.TimeDelta()
