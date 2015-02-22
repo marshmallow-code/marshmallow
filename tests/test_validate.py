@@ -429,7 +429,7 @@ def test_oneof_custom_message():
         oneof(4)
     assert expected in str(expected)
 
-def test_containsonly():
+def test_containsonly_in_list():
     assert validate.ContainsOnly([])([]) == []
     assert validate.ContainsOnly([1, 2, 3])([1]) == [1]
     assert validate.ContainsOnly([1, 1, 2])([1, 1]) == [1, 1]
@@ -439,6 +439,15 @@ def test_containsonly():
     assert validate.ContainsOnly([1, 2, 3])([3, 1, 2]) == [3, 1, 2]
     assert validate.ContainsOnly([1, 2, 3])([2, 3, 1]) == [2, 3, 1]
 
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([1, 2, 3])([4])
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([1, 2, 3])([])
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([])([1])
+
+def test_contains_only_unhashable_types():
+
     assert validate.ContainsOnly([[1], [2], [3]])([[1]]) == [[1]]
     assert validate.ContainsOnly([[1], [1], [2]])([[1], [1]]) == [[1], [1]]
     assert validate.ContainsOnly([[1], [2], [3]])([[1], [2]]) == [[1], [2]]
@@ -447,6 +456,14 @@ def test_containsonly():
     assert validate.ContainsOnly([[1], [2], [3]])([[3], [1], [2]]) == [[3], [1], [2]]
     assert validate.ContainsOnly([[1], [2], [3]])([[2], [3], [1]]) == [[2], [3], [1]]
 
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([[1], [2], [3]])([[4]])
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([[1], [2], [3]])([])
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly([])([1])
+
+def test_containsonly_in_tuple():
     assert validate.ContainsOnly(())(()) == ()
     assert validate.ContainsOnly((1, 2, 3))((1,)) == (1,)
     assert validate.ContainsOnly((1, 1, 2))((1, 1)) == (1, 1)
@@ -455,6 +472,16 @@ def test_containsonly():
     assert validate.ContainsOnly((1, 2, 3))((1, 2, 3)) == (1, 2, 3)
     assert validate.ContainsOnly((1, 2, 3))((3, 1, 2)) == (3, 1, 2)
     assert validate.ContainsOnly((1, 2, 3))((2, 3, 1)) == (2, 3, 1)
+
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly((1, 2, 3))((4,))
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly((1, 2, 3))(())
+    with pytest.raises(ValidationError):
+        validate.ContainsOnly(())((1,))
+
+
+def test_contains_only_in_string():
 
     assert validate.ContainsOnly('')('') == ''
     assert validate.ContainsOnly('abc')('a') == 'a'
@@ -466,33 +493,13 @@ def test_containsonly():
     assert validate.ContainsOnly('abc')('bca') == 'bca'
 
     with pytest.raises(ValidationError):
-        validate.ContainsOnly([1, 2, 3])([4])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([1, 2, 3])([])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([])([1])
-
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([[1], [2], [3]])([[4]])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([[1], [2], [3]])([])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([])([1])
-
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly((1, 2, 3))((4,))
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly((1, 2, 3))(())
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly(())((1,))
-
-    with pytest.raises(ValidationError):
         validate.ContainsOnly('abc')('d')
     with pytest.raises(ValidationError):
         validate.ContainsOnly('abc')('')
     with pytest.raises(ValidationError):
         validate.ContainsOnly('')('a')
 
+def test_contains_only_invalid():
     with pytest.raises(ValidationError):
         validate.ContainsOnly([1, 2, 3])([1, 1])
     with pytest.raises(ValidationError):
@@ -501,7 +508,10 @@ def test_containsonly():
         validate.ContainsOnly([1, 1, 2])([1, 1, 1])
 
 def test_containsonly_custom_message():
-    containsonly = validate.ContainsOnly([1, 2, 3], error='{input} is not one of {choices}')
+    containsonly = validate.ContainsOnly(
+        [1, 2, 3],
+        error='{input} is not one of {choices}'
+    )
     expected = '4, 5 is not one of 1, 2, 3'
     with pytest.raises(ValidationError) as excinfo:
         containsonly([4, 5])
