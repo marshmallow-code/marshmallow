@@ -383,6 +383,8 @@ class ContainsOnly(OneOf):
         if not value and choices:
             raise ValidationError(self._format_error(value))
 
+        # We check list.index instead of using set.issubset so that
+        # unhashable types are handled.
         for val in value:
             try:
                 index = choices.index(val)
