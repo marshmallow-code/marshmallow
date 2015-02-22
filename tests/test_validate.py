@@ -500,8 +500,9 @@ def test_contains_only_in_string():
         validate.ContainsOnly('')('a')
 
 def test_contains_only_invalid():
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         validate.ContainsOnly([1, 2, 3])([1, 1])
+    assert 'One or more of the choices you made was not acceptable.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.ContainsOnly([1, 1, 2])([2, 2])
     with pytest.raises(ValidationError):
