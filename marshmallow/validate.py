@@ -325,7 +325,6 @@ class OneOf(object):
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
         self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
-
         self.labels = labels if labels is not None else []
         self.labels_text = ', '.join(text_type(label) for label in self.labels)
         self.error = error or self.default_message
@@ -361,6 +360,40 @@ class OneOf(object):
         pairs = zip_longest(self.choices, self.labels, fillvalue='')
 
         return ((valuegetter(choice), label) for choice, label in pairs)
+
+
+class ContainsOnly(OneOf):
+    """Validator which succeeds if ``value`` is a sequence and each element
+    in the sequence is also in the sequence passed as ``choices``.
+
+    :param iterable choices: Same as :class:`OneOf`.
+    :param iterable labels: Same as :class:`OneOf`.
+    :param str error: Same as :class:`OneOf`.
+    """
+
+    default_message = 'One or more of the choices you made was not acceptable.'
+
+    def _format_error(self, value):
+        value_text = ', '.join(text_type(val) for val in value)
+        return super(ContainsOnly, self)._format_error(value_text)
+
+    def __call__(self, value):
+        choices = list(self.choices)
+
+        if not value and choices:
+            raise ValidationError(self._format_error(value))
+
+        # We check list.index instead of using set.issubset so that
+        # unhashable types are handled.
+        for val in value:
+            try:
+                index = choices.index(val)
+            except ValueError:
+                raise ValidationError(self._format_error(value))
+            else:
+                del choices[index]
+
+        return value
 
 
 #
