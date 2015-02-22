@@ -1012,7 +1012,6 @@ class Url(ValidatedField, String):
             error=getattr(self, 'error')
         )(value)
 
-URL = Url
 
 class Email(ValidatedField, String):
     """A validated email field. Validation occurs during both serialization and
@@ -1288,6 +1287,7 @@ class QuerySelectList(QuerySelect):
         return items
 
 # Aliases
+URL = Url
 Enum = Select
 Str = String
 Bool = Boolean
