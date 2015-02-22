@@ -56,6 +56,7 @@ __all__ = [
     'Int',
 ]
 
+
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
@@ -104,6 +105,7 @@ class Field(FieldABC):
         Added `missing` parameter, which indicates the value for a field if the field
         is not found during deserialization.
     """
+
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
     #  for those fields
@@ -293,9 +295,11 @@ class Field(FieldABC):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
 
+
 class Raw(Field):
     """Field that applies no formatting or validation."""
     pass
+
 
 class Nested(Field):
     """Allows you to nest a :class:`Schema <marshmallow.Schema>`
@@ -419,6 +423,7 @@ class List(Field):
         The ``allow_none`` parameter now applies to deserialization and
         has the same semantics as the other fields.
     """
+
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, [], tuple())
 
@@ -468,6 +473,7 @@ class String(Field):
         Add `allow_blank` parameter. By default, the empty string will fail
         validation.
     """
+
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
 
@@ -637,6 +643,7 @@ class Boolean(Field):
                     ))
         return True
 
+
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
     the source string is the same as the string `str.format` method
@@ -651,6 +658,7 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
+
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
 
@@ -687,6 +695,7 @@ class Arbitrary(Number):
     .. deprecated:: 1.2.0
         Use `Decimal` instead.
     """
+
     # No as_string param
     def __init__(self, default='0', attribute=None, **kwargs):
         warnings.warn(
@@ -792,6 +801,7 @@ class LocalDateTime(DateTime):
 
     Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
     """
+
     localtime = True
 
 
@@ -821,6 +831,7 @@ class Time(Field):
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
             raise err
+
 
 class Date(Field):
     """ISO8601-formatted date string.
@@ -958,6 +969,7 @@ class Price(Fixed):
     .. deprecated:: 1.2.0
         Use `Decimal` instead.
     """
+
     def __init__(self, decimals=2, default='0.00', **kwargs):
         warnings.warn(
             'The Price field is deprecated. Use the Decimal field for dealing with '
@@ -965,6 +977,7 @@ class Price(Fixed):
             category=DeprecationWarning
         )
         super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
+
 
 class ValidatedField(Field):
     """A field that validates input on serialization."""
@@ -975,6 +988,7 @@ class ValidatedField(Field):
     def _serialize(self, value, *args, **kwargs):
         ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
         return self._validated(ret)
+
 
 class Url(ValidatedField, String):
     """A validated URL field. Validation occurs during both serialization and
@@ -1012,7 +1026,6 @@ class Url(ValidatedField, String):
             error=getattr(self, 'error')
         )(value)
 
-URL = Url
 
 class Email(ValidatedField, String):
     """A validated email field. Validation occurs during both serialization and
@@ -1023,6 +1036,7 @@ class Email(ValidatedField, String):
     .. versionchanged:: 2.0.0
         Subclasses `String` and add the `allow_blank` parameter.
     """
+
     def __init__(self, default=None, attribute=None, allow_blank=False,
                  *args, **kwargs):
         String.__init__(self, default=default, attribute=attribute,
@@ -1052,6 +1066,7 @@ class Method(Field):
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
     """
+
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, method_name, deserialize=None, **kwargs):
@@ -1097,6 +1112,7 @@ class Function(Field):
     :param callable deserialize: Deserialization function that takes the value
         to be deserialized as its only argument.
     """
+
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, func, deserialize=None, **kwargs):
@@ -1140,6 +1156,7 @@ class Select(Field):
 
     :raise: MarshallingError if attribute's value is not one of the given choices.
     """
+
     def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
         warnings.warn(
             'The Select field is deprecated. Use the '
@@ -1186,6 +1203,7 @@ class QuerySelect(Field):
 
     .. versionadded:: 1.2.0
     """
+
     def __init__(self, query, keygetter, error=None, **kwargs):
         self.query = query
         self.keygetter = keygetter if callable(keygetter) else attrgetter(keygetter)
@@ -1251,6 +1269,7 @@ class QuerySelectList(QuerySelect):
 
     .. versionadded:: 1.2.0
     """
+
     def _serialize(self, value, attr, obj):
         items = [self.keygetter(v) for v in value]
 
@@ -1288,6 +1307,7 @@ class QuerySelectList(QuerySelect):
         return items
 
 # Aliases
+URL = Url
 Enum = Select
 Str = String
 Bool = Boolean
