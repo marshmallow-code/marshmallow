@@ -14,7 +14,7 @@ Features:
 - Add ``load_only`` and ``dump_only`` parameters to fields (:issue:`61`, :issue:`87`). Thanks :user:`philtay`.
 - Add `missing` parameter to fields (:issue:`115`). Thanks :user:`philtay`.
 - Schema validators can take an optional ``raw_data`` argument which contains raw input data, incl. data not specified in the schema (:issue:`127`). Thanks :user:`ryanlowe0`.
-- Add ``validate.OneOf`` validator (:issue:`135`). Thanks :user:`philtay`.
+- Add ``validate.OneOf`` (:issue:`135`) and ``validate.ContainsOnly`` (:issue:`149`) validators. Thanks :user:`philtay`.
 - Error messages for validators can be interpolated with `{input}` and other values (depending on the validator).
 - ``fields.TimeDelta`` always serializes to an integer value in order to avoid rounding errors (:issue:`105`). Thanks :user:`philtay`.
 
