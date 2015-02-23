@@ -204,9 +204,6 @@ class Field(FieldABC):
                 raise err
         except ValidationError as err:
             raise exception_class(err)
-        # Reraise errors, wrapping with exception_class
-        # except Exception as error:
-        #     raise exception_class(getattr(self, 'error', None) or error)
 
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
