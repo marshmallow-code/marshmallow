@@ -151,7 +151,9 @@ class Field(FieldABC):
     def __repr__(self):
         return ('<fields.{ClassName}(default={self.default!r}, '
                 'attribute={self.attribute!r}, error={self.error!r}, '
-                'validate={self.validate}, required={self.required})>'
+                'validate={self.validate}, required={self.required}, '
+                'load_only={self.load_only}, dump_only={self.dump_only}, '
+                'missing={self.missing}, allow_none={self.allow_none})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, attr, obj, accessor=None):

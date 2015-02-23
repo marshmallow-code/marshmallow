@@ -2,6 +2,7 @@
 import pytest
 
 from marshmallow import fields
+from marshmallow.marshalling import null
 
 from tests.base import ALL_FIELDS
 
@@ -25,8 +26,10 @@ class TestField:
         default = u'œ∑´'
         field = fields.Field(default=default, attribute=None)
         assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
-                                'error=None, validate=None, required=False)>'
-                                .format(default))
+                                'error=None, validate=None, required=False, '
+                                'load_only=False, dump_only=False, '
+                                'missing={missing}, allow_none=False)>'
+                                .format(default, missing=null))
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 
