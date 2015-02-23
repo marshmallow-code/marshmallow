@@ -72,6 +72,29 @@ def test_dump_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1).data
 
+def test_dump_many_stores_error_indices():
+    s = UserSchema()
+    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+
+    _, errors = s.dump([u1, u2], many=True)
+    assert 1 in errors
+
+    assert 'email' in errors[1]
+
+def test_dump_many_doesnt_stores_error_indices_when_index_errors_is_false():
+    class NoIndex(Schema):
+        email = fields.Email()
+
+        class Meta:
+            index_errors = False
+
+    s = NoIndex()
+    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+
+    _, errors = s.dump([u1, u2], many=True)
+    assert 1 not in errors
+    assert 'email' in errors
+
 def test_dump_returns_a_marshalresult(user):
     s = UserSchema()
     result = s.dump(user)
@@ -179,13 +202,29 @@ class TestValidate:
         assert errors == {}
 
     def test_validate_many(self):
-        s = UserSchema()
-        in_data = [{'name': 'Valid Name', 'email': 'Valid Email'},
-                {'name': 'Valid Name2', 'email': 'invalid'}]
+        s = UserSchema(many=True)
+        in_data = [
+            {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
+            {'name': 'Valid Name2', 'email': 'invalid'}
+        ]
         errors = s.validate(in_data, many=True)
-        assert type(errors) is dict
+        assert 1 in errors
+        assert 'email' in errors[1]
+
+    def test_validate_many_doesnt_store_index_if_index_errors_option_is_false(self):
+        class NoIndex(Schema):
+            email = fields.Email()
+
+            class Meta:
+                index_errors = False
+        s = NoIndex()
+        in_data = [
+            {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
+            {'name': 'Valid Name2', 'email': 'invalid'}
+        ]
+        errors = s.validate(in_data, many=True)
+        assert 1 not in errors
         assert 'email' in errors
-        assert 'name' not in errors
 
     def test_validate_strict(self):
         s = UserSchema(strict=True)
@@ -488,10 +527,10 @@ def test_load_errors_with_many():
     ]
 
     data, errors = ErrorSchema(many=True).load(data)
-    assert 'email' in errors
-    assert len(errors['email']) == 2
-    assert 'bademail' in errors['email'][0]
-    assert 'anotherbademail' in errors['email'][1]
+    assert 0 in errors
+    assert 2 in errors
+    assert 'bademail' in errors[0]['email'][0]
+    assert 'anotherbademail' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
     class BadSchema(Schema):
@@ -1114,7 +1153,8 @@ class TestSchemaValidator:
             {'foo': 'bar'},
             {'foo': 'baz'}
         ], many=True)
-        assert len(errors['foo']) == 2
+        assert len(errors[0]['foo']) == 1
+        assert len(errors[1]['foo']) == 1
         _, errors2 = schema.load({'foo': 'bar'})
         assert len(errors2['foo']) == 1
 

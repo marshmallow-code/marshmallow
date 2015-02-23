@@ -112,6 +112,7 @@ class SchemaOpts(object):
         self.json_module = getattr(meta, 'json_module', json)
         self.skip_missing = getattr(meta, 'skip_missing', False)
         self.ordered = getattr(meta, 'ordered', False)
+        self.index_errors = getattr(meta, 'index_errors', True)
 
 
 class BaseSchema(base.SchemaABC):
@@ -223,6 +224,8 @@ class BaseSchema(base.SchemaABC):
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
+        - ``index_errors``: If `True`, errors dictionaries will include the index
+            of invalid items in a collection.
         """
         pass
 
@@ -463,6 +466,7 @@ class BaseSchema(base.SchemaABC):
             skip_missing=self.skip_missing,
             accessor=self.__accessor__,
             dict_class=self.dict_class,
+            index_errors=self.opts.index_errors,
             **kwargs
         )
         result = self._postprocess(preresult, many, obj=obj)
@@ -605,7 +609,8 @@ class BaseSchema(base.SchemaABC):
             validators=validators,
             preprocess=preprocessors,
             postprocess=postprocess_funcs,
-            dict_class=self.dict_class
+            dict_class=self.dict_class,
+            index_errors=self.opts.index_errors,
         )
         errors = self._unmarshal.errors
         if errors and callable(self.__error_handler__):
