@@ -6,6 +6,8 @@ Changelog
 
 Features:
 
+- *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection (:issue:`75`). Add the ``index_errors`` class Meta option.
+- *Backwards-incompatible*: By default, required fields will raise a ValidationError if the input is ``None`` or the empty string. The ``allow_none`` and ``allow_blank`` parameters can override this behavior.
 - Schema-level validators can store error messages for multiple fields (:issue:`118`). Thanks :user:`ksesong` for the suggestion.
 - Error message for ``required`` validation is configurable. (:issue:`78`). Thanks :user:`svenstaro` for the suggestion. Thanks :user:`0xDCA` for the implementation.
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
@@ -17,8 +19,6 @@ Features:
 - Add ``validate.OneOf`` (:issue:`135`) and ``validate.ContainsOnly`` (:issue:`149`) validators. Thanks :user:`philtay`.
 - Error messages for validators can be interpolated with `{input}` and other values (depending on the validator).
 - ``fields.TimeDelta`` always serializes to an integer value in order to avoid rounding errors (:issue:`105`). Thanks :user:`philtay`.
-- *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection. Add the ``index_errors`` class Meta option.
-
 Deprecation/Removals:
 
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.

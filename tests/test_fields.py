@@ -20,6 +20,9 @@ class TestFieldAliases:
     def test_bool_is_boolean(self):
         assert fields.Bool is fields.Boolean
 
+    def test_URL_is_Url(self):
+        assert fields.URL is fields.Url
+
 class TestField:
 
     def test_repr(self):
