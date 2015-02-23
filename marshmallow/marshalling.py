@@ -71,6 +71,8 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
     :param type exception_class: Exception class that will be caught during
         serialization/deserialization. Errors of this type will be stored
         in ``errors_dict``.
+    :param int index: Index of the item being validated, if validating a collection,
+        otherwise `None`.
     """
     try:
         value = getter_func(data)
@@ -138,6 +140,8 @@ class Marshaller(object):
         :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
+        :param int index: Index of the item being serialized (for storing errors) if
+            serializing a collection, otherwise `None`.
         :return: A dictionary of the marshalled data
 
         .. versionchanged:: 1.0.0
@@ -250,6 +254,8 @@ class Unmarshaller(object):
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :param type dict_class: Dictionary class used to construct the output.
+        :param int index: Index of the item being serialized (for storing errors) if
+            serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
         # Reset errors if not deserializing a collection

@@ -43,7 +43,20 @@ class TestMarshaller:
         assert result['name'] == 'Foo'
         assert 'email' not in result
 
-class TestUnMarshaller:
+    def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
+        users = [
+            {'email': 'bar@example.com'},
+            {'email': 'foobar'},
+            {'email': 'invalid'},
+        ]
+        marshal(users, {'email': fields.Email()}, many=True)
+        # 2nd and 3rd elements have an error
+        assert 1 in marshal.errors
+        assert 2 in marshal.errors
+        assert 'email' in marshal.errors[1]
+        assert 'email' in marshal.errors[2]
+
+class TestUnmarshaller:
 
     @pytest.fixture
     def unmarshal(self):
@@ -62,6 +75,19 @@ class TestUnMarshaller:
         data = {'email': 'invalid-email'}
         unmarshal(data, {"email": fields.Email()})
         assert "email" in unmarshal.errors
+
+    def test_stores_indices_of_errors_when_many_equals_true(self, unmarshal):
+        users = [
+            {'email': 'bar@example.com'},
+            {'email': 'foobar'},
+            {'email': 'invalid'},
+        ]
+        unmarshal(users, {'email': fields.Email()}, many=True)
+        # 2nd and 3rd elements have an error
+        assert 1 in unmarshal.errors
+        assert 2 in unmarshal.errors
+        assert 'email' in unmarshal.errors[1]
+        assert 'email' in unmarshal.errors[2]
 
     def test_deserialize(self, unmarshal):
         user_data = {
