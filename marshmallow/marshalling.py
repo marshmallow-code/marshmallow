@@ -127,7 +127,7 @@ class Marshaller(object):
         self.__pending = False
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None, dict_class=dict, index=None):
+                  accessor=None, dict_class=dict, index_errors=True, index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -140,6 +140,8 @@ class Marshaller(object):
         :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
+        :param bool index_errors: Whether to store the index of invalid items in
+            ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the marshalled data
@@ -155,7 +157,7 @@ class Marshaller(object):
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class, accessor=accessor,
                                     skip_missing=skip_missing,
-                                    index=idx)
+                                    index=idx, index_errors=index_errors)
                     for idx, d in enumerate(obj)]
             self.__pending = False
             return ret
@@ -171,7 +173,7 @@ class Marshaller(object):
                 errors_dict=self.errors,
                 exception_class=MarshallingError,
                 strict=strict,
-                index=index
+                index=(index if index_errors else None)
             )
             skip_conds = (
                 field_obj.load_only,
@@ -240,7 +242,8 @@ class Unmarshaller(object):
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
-            preprocess=None, postprocess=None, strict=False, dict_class=dict, index=None):
+            preprocess=None, postprocess=None, strict=False, dict_class=dict,
+            index_errors=True, index=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -254,6 +257,8 @@ class Unmarshaller(object):
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :param type dict_class: Dictionary class used to construct the output.
+        :param bool index_errors: Whether to store the index of invalid items in
+            ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
@@ -266,7 +271,7 @@ class Unmarshaller(object):
             ret = [self.deserialize(d, fields_dict, many=False,
                         validators=validators, preprocess=preprocess,
                         postprocess=postprocess, strict=strict, dict_class=dict_class,
-                        index=idx)
+                        index=idx, index_errors=index_errors)
                     for idx, d in enumerate(data)]
             self.__pending = False
             return ret
@@ -295,7 +300,7 @@ class Unmarshaller(object):
                     errors_dict=self.errors,
                     exception_class=UnmarshallingError,
                     strict=strict,
-                    index=index
+                    index=(index if index_errors else None)
                 )
                 if raw_value is not missing:
                     items.append((key, value))
