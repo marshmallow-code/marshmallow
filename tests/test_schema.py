@@ -2165,3 +2165,52 @@ class TestEmpty:
         assert 'blank_allowed' not in errors
         assert 'blank_disallowed' in errors
         assert errors['blank_disallowed'][0] == 'Field may not be blank.'
+
+class TestAddFields:
+
+    class AddFieldsSchema(Schema):
+        name = fields.Str()
+
+        class Meta:
+            add_fields = {
+                'from': fields.Str()
+            }
+
+    def test_fields_are_added(self):
+        s = self.AddFieldsSchema()
+        in_data = {'name': 'Steve', 'from': 'Oskosh'}
+        result = s.load({'name': 'Steve', 'from': 'Oskosh'})
+        assert result.data == in_data
+
+    def test_ordered_add_fields(self):
+        class AddFieldsOrdered(Schema):
+            name = fields.Str()
+            email = fields.Str()
+
+            class Meta:
+                add_fields = OrderedDict([
+                    ('from', fields.Str()),
+                    ('in', fields.Str()),
+                    ('@at', fields.Str())
+                ])
+                ordered = True
+
+        s = AddFieldsOrdered()
+        in_data = {'name': 'Steve', 'from': 'Oskosh', 'email': 'steve@steve.steve',
+                    'in': 'VA', '@at': 'Charlottesville'}
+
+        expected_fields = ['name', 'email', 'from', 'in', '@at']
+        assert list(AddFieldsOrdered._declared_fields.keys()) == expected_fields
+
+        result = s.load(in_data)
+        assert list(result.data.keys()) == expected_fields
+
+    def test_added_fields_are_inherited(self):
+
+        class AddFieldsChild(self.AddFieldsSchema):
+            email = fields.Str()
+
+        s = AddFieldsChild()
+        assert 'email' in s._declared_fields.keys()
+        assert 'from' in s._declared_fields.keys()
+        assert isinstance(s._declared_fields['from'], fields.Str)
