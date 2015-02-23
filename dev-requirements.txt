@@ -11,4 +11,8 @@ wheel
 # Testing
 pytest>=2.6.3
 tox>=1.5.0
+
+
+# Syntax checking
+pep8==1.6.1
 flake8>=2.2.2
