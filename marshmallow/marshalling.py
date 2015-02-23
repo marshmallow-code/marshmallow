@@ -125,7 +125,7 @@ class Marshaller(object):
         self.__pending = False
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None, dict_class=None, index=None):
+                  accessor=None, dict_class=dict, index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -143,7 +143,6 @@ class Marshaller(object):
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        dict_class = dict_class or dict
         # Reset errors dict if not serializing a collection
         if not self.__pending:
             self.errors = {}
