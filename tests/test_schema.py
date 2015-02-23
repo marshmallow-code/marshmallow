@@ -72,6 +72,29 @@ def test_dump_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1).data
 
+def test_dump_many_stores_error_indices():
+    s = UserSchema()
+    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+
+    _, errors = s.dump([u1, u2], many=True)
+    assert 1 in errors
+
+    assert 'email' in errors[1]
+
+def test_dump_many_doesnt_stores_error_indices_when_index_errors_is_false():
+    class NoIndex(Schema):
+        email = fields.Email()
+
+        class Meta:
+            index_errors = False
+
+    s = NoIndex()
+    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+
+    _, errors = s.dump([u1, u2], many=True)
+    assert 1 not in errors
+    assert 'email' in errors
+
 def test_dump_returns_a_marshalresult(user):
     s = UserSchema()
     result = s.dump(user)
@@ -187,6 +210,21 @@ class TestValidate:
         errors = s.validate(in_data, many=True)
         assert 1 in errors
         assert 'email' in errors[1]
+
+    def test_validate_many_doesnt_store_index_if_index_errors_option_is_false(self):
+        class NoIndex(Schema):
+            email = fields.Email()
+
+            class Meta:
+                index_errors = False
+        s = NoIndex()
+        in_data = [
+            {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
+            {'name': 'Valid Name2', 'email': 'invalid'}
+        ]
+        errors = s.validate(in_data, many=True)
+        assert 1 not in errors
+        assert 'email' in errors
 
     def test_validate_strict(self):
         s = UserSchema(strict=True)
