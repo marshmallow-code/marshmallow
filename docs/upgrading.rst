@@ -44,6 +44,41 @@ Similarly, the ``allow_blank`` parameter determines whether the empty string is 
     fields.Str().deserialize('')  # error: Field may not be blank.
     fields.Str(allow_blank=True).deserialize('')  # ''
 
+Error Format when ``many=True``
+*******************************
+
+When validating a collection (i.e. when calling ``load`` or ``dump`` with ``many=True``), the errors dictionary will be keyed on the indices of invalid items.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class BandMemberSchema(Schema):
+        name = fields.String(required=True)
+        email = fields.Email()
+
+    user_data = [
+        {'email': 'mick@stones.com', 'name': 'Mick'},
+        {'email': 'invalid', 'name': 'Invalid'},  # invalid email
+        {'email': 'keith@stones.com', 'name': 'Keith'},
+        {'email': 'charlie@stones.com'},  # missing "name"
+    ]
+
+    result = BandMemberSchema(many=True).load(user_data)
+
+    # 1.0
+    result.errors
+    # {'email': ['"invalid" is not a valid email address.'],
+    #  'name': ['Missing data for required field.']}
+
+    # 2.0
+    result.errors
+    # {1: {'email': ['"invalid" is not a valid email address.']},
+    #  3: {'name': ['Missing data for required field.']}}
+
+You can still get the pre-2.0 behavior by setting the ``index_errors`` *class Meta* option to `False`.
+
+
 Use ``OneOf`` instead of ``fields.Select``
 ******************************************
 

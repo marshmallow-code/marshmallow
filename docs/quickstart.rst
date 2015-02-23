@@ -174,6 +174,26 @@ Validation
     result.errors  # => {'email': ['foo is not a valid email address.']}
 
 
+When validating a collection, the errors dictionary will be keyed on the indicies of invalid items.
+
+.. code-block:: python
+
+    class BandMemberSchema(Schema):
+        name = fields.String(required=True)
+        email = fields.Email()
+
+    user_data = [
+        {'email': 'mick@stones.com', 'name': 'Mick'},
+        {'email': 'invalid', 'name': 'Invalid'},  # invalid email
+        {'email': 'keith@stones.com', 'name': 'Keith'},
+        {'email': 'charlie@stones.com'},  # missing "name"
+    ]
+
+    result = BandMemberSchema(many=True).load(user_data)
+    result.errors
+    # {1: {'email': ['"invalid" is not a valid email address.']},
+    #  3: {'name': ['Missing data for required field.']}}
+
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python

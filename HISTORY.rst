@@ -17,6 +17,7 @@ Features:
 - Add ``validate.OneOf`` (:issue:`135`) and ``validate.ContainsOnly`` (:issue:`149`) validators. Thanks :user:`philtay`.
 - Error messages for validators can be interpolated with `{input}` and other values (depending on the validator).
 - ``fields.TimeDelta`` always serializes to an integer value in order to avoid rounding errors (:issue:`105`). Thanks :user:`philtay`.
+- *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection. Add the ``index_errors`` class Meta option.
 
 Deprecation/Removals:
 
