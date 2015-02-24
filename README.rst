@@ -6,7 +6,7 @@ marshmallow: simplified object serialization
     :target: http://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=master
+.. image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=pypi
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
