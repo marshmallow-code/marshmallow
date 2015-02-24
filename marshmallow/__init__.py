@@ -15,7 +15,6 @@ __version__ = '2.0.0-dev'
 __author__ = 'Steven Loria'
 __license__ = 'MIT'
 
-
 __all__ = [
     'Schema',
     'Serializer',
