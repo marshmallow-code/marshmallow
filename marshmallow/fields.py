@@ -236,7 +236,9 @@ class Unmarshaller(object):
                 if isinstance(err.messages, (list, tuple)):
                     # self.errors[field_name] may be a dict if schemas are nested
                     if isinstance(self.errors.get(field_name), dict):
-                        self.errors[field_name].setdefault('_schema', []).extend(err.messages)
+                        self.errors[field_name].setdefault(
+                            '_schema', []
+                        ).extend(err.messages)
                     else:
                         self.errors.setdefault(field_name, []).extend(err.messages)
                 elif isinstance(err.messages, dict):
