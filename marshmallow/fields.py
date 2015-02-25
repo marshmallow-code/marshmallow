@@ -8,6 +8,7 @@ import uuid
 import warnings
 import decimal
 from operator import attrgetter
+from base64 import b64encode, b64decode
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -54,6 +55,7 @@ __all__ = [
     'Str',
     'Bool',
     'Int',
+    'Binary',
 ]
 
 
@@ -1285,6 +1287,48 @@ class QuerySelectList(QuerySelect):
                 items.append(results.pop(index))
 
         return items
+
+
+class Binary(Field):
+    """A field that (de)serializes any kind of data to/from base64 encoded data.
+    This field is intended to serialize binary objects.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
+    def _serialize(self, value, attr, obj):
+        try:
+            return b64encode(value)
+        except TypeError as error:
+            raise MarshallingError("{0} can not be base64-encoded. Instances of {1} can not be stringified".format(value, value.__class__))
+
+    def _deserialize(self, value):
+        try:
+            return b64decode(value)
+        except TypeError as error:
+             raise UnmarshallingError(error)
+
+
+class Binary(Field):
+    """A field that (de)serializes any kind of data to/from base64 encoded data.
+    This field is intended to serialize binary objects.
+
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
+    def _serialize(self, value, attr, obj):
+        try:
+            return b64encode(value)
+        except TypeError:
+            raise MarshallingError("{0} can not be base64 encoded. Instances of {1} can not be stringified.".format(value, value.__class__))
+
+    def _deserialize(self, value):
+        try:
+            return b64decode(value)
+        except TypeError:
+            raise UnmarshallingError("{0} is not a valid base64 encoded string.".format(value))
+
+
 
 # Aliases
 URL = Url
