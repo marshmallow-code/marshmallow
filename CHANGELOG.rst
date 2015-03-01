@@ -25,6 +25,7 @@ Deprecation/Removals:
 
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 - The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
+- Remove legacy, pre-1.0 API (``Schema.data`` and ``Schema.errors`` properties) (:issue:`73`).
 
 Other changes:
 

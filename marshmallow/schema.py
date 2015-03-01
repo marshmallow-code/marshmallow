@@ -148,9 +148,6 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param obj: The object or collection of objects to be serialized. NOTE: This
-        parameter is deprecated. Pass the object to the :meth:`dump` method
-        instead.
     :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
         fields will be serialized.
@@ -237,9 +234,8 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, obj=None, extra=None, only=(),
-                exclude=(), prefix='', strict=False, many=False, skip_missing=False,
-                context=None):
+    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
+                 many=False, skip_missing=False, context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self._data = None  # the cached, serialized data
@@ -262,19 +258,6 @@ class BaseSchema(base.SchemaABC):
         self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)
-
-        # For backwards compatibility, allow object to be passed in.
-        self.obj = obj
-        self._data = None
-        # If object is passed in, marshal it immediately so that errors are stored
-        if self.obj is not None:
-            warnings.warn('Serializing objects in the Schema constructor is a '
-                          'deprecated API. Use the Schema.dump method instead.',
-                          category=DeprecationWarning)
-            self._update_fields(self.obj, many=many)
-            self._update_data()
-        else:
-            self._update_fields(many=many)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
@@ -553,36 +536,6 @@ class BaseSchema(base.SchemaABC):
         """
         return data
 
-    ##### Legacy API #####
-
-    @property
-    def data(self):
-        """The serialized data as an dictionary.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `dump` instead.
-        """
-        warnings.warn('Accessing data through Schema.data is deprecated. '
-                      'Use the return value of Schema.dump instead.',
-                      category=DeprecationWarning)
-        if not self._data:
-            self._update_data()
-        return self._data
-
-    @property
-    def errors(self):
-        """Dictionary of errors raised during serialization.
-
-        .. deprecated:: 1.0.0
-            Use the return value of `load` instead.
-        """
-        return self._marshal.errors
-
-    def _update_data(self):
-        if not self._data:
-            self._data = self.dump(self.obj).data
-        return self._data
-
     ##### Private Helpers #####
 
     def _do_load(self, data, many=None, postprocess=True):
@@ -709,6 +662,3 @@ class BaseSchema(base.SchemaABC):
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
     __doc__ = BaseSchema.__doc__
-
-
-Serializer = Schema

@@ -6,7 +6,6 @@ from marshmallow.schema import (
     SchemaOpts,
     MarshalResult,
     UnmarshalResult,
-    Serializer,
 )
 from marshmallow.utils import pprint
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
@@ -17,7 +16,6 @@ __license__ = 'MIT'
 
 __all__ = [
     'Schema',
-    'Serializer',
     'SchemaOpts',
     'pprint',
     'MarshalResult',

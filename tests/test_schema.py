@@ -1344,7 +1344,7 @@ class TestNestedSchema:
             title = fields.Str()
             wat = fields.Nested(UserSchema, many=True)
         blog = Blog('Simple blog', user=user, collaborators=None)
-        schema = SimpleBlogSchema(blog)
+        schema = SimpleBlogSchema()
         result = schema.dump(blog)
         assert result.data['wat'] == []
 
