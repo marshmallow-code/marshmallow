@@ -78,8 +78,8 @@ class SchemaMeta(type):
         meta = attrs.get('Meta')
         ordered = getattr(meta, 'ordered', False)
 
-        add_fields = list(getattr(meta, 'add_fields', {}).items())
-        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered) + add_fields
+        include = list(getattr(meta, 'include', {}).items())
+        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered) + include
 
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
@@ -116,7 +116,7 @@ class SchemaOpts(object):
         self.skip_missing = getattr(meta, 'skip_missing', False)
         self.ordered = getattr(meta, 'ordered', False)
         self.index_errors = getattr(meta, 'index_errors', True)
-        self.add_fields = getattr(meta, 'add_fields', {})
+        self.include = getattr(meta, 'include', {})
 
 
 class BaseSchema(base.SchemaABC):

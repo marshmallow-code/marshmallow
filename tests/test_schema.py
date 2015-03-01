@@ -2166,13 +2166,13 @@ class TestEmpty:
         assert 'blank_disallowed' in errors
         assert errors['blank_disallowed'][0] == 'Field may not be blank.'
 
-class TestAddFields:
+class TestIncludeOption:
 
     class AddFieldsSchema(Schema):
         name = fields.Str()
 
         class Meta:
-            add_fields = {
+            include = {
                 'from': fields.Str()
             }
 
@@ -2188,7 +2188,7 @@ class TestAddFields:
             email = fields.Str()
 
             class Meta:
-                add_fields = OrderedDict([
+                include = OrderedDict([
                     ('from', fields.Str()),
                     ('in', fields.Str()),
                     ('@at', fields.Str())
@@ -2198,7 +2198,7 @@ class TestAddFields:
         s = AddFieldsOrdered()
         in_data = {'name': 'Steve', 'from': 'Oskosh', 'email': 'steve@steve.steve',
                     'in': 'VA', '@at': 'Charlottesville'}
-
+        # declared fields, then "included" fields
         expected_fields = ['name', 'email', 'from', 'in', '@at']
         assert list(AddFieldsOrdered._declared_fields.keys()) == expected_fields
 
