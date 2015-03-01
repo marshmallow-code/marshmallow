@@ -370,8 +370,9 @@ def test_oneof():
     assert validate.OneOf(dict(a=0, b=1))('a') == 'a'
     assert validate.OneOf((1, 2, None))(None) is None
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         validate.OneOf([1, 2, 3])(4)
+    assert 'Not a valid choice.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.OneOf('abc')('d')
     with pytest.raises(ValidationError):
@@ -382,6 +383,8 @@ def test_oneof():
         validate.OneOf(())(())
     with pytest.raises(ValidationError):
         validate.OneOf(dict(a=0, b=1))(0)
+    with pytest.raises(ValidationError):
+        validate.OneOf('123')(1)
 
 def test_oneof_options():
     oneof = validate.OneOf([1, 2, 3], ['one', 'two', 'three'])

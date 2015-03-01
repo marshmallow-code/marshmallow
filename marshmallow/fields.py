@@ -1115,8 +1115,6 @@ class Function(Field):
                 return self.func(obj, self.parent.context)
             else:
                 return self.func(obj)
-        except TypeError as te:  # Function is not callable
-            raise MarshallingError(te)
         except AttributeError:  # the object is not expected to have the attribute
             pass
 

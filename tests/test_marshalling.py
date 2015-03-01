@@ -3,10 +3,16 @@
 import pytest
 
 from marshmallow import fields
-from marshmallow.marshalling import Marshaller, Unmarshaller
+from marshmallow.marshalling import Marshaller, Unmarshaller, null, missing
 from marshmallow.exceptions import UnmarshallingError
 
 from tests.base import User
+
+def test_null_is_falsy():
+    assert bool(null) is False
+
+def test_missing_is_falsy():
+    assert bool(missing) is False
 
 class TestMarshaller:
 
@@ -71,6 +77,11 @@ class TestUnmarshaller:
     @pytest.fixture
     def unmarshal(self):
         return Unmarshaller()
+
+    def test_extra_data_is_ignored(self, unmarshal):
+        fields_ = {'name': fields.Str()}
+        ret = unmarshal({'extra': 42, 'name': 'Steve'}, fields_)
+        assert 'extra' not in ret
 
     def test_strict_mode_many(self, unmarshal):
         users = [

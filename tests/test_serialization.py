@@ -57,6 +57,10 @@ class TestFieldSerialization:
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
 
+    def test_function_field_passed_uncallable_object(self):
+        with pytest.raises(ValueError):
+            fields.Function('uncallable')
+
     def test_integer_field(self, user):
         field = fields.Integer()
         assert field.serialize('age', user) == 42

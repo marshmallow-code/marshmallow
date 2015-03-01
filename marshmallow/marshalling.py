@@ -14,7 +14,6 @@ from marshmallow import base, utils
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
-    RegistryError,
     MarshallingError,
     UnmarshallingError,
 )
@@ -76,8 +75,6 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
     """
     try:
         value = getter_func(data)
-    except RegistryError:
-        raise
     except exception_class as err:  # Store errors
         if strict:
             err.field = field_obj
@@ -279,8 +276,6 @@ class Unmarshaller(object):
         if data is not None:
             items = []
             for attr_name, field_obj in iteritems(fields_dict):
-                if attr_name not in fields_dict:
-                    continue
                 if field_obj.dump_only:
                     continue
                 key = fields_dict[attr_name].attribute or attr_name
