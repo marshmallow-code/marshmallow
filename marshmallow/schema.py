@@ -237,16 +237,16 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, obj=None, extra=None, only=None,
-                exclude=None, prefix='', strict=False, many=False, skip_missing=False,
+    def __init__(self, obj=None, extra=None, only=(),
+                exclude=(), prefix='', strict=False, many=False, skip_missing=False,
                 context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self._data = None  # the cached, serialized data
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
-        self.only = only or ()
-        self.exclude = exclude or ()
+        self.only = only
+        self.exclude = exclude
         self.prefix = prefix
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
