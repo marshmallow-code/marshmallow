@@ -3,7 +3,6 @@
 
 import json
 import random
-import datetime as dt
 
 import pytest
 
@@ -447,13 +446,6 @@ def test_invalid_only_param(user):
     with pytest.raises(AttributeError):
         UserSchema(only=("_invalid", "name")).dump(user)
 
-def test_strict_meta_option():
-    class StrictUserSchema(UserSchema):
-        class Meta:
-            strict = True
-    with pytest.raises(UnmarshallingError):
-        StrictUserSchema().load({'email': 'foo.com'})
-
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user.data['uid'] == str(user.uid)
 
@@ -567,98 +559,6 @@ def test_meta_serializer_fields():
     assert s.data['created'] == utils.isoformat(u.created)
     assert s.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
     assert s.data['finger_count'] == 10
-
-class KeepOrder(Schema):
-    class Meta:
-        ordered = True
-
-    name = fields.String()
-    email = fields.Email()
-    age = fields.Integer()
-    created = fields.DateTime()
-    id = fields.Integer()
-    homepage = fields.Url()
-    birthdate = fields.DateTime()
-
-class OrderedMetaSchema(Schema):
-    class Meta:
-        fields = ('name', 'email', 'age', 'created',
-                    'id', 'homepage', 'birthdate')
-        ordered = True
-
-class OrderedNestedOnly(Schema):
-    class Meta:
-        ordered = True
-
-    user = fields.Nested(KeepOrder)
-
-class TestFieldOrdering:
-
-    def test_ordering_is_off_by_default(self):
-        class DummySchema(Schema):
-            pass
-
-        schema = DummySchema()
-        assert schema.ordered is False
-
-    def test_declared_field_order_is_maintained_on_dump(self, user):
-        ser = KeepOrder()
-        data, errs = ser.dump(user)
-        keys = list(data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
-
-    def test_declared_field_order_is_maintained_on_load(self, serialized_user):
-        schema = KeepOrder()
-        data, errs = schema.load(serialized_user.data)
-        keys = list(data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
-
-    def test_nested_field_order_with_only_arg_is_maintained_on_dump(self, user):
-        schema = OrderedNestedOnly()
-        data, errs = schema.dump({'user': user})
-        user_data = data['user']
-        keys = list(user_data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
-
-    def test_nested_field_order_with_only_arg_is_maintained_on_load(self):
-        schema = OrderedNestedOnly()
-        data, errs = schema.load({'user': {
-            'name': 'Foo',
-            'email': 'Foo@bar.com',
-            'age': 42,
-            'created': dt.datetime.now().isoformat(),
-            'id': 123,
-            'homepage': 'http://foo.com',
-            'birthdate': dt.datetime.now().isoformat(),
-        }})
-        user_data = data['user']
-        keys = list(user_data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
-
-    def test_nested_field_order_with_exlude_arg_is_maintained(self, user):
-        class HasNestedExclude(Schema):
-            class Meta:
-                ordered = True
-
-            user = fields.Nested(KeepOrder, exclude=('birthdate', ))
-
-        ser = HasNestedExclude()
-        data, errs = ser.dump({'user': user})
-        user_data = data['user']
-        keys = list(user_data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage']
-
-    def test_meta_fields_order_is_maintained_on_dump(self, user):
-        ser = OrderedMetaSchema()
-        data, errs = ser.dump(user)
-        keys = list(data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
-
-    def test_meta_fields_order_is_maintained_on_load(self, serialized_user):
-        schema = OrderedMetaSchema()
-        data, errs = schema.load(serialized_user.data)
-        keys = list(data)
-        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
 
 def test_meta_fields_mapping(user):
@@ -1917,55 +1817,6 @@ class TestFieldInheritance:
             field_d = expected['field_d']
         assert SerializerD._declared_fields == expected
 
-class UserSkipSchema(Schema):
-    name = fields.Str()
-    email = fields.Email()
-    age = fields.Int(default=None)
-    nicknames = fields.List(fields.String)
-
-    class Meta:
-        skip_missing = True
-
-class TestSkipMissingOption:
-
-    def test_skip_missing_opt(self):
-        schema = UserSkipSchema()
-        assert schema.opts.skip_missing is True
-        assert schema.skip_missing is True
-
-    def test_missing_values_are_skipped(self):
-        user = User(name='Joe', email=None, age=None)
-        schema = UserSkipSchema()
-        result = schema.dump(user)
-        assert 'name' in result.data
-        assert 'email' not in result.data
-        assert 'age' not in result.data
-
-    def test_missing_values_are_skipped_with_many(self):
-        users = [User(name='Joe', email=None, age=None),
-                 User(name='Jane', email=None, age=None)]
-        schema = UserSkipSchema(many=True)
-        results = schema.dump(users)
-        for data in results.data:
-            assert 'name' in data
-            assert 'email' not in data
-            assert 'age' not in data
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/71
-    def test_missing_string_values_can_be_skipped(self):
-        user = dict(email='foo@bar.com', age=42)
-        schema = UserSkipSchema()
-        result = schema.dump(user)
-        assert 'name' not in result.data
-        assert 'email' in result.data
-        assert 'age' in result.data
-
-    def test_empty_list_can_be_skipped(self):
-        schema = UserSkipSchema()
-        user = dict(age=42, nicknames=['foo', 'bar'])
-        result = schema.dump(user)
-        assert 'nicknames' in result.data
-
 def get_from_dict(schema, key, obj, default=None):
     return obj.get('_' + key, default)
 
@@ -2025,28 +1876,6 @@ class TestAccessor:
         user = User(name='joe', email='joe@shmoe.com')
         with pytest.raises(AttributeError):
             schema.dump(user)
-
-class UnorderedSchema(Schema):
-    name = fields.Str()
-    email = fields.Str()
-
-    class Meta:
-        ordered = False
-
-class TestUnordered:
-    def test_unordered_dump_returns_dict(self):
-        schema = UnorderedSchema()
-        u = User('steve', email='steve@steve.steve')
-        result = schema.dump(u)
-        assert not isinstance(result.data, OrderedDict)
-        assert type(result.data) is dict
-
-    def test_unordered_load_returns_dict(self):
-        schema = UnorderedSchema()
-        result = schema.load({'name': 'steve', 'email': 'steve@steve.steve'})
-        assert not isinstance(result.data, OrderedDict)
-        assert type(result.data) is dict
-
 
 class TestEmpty:
 
@@ -2165,52 +1994,3 @@ class TestEmpty:
         assert 'blank_allowed' not in errors
         assert 'blank_disallowed' in errors
         assert errors['blank_disallowed'][0] == 'Field may not be blank.'
-
-class TestIncludeOption:
-
-    class AddFieldsSchema(Schema):
-        name = fields.Str()
-
-        class Meta:
-            include = {
-                'from': fields.Str()
-            }
-
-    def test_fields_are_added(self):
-        s = self.AddFieldsSchema()
-        in_data = {'name': 'Steve', 'from': 'Oskosh'}
-        result = s.load({'name': 'Steve', 'from': 'Oskosh'})
-        assert result.data == in_data
-
-    def test_ordered_included(self):
-        class AddFieldsOrdered(Schema):
-            name = fields.Str()
-            email = fields.Str()
-
-            class Meta:
-                include = OrderedDict([
-                    ('from', fields.Str()),
-                    ('in', fields.Str()),
-                    ('@at', fields.Str())
-                ])
-                ordered = True
-
-        s = AddFieldsOrdered()
-        in_data = {'name': 'Steve', 'from': 'Oskosh', 'email': 'steve@steve.steve',
-                    'in': 'VA', '@at': 'Charlottesville'}
-        # declared fields, then "included" fields
-        expected_fields = ['name', 'email', 'from', 'in', '@at']
-        assert list(AddFieldsOrdered._declared_fields.keys()) == expected_fields
-
-        result = s.load(in_data)
-        assert list(result.data.keys()) == expected_fields
-
-    def test_added_fields_are_inherited(self):
-
-        class AddFieldsChild(self.AddFieldsSchema):
-            email = fields.Str()
-
-        s = AddFieldsChild()
-        assert 'email' in s._declared_fields.keys()
-        assert 'from' in s._declared_fields.keys()
-        assert isinstance(s._declared_fields['from'], fields.Str)
