@@ -100,7 +100,7 @@ def to_marshallable_type(obj, field_names=None):
     else:
         attrs = set(dir(obj))
     return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                if not attr.startswith("__") and not attr.endswith("__")])
+                  if not attr.startswith("__") and not attr.endswith("__")])
 
 
 def pprint(obj, *args, **kwargs):

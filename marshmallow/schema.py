@@ -77,7 +77,10 @@ class SchemaMeta(type):
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get('Meta')
         ordered = getattr(meta, 'ordered', False)
-        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
+
+        include = list(getattr(meta, 'include', {}).items())
+        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered) + include
+
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
         dict_cls = OrderedDict if ordered else dict
@@ -113,6 +116,7 @@ class SchemaOpts(object):
         self.skip_missing = getattr(meta, 'skip_missing', False)
         self.ordered = getattr(meta, 'ordered', False)
         self.index_errors = getattr(meta, 'index_errors', True)
+        self.include = getattr(meta, 'include', {})
 
 
 class BaseSchema(base.SchemaABC):
@@ -212,6 +216,10 @@ class BaseSchema(base.SchemaABC):
         - ``additional``: Tuple or list of fields to include *in addition* to the
             explicitly declared fields. ``additional`` and ``fields`` are
             mutually-exclusive options.
+        - ``include``: Dictionary of additional fields to include in the schema. It is
+            usually better to define fields as class variables, but you may need to
+            use this option, e.g., if your fields are Python keywords. May be an
+            `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.

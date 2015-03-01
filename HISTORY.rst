@@ -19,6 +19,8 @@ Features:
 - Add ``validate.OneOf`` (:issue:`135`) and ``validate.ContainsOnly`` (:issue:`149`) validators. Thanks :user:`philtay`.
 - Error messages for validators can be interpolated with `{input}` and other values (depending on the validator).
 - ``fields.TimeDelta`` always serializes to an integer value in order to avoid rounding errors (:issue:`105`). Thanks :user:`philtay`.
+- Add ``include`` class Meta option to support field names which are Python keywords (:issue:`139`). Thanks :user:`nickretallack` for the suggestion.
+
 Deprecation/Removals:
 
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
