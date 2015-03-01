@@ -216,6 +216,10 @@ class BaseSchema(base.SchemaABC):
         - ``additional``: Tuple or list of fields to include *in addition* to the
             explicitly declared fields. ``additional`` and ``fields`` are
             mutually-exclusive options.
+        - ``include``: Dictionary of additional fields to include in the schema. It is
+            usually better to define fields as class variables, but you may need to
+            use this option, e.g., if your fields are Python keywords. May be an
+            `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.

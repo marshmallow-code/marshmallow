@@ -2182,7 +2182,7 @@ class TestIncludeOption:
         result = s.load({'name': 'Steve', 'from': 'Oskosh'})
         assert result.data == in_data
 
-    def test_ordered_add_fields(self):
+    def test_ordered_included(self):
         class AddFieldsOrdered(Schema):
             name = fields.Str()
             email = fields.Str()
