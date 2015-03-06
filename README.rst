@@ -76,4 +76,4 @@ Project Links
 License
 =======
 
-MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/master/LICENSE>`_ file for more details.
+MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/pypi/LICENSE>`_ file for more details.
