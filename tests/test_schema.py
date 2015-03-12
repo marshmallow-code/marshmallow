@@ -415,6 +415,16 @@ def test_strict_meta_option():
     with pytest.raises(UnmarshallingError):
         StrictUserSchema().load({'email': 'foo.com'})
 
+def test_strict_meta_option_is_inherited():
+    class StrictUserSchema(UserSchema):
+        class Meta:
+            strict = True
+
+    class ChildStrictSchema(StrictUserSchema):
+        pass
+    with pytest.raises(UnmarshallingError):
+        ChildStrictSchema().load({'email': 'foo.com'})
+
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user.data['uid'] == str(user.uid)
 
@@ -554,6 +564,18 @@ class OrderedNestedOnly(Schema):
     user = fields.Nested(KeepOrder)
 
 class TestFieldOrdering:
+
+    def test_ordered_option_is_inherited(self, user):
+        class ChildOrderedSchema(KeepOrder):
+            pass
+
+        schema = ChildOrderedSchema()
+        assert schema.opts.ordered is True
+        assert schema.dict_class == OrderedDict
+
+        data, _ = schema.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_ordering_is_off_by_default(self):
         class DummySchema(Schema):
