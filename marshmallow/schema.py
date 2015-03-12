@@ -77,10 +77,18 @@ class SchemaMeta(type):
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get('Meta')
         ordered = getattr(meta, 'ordered', False)
-
+        if not ordered:
+            # Inherit 'ordered' option
+            # Warning: We loop through bases in reverse order rather than
+            # looping through the MRO because we don't yet have access to the
+            # class object (i.e. can't call super before we have fields)
+            ordered = next(
+                (base for base in bases[::-1]
+                if hasattr(base, 'Meta') and getattr(base.Meta, 'ordered', False)),
+                False
+            )
         include = list(getattr(meta, 'include', {}).items())
         fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered) + include
-
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
         dict_cls = OrderedDict if ordered else dict

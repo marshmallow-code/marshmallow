@@ -17,6 +17,16 @@ class TestStrict:
         with pytest.raises(UnmarshallingError):
             self.StrictUserSchema().load({'email': 'foo.com'})
 
+    def test_strict_meta_option_is_inherited(self):
+        class StrictUserSchema(UserSchema):
+            class Meta:
+                strict = True
+
+        class ChildStrictSchema(self.StrictUserSchema):
+            pass
+        with pytest.raises(UnmarshallingError):
+            ChildStrictSchema().load({'email': 'foo.com'})
+
 
 class TestSkipMissingOption:
 
@@ -116,6 +126,18 @@ class OrderedNestedOnly(Schema):
     user = fields.Nested(KeepOrder)
 
 class TestFieldOrdering:
+
+    def test_ordered_option_is_inherited(self, user):
+        class ChildOrderedSchema(KeepOrder):
+            pass
+
+        schema = ChildOrderedSchema()
+        assert schema.opts.ordered is True
+        assert schema.dict_class == OrderedDict
+
+        data, _ = schema.dump(user)
+        keys = list(data)
+        assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_ordering_is_off_by_default(self):
         class DummySchema(Schema):
