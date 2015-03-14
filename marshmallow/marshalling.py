@@ -14,7 +14,6 @@ from marshmallow import base, utils
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
-    MarshallingError,
 )
 
 __all__ = [
@@ -54,7 +53,7 @@ missing = _Missing()
 
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
-               exception_class, strict=False, index=None):
+                    strict=False, index=None):
     """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
     :meth:`Unmarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
     argument, and store any errors of type ``exception_class`` in ``error_dict``.
@@ -74,7 +73,7 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
     """
     try:
         value = getter_func(data)
-    except exception_class as err:  # Store errors
+    except ValidationError as err:  # Store validation errors
         if strict:
             err.field = field_obj
             err.field_name = field_name
@@ -86,13 +85,10 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         else:
             errors = errors_dict
         # Warning: Mutation!
-        if isinstance(err, ValidationError):
-            if isinstance(err.messages, dict):
-                errors[field_name] = err.messages
-            else:
-                errors.setdefault(field_name, []).extend(err.messages)
+        if isinstance(err.messages, dict):
+            errors[field_name] = err.messages
         else:
-            errors.setdefault(field_name, []).append(text_type(err))
+            errors.setdefault(field_name, []).extend(err.messages)
         value = None
     except TypeError:
         # field declared as a class, not an instance
@@ -165,7 +161,6 @@ class Marshaller(object):
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
-                exception_class=MarshallingError,
                 strict=strict,
                 index=(index if index_errors else None)
             )
@@ -293,7 +288,6 @@ class Unmarshaller(object):
                     field_name=key,
                     field_obj=field_obj,
                     errors_dict=self.errors,
-                    exception_class=ValidationError,
                     strict=strict,
                     index=(index if index_errors else None)
                 )
