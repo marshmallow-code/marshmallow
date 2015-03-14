@@ -32,7 +32,7 @@ def test_serializer_dump(user):
     # Change strict mode
     s.strict = True
     bad_user = User(name='Monty', age='badage')
-    with pytest.raises(MarshallingError):
+    with pytest.raises(ValidationError):
         s.dump(bad_user)
 
 def test_dump_returns_dict_of_errors():
@@ -45,7 +45,7 @@ def test_dump_returns_dict_of_errors():
 def test_dump_with_strict_mode_raises_error():
     s = UserSchema(strict=True)
     bad_user = User(name='Monty', email='invalid-email')
-    with pytest.raises(MarshallingError) as excinfo:
+    with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
     assert type(exc.field) == fields.Email
@@ -227,7 +227,7 @@ class TestValidate:
 
     def test_validate_strict(self):
         s = UserSchema(strict=True)
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(ValidationError):
             s.validate({'email': 'bad-email'})
 
     def test_validate_required(self):
@@ -908,7 +908,7 @@ class TestSchemaValidator:
             field_a = fields.Field()
 
         schema = ValidatingSchema(strict=True)
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             schema.load({'field_a': 1})
         exc = excinfo.value
         assert exc.fields == []
@@ -924,7 +924,7 @@ class TestSchemaValidator:
             field_b = fields.Field()
 
         schema = ValidatingSchema(strict=True)
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             schema.load({'field_a': 1})
         exc = excinfo.value
         assert type(exc.fields[0]) == fields.Str
@@ -958,14 +958,14 @@ class TestSchemaValidator:
 
         schema = ValidatingSchema(strict=True)
         in_data = {'field_a': 2, 'field_b': 1}
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             schema.load(in_data)
         assert 'Schema validator' in str(excinfo)
         assert 'is False' in str(excinfo)
 
         # underlying exception is a ValidationError
         exc = excinfo.value
-        assert isinstance(exc.underlying_exception, ValidationError)
+        assert isinstance(exc, ValidationError)
 
     def test_validator_defined_by_decorator(self):
         class ValidatingSchema(Schema):
@@ -1458,7 +1458,7 @@ class TestNestedSchema:
         assert "collaborators" not in errors
 
     def test_nested_strict(self):
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             _, errors = BlogSchema(strict=True).load(
                 {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
             )
@@ -1679,7 +1679,7 @@ class TestContext:
         owner = User('Joe')
         serializer = UserMethodContextSchema(strict=True)
         serializer.context = None
-        with pytest.raises(MarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             serializer.dump(owner)
 
         msg = 'No context available for Method field {0!r}'.format('is_owner')
@@ -1694,7 +1694,7 @@ class TestContext:
         serializer = UserFunctionContextSchema(strict=True)
         # no context
         serializer.context = None
-        with pytest.raises(MarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             serializer.dump(owner)
         msg = 'No context available for Function field {0!r}'.format('is_collab')
         assert msg in str(excinfo)
@@ -1722,23 +1722,6 @@ class TestContext:
         }
         result = ser.dump(obj)
         assert result.data['inner']['likes_bikes'] is True
-
-
-def raise_marshalling_value_error():
-    try:
-        raise ValueError('Foo bar')
-    except ValueError as error:
-        raise MarshallingError(error)
-
-class TestMarshallingError:
-
-    def test_saves_underlying_exception(self):
-        with pytest.raises(MarshallingError) as excinfo:
-            raise_marshalling_value_error()
-        assert 'Foo bar' in str(excinfo)
-        error = excinfo.value
-        assert isinstance(error.underlying_exception, ValueError)
-
 
 def test_error_gets_raised_if_many_is_omitted(user):
     class BadSchema(Schema):

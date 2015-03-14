@@ -2,7 +2,7 @@
 import pytest
 
 from marshmallow import fields, Schema
-from marshmallow.exceptions import UnmarshallingError
+from marshmallow.exceptions import ValidationError
 from marshmallow.compat import OrderedDict
 
 from tests.base import *  # noqa
@@ -14,7 +14,7 @@ class TestStrict:
             strict = True
 
     def test_strict_meta_option(self):
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(ValidationError):
             self.StrictUserSchema().load({'email': 'foo.com'})
 
     def test_strict_meta_option_is_inherited(self):
@@ -24,7 +24,7 @@ class TestStrict:
 
         class ChildStrictSchema(self.StrictUserSchema):
             pass
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(ValidationError):
             ChildStrictSchema().load({'email': 'foo.com'})
 
 
