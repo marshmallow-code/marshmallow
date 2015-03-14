@@ -890,7 +890,7 @@ class TimeDelta(Field):
                 if self.precision == self.SECONDS:
                     return seconds
                 else:  # microseconds
-                    return seconds * 10**6 + value.microseconds
+                    return seconds * 10**6 + value.microseconds  # flake8: noqa
         except AttributeError:
             msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
             raise MarshallingError(getattr(self, 'error', None) or msg)
