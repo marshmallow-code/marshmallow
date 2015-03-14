@@ -48,8 +48,8 @@ def test_dump_with_strict_mode_raises_error():
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
-    assert type(exc.field) == fields.Email
-    assert exc.field_name == 'email'
+    assert type(exc.fields[0]) == fields.Email
+    assert exc.field_names[0] == 'email'
 
 
 def test_dump_resets_errors():
@@ -945,6 +945,15 @@ class TestSchemaValidator:
         assert 'field_b' in result.errors
         assert result.errors['field_a'] == ['Something went wrong.']
         assert result.errors['field_b'] == ['Something went wrong.']
+
+        schema = ValidatingSchema(strict=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({'field_a': 1})
+        err = excinfo.value
+        assert type(err.fields[0]) == fields.Str
+        assert type(err.fields[1]) == fields.Field
+        assert err.field_names == ['field_a', 'field_b']
+        assert err.messages == ['Something went wrong.']
 
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):

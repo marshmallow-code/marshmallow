@@ -75,8 +75,8 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         value = getter_func(data)
     except ValidationError as err:  # Store validation errors
         if strict:
-            err.field = field_obj
-            err.field_name = field_name
+            err.fields = [field_obj]
+            err.field_names = [field_name]
             raise err
         # Warning: Mutation!
         if index is not None:
@@ -206,8 +206,8 @@ class Unmarshaller(object):
                     ))
             except ValidationError as err:
                 # Store or reraise errors
-                if err.fields:
-                    field_names = err.fields
+                if err.field_names:
+                    field_names = err.field_names
                     field_objs = [fields_dict[each] for each in field_names]
                 else:
                     field_names = ['_schema']

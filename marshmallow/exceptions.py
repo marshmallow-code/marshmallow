@@ -14,22 +14,22 @@ class ValidationError(MarshmallowError):
 
     :param message: An error message, list of error messages, or dict of
         error messages.
-    :param str fields: `Field` objects to which the error applies.
-    :param str field_names: Field names to store the error on.
+    :param list field_names: Field names to store the error on.
         If `None`, the error is stored in its default location.
+    :param list fields: `Field` objects to which the error applies.
     """
 
-    def __init__(self, message, fields=None, field_names=None):
+    def __init__(self, message, field_names=None, fields=None):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
             messages = message
         self.messages = messages
-        self.field_names = field_names
-        if isinstance(fields, basestring):
-            self.fields = [fields]
+        self.fields = fields
+        if isinstance(field_names, basestring):
+            self.field_names = [field_names]
         else:  # fields is a list or None
-            self.fields = fields
+            self.field_names = field_names or []
         MarshmallowError.__init__(self, message)
 
 
