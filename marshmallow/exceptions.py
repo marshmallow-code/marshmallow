@@ -14,7 +14,8 @@ class ValidationError(MarshmallowError):
 
     :param message: An error message, list of error messages, or dict of
         error messages.
-    :param str field: Field name (or list of field names) to store the error on.
+    :param str fields: `Field` objects to which the error applies.
+    :param str field_names: Field names to store the error on.
         If `None`, the error is stored in its default location.
     """
 
@@ -24,7 +25,6 @@ class ValidationError(MarshmallowError):
         else:
             messages = message
         self.messages = messages
-        self.fields = fields
         self.field_names = field_names
         if isinstance(fields, basestring):
             self.fields = [fields]
