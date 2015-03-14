@@ -15,7 +15,6 @@ from marshmallow.marshalling import null, missing
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import (
     MarshallingError,
-    UnmarshallingError,
     ForcedError,
     ValidationError,
 )
@@ -72,8 +71,8 @@ class Field(FieldABC):
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
-        If it returns `False`, an :exc:`UnmarshallingError` is raised.
-    :param required: Raise an :exc:`UnmarshallingError` if the field value
+        If it returns `False`, an :exc:`ValidationError` is raised.
+    :param required: Raise an :exc:`ValidationError` if the field value
         is not supplied during deserialization. If not a `bool`(e.g. a `str`),
         the provided value will be used as the message of the
         :exc:`ValidationError` instead of the default message.
@@ -204,8 +203,6 @@ class Field(FieldABC):
                 raise err.underlying_exception
             else:
                 raise err
-        except ValidationError as err:
-            raise exception_class(err)
 
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
@@ -246,19 +243,17 @@ class Field(FieldABC):
     def deserialize(self, value):
         """Deserialize ``value``.
 
-        :raise UnmarshallingError: If an invalid value is passed or if a required value
+        :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
         """
         # Validate required fields, deserialize, then validate
         # deserialized value
-        def do_deserialization():
-            self._validate_missing(value)
-            if getattr(self, 'allow_none', False) is True and value is None:
-                return None
-            output = self._deserialize(value)
-            self._validate(output)
-            return output
-        return self._call_and_reraise(do_deserialization, UnmarshallingError)
+        self._validate_missing(value)
+        if getattr(self, 'allow_none', False) is True and value is None:
+            return None
+        output = self._deserialize(value)
+        self._validate(output)
+        return output
 
     # Methods for concrete classes to override.
 
@@ -284,7 +279,7 @@ class Field(FieldABC):
     def _deserialize(self, value):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
 
-        :raise UnmarshallingError: In case of formatting or validation failure.
+        :raise ValidationError: In case of formatting or validation failure.
         """
         return value
 
@@ -496,7 +491,7 @@ class UUID(String):
 
     def _deserialize(self, value):
         msg = 'Could not deserialize {0!r} to a UUID object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
@@ -543,7 +538,7 @@ class Number(Field):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value, ValidationError)
 
 
 class Integer(Number):
@@ -624,14 +619,14 @@ class Boolean(Field):
         try:
             value_str = text_type(value)
         except TypeError as error:
-            raise UnmarshallingError(error)
+            raise ValidationError(text_type(error))
         if value_str in self.falsy:
             return False
         elif self.truthy:
             if value_str in self.truthy:
                 return True
             else:
-                raise UnmarshallingError(
+                raise ValidationError(
                     '{0!r} is not in {1} nor {2}'.format(
                         value_str, self.truthy, self.falsy
                     ))
@@ -708,7 +703,7 @@ class Arbitrary(Number):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value, ValidationError)
 
 
 class DateTime(Field):
@@ -764,7 +759,7 @@ class DateTime(Field):
 
     def _deserialize(self, value):
         msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise err
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
@@ -814,7 +809,7 @@ class Time(Field):
     def _deserialize(self, value):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         msg = 'Could not deserialize {0!r} to a time object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:   # falsy values are invalid
             raise err
         try:
@@ -841,7 +836,7 @@ class Date(Field):
         :class:`datetime.date` object.
         """
         msg = 'Could not deserialize {0!r} to a date object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:  # falsy values are invalid
             raise err
         try:
@@ -900,7 +895,7 @@ class TimeDelta(Field):
             value = int(value)
         except (TypeError, ValueError):
             msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
 
         kwargs = {self.precision: value}
 
@@ -908,7 +903,7 @@ class TimeDelta(Field):
             return dt.timedelta(**kwargs)
         except OverflowError:
             msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
 
 
 class Fixed(Number):
@@ -934,7 +929,7 @@ class Fixed(Number):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value, ValidationError)
 
     def _validated(self, value, exception_class):
         if value is None:
@@ -1158,7 +1153,7 @@ class Select(Field):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value, ValidationError)
 
 
 class QuerySelect(Field):
@@ -1231,7 +1226,7 @@ class QuerySelect(Field):
                 return result
 
         error = getattr(self, 'error', None) or 'Invalid key.'
-        raise UnmarshallingError(error)
+        raise ValidationError(error)
 
 
 class QuerySelectList(QuerySelect):
@@ -1277,7 +1272,7 @@ class QuerySelectList(QuerySelect):
                 index = keys.index(val)
             except ValueError:
                 error = getattr(self, 'error', None) or 'Invalid keys.'
-                raise UnmarshallingError(error)
+                raise ValidationError(error)
             else:
                 del keys[index]
                 items.append(results.pop(index))

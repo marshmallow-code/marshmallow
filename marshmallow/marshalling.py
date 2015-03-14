@@ -15,7 +15,6 @@ from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
     MarshallingError,
-    UnmarshallingError,
 )
 
 __all__ = [
@@ -87,13 +86,11 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         else:
             errors = errors_dict
         # Warning: Mutation!
-        if (hasattr(err, 'underlying_exception') and
-                isinstance(err.underlying_exception, ValidationError)):
-            validation_error = err.underlying_exception
-            if isinstance(validation_error.messages, dict):
-                errors[field_name] = validation_error.messages
+        if isinstance(err, ValidationError):
+            if isinstance(err.messages, dict):
+                errors[field_name] = err.messages
             else:
-                errors.setdefault(field_name, []).extend(validation_error.messages)
+                errors.setdefault(field_name, []).extend(err.messages)
         else:
             errors.setdefault(field_name, []).append(text_type(err))
         value = None
@@ -221,8 +218,11 @@ class Unmarshaller(object):
                     field_names = ['_schema']
                     field_objs = []
                 if strict:
-                    raise UnmarshallingError(err, fields=field_objs,
-                                             field_names=field_names)
+                    raise ValidationError(
+                        err.messages,
+                        fields=field_objs,
+                        field_names=field_names
+                    )
                 for field_name in field_names:
                     if isinstance(err.messages, (list, tuple)):
                         # self.errors[field_name] may be a dict if schemas are nested
@@ -293,7 +293,7 @@ class Unmarshaller(object):
                     field_name=key,
                     field_obj=field_obj,
                     errors_dict=self.errors,
-                    exception_class=UnmarshallingError,
+                    exception_class=ValidationError,
                     strict=strict,
                     index=(index if index_errors else None)
                 )

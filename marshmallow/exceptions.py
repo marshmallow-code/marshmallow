@@ -50,17 +50,18 @@ class ValidationError(MarshmallowError):
         If `None`, the error is stored in its default location.
     """
 
-    def __init__(self, message, field=None):
+    def __init__(self, message, fields=None, field_names=None):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
             messages = message
         self.messages = messages
-        self.field = field
-        if isinstance(field, basestring):
-            self.fields = [field]
-        else:  # field is a list or None
-            self.fields = field
+        self.fields = fields
+        self.field_names = field_names
+        if isinstance(fields, basestring):
+            self.fields = [fields]
+        else:  # fields is a list or None
+            self.fields = fields
         MarshmallowError.__init__(self, message)
 
 
