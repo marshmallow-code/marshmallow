@@ -13,11 +13,7 @@ from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.marshalling import null, missing
 from marshmallow.compat import text_type, basestring
-from marshmallow.exceptions import (
-    ForcedError,
-    ValidationError,
-)
-
+from marshmallow.exceptions import ValidationError
 
 __all__ = [
     'Field',
@@ -336,9 +332,8 @@ class Nested(Field):
                     self.__schema = schema_class(many=self.many,
                             only=only, exclude=self.exclude)
             else:
-                raise ForcedError(ValueError('Nested fields must be passed a '
-                                    'Schema, not {0}.'
-                                    .format(self.nested.__class__)))
+                raise ValueError('Nested fields must be passed a '
+                                 'Schema, not {0}.'.format(self.nested.__class__))
         self.__schema.ordered = getattr(self.parent, 'ordered', False)
         # Inherit context from parent
         self.__schema.context.update(getattr(self.parent, 'context', {}))

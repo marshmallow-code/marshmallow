@@ -25,22 +25,6 @@ class _WrappingException(MarshmallowError):
         )
 
 
-class ForcedError(_WrappingException):
-    """Error that always gets raised, even during serialization.
-    Field classes should raise this error if the error should not be stored in
-    the Marshaller's error dictionary and should instead be raised.
-
-    Must be instantiated with an underlying exception.
-
-    Example: ::
-
-        def _serialize(self, value, key, obj):
-            if not isinstace(value, dict):
-                raise ForcedError(ValueError('Value must be a dict.'))
-    """
-    pass
-
-
 class ValidationError(MarshmallowError):
     """Raised when validation fails on a field.
 
@@ -65,7 +49,7 @@ class ValidationError(MarshmallowError):
         MarshmallowError.__init__(self, message)
 
 
-class RegistryError(ForcedError, NameError):
+class RegistryError(NameError):
     """Raised when an invalid operation is performed on the serializer
     class registry.
     """
