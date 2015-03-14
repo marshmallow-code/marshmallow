@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pytest
 
 from marshmallow.exceptions import ValidationError, MarshallingError, UnmarshallingError
 from marshmallow import fields
@@ -35,6 +36,9 @@ class TestValidationError:
 
 class TestMarshallingError:
 
+    def test_deprecated(self):
+        pytest.deprecated_call(MarshallingError, 'foo')
+
     def test_can_store_field_and_field_name(self):
         field_name = 'foo'
         field = fields.Str()
@@ -44,6 +48,9 @@ class TestMarshallingError:
         assert err.field_names == [field_name]
 
 class TestUnmarshallingError:
+
+    def test_deprecated(self):
+        pytest.deprecated_call(UnmarshallingError, 'foo')
 
     def test_can_store_field_and_field_name(self):
         field_name = 'foo'
