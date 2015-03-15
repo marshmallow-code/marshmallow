@@ -100,8 +100,24 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         raise
     return value
 
+class ErrorStore(object):
 
-class Marshaller(object):
+    def __init__(self):
+        #: Dictionary of errors stored during serialization
+        self.errors = {}
+        #: List of `Field` objects which have validation errors
+        self.error_fields = []
+        #: List of field_names which have validation errors
+        self.error_field_names = []
+        #: True while (de)serializing a collection
+        self._pending = False
+
+    def reset_errors(self):
+        self.errors = {}
+        self.error_field_names = []
+        self.error_fields = []
+
+class Marshaller(ErrorStore):
     """Callable class responsible for serializing data and storing errors.
 
     :param str prefix: Optional prefix that will be prepended to all the
@@ -109,17 +125,7 @@ class Marshaller(object):
     """
     def __init__(self, prefix=''):
         self.prefix = prefix
-        #: Dictionary of errors stored during serialization
-        self.errors = {}
-        self.error_fields = []
-        self.error_field_names = []
-        #: True while serializing a collection
-        self.__pending = False
-
-    def reset_errors(self):
-        self.errors = {}
-        self.error_field_names = []
-        self.error_fields = []
+        ErrorStore.__init__(self)
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
                   accessor=None, dict_class=dict, index_errors=True, index=None):
@@ -145,16 +151,16 @@ class Marshaller(object):
             Renamed from ``marshal``.
         """
         # Reset errors dict if not serializing a collection
-        if not self.__pending:
+        if not self._pending:
             self.reset_errors()
         if many and obj is not None:
-            self.__pending = True
+            self._pending = True
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class, accessor=accessor,
                                     skip_missing=skip_missing,
                                     index=idx, index_errors=index_errors)
                     for idx, d in enumerate(obj)]
-            self.__pending = False
+            self._pending = False
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -190,18 +196,11 @@ class Marshaller(object):
     __call__ = serialize
 
 
-class Unmarshaller(object):
+class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
 
     .. versionadded:: 1.0.0
     """
-    def __init__(self):
-        #: Dictionary of errors stored during deserialization
-        self.errors = {}
-        self.error_fields = []
-        self.error_field_names = []
-        #: True while deserializing a collection
-        self.__pending = False
 
     def _validate(self, validators, output, raw_data, fields_dict, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
@@ -247,11 +246,6 @@ class Unmarshaller(object):
                         self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
-    def reset_errors(self):
-        self.errors = {}
-        self.error_field_names = []
-        self.error_fields = []
-
     def deserialize(self, data, fields_dict, many=False, validators=None,
             preprocess=None, postprocess=None, strict=False, dict_class=dict,
             index_errors=True, index=None):
@@ -275,16 +269,16 @@ class Unmarshaller(object):
         :return: A dictionary of the deserialized data.
         """
         # Reset errors if not deserializing a collection
-        if not self.__pending:
+        if not self._pending:
             self.reset_errors()
         if many and data is not None:
-            self.__pending = True
+            self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
                         validators=validators, preprocess=preprocess,
                         postprocess=postprocess, strict=strict, dict_class=dict_class,
                         index=idx, index_errors=index_errors)
                     for idx, d in enumerate(data)]
-            self.__pending = False
+            self._pending = False
             return ret
         raw_data = data
         if data is not None:
