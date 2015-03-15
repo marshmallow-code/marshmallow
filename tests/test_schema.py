@@ -953,7 +953,7 @@ class TestSchemaValidator:
 
     def test_schema_validation_error_with_stict_stores_correct_field_name(self):
         def validate_with_bool(schema, in_vals):
-            return False
+            raise ValidationError('oops')
 
         class ValidatingSchema(Schema):
             __validators__ = [validate_with_bool]
@@ -965,6 +965,7 @@ class TestSchemaValidator:
         exc = excinfo.value
         assert exc.fields == []
         assert exc.field_names == ['_schema']
+        assert exc.messages == {'_schema': ['oops']}
 
     def test_schema_validation_error_with_strict_when_field_is_specified(self):
         def validate_with_err(schema, inv_vals):
@@ -1005,7 +1006,10 @@ class TestSchemaValidator:
         assert type(err.fields[0]) == fields.Str
         assert type(err.fields[1]) == fields.Field
         assert err.field_names == ['field_a', 'field_b']
-        assert err.messages == ['Something went wrong.']
+        assert err.messages == {
+            'field_a': ['Something went wrong.'],
+            'field_b': ['Something went wrong.']
+        }
 
     def test_validator_with_strict(self):
         def validate_schema(instance, input_vals):
