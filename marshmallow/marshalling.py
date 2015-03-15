@@ -52,54 +52,6 @@ null = _Null()
 missing = _Missing()
 
 
-def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
-        error_fields, error_field_names, index=None):
-    """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
-    :meth:`Unmarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
-    argument, and store any errors of type ``exception_class`` in ``error_dict``.
-
-    :param callable getter_func: Function for getting the serialized/deserialized
-        value from ``data``.
-    :param data: The data passed to ``getter_func``.
-    :param str field_name: Field name.
-    :param FieldABC field_obj: Field object that performs the
-        serialization/deserialization behavior.
-    :param dict errors_dict: Dictionary to store errors on.
-    :param type exception_class: Exception class that will be caught during
-        serialization/deserialization. Errors of this type will be stored
-        in ``errors_dict``.
-    :param int index: Index of the item being validated, if validating a collection,
-        otherwise `None`.
-    """
-    try:
-        value = getter_func(data)
-    except ValidationError as err:  # Store validation errors
-        # Warning: Mutation!
-        error_fields.append(field_obj)
-        error_field_names.append(field_name)
-        if index is not None:
-            errors = {}
-            errors_dict[index] = errors
-        else:
-            errors = errors_dict
-        # Warning: Mutation!
-        if isinstance(err.messages, dict):
-            errors[field_name] = err.messages
-        else:
-            errors.setdefault(field_name, []).extend(err.messages)
-        value = None
-    except TypeError:
-        # field declared as a class, not an instance
-        if (isinstance(field_obj, type) and
-                issubclass(field_obj, base.FieldABC)):
-            msg = ('Field for "{0}" must be declared as a '
-                            'Field instance, not a class. '
-                            'Did you mean "fields.{1}()"?'
-                            .format(field_name, field_obj.__name__))
-            raise TypeError(msg)
-        raise
-    return value
-
 class ErrorStore(object):
 
     def __init__(self):
@@ -116,6 +68,46 @@ class ErrorStore(object):
         self.errors = {}
         self.error_field_names = []
         self.error_fields = []
+
+    def call_and_store(self, getter_func, data, field_name, field_obj, index=None):
+        """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
+
+        :param callable getter_func: Function for getting the serialized/deserialized
+            value from ``data``.
+        :param data: The data passed to ``getter_func``.
+        :param str field_name: Field name.
+        :param FieldABC field_obj: Field object that performs the
+            serialization/deserialization behavior.
+        :param int index: Index of the item being validated, if validating a collection,
+            otherwise `None`.
+        """
+        try:
+            value = getter_func(data)
+        except ValidationError as err:  # Store validation errors
+            self.error_fields.append(field_obj)
+            self.error_field_names.append(field_name)
+            if index is not None:
+                errors = {}
+                self.errors[index] = errors
+            else:
+                errors = self.errors
+            # Warning: Mutation!
+            if isinstance(err.messages, dict):
+                errors[field_name] = err.messages
+            else:
+                errors.setdefault(field_name, []).extend(err.messages)
+            value = None
+        except TypeError:
+            # field declared as a class, not an instance
+            if (isinstance(field_obj, type) and
+                    issubclass(field_obj, base.FieldABC)):
+                msg = ('Field for "{0}" must be declared as a '
+                                'Field instance, not a class. '
+                                'Did you mean "fields.{1}()"?'
+                                .format(field_name, field_obj.__name__))
+                raise TypeError(msg)
+            raise
+        return value
 
 class Marshaller(ErrorStore):
     """Callable class responsible for serializing data and storing errors.
@@ -166,14 +158,11 @@ class Marshaller(ErrorStore):
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
-            value = _call_and_store(
+            value = self.call_and_store(
                 getter_func=getter,
                 data=obj,
                 field_name=key,
                 field_obj=field_obj,
-                errors_dict=self.errors,
-                error_fields=self.error_fields,
-                error_field_names=self.error_field_names,
                 index=(index if index_errors else None)
             )
             skip_conds = (
@@ -295,14 +284,11 @@ class Unmarshaller(ErrorStore):
                     raw_value = _miss() if callable(_miss) else _miss
                 if raw_value is missing and not field_obj.required:
                     continue
-                value = _call_and_store(
+                value = self.call_and_store(
                     getter_func=field_obj.deserialize,
                     data=raw_value,
                     field_name=key,
                     field_obj=field_obj,
-                    errors_dict=self.errors,
-                    error_fields=self.error_fields,
-                    error_field_names=self.error_field_names,
                     index=(index if index_errors else None)
                 )
                 if raw_value is not missing:
