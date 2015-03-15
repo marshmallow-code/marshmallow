@@ -53,7 +53,7 @@ missing = _Missing()
 
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
-                    strict=False, index=None):
+        error_fields, error_field_names, index=None):
     """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
     :meth:`Unmarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
     argument, and store any errors of type ``exception_class`` in ``error_dict``.
@@ -74,11 +74,9 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
     try:
         value = getter_func(data)
     except ValidationError as err:  # Store validation errors
-        if strict:
-            err.fields = [field_obj]
-            err.field_names = [field_name]
-            raise err
         # Warning: Mutation!
+        error_fields.append(field_obj)
+        error_field_names.append(field_name)
         if index is not None:
             errors = {}
             errors_dict[index] = errors
@@ -113,8 +111,15 @@ class Marshaller(object):
         self.prefix = prefix
         #: Dictionary of errors stored during serialization
         self.errors = {}
+        self.error_fields = []
+        self.error_field_names = []
         #: True while serializing a collection
         self.__pending = False
+
+    def reset_errors(self):
+        self.errors = {}
+        self.error_field_names = []
+        self.error_fields = []
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
                   accessor=None, dict_class=dict, index_errors=True, index=None):
@@ -141,7 +146,7 @@ class Marshaller(object):
         """
         # Reset errors dict if not serializing a collection
         if not self.__pending:
-            self.errors = {}
+            self.reset_errors()
         if many and obj is not None:
             self.__pending = True
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
@@ -161,7 +166,8 @@ class Marshaller(object):
                 field_name=key,
                 field_obj=field_obj,
                 errors_dict=self.errors,
-                strict=strict,
+                error_fields=self.error_fields,
+                error_field_names=self.error_field_names,
                 index=(index if index_errors else None)
             )
             skip_conds = (
@@ -172,6 +178,12 @@ class Marshaller(object):
             if any(skip_conds):
                 continue
             items.append((key, value))
+        if self.errors and strict:
+            raise ValidationError(
+                self.errors,
+                field_names=self.error_field_names,
+                fields=self.error_fields
+            )
         return dict_class(items)
 
     # Make an instance callable
@@ -186,6 +198,8 @@ class Unmarshaller(object):
     def __init__(self):
         #: Dictionary of errors stored during deserialization
         self.errors = {}
+        self.error_fields = []
+        self.error_field_names = []
         #: True while deserializing a collection
         self.__pending = False
 
@@ -233,6 +247,11 @@ class Unmarshaller(object):
                         self.errors.setdefault(field_name, []).append(text_type(err))
         return output
 
+    def reset_errors(self):
+        self.errors = {}
+        self.error_field_names = []
+        self.error_fields = []
+
     def deserialize(self, data, fields_dict, many=False, validators=None,
             preprocess=None, postprocess=None, strict=False, dict_class=dict,
             index_errors=True, index=None):
@@ -257,7 +276,7 @@ class Unmarshaller(object):
         """
         # Reset errors if not deserializing a collection
         if not self.__pending:
-            self.errors = {}
+            self.reset_errors()
         if many and data is not None:
             self.__pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
@@ -288,7 +307,8 @@ class Unmarshaller(object):
                     field_name=key,
                     field_obj=field_obj,
                     errors_dict=self.errors,
-                    strict=strict,
+                    error_fields=self.error_fields,
+                    error_field_names=self.error_field_names,
                     index=(index if index_errors else None)
                 )
                 if raw_value is not missing:
@@ -305,6 +325,12 @@ class Unmarshaller(object):
             validators = validators or []
             ret = self._validate(validators, ret, raw_data, fields_dict=fields_dict,
                                  strict=strict)
+        if self.errors and strict:
+            raise ValidationError(
+                self.errors,
+                field_names=self.error_field_names,
+                fields=self.error_fields
+            )
         if postprocess:
             postprocess = postprocess or []
             for func in postprocess:

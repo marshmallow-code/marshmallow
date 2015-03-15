@@ -42,8 +42,12 @@ def test_dump_returns_dict_of_errors():
     assert 'age' in errors
 
 
-def test_dump_with_strict_mode_raises_error():
-    s = UserSchema(strict=True)
+@pytest.mark.parametrize('SchemaClass',
+[
+    UserSchema, UserMetaSchema
+])
+def test_dump_with_strict_mode_raises_error(SchemaClass):
+    s = SchemaClass(strict=True)
     bad_user = User(name='Monty', email='invalid-email')
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
@@ -51,6 +55,8 @@ def test_dump_with_strict_mode_raises_error():
     assert type(exc.fields[0]) == fields.Email
     assert exc.field_names[0] == 'email'
 
+    assert type(exc.messages) == dict
+    assert exc.messages == {'email': ['"invalid-email" is not a valid email address.']}
 
 def test_dump_resets_errors():
     class MySchema(Schema):
@@ -63,6 +69,52 @@ def test_dump_resets_errors():
     result = schema.dump(User('Steve', email='__invalid'))
     assert len(result.errors['email']) == 1
     assert '__invalid' in result.errors['email'][0]
+
+def test_load_resets_errors():
+    class MySchema(Schema):
+        email = fields.Email()
+
+    schema = MySchema()
+    result = schema.load({'name': 'Joe', 'email': 'notvalid'})
+    assert len(result.errors['email']) == 1
+    assert 'notvalid' in result.errors['email'][0]
+    result = schema.load({'name': 'Joe', 'email': '__invalid'})
+    assert len(result.errors['email']) == 1
+    assert '__invalid' in result.errors['email'][0]
+
+def test_dump_resets_error_fields():
+    class MySchema(Schema):
+        email = fields.Email()
+
+    schema = MySchema(strict=True)
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(User('Joe', email='notvalid'))
+    exc = excinfo.value
+    assert len(exc.fields) == 1
+    assert len(exc.field_names) == 1
+
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(User('Joe', email='__invalid'))
+
+    assert len(exc.fields) == 1
+    assert len(exc.field_names) == 1
+
+def test_load_resets_error_fields():
+    class MySchema(Schema):
+        email = fields.Email()
+
+    schema = MySchema(strict=True)
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'name': 'Joe', 'email': 'not-valid'})
+    exc = excinfo.value
+    assert len(exc.fields) == 1
+    assert len(exc.field_names) == 1
+
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'name': 'Joe', 'email': '__invalid'})
+
+    assert len(exc.fields) == 1
+    assert len(exc.field_names) == 1
 
 def test_dump_many():
     s = UserSchema()
