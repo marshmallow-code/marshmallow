@@ -15,7 +15,6 @@ from functools import partial
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
-from marshmallow import exceptions as exc
 from marshmallow.orderedset import OrderedSet
 
 
