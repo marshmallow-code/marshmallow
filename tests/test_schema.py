@@ -279,8 +279,11 @@ class TestValidate:
 
     def test_validate_strict(self):
         s = UserSchema(strict=True)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             s.validate({'email': 'bad-email'})
+        exc = excinfo.value
+        assert exc.messages == {'email': ['"bad-email" is not a valid email address.']}
+        assert type(exc.fields[0]) == fields.Email
 
     def test_validate_required(self):
         class MySchema(Schema):

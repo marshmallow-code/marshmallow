@@ -10,7 +10,8 @@ class MarshmallowError(Exception):
 
 
 class ValidationError(MarshmallowError):
-    """Raised when validation fails on a field.
+    """Raised when validation fails on a field. Validators and custom fields should
+    raise this exception.
 
     :param message: An error message, list of error messages, or dict of
         error messages.
@@ -24,9 +25,14 @@ class ValidationError(MarshmallowError):
             messages = [message]
         else:
             messages = message
+        #: String, list, or dictionary of error messages.
+        #: If a `dict`, the keys will be field names and the values will be lists of
+        #: messages.
         self.messages = messages
+        #: List of field objects which failed validation.
         self.fields = fields
         if isinstance(field_names, basestring):
+            #: List of field_names which failed validation.
             self.field_names = [field_names]
         else:  # fields is a list or None
             self.field_names = field_names or []

@@ -78,11 +78,88 @@ When validating a collection (i.e. when calling ``load`` or ``dump`` with ``many
 
 You can still get the pre-2.0 behavior by setting the ``index_errors`` *class Meta* option to `False`.
 
+Use ``ValidationError`` instead of ``MarshallingError`` and ``UnmarshallingError``
+**********************************************************************************
+
+The :exc:`MarshallingError` and :exc:`UnmarshallingError` exceptions are deprecated in favor of a single :exc:`ValidationError <marshmallow.exceptions.ValidationError>`. Users who have written custom fields or are using ``strict`` mode will need to change their code accordingly.
+
+Custom Fields
+-------------
+
+Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.ValidationError>` in their `_deserialize` and `_serialize` methods when a validation error occurs.
+
+.. code-block:: python
+    :emphasize-lines: 17
+
+    from marshmallow import fields, ValidationError
+    from marshmallow.exceptions import UnmarshallingError
+
+    # In 1.0, an UnmarshallingError was raised
+    class PasswordField(fields.Field):
+
+        def _deserialize(self, val):
+            if not len(val) >= 6:
+                raise UnmarshallingError('Password to short.')
+            return val
+
+    # In 2.0, an UnmarshallingError is raised
+    class PasswordField(fields.Field):
+
+        def _deserialize(self, val):
+            if not len(val) >= 6:
+                raise ValidationError('Password to short.')
+            return val
+
+Handle ``ValidationError`` in strict mode
+-----------------------------------------
+
+When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump` and `Schema.load`.
+
+.. code-block:: python
+    :emphasize-lines: 14
+
+    from marshmallow import exceptions as exc
+
+    schema = BandMemberSchema(strict=True)
+
+    # 1.0
+    try:
+        schema.load({'email': 'invalid-email'})
+    except exc.UnmarshallingError as err:
+        # ...
+
+    # 2.0
+    try:
+        schema.load({'email': 'invalid-email'})
+    except exc.ValidationError as err:
+        # ...
+
+
+Accessing error messages in strict mode
+***************************************
+
+In 2.0, `strict` mode was improved so that you can access all error messages for a schema (rather than failing early) by accessing a `ValidationError's` ``messages`` attribute.
+
+.. code-block:: python
+    :emphasize-lines: 6
+
+    schema = BandMemberSchema(strict=True)
+
+    try:
+        result = schema.load({'email': 'invalid'})
+    except ValidationMessage as err:
+        print(err.messages)
+    # {
+    #     'email': ['"invalid" is not a valid email address.'],
+    #     'name': ['Missing data for required field.']
+    # }
+
+
 
 Use ``OneOf`` instead of ``fields.Select``
 ******************************************
 
-The `fields.Select` field was deprecated in favor of the newly-added `OneOf` validator.
+The `fields.Select` field is deprecated in favor of the newly-added `OneOf` validator.
 
 .. code-block:: python
 
@@ -94,6 +171,7 @@ The `fields.Select` field was deprecated in favor of the newly-added `OneOf` val
 
     # 2.0
     fields.Str(validate=OneOf(['red', 'blue']))
+
 
 Upgrading to 1.2
 ++++++++++++++++

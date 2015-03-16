@@ -82,7 +82,7 @@ Normally, unspecified field names are ignored by the validator. If you would lik
 Storing Errors on Specific Fields
 +++++++++++++++++++++++++++++++++
 
-If you want to store schema-level validation errors on a specific field, you can pass a field name to the :exc:`ValidationError`.
+If you want to store schema-level validation errors on a specific field, you can pass a field name (or multiple field names) to the :exc:`ValidationError <marshmallow.exceptions.ValidationError>`.
 
 .. code-block:: python
 
@@ -194,7 +194,7 @@ You can register error handlers, validators, and data handlers as optional class
 Extending "class Meta" Options
 --------------------------------
 
-``class Meta`` options are a way to configure and modify a :class:`Schema's <Schema>` behavior. See the :class:`API docs <Schema>` for a listing of available options.
+``class Meta`` options are a way to configure and modify a :class:`Schema's <Schema>` behavior. See the :class:`API docs <Schema.Meta>` for a listing of available options.
 
 You can add custom ``class Meta`` options by subclassing :class:`SchemaOpts`.
 

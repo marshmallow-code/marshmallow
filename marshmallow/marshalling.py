@@ -40,10 +40,7 @@ class _Missing(_Null):
         return '<marshmallow.marshalling.missing>'
 
 
-# Singleton that represents an empty value. Used as the default for Nested
-# fields so that `Field._call_with_validation` is invoked, even when the
-# object to serialize has the nested attribute set to None. Therefore,
-# `RegistryErrors` are properly raised.
+# Singleton that represents an empty value.
 null = _Null()
 
 # Singleton value that indicates that a field's value is missing from input
