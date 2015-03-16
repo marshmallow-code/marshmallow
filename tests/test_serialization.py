@@ -7,7 +7,7 @@ import decimal
 import pytest
 
 from marshmallow import Schema, fields, utils
-from marshmallow.exceptions import MarshallingError
+from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
 from tests.base import User, DummyModel
@@ -92,9 +92,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == decimal.Decimal(1)
         assert isinstance(field.serialize('m4', user), decimal.Decimal)
         assert field.serialize('m4', user) == decimal.Decimal()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
         field = fields.Decimal(1)
@@ -106,9 +106,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == decimal.Decimal(1)
         assert isinstance(field.serialize('m4', user), decimal.Decimal)
         assert field.serialize('m4', user) == decimal.Decimal()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
         field = fields.Decimal(1, decimal.ROUND_DOWN)
@@ -120,9 +120,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == decimal.Decimal(1)
         assert isinstance(field.serialize('m4', user), decimal.Decimal)
         assert field.serialize('m4', user) == decimal.Decimal()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
     def test_decimal_field_string(self, user):
@@ -142,9 +142,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == '1'
         assert isinstance(field.serialize('m4', user), basestring)
         assert field.serialize('m4', user) == '0'
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
         field = fields.Decimal(1, as_string=True)
@@ -156,9 +156,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == '1.0'
         assert isinstance(field.serialize('m4', user), basestring)
         assert field.serialize('m4', user) == '0'
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
         field = fields.Decimal(1, decimal.ROUND_DOWN, as_string=True)
@@ -170,9 +170,9 @@ class TestFieldSerialization:
         assert field.serialize('m3', user) == '1.0'
         assert isinstance(field.serialize('m4', user), basestring)
         assert field.serialize('m4', user) == '0'
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m5', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
     def test_function_with_uncallable_param(self):
@@ -182,13 +182,13 @@ class TestFieldSerialization:
     def test_email_field_validates(self, user):
         user.email = 'bademail'
         field = fields.Email()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('email', user)
 
     def test_url_field_validates(self, user):
         user.homepage = 'badhomepage'
         field = fields.URL()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('homepage', user)
 
     def test_method_field_with_method_missing(self):
@@ -309,7 +309,7 @@ class TestFieldSerialization:
         field = fields.Select(['male', 'female', 'transexual', 'asexual'])
         assert field.serialize("sex", user) == "male"
         invalid = User('foo', sex='alien')
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('sex', invalid)
 
     def test_datetime_list_field(self):
@@ -321,7 +321,7 @@ class TestFieldSerialization:
     def test_list_field_with_error(self):
         obj = DateTimeList(['invaliddate'])
         field = fields.List(fields.DateTime)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('dtimes', obj)
 
     def test_datetime_list_serialize_single_value(self):
@@ -366,7 +366,7 @@ class TestFieldSerialization:
 
     def test_arbitrary_field_invalid_value(self, user):
         field = fields.Arbitrary()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             user.age = 'invalidvalue'
             field.serialize('age', user)
 
@@ -383,7 +383,7 @@ class TestFieldSerialization:
 
     def test_fixed_field_invalid_value(self, user):
         field = fields.Fixed()
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             user.age = 'invalidvalue'
             field.serialize('age', user)
 
@@ -413,7 +413,7 @@ class TestFieldSerialization:
         assert field.serialize('du1', user) == 'bar a'
         assert field.serialize('du2', user) == 'bar b'
         assert field.serialize('du3', user) == 'bar c'
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du4', user)
 
     def test_query_select_field_string_key(self, user):
@@ -427,7 +427,7 @@ class TestFieldSerialization:
         assert field.serialize('du1', user) == 'a'
         assert field.serialize('du2', user) == 'b'
         assert field.serialize('du3', user) == 'c'
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du4', user)
 
     def test_query_select_list_field_func_key(self, user):
@@ -442,9 +442,9 @@ class TestFieldSerialization:
         assert field.serialize('du1', user) == ['bar a', 'bar c', 'bar b']
         assert field.serialize('du2', user) == ['bar d', 'bar e', 'bar e']
         assert field.serialize('du5', user) == []
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du3', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du4', user)
 
     def test_query_select_list_field_string_key(self, user):
@@ -459,9 +459,9 @@ class TestFieldSerialization:
         assert field.serialize('du1', user) == ['a', 'c', 'b']
         assert field.serialize('du2', user) == ['d', 'e', 'e']
         assert field.serialize('du5', user) == []
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du3', user)
-        with pytest.raises(MarshallingError):
+        with pytest.raises(ValidationError):
             field.serialize('du4', user)
 
 

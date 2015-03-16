@@ -16,13 +16,10 @@ Let's start with a basic user "model".
     import datetime as dt
 
     class User(object):
-        def __init__(self, name, email, age=None):
+        def __init__(self, name, email):
             self.name = name
             self.email = email
             self.created_at = dt.datetime.now()
-            self.friends = []
-            self.employer = None
-            self.age = age
 
         def __repr__(self):
             return '<User(name={self.name!r})>'.format(self=self)
@@ -168,10 +165,10 @@ Validation
 .. code-block:: python
 
     data, errors = UserSchema().load({'email': 'foo'})
-    errors  # => {'email': ['foo is not a valid email address.']}
+    errors  # => {'email': ['"foo" is not a valid email address.']}
     # OR, equivalently
     result = UserSchema().load({'email': 'foo'})
-    result.errors  # => {'email': ['foo is not a valid email address.']}
+    result.errors  # => {'email': ['"foo" is not a valid email address.']}
 
 
 When validating a collection, the errors dictionary will be keyed on the indicies of invalid items.
@@ -207,9 +204,10 @@ You can perform additional validation for a field by passing it a ``validate`` c
     result.errors  # => {'age': ['Validator <lambda>(71.0) is False']}
 
 
-Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError` is raised, its message is stored when validation fails.
+Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised, its message is stored when validation fails.
 
 .. code-block:: python
+    :emphasize-lines: 7,10,14
 
     from marshmallow import Schema, fields, ValidationError
 
@@ -228,24 +226,30 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
 .. note::
 
-    If you have multiple validations to perform, you may also pass a collection (list, tuple) or generator of callables to the ``validate`` parameter.
+    If you have multiple validations to perform, you may also pass a collection (list, tuple, generator) of callables.
 
 .. note::
 
     :meth:`Schema.dump` also validates the format of its fields and returns a dictionary of errors. However, the callables passed to ``validate`` are only applied during deserialization.
 
-.. note::
 
-    If you set ``strict=True`` in either the Schema constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in.
+``strict`` Mode
++++++++++++++++
+
+    If you set ``strict=True`` in either the Schema constructor or as a ``class Meta`` option, an error will be raised when invalid data are passed in. You can access the dictionary of validation errors from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute.
 
     .. code-block:: python
 
-        UserSchema(strict=True).load({'email': 'foo'})
-        # => UnmarshallingError: "foo" is not a valid email address.
+        from marshmallow import ValidationError
 
+        try:
+            UserSchema(strict=True).load({'email': 'foo'})
+        except ValidationError as err:
+            print(err.messages)# => {'email': ['"foo" is not a valid email address.']}
 
-    Alternatively, you can also register a custom error handler function for a schema using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
+.. seealso::
 
+    You can register a custom error handler function for a schema using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
 
 .. seealso::
 
@@ -310,21 +314,21 @@ By default, `Schemas` will marshal the object attributes that are identical to t
 Specifying Deserialization Keys
 -------------------------------
 
-By default `Schemas` will unmarshal an input dictionary to an output dictionary whose keys are identical to the field names.  However, if you are consuming data that does not exactly match your schema, you can specify additional keys to load values from.
+By default `Schemas` will unmarshal an input dictionary to an output dictionary whose keys are identical to the field names.  However, if you are consuming data that does not exactly match your schema, you can specify additional keys to load values by passing the `load_from` argument.
 
 .. code-block:: python
     :emphasize-lines: 2,3,11,12
 
     class UserSchema(Schema):
         name = fields.String()
-        email = fields.Email(load_from='email_address')
+        email = fields.Email(load_from='emailAddress')
 
     data = {
         'name': 'Mike',
-        'email_address': 'foo@bar.com'
+        'emailAddress': 'foo@bar.com'
     }
-    ser = UserSchema()
-    result, errors = ser.load(data)
+    s = UserSchema()
+    result, errors = s.load(data)
     #{'name': u'Mike',
     # 'email': 'foo@bar.com'}
 
@@ -361,7 +365,8 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
         class UserSchema(Schema):
             uppername = fields.Function(lambda obj: obj.name.upper())
             class Meta:
-                additional = ("name", "email", "created_at")  # No need to include 'uppername'
+                # No need to include 'uppername'
+                additional = ("name", "email", "created_at")
 
 Ordering Output
 ---------------

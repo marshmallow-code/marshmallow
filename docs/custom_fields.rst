@@ -66,8 +66,8 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
 
 .. _adding-context:
 
-Adding Context to Method and Function Fields
---------------------------------------------
+Adding Context to `Method` and `Function` Fields
+------------------------------------------------
 
 A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
 

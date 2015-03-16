@@ -1,87 +1,74 @@
 # -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
-from marshmallow.compat import text_type, basestring
+import warnings
+
+from marshmallow.compat import basestring
 
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
     pass
 
 
-class _WrappingException(MarshmallowError):
-    """Exception that wraps a different, underlying exception. Used so that
-    an error in serialization or deserialization can be reraised as a
-    :exc:`MarshmallowError <MarshmallowError>`.
-    """
-
-    def __init__(self, underlying_exception, fields=None, field_names=None):
-        if isinstance(underlying_exception, Exception):
-            self.underlying_exception = underlying_exception
-        else:
-            self.underlying_exception = None
-        self.fields = fields
-        self.field_names = field_names
-        super(_WrappingException, self).__init__(
-            text_type(underlying_exception)
-        )
-
-
-class ForcedError(_WrappingException):
-    """Error that always gets raised, even during serialization.
-    Field classes should raise this error if the error should not be stored in
-    the Marshaller's error dictionary and should instead be raised.
-
-    Must be instantiated with an underlying exception.
-
-    Example: ::
-
-        def _serialize(self, value, key, obj):
-            if not isinstace(value, dict):
-                raise ForcedError(ValueError('Value must be a dict.'))
-    """
-    pass
-
-
 class ValidationError(MarshmallowError):
-    """Raised when validation fails on a field.
+    """Raised when validation fails on a field. Validators and custom fields should
+    raise this exception.
 
     :param message: An error message, list of error messages, or dict of
         error messages.
-    :param str field: Field name (or list of field names) to store the error on.
+    :param list field_names: Field names to store the error on.
         If `None`, the error is stored in its default location.
+    :param list fields: `Field` objects to which the error applies.
     """
 
-    def __init__(self, message, field=None):
+    def __init__(self, message, field_names=None, fields=None):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
             messages = message
+        #: String, list, or dictionary of error messages.
+        #: If a `dict`, the keys will be field names and the values will be lists of
+        #: messages.
         self.messages = messages
-        self.field = field
-        if isinstance(field, basestring):
-            self.fields = [field]
-        else:  # field is a list or None
-            self.fields = field
+        #: List of field objects which failed validation.
+        self.fields = fields
+        if isinstance(field_names, basestring):
+            #: List of field_names which failed validation.
+            self.field_names = [field_names]
+        else:  # fields is a list or None
+            self.field_names = field_names or []
         MarshmallowError.__init__(self, message)
 
 
-class RegistryError(ForcedError, NameError):
+class RegistryError(NameError):
     """Raised when an invalid operation is performed on the serializer
     class registry.
     """
     pass
 
 
-class MarshallingError(_WrappingException):
+class MarshallingError(ValidationError):
     """Raised in case of a marshalling error. If raised during serialization,
     the error is caught and the error message is stored in an ``errors``
     dictionary (unless ``strict`` mode is turned on).
+
+    .. deprecated:: 2.0.0
+        Use :exc:`ValidationError` instead.
     """
-    pass
+    def __init__(self, *args, **kwargs):
+        warnings.warn('MarshallingError is deprecated. Raise a ValidationError instead',
+                      category=DeprecationWarning)
+        super(MarshallingError, self).__init__(*args, **kwargs)
 
 
-class UnmarshallingError(_WrappingException):
+class UnmarshallingError(ValidationError):
     """Raised when invalid data are passed to a deserialization function. If
     raised during deserialization, the error is caught and the error message
     is stored in an ``errors`` dictionary.
+
+    .. deprecated:: 2.0.0
+        Use :exc:`ValidationError` instead.
     """
-    pass
+    def __init__(self, *args, **kwargs):
+        warnings.warn('UnmarshallingError is deprecated. Raise a ValidationError instead',
+                      category=DeprecationWarning)
+        super(UnmarshallingError, self).__init__(*args, **kwargs)

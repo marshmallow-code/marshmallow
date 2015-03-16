@@ -4,7 +4,7 @@ import pytest
 
 from marshmallow import fields
 from marshmallow.marshalling import Marshaller, Unmarshaller, null, missing
-from marshmallow.exceptions import UnmarshallingError
+from marshmallow.exceptions import ValidationError
 
 from tests.base import User
 
@@ -88,7 +88,7 @@ class TestUnmarshaller:
             {'email': 'foobar'},
             {'email': 'bar@example.com'}
         ]
-        with pytest.raises(UnmarshallingError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
         assert 'foobar' in str(excinfo)
 
@@ -150,7 +150,7 @@ class TestUnmarshaller:
         assert user['age'] == 71
 
     def test_deserialize_strict_raises_error(self, unmarshal):
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(ValidationError):
             unmarshal(
                 {'email': 'invalid', 'name': 'Mick'},
                 {'email': fields.Email(), 'name': fields.String()},
