@@ -33,7 +33,7 @@ ALL_FIELDS = [
 ##### Custom asserts #####
 
 def assert_almost_equal(a, b, precision=5):
-    assert round(a, precision) == round(a, precision)
+    assert round(a, precision) == round(b, precision)
 
 
 def assert_date_equal(d1, d2):
