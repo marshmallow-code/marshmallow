@@ -246,7 +246,6 @@ class BaseSchema(base.SchemaABC):
                  many=False, skip_missing=False, context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
-        self._data = None  # the cached, serialized data
         self.many = many
         self.opts = self.OPTIONS_CLASS(self.Meta)
         self.only = only
