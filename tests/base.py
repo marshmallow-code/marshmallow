@@ -6,7 +6,8 @@ import uuid
 import pytz
 
 from marshmallow import Schema, fields
-from marshmallow.exceptions import MarshallingError
+from marshmallow.compat import text_type
+from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone("US/Central")
 
@@ -160,7 +161,7 @@ class UserSchema(Schema):
         try:
             return obj.age > 80
         except TypeError as te:
-            raise MarshallingError(te)
+            raise ValidationError(text_type(te))
 
     def make_object(self, data):
         return User(**data)
@@ -181,7 +182,7 @@ class UserMetaSchema(Schema):
         try:
             return obj.age > 80
         except TypeError as te:
-            raise MarshallingError(te)
+            raise ValidationError(te)
 
     class Meta:
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',

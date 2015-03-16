@@ -13,13 +13,7 @@ from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.marshalling import null, missing
 from marshmallow.compat import text_type, basestring
-from marshmallow.exceptions import (
-    MarshallingError,
-    UnmarshallingError,
-    ForcedError,
-    ValidationError,
-)
-
+from marshmallow.exceptions import ValidationError
 
 __all__ = [
     'Field',
@@ -72,8 +66,8 @@ class Field(FieldABC):
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
-        If it returns `False`, an :exc:`UnmarshallingError` is raised.
-    :param required: Raise an :exc:`UnmarshallingError` if the field value
+        If it returns `False`, an :exc:`ValidationError` is raised.
+    :param required: Raise an :exc:`ValidationError` if the field value
         is not supplied during deserialization. If not a `bool`(e.g. a `str`),
         the provided value will be used as the message of the
         :exc:`ValidationError` instead of the default message.
@@ -186,27 +180,6 @@ class Field(FieldABC):
         if errors:
             raise ValidationError(errors)
 
-    def _call_and_reraise(self, func, exception_class):
-        """Utility method to invoke a function and raise ``exception_class`` if an error
-        occurs.
-
-        :param callable func: Function to call. Must take no arguments.
-        :param Exception exception_class: Type of exception to raise when an error occurs.
-        """
-        try:
-            return func()
-        # TypeErrors should be raised if fields are not declared as instances
-        except TypeError:
-            raise
-        # Raise ForcedErrors
-        except ForcedError as err:
-            if err.underlying_exception:
-                raise err.underlying_exception
-            else:
-                raise err
-        except ValidationError as err:
-            raise exception_class(err)
-
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
@@ -231,7 +204,7 @@ class Field(FieldABC):
         :param str attr: The attibute or key to get from the object.
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
-        :raise MarshallingError: In case of formatting problem
+        :raise ValidationError: In case of formatting problem
         """
         value = self.get_value(attr, obj, accessor=accessor)
         if value is None and self._CHECK_ATTRIBUTE:
@@ -240,25 +213,22 @@ class Field(FieldABC):
                     return self.default()
                 else:
                     return self.default
-        func = lambda: self._serialize(value, attr, obj)
-        return self._call_and_reraise(func, MarshallingError)
+        return self._serialize(value, attr, obj)
 
     def deserialize(self, value):
         """Deserialize ``value``.
 
-        :raise UnmarshallingError: If an invalid value is passed or if a required value
+        :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
         """
         # Validate required fields, deserialize, then validate
         # deserialized value
-        def do_deserialization():
-            self._validate_missing(value)
-            if getattr(self, 'allow_none', False) is True and value is None:
-                return None
-            output = self._deserialize(value)
-            self._validate(output)
-            return output
-        return self._call_and_reraise(do_deserialization, UnmarshallingError)
+        self._validate_missing(value)
+        if getattr(self, 'allow_none', False) is True and value is None:
+            return None
+        output = self._deserialize(value)
+        self._validate(output)
+        return output
 
     # Methods for concrete classes to override.
 
@@ -277,14 +247,14 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
-        :raise MarshallingError: In case of formatting or validation failure.
+        :raise ValidationError: In case of formatting or validation failure.
         """
         return value
 
     def _deserialize(self, value):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
 
-        :raise UnmarshallingError: In case of formatting or validation failure.
+        :raise ValidationError: In case of formatting or validation failure.
         """
         return value
 
@@ -362,9 +332,8 @@ class Nested(Field):
                     self.__schema = schema_class(many=self.many,
                             only=only, exclude=self.exclude)
             else:
-                raise ForcedError(ValueError('Nested fields must be passed a '
-                                    'Schema, not {0}.'
-                                    .format(self.nested.__class__)))
+                raise ValueError('Nested fields must be passed a '
+                                 'Schema, not {0}.'.format(self.nested.__class__))
         self.__schema.ordered = getattr(self.parent, 'ordered', False)
         # Inherit context from parent
         self.__schema.context.update(getattr(self.parent, 'context', {}))
@@ -496,7 +465,7 @@ class UUID(String):
 
     def _deserialize(self, value):
         msg = 'Could not deserialize {0!r} to a UUID object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
@@ -521,14 +490,14 @@ class Number(Field):
         """Return the number value for value, given this field's `num_type`."""
         return self.num_type(value)
 
-    def _validated(self, value, exception_class):
+    def _validated(self, value):
         """Format the value or raise ``exception_class`` if an error occurs."""
         if value is None:
             return self.default
         try:
             return self._format_num(value)
         except (TypeError, ValueError, decimal.InvalidOperation) as err:
-            raise exception_class(getattr(self, 'error', None) or err)
+            raise ValidationError(getattr(self, 'error', None) or text_type(err))
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object and returns the
@@ -540,10 +509,10 @@ class Number(Field):
         return str(ret) if self.as_string else ret
 
     def _serialize(self, value, attr, obj):
-        return self._validated(value, MarshallingError)
+        return self._validated(value)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value)
 
 
 class Integer(Number):
@@ -624,14 +593,14 @@ class Boolean(Field):
         try:
             value_str = text_type(value)
         except TypeError as error:
-            raise UnmarshallingError(error)
+            raise ValidationError(text_type(error))
         if value_str in self.falsy:
             return False
         elif self.truthy:
             if value_str in self.truthy:
                 return True
             else:
-                raise UnmarshallingError(
+                raise ValidationError(
                     '{0!r} is not in {1} nor {2}'.format(
                         value_str, self.truthy, self.falsy
                     ))
@@ -663,7 +632,7 @@ class FormattedString(Field):
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
-            raise MarshallingError(getattr(self, 'error', None) or error)
+            raise ValidationError(getattr(self, 'error', None) or error)
 
 
 class Float(Number):
@@ -695,20 +664,20 @@ class Arbitrary(Number):
         )
         super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
 
-    def _validated(self, value, exception_class):
+    def _validated(self, value):
         """Format ``value`` or raise ``exception_class`` if an error occurs."""
         try:
             if value is None:
                 return self.default
             return text_type(utils.float_to_decimal(float(value)))
         except ValueError as ve:
-            raise exception_class(ve)
+            raise ValidationError(text_type(ve))
 
     def _serialize(self, value, attr, obj):
-        return self._validated(value, MarshallingError)
+        return self._validated(value)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value)
 
 
 class DateTime(Field):
@@ -758,13 +727,13 @@ class DateTime(Field):
                 try:
                     return format_func(value, localtime=self.localtime)
                 except (AttributeError, ValueError) as err:
-                    raise MarshallingError(getattr(self, 'error', None) or err)
+                    raise ValidationError(getattr(self, 'error', None) or text_type(err))
             else:
                 return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
         msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise err
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
@@ -806,7 +775,7 @@ class Time(Field):
             ret = value.isoformat()
         except AttributeError:
             msg = '{0!r} cannot be formatted as a time.'.format(value)
-            raise MarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
         if value.microsecond:
             return ret[:12]
         return ret
@@ -814,7 +783,7 @@ class Time(Field):
     def _deserialize(self, value):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         msg = 'Could not deserialize {0!r} to a time object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:   # falsy values are invalid
             raise err
         try:
@@ -833,7 +802,7 @@ class Date(Field):
             return value.isoformat()
         except AttributeError:
             msg = '{0} cannot be formatted as a date.'.format(repr(value))
-            raise MarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
         return value
 
     def _deserialize(self, value):
@@ -841,7 +810,7 @@ class Date(Field):
         :class:`datetime.date` object.
         """
         msg = 'Could not deserialize {0!r} to a date object.'.format(value)
-        err = UnmarshallingError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:  # falsy values are invalid
             raise err
         try:
@@ -893,14 +862,14 @@ class TimeDelta(Field):
                     return seconds * 10**6 + value.microseconds  # flake8: noqa
         except AttributeError:
             msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
-            raise MarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
 
     def _deserialize(self, value):
         try:
             value = int(value)
         except (TypeError, ValueError):
             msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
 
         kwargs = {self.precision: value}
 
@@ -908,7 +877,7 @@ class TimeDelta(Field):
             return dt.timedelta(**kwargs)
         except OverflowError:
             msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise UnmarshallingError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or msg)
 
 
 class Fixed(Number):
@@ -930,21 +899,15 @@ class Fixed(Number):
                             *args, **kwargs)
         self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
 
-    def _serialize(self, value, attr, obj):
-        return self._validated(value, MarshallingError)
-
-    def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
-
-    def _validated(self, value, exception_class):
+    def _validated(self, value):
         if value is None:
             value = self.default
         try:
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
-            raise exception_class(getattr(self, 'error', None) or err)
+            raise ValidationError(getattr(self, 'error', None) or text_type(err))
         if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
-            raise exception_class(
+            raise ValidationError(
                 getattr(self, 'error', None) or 'Invalid Fixed precision number.'
             )
         return utils.decimal_to_fixed(dvalue, self.precision)
@@ -1067,7 +1030,7 @@ class Method(Field):
             if len(utils.get_func_args(method)) > 2:
                 if self.parent.context is None:
                     msg = 'No context available for Method field {0!r}'.format(attr)
-                    raise MarshallingError(msg)
+                    raise ValidationError(msg)
                 return method(obj, self.parent.context)
             else:
                 return method(obj)
@@ -1111,7 +1074,7 @@ class Function(Field):
             if len(utils.get_func_args(self.func)) > 1:
                 if self.parent.context is None:
                     msg = 'No context available for Function field {0!r}'.format(attr)
-                    raise MarshallingError(msg)
+                    raise ValidationError(msg)
                 return self.func(obj, self.parent.context)
             else:
                 return self.func(obj)
@@ -1135,7 +1098,7 @@ class Select(Field):
     :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Fixed` receives.
 
-    :raise: MarshallingError if attribute's value is not one of the given choices.
+    :raise: ValidationError if attribute's value is not one of the given choices.
     """
     def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
         warnings.warn(
@@ -1146,19 +1109,19 @@ class Select(Field):
         self.choices = choices
         return super(Select, self).__init__(default, attribute, error, **kwargs)
 
-    def _validated(self, value, exception_class):
+    def _validated(self, value):
         if value not in self.choices:
-            raise exception_class(
+            raise ValidationError(
                 getattr(self, 'error', None) or
                 "{0!r} is not a valid choice for this field.".format(value)
             )
         return value
 
     def _serialize(self, value, attr, obj):
-        return self._validated(value, MarshallingError)
+        return self._validated(value)
 
     def _deserialize(self, value):
-        return self._validated(value, UnmarshallingError)
+        return self._validated(value)
 
 
 class QuerySelect(Field):
@@ -1223,7 +1186,7 @@ class QuerySelect(Field):
                 return value
 
         error = getattr(self, 'error', None) or 'Invalid object.'
-        raise MarshallingError(error)
+        raise ValidationError(error)
 
     def _deserialize(self, value):
         for key, result in self.pairs():
@@ -1231,7 +1194,7 @@ class QuerySelect(Field):
                 return result
 
         error = getattr(self, 'error', None) or 'Invalid key.'
-        raise UnmarshallingError(error)
+        raise ValidationError(error)
 
 
 class QuerySelectList(QuerySelect):
@@ -1261,7 +1224,7 @@ class QuerySelectList(QuerySelect):
                 keys.remove(item)
             except ValueError:
                 error = getattr(self, 'error', None) or 'Invalid objects.'
-                raise MarshallingError(error)
+                raise ValidationError(error)
 
         return items
 
@@ -1277,7 +1240,7 @@ class QuerySelectList(QuerySelect):
                 index = keys.index(val)
             except ValueError:
                 error = getattr(self, 'error', None) or 'Invalid keys.'
-                raise UnmarshallingError(error)
+                raise ValidationError(error)
             else:
                 del keys[index]
                 items.append(results.pop(index))

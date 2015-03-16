@@ -24,7 +24,7 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
             self.title = title
             self.author = author  # A User object
 
-Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in nested schema class.
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema class.
 
 .. code-block:: python
     :emphasize-lines: 10

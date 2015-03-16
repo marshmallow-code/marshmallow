@@ -6,8 +6,9 @@ Changelog
 
 Features:
 
-- *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection (:issue:`75`). Add the ``index_errors`` class Meta option.
+- *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection (:issue:`75`). Add the ``index_errors`` class Meta option to disable this behavior.
 - *Backwards-incompatible*: By default, required fields will raise a ValidationError if the input is ``None`` or the empty string. The ``allow_none`` and ``allow_blank`` parameters can override this behavior.
+- In ``strict`` mode, a ``ValidationError`` is raised. Error messages are accessed via the ``ValidationError's`` ``messages`` attribute (:issue:`128`).
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
 - Add ``allow_blank`` parameter to ``fields.String`` fields (incl. ``fields.URL``, ``fields.Email``). If ``False`` (the default), validation fails when the field's value is the empty string (:issue:`76`).
 - Schema-level validators can store error messages for multiple fields (:issue:`118`). Thanks :user:`ksesong` for the suggestion.
@@ -23,6 +24,8 @@ Features:
 
 Deprecation/Removals:
 
+- ``MarshallingError`` and ``UnmarshallingError`` error are deprecated in favor of a single ``ValidationError`` (:issue:`160`).
+- Remove ``ForcedError``.
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 - The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
 - Remove legacy, pre-1.0 API (``Schema.data`` and ``Schema.errors`` properties) (:issue:`73`).
