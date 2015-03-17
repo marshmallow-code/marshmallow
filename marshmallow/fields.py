@@ -301,14 +301,11 @@ class Unmarshaller(object):
             ret = None
 
         if preprocess:
-            preprocess = preprocess or []
             for func in preprocess:
                 ret = func(ret)
         if validators:
-            validators = validators or []
             ret = self._validate(validators, ret, fields_dict=fields_dict, strict=strict)
         if postprocess:
-            postprocess = postprocess or []
             for func in postprocess:
                 ret = func(ret)
         return ret
