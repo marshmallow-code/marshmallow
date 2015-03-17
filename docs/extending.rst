@@ -233,7 +233,7 @@ Then we create a custom :class:`Schema` that uses our options class.
             data = Schema._postprocess(self, data, many, obj)
             if self.opts.name:   # Add namespace
                 namespace = self.opts.name
-                if self.many:
+                if many:
                     namespace = self.opts.plural_name
                 data = {namespace: data}
             return data
