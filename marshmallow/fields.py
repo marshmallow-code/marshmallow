@@ -696,6 +696,7 @@ class UUID(String):
 class Number(Field):
     """Base class for number fields.
 
+    :param bool as_string: If True, format the value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -739,8 +740,7 @@ class Number(Field):
 class Integer(Number):
     """An integer field.
 
-    :param bool as_string: If True, format the value as a string.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
     num_type = int
