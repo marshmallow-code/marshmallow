@@ -8,6 +8,14 @@ Bug fixes:
 
 - Fix behavior of ``as_string`` on ``fields.Integer`` (:issue:`173`). Thanks :user:`taion` for the catch and patch.
 
+Other changes:
+
+- Remove dead code from ``fields.Field``. Thanks :user:`taion`.
+
+Support:
+
+- Correction to ``_postprocess`` method in docs. Thanks again :user:`taion`.
+
 
 1.2.3 (2015-03-15)
 ++++++++++++++++++
