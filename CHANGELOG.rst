@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+1.2.4 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior of ``as_string`` on ``fields.Integer`` (:issue:`173`). Thanks :user:`taion` for the catch and patch.
+
+
 1.2.3 (2015-03-15)
 ++++++++++++++++++
 
