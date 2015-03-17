@@ -35,6 +35,21 @@ Other changes:
 - ``Marshaller``, ``Unmarshaller``, ``null``, and ``missing`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
 - Make ``allow_null=True`` the default for ``Nested`` fields. This will make ``None`` serialize to ``None`` rather than a dictionary with empty values (:issue:`132`). Thanks :user:`nickrellack` for the suggestion.
 
+1.2.4 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior of ``as_string`` on ``fields.Integer`` (:issue:`173`). Thanks :user:`taion` for the catch and patch.
+
+Other changes:
+
+- Remove dead code from ``fields.Field``. Thanks :user:`taion`.
+
+Support:
+
+- Correction to ``_postprocess`` method in docs. Thanks again :user:`taion`.
+
 1.2.3 (2015-03-15)
 ++++++++++++++++++
 

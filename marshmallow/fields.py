@@ -475,6 +475,7 @@ class UUID(String):
 class Number(Field):
     """Base class for number fields.
 
+    :param bool as_string: If True, format the value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -518,16 +519,13 @@ class Number(Field):
 class Integer(Number):
     """An integer field.
 
-    :param bool as_string: If True, format the value as a string.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
     num_type = int
 
-    def __init__(self, default=0, attribute=None, as_string=False, error=None, **kwargs):
-        self.as_string = as_string
-        super(Integer, self).__init__(default=default, attribute=attribute,
-            error=error, **kwargs)
+    def __init__(self, default=0, *args, **kwargs):
+        super(Integer, self).__init__(default=default, *args, **kwargs)
 
 
 class Decimal(Number):
