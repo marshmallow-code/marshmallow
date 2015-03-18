@@ -31,3 +31,4 @@ Contributors (chronological)
 - Patrick Woods `@hakjoon <https://github.com/hakjoon>`_
 - Lukas Heiniger `@3rdcycle <https://github.com/3rdcycle>`_
 - Ryan Lowe `@ryanlowe0 <https://github.com/ryanlowe0>`_
+- Jimmy Jia `@taion <https://github.com/taion>`_
