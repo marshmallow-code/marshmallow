@@ -272,6 +272,17 @@ class BaseSchema(base.SchemaABC):
             ClassName=self.__class__.__name__, self=self
         )
 
+    @staticmethod
+    def create_keys(only):
+        result = {}
+        for vals in only:
+            temp_dict = result
+            for k in vals.split("."):
+                if k not in temp_dict:
+                    temp_dict[k] = {}  # if the key isn't there yet add it to d
+                temp_dict = temp_dict[k]
+        return result
+
     def _postprocess(self, data, many, obj):
         if self.extra:
             if many:
@@ -433,7 +444,7 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=None, update_fields=True, **kwargs):
+    def dump(self, obj, many=None, update_fields=True, only={}, **kwargs):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -456,7 +467,8 @@ class BaseSchema(base.SchemaABC):
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
         if update_fields:
-            self._update_fields(obj, many=many)
+            only = self.create_keys(only) if not isinstance(only, dict) else only
+            self._update_fields(obj, many=many, only=only.keys())
         preresult = self._marshal(
             obj,
             self.fields,
@@ -466,6 +478,7 @@ class BaseSchema(base.SchemaABC):
             accessor=self.__accessor__,
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
+            only=only,
             **kwargs
         )
         result = self._postprocess(preresult, many, obj=obj)
@@ -586,11 +599,11 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(errors, data)
         return result, errors
 
-    def _update_fields(self, obj=None, many=False):
+    def _update_fields(self, obj=None, many=False, only=None):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
-        if self.only:
-            ret = self.__filter_fields(self.only, obj, many=many)
+        if self.only or only:
+            ret = self.__filter_fields(only or self.only, obj, many=many)
             self.__set_field_attrs(ret)
             self.fields = ret
             return self.fields

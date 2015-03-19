@@ -224,15 +224,17 @@ class Field(FieldABC):
                             self.allow_none)
                 raise ValidationError(message)
 
-    def serialize(self, attr, obj, accessor=None):
+    def serialize(self, attr, obj, accessor=None, only={}):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
         :param str attr: The attibute or key to get from the object.
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
+        :param dict only: specifying the list of fields to serialize.
         :raise MarshallingError: In case of formatting problem
         """
+        only = only.get(attr, {})
         value = self.get_value(attr, obj, accessor=accessor)
         if value is None and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
@@ -240,7 +242,7 @@ class Field(FieldABC):
                     return self.default()
                 else:
                     return self.default
-        func = lambda: self._serialize(value, attr, obj)
+        func = lambda: self._serialize(value, attr, obj, only=only)
         return self._call_and_reraise(func, MarshallingError)
 
     def deserialize(self, value):
@@ -262,7 +264,7 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, only=None):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
 
@@ -277,6 +279,7 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
+        :param dict only: specifying the list of fields to serialize.
         :raise MarshallingError: In case of formatting or validation failure.
         """
         return value
@@ -370,7 +373,7 @@ class Nested(Field):
         self.__schema.context.update(getattr(self.parent, 'context', {}))
         return self.__schema
 
-    def _serialize(self, nested_obj, attr, obj):
+    def _serialize(self, nested_obj, attr, obj, only=None):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
@@ -380,11 +383,12 @@ class Nested(Field):
             if self.allow_null:
                 return None
         if not self.__updated_fields:
-            schema._update_fields(obj=nested_obj, many=self.many)
+            schema._update_fields(obj=nested_obj, many=self.many, only=only.keys())
             self.__updated_fields = True
         try:
+            update_fields = not self.__updated_fields if not only else True
             ret = schema.dump(nested_obj, many=self.many,
-                    update_fields=not self.__updated_fields).data
+                    update_fields=update_fields, only=only).data
         except TypeError as err:
             raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
                             'If the nested object is a collection, you need to set '
@@ -438,7 +442,7 @@ class List(Field):
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
             return [self.container.serialize(idx, value) for idx
                     in range(len(value))]
@@ -483,7 +487,7 @@ class String(Field):
                         self.allow_blank)
             raise ValidationError(message)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value):
@@ -530,7 +534,7 @@ class Number(Field):
         except (TypeError, ValueError, decimal.InvalidOperation) as err:
             raise exception_class(getattr(self, 'error', None) or err)
 
-    def serialize(self, attr, obj, accessor=None):
+    def serialize(self, attr, obj, accessor=None, **kwargs):
         """Pulls the value for the given key from the object and returns the
         serialized number representation. Return a string if `self.as_string=True`,
         othewise return this field's `num_type`. Receives the same `args` and `kwargs`
@@ -539,7 +543,7 @@ class Number(Field):
         ret = Field.serialize(self, attr, obj, accessor=accessor)
         return str(ret) if self.as_string else ret
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -615,7 +619,7 @@ class Boolean(Field):
     #: Values that will deserialize to `False`.
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return bool(value)
 
     def _deserialize(self, value):
@@ -658,7 +662,7 @@ class FormattedString(Field):
         Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
@@ -704,7 +708,7 @@ class Arbitrary(Number):
         except ValueError as ve:
             raise exception_class(ve)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -750,7 +754,7 @@ class DateTime(Field):
         # dateformat, e.g. from a Meta option
         self.dateformat = format
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value:
             self.dateformat = self.dateformat or self.DEFAULT_FORMAT
             format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
@@ -801,7 +805,7 @@ class Time(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             ret = value.isoformat()
         except AttributeError:
@@ -828,7 +832,7 @@ class Date(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             return value.isoformat()
         except AttributeError:
@@ -880,7 +884,7 @@ class TimeDelta(Field):
         self.precision = precision
         super(TimeDelta, self).__init__(error=error, **kwargs)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             days = value.days
             if self.precision == self.DAYS:
@@ -890,7 +894,7 @@ class TimeDelta(Field):
                 if self.precision == self.SECONDS:
                     return seconds
                 else:  # microseconds
-                    return seconds * 10**6 + value.microseconds
+                    return seconds * 10 ** 6 + value.microseconds
         except AttributeError:
             msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
             raise MarshallingError(getattr(self, 'error', None) or msg)
@@ -930,7 +934,7 @@ class Fixed(Number):
                             *args, **kwargs)
         self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -1061,7 +1065,7 @@ class Method(Field):
             self.deserialize_method_name = None
         super(Method, self).__init__(**kwargs)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
             if len(utils.get_func_args(method)) > 2:
@@ -1106,7 +1110,7 @@ class Function(Field):
         else:
             self.deserialize_func = None
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             if len(utils.get_func_args(self.func)) > 1:
                 if self.parent.context is None:
@@ -1154,7 +1158,7 @@ class Select(Field):
             )
         return value
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return self._validated(value, MarshallingError)
 
     def _deserialize(self, value):
@@ -1215,7 +1219,7 @@ class QuerySelect(Field):
         labelgetter = labelgetter if callable(labelgetter) else attrgetter(labelgetter)
         return ((self.keygetter(item), labelgetter(item)) for item in self.query())
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         value = self.keygetter(value)
 
         for key in self.keys():
@@ -1248,7 +1252,7 @@ class QuerySelectList(QuerySelect):
 
     .. versionadded:: 1.2.0
     """
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         items = [self.keygetter(v) for v in value]
 
         if not items:

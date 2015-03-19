@@ -125,7 +125,7 @@ class DummyModel(object):
 class Uppercased(fields.Field):
     """Custom field formatting example."""
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value:
             return value.upper()
 

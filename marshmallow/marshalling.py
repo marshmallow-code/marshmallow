@@ -55,7 +55,7 @@ missing = _Missing()
 
 
 def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
-               exception_class, strict=False, index=None):
+               exception_class, strict=False, index=None, only=None):
     """Helper method for DRYing up logic in the :meth:`Marshaller.serialize` and
     :meth:`Unmarshaller.deserialize` methods. Call ``getter_func`` with ``data`` as its
     argument, and store any errors of type ``exception_class`` in ``error_dict``.
@@ -72,6 +72,7 @@ def _call_and_store(getter_func, data, field_name, field_obj, errors_dict,
         in ``errors_dict``.
     :param int index: Index of the item being validated, if validating a collection,
         otherwise `None`.
+    :param dict only: specifying the list of fields to serialize.
     """
     try:
         value = getter_func(data)
@@ -124,7 +125,7 @@ class Marshaller(object):
         self.__pending = False
 
     def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
-                  accessor=None, dict_class=dict, index_errors=True, index=None):
+                  accessor=None, dict_class=dict, index_errors=True, index=None, only={}):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -141,6 +142,7 @@ class Marshaller(object):
             ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
+
         :return: A dictionary of the marshalled data
 
         .. versionchanged:: 1.0.0
@@ -154,14 +156,15 @@ class Marshaller(object):
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class, accessor=accessor,
                                     skip_missing=skip_missing,
-                                    index=idx, index_errors=index_errors)
+                                    index=idx, index_errors=index_errors, only=only)
                     for idx, d in enumerate(obj)]
             self.__pending = False
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
             key = ''.join([self.prefix, attr_name])
-            getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
+            getter = lambda d: field_obj.serialize(attr_name, d,
+                                                   accessor=accessor, only=only)
             value = _call_and_store(
                 getter_func=getter,
                 data=obj,
@@ -170,7 +173,8 @@ class Marshaller(object):
                 errors_dict=self.errors,
                 exception_class=MarshallingError,
                 strict=strict,
-                index=(index if index_errors else None)
+                index=(index if index_errors else None),
+                only = only
             )
             skip_conds = (
                 field_obj.load_only,
