@@ -485,7 +485,7 @@ class BaseSchema(base.SchemaABC):
         errors = self._marshal.errors
         return MarshalResult(result, errors)
 
-    def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
+    def dumps(self, obj, many=None, update_fields=True, only={}, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
@@ -499,7 +499,10 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
+        deserialized, errors = self.dump(obj,
+                                         many=many,
+                                         update_fields=update_fields,
+                                         only=only)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
