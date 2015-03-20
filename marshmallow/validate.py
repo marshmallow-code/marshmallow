@@ -44,9 +44,8 @@ class URL(object):
 
     default_message = '"{input}" is not a valid URL.'
 
-    def __init__(self, relative=False, allow_blank=False, error=None):
+    def __init__(self, relative=False, error=None):
         self.relative = relative
-        self.allow_blank = allow_blank
         self.error = error or self.default_message
 
     def _format_error(self, value):
@@ -54,8 +53,6 @@ class URL(object):
 
     def __call__(self, value):
         message = self._format_error(value)
-        if value == '' and self.allow_blank is True:
-            return value
         if not value:
             raise ValidationError(message)
 
@@ -94,16 +91,13 @@ class Email(object):
 
     default_message = '"{input}" is not a valid email address.'
 
-    def __init__(self, allow_blank=False, error=None):
-        self.allow_blank = allow_blank
+    def __init__(self, error=None):
         self.error = error or self.default_message
 
     def _format_error(self, value):
         return self.error.format(input=value)
 
     def __call__(self, value):
-        if value == '' and self.allow_blank is True:
-            return value
         message = self._format_error(value)
 
         if not value or '@' not in value:

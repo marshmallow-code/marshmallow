@@ -7,10 +7,9 @@ Changelog
 Features:
 
 - *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection (:issue:`75`). Add the ``index_errors`` class Meta option to disable this behavior.
-- *Backwards-incompatible*: By default, required fields will raise a ValidationError if the input is ``None`` or the empty string. The ``allow_none`` and ``allow_blank`` parameters can override this behavior.
+- *Backwards-incompatible*: By default, required fields will raise a ValidationError if the input is ``None``. The ``allow_none`` parameter can override this behavior.
 - In ``strict`` mode, a ``ValidationError`` is raised. Error messages are accessed via the ``ValidationError's`` ``messages`` attribute (:issue:`128`).
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
-- Add ``allow_blank`` parameter to ``fields.String`` fields (incl. ``fields.URL``, ``fields.Email``). If ``False`` (the default), validation fails when the field's value is the empty string (:issue:`76`).
 - Schema-level validators can store error messages for multiple fields (:issue:`118`). Thanks :user:`ksesong` for the suggestion.
 - Error message for ``required`` validation is configurable. (:issue:`78`). Thanks :user:`svenstaro` for the suggestion. Thanks :user:`0xDCA` for the implementation.
 - Add ``load_from`` parameter to fields (:issue:`125`). Thanks :user:`hakjoon`.
