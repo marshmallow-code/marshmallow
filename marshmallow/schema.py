@@ -589,13 +589,10 @@ class BaseSchema(base.SchemaABC):
         """Update fields based on the passed in object."""
         # if only __init__ param is specified, only return those fields
         if self.only:
-            ret = self.__filter_fields(self.only, obj, many=many)
-            self.__set_field_attrs(ret)
-            self.fields = ret
-            return self.fields
-
-        if self.opts.fields:
             # Return only fields specified in fields option
+            field_names = self.set_class(self.only)
+        elif self.opts.fields:
+            # Return fields specified in fields option
             field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
