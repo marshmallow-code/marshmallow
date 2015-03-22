@@ -427,30 +427,13 @@ class List(Field):
 class String(Field):
     """A string field.
 
-    :param allow_blank: Set to `True` if the empty string should be considered a
-        valid value. If not a `bool` (e.g. a `str`), the provided value will
-        be used as the message of the :exc:`ValidationError` instead
-        of the default message.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
-    .. versionchanged:: 2.0.0
-        Add `allow_blank` parameter. By default, the empty string will fail
-        validation.
     """
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
 
-    def __init__(self, default='', attribute=None, allow_blank=False, *args, **kwargs):
-        self.allow_blank = allow_blank
-        return super(String, self).__init__(default, attribute, *args, **kwargs)
-
-    def _validate_missing(self, value):
-        super(String, self)._validate_missing(value)
-        if value == '' and self.allow_blank is not True:
-            default_message = 'Field may not be blank.'
-            message = (default_message if isinstance(self.allow_blank, bool) else
-                        self.allow_blank)
-            raise ValidationError(message)
+    def __init__(self, default='', attribute=None, *args, **kwargs):
+        return super(String, self).__init__(default, attribute=attribute, *args, **kwargs)
 
     def _serialize(self, value, attr, obj):
         return utils.ensure_text_type(value)
@@ -946,22 +929,15 @@ class Url(ValidatedField, String):
         `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`String` receives.
-
-    .. versionchanged:: 2.0.0
-        Subclasses `String` and add the `allow_blank` parameter.
     """
 
-    def __init__(self, default=None, attribute=None, relative=False, allow_blank=False,
-                 *args, **kwargs):
-        String.__init__(self, default=default,
-                        attribute=attribute, allow_blank=allow_blank,
-                        *args, **kwargs)
+    def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
+        String.__init__(self, default=default, attribute=attribute, *args, **kwargs)
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.URL(
             relative=self.relative,
-            allow_blank=allow_blank,
             error=getattr(self, 'error')
         ))
 
@@ -969,7 +945,6 @@ class Url(ValidatedField, String):
         self._validate_missing(value)
         return validate.URL(
             relative=self.relative,
-            allow_blank=self.allow_blank,
             error=getattr(self, 'error')
         )(value)
 
@@ -979,23 +954,16 @@ class Email(ValidatedField, String):
     deserialization.
 
     :param kwargs: The same keyword arguments that :class:`String` receives.
-
-    .. versionchanged:: 2.0.0
-        Subclasses `String` and add the `allow_blank` parameter.
     """
-    def __init__(self, default=None, attribute=None, allow_blank=False,
-                 *args, **kwargs):
-        String.__init__(self, default=default, attribute=attribute,
-                        allow_blank=allow_blank, *args, **kwargs)
+    def __init__(self, default=None, attribute=None, *args, **kwargs):
+        String.__init__(self, default=default, attribute=attribute, *args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, validate.Email(allow_blank=allow_blank,
-                                                 error=getattr(self, 'error')))
+        self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
 
     def _validated(self, value):
         self._validate_missing(value)
         return validate.Email(
-            allow_blank=self.allow_blank,
             error=getattr(self, 'error')
         )(value)
 

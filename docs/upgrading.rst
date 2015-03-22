@@ -8,12 +8,10 @@ Upgrading to Newer Releases
 Upgrading to 2.0
 ++++++++++++++++
 
-Deserializing empty values, ``allow_none``, and ``allow_blank``
-***************************************************************
+Deserializing `None`
+********************
 
-Two new parameters were added to the field classes: ``allow_none`` and ``allow_blank``.
-
-In 2.0, validation/deserialization of `None` is consistent across fields. If ``allow_none`` equals `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` equals `True`, `None` is considered valid, and the field deserialized to `None`.
+In 2.0, validation/deserialization of `None` is consistent across fields. If ``allow_none`` equals `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` equals `True`, `None` is considered valid, and the field deserializes to `None`.
 
 
 .. code-block:: python
@@ -34,15 +32,6 @@ In 2.0, validation/deserialization of `None` is consistent across fields. If ``a
     # allow_none makes None a valid value
     fields.Int(allow_none=True).deserialize(None)  # None
 
-Similarly, the ``allow_blank`` parameter determines whether the empty string is valid input for string fields.
-
-
-.. code-block:: python
-
-    from marshmallow import fields
-
-    fields.Str().deserialize('')  # error: Field may not be blank.
-    fields.Str(allow_blank=True).deserialize('')  # ''
 
 Error Format when ``many=True``
 *******************************

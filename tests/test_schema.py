@@ -1928,14 +1928,12 @@ class TestAccessor:
         with pytest.raises(AttributeError):
             schema.dump(user)
 
-class TestEmpty:
+class TestRequiredFields:
 
     class StringSchema(Schema):
         required_field = fields.Str(required=True)
         allow_none_field = fields.Str(allow_none=True)
-        allow_blank_field = fields.Str(allow_blank=True)
         allow_none_required_field = fields.Str(required=True, allow_none=True)
-        allow_blank_required_field = fields.Str(required=True, allow_blank=True)
 
     @pytest.fixture()
     def string_schema(self):
@@ -1946,9 +1944,7 @@ class TestEmpty:
         return dict(
             required_field='foo',
             allow_none_field='bar',
-            allow_blank_field='baz',
             allow_none_required_field='one',
-            allow_blank_required_field='two',
         )
 
     def test_required_string_field_missing(self, string_schema, data):
@@ -1956,16 +1952,10 @@ class TestEmpty:
         errors = string_schema.validate(data)
         assert errors['required_field'] == ['Missing data for required field.']
 
-    @pytest.mark.parametrize(('invalid_value', 'message'),
-    [
-        (None, 'Field may not be null.'),
-        ('', 'Field may not be blank.'),
-    ])
-    def test_required_string_field_failure(self, string_schema,
-            data, invalid_value, message):
-        data['required_field'] = invalid_value
+    def test_required_string_field_failure(self, string_schema, data):
+        data['required_field'] = None
         errors = string_schema.validate(data)
-        assert errors['required_field'] == [message]
+        assert errors['required_field'] == ['Field may not be null.']
 
     def test_allow_none_param(self, string_schema, data):
         data['allow_none_field'] = None
@@ -1980,19 +1970,6 @@ class TestEmpty:
         errors = string_schema.validate(data)
         assert 'allow_none_required_field' in errors
 
-    def test_allow_blank_param(self, string_schema, data):
-        data['allow_blank_field'] = ''
-        errors = string_schema.validate(data)
-        assert 'allow_blank_field' not in errors
-
-        data['allow_blank_required_field'] = ''
-        errors = string_schema.validate(data)
-        assert 'allow_blank_required_field' not in errors
-
-        del data['allow_blank_required_field']
-        errors = string_schema.validate(data)
-        assert 'allow_blank_required_field' in errors
-
     def test_allow_none_custom_message(self, data):
         class MySchema(Schema):
             allow_none_field = fields.Field(allow_none='<custom>')
@@ -2000,48 +1977,3 @@ class TestEmpty:
         schema = MySchema()
         errors = schema.validate({'allow_none_field': None})
         assert errors['allow_none_field'][0] == '<custom>'
-
-    def test_allow_blank_custom_message(self, data):
-        class MySchema(Schema):
-            allow_blank_field = fields.Str(allow_blank='<custom>')
-
-        schema = MySchema()
-        errors = schema.validate({'allow_blank_field': ''})
-        assert errors['allow_blank_field'][0] == '<custom>'
-
-    @pytest.mark.parametrize('FieldClass',
-    [
-        fields.String,
-        fields.URL,
-        fields.Email,
-    ])
-    def test_allow_blank_string_fields(self, FieldClass):
-        class MySchema(Schema):
-            blank_allowed = FieldClass(allow_blank=True)
-            blank_disallowed = FieldClass(allow_blank=False)
-
-        schema = MySchema()
-        data = {'blank_allowed': '', 'blank_disallowed': ''}
-
-        errors = schema.validate(data)
-        assert 'blank_allowed' not in errors
-        assert 'blank_disallowed' in errors
-        assert errors['blank_disallowed'][0] == 'Field may not be blank.'
-
-    # Regression test for: https://github.com/marshmallow-code/marshmallow/issues/136
-    @pytest.mark.parametrize('FieldClass',
-    [
-        fields.URL,
-        fields.Email,
-    ])
-    def test_allow_blank_on_serialization(self, FieldClass):
-        class MySchema(Schema):
-            blank_allowed = FieldClass(allow_blank=True)
-            blank_disallowed = FieldClass(allow_blank=False)
-
-        schema = MySchema()
-        data = {'blank_allowed': '', 'blank_disallowed': ''}
-        _, errors = schema.dump(data)
-        assert 'blank_allowed' not in errors
-        assert 'blank_disallowed' in errors
-        assert errors['blank_disallowed'][0] == 'Field may not be blank.'
