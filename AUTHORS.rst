@@ -28,3 +28,4 @@ Contributors (chronological)
 - David Lord `@davidism <https://github.com/davidism>`_
 - Ben Jones `@RealSalmon <https://github.com/RealSalmon>`_
 - Lukas Heiniger `@3rdcycle <https://github.com/3rdcycle>`_
+- Jimmy Jia `@taion <https://github.com/taion>`_
