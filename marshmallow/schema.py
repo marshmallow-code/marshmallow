@@ -587,7 +587,6 @@ class BaseSchema(base.SchemaABC):
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        # if only __init__ param is specified, only return those fields
         if self.only:
             # Return only fields specified in fields option
             field_names = self.set_class(self.only)
