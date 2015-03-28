@@ -20,6 +20,7 @@ Features:
 - Error messages for validators can be interpolated with `{input}` and other values (depending on the validator).
 - ``fields.TimeDelta`` always serializes to an integer value in order to avoid rounding errors (:issue:`105`). Thanks :user:`philtay`.
 - Add ``include`` class Meta option to support field names which are Python keywords (:issue:`139`). Thanks :user:`nickretallack` for the suggestion.
+- ``exclude`` parameter is respected when used together with ``only`` parameter (:issue:`165`). Thanks :user:`lustdante` for the catch and patch.
 
 Deprecation/Removals:
 

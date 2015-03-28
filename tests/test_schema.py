@@ -7,7 +7,7 @@ import random
 import pytest
 
 from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
-from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
+from marshmallow.exceptions import UnmarshallingError, ValidationError
 from marshmallow.compat import unicode, OrderedDict
 
 from tests.base import *  # noqa
@@ -601,6 +601,43 @@ def test_error_raised_if_additional_option_is_not_list():
     u = User('Joe')
     with pytest.raises(ValueError):
         BadSchema(u)
+
+def test_only_and_exclude():
+    class MySchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+    sch = MySchema(only=('foo', 'bar'), exclude=('bar', ))
+    data = dict(foo=42, bar=24, baz=242)
+    result = sch.dump(data)
+    assert 'foo' in result.data
+    assert 'bar' not in result.data
+
+
+def test_only_with_invalid_attribute():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    sch = MySchema(only=('bar', ))
+    with pytest.raises(AttributeError) as excinfo:
+        sch.dump(dict(foo=42))
+    assert 'not a valid field' in str(excinfo)
+
+
+def test_nested_only_and_exclude():
+    class Inner(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class Outer(Schema):
+        inner = fields.Nested(Inner, only=('foo', 'bar'), exclude=('bar', ))
+
+    sch = Outer()
+    data = dict(inner=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'foo' in result.data['inner']
+    assert 'bar' not in result.data['inner']
 
 
 def test_meta_serializer_fields():
@@ -1495,10 +1532,6 @@ class TestNestedSchema:
     def test_exclude(self, blog):
         serialized = BlogSchemaExclude().dump(blog)[0]
         assert "uppername" not in serialized['user'].keys()
-
-    def test_only_takes_precedence_over_exclude(self, blog, user):
-        serialized = BlogSchemaOnlyExclude().dump(blog)[0]
-        assert serialized['user']['name'] == user.name
 
     def test_list_field(self, blog):
         serialized = BlogSchema().dump(blog)[0]
