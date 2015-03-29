@@ -991,15 +991,16 @@ class Method(Field):
         super(Method, self).__init__(**kwargs)
 
     def _serialize(self, value, attr, obj):
+        method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
+        if len(utils.get_func_args(method)) > 2:
+            if self.parent.context is None:
+                msg = 'No context available for Method field {0!r}'.format(attr)
+                raise ValidationError(msg)
+            args = (obj, self.parent.context)
+        else:
+            args = (obj, )
         try:
-            method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
-            if len(utils.get_func_args(method)) > 2:
-                if self.parent.context is None:
-                    msg = 'No context available for Method field {0!r}'.format(attr)
-                    raise ValidationError(msg)
-                return method(obj, self.parent.context)
-            else:
-                return method(obj)
+            return method(*args)
         except AttributeError:
             pass
 
