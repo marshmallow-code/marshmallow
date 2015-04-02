@@ -16,6 +16,10 @@ class DateTimeList:
     def __init__(self, dtimes):
         self.dtimes = dtimes
 
+class IntegerList:
+    def __init__(self, ints):
+        self.ints = ints
+
 class TestFieldSerialization:
 
     @pytest.fixture
@@ -381,6 +385,33 @@ class TestFieldSerialization:
         assert len(result) == 2
         assert result[0] is None
         assert result[1] is None
+
+    def test_list_field_work_with_set(self):
+        custom_set = {1, 2, 3}
+        obj = IntegerList(custom_set)
+        field = fields.List(fields.Int)
+        result = field.serialize("ints", obj)
+        assert len(result) == 3
+        assert 1 in result
+        assert 2 in result
+        assert 3 in result
+
+    def test_list_field_work_with_custom_class_with_iterator_protocol(self):
+        class IteratorSupportingClass:
+            def __init__(self, iterable):
+                self.iterable = iterable
+
+            def __iter__(self):
+                return iter(self.iterable)
+
+        ints = IteratorSupportingClass([1, 2, 3])
+        obj = IntegerList(ints)
+        field = fields.List(fields.Int)
+        result = field.serialize("ints", obj)
+        assert len(result) == 3
+        assert result[0] == 1
+        assert result[1] == 2
+        assert result[2] == 3
 
     def test_bad_list_field(self):
         class ASchema(Schema):
