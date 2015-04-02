@@ -345,6 +345,43 @@ class TestFieldSerialization:
         field = fields.List(fields.DateTime, default=None)
         assert field.serialize('dtimes', obj) is None
 
+    def test_list_field_work_with_generator_single_value(self):
+        def custom_generator():
+            yield dt.datetime.utcnow()
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 1
+
+    def test_list_field_work_with_generators_multiple_values(self):
+        def custom_generator():
+            for dtime in [dt.datetime.utcnow(), dt.datetime.now()]:
+                yield dtime
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 2
+
+    def test_list_field_work_with_generators_error(self):
+        def custom_generator():
+            for dtime in [dt.datetime.utcnow(), "m", dt.datetime.now()]:
+                yield dtime
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        with pytest.raises(ValidationError):
+            field.serialize('dtimes', obj)
+
+    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(self):
+        def custom_generator():
+            a = yield
+            yield
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime, allow_none=True)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 2
+        assert result[0] is None
+        assert result[1] is None
+
     def test_bad_list_field(self):
         class ASchema(Schema):
             id = fields.Int()
