@@ -387,7 +387,7 @@ class TestFieldSerialization:
         assert result[1] is None
 
     def test_list_field_work_with_set(self):
-        custom_set = {1, 2, 3}
+        custom_set = set([1, 2, 3])
         obj = IntegerList(custom_set)
         field = fields.List(fields.Int)
         result = field.serialize("ints", obj)
