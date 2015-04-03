@@ -16,6 +16,10 @@ class DateTimeList:
     def __init__(self, dtimes):
         self.dtimes = dtimes
 
+class IntegerList:
+    def __init__(self, ints):
+        self.ints = ints
+
 class TestFieldSerialization:
 
     @pytest.fixture
@@ -344,6 +348,70 @@ class TestFieldSerialization:
         obj = DateTimeList(None)
         field = fields.List(fields.DateTime, default=None)
         assert field.serialize('dtimes', obj) is None
+
+    def test_list_field_work_with_generator_single_value(self):
+        def custom_generator():
+            yield dt.datetime.utcnow()
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 1
+
+    def test_list_field_work_with_generators_multiple_values(self):
+        def custom_generator():
+            for dtime in [dt.datetime.utcnow(), dt.datetime.now()]:
+                yield dtime
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 2
+
+    def test_list_field_work_with_generators_error(self):
+        def custom_generator():
+            for dtime in [dt.datetime.utcnow(), "m", dt.datetime.now()]:
+                yield dtime
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime)
+        with pytest.raises(ValidationError):
+            field.serialize('dtimes', obj)
+
+    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(self):
+        def custom_generator():
+            a = yield
+            yield
+        obj = DateTimeList(custom_generator())
+        field = fields.List(fields.DateTime, allow_none=True)
+        result = field.serialize('dtimes', obj)
+        assert len(result) == 2
+        assert result[0] is None
+        assert result[1] is None
+
+    def test_list_field_work_with_set(self):
+        custom_set = set([1, 2, 3])
+        obj = IntegerList(custom_set)
+        field = fields.List(fields.Int)
+        result = field.serialize("ints", obj)
+        assert len(result) == 3
+        assert 1 in result
+        assert 2 in result
+        assert 3 in result
+
+    def test_list_field_work_with_custom_class_with_iterator_protocol(self):
+        class IteratorSupportingClass:
+            def __init__(self, iterable):
+                self.iterable = iterable
+
+            def __iter__(self):
+                return iter(self.iterable)
+
+        ints = IteratorSupportingClass([1, 2, 3])
+        obj = IntegerList(ints)
+        field = fields.List(fields.Int)
+        result = field.serialize("ints", obj)
+        assert len(result) == 3
+        assert result[0] == 1
+        assert result[1] == 2
+        assert result[2] == 3
 
     def test_bad_list_field(self):
         class ASchema(Schema):

@@ -408,11 +408,10 @@ class List(Field):
             self.container = cls_or_instance
 
     def _serialize(self, value, attr, obj):
-        if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
-            return [self.container.serialize(idx, value) for idx
-                    in range(len(value))]
         if value is None:
             return self.default
+        if utils.is_collection(value):
+            return [self.container._serialize(each, attr, obj) for each in value]
         return [self.container.serialize(attr, obj)]
 
     def _deserialize(self, value):
