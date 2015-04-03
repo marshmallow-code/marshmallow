@@ -413,6 +413,23 @@ class TestFieldSerialization:
         assert result[1] == 2
         assert result[2] == 3
 
+    def test_list_field_work_with_custom_class_indexable_but_no_length(self):
+        class IndexableWithLengthClass:
+            def __init__(self, iterable):
+                self.indexable = iterable
+
+            def __getitem__(self, index):
+                return self.indexable[index]
+
+            def __len__(self):
+                return len(self.indexable)
+        ints = IndexableWithLengthClass([1, 2, 3])
+        obj = IntegerList(ints)
+        field = fields.List(fields.Int)
+        result = field.serialize("ints", obj)
+        assert len(result) == 3
+        assert result == [1, 2, 3]
+
     def test_bad_list_field(self):
         class ASchema(Schema):
             id = fields.Int()

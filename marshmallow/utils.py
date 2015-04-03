@@ -41,6 +41,10 @@ def is_indexable_but_not_string(obj):
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
 
 
+def is_indexable_with_length_but_not_a_string(obj):
+    return is_indexable_but_not_string(obj) and hasattr(obj, "__len__")
+
+
 def is_collection(obj):
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, dict)

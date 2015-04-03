@@ -409,13 +409,12 @@ class List(Field):
             self.container = cls_or_instance
 
     def _serialize(self, value, attr, obj):
-        if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
-            return [self.container.serialize(idx, value) for idx
-                    in range(len(value))]
-        if utils.is_iterable_but_not_string(value) and not isinstance(value, dict):
-            return [self.container.serialize(0, [value]) for value in value]
         if value is None:
             return self.default
+        if utils.is_collection(value):
+            return [self.container._serialize(each, attr, obj) for each in value]
+        if utils.is_indexable_with_length_but_not_a_string(value) and not isinstance(value, dict):
+            return [self.container.serialize(idx, value) for idx in range(len(value))]
         return [self.container.serialize(attr, obj)]
 
     def _deserialize(self, value):
