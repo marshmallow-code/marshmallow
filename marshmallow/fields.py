@@ -413,8 +413,6 @@ class List(Field):
             return self.default
         if utils.is_collection(value):
             return [self.container._serialize(each, attr, obj) for each in value]
-        if utils.is_indexable_with_length_but_not_a_string(value) and not isinstance(value, dict):
-            return [self.container.serialize(idx, value) for idx in range(len(value))]
         return [self.container.serialize(attr, obj)]
 
     def _deserialize(self, value):
