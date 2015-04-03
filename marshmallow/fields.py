@@ -4,7 +4,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import datetime as dt
-import types
 import uuid
 import warnings
 import decimal
