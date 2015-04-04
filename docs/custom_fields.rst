@@ -85,8 +85,8 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
         likes_bikes = fields.Method('writes_about_bikes')
 
         # Method fields also optionally receive context argument
-        def writes_about_bikes(self, user, context):
-            return 'bicycle' in context['blog'].title.lower()
+        def writes_about_bikes(self, user):
+            return 'bicycle' in self.context['blog'].title.lower()
 
     schema = UserSchema()
 
