@@ -214,6 +214,15 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
 
+    def test_method_field_context_param_is_deprecated(self):
+        class MySchema(Schema):
+            foo = fields.Method('my_method')
+
+            def my_method(self, obj, context):
+                return ''
+        s = MySchema()
+        pytest.deprecated_call(lambda: s.dump({'foo': 42}))
+
     def test_datetime_deserializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
         expected = utils.isoformat(user.created, localtime=False)

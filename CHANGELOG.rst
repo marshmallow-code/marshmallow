@@ -26,6 +26,7 @@ Features:
 Deprecation/Removals:
 
 - ``MarshallingError`` and ``UnmarshallingError`` error are deprecated in favor of a single ``ValidationError`` (:issue:`160`).
+- ``context`` argument passed to Method fields is deprecated. Use ``self.context`` instead (:issue:`184`).
 - Remove ``ForcedError``.
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 - The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
