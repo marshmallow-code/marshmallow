@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import webbrowser
+
 from invoke import task, run
 
 docs_dir = 'docs'
@@ -36,18 +38,8 @@ def clean_docs():
 
 @task
 def browse_docs():
-    platform = str(sys.platform).lower()
-    command = {
-        'darwin': 'open ',
-        'linux': 'idle ',
-        'win32': '',
-    }
-    cmd = command.get(platform)
-    if cmd:
-        run("{0}{1}".format(cmd, os.path.join(build_dir, 'index.html')))
-    else:
-        print('Unsure how to open the built file on this operating system.')
-        sys.exit(1)
+    path = os.path.join(build_dir, 'index.html')
+    webbrowser.open_new_tab(path)
 
 @task
 def docs(clean=False, browse=False, watch=False):
