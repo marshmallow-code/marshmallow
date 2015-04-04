@@ -972,12 +972,13 @@ class Method(Field):
 
     :param str method_name: The name of the Schema method from which
         to retrieve the value. The method must take an argument ``obj``
-        (in addition to self) that is the object to be serialized. The method
-        can also take a ``context`` argument which is a dictionary context
-        passed to a Schema.
+        (in addition to self) that is the object to be serialized.
     :param str deserialize: Optional name of the Schema method for deserializing
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
+
+    .. versionchanged:: 2.0.0
+        Deprecated ``context`` parameter on methods. Use ``self.context`` instead.
     """
     _CHECK_ATTRIBUTE = False
 
@@ -992,6 +993,10 @@ class Method(Field):
     def _serialize(self, value, attr, obj):
         method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
         if len(utils.get_func_args(method)) > 2:
+            warnings.warn(
+                'The context parameter of Method fields is deprecated. Use self.context '
+                'in the method instead.', category=DeprecationWarning
+            )
             if self.parent.context is None:
                 msg = 'No context available for Method field {0!r}'.format(attr)
                 raise ValidationError(msg)
