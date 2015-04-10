@@ -37,6 +37,13 @@ Other changes:
 - ``Marshaller``, ``Unmarshaller``, ``null``, and ``missing`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
 - Make ``allow_null=True`` the default for ``Nested`` fields. This will make ``None`` serialize to ``None`` rather than a dictionary with empty values (:issue:`132`). Thanks :user:`nickrellack` for the suggestion.
 
+1.2.5 (unreleased)
+++++++++++++++++++
+
+Support:
+
+- Fix pep8 dev dependency for flake8. Thanks :user:`taion`.
+
 1.2.4 (2015-03-22)
 ++++++++++++++++++
 
