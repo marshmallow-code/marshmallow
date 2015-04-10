@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+1.2.5 (unreleased)
+++++++++++++++++++
+
+Support:
+
+- Fix pep8 dev dependency for flake8. Thanks :user:`taion`.
+
 1.2.4 (2015-03-22)
 ++++++++++++++++++
 
