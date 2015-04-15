@@ -2021,23 +2021,26 @@ def test_decorated_processors():
 
         value = fields.Integer(as_string=True)
 
+        # Implicit default raw, pre dump, static method, return modified item.
         @pre_dump
         @staticmethod
         def increment_value(item):
             item['value'] += 1
             return item
 
+        # Implicit default raw, post dump, class method, modify in place.
         @post_dump
         @classmethod
         def add_tag(cls, item):
             item['value'] = cls.TAG + item['value']
-            return item
 
+        # Explicitly raw, post dump, instance method, return modified item.
         @post_dump(raw=True)
         def add_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return {key: data}
 
+        # Explicitly raw, pre load, instance method, return modified item.
         @pre_load(raw=True)
         def remove_envelope(self, data, many):
             key = self.get_envelope_key(many)
@@ -2047,15 +2050,15 @@ def test_decorated_processors():
         def get_envelope_key(many):
             return 'data' if many else 'datum'
 
+        # Explicitly not raw, pre load, instance method, modify in place.
         @pre_load(raw=False)
         def remove_tag(self, item):
             item['value'] = item['value'][len(self.TAG):]
-            return item
 
-        @post_load
+        # Explicit default raw, post load, instance method, modify in place.
+        @post_load()
         def decrement_value(self, item):
             item['value'] -= 1
-            return item
 
     schema = ExampleSchema()
 

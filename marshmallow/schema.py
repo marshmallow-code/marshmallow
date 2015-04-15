@@ -106,10 +106,11 @@ class SchemaMeta(type):
         # the class, we let standard inheritance do all the hard work.
         mro = klass.mro()
 
-        klass.processors = defaultdict(list)
+        klass.__processors__ = defaultdict(list)
         for attr_name in dir(klass):
             # Need to look up the actual descriptor, not whatever might be
-            # bound to the class.
+            # bound to the class. This needs to come from the __dict__ of the
+            # declaring class.
             for parent in mro:
                 try:
                     attr = parent.__dict__[attr_name]
@@ -119,7 +120,8 @@ class SchemaMeta(type):
                     break
             else:
                 # In case we didn't find the attribute and didn't break above.
-                # This isn't necessary and we should never hit this.
+                # We should never hit this - it's just here for completeness
+                # to exclude the possibility of attr being undefined.
                 continue
 
             try:
@@ -130,7 +132,7 @@ class SchemaMeta(type):
             for tag in processor_tags:
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
-                klass.processors[tag].append(attr_name)
+                klass.__processors__[tag].append(attr_name)
 
         return klass
 
@@ -723,18 +725,18 @@ class BaseSchema(base.SchemaABC):
         return data
 
     def _invoke_processors(self, tag_name, raw, data, many):
-        for attr_name in self.processors[(tag_name, raw)]:
+        for attr_name in self.__processors__[(tag_name, raw)]:
             # This will be a bound method.
             processor = getattr(self, attr_name)
 
             # It's probably not worth the extra LoC to hoist this branch out of
             # the loop.
             if raw:
-                data = processor(data, many)
+                data = utils.if_none(processor(data, many), data)
             elif many:
-                data = [processor(item) for item in data]
+                data = [utils.if_none(processor(item), item) for item in data]
             else:
-                data = processor(data)
+                data = utils.if_none(processor(data), data)
 
         return data
 

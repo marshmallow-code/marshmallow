@@ -350,3 +350,7 @@ def get_func_args(func):
         return inspect.getargspec(func).args
     # Callable class
     return inspect.getargspec(func.__call__).args
+
+
+def if_none(value, default):
+    return value if value is not None else default

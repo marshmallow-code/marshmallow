@@ -4,20 +4,20 @@ PRE_LOAD = 'pre_load'
 POST_LOAD = 'post_load'
 
 
-def pre_dump(*args, **kwargs):
-    return tag_processor(PRE_DUMP, *args, **kwargs)
+def pre_dump(fn=None, raw=False):
+    return tag_processor(PRE_DUMP, fn, raw)
 
 
-def post_dump(*args, **kwargs):
-    return tag_processor(POST_DUMP, *args, **kwargs)
+def post_dump(fn=None, raw=False):
+    return tag_processor(POST_DUMP, fn, raw)
 
 
-def pre_load(*args, **kwargs):
-    return tag_processor(PRE_LOAD, *args, **kwargs)
+def pre_load(fn=None, raw=False):
+    return tag_processor(PRE_LOAD, fn, raw)
 
 
-def post_load(*args, **kwargs):
-    return tag_processor(POST_LOAD, *args, **kwargs)
+def post_load(fn=None, raw=False):
+    return tag_processor(POST_LOAD, fn, raw)
 
 
 class _StaticProcessorMethod(staticmethod):
@@ -30,7 +30,7 @@ class _ClassProcessorMethod(classmethod):
     pass
 
 
-def tag_processor(tag_name, fn=None, raw=False):
+def tag_processor(tag_name, fn, raw):
     """Tags decorated processor function to be picked up later
 
     :return: Decorated function if supplied, else this decorator with its args
