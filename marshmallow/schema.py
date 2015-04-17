@@ -96,14 +96,30 @@ class SchemaMeta(type):
         dict_cls = OrderedDict if ordered else dict
         klass._declared_fields = dict_cls(fields)
         class_registry.register(name, klass)
-        # Need to copy validators, data handlers, and preprocessors lists
-        # so they are not shared among subclasses and ancestors
+
+        mcs._copy_func_attrs(klass)
+        mcs._resolve_processors(klass)
+
+        return klass
+
+    @classmethod
+    def _copy_func_attrs(mcs, klass):
+        """Copy non-shareable class function lists
+
+        Need to copy validators, data handlers, and preprocessors lists so they
+        are not shared among subclasses and ancestors.
+        """
         for attr in mcs.FUNC_LISTS:
             attr_copy = copy.copy(getattr(klass, attr))
             setattr(klass, attr, attr_copy)
 
-        # Now add in the decorated processors. By doing this after constructing
-        # the class, we let standard inheritance do all the hard work.
+    @staticmethod
+    def _resolve_processors(klass):
+        """Add in the decorated processors
+
+        By doing this after constructing the class, we let standard inheritance
+        do all the hard work.
+        """
         mro = klass.mro()
 
         klass.__processors__ = defaultdict(list)
@@ -133,8 +149,6 @@ class SchemaMeta(type):
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
                 klass.__processors__[tag].append(attr_name)
-
-        return klass
 
 
 class SchemaOpts(object):
