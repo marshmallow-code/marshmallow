@@ -230,7 +230,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
 .. note::
 
-    :meth:`Schema.dump` also validates the format of its fields and returns a dictionary of errors. However, the callables passed to ``validate`` are only applied during deserialization.
+    :meth:`Schema.dump` also returns a dictionary of errors, which will include any ``ValidationErrors`` raised during serialization. However, the ``required``, ``allow_none``, and ``validate`` parameters only apply during deserialization.
 
 
 ``strict`` Mode
