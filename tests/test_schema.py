@@ -1236,6 +1236,18 @@ class TestSchemaValidator:
 
 class TestPreprocessors:
 
+    def test_preprocessor_decorator_is_deprecated(self):
+
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.preprocessor
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
+
     def test_preprocessors_defined_on_class(self):
         def preprocess_data(schema, in_vals):
             assert isinstance(schema, Schema)
@@ -1306,6 +1318,18 @@ class TestPreprocessors:
 
 
 class TestDataHandler:
+
+    def test_data_handler_is_deprecated(self):
+
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.data_handler
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
 
     def test_schema_with_custom_data_handler(self, user):
         class CallbackSchema(Schema):

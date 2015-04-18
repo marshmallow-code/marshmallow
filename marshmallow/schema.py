@@ -369,7 +369,6 @@ class BaseSchema(base.SchemaABC):
             UserSchema().load({'email': 'bademail'})  # raises ValueError
 
         .. versionadded:: 0.7.0
-
         """
         cls.__error_handler__ = func
         return func
@@ -396,8 +395,13 @@ class BaseSchema(base.SchemaABC):
             You can register multiple handler functions for the same schema.
 
         .. versionadded:: 0.7.0
-
+        .. deprecated:: 2.0.0
+            Use `marshmallow.post_dump` instead.
         """
+        warnings.warn(
+            'Schema.data_handler is deprecated. Use the marshmallow.post_dump decorator '
+            'instead.', category=DeprecationWarning
+        )
         cls.__data_handlers__ = cls.__data_handlers__ or []
         cls.__data_handlers__.append(func)
         return func
@@ -435,7 +439,6 @@ class BaseSchema(base.SchemaABC):
         .. versionchanged:: 2.0
             Validators can receive an optional third argument which is the
             raw input data.
-
         """
         cls.__validators__ = cls.__validators__ or []
         cls.__validators__.append(func)
@@ -463,8 +466,13 @@ class BaseSchema(base.SchemaABC):
             You can register multiple preprocessors for the same schema.
 
         .. versionadded:: 1.0
-
+        .. deprecated:: 2.0.0
+            Use `marshmallow.pre_load` instead.
         """
+        warnings.warn(
+            'Schema.preprocessor is deprecated. Use the marshmallow.pre_load decorator '
+            'instead.', category=DeprecationWarning
+        )
         cls.__preprocessors__ = cls.__preprocessors__ or []
         cls.__preprocessors__.append(func)
         return func
