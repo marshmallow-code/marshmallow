@@ -2,6 +2,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
+from collections import defaultdict
 import copy
 import datetime as dt
 import decimal
@@ -16,6 +17,7 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
+from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -94,12 +96,59 @@ class SchemaMeta(type):
         dict_cls = OrderedDict if ordered else dict
         klass._declared_fields = dict_cls(fields)
         class_registry.register(name, klass)
-        # Need to copy validators, data handlers, and preprocessors lists
-        # so they are not shared among subclasses and ancestors
+
+        mcs._copy_func_attrs(klass)
+        mcs._resolve_processors(klass)
+
+        return klass
+
+    @classmethod
+    def _copy_func_attrs(mcs, klass):
+        """Copy non-shareable class function lists
+
+        Need to copy validators, data handlers, and preprocessors lists so they
+        are not shared among subclasses and ancestors.
+        """
         for attr in mcs.FUNC_LISTS:
             attr_copy = copy.copy(getattr(klass, attr))
             setattr(klass, attr, attr_copy)
-        return klass
+
+    @staticmethod
+    def _resolve_processors(klass):
+        """Add in the decorated processors
+
+        By doing this after constructing the class, we let standard inheritance
+        do all the hard work.
+        """
+        mro = klass.mro()
+
+        klass.__processors__ = defaultdict(list)
+        for attr_name in dir(klass):
+            # Need to look up the actual descriptor, not whatever might be
+            # bound to the class. This needs to come from the __dict__ of the
+            # declaring class.
+            for parent in mro:
+                try:
+                    attr = parent.__dict__[attr_name]
+                except KeyError:
+                    continue
+                else:
+                    break
+            else:
+                # In case we didn't find the attribute and didn't break above.
+                # We should never hit this - it's just here for completeness
+                # to exclude the possibility of attr being undefined.
+                continue
+
+            try:
+                processor_tags = attr.__processor_tags__
+            except AttributeError:
+                continue
+
+            for tag in processor_tags:
+                # Use name here so we can get the bound method later, in case
+                # the processor was a descriptor or something.
+                klass.__processors__[tag].append(attr_name)
 
 
 class SchemaOpts(object):
@@ -456,6 +505,9 @@ class BaseSchema(base.SchemaABC):
             obj = list(obj)
         if update_fields:
             self._update_fields(obj, many=many)
+
+        obj = self._invoke_dump_processors(PRE_DUMP, obj, many)
+
         preresult = self._marshal(
             obj,
             self.fields,
@@ -469,6 +521,9 @@ class BaseSchema(base.SchemaABC):
         )
         result = self._postprocess(preresult, many, obj=obj)
         errors = self._marshal.errors
+
+        result = self._invoke_dump_processors(POST_DUMP, result, many)
+
         return MarshalResult(result, errors)
 
     def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
@@ -556,6 +611,9 @@ class BaseSchema(base.SchemaABC):
         :return: A tuple of the form (`data`, `errors`)
         """
         many = self.many if many is None else bool(many)
+
+        data = self._invoke_load_processors(PRE_LOAD, data, many)
+
         # Bind self as the first argument of validators and preprocessors
         if self.__validators__:
             validators = [partial(func, self)
@@ -583,6 +641,9 @@ class BaseSchema(base.SchemaABC):
         errors = self._unmarshal.errors
         if errors and callable(self.__error_handler__):
             self.__error_handler__(errors, data)
+
+        result = self._invoke_load_processors(POST_LOAD, result, many)
+
         return result, errors
 
     def _update_fields(self, obj=None, many=False):
@@ -661,6 +722,37 @@ class BaseSchema(base.SchemaABC):
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret
+
+    def _invoke_dump_processors(self, tag_name, data, many):
+        # The raw post-dump processors may do things like add an envelope, so
+        # invoke those after invoking the non-raw processors which will expect
+        # to get a list of items.
+        data = self._invoke_processors(tag_name, False, data, many)
+        data = self._invoke_processors(tag_name, True, data, many)
+        return data
+
+    def _invoke_load_processors(self, tag_name, data, many):
+        # This has to invert the order of the dump processors, so run the raw
+        # processors first.
+        data = self._invoke_processors(tag_name, True, data, many)
+        data = self._invoke_processors(tag_name, False, data, many)
+        return data
+
+    def _invoke_processors(self, tag_name, raw, data, many):
+        for attr_name in self.__processors__[(tag_name, raw)]:
+            # This will be a bound method.
+            processor = getattr(self, attr_name)
+
+            # It's probably not worth the extra LoC to hoist this branch out of
+            # the loop.
+            if raw:
+                data = utils.if_none(processor(data, many), data)
+            elif many:
+                data = [utils.if_none(processor(item), item) for item in data]
+            else:
+                data = utils.if_none(processor(data), data)
+
+        return data
 
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
