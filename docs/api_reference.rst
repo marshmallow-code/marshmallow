@@ -29,6 +29,12 @@ Fields
     :members:
     :private-members:
 
+Decorators
+==========
+
+.. automodule:: marshmallow.decorators
+    :members:
+
 Validators
 ==========
 
