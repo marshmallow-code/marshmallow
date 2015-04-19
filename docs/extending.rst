@@ -7,7 +7,7 @@ Extending Schemas
 Pre-processing and Post-processing Methods
 ------------------------------------------
 
-Data pre-processing and post-processing methods can be registered using the `marshmallow.pre_load <marshmallow.decorators.pre_load>`, `marshmallow.post_load <marshmallow.decorators.post_load>`, `marshmallow.pre_dump <marshmallow.decorators.pre_dump>`, `marshmallow.post_dump <marshmallow.decorators.post_dump>` decorators.
+Data pre-processing and post-processing methods can be registered using the `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` decorators.
 
 
 .. code-block:: python

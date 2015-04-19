@@ -32,6 +32,49 @@ In 2.0, validation/deserialization of `None` is consistent across fields. If ``a
     # allow_none makes None a valid value
     fields.Int(allow_none=True).deserialize(None)  # None
 
+Pre-processing and Post-processing Methods
+******************************************
+
+The pre- and post-processing API was significantly improved for better consistency, flexibility, and cohesion. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. `Schema.preprocessor` and `Schema.data_handler` are deprecated.
+
+
+.. code-block:: python
+
+    # 1.0 Deprecated API
+    from marshmallow import Schema, fields
+
+    class ExampleSchema(Schema):
+        field_a = fields.Int()
+
+    @ExampleSchema.preprocessor
+    def increment(schema, data):
+        data['field_a'] += 1
+        return data
+
+    @ExampleSchema.data_handler
+    def decrement(schema, data, obj):
+        data['field_a'] -= 1
+        return data
+
+
+    # 2.0 API
+    from marshmallow import Schema, fields, pre_load, post_dump
+
+    class ExampleSchema(Schema):
+        field_a = fields.Int()
+
+        @pre_load
+        def increment(self, data):
+            data['field_a'] += 1
+            return data
+
+        @post_dump
+        def decrement(self, data):
+            data['field_a'] -= 1
+            return data
+
+See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
+
 
 Error Format when ``many=True``
 *******************************
@@ -91,7 +134,7 @@ Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.Validat
                 raise UnmarshallingError('Password to short.')
             return val
 
-    # In 2.0, an UnmarshallingError is raised
+    # In 2.0, an ValidationError is raised
     class PasswordField(fields.Field):
 
         def _deserialize(self, val):
@@ -160,6 +203,11 @@ The `fields.Select` field is deprecated in favor of the newly-added `OneOf` vali
 
     # 2.0
     fields.Str(validate=OneOf(['red', 'blue']))
+
+More
+****
+
+For a full list of changes in 2.0, see the :ref:`Changelog <changelog>`.
 
 
 Upgrading to 1.2
