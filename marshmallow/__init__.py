@@ -11,7 +11,7 @@ from marshmallow.schema import (
 from marshmallow.utils import pprint
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
 
-__version__ = '1.2.4'
+__version__ = '1.2.5.dev'
 __author__ = 'Steven Loria'
 __license__ = 'MIT'
 
