@@ -25,7 +25,7 @@ Example: ::
             namespace = 'results' if many else 'result'
             return {namespace: data}
 
-.. note::
+.. warning::
     The invocation order of registered processor methods is not guaranteed. If you need to
     guarantee order of different processing steps, you should put them in the same
     processing method.

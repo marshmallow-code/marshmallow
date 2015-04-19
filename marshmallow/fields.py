@@ -103,7 +103,7 @@ class Field(FieldABC):
     #  to exists as attributes on the objects to serialize. Set this to False
     #  for those fields
     _CHECK_ATTRIBUTE = True
-    _creation_index = 0
+    _creation_index = 0  # Used for sorting
     #: Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, )
 
