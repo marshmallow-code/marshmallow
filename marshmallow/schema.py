@@ -735,15 +735,15 @@ class BaseSchema(base.SchemaABC):
         # The raw post-dump processors may do things like add an envelope, so
         # invoke those after invoking the non-raw processors which will expect
         # to get a list of items.
-        data = self._invoke_processors(tag_name, False, data, many)
-        data = self._invoke_processors(tag_name, True, data, many)
+        data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
+        data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
         return data
 
     def _invoke_load_processors(self, tag_name, data, many):
         # This has to invert the order of the dump processors, so run the raw
         # processors first.
-        data = self._invoke_processors(tag_name, True, data, many)
-        data = self._invoke_processors(tag_name, False, data, many)
+        data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
+        data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
         return data
 
     def _invoke_processors(self, tag_name, raw, data, many):
