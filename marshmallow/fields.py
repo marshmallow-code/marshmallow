@@ -282,7 +282,11 @@ class Unmarshaller(object):
                 if attr_name not in fields_dict:
                     continue
                 key = fields_dict[attr_name].attribute or attr_name
-                raw_value = data.get(attr_name, missing)
+                try:
+                    raw_value = data.get(attr_name, missing)
+                except AttributeError:
+                    msg = 'Data must be a dict, got a {0}'.format(data.__class__.__name__)
+                    raise ValidationError(msg, field=field_obj)
                 if raw_value is missing and not field_obj.required:
                     continue
                 value = _call_and_store(
