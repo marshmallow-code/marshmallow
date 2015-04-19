@@ -81,6 +81,8 @@ html_theme_options = {
     'github_banner': True,
     'gratipay_user': 'sloria',
     'code_font_size': '0.8em',
+    'warn_bg': '#FFC',
+    'warn_border': '#EEE',
     # Used to populate the useful-links.html template
     'extra_nav_links': OrderedDict([
         ('marshmallow @ PyPI', 'http://pypi.python.org/pypi/marshmallow'),
