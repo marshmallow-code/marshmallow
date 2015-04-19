@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-2.0.0 (unreleased)
-++++++++++++++++++
+2.0.0a1 (unreleased)
+++++++++++++++++++++
 
 Features:
 
@@ -11,7 +11,7 @@ Features:
 - In ``strict`` mode, a ``ValidationError`` is raised. Error messages are accessed via the ``ValidationError's`` ``messages`` attribute (:issue:`128`).
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
 - Schema-level validators can store error messages for multiple fields (:issue:`118`). Thanks :user:`ksesong` for the suggestion.
-- Add ``pre_load``, ``post_load``, ``pre_dump``, and ``post_dump`` Schema method decorators for defining pre- and post- processing routines (:issue:`153`). Thanks :user:`davidism`, :user:`taion`, and :user:`jmcarp` for the suggestions and feedback. Thanks :user:`taion` for the implementation.
+- Add ``pre_load``, ``post_load``, ``pre_dump``, and ``post_dump`` Schema method decorators for defining pre- and post- processing routines (:issue:`153`, :issue:`179`). Thanks :user:`davidism`, :user:`taion`, and :user:`jmcarp` for the suggestions and feedback. Thanks :user:`taion` for the implementation.
 - Error message for ``required`` validation is configurable. (:issue:`78`). Thanks :user:`svenstaro` for the suggestion. Thanks :user:`0xDCA` for the implementation.
 - Add ``load_from`` parameter to fields (:issue:`125`). Thanks :user:`hakjoon`.
 - Add ``load_only`` and ``dump_only`` parameters to fields (:issue:`61`, :issue:`87`). Thanks :user:`philtay`.
