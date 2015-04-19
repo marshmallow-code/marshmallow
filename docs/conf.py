@@ -51,10 +51,6 @@ templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
-
-# The encoding of source files.
-#source_encoding = 'utf-8-sig'
-
 # The master toctree document.
 master_doc = 'index'
 
@@ -64,18 +60,9 @@ copyright = ' {0:%Y} <a href="http://stevenloria.com">Steven Loria</a>'.format(
     dt.datetime.utcnow()
 )
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
 version = release = marshmallow.__version__
 
 exclude_patterns = ['_build']
-
-
-# If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
 
 # THEME
 
@@ -83,6 +70,7 @@ html_theme_path = [alabaster.get_path()]
 html_theme = 'alabaster'
 html_static_path = ['_static']
 templates_path = ['_templates']
+html_show_sourcelink = False
 
 html_theme_options = {
     'logo': 'marshmallow-logo.png',
@@ -93,7 +81,8 @@ html_theme_options = {
     'github_banner': True,
     'gratipay_user': 'sloria',
     'code_font_size': '0.8em',
-    'show_source': False,
+    'warn_bg': '#FFC',
+    'warn_border': '#EEE',
     # Used to populate the useful-links.html template
     'extra_nav_links': OrderedDict([
         ('marshmallow @ PyPI', 'http://pypi.python.org/pypi/marshmallow'),
