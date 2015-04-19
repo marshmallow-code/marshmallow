@@ -1560,6 +1560,23 @@ class TestNestedSchema:
         with pytest.raises(ValueError):
             BadNestedFieldSchema().dump(blog)
 
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/188
+    def test_invalid_type_passed_to_nested_many_field(self):
+        class InnerSchema(Schema):
+            foo = fields.Field()
+
+        class MySchema(Schema):
+            inner = fields.Nested(InnerSchema, many=True)
+
+        sch = MySchema()
+
+        result = sch.load({'inner': [{'foo': 42}]})
+        assert not result.errors
+
+        result = sch.load({'inner': 'invalid'})
+        assert 'inner' in result.errors
+        assert result.errors['inner'][0] == 'Data must be a dict, got a str'
+
 
 class TestSelfReference:
 
