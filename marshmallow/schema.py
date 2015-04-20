@@ -141,7 +141,7 @@ class SchemaMeta(type):
                 continue
 
             try:
-                processor_tags = attr.__processor_tags__
+                processor_tags = attr.__marshmallow_tags__
             except AttributeError:
                 continue
 

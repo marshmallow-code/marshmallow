@@ -116,12 +116,12 @@ def tag_processor(tag_name, fn, raw):
             unwrapped = fn.__get__(True).im_func
         fn = _ClassProcessorMethod(unwrapped)
 
-    # Set a processor_tags attribute instead of wrapping in some class,
+    # Set a marshmallow_tags attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
     try:
-        processor_tags = fn.__processor_tags__
+        marshmallow_tags = fn.__marshmallow_tags__
     except AttributeError:
-        fn.__processor_tags__ = processor_tags = set()
-    processor_tags.add((tag_name, raw))
+        fn.__marshmallow_tags__ = marshmallow_tags = set()
+    marshmallow_tags.add((tag_name, raw))
 
     return fn

@@ -29,10 +29,10 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, pprint
+    from marshmallow import Schema, fields
 
     class UserSchema(Schema):
-        name = fields.String()
+        name = fields.Str()
         email = fields.Email()
         created_at = fields.DateTime()
 
@@ -47,6 +47,8 @@ Serializing Objects
 Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
 
 .. code-block:: python
+
+    from marshmallow import pprint
 
     user = User(name="Monty", email="monty@python.org")
     schema = UserSchema()
@@ -114,7 +116,7 @@ In order to deserialize to an object, define the :meth:`make_object <Schema.make
     # Same as above, but this time we define ``make_object``
     class UserSchema(Schema):
 
-        name = fields.String()
+        name = fields.Str()
         email = fields.Email()
         created_at = fields.DateTime()
 
