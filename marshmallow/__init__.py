@@ -10,6 +10,7 @@ from marshmallow.schema import (
 from marshmallow.decorators import pre_dump, post_dump, pre_load, post_load
 from marshmallow.utils import pprint
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
+from marshmallow.marshalling import missing, null
 
 __version__ = '2.0.0a1.dev'
 __author__ = 'Steven Loria'
@@ -28,4 +29,6 @@ __all__ = [
     'MarshallingError',
     'UnmarshallingError',
     'ValidationError',
+    'missing',
+    'null',
 ]
