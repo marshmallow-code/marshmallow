@@ -273,7 +273,15 @@ class Unmarshaller(ErrorStore):
                 if field_obj.dump_only:
                     continue
                 key = fields_dict[attr_name].attribute or attr_name
-                raw_value = data.get(attr_name, missing)
+                try:
+                    raw_value = data.get(attr_name, missing)
+                except AttributeError:
+                    msg = 'Data must be a dict, got a {0}'.format(data.__class__.__name__)
+                    raise ValidationError(
+                        msg,
+                        field_names=[attr_name],
+                        fields=[field_obj]
+                    )
                 if raw_value is missing and field_obj.load_from:
                     raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing and field_obj.missing is not null:

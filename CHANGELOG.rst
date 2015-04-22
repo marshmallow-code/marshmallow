@@ -41,6 +41,10 @@ Other changes:
 1.2.5 (unreleased)
 ++++++++++++++++++
 
+Bug fixes:
+
+- Fix validation of invalid types passed to a ``Nested`` field when ``many=True`` (:issue:`188`).
+
 Support:
 
 - Fix pep8 dev dependency for flake8. Thanks :user:`taion`.
