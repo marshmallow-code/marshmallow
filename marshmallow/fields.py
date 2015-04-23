@@ -7,6 +7,7 @@ import datetime as dt
 import uuid
 import warnings
 import decimal
+from functools import partial
 from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
@@ -107,9 +108,9 @@ class Field(FieldABC):
     #: Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, )
 
-    def __init__(self, default=None, attribute=None, load_from=None, error=None,
+    def __init__(self, default=missing, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
-                 dump_only=False, missing=null, **metadata):
+                 dump_only=False, missing=missing, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -155,7 +156,7 @@ class Field(FieldABC):
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
-        accessor_func = accessor or utils.get_value
+        accessor_func = accessor or partial(utils.get_value, default=missing)
         check_key = attr if attribute is None else attribute
         return accessor_func(check_key, obj)
 
@@ -207,7 +208,7 @@ class Field(FieldABC):
         :raise ValidationError: In case of formatting problem
         """
         value = self.get_value(attr, obj, accessor=accessor)
-        if value is None and self._CHECK_ATTRIBUTE:
+        if value is missing and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default') and self.default != null:
                 if callable(self.default):
                     return self.default()
@@ -292,7 +293,7 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def __init__(self, nested, default=null, exclude=tuple(), only=None, allow_null=True,
+    def __init__(self, nested, default=missing, exclude=tuple(), only=None, allow_null=True,
                 many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
@@ -344,8 +345,6 @@ class Nested(Field):
         # if an invalid schema name was passed
         schema = self.schema
         if nested_obj is None:
-            if self.many:
-                return []
             if self.allow_null:
                 return None
         if not self.__updated_fields:
@@ -391,9 +390,8 @@ class List(Field):
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, [], tuple())
 
-    def __init__(self, cls_or_instance, default=list, **kwargs):
+    def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
-        self.default = default
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
                 raise ValueError('The type of the list elements '
@@ -409,7 +407,7 @@ class List(Field):
 
     def _serialize(self, value, attr, obj):
         if value is None:
-            return self.default
+            return None
         if utils.is_collection(value):
             return [self.container._serialize(each, attr, obj) for each in value]
         return [self.container.serialize(attr, obj)]
@@ -431,10 +429,12 @@ class String(Field):
     # Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, '')
 
-    def __init__(self, default='', attribute=None, *args, **kwargs):
-        return super(String, self).__init__(default, attribute=attribute, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        return super(String, self).__init__(*args, **kwargs)
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value):
@@ -457,26 +457,24 @@ class UUID(String):
 class Number(Field):
     """Base class for number fields.
 
-    :param bool as_string: If True, format the value as a string.
+    :param bool as_string: If True, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
     num_type = float
 
-    def __init__(self, default=0.0, attribute=None, as_string=False,
-                error=None, **kwargs):
+    def __init__(self, as_string=False, **kwargs):
         self.as_string = as_string
-        super(Number, self).__init__(default=default, attribute=attribute,
-            error=error, **kwargs)
+        super(Number, self).__init__(**kwargs)
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
+        if value is None:
+            return None
         return self.num_type(value)
 
     def _validated(self, value):
         """Format the value or raise ``exception_class`` if an error occurs."""
-        if value is None:
-            return self.default
         try:
             return self._format_num(value)
         except (TypeError, ValueError, decimal.InvalidOperation) as err:
@@ -489,7 +487,7 @@ class Number(Field):
         as `Field`.
         """
         ret = Field.serialize(self, attr, obj, accessor=accessor)
-        return str(ret) if self.as_string else ret
+        return str(ret) if (self.as_string and ret is not None) else ret
 
     def _serialize(self, value, attr, obj):
         return self._validated(value)
@@ -505,9 +503,6 @@ class Integer(Number):
     """
 
     num_type = int
-
-    def __init__(self, default=0, *args, **kwargs):
-        super(Integer, self).__init__(default=default, *args, **kwargs)
 
 
 class Decimal(Number):
@@ -539,13 +534,14 @@ class Decimal(Number):
 
     num_type = decimal.Decimal
 
-    def __init__(self, places=None, rounding=None, default=decimal.Decimal(),
-                 as_string=False, **kwargs):
+    def __init__(self, places=None, rounding=None, as_string=False, **kwargs):
         self.places = decimal.Decimal((0, (1,), -places)) if places is not None else None
         self.rounding = rounding
-        super(Decimal, self).__init__(default=default, as_string=as_string, **kwargs)
+        super(Decimal, self).__init__(as_string=as_string, **kwargs)
 
     def _format_num(self, value):
+        if value is None:
+            return None
         num = decimal.Decimal(value)
         if self.places is not None:
             num = num.quantize(self.places, rounding=self.rounding)
@@ -631,18 +627,19 @@ class Arbitrary(Number):
     formatted as as string.
     ex: 634271127864378216478362784632784678324.23432
 
+    :param args: The same positional arguments that :class:`Number` receives.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
 
     .. deprecated:: 1.2.0
         Use `Decimal` instead.
     """
     # No as_string param
-    def __init__(self, default='0', attribute=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         warnings.warn(
             'The Arbitrary field is deprecated. Use the Decimal field instead.',
             category=DeprecationWarning
         )
-        super(Arbitrary, self).__init__(default=default, attribute=attribute, **kwargs)
+        super(Arbitrary, self).__init__(*args, **kwargs)
 
     def _validated(self, value):
         """Format ``value`` or raise ``exception_class`` if an error occurs."""
@@ -667,9 +664,6 @@ class DateTime(Field):
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
-    :param default: Default value for the field if the attribute is not set.
-    :param str attribute: The name of the attribute to get the value from. If
-        `None`, assumes the attribute has the same name as the field.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
@@ -692,8 +686,8 @@ class DateTime(Field):
 
     localtime = False
 
-    def __init__(self, format=None, default=None, attribute=None, **kwargs):
-        super(DateTime, self).__init__(default=default, attribute=attribute, **kwargs)
+    def __init__(self, format=None, **kwargs):
+        super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_desrialize`` methods This allows a Schema to dynamically set the
         # dateformat, e.g. from a Meta option
@@ -869,19 +863,17 @@ class Fixed(Number):
         Use `Decimal` instead.
     """
 
-    def __init__(self, decimals=5, default='0.000', attribute=None, error=None,
-                 *args, **kwargs):
+    def __init__(self, decimals=5, *args, **kwargs):
         warnings.warn(
             'The Fixed field is deprecated. Use the Decimal field instead.',
             category=DeprecationWarning
         )
-        super(Fixed, self).__init__(default=default, attribute=attribute, error=error,
-                            *args, **kwargs)
+        super(Fixed, self).__init__(*args, **kwargs)
         self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
 
     def _validated(self, value):
         if value is None:
-            value = self.default
+            return None
         try:
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
@@ -901,13 +893,13 @@ class Price(Fixed):
     .. deprecated:: 1.2.0
         Use `Decimal` instead.
     """
-    def __init__(self, decimals=2, default='0.00', **kwargs):
+    def __init__(self, decimals=2, **kwargs):
         warnings.warn(
             'The Price field is deprecated. Use the Decimal field for dealing with '
             'money values.',
             category=DeprecationWarning
         )
-        super(Price, self).__init__(decimals=decimals, default=default, **kwargs)
+        super(Price, self).__init__(decimals=decimals, **kwargs)
 
 class ValidatedField(Field):
     """A field that validates input on serialization."""
@@ -930,8 +922,8 @@ class Url(ValidatedField, String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
-    def __init__(self, default=None, attribute=None, relative=False, *args, **kwargs):
-        String.__init__(self, default=default, attribute=attribute, *args, **kwargs)
+    def __init__(self, relative=False, **kwargs):
+        String.__init__(self, **kwargs)
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
@@ -941,7 +933,6 @@ class Url(ValidatedField, String):
         ))
 
     def _validated(self, value):
-        self._validate_missing(value)
         return validate.URL(
             relative=self.relative,
             error=getattr(self, 'error')
@@ -952,16 +943,16 @@ class Email(ValidatedField, String):
     """A validated email field. Validation occurs during both serialization and
     deserialization.
 
+    :param args: The same positional arguments that :class:`String` receives.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
-    def __init__(self, default=None, attribute=None, *args, **kwargs):
-        String.__init__(self, default=default, attribute=attribute, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        String.__init__(self, *args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
 
     def _validated(self, value):
-        self._validate_missing(value)
         return validate.Email(
             error=getattr(self, 'error')
         )(value)
@@ -1007,6 +998,7 @@ class Method(Field):
             return method(*args)
         except AttributeError:
             pass
+        return missing
 
     def _deserialize(self, value):
         if self.deserialize_method_name:
@@ -1051,6 +1043,7 @@ class Function(Field):
                 return self.func(obj)
         except AttributeError:  # the object is not expected to have the attribute
             pass
+        return missing
 
     def _deserialize(self, value):
         if self.deserialize_func:
@@ -1063,22 +1056,18 @@ class Select(Field):
     contrained to.
 
     :param choices: A list of valid values.
-    :param default: Default value for the field if the attribute is not set.
-    :param str attribute: The name of the attribute to get the value from. If
-        `None`, assumes the attribute has the same name as the field.
-    :param str error: Error message stored upon validation failure.
-    :param kwargs: The same keyword arguments that :class:`Fixed` receives.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     :raise: ValidationError if attribute's value is not one of the given choices.
     """
-    def __init__(self, choices, default=None, attribute=None, error=None, **kwargs):
+    def __init__(self, choices, **kwargs):
         warnings.warn(
             'The Select field is deprecated. Use the '
             'marshmallow.validate.OneOf validator '
             'instead.', category=DeprecationWarning
         )
         self.choices = choices
-        return super(Select, self).__init__(default, attribute, error, **kwargs)
+        return super(Select, self).__init__(**kwargs)
 
     def _validated(self, value):
         if value not in self.choices:
@@ -1117,10 +1106,10 @@ class QuerySelect(Field):
 
     .. versionadded:: 1.2.0
     """
-    def __init__(self, query, keygetter, error=None, **kwargs):
+    def __init__(self, query, keygetter, **kwargs):
         self.query = query
         self.keygetter = keygetter if callable(keygetter) else attrgetter(keygetter)
-        super(QuerySelect, self).__init__(error=error, **kwargs)
+        super(QuerySelect, self).__init__(**kwargs)
 
     def keys(self):
         """Return a generator over the valid keys."""

@@ -33,10 +33,10 @@ class TestMarshaller:
         assert len(res) == 2
 
     def test_default_to_missing(self, marshal):
-        u = User('Foo', email=None)
+        u = {'name': 'Foo'}
         res = marshal(u, {'name': fields.String(),
                          'email': fields.Email(default=fields.missing)})
-        assert res['name'] == u.name
+        assert res['name'] == u['name']
         assert 'email' not in res
 
     def test_serialize_fields_with_load_only_param(self, marshal):
