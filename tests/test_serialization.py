@@ -69,7 +69,7 @@ class TestFieldSerialization:
         field = fields.Integer()
         assert field.serialize('age', user) == 42
 
-    def test_integer_field(self, user):
+    def test_integer_as_string_field(self, user):
         field = fields.Integer(as_string=True)
         assert field.serialize('age', user) == '42'
 
