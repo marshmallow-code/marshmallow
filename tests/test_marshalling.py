@@ -3,13 +3,10 @@
 import pytest
 
 from marshmallow import fields
-from marshmallow.marshalling import Marshaller, Unmarshaller, null, missing
+from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
 from tests.base import User
-
-def test_null_is_falsy():
-    assert bool(null) is False
 
 def test_missing_is_falsy():
     assert bool(missing) is False

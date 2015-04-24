@@ -19,11 +19,10 @@ from marshmallow.exceptions import (
 __all__ = [
     'Marshaller',
     'Unmarshaller',
-    'null',
     'missing',
 ]
 
-class _Null(object):
+class _Missing(object):
 
     def __bool__(self):
         return False
@@ -31,17 +30,8 @@ class _Null(object):
     __nonzero__ = __bool__  # PY2 compat
 
     def __repr__(self):
-        return '<marshmallow.marshalling.null>'
-
-
-class _Missing(_Null):
-
-    def __repr__(self):
         return '<marshmallow.marshalling.missing>'
 
-
-# Singleton that represents an empty value.
-null = _Null()
 
 # Singleton value that indicates that a field's value is missing from input
 # dict passed to :meth:`Schema.load`. If the field's value is not required,
@@ -284,7 +274,7 @@ class Unmarshaller(ErrorStore):
                     )
                 if raw_value is missing and field_obj.load_from:
                     raw_value = data.get(field_obj.load_from, missing)
-                if raw_value is missing and field_obj.missing is not null:
+                if raw_value is missing:
                     _miss = field_obj.missing
                     raw_value = _miss() if callable(_miss) else _miss
                 if raw_value is missing and not field_obj.required:

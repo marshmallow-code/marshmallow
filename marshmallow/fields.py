@@ -12,7 +12,7 @@ from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.marshalling import null, missing
+from marshmallow.marshalling import missing
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
 
@@ -209,7 +209,7 @@ class Field(FieldABC):
         """
         value = self.get_value(attr, obj, accessor=accessor)
         if value is missing and self._CHECK_ATTRIBUTE:
-            if hasattr(self, 'default') and self.default != null:
+            if hasattr(self, 'default'):
                 if callable(self.default):
                     return self.default()
                 else:
