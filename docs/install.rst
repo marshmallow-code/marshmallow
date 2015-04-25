@@ -16,11 +16,17 @@ Installation
 Installing/Upgrading from the PyPI
 ----------------------------------
 
-To install the latest version from the PyPI:
+To install the latest stable version from the PyPI:
 
 ::
 
     $ pip install -U marshmallow
+
+To install the latest pre-release version from the PyPI:
+
+::
+
+    $ pip install -U marshmallow --pre
 
 Get the Bleeding Edge Version
 -----------------------------

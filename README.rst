@@ -49,7 +49,7 @@ Get It Now
 
 ::
 
-    $ pip install -U marshmallow
+    $ pip install -U marshmallow --pre
 
 
 Documentation
