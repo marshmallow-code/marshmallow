@@ -6,7 +6,7 @@ import random
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
+from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import unicode, OrderedDict
 
@@ -115,6 +115,27 @@ def test_load_resets_error_fields():
 
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
+
+def test_errored_fields_do_not_appear_in_output():
+
+    class MyField(fields.Field):
+        # Make sure validation fails during serialization
+        def _serialize(self, val, attr, obj):
+            raise ValidationError('oops')
+
+    class MySchema(Schema):
+        foo = MyField(validate=lambda x: False)
+
+    sch = MySchema()
+    data, errors = sch.load({'foo': 2})
+
+    assert 'foo' in errors
+    assert 'foo' not in data
+
+    data, errors = sch.dump({'foo': 2})
+
+    assert 'foo' in errors
+    assert 'foo' not in data
 
 def test_load_many_stores_error_indices():
     s = UserSchema()
@@ -503,8 +524,8 @@ def test_serializing_dict(user):
     user = {"name": "foo", "email": "foo@bar.com", "age": 'badage'}
     s = UserSchema().dump(user)
     assert s.data['name'] == "foo"
-    assert s.data['age'] is None
     assert 'age' in s.errors
+    assert 'age' not in s.data
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])

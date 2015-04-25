@@ -67,7 +67,7 @@ class ErrorStore(object):
                 errors[field_name] = err.messages
             else:
                 errors.setdefault(field_name, []).extend(err.messages)
-            value = None
+            value = missing
         except TypeError:
             # field declared as a class, not an instance
             if (isinstance(field_obj, type) and
@@ -270,7 +270,7 @@ class Unmarshaller(ErrorStore):
                     field_obj=field_obj,
                     index=(index if index_errors else None)
                 )
-                if raw_value is not missing:
+                if value is not missing:
                     items.append((key, value))
             ret = dict_class(items)
         else:

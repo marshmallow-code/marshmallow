@@ -1,8 +1,12 @@
 Changelog
 ---------
 
-2.0.0 (unreleased)
-++++++++++++++++++
+2.0.0.dev (unreleased)
+++++++++++++++++++++++
+
+Features:
+
+- Errored fields will not appear in (de)serialized output dictionaries (:issue:`153`, :issue:`202`).
 
 Changes from 2.0.0a1:
 
