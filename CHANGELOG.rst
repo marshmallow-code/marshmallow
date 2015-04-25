@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.0.0a1 (unreleased)
+2.0.0a1 (2015-04-25)
 ++++++++++++++++++++
 
 Features:
@@ -33,10 +33,11 @@ Deprecation/Removals:
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
 - The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
 - Remove legacy, pre-1.0 API (``Schema.data`` and ``Schema.errors`` properties) (:issue:`73`).
+- Remove ``null`` value.
 
 Other changes:
 
-- ``Marshaller``, ``Unmarshaller``, ``null``, and ``missing`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
+- ``Marshaller``, ``Unmarshaller`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
 - Make ``allow_null=True`` the default for ``Nested`` fields. This will make ``None`` serialize to ``None`` rather than a dictionary with empty values (:issue:`132`). Thanks :user:`nickrellack` for the suggestion.
 
 1.2.5 (2015-04-25)
