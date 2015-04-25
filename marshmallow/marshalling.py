@@ -11,6 +11,7 @@ and from primitive types.
 from __future__ import unicode_literals
 
 from marshmallow import base, utils
+from marshmallow.utils import missing
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
@@ -19,24 +20,7 @@ from marshmallow.exceptions import (
 __all__ = [
     'Marshaller',
     'Unmarshaller',
-    'missing',
 ]
-
-class _Missing(object):
-
-    def __bool__(self):
-        return False
-
-    __nonzero__ = __bool__  # PY2 compat
-
-    def __repr__(self):
-        return '<marshmallow.marshalling.missing>'
-
-
-# Singleton value that indicates that a field's value is missing from input
-# dict passed to :meth:`Schema.load`. If the field's value is not required,
-# it's ``default`` value is used.
-missing = _Missing()
 
 
 class ErrorStore(object):

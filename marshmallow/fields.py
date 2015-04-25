@@ -7,12 +7,11 @@ import datetime as dt
 import uuid
 import warnings
 import decimal
-from functools import partial
 from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.marshalling import missing
+from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
 
@@ -108,9 +107,9 @@ class Field(FieldABC):
     #: Values that are skipped by `Marshaller` if ``skip_missing=True``
     SKIPPABLE_VALUES = (None, )
 
-    def __init__(self, default=missing, attribute=None, load_from=None, error=None,
+    def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
-                 dump_only=False, missing=missing, **metadata):
+                 dump_only=False, missing=missing_, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -156,7 +155,7 @@ class Field(FieldABC):
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
-        accessor_func = accessor or partial(utils.get_value, default=missing)
+        accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
         return accessor_func(check_key, obj)
 
@@ -185,7 +184,7 @@ class Field(FieldABC):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
-        if value is missing:
+        if value is missing_:
             if hasattr(self, 'required') and self.required:
                 default_message = 'Missing data for required field.'
                 message = (default_message if isinstance(self.required, bool) else
@@ -208,7 +207,7 @@ class Field(FieldABC):
         :raise ValidationError: In case of formatting problem
         """
         value = self.get_value(attr, obj, accessor=accessor)
-        if value is missing and self._CHECK_ATTRIBUTE:
+        if value is missing_ and self._CHECK_ATTRIBUTE:
             if hasattr(self, 'default'):
                 if callable(self.default):
                     return self.default()
@@ -293,7 +292,7 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    def __init__(self, nested, default=missing, exclude=tuple(), only=None, allow_null=True,
+    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, allow_null=True,
                 many=False, **kwargs):
         self.nested = nested
         self.allow_null = allow_null
@@ -933,6 +932,8 @@ class Url(ValidatedField, String):
         ))
 
     def _validated(self, value):
+        if value is None:
+            return None
         return validate.URL(
             relative=self.relative,
             error=getattr(self, 'error')
@@ -998,7 +999,7 @@ class Method(Field):
             return method(*args)
         except AttributeError:
             pass
-        return missing
+        return missing_
 
     def _deserialize(self, value):
         if self.deserialize_method_name:
@@ -1043,7 +1044,7 @@ class Function(Field):
                 return self.func(obj)
         except AttributeError:  # the object is not expected to have the attribute
             pass
-        return missing
+        return missing_
 
     def _deserialize(self, value):
         if self.deserialize_func:

@@ -32,7 +32,7 @@ class TestMarshaller:
     def test_default_to_missing(self, marshal):
         u = {'name': 'Foo'}
         res = marshal(u, {'name': fields.String(),
-                         'email': fields.Email(default=fields.missing)})
+                         'email': fields.Email(default=missing)})
         assert res['name'] == u['name']
         assert 'email' not in res
 

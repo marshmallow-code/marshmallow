@@ -116,6 +116,18 @@ def test_load_resets_error_fields():
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
+def test_load_many_stores_error_indices():
+    s = UserSchema()
+    data = [
+        {'name': 'Mick', 'email': 'mick@stones.com'},
+        {'name': 'Keith', 'email': 'invalid-email', 'homepage': 'invalid-homepage'},
+    ]
+    _, errors = s.load(data, many=True)
+    assert 0 not in errors
+    assert 1 in errors
+    assert 'email' in errors[1]
+    assert 'homepage' in errors[1]
+
 def test_dump_many():
     s = UserSchema()
     u1, u2 = User('Mick'), User('Keith')
