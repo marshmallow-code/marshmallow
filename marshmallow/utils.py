@@ -32,7 +32,7 @@ class _Missing(object):
     __nonzero__ = __bool__  # PY2 compat
 
     def __repr__(self):
-        return '<marshmallow.marshalling.missing>'
+        return '<marshmallow.missing>'
 
 
 # Singleton value that indicates that a field's value is missing from input
