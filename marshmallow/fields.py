@@ -56,8 +56,9 @@ class Field(FieldABC):
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized or deserialized.
 
-    :param default: Default serialization value for the field if the attribute is
-        `None`. May be a value or a callable.
+    :param default: If set, this value will be used during serialization if the input value
+        is missing. If not set, the field will be excluded from the serialized output if the
+        input value is missing. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param str load_from: Additional key to look for when deserializing. Will only
@@ -98,6 +99,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         Added `missing` parameter, which indicates the value for a field if the field
         is not found during deserialization.
+
+    .. versionchanged:: 2.0.0
+        ``default`` value is only used if explicitly set. Otherwise, missing values
+        inputs are excluded from serialized output.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
