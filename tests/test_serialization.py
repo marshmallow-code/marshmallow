@@ -187,6 +187,16 @@ class TestFieldSerialization:
         with pytest.raises(ValidationError):
             field.serialize('email', user)
 
+    def test_email_field_serialize_none(self, user):
+        user.email = None
+        field = fields.Email()
+        assert field.serialize('email', user) is None
+
+    def test_url_field_serialize_none(self, user):
+        user.homepage = None
+        field = fields.Url()
+        assert field.serialize('homepage', user) is None
+
     def test_url_field_validates(self, user):
         user.homepage = 'badhomepage'
         field = fields.URL()

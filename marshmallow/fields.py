@@ -959,6 +959,8 @@ class Email(ValidatedField, String):
         self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
 
     def _validated(self, value):
+        if value is None:
+            return None
         return validate.Email(
             error=getattr(self, 'error')
         )(value)

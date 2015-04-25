@@ -4,6 +4,10 @@ Changelog
 2.0.0 (unreleased)
 ++++++++++++++++++
 
+Changes from 2.0.0a1:
+
+- Fix serialization of `None` for ``fields.Email``.
+
 2.0.0a1 (2015-04-25)
 ++++++++++++++++++++
 
