@@ -720,13 +720,14 @@ class TestSchemaDeserialization:
     def test_nested_none_deserialization(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
-            author = fields.Nested(SimpleUserSchema)
+            author = fields.Nested(SimpleUserSchema, allow_none=True)
 
         blog_dict = {
             'title': 'Gimme Shelter',
             'author': None
         }
         result, errors = SimpleBlogSerializer().load(blog_dict)
+        assert not errors
         assert result['author'] is None
         assert result['title'] == blog_dict['title']
 
@@ -794,11 +795,12 @@ class TestSchemaDeserialization:
     def test_deserialize_with_missing_param_none(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=None)
+            years = fields.Integer(missing=None, allow_none=True)
         data = {
             'name': 'Mick',
         }
         result, errors = AliasingUserSerializer().load(data)
+        assert not errors
         assert result['name'] == 'Mick'
         assert result['years'] is None
 
