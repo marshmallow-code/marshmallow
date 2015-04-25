@@ -123,12 +123,29 @@ def test_dump_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1).data
 
+
+def test_multiple_errors_can_be_stored_for_a_given_index():
+    class MySchema(Schema):
+        foo = fields.Str(validate=lambda x: len(x) > 3)
+        bar = fields.Int(validate=lambda x: x > 3)
+
+    sch = MySchema()
+    valid = {'foo': 'loll', 'bar': 42}
+    invalid = {'foo': 'lol', 'bar': 3}
+    errors = sch.validate([valid, invalid], many=True)
+
+    assert 1 in errors
+    assert len(errors[1]) == 2
+    assert 'foo' in errors[1]
+    assert 'bar' in errors[1]
+
 def test_dump_many_stores_error_indices():
     s = UserSchema()
     u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
 
     _, errors = s.dump([u1, u2], many=True)
     assert 1 in errors
+    assert len(errors[1]) == 1
 
     assert 'email' in errors[1]
 

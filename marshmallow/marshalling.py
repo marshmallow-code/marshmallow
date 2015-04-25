@@ -84,7 +84,7 @@ class ErrorStore(object):
             self.error_fields.append(field_obj)
             self.error_field_names.append(field_name)
             if index is not None:
-                errors = {}
+                errors = self.errors.get(index, {})
                 self.errors[index] = errors
             else:
                 errors = self.errors
