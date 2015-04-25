@@ -27,15 +27,14 @@ class TestFieldSerialization:
         return User("Foo", email="foo@bar.com", age=42)
 
     def test_default(self, user):
-        user.age = None
         field = fields.Field(default='nan')
-        assert field.serialize('age', user) == 'nan'
+        assert field.serialize('age', {}) == 'nan'
 
     @pytest.mark.parametrize(('value', 'expected'),
     [
         (42, float(42)),
         (0, float(0)),
-        (None, 0.0),
+        (None, None),
     ])
     def test_number(self, value, expected, user):
         field = fields.Number()
@@ -47,15 +46,14 @@ class TestFieldSerialization:
         field = fields.Number(as_string=True)
         assert field.serialize('age', user) == str(float(user.age))
 
-    def test_number_as_string_default(self, user):
+    def test_number_as_string_passed_none(self, user):
         user.age = None
-        field = fields.Number(as_string=True)
-        assert field.serialize('age', user) == str(0.0)
+        field = fields.Number(as_string=True, allow_none=True)
+        assert field.serialize('age', user) is None
 
     def test_callable_default(self, user):
-        user.age = None
         field = fields.Field(default=lambda: 'nan')
-        assert field.serialize('age', user) == 'nan'
+        assert field.serialize('age', {}) == 'nan'
 
     def test_function_field(self, user):
         field = fields.Function(lambda obj: obj.name.upper())
@@ -75,8 +73,10 @@ class TestFieldSerialization:
 
     def test_integer_field_default(self, user):
         user.age = None
-        field = fields.Integer()
-        assert field.serialize('age', user) == 0
+        field = fields.Integer(default=0)
+        assert field.serialize('age', user) is None
+        # missing
+        assert field.serialize('age', {}) == 0
 
     def test_integer_field_default_set_to_none(self, user):
         user.age = None
@@ -98,8 +98,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == decimal.Decimal('12.355')
         assert isinstance(field.serialize('m3', user), decimal.Decimal)
         assert field.serialize('m3', user) == decimal.Decimal(1)
-        assert isinstance(field.serialize('m4', user), decimal.Decimal)
-        assert field.serialize('m4', user) == decimal.Decimal()
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -112,8 +111,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == decimal.Decimal('12.4')
         assert isinstance(field.serialize('m3', user), decimal.Decimal)
         assert field.serialize('m3', user) == decimal.Decimal(1)
-        assert isinstance(field.serialize('m4', user), decimal.Decimal)
-        assert field.serialize('m4', user) == decimal.Decimal()
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -126,8 +124,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == decimal.Decimal('12.3')
         assert isinstance(field.serialize('m3', user), decimal.Decimal)
         assert field.serialize('m3', user) == decimal.Decimal(1)
-        assert isinstance(field.serialize('m4', user), decimal.Decimal)
-        assert field.serialize('m4', user) == decimal.Decimal()
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -148,8 +145,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == '12.355'
         assert isinstance(field.serialize('m3', user), basestring)
         assert field.serialize('m3', user) == '1'
-        assert isinstance(field.serialize('m4', user), basestring)
-        assert field.serialize('m4', user) == '0'
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -162,8 +158,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == '12.4'
         assert isinstance(field.serialize('m3', user), basestring)
         assert field.serialize('m3', user) == '1.0'
-        assert isinstance(field.serialize('m4', user), basestring)
-        assert field.serialize('m4', user) == '0'
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -176,8 +171,7 @@ class TestFieldSerialization:
         assert field.serialize('m2', user) == '12.3'
         assert isinstance(field.serialize('m3', user), basestring)
         assert field.serialize('m3', user) == '1.0'
-        assert isinstance(field.serialize('m4', user), basestring)
-        assert field.serialize('m4', user) == '0'
+        assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
             field.serialize('m5', user)
         with pytest.raises(ValidationError):
@@ -259,17 +253,18 @@ class TestFieldSerialization:
         field = fields.String()
         user = User(name=b'foo')
         assert field.serialize('name', user) == 'foo'
+        field = fields.String(allow_none=True)
         user.name = None
-        assert field.serialize('name', user) == ''
+        assert field.serialize('name', user) is None
 
     def test_formattedstring_field(self):
         field = fields.FormattedString('Hello {name}')
         user = User(name='Monty')
         assert field.serialize('name', user) == 'Hello Monty'
 
-    def test_string_field_defaults_to_empty_string(self, user):
-        field = fields.String()
-        assert field.serialize("notfound", user) == ''
+    def test_string_field_default_to_empty_string(self, user):
+        field = fields.String(default='')
+        assert field.serialize("notfound", {}) == ''
 
     def test_time_field(self, user):
         field = fields.Time()
@@ -348,14 +343,9 @@ class TestFieldSerialization:
         assert len(result) == 1
         assert type(result[0]) == str
 
-    def test_list_field_serialize_none_returns_empty_list_by_default(self):
+    def test_list_field_serialize_none_returns_none(self):
         obj = DateTimeList(None)
         field = fields.List(fields.DateTime)
-        assert field.serialize('dtimes', obj) == []
-
-    def test_list_field_serialize_default_none(self):
-        obj = DateTimeList(None)
-        field = fields.List(fields.DateTime, default=None)
         assert field.serialize('dtimes', obj) is None
 
     def test_list_field_work_with_generator_single_value(self):
@@ -439,12 +429,6 @@ class TestFieldSerialization:
         result = field.serialize('age', user)
         assert result == text_type(utils.float_to_decimal(user.age))
 
-    def test_arbitrary_field_default(self, user):
-        field = fields.Arbitrary()
-        user.age = None
-        result = field.serialize('age', user)
-        assert result == '0'
-
     def test_arbitrary_field_invalid_value(self, user):
         field = fields.Arbitrary()
         with pytest.raises(ValidationError):
@@ -457,10 +441,10 @@ class TestFieldSerialization:
         result = field.serialize('age', user)
         assert result == '42.000'
 
-    def test_fixed_field_default(self, user):
+    def test_fixed_field_none(self, user):
         field = fields.Fixed()
         user.age = None
-        assert field.serialize('age', user) == '0.000'
+        assert field.serialize('age', user) is None
 
     def test_fixed_field_invalid_value(self, user):
         field = fields.Fixed()
@@ -473,10 +457,10 @@ class TestFieldSerialization:
         user.balance = 100
         assert field.serialize('balance', user) == '100.00'
 
-    def test_price_field_default(self, user):
+    def test_price_field_none(self, user):
         field = fields.Price()
         user.balance = None
-        assert field.serialize('price', user) == '0.00'
+        assert field.serialize('balance', user) is None
 
     def test_serialize_does_not_apply_validators(self, user):
         field = fields.Field(validate=lambda x: False)

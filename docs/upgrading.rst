@@ -5,13 +5,15 @@
 Upgrading to Newer Releases
 ===========================
 
+This section documents migration paths to new releases.
+
 Upgrading to 2.0
 ++++++++++++++++
 
 Deserializing `None`
 ********************
 
-In 2.0, validation/deserialization of `None` is consistent across fields. If ``allow_none`` equals `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` equals `True`, `None` is considered valid, and the field deserializes to `None`.
+In 2.0, validation/deserialization of `None` is consistent across field types. If ``allow_none`` is `False` (the default), validation fails when the field's value is `None`. If ``allow_none`` is `True`, `None` is considered valid, and the field deserializes to `None`.
 
 
 .. code-block:: python
@@ -32,10 +34,54 @@ In 2.0, validation/deserialization of `None` is consistent across fields. If ``a
     # allow_none makes None a valid value
     fields.Int(allow_none=True).deserialize(None)  # None
 
+Default Values
+**************
+
+Before version 2.0, certain fields (including `fields.String`, `fields.List`, `fields.Nested` and number fields) had implicit default values that would be used if their corresponding input value was `None` or missing.
+
+
+In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Field>` ``default`` parameter is only used if you explicitly set it. Otherwise, missing inputs will be excluded from the serialized output.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class MySchema(Schema):
+        str_no_default = fields.Str()
+        int_no_default = fields.Int()
+        list_no_default = fields.List(fields.Str)
+
+    schema = MySchema()
+
+    # In 1.0, None was treated as a missing input, so implicit default values were used
+    schema.dump({'str_no_default': None,
+                'int_no_default': None,
+                'list_no_default': None}).data
+    # {'str_no_default': '', 'int_no_default': 0, 'list_no_default': []}
+
+    # In 2.0, None serializes to None. No more implicit defaults.
+    schema.dump({'str_no_default': None,
+                'int_no_default': None,
+                'list_no_default': None}).data
+    # {'str_no_default': None, 'int_no_default': None, 'list_no_default': None}
+
+
+.. code-block:: python
+
+    # In 1.0, implicit default values were used for missing inputs
+    schema.dump({}).data
+    # {'int_no_default': 0, 'str_no_default': '', 'list_no_default': []}
+
+    # In 2.0, missing inputs are excluded from the serialized output
+    # if no defaults are specified
+    schema.dump({}).data
+    # {}
+
+
 Pre-processing and Post-processing Methods
 ******************************************
 
-The pre- and post-processing API was significantly improved for better consistency, flexibility, and cohesion. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. `Schema.preprocessor` and `Schema.data_handler` are deprecated.
+The pre- and post-processing API was significantly improved for better consistency and flexibility. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. `Schema.preprocessor` and `Schema.data_handler` are deprecated.
 
 
 .. code-block:: python
@@ -108,7 +154,7 @@ When validating a collection (i.e. when calling ``load`` or ``dump`` with ``many
     # {1: {'email': ['"invalid" is not a valid email address.']},
     #  3: {'name': ['Missing data for required field.']}}
 
-You can still get the pre-2.0 behavior by setting the ``index_errors`` *class Meta* option to `False`.
+You can still get the pre-2.0 behavior by setting ``index_errors = False`` in a ``Schema's`` *class Meta* options.
 
 Use ``ValidationError`` instead of ``MarshallingError`` and ``UnmarshallingError``
 **********************************************************************************
@@ -131,7 +177,7 @@ Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.Validat
 
         def _deserialize(self, val):
             if not len(val) >= 6:
-                raise UnmarshallingError('Password to short.')
+                raise UnmarshallingError('Password too short.')
             return val
 
     # In 2.0, an ValidationError is raised
@@ -139,7 +185,7 @@ Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.Validat
 
         def _deserialize(self, val):
             if not len(val) >= 6:
-                raise ValidationError('Password to short.')
+                raise ValidationError('Password too short.')
             return val
 
 Handle ``ValidationError`` in strict mode
@@ -148,7 +194,7 @@ Handle ``ValidationError`` in strict mode
 When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump` and `Schema.load`.
 
 .. code-block:: python
-    :emphasize-lines: 14
+    :emphasize-lines: 3,14
 
     from marshmallow import exceptions as exc
 

@@ -24,6 +24,22 @@ try:
 except ImportError:
     dateutil_available = False
 
+class _Missing(object):
+
+    def __bool__(self):
+        return False
+
+    __nonzero__ = __bool__  # PY2 compat
+
+    def __repr__(self):
+        return '<marshmallow.missing>'
+
+
+# Singleton value that indicates that a field's value is missing from input
+# dict passed to :meth:`Schema.load`. If the field's value is not required,
+# it's ``default`` value is used.
+missing = _Missing()
+
 
 def is_generator(obj):
     """Return True if ``obj`` is a generator
@@ -280,7 +296,7 @@ def pluck(dictlist, key):
 
 # Various utilities for pulling keyed values from objects
 
-def get_value(key, obj, default=None):
+def get_value(key, obj, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
     if type(key) == int:
         return _get_value_for_key(key, obj, default)

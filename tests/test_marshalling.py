@@ -3,13 +3,10 @@
 import pytest
 
 from marshmallow import fields
-from marshmallow.marshalling import Marshaller, Unmarshaller, null, missing
+from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
 from tests.base import User
-
-def test_null_is_falsy():
-    assert bool(null) is False
 
 def test_missing_is_falsy():
     assert bool(missing) is False
@@ -33,10 +30,10 @@ class TestMarshaller:
         assert len(res) == 2
 
     def test_default_to_missing(self, marshal):
-        u = User('Foo', email=None)
+        u = {'name': 'Foo'}
         res = marshal(u, {'name': fields.String(),
-                         'email': fields.Email(default=fields.missing)})
-        assert res['name'] == u.name
+                         'email': fields.Email(default=missing)})
+        assert res['name'] == u['name']
         assert 'email' not in res
 
     def test_serialize_fields_with_load_only_param(self, marshal):

@@ -48,7 +48,7 @@ def test_dump_returns_dict_of_errors():
 ])
 def test_dump_with_strict_mode_raises_error(SchemaClass):
     s = SchemaClass(strict=True)
-    bad_user = User(name='Monty', email='invalid-email')
+    bad_user = User(name='Monty', homepage='http://www.foo.bar', email='invalid-email')
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
@@ -115,6 +115,18 @@ def test_load_resets_error_fields():
 
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
+
+def test_load_many_stores_error_indices():
+    s = UserSchema()
+    data = [
+        {'name': 'Mick', 'email': 'mick@stones.com'},
+        {'name': 'Keith', 'email': 'invalid-email', 'homepage': 'invalid-homepage'},
+    ]
+    _, errors = s.load(data, many=True)
+    assert 0 not in errors
+    assert 1 in errors
+    assert 'email' in errors[1]
+    assert 'homepage' in errors[1]
 
 def test_dump_many():
     s = UserSchema()
@@ -241,9 +253,13 @@ def test_loads_deserializes_from_json():
     assert_almost_equal(result.age, 42.3)
 
 def test_serializing_none():
+    class MySchema(Schema):
+        id = fields.Str(default='no-id')
+        num = fields.Int()
+        name = fields.Str()
     s = UserSchema().dump(None)
-    assert s.data['name'] == ''
-    assert s.data['age'] == 0
+    assert s.data == {'id': 'no-id'}
+    assert s.errors == {}
 
 def test_default_many_symmetry():
     """The dump/load(s) methods should all default to the many value of the schema."""
@@ -368,10 +384,13 @@ def test_no_implicit_list_handling(recwarn):
     w = recwarn.pop()
     assert issubclass(w.category, DeprecationWarning)
 
-def test_inheriting_serializer(user):
-    serialized = ExtendedUserSchema().dump(user)
-    assert serialized.data['name'] == user.name
-    assert not serialized.data['is_old']
+def test_inheriting_schema(user):
+    sch = ExtendedUserSchema()
+    result = sch.dump(user)
+    assert result.data['name'] == user.name
+    user.is_old = True
+    result = sch.dump(user)
+    assert result.data['is_old'] is True
 
 def test_custom_field(serialized_user, user):
     assert serialized_user.data['uppername'] == user.name.upper()
@@ -393,11 +412,6 @@ def test_stores_invalid_url_error(SchemaClass):
     expected = ['"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?']
     assert result.errors['homepage'] == expected
 
-def test_default():
-    user = User("John")  # No ID set
-    serialized = UserSchema().dump(user)
-    assert serialized.data['id'] == "no-id"
-
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
 def test_email_field(SchemaClass):
@@ -416,12 +430,6 @@ def test_integer_field():
     serialized = UserIntSchema().dump(u)
     assert type(serialized.data['age']) == int
     assert serialized.data['age'] == 42
-
-def test_integer_default():
-    user = User("John", age=None)
-    serialized = UserIntSchema().dump(user)
-    assert type(serialized.data['age']) == int
-    assert serialized.data['age'] == 0
 
 def test_fixed_field():
     u = User("John", age=42.3)
@@ -780,9 +788,8 @@ def test_cant_set_both_additional_and_fields(user):
 
 def test_serializing_none_meta():
     s = UserMetaSchema().dump(None)
-    # Since meta fields are used, defaults to None
-    assert s.data['name'] is None
-    assert s.data['email'] is None
+    assert s.data == {}
+    assert s.errors == {}
 
 
 class CustomError(Exception):
@@ -809,9 +816,6 @@ class TestErrorHandler:
         user.age = 'notavalidage'
         with pytest.raises(CustomError):
             MySchema().dump(user)
-
-        user.age = 2
-        assert MySchema().dump(user).data
 
     def test_load_with_custom_error_handler(self):
         @MySchema.error_handler
@@ -1492,7 +1496,7 @@ class TestNestedSchema:
         blog = Blog('Simple blog', user=user, collaborators=None)
         schema = SimpleBlogSchema()
         result = schema.dump(blog)
-        assert result.data['wat'] == []
+        assert 'wat' not in result.data
 
     def test_nested_with_attribute_none(self):
         class InnerSchema(Schema):
@@ -1529,17 +1533,9 @@ class TestNestedSchema:
         _, errs = BlogRequiredSchema().dump(b)
         assert 'user' not in errs
 
-    def test_nested_default(self):
+    def test_nested_none(self):
         class BlogDefaultSchema(Schema):
             user = fields.Nested(UserSchema, default=0)
-
-        b = Blog('Just the default blog', user=None)
-        data, _ = BlogDefaultSchema().dump(b)
-        assert data['user'] == 0
-
-    def test_nested_none_default(self):
-        class BlogDefaultSchema(Schema):
-            user = fields.Nested(UserSchema, default=None)
 
         b = Blog('Just the default blog', user=None)
         data, _ = BlogDefaultSchema().dump(b)
@@ -2068,3 +2064,72 @@ class TestRequiredFields:
         schema = MySchema()
         errors = schema.validate({'allow_none_field': None})
         assert errors['allow_none_field'][0] == '<custom>'
+
+
+class TestDefaults:
+
+    class MySchema(Schema):
+        int_no_default = fields.Int(allow_none=True)
+        str_no_default = fields.Str(allow_none=True)
+        list_no_default = fields.List(fields.Str, allow_none=True)
+        nested_no_default = fields.Nested(UserSchema, many=True, allow_none=True)
+
+        int_with_default = fields.Int(allow_none=True, default=42)
+        str_with_default = fields.Str(allow_none=True, default='foo')
+
+    @pytest.fixture()
+    def schema(self):
+        return self.MySchema()
+
+    @pytest.fixture()
+    def data(self):
+        return dict(
+            int_no_default=None,
+            str_no_default=None,
+            list_no_default=None,
+            nested_no_default=None,
+            int_with_default=None,
+            str_with_default=None,
+        )
+
+    def test_missing_inputs_are_excluded_from_dump_output(self, schema, data):
+        for key in ['int_no_default', 'str_no_default',
+                    'list_no_default', 'nested_no_default']:
+            d = data.copy()
+            del d[key]
+            result = schema.dump(d)
+            # the missing key is not in the serialized result
+            assert key not in result.data
+            # the rest of the keys are in the result.data
+            assert all(k in result.data for k in d.keys())
+
+    def test_none_is_serialized_to_none(self, schema, data):
+        assert schema.validate(data) == {}
+        result = schema.dump(data)
+        for key in data.keys():
+            msg = 'result.data[{0!r}] should be None'.format(key)
+            assert result.data[key] is None, msg
+
+    def test_default_and_value_missing(self, schema, data):
+        del data['int_with_default']
+        del data['str_with_default']
+        result = schema.dump(data)
+        assert result.data['int_with_default'] == 42
+        assert result.data['str_with_default'] == 'foo'
+
+    def test_loading_none(self, schema, data):
+        result = schema.load(data)
+        assert not result.errors
+        for key in data.keys():
+            result.data[key] is None
+
+    def test_missing_inputs_are_excluded_from_load_output(self, schema, data):
+        for key in ['int_no_default', 'str_no_default',
+                    'list_no_default', 'nested_no_default']:
+            d = data.copy()
+            del d[key]
+            result = schema.load(d)
+            # the missing key is not in the deserialized result
+            assert key not in result.data
+            # the rest of the keys are in the result.data
+            assert all(k in result.data for k in d.keys())

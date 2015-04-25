@@ -8,6 +8,7 @@ Features:
 
 - *Backwards-incompatible*: When ``many=True``, the errors dictionary returned by ``dump`` and ``load`` will be keyed on the indices of invalid items in the (de)serialized collection (:issue:`75`). Add ``index_errors=False`` on a Schema's ``class Meta`` options to disable this behavior.
 - *Backwards-incompatible*: By default, fields will raise a ValidationError if the input is ``None``. The ``allow_none`` parameter can override this behavior.
+- *Backwards-incompatible*: A ``Field's`` ``default`` parameter is only used if explicitly set and the field's value is missing in the input to `Schema.dump`. If not set, the key will not be present in the serialized output for missing values . This is the behavior for *all* fields. ``fields.Str`` no longer defaults to ``''``, ``fields.Int`` no longer defaults to ``0``, etc. (:issue:`199`). Thanks :user:`jmcarp` for the feedback.
 - In ``strict`` mode, a ``ValidationError`` is raised. Error messages are accessed via the ``ValidationError's`` ``messages`` attribute (:issue:`128`).
 - Add ``allow_none`` parameter to ``fields.Field``. If ``False`` (the default), validation fails when the field's value is ``None`` (:issue:`76`, :issue:`111`). If ``allow_none`` is ``True``, ``None`` is considered valid and will deserialize to ``None``.
 - Schema-level validators can store error messages for multiple fields (:issue:`118`). Thanks :user:`ksesong` for the suggestion.

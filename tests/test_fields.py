@@ -2,7 +2,7 @@
 import pytest
 
 from marshmallow import fields
-from marshmallow.marshalling import null
+from marshmallow.marshalling import missing
 
 from tests.base import ALL_FIELDS
 
@@ -20,7 +20,7 @@ class TestFieldAliases:
     def test_bool_is_boolean(self):
         assert fields.Bool is fields.Boolean
 
-    def test_URL_is_Url(self):
+    def test_URL_is_Url(self):  # flake8: noqa
         assert fields.URL is fields.Url
 
 class TestField:
@@ -32,7 +32,7 @@ class TestField:
                                 'error=None, validate=None, required=False, '
                                 'load_only=False, dump_only=False, '
                                 'missing={missing}, allow_none=False)>'
-                                .format(default, missing=null))
+                                .format(default, missing=missing))
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 

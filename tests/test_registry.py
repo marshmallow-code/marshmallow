@@ -67,9 +67,12 @@ def test_nesting_with_class_name_many():
     assert c_serialized.data['bs'][0]['id'] == c_obj.bs[0].id
 
 def test_invalid_class_name_in_nested_field_raises_error(user):
-    with pytest.raises(RegistryError) as excinfo:
-        fields.Nested('notfound').serialize('foo', user)
 
+    class MySchema(Schema):
+        nf = fields.Nested('notfound')
+    sch = MySchema()
+    with pytest.raises(RegistryError) as excinfo:
+        sch.dump({'nf': None})
     assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
 
 class FooSerializer(Schema):
@@ -80,11 +83,14 @@ def test_multiple_classes_with_same_name_raises_error():
     # Import a class with the same name
     from .foo_serializer import FooSerializer as FooSerializer1  # noqa
 
+    class MySchema(Schema):
+        foo = fields.Nested('FooSerializer')
+
     # Using a nested field with the class name fails because there are
     # two defined classes with the same name
+    sch = MySchema()
     with pytest.raises(RegistryError) as excinfo:
-        field = fields.Nested('FooSerializer')
-        field.serialize('bar', {})
+        sch.dump({'foo': {'_id': 1}})
     msg = 'Multiple classes with name {0!r} were found.'\
             .format('FooSerializer')
     assert msg in str(excinfo)
@@ -100,12 +106,17 @@ def test_multiple_classes_with_all():
 def test_can_use_full_module_path_to_class():
     from .foo_serializer import FooSerializer as FooSerializer1  # noqa
     # Using full paths is ok
-    field = fields.Nested('tests.foo_serializer.FooSerializer', allow_null=False)
+
+    class Schema1(Schema):
+        foo = fields.Nested('tests.foo_serializer.FooSerializer', allow_null=False)
+
+    sch = Schema1()
 
     # Note: The arguments here don't matter. What matters is that no
     # error is raised
-    assert field.serialize('bar', {'foo': {'_id': 42}})
+    assert sch.dump({'foo': {'_id': 42}}).data
 
-    field2 = fields.Nested('tests.test_registry.FooSerializer', allow_null=False)
-
-    assert field2.serialize('bar', {'foo': {'_id': 42}})
+    class Schema2(Schema):
+        foo = fields.Nested('tests.test_registry.FooSerializer', allow_null=False)
+    sch = Schema2()
+    assert sch.dump({'foo': {'_id': 42}}).data
