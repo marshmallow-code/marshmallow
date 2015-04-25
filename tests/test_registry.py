@@ -108,7 +108,7 @@ def test_can_use_full_module_path_to_class():
     # Using full paths is ok
 
     class Schema1(Schema):
-        foo = fields.Nested('tests.foo_serializer.FooSerializer', allow_null=False)
+        foo = fields.Nested('tests.foo_serializer.FooSerializer')
 
     sch = Schema1()
 
@@ -117,6 +117,6 @@ def test_can_use_full_module_path_to_class():
     assert sch.dump({'foo': {'_id': 42}}).data
 
     class Schema2(Schema):
-        foo = fields.Nested('tests.test_registry.FooSerializer', allow_null=False)
+        foo = fields.Nested('tests.test_registry.FooSerializer')
     sch = Schema2()
     assert sch.dump({'foo': {'_id': 42}}).data

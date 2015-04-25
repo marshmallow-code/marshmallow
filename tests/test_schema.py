@@ -1527,7 +1527,7 @@ class TestNestedSchema:
             foo = fields.Nested(InnerSchema)
 
         class MySchema2(Schema):
-            foo = fields.Nested(InnerSchema, allow_null=True)
+            foo = fields.Nested(InnerSchema)
 
         s = MySchema()
         result = s.dump({'foo': None})
@@ -1548,7 +1548,7 @@ class TestNestedSchema:
 
     def test_nested_field_does_not_validate_required(self):
         class BlogRequiredSchema(Schema):
-            user = fields.Nested(UserSchema, required=True, allow_null=True)
+            user = fields.Nested(UserSchema, required=True)
 
         b = Blog('Authorless blog', user=None)
         _, errs = BlogRequiredSchema().dump(b)

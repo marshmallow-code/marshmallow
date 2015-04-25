@@ -8,6 +8,10 @@ Features:
 
 - Errored fields will not appear in (de)serialized output dictionaries (:issue:`153`, :issue:`202`).
 
+Deprecation/Removals:
+
+- Remove ``allow_null`` parameter of ``fields.Nested`` (:issue:`203`).
+
 Changes from 2.0.0a1:
 
 - Fix serialization of `None` for ``fields.Email``.
@@ -56,7 +60,7 @@ Other changes:
 
 Bug fixes:
 
-- Fix validation of invalid types passed to a ``Nested`` field when ``many=True`` (:issue:`188`).
+- Fix validation of invalid types passed to a ``Nested`` field when ``many=True`` (:issue:`188`). Thanks :user:`juanrossi` for reporting.
 
 Support:
 
