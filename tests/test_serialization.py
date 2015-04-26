@@ -279,11 +279,17 @@ class TestFieldSerialization:
     def test_time_field(self, user):
         field = fields.Time()
         expected = user.time_registered.isoformat()[:12]
-        assert field.serialize("time_registered", user) == expected
+        assert field.serialize('time_registered', user) == expected
+
+        user.time_registered = None
+        assert field.serialize('time_registered', user) is None
 
     def test_date_field(self, user):
         field = fields.Date()
         assert field.serialize('birthdate', user) == user.birthdate.isoformat()
+
+        user.birthdate = None
+        assert field.serialize('birthdate', user) is None
 
     def test_timedelta_field(self, user):
         user.d1 = dt.timedelta(days=1, seconds=1, microseconds=1)
@@ -326,6 +332,9 @@ class TestFieldSerialization:
         assert field.serialize('d5', user) == -86400
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize('d5', user) == -86400000000
+
+        user.d6 = None
+        assert field.serialize('d6', user) is None
 
     def test_select_field(self, user):
         field = fields.Select(['male', 'female', 'transexual', 'asexual'])

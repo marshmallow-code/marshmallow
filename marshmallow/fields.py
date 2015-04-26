@@ -694,16 +694,17 @@ class DateTime(Field):
         self.dateformat = format
 
     def _serialize(self, value, attr, obj):
-        if value:
-            self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-            format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
-            if format_func:
-                try:
-                    return format_func(value, localtime=self.localtime)
-                except (AttributeError, ValueError) as err:
-                    raise ValidationError(getattr(self, 'error', None) or text_type(err))
-            else:
-                return value.strftime(self.dateformat)
+        if value is None:
+            return None
+        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
+        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+        if format_func:
+            try:
+                return format_func(value, localtime=self.localtime)
+            except (AttributeError, ValueError) as err:
+                raise ValidationError(getattr(self, 'error', None) or text_type(err))
+        else:
+            return value.strftime(self.dateformat)
 
     def _deserialize(self, value):
         msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
@@ -745,6 +746,8 @@ class Time(Field):
     """
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         try:
             ret = value.isoformat()
         except AttributeError:
@@ -772,6 +775,8 @@ class Date(Field):
     """
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         try:
             return value.isoformat()
         except AttributeError:
@@ -824,6 +829,8 @@ class TimeDelta(Field):
         super(TimeDelta, self).__init__(error=error, **kwargs)
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         try:
             days = value.days
             if self.precision == self.DAYS:
