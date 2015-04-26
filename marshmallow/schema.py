@@ -321,6 +321,10 @@ class BaseSchema(base.SchemaABC):
             `collections.OrderedDict`.
         - ``index_errors``: If `True`, errors dictionaries will include the index
             of invalid items in a collection.
+
+        .. versionchanged:: 2.0.0
+            `__preprocessors__` and `__data_handlers__` are deprecated. Use
+            `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump` instead.
         """
         pass
 
