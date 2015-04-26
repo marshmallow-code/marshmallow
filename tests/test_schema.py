@@ -626,27 +626,24 @@ def test_load_errors_with_many():
     assert 'anotherbademail' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
-    class BadSchema(Schema):
-        name = fields.String()
-
-        class Meta:
-            fields = 'name'
-
     u = User('Joe')
     with pytest.raises(ValueError):
-        BadSchema(u)
+        class BadSchema(Schema):
+            name = fields.String()
+
+            class Meta:
+                fields = 'name'
 
 
 def test_error_raised_if_additional_option_is_not_list():
-    class BadSchema(Schema):
-        name = fields.String()
-
-        class Meta:
-            additional = 'email'
-
     u = User('Joe')
     with pytest.raises(ValueError):
-        BadSchema(u)
+        class BadSchema(Schema):
+            name = fields.String()
+
+            class Meta:
+                additional = 'email'
+
 
 def test_only_and_exclude():
     class MySchema(Schema):
@@ -732,18 +729,16 @@ def test_exclude_fields(user):
     assert "name" in s.data
 
 def test_fields_option_must_be_list_or_tuple(user):
-    class BadFields(Schema):
-        class Meta:
-            fields = "name"
     with pytest.raises(ValueError):
-        BadFields(user)
+        class BadFields(Schema):
+            class Meta:
+                fields = "name"
 
 def test_exclude_option_must_be_list_or_tuple(user):
-    class BadExclude(Schema):
-        class Meta:
-            exclude = "name"
     with pytest.raises(ValueError):
-        BadExclude(user)
+        class BadExclude(Schema):
+            class Meta:
+                exclude = "name"
 
 def test_dateformat_option(user):
     fmt = '%Y-%m'
@@ -798,14 +793,13 @@ def test_additional(user):
     assert s.data['name'] == user.name
 
 def test_cant_set_both_additional_and_fields(user):
-    class BadSchema(Schema):
-        name = fields.String()
-
-        class Meta:
-            fields = ("name", 'email')
-            additional = ('email', 'homepage')
     with pytest.raises(ValueError):
-        BadSchema(user)
+        class BadSchema(Schema):
+            name = fields.String()
+
+            class Meta:
+                fields = ("name", 'email')
+                additional = ('email', 'homepage')
 
 def test_serializing_none_meta():
     s = UserMetaSchema().dump(None)

@@ -7,6 +7,8 @@ Changelog
 Features:
 
 - Errored fields will not appear in (de)serialized output dictionaries (:issue:`153`, :issue:`202`).
+- Instantiate ``OPTIONS_CLASS`` in ``SchemaMeta``. This makes ``Schema.opts`` available in metaclass methods. It also causes validation to occur earlier (upon ``Schema`` class declaration rather than instantiation).
+- Add ``SchemaMeta.get_declared_fields`` class method to support adding additional declared fields.
 
 Deprecation/Removals:
 

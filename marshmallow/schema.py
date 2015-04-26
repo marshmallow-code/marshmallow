@@ -27,7 +27,7 @@ MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
-    """Get fields from a class, sorted by creation index.
+    """Get fields from a class. If ordered=True, fields will sorted by creation index.
 
     :param attrs: Mapping of class attributes
     :param type field_class: Base field class
@@ -75,7 +75,8 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
 class SchemaMeta(type):
     """Metaclass for the Schema class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
-    names to field objects.
+    names to field objects. Also sets the ``opts`` class attribute, which is
+    the Schema class's ``class Meta`` options.
     """
     FUNC_LISTS = ('__validators__', '__data_handlers__', '__preprocessors__')
 
@@ -93,13 +94,42 @@ class SchemaMeta(type):
                     break
             else:
                 ordered = False
-        include = list(getattr(meta, 'include', {}).items())
-        fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered) + include
+        cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
-        fields = _get_fields_by_mro(klass, base.FieldABC) + fields
+        inherited_fields = _get_fields_by_mro(klass, base.FieldABC)
+
+        # Use getattr rather than attrs['Meta'] so that we get inheritance for free
+        meta = getattr(klass, 'Meta')
+        # Set klass.opts in __new__ rather than __init__ so that it is accessible in
+        # get_declared_fields
+        klass.opts = klass.OPTIONS_CLASS(meta)
+        # Add fields specifid in the `include` class Meta option
+        cls_fields += list(klass.opts.include.items())
+
         dict_cls = OrderedDict if ordered else dict
-        klass._declared_fields = dict_cls(fields)
+        # Assign _declared_fields on class
+        klass._declared_fields = mcs.get_declared_fields(
+            klass=klass,
+            cls_fields=cls_fields,
+            inherited_fields=inherited_fields,
+            dict_cls=dict_cls
+        )
         return klass
+
+    @classmethod
+    def get_declared_fields(mcs, klass, cls_fields, inherited_fields, dict_cls):
+        """Returns a dictionary of field_name => `Field` pairs declard on the class.
+        This is exposed mainly so that plugins can add additional fields, e.g. fields
+        computed from class Meta options.
+
+        :param type klass: The class object.
+        :param dict cls_fields: The fields declared on the class, including those added
+            by the ``include`` class Meta option.
+        :param dict inherited_fileds: Inherited fields.
+        :param type dict_class: Either `dict` or `OrderedDict`, depending on the whether
+            the user specified `ordered=True`.
+        """
+        return dict_cls(inherited_fields + cls_fields)
 
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
@@ -299,7 +329,6 @@ class BaseSchema(base.SchemaABC):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
-        self.opts = self.OPTIONS_CLASS(self.Meta)
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
