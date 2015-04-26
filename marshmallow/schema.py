@@ -99,35 +99,34 @@ class SchemaMeta(type):
         fields = _get_fields_by_mro(klass, base.FieldABC) + fields
         dict_cls = OrderedDict if ordered else dict
         klass._declared_fields = dict_cls(fields)
-        class_registry.register(name, klass)
-
-        mcs._copy_func_attrs(klass)
-        mcs._resolve_processors(klass)
-
         return klass
 
-    @classmethod
-    def _copy_func_attrs(mcs, klass):
+    # NOTE: self is the class object
+    def __init__(self, name, bases, attrs):
+        super(SchemaMeta, self).__init__(name, bases, attrs)
+        class_registry.register(name, self)
+        self._copy_func_attrs()
+        self._resolve_processors()
+
+    def _copy_func_attrs(self):
         """Copy non-shareable class function lists
 
         Need to copy validators, data handlers, and preprocessors lists so they
         are not shared among subclasses and ancestors.
         """
-        for attr in mcs.FUNC_LISTS:
-            attr_copy = copy.copy(getattr(klass, attr))
-            setattr(klass, attr, attr_copy)
+        for attr in self.FUNC_LISTS:
+            attr_copy = copy.copy(getattr(self, attr))
+            setattr(self, attr, attr_copy)
 
-    @staticmethod
-    def _resolve_processors(klass):
+    def _resolve_processors(self):
         """Add in the decorated processors
 
         By doing this after constructing the class, we let standard inheritance
         do all the hard work.
         """
-        mro = inspect.getmro(klass)
-
-        klass.__processors__ = defaultdict(list)
-        for attr_name in dir(klass):
+        mro = inspect.getmro(self)
+        self.__processors__ = defaultdict(list)
+        for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
             # bound to the class. This needs to come from the __dict__ of the
             # declaring class.
@@ -152,7 +151,7 @@ class SchemaMeta(type):
             for tag in processor_tags:
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
-                klass.__processors__[tag].append(attr_name)
+                self.__processors__[tag].append(attr_name)
 
 
 class SchemaOpts(object):
