@@ -6,6 +6,7 @@ from collections import defaultdict
 import copy
 import datetime as dt
 import decimal
+import inspect
 import json
 import types
 import uuid
@@ -56,6 +57,8 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
     :param type klass: Class whose fields to retrieve
     :param type field_class: Base field class
     """
+    mro = inspect.getmro(klass)
+    # Loop over mro in reverse to maintain correct order of fields
     return sum(
         (
             _get_fields(
@@ -63,7 +66,7 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
                 field_class,
                 ordered=ordered
             )
-            for base in klass.mro()[:0:-1]
+            for base in mro[:0:-1]
         ),
         [],
     )
@@ -120,7 +123,7 @@ class SchemaMeta(type):
         By doing this after constructing the class, we let standard inheritance
         do all the hard work.
         """
-        mro = klass.mro()
+        mro = inspect.getmro(klass)
 
         klass.__processors__ = defaultdict(list)
         for attr_name in dir(klass):
