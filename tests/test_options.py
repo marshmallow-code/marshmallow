@@ -131,7 +131,13 @@ class OrderedNestedOnly(Schema):
 class TestFieldOrdering:
 
     def test_ordered_option_is_inherited(self, user):
-        class ChildOrderedSchema(KeepOrder):
+        class ParentUnordered(Schema):
+            class Meta:
+                ordered = False
+
+        # KeepOrder is before ParentUnordered in MRO,
+        # so ChildOrderedSchema will be ordered
+        class ChildOrderedSchema(KeepOrder, ParentUnordered):
             pass
 
         schema = ChildOrderedSchema()
@@ -142,6 +148,15 @@ class TestFieldOrdering:
         assert not errors
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
+
+        # KeepOrder is before ParentUnordered in MRO,
+        # so ChildOrderedSchema will be ordered
+        class ChildUnorderedSchema(ParentUnordered, KeepOrder):
+            class Meta:
+                pass
+
+        schema = ChildUnorderedSchema()
+        assert schema.opts.ordered is False
 
     def test_ordering_is_off_by_default(self):
         class DummySchema(Schema):
