@@ -37,7 +37,7 @@ In 2.0, validation/deserialization of `None` is consistent across field types. I
 Default Values
 **************
 
-Before version 2.0, certain fields (including `fields.String`, `fields.List`, `fields.Nested` and number fields) had implicit default values that would be used if their corresponding input value was `None` or missing.
+Before version 2.0, certain fields (including `String <marshmallow.fields.String>`, `List <marshmallow.fields.List>`, `Nested <marshmallow.fields.Nested>`, and number fields) had implicit default values that would be used if their corresponding input value was `None` or missing.
 
 
 In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Field>` ``default`` parameter is only used if you explicitly set it. Otherwise, missing inputs will be excluded from the serialized output.
@@ -259,8 +259,6 @@ For a full list of changes in 2.0, see the :ref:`Changelog <changelog>`.
 Upgrading to 1.2
 ++++++++++++++++
 
-.. module:: marshmallow.fields
-
 Validators
 **********
 
@@ -306,8 +304,6 @@ The `Decimal` field was added to support serialization/deserialization of `decim
 Upgrading to 1.0
 ++++++++++++++++
 
-.. module:: marshmallow
-
 Version 1.0 marks the first major release of marshmallow. Many big changes were made from the pre-1.0 releases in order to provide a cleaner API, support object deserialization, and improve field validation.
 
 Perhaps the largest change is in how objects get serialized. Serialization occurs by invoking the :meth:`Schema.dump` method rather than passing the object to the constructor.  Because only configuration options (e.g. the ``many``, ``strict``, and ``only`` parameters) are passed to the constructor, you can more easily reuse serializer instances.  The :meth:`dump <Schema.dump>` method also forms a nice symmetry with the :meth:`Schema.load` method, which is used for deserialization.
@@ -338,8 +334,6 @@ Perhaps the largest change is in how objects get serialized. Serialization occur
 .. note::
 
     Some crucial parts of the pre-1.0 API have been retained to ease the transition. You can still pass an object to a `Schema` constructor and access the `Schema.data` and `Schema.errors` properties. The `is_valid` method, however, has been completely removed. It is recommended that you migrate to the new API to prevent future releases from breaking your code.
-
-.. module:: marshmallow.fields
 
 The Fields interface was also reworked in 1.0 to make it easier to define custom fields with their own serialization and deserialization behavior. Custom fields now implement :meth:`Field._serialize` and :meth:`Field._deserialize`.
 

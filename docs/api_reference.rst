@@ -10,15 +10,15 @@ Schema
 ======
 
 
-.. autoclass:: Schema
+.. autoclass:: marshmallow.Schema
     :inherited-members:
 
-.. autoclass:: SchemaOpts
+.. autoclass:: marshmallow.SchemaOpts
 
-.. autoclass:: MarshalResult
-.. autoclass:: UnmarshalResult
+.. autoclass:: marshmallow.MarshalResult
+.. autoclass:: marshmallow.UnmarshalResult
 
-.. autofunction:: pprint
+.. autofunction:: marshmallow.pprint
 
 .. _api_fields:
 

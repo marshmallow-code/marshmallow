@@ -1,5 +1,4 @@
 .. _why:
-.. module:: marshmallow
 
 Why marshmallow?
 ================
@@ -18,7 +17,7 @@ Marshmallow makes no assumption about web frameworks or database layers. It will
 Concise, familiar syntax.
 -------------------------
 
-If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the :class:`Schema` constructor. The :meth:`dump <Schema.dump>` and :meth:`load <Schema.load>` methods are used for serialization and deserialization (of course!).
+If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the :ref:`class Meta <meta_options>` paradigm. Configuration options can be overriden at application runtime by passing arguments to the `Schema <marshmallow.Schema>` constructor. The :meth:`dump <marshmallow.Schema.dump>` and :meth:`load <marshmallow.Schema.load>` methods are used for serialization and deserialization (of course!).
 
 Class-based schemas allow for code reuse and configuration.
 -----------------------------------------------------------
@@ -30,7 +29,7 @@ Consistency meets flexibility.
 
 Marshmallow makes it easy to modify a schema's output at application runtime. A single :class:`Schema` can produce multiple outputs formats while keeping the individual field outputs consistent.
 
-As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints can be handled by the same :class:`Schema`.
+As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints can be handled by the same `Schema <marshmallow.Schema>`.
 
 .. code-block:: python
 
@@ -62,7 +61,7 @@ Context-aware serialization.
 
 Marshmallow schemas can modify their output based on the context in which they are used. Field objects have access to a ``context`` dictionary that can be changed at runtime.
 
-Here's a simple example that shows how a :class:`Schema` can anonymize a person's name when a boolean is set on the context.
+Here's a simple example that shows how a `Schema <marshmallow.Schema>` can anonymize a person's name when a boolean is set on the context.
 
 .. code-block:: python
 
