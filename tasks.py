@@ -69,7 +69,7 @@ def watch_docs():
 def readme(browse=False):
     run("rst2html.py README.rst > README.html", pty=True)
     if browse:
-        run("open README.html")
+        webbrowser.open_new_tab('README.html')
 
 @task
 def publish(test=False):
