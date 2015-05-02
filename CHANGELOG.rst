@@ -4,6 +4,10 @@ Changelog
 2.0.0b2.dev (unreleased)
 ++++++++++++++++++++++++
 
+Features:
+
+- Add useful ``__repr__`` methods to validators (:issue:`204`). Thanks :user:`philtay`.
+
 Changes from 2.0.0b1:
 
 - Fix serialization of ``None`` for `Time`, `TimeDelta`, and `Date` fields (a regression introduced in 2.0.0a1).

@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import re
 import pytest
 
+from marshmallow.compat import PY2
 from marshmallow import validate, ValidationError
 
 @pytest.mark.parametrize('valid_url', [
@@ -84,6 +87,18 @@ def test_url_custom_message():
         validator('invalid')
     assert "invalid ain't an URL" in str(excinfo)
 
+def test_url_repr():
+    assert (
+        repr(validate.URL(relative=False, error=None)) ==
+        '<URL(relative=False, error={0!r})>'
+        .format('"{input}" is not a valid URL.')
+    )
+    assert (
+        repr(validate.URL(relative=True, error='foo')) ==
+        '<URL(relative=True, error={0!r})>'
+        .format('foo')
+    )
+
 
 @pytest.mark.parametrize('valid_email', [
     'niceandsimple@example.com',
@@ -126,6 +141,18 @@ def test_email_custom_message():
         validator('invalid')
     assert 'invalid is not an email addy.' in str(excinfo)
 
+def test_email_repr():
+    assert (
+        repr(validate.Email(error=None)) ==
+        '<Email(error={0!r})>'
+        .format('"{input}" is not a valid email address.')
+    )
+    assert (
+        repr(validate.Email(error='foo')) ==
+        '<Email(error={0!r})>'
+        .format('foo')
+    )
+
 
 def test_range_min():
     assert validate.Range(1, 2)(1) == 1
@@ -164,6 +191,17 @@ def test_range_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v(4)
     assert '4 is greater than 3' in str(excinfo)
+
+def test_range_repr():
+    assert (
+        repr(validate.Range(min=None, max=None, error=None)) ==
+        '<Range(min=None, max=None, error=None)>'
+    )
+    assert (
+        repr(validate.Range(min=1, max=3, error='foo')) ==
+        '<Range(min=1, max=3, error={0!r})>'
+        .format('foo')
+    )
 
 
 def test_length_min():
@@ -220,6 +258,17 @@ def test_length_custom_message():
         v('foo')
     assert 'foo is longer than 2' in str(excinfo)
 
+def test_length_repr():
+    assert (
+        repr(validate.Length(min=None, max=None, error=None)) ==
+        '<Length(min=None, max=None, error=None)>'
+    )
+    assert (
+        repr(validate.Length(min=1, max=3, error='foo')) ==
+        '<Length(min=1, max=3, error={0!r})>'
+        .format('foo')
+    )
+
 
 def test_equal():
     assert validate.Equal('a')('a') == 'a'
@@ -238,6 +287,18 @@ def test_equal_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v('b')
     assert 'b is not equal to a.' in str(excinfo)
+
+def test_equal_repr():
+    assert (
+        repr(validate.Equal(comparable=123, error=None)) ==
+        '<Equal(comparable=123, error={0!r})>'
+        .format('Must be equal to {other}.')
+    )
+    assert (
+        repr(validate.Equal(comparable=123, error='foo')) ==
+        '<Equal(comparable=123, error={0!r})>'
+        .format('foo')
+    )
 
 
 def test_regexp_str():
@@ -279,6 +340,18 @@ def test_regexp_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v('a')
     assert 'a does not match [0-9]+' in str(excinfo)
+
+def test_regexp_repr():
+    assert (
+        repr(validate.Regexp(regex='abc', flags=0, error=None)) ==
+        '<Regexp(regex={0!r}, error={1!r})>'
+        .format(re.compile('abc'), 'String does not match expected pattern.')
+    )
+    assert (
+        repr(validate.Regexp(regex='abc', flags=re.IGNORECASE, error='foo')) ==
+        '<Regexp(regex={0!r}, error={1!r})>'
+        .format(re.compile('abc', re.IGNORECASE), 'foo')
+    )
 
 
 def test_predicate():
@@ -330,6 +403,18 @@ def test_predicate_custom_message():
         validate.Predicate('_false', error='{input}.{method} is invalid!')(d)
     assert 'Dummy._false is invalid!' in str(excinfo)
 
+def test_predicate_repr():
+    assert (
+        repr(validate.Predicate(method='foo', error=None)) ==
+        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        .format('foo', {}, 'Invalid input.')
+    )
+    assert (
+        repr(validate.Predicate(method='foo', error='bar', zoo=1)) ==
+        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        .format('foo', {str('zoo') if PY2 else 'zoo': 1}, 'bar')
+    )
+
 
 def test_noneof():
     assert validate.NoneOf([1, 2, 3])(4) == 4
@@ -361,6 +446,18 @@ def test_noneof_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         none_of(1)
     assert '1 cannot be one of 1, 2' in str(excinfo)
+
+def test_noneof_repr():
+    assert (
+        repr(validate.NoneOf(iterable=[1, 2, 3], error=None)) ==
+        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        .format('Invalid input.')
+    )
+    assert (
+        repr(validate.NoneOf(iterable=[1, 2, 3], error='foo')) ==
+        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        .format('foo')
+    )
 
 
 def test_oneof():
@@ -432,6 +529,19 @@ def test_oneof_custom_message():
         oneof(4)
     assert expected in str(expected)
 
+def test_oneof_repr():
+    assert (
+        repr(validate.OneOf(choices=[1, 2, 3], labels=None, error=None)) ==
+        '<OneOf(choices=[1, 2, 3], labels=[], error={0!r})>'
+        .format('Not a valid choice.')
+    )
+    assert (
+        repr(validate.OneOf(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
+        '<OneOf(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        .format(['a', 'b', 'c'], 'foo')
+    )
+
+
 def test_containsonly_in_list():
     assert validate.ContainsOnly([])([]) == []
     assert validate.ContainsOnly([1, 2, 3])([1]) == [1]
@@ -450,7 +560,6 @@ def test_containsonly_in_list():
         validate.ContainsOnly([])([1])
 
 def test_contains_only_unhashable_types():
-
     assert validate.ContainsOnly([[1], [2], [3]])([[1]]) == [[1]]
     assert validate.ContainsOnly([[1], [1], [2]])([[1], [1]]) == [[1], [1]]
     assert validate.ContainsOnly([[1], [2], [3]])([[1], [2]]) == [[1], [2]]
@@ -485,7 +594,6 @@ def test_containsonly_in_tuple():
 
 
 def test_contains_only_in_string():
-
     assert validate.ContainsOnly('')('') == ''
     assert validate.ContainsOnly('abc')('a') == 'a'
     assert validate.ContainsOnly('aab')('aa') == 'aa'
@@ -529,3 +637,15 @@ def test_containsonly_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         containsonly([4, 5])
     assert expected in str(expected)
+
+def test_containsonly_repr():
+    assert (
+        repr(validate.ContainsOnly(choices=[1, 2, 3], labels=None, error=None)) ==
+        '<ContainsOnly(choices=[1, 2, 3], labels=[], error={0!r})>'
+        .format('One or more of the choices you made was not acceptable.')
+    )
+    assert (
+        repr(validate.ContainsOnly(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
+        '<ContainsOnly(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        .format(['a', 'b', 'c'], 'foo')
+    )

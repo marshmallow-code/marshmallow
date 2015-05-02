@@ -12,7 +12,31 @@ from marshmallow.compat import basestring, text_type, zip_longest
 from marshmallow.exceptions import ValidationError
 
 
-class URL(object):
+class Validator(object):
+    """Base abstract class for validators.
+
+    .. note::
+        This class does not provide any behavior. It is only used to
+        add a useful `__repr__` implementation for validators.
+    """
+
+    def __repr__(self):
+        args = self._repr_args()
+        args = '{0}, '.format(args) if args else ''
+
+        return (
+            '<{self.__class__.__name__}({args}error={self.error!r})>'
+            .format(self=self, args=args)
+        )
+
+    def _repr_args(self):
+        """A string representation of the args passed to this validator. Used by
+        `__repr__`.
+        """
+        return ''
+
+
+class URL(Validator):
     """Validate a URL.
 
     :param bool relative: Whether to allow relative URLs.
@@ -48,6 +72,9 @@ class URL(object):
         self.relative = relative
         self.error = error or self.default_message
 
+    def _repr_args(self):
+        return 'relative={0!r}'.format(self.relative)
+
     def _format_error(self, value):
         return self.error.format(input=value)
 
@@ -66,7 +93,7 @@ class URL(object):
         return value
 
 
-class Email(object):
+class Email(Validator):
     """Validate an email address.
 
     :param str error: Error message to raise in case of a validation error. Can be
@@ -122,7 +149,7 @@ class Email(object):
         return value
 
 
-class Range(object):
+class Range(Validator):
     """Validator which succeeds if the value it is passed is greater
     or equal to ``min`` and less than or equal to ``max``. If ``min``
     is not specified, or is specified as `None`, no lower bound
@@ -145,6 +172,9 @@ class Range(object):
         self.min = min
         self.max = max
         self.error = error
+
+    def _repr_args(self):
+        return 'min={0!r}, max={1!r}'.format(self.min, self.max)
 
     def _format_error(self, value, message):
         return (self.error or message).format(input=value, min=self.min, max=self.max)
@@ -192,7 +222,7 @@ class Length(Range):
         return value
 
 
-class Equal(object):
+class Equal(Validator):
     """Validator which succeeds if the ``value`` passed to it is
     equal to ``comparable``.
 
@@ -207,6 +237,9 @@ class Equal(object):
         self.comparable = comparable
         self.error = error or self.default_message
 
+    def _repr_args(self):
+        return 'comparable={0!r}'.format(self.comparable)
+
     def _format_error(self, value):
         return self.error.format(input=value, other=self.comparable)
 
@@ -216,7 +249,7 @@ class Equal(object):
         return value
 
 
-class Regexp(object):
+class Regexp(Validator):
     """Validate ``value`` against the provided regex.
 
     :param regex: The regular expression string to use. Can also be a compiled
@@ -233,6 +266,9 @@ class Regexp(object):
         self.regex = re.compile(regex, flags) if isinstance(regex, basestring) else regex
         self.error = error or self.default_message
 
+    def _repr_args(self):
+        return 'regex={0!r}'.format(self.regex)
+
     def _format_error(self, value):
         return self.error.format(input=value, regex=self.regex.pattern)
 
@@ -243,7 +279,7 @@ class Regexp(object):
         return value
 
 
-class Predicate(object):
+class Predicate(Validator):
     """Call the specified ``method`` of the ``value`` object. The
     validator succeeds if the invoked method returns an object that
     evaluates to True in a Boolean context. Any additional keyword
@@ -262,6 +298,9 @@ class Predicate(object):
         self.error = error or self.default_message
         self.kwargs = kwargs
 
+    def _repr_args(self):
+        return 'method={0!r}, kwargs={1!r}'.format(self.method, self.kwargs)
+
     def _format_error(self, value):
         return self.error.format(input=value, method=self.method)
 
@@ -274,7 +313,7 @@ class Predicate(object):
         return value
 
 
-class NoneOf(object):
+class NoneOf(Validator):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
     :param iterable iterable: A sequence of invalid values.
@@ -288,6 +327,9 @@ class NoneOf(object):
         self.iterable = iterable
         self.values_text = ', '.join(text_type(each) for each in self.iterable)
         self.error = error or self.default_message
+
+    def _repr_args(self):
+        return 'iterable={0!r}'.format(self.iterable)
 
     def _format_error(self, value):
         return self.error.format(
@@ -305,7 +347,7 @@ class NoneOf(object):
         return value
 
 
-class OneOf(object):
+class OneOf(Validator):
     """Validator which succeeds if ``value`` is a member of ``choices``.
 
     :param iterable choices: A sequence of valid values.
@@ -322,6 +364,9 @@ class OneOf(object):
         self.labels = labels if labels is not None else []
         self.labels_text = ', '.join(text_type(label) for label in self.labels)
         self.error = error or self.default_message
+
+    def _repr_args(self):
+        return 'choices={0!r}, labels={1!r}'.format(self.choices, self.labels)
 
     def _format_error(self, value):
         return self.error.format(
