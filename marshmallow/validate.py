@@ -13,18 +13,26 @@ from marshmallow.exceptions import ValidationError
 
 
 class Validator(object):
-    """Base abstract class for validators."""
+    """Base abstract class for validators.
+
+    .. note::
+        This class does not provide any behavior. It is only used to
+        add a useful `__repr__` implementation for validators.
+    """
 
     def __repr__(self):
         args = self._repr_args()
         args = '{0}, '.format(args) if args else ''
 
         return (
-            '<validate.{self.__class__.__name__}({args}error={self.error!r})>'
+            '<{self.__class__.__name__}({args}error={self.error!r})>'
             .format(self=self, args=args)
         )
 
     def _repr_args(self):
+        """A string representation of the args passed to this validator. Used by
+        `__repr__`.
+        """
         return ''
 
 

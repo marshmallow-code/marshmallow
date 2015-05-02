@@ -90,12 +90,12 @@ def test_url_custom_message():
 def test_url_repr():
     assert (
         repr(validate.URL(relative=False, error=None)) ==
-        '<validate.URL(relative=False, error={0!r})>'
+        '<URL(relative=False, error={0!r})>'
         .format('"{input}" is not a valid URL.')
     )
     assert (
         repr(validate.URL(relative=True, error='foo')) ==
-        '<validate.URL(relative=True, error={0!r})>'
+        '<URL(relative=True, error={0!r})>'
         .format('foo')
     )
 
@@ -144,12 +144,12 @@ def test_email_custom_message():
 def test_email_repr():
     assert (
         repr(validate.Email(error=None)) ==
-        '<validate.Email(error={0!r})>'
+        '<Email(error={0!r})>'
         .format('"{input}" is not a valid email address.')
     )
     assert (
         repr(validate.Email(error='foo')) ==
-        '<validate.Email(error={0!r})>'
+        '<Email(error={0!r})>'
         .format('foo')
     )
 
@@ -195,11 +195,11 @@ def test_range_custom_message():
 def test_range_repr():
     assert (
         repr(validate.Range(min=None, max=None, error=None)) ==
-        '<validate.Range(min=None, max=None, error=None)>'
+        '<Range(min=None, max=None, error=None)>'
     )
     assert (
         repr(validate.Range(min=1, max=3, error='foo')) ==
-        '<validate.Range(min=1, max=3, error={0!r})>'
+        '<Range(min=1, max=3, error={0!r})>'
         .format('foo')
     )
 
@@ -261,11 +261,11 @@ def test_length_custom_message():
 def test_length_repr():
     assert (
         repr(validate.Length(min=None, max=None, error=None)) ==
-        '<validate.Length(min=None, max=None, error=None)>'
+        '<Length(min=None, max=None, error=None)>'
     )
     assert (
         repr(validate.Length(min=1, max=3, error='foo')) ==
-        '<validate.Length(min=1, max=3, error={0!r})>'
+        '<Length(min=1, max=3, error={0!r})>'
         .format('foo')
     )
 
@@ -291,12 +291,12 @@ def test_equal_custom_message():
 def test_equal_repr():
     assert (
         repr(validate.Equal(comparable=123, error=None)) ==
-        '<validate.Equal(comparable=123, error={0!r})>'
+        '<Equal(comparable=123, error={0!r})>'
         .format('Must be equal to {other}.')
     )
     assert (
         repr(validate.Equal(comparable=123, error='foo')) ==
-        '<validate.Equal(comparable=123, error={0!r})>'
+        '<Equal(comparable=123, error={0!r})>'
         .format('foo')
     )
 
@@ -344,12 +344,12 @@ def test_regexp_custom_message():
 def test_regexp_repr():
     assert (
         repr(validate.Regexp(regex='abc', flags=0, error=None)) ==
-        '<validate.Regexp(regex={0!r}, error={1!r})>'
+        '<Regexp(regex={0!r}, error={1!r})>'
         .format(re.compile('abc'), 'String does not match expected pattern.')
     )
     assert (
         repr(validate.Regexp(regex='abc', flags=re.IGNORECASE, error='foo')) ==
-        '<validate.Regexp(regex={0!r}, error={1!r})>'
+        '<Regexp(regex={0!r}, error={1!r})>'
         .format(re.compile('abc', re.IGNORECASE), 'foo')
     )
 
@@ -406,12 +406,12 @@ def test_predicate_custom_message():
 def test_predicate_repr():
     assert (
         repr(validate.Predicate(method='foo', error=None)) ==
-        '<validate.Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
         .format('foo', {}, 'Invalid input.')
     )
     assert (
         repr(validate.Predicate(method='foo', error='bar', zoo=1)) ==
-        '<validate.Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
         .format('foo', {str('zoo') if PY2 else 'zoo': 1}, 'bar')
     )
 
@@ -450,12 +450,12 @@ def test_noneof_custom_message():
 def test_noneof_repr():
     assert (
         repr(validate.NoneOf(iterable=[1, 2, 3], error=None)) ==
-        '<validate.NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
         .format('Invalid input.')
     )
     assert (
         repr(validate.NoneOf(iterable=[1, 2, 3], error='foo')) ==
-        '<validate.NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
         .format('foo')
     )
 
@@ -532,12 +532,12 @@ def test_oneof_custom_message():
 def test_oneof_repr():
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=None, error=None)) ==
-        '<validate.OneOf(choices=[1, 2, 3], labels=[], error={0!r})>'
+        '<OneOf(choices=[1, 2, 3], labels=[], error={0!r})>'
         .format('Not a valid choice.')
     )
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
-        '<validate.OneOf(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        '<OneOf(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
         .format(['a', 'b', 'c'], 'foo')
     )
 
@@ -641,11 +641,11 @@ def test_containsonly_custom_message():
 def test_containsonly_repr():
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=None, error=None)) ==
-        '<validate.ContainsOnly(choices=[1, 2, 3], labels=[], error={0!r})>'
+        '<ContainsOnly(choices=[1, 2, 3], labels=[], error={0!r})>'
         .format('One or more of the choices you made was not acceptable.')
     )
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
-        '<validate.ContainsOnly(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        '<ContainsOnly(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
         .format(['a', 'b', 'c'], 'foo')
     )
