@@ -823,6 +823,7 @@ class Boolean(Field):
         try:
             value_str = text_type(value)
         except TypeError as error:
+            msg = getattr(self, 'error', None) or text_type(error)
             raise UnmarshallingError(error)
         if value_str in self.falsy:
             return False
@@ -830,10 +831,11 @@ class Boolean(Field):
             if value_str in self.truthy:
                 return True
             else:
-                raise UnmarshallingError(
-                    '{0!r} is not in {1} nor {2}'.format(
-                        value_str, self.truthy, self.falsy
-                    ))
+                default_message = '{0!r} is not in {1} nor {2}'.format(
+                    value_str, self.truthy, self.falsy
+                )
+                msg = getattr(self, 'error', None) or default_message
+                raise UnmarshallingError(msg)
         return True
 
 class FormattedString(Field):

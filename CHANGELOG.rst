@@ -7,6 +7,7 @@ Changelog
 Bug fixes:
 
 - Fix validation error message for ``fields.Decimal``.
+- Allow error message for ``fields.Boolean`` to be customized with the ``error`` parameter (like other fields).
 
 1.2.5 (2015-04-25)
 ++++++++++++++++++
