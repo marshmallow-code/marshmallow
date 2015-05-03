@@ -13,6 +13,8 @@ Changes from 2.0.0b1:
 
 - Fix serialization of ``None`` for `Time`, `TimeDelta`, and `Date` fields (a regression introduced in 2.0.0a1).
 
+Includes bug fixes from 1.2.6.
+
 2.0.0b1 (2015-04-26)
 ++++++++++++++++++++
 

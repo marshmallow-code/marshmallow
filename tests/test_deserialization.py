@@ -90,9 +90,10 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.355')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m4)
-        with pytest.raises(ValidationError):
+        assert excinfo.value.args[0] == 'Invalid decimal value.'
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
 
     def test_decimal_field_with_places(self):
@@ -109,8 +110,9 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.4')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m4)
+        assert excinfo.value.args[0] == 'Invalid decimal value.'
         with pytest.raises(ValidationError):
             field.deserialize(m5)
 
