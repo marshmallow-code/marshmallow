@@ -134,8 +134,9 @@ class TestFieldDeserialization:
         assert field.deserialize(m3) == decimal.Decimal(1)
         assert isinstance(field.deserialize(m4), decimal.Decimal)
         assert field.deserialize(m4) == decimal.Decimal()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Invalid decimal value.'
         with pytest.raises(UnmarshallingError):
             field.deserialize(m6)
 
@@ -177,8 +178,17 @@ class TestFieldDeserialization:
         class MyBoolean(fields.Boolean):
             truthy = set(['yep'])
         field = MyBoolean()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize(in_val)
+        expected_msg = '{0!r} is not in {1} nor {2}'.format(
+            text_type(in_val), field.truthy, field.falsy
+        )
+        assert str(excinfo.value.args[0]) == expected_msg
+
+        field2 = MyBoolean(error='bad input')
+        with pytest.raises(UnmarshallingError) as excinfo:
+            field2.deserialize(in_val)
+        assert str(excinfo.value.args[0]) == 'bad input'
 
     def test_arbitrary_field_deserialization(self):
         field = fields.Arbitrary()
