@@ -177,6 +177,73 @@ class TestFieldSerialization:
         with pytest.raises(ValidationError):
             field.serialize('m6', user)
 
+    def test_decimal_field_special_values(self, user):
+        user.m1 = '-NaN'
+        user.m2 = 'NaN'
+        user.m3 = '-sNaN'
+        user.m4 = 'sNaN'
+        user.m5 = '-Infinity'
+        user.m6 = 'Infinity'
+        user.m7 = '-0'
+
+        field = fields.Decimal(places=2, allow_nan=True)
+
+        m1s = field.serialize('m1', user)
+        assert isinstance(m1s, decimal.Decimal)
+        assert m1s.is_qnan() and not m1s.is_signed()
+
+        m2s = field.serialize('m2', user)
+        assert isinstance(m2s, decimal.Decimal)
+        assert m2s.is_qnan() and not m2s.is_signed()
+
+        m3s = field.serialize('m3', user)
+        assert isinstance(m3s, decimal.Decimal)
+        assert m3s.is_qnan() and not m3s.is_signed()
+
+        m4s = field.serialize('m4', user)
+        assert isinstance(m4s, decimal.Decimal)
+        assert m4s.is_qnan() and not m4s.is_signed()
+
+        m5s = field.serialize('m5', user)
+        assert isinstance(m5s, decimal.Decimal)
+        assert m5s.is_infinite() and m5s.is_signed()
+
+        m6s = field.serialize('m6', user)
+        assert isinstance(m6s, decimal.Decimal)
+        assert m6s.is_infinite() and not m6s.is_signed()
+
+        m7s = field.serialize('m7', user)
+        assert isinstance(m7s, decimal.Decimal)
+        assert m7s.is_zero() and m7s.is_signed()
+
+    def test_decimal_field_special_values_not_permitted(self, user):
+        user.m1 = '-NaN'
+        user.m2 = 'NaN'
+        user.m3 = '-sNaN'
+        user.m4 = 'sNaN'
+        user.m5 = '-Infinity'
+        user.m6 = 'Infinity'
+        user.m7 = '-0'
+
+        field = fields.Decimal(places=2)
+
+        with pytest.raises(ValidationError):
+            field.serialize('m1', user)
+        with pytest.raises(ValidationError):
+            field.serialize('m2', user)
+        with pytest.raises(ValidationError):
+            field.serialize('m3', user)
+        with pytest.raises(ValidationError):
+            field.serialize('m4', user)
+        with pytest.raises(ValidationError):
+            field.serialize('m5', user)
+        with pytest.raises(ValidationError):
+            field.serialize('m6', user)
+
+        m7s = field.serialize('m7', user)
+        assert isinstance(m7s, decimal.Decimal)
+        assert m7s.is_zero() and m7s.is_signed()
+
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
             fields.Function("uncallable")
