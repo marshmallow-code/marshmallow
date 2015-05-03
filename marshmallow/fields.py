@@ -719,7 +719,7 @@ class Number(Field):
             return self.default
         try:
             return self._format_num(value)
-        except (TypeError, ValueError, decimal.InvalidOperation) as err:
+        except (TypeError, ValueError) as err:
             raise exception_class(getattr(self, 'error', None) or err)
 
     def serialize(self, attr, obj, accessor=None):
@@ -785,11 +785,21 @@ class Decimal(Number):
         self.rounding = rounding
         super(Decimal, self).__init__(default=default, as_string=as_string, **kwargs)
 
+    # override Number
     def _format_num(self, value):
         num = decimal.Decimal(value)
         if self.places is not None:
             num = num.quantize(self.places, rounding=self.rounding)
         return num
+
+    # override Number
+    def _validated(self, value, exception_class):
+        try:
+            return super(Decimal, self)._validated(value, exception_class)
+        except decimal.InvalidOperation:
+            raise exception_class(
+                getattr(self, 'error', None) or 'Invalid decimal value.'
+            )
 
 
 class Boolean(Field):

@@ -134,8 +134,9 @@ class TestFieldDeserialization:
         assert field.deserialize(m3) == decimal.Decimal(1)
         assert isinstance(field.deserialize(m4), decimal.Decimal)
         assert field.deserialize(m4) == decimal.Decimal()
-        with pytest.raises(UnmarshallingError):
+        with pytest.raises(UnmarshallingError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Invalid decimal value.'
         with pytest.raises(UnmarshallingError):
             field.deserialize(m6)
 

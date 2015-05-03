@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+1.2.6 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix validation error message for ``fields.Decimal``.
+
 1.2.5 (2015-04-25)
 ++++++++++++++++++
 
