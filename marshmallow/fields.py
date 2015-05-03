@@ -474,7 +474,7 @@ class Number(Field):
         return self.num_type(value)
 
     def _validated(self, value):
-        """Format the value or raise ``exception_class`` if an error occurs."""
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         try:
             return self._format_num(value)
         except (TypeError, ValueError, decimal.InvalidOperation) as err:
@@ -523,6 +523,8 @@ class Decimal(Number):
     :param rounding: How to round the value during quantize, for example
         `decimal.ROUND_UP`. If None, uses the rounding value from
         the current thread's context.
+    :param allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed, even
+        though they are illegal according to the JSON specification.
     :param default: The value this field defaults to. If not specified is the
         `decimal.Decimal` zero.
     :param bool as_string: If True, serialize to a string instead of a Python
@@ -534,17 +536,30 @@ class Decimal(Number):
 
     num_type = decimal.Decimal
 
-    def __init__(self, places=None, rounding=None, as_string=False, **kwargs):
+    def __init__(self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs):
         self.places = decimal.Decimal((0, (1,), -places)) if places is not None else None
         self.rounding = rounding
+        self.allow_nan = allow_nan
         super(Decimal, self).__init__(as_string=as_string, **kwargs)
 
     def _format_num(self, value):
         if value is None:
             return None
+
         num = decimal.Decimal(value)
-        if self.places is not None:
+
+        if self.allow_nan:
+            if num.is_nan():
+                return decimal.Decimal('NaN')  # avoid sNaN, -sNaN and -NaN
+        else:
+            if num.is_nan() or num.is_infinite():
+                raise ValidationError(
+                    getattr(self, 'error', 'Special numeric values are not permitted.')
+                )
+
+        if self.places is not None and num.is_finite():
             num = num.quantize(self.places, rounding=self.rounding)
+
         return num
 
 
