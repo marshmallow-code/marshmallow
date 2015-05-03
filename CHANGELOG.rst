@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-2.0.0b2.dev (unreleased)
-++++++++++++++++++++++++
+2.0.0b2 (unreleased)
+++++++++++++++++++++
 
 Features:
 
@@ -71,7 +71,7 @@ Other changes:
 - ``Marshaller``, ``Unmarshaller`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
 - Make ``allow_null=True`` the default for ``Nested`` fields. This will make ``None`` serialize to ``None`` rather than a dictionary with empty values (:issue:`132`). Thanks :user:`nickrellack` for the suggestion.
 
-1.2.6 (unreleased)
+1.2.6 (2015-05-03)
 ++++++++++++++++++
 
 Bug fixes:
