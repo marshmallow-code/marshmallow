@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Add useful ``__repr__`` methods to validators (:issue:`204`). Thanks :user:`philtay`.
+- *Backwards-incompatible*: By default, ``NaN``, ``Infinity``, and ``-Infinity`` are invalid values for ``fields.Decimal``. Pass ``allow_nan=True`` to allow these values. Thanks :user:`philtay`.
 
 Changes from 2.0.0b1:
 

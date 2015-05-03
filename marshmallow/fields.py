@@ -474,7 +474,7 @@ class Number(Field):
         return self.num_type(value)
 
     def _validated(self, value):
-        """Format the value or raise :exc:`ValidationError` if an error occurs."""
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         try:
             return self._format_num(value)
         except (TypeError, ValueError, decimal.InvalidOperation) as err:
@@ -523,8 +523,8 @@ class Decimal(Number):
     :param rounding: How to round the value during quantize, for example
         `decimal.ROUND_UP`. If None, uses the rounding value from
         the current thread's context.
-    :param allow_nan: If True, `NaN`, `Infinity` and `-Infinity` are allowed, even
-        if they are illegal according to the JSON specification.
+    :param allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed, even
+        though they are illegal according to the JSON specification.
     :param default: The value this field defaults to. If not specified is the
         `decimal.Decimal` zero.
     :param bool as_string: If True, serialize to a string instead of a Python
@@ -554,8 +554,7 @@ class Decimal(Number):
         else:
             if num.is_nan() or num.is_infinite():
                 raise ValidationError(
-                    getattr(self, 'error', None) or
-                    'Special numeric values are not permitted.'
+                    getattr(self, 'error', 'Special numeric values are not permitted.')
                 )
 
         if self.places is not None and num.is_finite():
