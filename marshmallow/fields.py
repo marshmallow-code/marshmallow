@@ -554,7 +554,7 @@ class Decimal(Number):
         else:
             if num.is_nan() or num.is_infinite():
                 raise ValidationError(
-                    getattr(self, 'error', 'Special numeric values are not permitted.')
+                    getattr(self, 'error', None) or 'Special numeric values are not permitted.'
                 )
 
         if self.places is not None and num.is_finite():
@@ -584,17 +584,19 @@ class Boolean(Field):
         try:
             value_str = text_type(value)
         except TypeError as error:
-            raise ValidationError(text_type(error))
+            msg = getattr(self, 'error', None) or text_type(error)
+            raise ValidationError(msg)
         if value_str in self.falsy:
             return False
         elif self.truthy:
             if value_str in self.truthy:
                 return True
             else:
-                raise ValidationError(
-                    '{0!r} is not in {1} nor {2}'.format(
+                default_message = '{0!r} is not in {1} nor {2}'.format(
                         value_str, self.truthy, self.falsy
-                    ))
+                )
+                msg = getattr(self, 'error', None) or default_message
+                raise ValidationError(msg)
         return True
 
 class FormattedString(Field):

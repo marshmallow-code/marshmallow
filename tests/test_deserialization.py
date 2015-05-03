@@ -202,8 +202,9 @@ class TestFieldDeserialization:
 
         field = fields.Decimal(places=2)
 
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m1)
+        assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
         with pytest.raises(ValidationError):
             field.deserialize(m2)
         with pytest.raises(ValidationError):
@@ -254,8 +255,17 @@ class TestFieldDeserialization:
         class MyBoolean(fields.Boolean):
             truthy = set(['yep'])
         field = MyBoolean()
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
+        expected_msg = '{0!r} is not in {1} nor {2}'.format(
+            text_type(in_val), field.truthy, field.falsy
+        )
+        assert str(excinfo.value.args[0]) == expected_msg
+
+        field2 = MyBoolean(error='bad input')
+        with pytest.raises(ValidationError) as excinfo:
+            field2.deserialize(in_val)
+        assert str(excinfo.value.args[0]) == 'bad input'
 
     def test_arbitrary_field_deserialization(self):
         field = fields.Arbitrary()
