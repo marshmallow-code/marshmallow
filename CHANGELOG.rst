@@ -69,6 +69,14 @@ Other changes:
 - ``Marshaller``, ``Unmarshaller`` were moved to ``marshmallow.marshalling``. These should be considered private API (:issue:`129`).
 - Make ``allow_null=True`` the default for ``Nested`` fields. This will make ``None`` serialize to ``None`` rather than a dictionary with empty values (:issue:`132`). Thanks :user:`nickrellack` for the suggestion.
 
+1.2.6 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix validation error message for ``fields.Decimal``.
+- Allow error message for ``fields.Boolean`` to be customized with the ``error`` parameter (like other fields).
+
 1.2.5 (2015-04-25)
 ++++++++++++++++++
 

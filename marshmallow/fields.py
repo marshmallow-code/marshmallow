@@ -477,7 +477,7 @@ class Number(Field):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         try:
             return self._format_num(value)
-        except (TypeError, ValueError, decimal.InvalidOperation) as err:
+        except (TypeError, ValueError) as err:
             raise ValidationError(getattr(self, 'error', None) or text_type(err))
 
     def serialize(self, attr, obj, accessor=None):
@@ -542,6 +542,7 @@ class Decimal(Number):
         self.allow_nan = allow_nan
         super(Decimal, self).__init__(as_string=as_string, **kwargs)
 
+    # override Number
     def _format_num(self, value):
         if value is None:
             return None
@@ -561,6 +562,15 @@ class Decimal(Number):
             num = num.quantize(self.places, rounding=self.rounding)
 
         return num
+
+    # override Number
+    def _validated(self, value):
+        try:
+            return super(Decimal, self)._validated(value)
+        except decimal.InvalidOperation:
+            raise ValidationError(
+                getattr(self, 'error', None) or 'Invalid decimal value.'
+            )
 
 
 class Boolean(Field):
@@ -593,7 +603,7 @@ class Boolean(Field):
                 return True
             else:
                 default_message = '{0!r} is not in {1} nor {2}'.format(
-                        value_str, self.truthy, self.falsy
+                    value_str, self.truthy, self.falsy
                 )
                 msg = getattr(self, 'error', None) or default_message
                 raise ValidationError(msg)
