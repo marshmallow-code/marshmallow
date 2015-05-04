@@ -520,12 +520,25 @@ def test_serializing_empty_list_returns_empty_list():
     assert UserMetaSchema(many=True).dump([]).data == []
 
 
-def test_serializing_dict(user):
+def test_serializing_dict():
     user = {"name": "foo", "email": "foo@bar.com", "age": 'badage'}
     s = UserSchema().dump(user)
     assert s.data['name'] == "foo"
     assert 'age' in s.errors
     assert 'age' not in s.data
+
+
+def test_serializing_dict_with_meta_fields():
+    class MySchema(Schema):
+        class Meta:
+            fields = ('foo', 'bar')
+
+    sch = MySchema()
+    data, errors = sch.dump({'foo': 42, 'bar': 24, 'baz': 424})
+    assert not errors
+    assert data['foo'] == 42
+    assert data['bar'] == 24
+    assert 'baz' not in data
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
@@ -662,9 +675,9 @@ def test_only_with_invalid_attribute():
         foo = fields.Field()
 
     sch = MySchema(only=('bar', ))
-    with pytest.raises(AttributeError) as excinfo:
+    with pytest.raises(KeyError) as excinfo:
         sch.dump(dict(foo=42))
-    assert 'not a valid field' in str(excinfo)
+    assert '"bar" is not a valid field' in str(excinfo.value.args[0])
 
 
 def test_nested_only_and_exclude():
