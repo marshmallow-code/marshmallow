@@ -154,7 +154,7 @@ ToDo API (Flask + Peewee)
 
 This example uses Flask and the `Peewee <http://peewee.readthedocs.org/en/latest/index.html>`_ ORM to create a basic Todo application.
 
-Notice how ``__marshallable__`` is used to define how Peewee model objects get marshalled. We also use the :meth:`Schema.load` method to deserialize input data to an ORM object (see the ``new_todo()`` view).
+Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize input data to model data. Also notice how `pre_load <marshmallow.decorators.pre_load>` is used to clean input data and `post_load <marshmallow.decorators.post_load>` is used to add an envelope to response data.
 
 .. literalinclude:: ../examples/peewee_example.py
     :language: python
@@ -165,37 +165,43 @@ After registering a user and creating some todo items in the database, here is a
 
 .. code-block:: bash
 
-    $ http GET :5000/api/v1/todos/
+    $ http GET :5000/todos/
     {
         "todos": [
             {
                 "content": "Install marshmallow",
                 "done": false,
-                "id": 3,
-                "posted_on": "2014-12-02T02:58:14.070877+00:00",
+                "id": 1,
+                "posted_on": "2015-05-05T01:51:12.832232+00:00",
                 "user": {
-                    "email": "foo@bar.com",
-                    "id": 1
+                    "user": {
+                        "email": "foo@bar.com",
+                        "id": 1
+                    }
                 }
             },
             {
                 "content": "Learn Python",
                 "done": false,
                 "id": 2,
-                "posted_on": "2014-12-02T02:58:08.910516+00:00",
+                "posted_on": "2015-05-05T01:51:20.728052+00:00",
                 "user": {
-                    "email": "foo@bar.com",
-                    "id": 1
+                    "user": {
+                        "email": "foo@bar.com",
+                        "id": 1
+                    }
                 }
             },
             {
                 "content": "Refactor everything",
                 "done": false,
-                "id": 1,
-                "posted_on": "2014-12-02T02:58:04.207961+00:00",
+                "id": 3,
+                "posted_on": "2015-05-05T01:51:25.970153+00:00",
                 "user": {
-                    "email": "foo@bar.com",
-                    "id": 1
+                    "user": {
+                        "email": "foo@bar.com",
+                        "id": 1
+                    }
                 }
             }
         ]
