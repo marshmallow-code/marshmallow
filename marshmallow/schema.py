@@ -2,7 +2,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
-from collections import defaultdict
+from collections import defaultdict, Mapping
 import copy
 import datetime as dt
 import decimal
@@ -737,28 +737,27 @@ class BaseSchema(base.SchemaABC):
             return dictionary.
         :returns: An dict of field_name:field_obj pairs.
         """
-        # Convert obj to a dict
-        obj_marshallable = utils.to_marshallable_type(obj,
-            field_names=field_names)
-        if obj_marshallable and many:
+        if obj and many:
             try:  # Homogeneous collection
-                obj_prototype = obj_marshallable[0]
+                obj_prototype = obj[0]
             except IndexError:  # Nothing to serialize
                 return self.declared_fields
-            obj_dict = utils.to_marshallable_type(obj_prototype,
-                field_names=field_names)
-        else:
-            obj_dict = obj_marshallable
+            obj = obj_prototype
         ret = self.dict_class()
         for key in field_names:
             if key in self.declared_fields:
                 ret[key] = self.declared_fields[key]
-            else:
-                if obj_dict:
+            else:  # Implicit field creation (class Meta 'fields' or 'additional')
+                if obj:
+                    attribute_type = None
                     try:
-                        attribute_type = type(obj_dict[key])
-                    except KeyError:
-                        raise AttributeError(
+                        if isinstance(obj, Mapping):
+                            attribute_type = type(obj[key])
+                        else:
+                            attribute_type = type(getattr(obj, key))
+                    except (AttributeError, KeyError) as err:
+                        err_type = type(err)
+                        raise err_type(
                             '"{0}" is not a valid field for {1}.'.format(key, obj))
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
                 else:  # Object is None

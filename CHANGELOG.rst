@@ -4,9 +4,14 @@ Changelog
 2.0.0.b3 (unreleased)
 +++++++++++++++++++++
 
+Feaures:
+
+- Performance improvements.
+- Defining ``__marshallable__`` on complex objects is no longer necessary.
+
 Support:
 
-- Update Flask and Peewee examples in docs.
+- Update Flask and Peewee examples in documenation.
 
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++
