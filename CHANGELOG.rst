@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-2.0.0.dev (unreleased)
-++++++++++++++++++++++
+2.0.0.b3 (unreleased)
++++++++++++++++++++++
 
 Support:
 
