@@ -66,10 +66,12 @@ Quotes API (Flask + SQLAlchemy)
 
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
-    - `class Meta` to specify which fields to serialize
+    - Validation and deserialization using :meth:`Schema.load`.
+    - Custom validation
     - Nesting fields
+    - Using ``dump_only=True`` to specify read-only fields
     - Output filtering using the ``only`` parameter
-    - Validation using :meth:`Schema.validate`.
+    - Using `@pre_load <marshmallow.decorators.pre_load>` to preprocess input data.
 
 .. literalinclude:: ../examples/flask_example.py
     :language: python
@@ -87,16 +89,16 @@ First we'll POST some quotes.
 
 .. code-block:: bash
 
-    $ http POST :5000/api/v1/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
-    $ http POST :5000/api/v1/quotes/ author="Tim Peters" content="Now is better than never."
-    $ http POST :5000/api/v1/quotes/ author="Peter Hintjens" content="Simplicity is always better than functionality."
+    $ http POST :5000/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
+    $ http POST :5000/quotes/ author="Tim Peters" content="Now is better than never."
+    $ http POST :5000/quotes/ author="Peter Hintjens" content="Simplicity is always better than functionality."
 
 
 If we provide invalid input data, we get 400 error response. Let's omit "author" from the input data.
 
 .. code-block:: bash
 
-    $ http POST :5000/api/v1/quotes/ content="I have no author"
+    $ http POST :5000/quotes/ content="I have no author"
     {
         "author": [
             "Data not provided."
@@ -107,7 +109,7 @@ Now we can GET a list of all the quotes.
 
 .. code-block:: bash
 
-    $ http :5000/api/v1/quotes/
+    $ http :5000/quotes/
     {
         "quotes": [
             {
@@ -129,7 +131,7 @@ We can also GET the quotes for a single author.
 
 .. code-block:: bash
 
-    $ http :5000/api/v1/authors/1
+    $ http :5000/authors/1
     {
         "author": {
             "first": "Tim",

@@ -41,8 +41,8 @@ class UserSchema(Schema):
     email = fields.Str(required=True,
                        validate=validate.Email(error='Not a valid email address'))
     password = fields.Str(required=True,
-                             validate=[validate.Length(min=6, max=36)],
-                             load_only=True)
+                          validate=[validate.Length(min=6, max=36)],
+                          load_only=True)
     joined_on = fields.DateTime(dump_only=True)
 
     # Clean up data
