@@ -9,6 +9,10 @@ Feaures:
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
 
+Other changes:
+
+- Remove unnecessary call to ``utils.get_value`` for ``Function`` and ``Method`` fields (:issue:`208`). Thanks :user:`jmcarp`.
+
 Support:
 
 - Update Flask and Peewee examples in documenation.
