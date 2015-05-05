@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.0.0.dev (unreleased)
+++++++++++++++++++++++
+
+Support:
+
+- Update Flask and Peewee examples in docs.
+
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++
 

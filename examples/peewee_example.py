@@ -3,22 +3,15 @@ from functools import wraps
 
 from flask import Flask, request, g, jsonify
 import peewee as pw
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import Schema, fields, validate, pre_load, post_dump
 
 app = Flask(__name__)
-db = pw.SqliteDatabase("/tmp/todo.db")
+db = pw.SqliteDatabase('/tmp/todo.db')
 
 ###### MODELS #####
 
 class BaseModel(pw.Model):
     """Base model class. All descendants share the same database."""
-    def __marshallable__(self):
-        """Return the marshallable dictionary that will be serialized by
-        marshmallow. Peewee models have a dictionary representation where the
-        ``_data`` key contains all the field:value pairs for the object.
-        """
-        return dict(self.__dict__)['_data']
-
     class Meta:
         database = db
 
@@ -44,30 +37,51 @@ def create_tables():
 ##### SCHEMAS #####
 
 class UserSchema(Schema):
-    class Meta:
-        fields = ('id', 'email', 'joined_on')
+    id = fields.Int(dump_only=True)
+    email = fields.Str(required=True,
+                       validate=validate.Email(error='Not a valid email address'))
+    password = fields.Str(required=True,
+                          validate=[validate.Length(min=6, max=36)],
+                          load_only=True)
+    joined_on = fields.DateTime(dump_only=True)
+
+    # Clean up data
+    @pre_load
+    def process_input(self, data):
+        data['email'] = data['email'].lower().strip()
+        return data
+
+    # We add a post_dump hook to add an envelope to responses
+    @post_dump(raw=True)
+    def wrap(self, data, many):
+        key = 'users' if many else 'user'
+        return {
+            key: data
+        }
+
 
 class TodoSchema(Schema):
-    done = fields.Boolean(attribute='is_done')
-    user = fields.Nested(UserSchema, exclude=('joined_on',))
+    id = fields.Int(dump_only=True)
+    done = fields.Boolean(attribute='is_done', missing=False)
+    user = fields.Nested(UserSchema, exclude=('joined_on', 'password'), dump_only=True)
     content = fields.Str(required=True)
-    posted_on = fields.DateTime()
+    posted_on = fields.DateTime(dump_only=True)
 
-    class Meta:
-        additional = ('id', )
+    # Again, add an envelope to responses
+    @post_dump(raw=True)
+    def wrap(self, data, many):
+        key = 'todos' if many else 'todo'
+        return {
+            key: data
+        }
 
+    # We use make_object to create a new Todo from validated data
     def make_object(self, data):
-        if data.get('id'):
-            todo = Todo.get(Todo.id == data['id'])
-        else:
-            user_data = data.get('user')
-            if not user_data:
-                raise ValidationError('Must provide user when creating a new todo item.')
-            user = User.get(User.email == user_data['email'])
-            todo = Todo(content=data['content'],
-                        user=user,
-                        posted_on=dt.datetime.utcnow())
-        return todo
+        if not data:
+            return None
+        return Todo(content=data['content'],
+                    is_done=data['is_done'],
+                    posted_on=dt.datetime.utcnow())
 
 user_schema = UserSchema()
 todo_schema = TodoSchema()
@@ -93,10 +107,9 @@ def requires_auth(f):
             resp.status_code = 401
             resp.headers['WWW-Authenticate'] = 'Basic realm="Example"'
             return resp
+        kwargs['user'] = User.get(User.email == auth.username)
         return f(*args, **kwargs)
     return decorated
-
-#### API #####
 
 # Ensure a separate connection for each thread
 @app.before_request
@@ -109,74 +122,64 @@ def after_request(response):
     g.db.close()
     return response
 
-@app.route("/api/v1/register", methods=["POST"])
+#### API #####
+
+@app.route("/register", methods=["POST"])
 def register():
     json_input = request.get_json()
-    if not json_input:
-        return jsonify({'message': 'Must provide username and password'}), 400
+    data, errors = user_schema.load(json_input)
+    if errors:
+        return jsonify({'errors': errors}), 422
     try:  # Use get to see if user already to exists
-        User.get(User.email == request.json['email'])
-        message = "That email address is already in the database."
+        User.get(User.email == data['email'])
     except User.DoesNotExist:
-        user = User.create(email=json_input['email'], joined_on=dt.datetime.now(),
-                            password=json_input['password'])
+        user = User.create(email=data['email'], joined_on=dt.datetime.now(),
+                            password=data['password'])
         message = "Successfully created user: {0}".format(user.email)
-    data, errors = user_schema.dump(user)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({'message': message, "user": data})
+    else:
+        return jsonify({'errors': 'That email address is already in the database'}), 400
 
-@app.route("/api/v1/todos/", methods=['GET'])
+    data, _ = user_schema.dump(user)
+    data['message'] = message
+    return jsonify(data), 201
+
+@app.route("/todos/", methods=['GET'])
 def get_todos():
-    todos = Todo.select()  # Get all todos
-    data, errors = todos_schema.dump(list(todos))
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"todos": data})
+    todos = Todo.select().order_by(Todo.posted_on.asc())  # Get all todos
+    result = todos_schema.dump(list(todos))
+    return jsonify(result.data)
 
-@app.route("/api/v1/todos/<int:pk>")
+@app.route("/todos/<int:pk>")
 def get_todo(pk):
-    try:
-        todo, errs = todo_schema.load({'id': pk})
-    except Todo.DoesNotExist:
-        return jsonify({"message": "Todo could not be found"})
-    data, errors = todo_schema.dump(todo)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"todo": data})
+    todo = Todo.get(Todo.id == pk)
+    if not todo:
+        return jsonify({'errors': 'Todo could not be find'}), 404
+    result = todo_schema.dump(todo)
+    return jsonify(result.data)
 
-@app.route("/api/v1/todos/<int:pk>/toggle", methods=["POST", "PUT"])
+@app.route("/todos/<int:pk>/toggle", methods=["POST", "PUT"])
 def toggledone(pk):
     try:
         todo = Todo.get(Todo.id == pk)
     except Todo.DoesNotExist:
-        return jsonify({"message": "Todo could not be found"})
+        return jsonify({"message": "Todo could not be found"}), 404
     status = not todo.is_done
     update_query = todo.update(is_done=status)
     update_query.execute()
-    data, errors = todo_schema.dump(todo)
-    if errors:
-        return jsonify(errors), 400
-    return jsonify({"message": "Successfully toggled status.",
-                    "todo": data})
+    result = todo_schema.dump(todo)
+    return jsonify(result.data)
 
-@app.route("/api/v1/todos/", methods=["POST"])
+@app.route('/todos/', methods=["POST"])
 @requires_auth
-def new_todo():
+def new_todo(user):
     json_input = request.get_json()
-    if not json_input:
-        return jsonify({'message': 'No input provided'}), 400
-    # Deserialize to a new Todo
-    todo, errors = todo_schema.load({
-        'content': json_input.get('content'),
-        'user': {'email': request.authorization.username}
-    })
+    todo, errors = todo_schema.load(json_input)
     if errors:
-        return jsonify(errors), 400
+        return jsonify({'errors': errors}), 422
+    todo.user = user
     todo.save()
     result = todo_schema.dump(todo)
-    return jsonify({"message": "Successfully created new todo item.",
-                    "todo": result.data})
+    return jsonify(result.data)
 
 if __name__ == '__main__':
     create_tables()

@@ -1,9 +1,9 @@
-from datetime import datetime
+import datetime
 
 from flask import Flask, jsonify, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import Schema, fields, ValidationError, pre_load
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/quotes.db'
@@ -16,10 +16,6 @@ class Author(db.Model):
     first = db.Column(db.String(80))
     last = db.Column(db.String(80))
 
-    def __init__(self, first, last):
-        self.first = first
-        self.last = last
-
 class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String, nullable=False)
@@ -28,48 +24,57 @@ class Quote(db.Model):
                         backref=db.backref("quotes", lazy="dynamic"))
     posted_at = db.Column(db.DateTime)
 
-    def __init__(self, content, author):
-        self.author = author
-        self.content = content
-        self.posted_at = datetime.utcnow()
-
 ##### SCHEMAS #####
 
 class AuthorSchema(Schema):
-    formatted_name = fields.Method("format_name")
+    id = fields.Int(dump_only=True)
+    first = fields.Str()
+    last = fields.Str()
+    formatted_name = fields.Method("format_name", dump_only=True)
 
     def format_name(self, author):
         return "{}, {}".format(author.last, author.first)
 
-    class Meta:
-        fields = ('id', 'first', 'last', "formatted_name")
 
+# Custom validator
 def must_not_be_blank(data):
     if not data:
         raise ValidationError('Data not provided.')
 
 class QuoteSchema(Schema):
+    id = fields.Int(dump_only=True)
     author = fields.Nested(AuthorSchema, validate=must_not_be_blank)
     content = fields.Str(required=True, validate=must_not_be_blank)
+    posted_at = fields.DateTime(dump_only=True)
 
-    class Meta:
-        fields = ("id", "content", "posted_at", 'author')
+    # Allow client to pass author's full name in request body
+    # e.g. {"author': 'Tim Peters"} rather than {"first": "Tum", "last": "Peters"}
+    @pre_load
+    def process_author(self, data):
+        author_name = data.get('author')
+        if author_name:
+            first, last = author_name.split(' ')
+            author_dict = dict(first=first, last=last)
+        else:
+            author_dict = {}
+        data['author'] = author_dict
+        return data
 
 author_schema = AuthorSchema()
+authors_schema = AuthorSchema(many=True)
 quote_schema = QuoteSchema()
 quotes_schema = QuoteSchema(many=True, only=('id', 'content'))
 
 ##### API #####
 
-@app.route("/api/v1/authors")
+@app.route('/authors')
 def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
-    serializer = AuthorSchema(many=True)
-    result = serializer.dump(authors)
-    return jsonify({"authors": result.data})
+    result = authors_schema.dump(authors)
+    return jsonify({'authors': result.data})
 
-@app.route("/api/v1/authors/<int:pk>")
+@app.route("/authors/<int:pk>")
 def get_author(pk):
     try:
         author = Author.query.get(pk)
@@ -79,13 +84,13 @@ def get_author(pk):
     quotes_result = quotes_schema.dump(author.quotes.all())
     return jsonify({'author': author_result.data, 'quotes': quotes_result.data})
 
-@app.route('/api/v1/quotes/', methods=['GET'])
+@app.route('/quotes/', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
     result = quotes_schema.dump(quotes)
     return jsonify({"quotes": result.data})
 
-@app.route("/api/v1/quotes/<int:pk>")
+@app.route("/quotes/<int:pk>")
 def get_quote(pk):
     try:
         quote = Quote.query.get(pk)
@@ -94,29 +99,27 @@ def get_quote(pk):
     result = quote_schema.dump(quote)
     return jsonify({"quote": result.data})
 
-@app.route("/api/v1/quotes/", methods=["POST"])
+@app.route("/quotes/", methods=["POST"])
 def new_quote():
-    if not request.get_json():
+    json_data = request.get_json()
+    if not json_data:
         return jsonify({'message': 'No input data provided'}), 400
-    author_name = request.get_json().get('author')
-    if author_name:
-        first, last = author_name.split(' ')
-        author_input = dict(first=first, last=last)
-    else:
-        author_input = {}
-    content_input = request.get_json().get('content')
-    input_data = dict(author=author_input, content=content_input)
-    # Validate the input data
-    errors = quote_schema.validate(input_data)
+    # Validate and deserialize input
+    data, errors = quote_schema.load(json_data)
     if errors:
-        return jsonify(errors), 400
+        return jsonify(errors), 422
+    first, last = data['author']['first'], data['author']['last']
     author = Author.query.filter_by(first=first, last=last).first()
     if author is None:
         # Create a new author
-        author = Author(first, last)
+        author = Author(first=first, last=last)
         db.session.add(author)
     # Create new quote
-    quote = Quote(content_input, author)
+    quote = Quote(
+        content=data['content'],
+        author=author,
+        posted_at=datetime.datetime.utcnow()
+    )
     db.session.add(quote)
     db.session.commit()
     result = quote_schema.dump(Quote.query.get(quote.id))
