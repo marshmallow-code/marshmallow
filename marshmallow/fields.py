@@ -211,13 +211,16 @@ class Field(FieldABC):
         :param callable accessor: Function used to pull values from ``obj``.
         :raise ValidationError: In case of formatting problem
         """
-        value = self.get_value(attr, obj, accessor=accessor)
-        if value is missing_ and self._CHECK_ATTRIBUTE:
-            if hasattr(self, 'default'):
-                if callable(self.default):
-                    return self.default()
-                else:
-                    return self.default
+        if self._CHECK_ATTRIBUTE:
+            value = self.get_value(attr, obj, accessor=accessor)
+            if value is missing_:
+                if hasattr(self, 'default'):
+                    if callable(self.default):
+                        return self.default()
+                    else:
+                        return self.default
+        else:
+            value = None
         return self._serialize(value, attr, obj)
 
     def deserialize(self, value):
