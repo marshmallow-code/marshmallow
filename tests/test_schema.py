@@ -788,16 +788,14 @@ def test_inherit_meta_override():
         class Meta:
             strict = True
             fields = ('name', 'email')
-            skip_missing = True
 
     class Child(Schema):
         class Meta(Parent.Meta):
-            skip_missing = False
+            strict = False
 
     child = Child()
-    assert child.opts.strict is True
     assert child.opts.fields == ('name', 'email')
-    assert child.opts.skip_missing is False
+    assert child.opts.strict is False
 
 
 def test_additional(user):

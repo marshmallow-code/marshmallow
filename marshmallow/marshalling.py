@@ -90,7 +90,7 @@ class Marshaller(ErrorStore):
         self.prefix = prefix
         ErrorStore.__init__(self)
 
-    def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
+    def serialize(self, obj, fields_dict, many=False, strict=False,
                   accessor=None, dict_class=dict, index_errors=True, index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
@@ -101,7 +101,6 @@ class Marshaller(ErrorStore):
             a collection.
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
-        :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
@@ -120,7 +119,6 @@ class Marshaller(ErrorStore):
             self._pending = True
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class, accessor=accessor,
-                                    skip_missing=skip_missing,
                                     index=idx, index_errors=index_errors)
                     for idx, d in enumerate(obj)]
             self._pending = False
@@ -136,12 +134,7 @@ class Marshaller(ErrorStore):
                 field_obj=field_obj,
                 index=(index if index_errors else None)
             )
-            skip_conds = (
-                field_obj.load_only,
-                value is missing,
-                skip_missing and value in field_obj.SKIPPABLE_VALUES,
-            )
-            if any(skip_conds):
+            if field_obj.load_only or value is missing:
                 continue
             items.append((key, value))
         if self.errors and strict:

@@ -203,7 +203,12 @@ class SchemaOpts(object):
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
         self.json_module = getattr(meta, 'json_module', json)
-        self.skip_missing = getattr(meta, 'skip_missing', False)
+        if hasattr(meta, 'skip_missing'):
+            warnings.warn(
+                'The skip_missing option is no longer necessary. Missing inputs passed to '
+                'Schema.dump will be excluded from the serialized output by default.',
+                UserWarning
+            )
         self.ordered = getattr(meta, 'ordered', False)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
@@ -314,8 +319,6 @@ class BaseSchema(base.SchemaABC):
             storing them.
         - ``json_module``: JSON module to use for `loads` and `dumps`.
             Defaults to the ``json`` module in the stdlib.
-        - ``skip_missing``: If `True`, don't include key:value pairs in
-            serialized results if ``value`` is `None`.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
@@ -329,7 +332,7 @@ class BaseSchema(base.SchemaABC):
         pass
 
     def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
-                 many=False, skip_missing=False, context=None):
+                 many=False, context=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -337,7 +340,6 @@ class BaseSchema(base.SchemaABC):
         self.exclude = exclude
         self.prefix = prefix
         self.strict = strict or self.opts.strict
-        self.skip_missing = skip_missing or self.opts.skip_missing
         self.ordered = self.opts.ordered
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
@@ -557,7 +559,6 @@ class BaseSchema(base.SchemaABC):
             self.fields,
             many=many,
             strict=self.strict,
-            skip_missing=self.skip_missing,
             accessor=self.__accessor__,
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
