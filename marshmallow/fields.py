@@ -520,10 +520,8 @@ class Decimal(Number):
     :param rounding: How to round the value during quantize, for example
         `decimal.ROUND_UP`. If None, uses the rounding value from
         the current thread's context.
-    :param allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed, even
-        though they are illegal according to the JSON specification.
-    :param default: The value this field defaults to. If not specified is the
-        `decimal.Decimal` zero.
+    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+        even though they are illegal according to the JSON specification.
     :param bool as_string: If True, serialize to a string instead of a Python
         `decimal.Decimal` type.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
