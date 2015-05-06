@@ -69,7 +69,7 @@ class Field(FieldABC):
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`ValidationError` is raised.
     :param required: Raise an :exc:`ValidationError` if the field value
-        is not supplied during deserialization. If not a `bool`(e.g. a `str`),
+        is not supplied during deserialization. If not a `bool` (e.g. a `str`),
         the provided value will be used as the message of the
         :exc:`ValidationError` instead of the default message.
     :param allow_none: Set to `True` if `None` should be considered a valid value during
