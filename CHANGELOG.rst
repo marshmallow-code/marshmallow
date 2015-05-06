@@ -9,6 +9,10 @@ Feaures:
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
 
+Deprecation/Removals:
+
+- Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
+
 Other changes:
 
 - Remove unnecessary call to ``utils.get_value`` for ``Function`` and ``Method`` fields (:issue:`208`). Thanks :user:`jmcarp`.

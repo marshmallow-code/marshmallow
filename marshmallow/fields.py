@@ -109,8 +109,6 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0  # Used for sorting
-    #: Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
@@ -390,8 +388,6 @@ class List(Field):
         The ``allow_none`` parameter now applies to deserialization and
         has the same semantics as the other fields.
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, [], tuple())
 
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
@@ -429,8 +425,6 @@ class String(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, *args, **kwargs):
         return super(String, self).__init__(*args, **kwargs)
@@ -626,8 +620,6 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)

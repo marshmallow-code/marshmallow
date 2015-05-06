@@ -78,6 +78,9 @@ In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Fie
     # {}
 
 
+As a consequence of this new behavior, the ``skip_missing`` class Meta option has been removed.
+
+
 Pre-processing and Post-processing Methods
 ******************************************
 

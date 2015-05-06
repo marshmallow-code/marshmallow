@@ -28,56 +28,6 @@ class TestStrict:
             ChildStrictSchema().load({'email': 'foo.com'})
 
 
-class TestSkipMissingOption:
-
-    class UserSkipSchema(Schema):
-        name = fields.Str()
-        email = fields.Email()
-        age = fields.Int(default=None)
-        nicknames = fields.List(fields.String)
-
-        class Meta:
-            skip_missing = True
-
-    def test_skip_missing_opt(self):
-        schema = self.UserSkipSchema()
-        assert schema.opts.skip_missing is True
-        assert schema.skip_missing is True
-
-    def test_missing_values_are_skipped(self):
-        user = User(name='Joe', email=None, age=None)
-        schema = self.UserSkipSchema()
-        result = schema.dump(user)
-        assert 'name' in result.data
-        assert 'email' not in result.data
-        assert 'age' not in result.data
-
-    def test_missing_values_are_skipped_with_many(self):
-        users = [User(name='Joe', email=None, age=None),
-                 User(name='Jane', email=None, age=None)]
-        schema = self.UserSkipSchema(many=True)
-        results = schema.dump(users)
-        for data in results.data:
-            assert 'name' in data
-            assert 'email' not in data
-            assert 'age' not in data
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/71
-    def test_missing_string_values_can_be_skipped(self):
-        user = dict(email='foo@bar.com', age=42)
-        schema = self.UserSkipSchema()
-        result = schema.dump(user)
-        assert 'name' not in result.data
-        assert 'email' in result.data
-        assert 'age' in result.data
-
-    def test_empty_list_can_be_skipped(self):
-        schema = self.UserSkipSchema()
-        user = dict(age=42, nicknames=['foo', 'bar'])
-        result = schema.dump(user)
-        assert 'nicknames' in result.data
-
-
 class TestUnordered:
 
     class UnorderedSchema(Schema):
