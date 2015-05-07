@@ -127,7 +127,10 @@ class Marshaller(ErrorStore):
         for attr_name, field_obj in iteritems(fields_dict):
             if getattr(field_obj, 'load_only', False):
                 continue
-            key = ''.join([self.prefix, attr_name])
+            if not self.prefix:
+                key = attr_name
+            else:
+                key = ''.join([self.prefix, attr_name])
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = self.call_and_store(
                 getter_func=getter,
