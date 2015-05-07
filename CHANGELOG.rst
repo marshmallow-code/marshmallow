@@ -21,6 +21,10 @@ Support:
 
 - Update Flask and Peewee examples in documenation.
 
+Changes from 2.0.0b2:
+
+- Bug fix: ``load_only`` fields do not get validated during serialization.
+
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++
 

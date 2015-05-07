@@ -125,6 +125,8 @@ class Marshaller(ErrorStore):
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
+            if getattr(field_obj, 'load_only', False):
+                continue
             key = ''.join([self.prefix, attr_name])
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = self.call_and_store(
@@ -134,7 +136,7 @@ class Marshaller(ErrorStore):
                 field_obj=field_obj,
                 index=(index if index_errors else None)
             )
-            if field_obj.load_only or value is missing:
+            if value is missing:
                 continue
             items.append((key, value))
         if self.errors and strict:
