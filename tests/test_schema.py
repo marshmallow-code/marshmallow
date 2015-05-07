@@ -1818,8 +1818,8 @@ class UserContextSchema(Schema):
     is_owner = fields.Method('get_is_owner')
     is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
 
-    def get_is_owner(self, user, context):
-        return context['blog'].user.name == user.name
+    def get_is_owner(self, user):
+        return self.context['blog'].user.name == user.name
 
 
 class TestContext:
@@ -1849,22 +1849,6 @@ class TestContext:
         noncollab = User('Foo')
         data = serializer.dump(noncollab)[0]
         assert data['is_collab'] is False
-
-    def test_method_field_raises_error_when_context_not_available(self):
-        # serializer that only has a method field
-        class UserMethodContextSchema(Schema):
-            is_owner = fields.Method('get_is_owner')
-
-            def get_is_owner(self, user, context):
-                return context['blog'].user.name == user.name
-        owner = User('Joe')
-        serializer = UserMethodContextSchema(strict=True)
-        serializer.context = None
-        with pytest.raises(ValidationError) as excinfo:
-            serializer.dump(owner)
-
-        msg = 'No context available for Method field {0!r}'.format('is_owner')
-        assert msg in str(excinfo)
 
     def test_function_field_raises_error_when_context_not_available(self):
         # only has a function field

@@ -1002,7 +1002,7 @@ class Method(Field):
         value to deserialize.
 
     .. versionchanged:: 2.0.0
-        Deprecated ``context`` parameter on methods. Use ``self.context`` instead.
+        Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
     """
     _CHECK_ATTRIBUTE = False
 
@@ -1016,19 +1016,8 @@ class Method(Field):
 
     def _serialize(self, value, attr, obj):
         method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
-        if len(utils.get_func_args(method)) > 2:
-            warnings.warn(
-                'The context parameter of Method fields is deprecated. Use self.context '
-                'in the method instead.', category=DeprecationWarning
-            )
-            if self.parent.context is None:
-                msg = 'No context available for Method field {0!r}'.format(attr)
-                raise ValidationError(msg)
-            args = (obj, self.parent.context)
-        else:
-            args = (obj, )
         try:
-            return method(*args)
+            return method(obj)
         except AttributeError:
             pass
         return missing_

@@ -12,6 +12,7 @@ Feaures:
 Deprecation/Removals:
 
 - Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
+- Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
 
 Other changes:
 

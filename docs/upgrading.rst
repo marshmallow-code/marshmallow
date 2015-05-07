@@ -253,6 +253,21 @@ The `fields.Select` field is deprecated in favor of the newly-added `OneOf` vali
     # 2.0
     fields.Str(validate=OneOf(['red', 'blue']))
 
+Accessing Context from Method fields
+************************************
+
+Use ``self.context`` to access a schema's context within a ``Method`` field.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        name = fields.String()
+        likes_bikes = fields.Method('writes_about_bikes')
+
+        # Method fields also optionally receive context argument
+        def writes_about_bikes(self, user):
+            return 'bicycle' in self.context['blog'].title.lower()
+
 More
 ****
 
