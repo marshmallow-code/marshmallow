@@ -20,10 +20,11 @@ Other changes:
 
 Support:
 
-- Update Flask and Peewee examples in documenation.
+- Update Flask and Peewee examples in documentation.
 
 Changes from 2.0.0b2:
 
+- ``Boolean`` field serializes ``None`` to ``None``, for consistency with other fields (:issue:`213`). Thanks :user:`cmanallen` for reporting.
 - Bug fix: ``load_only`` fields do not get validated during serialization.
 
 2.0.0b2 (2015-05-03)

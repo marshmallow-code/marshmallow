@@ -583,6 +583,8 @@ class Boolean(Field):
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         return bool(value)
 
     def _deserialize(self, value):
