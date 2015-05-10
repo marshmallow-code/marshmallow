@@ -117,56 +117,83 @@ def test_decorated_processor_inheritance():
     }
 
 
-def test_decorated_validators():
+class TestValidates:
 
-    class MySchema(Schema):
-        foo = fields.Int()
-        bar = fields.Int()
+    def test_decorated_validators(self):
 
-        @validates
-        def validate_schema(self, data):
-            if data['foo'] <= 3:
-                raise ValidationError('Must be greater than 3')
+        class MySchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
 
-        @validates(raw=True)
-        def validate_raw(self, data, many):
-            if many:
-                if len(data) < 2:
-                    raise ValidationError('Must provide at least 2 items')
+            @validates
+            def validate_schema(self, data):
+                if data['foo'] <= 3:
+                    raise ValidationError('Must be greater than 3')
 
-        @validates(raw=True, pass_original=True)
-        def check_unknown_fields(self, data, original_data, many):
-            def check(datum):
-                for key, val in datum.items():
-                    if key not in self.fields:
-                        raise ValidationError({'code': 'invalid_field'})
-            if many:
-                for each in original_data:
-                    check(each)
-            else:
-                check(original_data)
+            @validates(raw=True)
+            def validate_raw(self, data, many):
+                if many:
+                    if len(data) < 2:
+                        raise ValidationError('Must provide at least 2 items')
 
-        @validates
-        def validate_bar(self, data):
-            if 'bar' in data and data['bar'] < 0:
-                raise ValidationError('bar must not be negative', 'bar')
+            @validates
+            def validate_bar(self, data):
+                if 'bar' in data and data['bar'] < 0:
+                    raise ValidationError('bar must not be negative', 'bar')
 
-    schema = MySchema()
-    errors = schema.validate({'foo': 3})
-    assert '_schema' in errors
-    assert errors['_schema'][0] == 'Must be greater than 3'
+        schema = MySchema()
+        errors = schema.validate({'foo': 3})
+        assert '_schema' in errors
+        assert errors['_schema'][0] == 'Must be greater than 3'
 
-    errors = schema.validate([{'foo': 4}], many=True)
-    assert '_schema' in errors
-    assert len(errors['_schema']) == 1
-    assert errors['_schema'][0] == 'Must provide at least 2 items'
+        errors = schema.validate([{'foo': 4}], many=True)
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+        assert errors['_schema'][0] == 'Must provide at least 2 items'
 
-    errors = schema.validate({'foo': 4, 'baz': 42})
-    assert '_schema' in errors
-    assert len(errors['_schema']) == 1
-    assert errors['_schema'][0] == {'code': 'invalid_field'}
+        errors = schema.validate({'foo': 4, 'bar': -1})
+        assert 'bar' in errors
+        assert len(errors['bar']) == 1
+        assert errors['bar'][0] == 'bar must not be negative'
 
-    errors = schema.validate({'foo': 4, 'bar': -1})
-    assert 'bar' in errors
-    assert len(errors['bar']) == 1
-    assert errors['bar'][0] == 'bar must not be negative'
+    def test_passing_original_data(self):
+
+        class MySchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
+
+            @validates(pass_original=True)
+            def validate_original(self, data, original_data):
+                if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
+                    raise ValidationError('foo cannot be a string')
+
+            # See https://github.com/marshmallow-code/marshmallow/issues/127
+            @validates(raw=True, pass_original=True)
+            def check_unknown_fields(self, data, original_data, many):
+                def check(datum):
+                    for key, val in datum.items():
+                        if key not in self.fields:
+                            raise ValidationError({'code': 'invalid_field'})
+                if many:
+                    for each in original_data:
+                        check(each)
+                else:
+                    check(original_data)
+
+        schema = MySchema()
+        errors = schema.validate({'foo': 4, 'baz': 42})
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+        assert errors['_schema'][0] == {'code': 'invalid_field'}
+
+        errors = schema.validate({'foo': '4'})
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+        assert errors['_schema'][0] == 'foo cannot be a string'
+
+        schema = MySchema()
+        errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
+        assert 0 in errors
+        assert '_schema' in errors[0]
+        assert len(errors[0]['_schema']) == 1
+        assert errors[0]['_schema'][0] == {'code': 'invalid_field'}

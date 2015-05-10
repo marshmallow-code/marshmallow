@@ -792,10 +792,10 @@ class BaseSchema(base.SchemaABC):
             if raw:
                 validator = partial(validator, many=many)
             if many:
-                for item in data:
+                for idx, item in enumerate(data):
                     self._unmarshal._run_validator(validator,
                         item, original_data, self.fields, strict=self.strict, many=many,
-                        pass_original=pass_original)
+                        index=idx, pass_original=pass_original)
             else:
                 self._unmarshal._run_validator(validator,
                     data, original_data, self.fields, strict=self.strict, many=many,
