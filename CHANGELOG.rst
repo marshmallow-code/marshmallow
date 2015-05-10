@@ -13,6 +13,7 @@ Deprecation/Removals:
 
 - Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
 - Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
+- ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` to define schema-level validators.
 
 Other changes:
 
@@ -26,6 +27,7 @@ Changes from 2.0.0b2:
 
 - ``Boolean`` field serializes ``None`` to ``None``, for consistency with other fields (:issue:`213`). Thanks :user:`cmanallen` for reporting.
 - Bug fix: ``load_only`` fields do not get validated during serialization.
+- Implicit passing of original, raw data to Schema validators is removed. Use ``@marshmallow.validator(pass_original=True)`` instead.
 
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++

@@ -18,7 +18,7 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD
+from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATOR
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -474,10 +474,13 @@ class BaseSchema(base.SchemaABC):
             You can register multiple validators for the same schema.
 
         .. versionadded:: 1.0
-        .. versionchanged:: 2.0
-            Validators can receive an optional third argument which is the
-            raw input data.
+        .. deprecated:: 2.0.0
+            Use `marshmallow.validator` instead.
         """
+        warnings.warn(
+            'Schema.validator is deprecated. Use the marshmallow.validator decorator '
+            'instead.', category=DeprecationWarning
+        )
         cls.__validators__ = cls.__validators__ or []
         cls.__validators__.append(func)
         return func
@@ -683,6 +686,8 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
+        self._invoke_validators(raw=True, data=result, original_data=data, many=many)
+        self._invoke_validators(raw=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
         if errors and callable(self.__error_handler__):
             self.__error_handler__(errors, data)
@@ -781,6 +786,24 @@ class BaseSchema(base.SchemaABC):
         data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
         data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
         return data
+
+    def _invoke_validators(self, raw, data, original_data, many):
+        for attr_name in self.__processors__[(VALIDATOR, raw)]:
+            validator = getattr(self, attr_name)
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATOR, raw)]
+            pass_original = validator_kwargs.get('pass_original', False)
+            if raw:
+                validator = partial(validator, many=many)
+            if many:
+                for idx, item in enumerate(data):
+                    self._unmarshal._run_validator(validator,
+                        item, original_data, self.fields, strict=self.strict, many=many,
+                        index=idx, pass_original=pass_original)
+            else:
+                self._unmarshal._run_validator(validator,
+                    data, original_data, self.fields, strict=self.strict, many=many,
+                    pass_original=pass_original)
+        return None
 
     def _invoke_processors(self, tag_name, raw, data, many):
         for attr_name in self.__processors__[(tag_name, raw)]:

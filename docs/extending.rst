@@ -181,43 +181,47 @@ You can register a custom error-handling function for a :class:`Schema` using th
 Schema-level Validation
 -----------------------
 
-You can register schema-level validation functions for a :class:`Schema` using the :meth:`Schema.validator` decorator. The function receives the schema instance and the input data
-as arguments. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
+You can register schema-level validation functions for a :class:`Schema` using the :meth:`marshmallow.validator <marshmallow.decorators.validator>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, ValidationError
+    from marshmallow import Schema, fields, validator, ValidationError
 
     class NumberSchema(Schema):
         field_a = fields.Integer()
         field_b = fields.Integer()
 
-    @NumberSchema.validator
-    def validate_numbers(schema, input_data):
-        if input_data['field_b'] >= input_data['field_a']:
-            raise ValidationError('field_a must be greater than field_b')
+        @validator
+        def validate_numbers(self, data):
+            if data['field_b'] >= data['field_a']:
+                raise ValidationError('field_a must be greater than field_b')
 
     schema = NumberSchema()
     result, errors = schema.load({'field_a': 2, 'field_b': 1})
     errors['_schema'] # => ["field_a must be greater than field_b"]
 
 
-Validating Raw Input Data
-+++++++++++++++++++++++++
+Validating Original Input Data
+++++++++++++++++++++++++++++++
 
-Normally, unspecified field names are ignored by the validator. If you would like access to the raw input (e.g. to fail validation if an unknown field name is sent), an optional third argument will contain the raw input data.
+Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validator <marshmallow.decorators.validator>`.
 
 .. code-block:: python
+    :emphasize-lines: 5
 
-    @NumberSchema.validator
-    def check_unknown_fields(schema, input_data, raw_data):
-        for k in raw_data:
-            if k not in schema.fields:
-                raise ValidationError('Unknown field name')
+    class MySchema(Schema):
+        foo = fields.Int()
+        bar = fields.Int()
 
-    schema = NumberSchema()
-    result, errors = schema.load({'field_c': 0})
-    errors['_schema'] # => ["Unknown field name"]
+        @validator(pass_original=True)
+        def check_unknown_fields(self, data, original_data):
+            for key in original_data:
+                if key not in schema.fields:
+                    raise ValidationError('Unknown field name {}'.format(key))
+
+    schema = MySchema()
+    result, errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3})
+    errors['_schema']  # => ['Unknown field name baz']
 
 
 Storing Errors on Specific Fields
@@ -226,12 +230,19 @@ Storing Errors on Specific Fields
 If you want to store schema-level validation errors on a specific field, you can pass a field name (or multiple field names) to the :exc:`ValidationError <marshmallow.exceptions.ValidationError>`.
 
 .. code-block:: python
+    :emphasize-lines: 10
 
-    @NumberSchema.validator
-    def validate_numbers(schema, input_data):
-        if input_data['field_b'] >= input_data['field_a']:
-            # Store error on field_a
-            raise ValidationError('field_a must be greater than field_b', 'field_a')
+    class NumberSchema(Schema):
+        field_a = fields.Integer()
+        field_b = fields.Integer()
+
+        @validator
+        def validate_numbers(self, data):
+            if data['field_b'] >= data['field_a']:
+                raise ValidationError(
+                    'field_a must be greater than field_b',
+                    'field_a'
+                )
 
     schema = NumberSchema()
     result, errors = schema.load({'field_a': 2, 'field_b': 1})
