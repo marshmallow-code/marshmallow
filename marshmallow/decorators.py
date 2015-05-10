@@ -34,10 +34,10 @@ PRE_DUMP = 'pre_dump'
 POST_DUMP = 'post_dump'
 PRE_LOAD = 'pre_load'
 POST_LOAD = 'post_load'
-VALIDATES = 'validates'
+VALIDATOR = 'validator'
 
-def validates(fn=None, raw=False, pass_original=False):
-    return tag_processor(VALIDATES, fn, raw, pass_original=pass_original)
+def validator(fn=None, raw=False, pass_original=False):
+    return tag_processor(VALIDATOR, fn, raw, pass_original=pass_original)
 
 def pre_dump(fn=None, raw=False):
     """Register a method to invoke before serializing an object. The method

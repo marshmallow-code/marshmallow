@@ -18,7 +18,7 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATES
+from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATOR
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -785,9 +785,9 @@ class BaseSchema(base.SchemaABC):
         return data
 
     def _invoke_validators(self, raw, data, original_data, many):
-        for attr_name in self.__processors__[(VALIDATES, raw)]:
+        for attr_name in self.__processors__[(VALIDATOR, raw)]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, raw)]
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATOR, raw)]
             pass_original = validator_kwargs.get('pass_original', False)
             if raw:
                 validator = partial(validator, many=many)

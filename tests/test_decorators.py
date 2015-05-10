@@ -6,7 +6,7 @@ from marshmallow import (
     post_dump,
     pre_load,
     post_load,
-    validates,
+    validator,
     ValidationError,
 )
 
@@ -117,7 +117,7 @@ def test_decorated_processor_inheritance():
     }
 
 
-class TestValidates:
+class TestValidatorDecorator:
 
     def test_decorated_validators(self):
 
@@ -125,18 +125,18 @@ class TestValidates:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validates
+            @validator
             def validate_schema(self, data):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
-            @validates(raw=True)
+            @validator(raw=True)
             def validate_raw(self, data, many):
                 if many:
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
-            @validates
+            @validator
             def validate_bar(self, data):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
@@ -147,9 +147,9 @@ class TestValidates:
         assert errors['_schema'][0] == 'Must be greater than 3'
 
         errors = schema.validate([{'foo': 4}], many=True)
-        assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == 'Must provide at least 2 items'
+        assert '_schema' in errors[0]
+        assert len(errors[0]['_schema']) == 1
+        assert errors[0]['_schema'][0] == 'Must provide at least 2 items'
 
         errors = schema.validate({'foo': 4, 'bar': -1})
         assert 'bar' in errors
@@ -162,13 +162,13 @@ class TestValidates:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validates(pass_original=True)
+            @validator(pass_original=True)
             def validate_original(self, data, original_data):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validates(raw=True, pass_original=True)
+            @validator(raw=True, pass_original=True)
             def check_unknown_fields(self, data, original_data, many):
                 def check(datum):
                     for key, val in datum.items():
