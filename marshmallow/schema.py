@@ -18,7 +18,7 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD
+from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATES
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -683,6 +683,8 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
+        self._invoke_validators(raw=True, data=result, original_data=data, many=many)
+        self._invoke_validators(raw=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
         if errors and callable(self.__error_handler__):
             self.__error_handler__(errors, data)
@@ -781,6 +783,18 @@ class BaseSchema(base.SchemaABC):
         data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
         data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
         return data
+
+    def _invoke_validators(self, raw, data, original_data, many):
+        for attr_name in self.__processors__[(VALIDATES, raw)]:
+            validator = getattr(self, attr_name)
+            if many and not raw:
+                for item in data:
+                    self._unmarshal._run_validator(validator,
+                        item, original_data, self.fields, strict=self.strict, many=many)
+            else:
+                self._unmarshal._run_validator(validator,
+                    data, original_data, self.fields, strict=self.strict, many=many)
+        return None
 
     def _invoke_processors(self, tag_name, raw, data, many):
         for attr_name in self.__processors__[(tag_name, raw)]:

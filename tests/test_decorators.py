@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
-from marshmallow import Schema, fields, pre_dump, post_dump, pre_load, post_load
+from marshmallow import (
+    Schema,
+    fields,
+    pre_dump,
+    post_dump,
+    pre_load,
+    post_load,
+    validates,
+    ValidationError,
+)
 
 def test_decorated_processors():
     class ExampleSchema(Schema):
@@ -106,3 +115,31 @@ def test_decorated_processor_inheritance():
         'inherited': 'inherited',
         'overridden': 'overridden'
     }
+
+
+def test_decorated_validators():
+
+    class MySchema(Schema):
+        foo = fields.Int()
+        bar = fields.Int()
+
+        @validates
+        def validate_schema(self, data):
+            if data['foo'] <= 3:
+                raise ValidationError('Must be greater than 3')
+
+        @validates(raw=True)
+        def validate_raw(self, data, many):
+            if many:
+                if len(data) < 2:
+                    raise ValidationError('Must provide at least 2 items')
+
+    schema = MySchema()
+    errors = schema.validate({'foo': 3})
+    assert '_schema' in errors
+    assert errors['_schema'][0] == 'Must be greater than 3'
+
+    errors = schema.validate([{'foo': 4}], many=True)
+    assert '_schema' in errors
+    assert len(errors['_schema']) == 1
+    assert errors['_schema'][0] == 'Must provide at least 2 items'
