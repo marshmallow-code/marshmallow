@@ -474,10 +474,13 @@ class BaseSchema(base.SchemaABC):
             You can register multiple validators for the same schema.
 
         .. versionadded:: 1.0
-        .. versionchanged:: 2.0
-            Validators can receive an optional third argument which is the
-            raw input data.
+        .. deprecated:: 2.0.0
+            Use `marshmallow.validator` instead.
         """
+        warnings.warn(
+            'Schema.validator is deprecated. Use the marshmallow.validator decorator '
+            'instead.', category=DeprecationWarning
+        )
         cls.__validators__ = cls.__validators__ or []
         cls.__validators__.append(func)
         return func

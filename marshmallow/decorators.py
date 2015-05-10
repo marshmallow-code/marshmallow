@@ -4,7 +4,9 @@ These should be imported from the top-level `marshmallow` module.
 
 Example: ::
 
-    from marshmallow import Schema, pre_load, pre_dump, post_load
+    from marshmallow import (
+        Schema, pre_load, pre_dump, post_load, validator, ValidationError
+    )
 
     class UserSchema(Schema):
 
@@ -25,6 +27,11 @@ Example: ::
             namespace = 'results' if many else 'result'
             return {namespace: data}
 
+        @validator
+        def validate_email(self, data):
+            if len(data['email']) < 3:
+                raise ValidationError('Email must be more than 3 characters', 'email')
+
 .. warning::
     The invocation order of decorated methods of the same type is not guaranteed.
     If you need to guarantee order of different processing steps, you should put
@@ -37,6 +44,15 @@ POST_LOAD = 'post_load'
 VALIDATOR = 'validator'
 
 def validator(fn=None, raw=False, pass_original=False):
+    """Register a schema-level validator method.
+
+    By default, receives a single object at a time, regardless of whether ``many=True``
+    is passed to the `Schema`. If ``raw=True``, the raw data (which may be a collection)
+    and the value for ``many`` is passed.
+
+    If ``pass_original=True``, the original data (before unmarshalling) will be passed as
+    an additional argument to the method.
+    """
     return tag_processor(VALIDATOR, fn, raw, pass_original=pass_original)
 
 def pre_dump(fn=None, raw=False):

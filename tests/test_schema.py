@@ -899,6 +899,18 @@ class TestErrorHandler:
 
 class TestSchemaValidator:
 
+    def test_validator_decorator_is_deprecated(self):
+
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.validator
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
+
     def test_validator_defined_on_class(self):
         def validate_schema(instance, input_vals):
             assert isinstance(instance, Schema)
