@@ -40,6 +40,14 @@ class ErrorStore(object):
         self.error_field_names = []
         self.error_fields = []
 
+    def get_errors(self, index=None):
+        if index is not None:
+            errors = self.errors.get(index, {})
+            self.errors[index] = errors
+        else:
+            errors = self.errors
+        return errors
+
     def call_and_store(self, getter_func, data, field_name, field_obj, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
 
@@ -57,11 +65,7 @@ class ErrorStore(object):
         except ValidationError as err:  # Store validation errors
             self.error_fields.append(field_obj)
             self.error_field_names.append(field_name)
-            if index is not None:
-                errors = self.errors.get(index, {})
-                self.errors[index] = errors
-            else:
-                errors = self.errors
+            errors = self.get_errors(index=index)
             # Warning: Mutation!
             if isinstance(err.messages, dict):
                 errors[field_name] = err.messages
@@ -174,11 +178,7 @@ class Unmarshaller(ErrorStore):
                     func_name, dict(output)
                 ))
         except ValidationError as err:
-            if index is not None:
-                errors = self.errors.get(index, {})
-                self.errors[index] = errors
-            else:
-                errors = self.errors
+            errors = self.get_errors(index=index)
             # Store or reraise errors
             if err.field_names:
                 field_names = err.field_names
