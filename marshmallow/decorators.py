@@ -36,8 +36,8 @@ PRE_LOAD = 'pre_load'
 POST_LOAD = 'post_load'
 VALIDATES = 'validates'
 
-def validates(fn=None, raw=False):
-    return tag_processor(VALIDATES, fn, raw)
+def validates(fn=None, raw=False, pass_original=False):
+    return tag_processor(VALIDATES, fn, raw, pass_original=pass_original)
 
 def pre_dump(fn=None, raw=False):
     """Register a method to invoke before serializing an object. The method
@@ -93,14 +93,14 @@ class _ClassProcessorMethod(classmethod):
     pass
 
 
-def tag_processor(tag_name, fn, raw):
+def tag_processor(tag_name, fn, raw, **kwargs):
     """Tags decorated processor function to be picked up later
 
     :return: Decorated function if supplied, else this decorator with its args
         bound.
     """
     if fn is None:  # Allow decorator to be used with no arguments
-        return lambda fn_actual: tag_processor(tag_name, fn_actual, raw)
+        return lambda fn_actual: tag_processor(tag_name, fn_actual, raw, **kwargs)
 
     # Special-case rewrapping staticmethod and classmethod, because we can't
     # directly set attributes on those.
@@ -125,6 +125,13 @@ def tag_processor(tag_name, fn, raw):
         marshmallow_tags = fn.__marshmallow_tags__
     except AttributeError:
         fn.__marshmallow_tags__ = marshmallow_tags = set()
+    # Also save the kwargs for the tagged function on
+    # __marshmallow_kwargs__, keyed by (<tag_name>, <raw>)
+    try:
+        marshmallow_kwargs = fn.__marshmallow_kwargs__
+    except AttributeError:
+        fn.__marshmallow_kwargs__ = marshmallow_kwargs = {}
     marshmallow_tags.add((tag_name, raw))
+    marshmallow_kwargs[(tag_name, raw)] = kwargs
 
     return fn

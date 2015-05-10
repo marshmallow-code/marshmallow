@@ -787,13 +787,19 @@ class BaseSchema(base.SchemaABC):
     def _invoke_validators(self, raw, data, original_data, many):
         for attr_name in self.__processors__[(VALIDATES, raw)]:
             validator = getattr(self, attr_name)
-            if many and not raw:
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, raw)]
+            pass_original = validator_kwargs.get('pass_original', False)
+            if raw:
+                validator = partial(validator, many=many)
+            if many:
                 for item in data:
                     self._unmarshal._run_validator(validator,
-                        item, original_data, self.fields, strict=self.strict, many=many)
+                        item, original_data, self.fields, strict=self.strict, many=many,
+                        pass_original=pass_original)
             else:
                 self._unmarshal._run_validator(validator,
-                    data, original_data, self.fields, strict=self.strict, many=many)
+                    data, original_data, self.fields, strict=self.strict, many=many,
+                    pass_original=pass_original)
         return None
 
     def _invoke_processors(self, tag_name, raw, data, many):

@@ -161,15 +161,12 @@ class Unmarshaller(ErrorStore):
     """
 
     def _run_validator(self, validator_func, output,
-            original_data, fields_dict, strict=False, many=False):
+            original_data, fields_dict, strict=False, many=False, pass_original=False):
         try:
-            func_args = utils.get_func_args(validator_func)
-            if ('validates', True) in getattr(validator_func, '__marshmallow_tags__', set()):
-                res = validator_func(output, many)
-            elif len(func_args) < 3:
-                res = validator_func(output)
-            else:
+            if pass_original:
                 res = validator_func(output, original_data)
+            else:
+                res = validator_func(output)
             if res is False:
                 func_name = utils.get_func_name(validator_func)
                 raise ValidationError('Schema validator {0}({1}) is False'.format(

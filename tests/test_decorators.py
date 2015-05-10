@@ -134,6 +134,23 @@ def test_decorated_validators():
                 if len(data) < 2:
                     raise ValidationError('Must provide at least 2 items')
 
+        @validates(raw=True, pass_original=True)
+        def check_unknown_fields(self, data, original_data, many):
+            def check(datum):
+                for key, val in datum.items():
+                    if key not in self.fields:
+                        raise ValidationError({'code': 'invalid_field'})
+            if many:
+                for each in original_data:
+                    check(each)
+            else:
+                check(original_data)
+
+        @validates
+        def validate_bar(self, data):
+            if 'bar' in data and data['bar'] < 0:
+                raise ValidationError('bar must not be negative', 'bar')
+
     schema = MySchema()
     errors = schema.validate({'foo': 3})
     assert '_schema' in errors
@@ -143,3 +160,13 @@ def test_decorated_validators():
     assert '_schema' in errors
     assert len(errors['_schema']) == 1
     assert errors['_schema'][0] == 'Must provide at least 2 items'
+
+    errors = schema.validate({'foo': 4, 'baz': 42})
+    assert '_schema' in errors
+    assert len(errors['_schema']) == 1
+    assert errors['_schema'][0] == {'code': 'invalid_field'}
+
+    errors = schema.validate({'foo': 4, 'bar': -1})
+    assert 'bar' in errors
+    assert len(errors['bar']) == 1
+    assert errors['bar'][0] == 'bar must not be negative'
