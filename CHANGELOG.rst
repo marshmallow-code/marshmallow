@@ -4,8 +4,9 @@ Changelog
 2.0.0.b3 (unreleased)
 +++++++++++++++++++++
 
-Feaures:
+Features:
 
+- Add ``marshmallow.validator`` decorator for defining schema-level validators (:issue:`116`).
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
 
@@ -13,7 +14,7 @@ Deprecation/Removals:
 
 - Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
 - Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
-- ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` to define schema-level validators.
+- ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` instead.
 
 Other changes:
 
@@ -21,7 +22,7 @@ Other changes:
 
 Support:
 
-- Update Flask and Peewee examples in documentation.
+- Documentation: Update Flask and Peewee examples. Update Quickstart.
 
 Changes from 2.0.0b2:
 
