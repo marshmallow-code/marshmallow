@@ -418,20 +418,6 @@ class BaseSchema(base.SchemaABC):
         data, and the original object as arguments and should return the
         processed data.
 
-        Example: ::
-
-            class UserSchema(Schema):
-                name = fields.String()
-
-            @UserSchema.data_handler
-            def add_surname(schema, data, obj):
-                data['surname'] = data['name'].split()[1]
-                return data
-
-        .. note::
-
-            You can register multiple handler functions for the same schema.
-
         .. versionadded:: 0.7.0
         .. deprecated:: 2.0.0
             Use `marshmallow.post_dump` instead.
@@ -450,32 +436,9 @@ class BaseSchema(base.SchemaABC):
         deserialization. The function receives the :class:`Schema` instance and the
         input data as arguments and should return `False` if validation fails.
 
-        Example: ::
-
-            class NumberSchema(Schema):
-                field_a = fields.Integer()
-                field_b = fields.Integer()
-
-            @NumberSchema.validator
-            def validate_numbers(schema, input_data):
-                return input_data['field_b'] > input_data['field_a']
-
-        A validator may take an optional third argument which will contain the raw input
-        data. ::
-
-            @NumberSchema.validator
-            def check_unknown_fields(schema, input_data, raw_data):
-                for k in raw_data:
-                    if k not in schema.fields:
-                        raise ValidationError('Unknown field name')
-
-        .. note::
-
-            You can register multiple validators for the same schema.
-
         .. versionadded:: 1.0
         .. deprecated:: 2.0.0
-            Use `marshmallow.validator` instead.
+            Use `marshmallow.validator <marshmallow.decorators.validator>` instead.
         """
         warnings.warn(
             'Schema.validator is deprecated. Use the marshmallow.validator decorator '
@@ -490,21 +453,6 @@ class BaseSchema(base.SchemaABC):
         """Decorator that registers a preprocessing function to be applied during
         deserialization. The function receives the :class:`Schema` instance and the
         input data as arguments and should return the modified dictionary of data.
-
-        Example: ::
-
-            class NumberSchema(Schema):
-                field_a = fields.Integer()
-                field_b = fields.Integer()
-
-            @NumberSchema.preprocessor
-            def add_to_field_a(schema, input_data):
-                input_data['field_a'] += 1
-                return input_data
-
-        .. note::
-
-            You can register multiple preprocessors for the same schema.
 
         .. versionadded:: 1.0
         .. deprecated:: 2.0.0
@@ -686,6 +634,7 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
+        # Run schema-level migration
         self._invoke_validators(raw=True, data=result, original_data=data, many=many)
         self._invoke_validators(raw=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
