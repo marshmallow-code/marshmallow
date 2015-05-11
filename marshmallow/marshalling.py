@@ -157,6 +157,8 @@ class Marshaller(ErrorStore):
     # Make an instance callable
     __call__ = serialize
 
+# Key used for schema-level validation errors
+SCHEMA = '_schema'
 
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
@@ -184,14 +186,14 @@ class Unmarshaller(ErrorStore):
                 field_names = err.field_names
                 field_objs = [fields_dict[each] for each in field_names]
             else:
-                field_names = ['_schema']
+                field_names = [SCHEMA]
                 field_objs = []
             for field_name in field_names:
                 if isinstance(err.messages, (list, tuple)):
                     # self.errors[field_name] may be a dict if schemas are nested
                     if isinstance(errors.get(field_name), dict):
                         errors[field_name].setdefault(
-                            '_schema', []
+                            SCHEMA, []
                         ).extend(err.messages)
                     else:
                         errors.setdefault(field_name, []).extend(err.messages)
