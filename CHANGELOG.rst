@@ -16,9 +16,14 @@ Deprecation/Removals:
 - Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
 - ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` instead.
 
+Bug fixes:
+
+- Fix serializing values from keyed tuple types (regression of :issue:`28`). Thanks :user:`makmanalp` for reporting.
+
 Other changes:
 
 - Remove unnecessary call to ``utils.get_value`` for ``Function`` and ``Method`` fields (:issue:`208`). Thanks :user:`jmcarp`.
+- Serializing a collection without passing ``many=True`` will not result in an error. Be very careful to pass the ``many`` argument when necessary.
 
 Support:
 
