@@ -14,7 +14,7 @@ from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 import warnings
 
-from marshmallow.compat import basestring, OrderedDict, binary_type, text_type
+from marshmallow.compat import OrderedDict, binary_type, text_type
 
 
 dateutil_available = False
