@@ -40,6 +40,14 @@ class ErrorStore(object):
         self.error_field_names = []
         self.error_fields = []
 
+    def get_errors(self, index=None):
+        if index is not None:
+            errors = self.errors.get(index, {})
+            self.errors[index] = errors
+        else:
+            errors = self.errors
+        return errors
+
     def call_and_store(self, getter_func, data, field_name, field_obj, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
 
@@ -57,11 +65,7 @@ class ErrorStore(object):
         except ValidationError as err:  # Store validation errors
             self.error_fields.append(field_obj)
             self.error_field_names.append(field_name)
-            if index is not None:
-                errors = self.errors.get(index, {})
-                self.errors[index] = errors
-            else:
-                errors = self.errors
+            errors = self.get_errors(index=index)
             # Warning: Mutation!
             if isinstance(err.messages, dict):
                 errors[field_name] = err.messages
@@ -90,7 +94,7 @@ class Marshaller(ErrorStore):
         self.prefix = prefix
         ErrorStore.__init__(self)
 
-    def serialize(self, obj, fields_dict, many=False, strict=False, skip_missing=False,
+    def serialize(self, obj, fields_dict, many=False, strict=False,
                   accessor=None, dict_class=dict, index_errors=True, index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
@@ -101,7 +105,6 @@ class Marshaller(ErrorStore):
             a collection.
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
-        :param skip_missing: If `True`, skip key:value pairs when ``value`` is `None`.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
@@ -120,14 +123,18 @@ class Marshaller(ErrorStore):
             self._pending = True
             ret = [self.serialize(d, fields_dict, many=False, strict=strict,
                                     dict_class=dict_class, accessor=accessor,
-                                    skip_missing=skip_missing,
                                     index=idx, index_errors=index_errors)
                     for idx, d in enumerate(obj)]
             self._pending = False
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
-            key = ''.join([self.prefix, attr_name])
+            if getattr(field_obj, 'load_only', False):
+                continue
+            if not self.prefix:
+                key = attr_name
+            else:
+                key = ''.join([self.prefix, attr_name])
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = self.call_and_store(
                 getter_func=getter,
@@ -136,12 +143,7 @@ class Marshaller(ErrorStore):
                 field_obj=field_obj,
                 index=(index if index_errors else None)
             )
-            skip_conds = (
-                field_obj.load_only,
-                value is missing,
-                skip_missing and value in field_obj.SKIPPABLE_VALUES,
-            )
-            if any(skip_conds):
+            if value is missing:
                 continue
             items.append((key, value))
         if self.errors and strict:
@@ -155,6 +157,8 @@ class Marshaller(ErrorStore):
     # Make an instance callable
     __call__ = serialize
 
+# Key used for schema-level validation errors
+SCHEMA = '_schema'
 
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
@@ -162,48 +166,54 @@ class Unmarshaller(ErrorStore):
     .. versionadded:: 1.0.0
     """
 
-    def _validate(self, validators, output, raw_data, fields_dict, strict=False):
+    def _run_validator(self, validator_func, output,
+            original_data, fields_dict, index=None,
+            strict=False, many=False, pass_original=False):
+        try:
+            if pass_original:  # Pass original, raw data (before unmarshalling)
+                res = validator_func(output, original_data)
+            else:
+                res = validator_func(output)
+            if res is False:
+                func_name = utils.get_func_name(validator_func)
+                raise ValidationError('Schema validator {0}({1}) is False'.format(
+                    func_name, dict(output)
+                ))
+        except ValidationError as err:
+            errors = self.get_errors(index=index)
+            # Store or reraise errors
+            if err.field_names:
+                field_names = err.field_names
+                field_objs = [fields_dict[each] for each in field_names]
+            else:
+                field_names = [SCHEMA]
+                field_objs = []
+            for field_name in field_names:
+                if isinstance(err.messages, (list, tuple)):
+                    # self.errors[field_name] may be a dict if schemas are nested
+                    if isinstance(errors.get(field_name), dict):
+                        errors[field_name].setdefault(
+                            SCHEMA, []
+                        ).extend(err.messages)
+                    else:
+                        errors.setdefault(field_name, []).extend(err.messages)
+                elif isinstance(err.messages, dict):
+                    errors.setdefault(field_name, []).append(err.messages)
+                else:
+                    errors.setdefault(field_name, []).append(text_type(err))
+            if strict:
+                raise ValidationError(
+                    self.errors,
+                    fields=field_objs,
+                    field_names=field_names
+                )
+
+    def _validate(self, validators, output, original_data, fields_dict, index=None, strict=False):
         """Perform schema-level validation. Stores errors if ``strict`` is `False`.
         """
         for validator_func in validators:
-            try:
-                func_args = utils.get_func_args(validator_func)
-                if len(func_args) < 3:
-                    res = validator_func(output)
-                else:
-                    res = validator_func(output, raw_data)
-                if res is False:
-                    func_name = utils.get_func_name(validator_func)
-                    raise ValidationError('Schema validator {0}({1}) is False'.format(
-                        func_name, dict(output)
-                    ))
-            except ValidationError as err:
-                # Store or reraise errors
-                if err.field_names:
-                    field_names = err.field_names
-                    field_objs = [fields_dict[each] for each in field_names]
-                else:
-                    field_names = ['_schema']
-                    field_objs = []
-                for field_name in field_names:
-                    if isinstance(err.messages, (list, tuple)):
-                        # self.errors[field_name] may be a dict if schemas are nested
-                        if isinstance(self.errors.get(field_name), dict):
-                            self.errors[field_name].setdefault(
-                                '_schema', []
-                            ).extend(err.messages)
-                        else:
-                            self.errors.setdefault(field_name, []).extend(err.messages)
-                    elif isinstance(err.messages, dict):
-                        self.errors.setdefault(field_name, []).append(err.messages)
-                    else:
-                        self.errors.setdefault(field_name, []).append(text_type(err))
-                if strict:
-                    raise ValidationError(
-                        self.errors,
-                        fields=field_objs,
-                        field_names=field_names
-                    )
+            self._run_validator(validator_func, output, original_data, fields_dict,
+                    index=index, strict=strict)
         return output
 
     def deserialize(self, data, fields_dict, many=False, validators=None,
@@ -240,7 +250,7 @@ class Unmarshaller(ErrorStore):
                     for idx, d in enumerate(data)]
             self._pending = False
             return ret
-        raw_data = data
+        original_data = data
         if data is not None:
             items = []
             for attr_name, field_obj in iteritems(fields_dict):
@@ -282,8 +292,8 @@ class Unmarshaller(ErrorStore):
                 ret = func(ret)
         if validators:
             validators = validators or []
-            ret = self._validate(validators, ret, raw_data, fields_dict=fields_dict,
-                                 strict=strict)
+            ret = self._validate(validators, ret, original_data, fields_dict=fields_dict,
+                                 strict=strict, index=(index if index_errors else None))
         if self.errors and strict:
             raise ValidationError(
                 self.errors,

@@ -4,18 +4,36 @@ Changelog
 2.0.0.b3 (unreleased)
 +++++++++++++++++++++
 
-Feaures:
+Features:
 
+- Add ``marshmallow.validator`` decorator for defining schema-level validators (:issue:`116`).
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
+
+Deprecation/Removals:
+
+- Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
+- Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
+- ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` instead.
+
+Bug fixes:
+
+- Fix serializing values from keyed tuple types (regression of :issue:`28`). Thanks :user:`makmanalp` for reporting.
 
 Other changes:
 
 - Remove unnecessary call to ``utils.get_value`` for ``Function`` and ``Method`` fields (:issue:`208`). Thanks :user:`jmcarp`.
+- Serializing a collection without passing ``many=True`` will not result in an error. Be very careful to pass the ``many`` argument when necessary.
 
 Support:
 
-- Update Flask and Peewee examples in documenation.
+- Documentation: Update Flask and Peewee examples. Update Quickstart.
+
+Changes from 2.0.0b2:
+
+- ``Boolean`` field serializes ``None`` to ``None``, for consistency with other fields (:issue:`213`). Thanks :user:`cmanallen` for reporting.
+- Bug fix: ``load_only`` fields do not get validated during serialization.
+- Implicit passing of original, raw data to Schema validators is removed. Use ``@marshmallow.validator(pass_original=True)`` instead.
 
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++

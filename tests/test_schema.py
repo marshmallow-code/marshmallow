@@ -398,13 +398,6 @@ def test_serialize_many(SchemaClass):
     assert serialized.data[0]['name'] == "Mick"
     assert serialized.data[1]['name'] == "Keith"
 
-def test_no_implicit_list_handling(recwarn):
-    users = [User(name='Mick'), User(name='Keith')]
-    with pytest.raises(TypeError):
-        UserSchema().dump(users)
-    w = recwarn.pop()
-    assert issubclass(w.category, DeprecationWarning)
-
 def test_inheriting_schema(user):
     sch = ExtendedUserSchema()
     result = sch.dump(user)
@@ -788,16 +781,14 @@ def test_inherit_meta_override():
         class Meta:
             strict = True
             fields = ('name', 'email')
-            skip_missing = True
 
     class Child(Schema):
         class Meta(Parent.Meta):
-            skip_missing = False
+            strict = False
 
     child = Child()
-    assert child.opts.strict is True
     assert child.opts.fields == ('name', 'email')
-    assert child.opts.skip_missing is False
+    assert child.opts.strict is False
 
 
 def test_additional(user):
@@ -900,6 +891,18 @@ class TestErrorHandler:
             subser.load(user)
 
 class TestSchemaValidator:
+
+    def test_validator_decorator_is_deprecated(self):
+
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.validator
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
 
     def test_validator_defined_on_class(self):
         def validate_schema(instance, input_vals):
@@ -1234,20 +1237,6 @@ class TestSchemaValidator:
         s = MySchema()
         errors = s.validate({'foo': 42})
         assert errors['foo'] == [{'code': 'invalid_foo'}]
-
-    def test_raw_data_validation(self):
-        class MySchema(Schema):
-            foo = fields.Integer()
-
-        @MySchema.validator
-        def check_unknown_fields(schema, data, raw_data):
-            for k in raw_data:
-                if k not in schema.fields:
-                    raise ValidationError({'code': 'invalid_bar'})
-
-        s = MySchema()
-        errors = s.validate({'foo': 1, 'bar': 42})
-        assert errors['_schema'] == [{'code': 'invalid_bar'}]
 
     # https://github.com/marshmallow-code/marshmallow/issues/144
     def test_nested_schema_validators(self):
@@ -1820,8 +1809,8 @@ class UserContextSchema(Schema):
     is_owner = fields.Method('get_is_owner')
     is_collab = fields.Function(lambda user, ctx: user in ctx['blog'])
 
-    def get_is_owner(self, user, context):
-        return context['blog'].user.name == user.name
+    def get_is_owner(self, user):
+        return self.context['blog'].user.name == user.name
 
 
 class TestContext:
@@ -1851,22 +1840,6 @@ class TestContext:
         noncollab = User('Foo')
         data = serializer.dump(noncollab)[0]
         assert data['is_collab'] is False
-
-    def test_method_field_raises_error_when_context_not_available(self):
-        # serializer that only has a method field
-        class UserMethodContextSchema(Schema):
-            is_owner = fields.Method('get_is_owner')
-
-            def get_is_owner(self, user, context):
-                return context['blog'].user.name == user.name
-        owner = User('Joe')
-        serializer = UserMethodContextSchema(strict=True)
-        serializer.context = None
-        with pytest.raises(ValidationError) as excinfo:
-            serializer.dump(owner)
-
-        msg = 'No context available for Method field {0!r}'.format('is_owner')
-        assert msg in str(excinfo)
 
     def test_function_field_raises_error_when_context_not_available(self):
         # only has a function field
@@ -1906,19 +1879,6 @@ class TestContext:
         result = ser.dump(obj)
         assert result.data['inner']['likes_bikes'] is True
 
-def test_error_gets_raised_if_many_is_omitted(user):
-    class BadSchema(Schema):
-        # forgot to set many=True
-        class Meta:
-            fields = ('name', 'relatives')
-        relatives = fields.Nested(UserSchema)
-
-    user.relatives = [User('Joe'), User('Mike')]
-
-    with pytest.raises(TypeError) as excinfo:
-        BadSchema().dump(user)
-        # Exception includes message about setting many argument
-        assert 'many=True' in str(excinfo)
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
     class BlogUsernameSchema(Schema):

@@ -69,7 +69,7 @@ class Field(FieldABC):
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`ValidationError` is raised.
     :param required: Raise an :exc:`ValidationError` if the field value
-        is not supplied during deserialization. If not a `bool`(e.g. a `str`),
+        is not supplied during deserialization. If not a `bool` (e.g. a `str`),
         the provided value will be used as the message of the
         :exc:`ValidationError` instead of the default message.
     :param allow_none: Set to `True` if `None` should be considered a valid value during
@@ -109,8 +109,6 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0  # Used for sorting
-    #: Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, )
 
     def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
@@ -353,13 +351,8 @@ class Nested(Field):
         if not self.__updated_fields:
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
-        try:
-            ret = schema.dump(nested_obj, many=self.many,
-                    update_fields=not self.__updated_fields).data
-        except TypeError as err:
-            raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
-                            'If the nested object is a collection, you need to set '
-                            '"many=True".'.format(err))
+        ret = schema.dump(nested_obj, many=self.many,
+                update_fields=not self.__updated_fields).data
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
@@ -390,8 +383,6 @@ class List(Field):
         The ``allow_none`` parameter now applies to deserialization and
         has the same semantics as the other fields.
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, [], tuple())
 
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
@@ -429,8 +420,6 @@ class String(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, *args, **kwargs):
         return super(String, self).__init__(*args, **kwargs)
@@ -526,10 +515,8 @@ class Decimal(Number):
     :param rounding: How to round the value during quantize, for example
         `decimal.ROUND_UP`. If None, uses the rounding value from
         the current thread's context.
-    :param allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed, even
-        though they are illegal according to the JSON specification.
-    :param default: The value this field defaults to. If not specified is the
-        `decimal.Decimal` zero.
+    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+        even though they are illegal according to the JSON specification.
     :param bool as_string: If True, serialize to a string instead of a Python
         `decimal.Decimal` type.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
@@ -589,6 +576,8 @@ class Boolean(Field):
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
     def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
         return bool(value)
 
     def _deserialize(self, value):
@@ -626,8 +615,6 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
-    # Values that are skipped by `Marshaller` if ``skip_missing=True``
-    SKIPPABLE_VALUES = (None, '')
 
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
@@ -1010,7 +997,7 @@ class Method(Field):
         value to deserialize.
 
     .. versionchanged:: 2.0.0
-        Deprecated ``context`` parameter on methods. Use ``self.context`` instead.
+        Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
     """
     _CHECK_ATTRIBUTE = False
 
@@ -1024,19 +1011,8 @@ class Method(Field):
 
     def _serialize(self, value, attr, obj):
         method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
-        if len(utils.get_func_args(method)) > 2:
-            warnings.warn(
-                'The context parameter of Method fields is deprecated. Use self.context '
-                'in the method instead.', category=DeprecationWarning
-            )
-            if self.parent.context is None:
-                msg = 'No context available for Method field {0!r}'.format(attr)
-                raise ValidationError(msg)
-            args = (obj, self.parent.context)
-        else:
-            args = (obj, )
         try:
-            return method(*args)
+            return method(obj)
         except AttributeError:
             pass
         return missing_

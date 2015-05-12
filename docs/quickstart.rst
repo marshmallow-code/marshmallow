@@ -41,8 +41,8 @@ Create a schema by defining a class with variables mapping attribute names to :c
     For a full reference on the available field classes, see the :ref:`API Docs <api_fields>`.
 
 
-Serializing Objects
--------------------
+Serializing Objects ("Dumping")
+-------------------------------
 
 Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (as well as a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
 
@@ -80,8 +80,8 @@ You may not need to output all declared fields every time you use a schema. You 
 You can also exclude fields by passing in the ``exclude`` parameter.
 
 
-Deserializing Objects
----------------------
+Deserializing Objects ("Loading")
+---------------------------------
 
 The opposite of the :meth:`dump <Schema.dump>` method is the :meth:`load <Schema.load>` method, which deserializes an input dictionary to an application-level data structure.
 
@@ -196,9 +196,11 @@ When validating a collection, the errors dictionary will be keyed on the indicie
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python
-    :emphasize-lines: 2
+    :emphasize-lines: 4
 
     class ValidatedUserSchema(UserSchema):
+        # NOTE: This is a contrived example.
+        # You could use marshmallow.validate.Range instead of an anonymous function here
         age = fields.Number(validate=lambda n: 18 <= n <= 40)
 
     in_data = {'name': 'Mick', 'email': 'mick@stones.com', 'age': 71}
@@ -398,6 +400,22 @@ For some use cases, it may be useful to maintain field ordering of serialized ou
     #   "created_at": "2014-10-30T08:27:48.515735+00:00",
     #   "uppername": "CHARLIE"
     # }
+
+
+"Read-only" and "Write-only" Fields
+-----------------------------------
+
+In the context of a web API, the ``dump_only`` and ``load_only`` parameters are conceptually equivalent to "read-only" and "write-only" fields, respectively.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        name = fields.Str()
+        # password is "write-only"
+        password = fields.Str(load_only=True)
+        # created_at is "read-only"
+        created_at = fields.DateTime(dump_only=True)
+
 
 Next Steps
 ----------

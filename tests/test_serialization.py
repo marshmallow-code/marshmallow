@@ -10,7 +10,7 @@ from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
-from tests.base import User, DummyModel
+from tests.base import User, DummyModel, ALL_FIELDS
 
 class DateTimeList:
     def __init__(self, dtimes):
@@ -284,15 +284,6 @@ class TestFieldSerialization:
         u = User('Foo')
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
-
-    def test_method_field_context_param_is_deprecated(self):
-        class MySchema(Schema):
-            foo = fields.Method('my_method')
-
-            def my_method(self, obj, context):
-                return ''
-        s = MySchema()
-        pytest.deprecated_call(lambda: s.dump({'foo': 42}))
 
     def test_datetime_deserializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
@@ -614,6 +605,21 @@ class TestFieldSerialization:
             field.serialize('du3', user)
         with pytest.raises(ValidationError):
             field.serialize('du4', user)
+
+    @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
+    def test_all_fields_serialize_none_to_none(self, FieldClass):
+        if FieldClass == fields.Enum:
+            field = FieldClass(['bar', 'baz', None])
+        elif FieldClass == fields.FormattedString:
+            field = FieldClass('{foo}', allow_none=True)
+        else:
+            field = FieldClass(allow_none=True)
+
+        res = field.serialize('foo', {'foo': None})
+        if FieldClass == fields.FormattedString:
+            assert res == 'None'
+        else:
+            assert res is None
 
 
 def test_serializing_named_tuple():

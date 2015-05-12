@@ -78,6 +78,9 @@ In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Fie
     # {}
 
 
+As a consequence of this new behavior, the ``skip_missing`` class Meta option has been removed.
+
+
 Pre-processing and Post-processing Methods
 ******************************************
 
@@ -121,6 +124,36 @@ The pre- and post-processing API was significantly improved for better consisten
 
 See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
+Schema Validators
+*****************
+
+Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validator <marshmallow.decorators.validator>`. `Schema.validator <marshmallow.Schema.validator>` is deprecated.
+
+.. code-block:: python
+
+    # 1.0 Deprecated API
+    from marshmallow import Schema, fields, ValidationError
+
+    class MySchema(Schema):
+        field_a = fields.Int(required=True)
+        field_b = fields.Int(required=True)
+
+    @ExampleSchema.validator
+    def validate_schema(schema, data):
+        if data['field_a'] < data['field_b']:
+            raise ValidationError('field_a must be greater than field_b')
+
+    # 2.0 Deprecated API
+    from marshmallow import Schema, fields, validator, ValidationError
+
+    class MySchema(Schema):
+        field_a = fields.Int(required=True)
+        field_b = fields.Int(required=True)
+
+        @validator
+        def validate_schema(self, data):
+            if data['field_a'] < data['field_b']:
+                raise ValidationError('field_a must be greater than field_b')
 
 Error Format when ``many=True``
 *******************************
@@ -249,6 +282,20 @@ The `fields.Select` field is deprecated in favor of the newly-added `OneOf` vali
 
     # 2.0
     fields.Str(validate=OneOf(['red', 'blue']))
+
+Accessing Context from Method fields
+************************************
+
+Use ``self.context`` to access a schema's context within a ``Method`` field.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        name = fields.String()
+        likes_bikes = fields.Method('writes_about_bikes')
+
+        def writes_about_bikes(self, user):
+            return 'bicycle' in self.context['blog'].title.lower()
 
 More
 ****

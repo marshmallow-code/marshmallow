@@ -46,6 +46,13 @@ class TestMarshaller:
         assert result['name'] == 'Foo'
         assert 'email' not in result
 
+    def test_serialize_with_load_only_doesnt_validate(self, marshal):
+        fields_dict = {
+            'email': fields.Email(load_only=True)
+        }
+        marshal({'email': 'invalid'}, fields_dict)
+        assert 'email' not in marshal.errors
+
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
             {'email': 'bar@example.com'},
@@ -208,10 +215,13 @@ class TestUnmarshaller:
         fields_dict = {
             'name': fields.String(),
             'years': fields.Integer(dump_only=True),
+            'always_invalid': fields.Field(validate=lambda f: False, dump_only=True)
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'
         assert 'years' not in result
+
+        assert 'always_invalid' not in unmarshal.errors
 
     def test_preprocessing_function(self, unmarshal):
         data = {'a': 10}
