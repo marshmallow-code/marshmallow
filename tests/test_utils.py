@@ -59,7 +59,7 @@ def test_get_value(obj):
     assert result2 == 42
 
 def test_get_value_from_namedtuple_with_default():
-    p = PointClass(x=42, y=None)
+    p = PointNT(x=42, y=None)
     # Default is only returned if key is not found
     assert utils.get_value('z', p, default=123) == 123
     # since 'y' is an attribute, None is returned instead of the default

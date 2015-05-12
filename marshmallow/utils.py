@@ -313,14 +313,12 @@ def _get_value_for_keys(keys, obj, default):
 
 
 def _get_value_for_key(key, obj, default):
-    if isinstance(obj, dict):
-        return obj.get(key, default)
-    if isinstance(key, basestring) and hasattr(obj, key):
-        return getattr(obj, key)
-    if is_indexable_but_not_string(obj):
+    try:
+        return obj[key]
+    except (KeyError, IndexError, TypeError):
         try:
-            return obj[key]
-        except KeyError:
+            return getattr(obj, key)
+        except AttributeError:
             return default
     return default
 

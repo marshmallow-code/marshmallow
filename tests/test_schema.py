@@ -398,13 +398,6 @@ def test_serialize_many(SchemaClass):
     assert serialized.data[0]['name'] == "Mick"
     assert serialized.data[1]['name'] == "Keith"
 
-def test_no_implicit_list_handling(recwarn):
-    users = [User(name='Mick'), User(name='Keith')]
-    with pytest.raises(TypeError):
-        UserSchema().dump(users)
-    w = recwarn.pop()
-    assert issubclass(w.category, DeprecationWarning)
-
 def test_inheriting_schema(user):
     sch = ExtendedUserSchema()
     result = sch.dump(user)
@@ -1886,19 +1879,6 @@ class TestContext:
         result = ser.dump(obj)
         assert result.data['inner']['likes_bikes'] is True
 
-def test_error_gets_raised_if_many_is_omitted(user):
-    class BadSchema(Schema):
-        # forgot to set many=True
-        class Meta:
-            fields = ('name', 'relatives')
-        relatives = fields.Nested(UserSchema)
-
-    user.relatives = [User('Joe'), User('Mike')]
-
-    with pytest.raises(TypeError) as excinfo:
-        BadSchema().dump(user)
-        # Exception includes message about setting many argument
-        assert 'many=True' in str(excinfo)
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
     class BlogUsernameSchema(Schema):

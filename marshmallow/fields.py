@@ -351,13 +351,8 @@ class Nested(Field):
         if not self.__updated_fields:
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
-        try:
-            ret = schema.dump(nested_obj, many=self.many,
-                    update_fields=not self.__updated_fields).data
-        except TypeError as err:
-            raise TypeError('Could not marshal nested object due to error:\n"{0}"\n'
-                            'If the nested object is a collection, you need to set '
-                            '"many=True".'.format(err))
+        ret = schema.dump(nested_obj, many=self.many,
+                update_fields=not self.__updated_fields).data
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
