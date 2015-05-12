@@ -315,7 +315,7 @@ def _get_value_for_keys(keys, obj, default):
 def _get_value_for_key(key, obj, default):
     try:
         return obj[key]
-    except (KeyError, IndexError, TypeError):
+    except (KeyError, AttributeError, IndexError, TypeError):
         try:
             return getattr(obj, key)
         except AttributeError:
