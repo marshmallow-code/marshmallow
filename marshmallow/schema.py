@@ -207,6 +207,8 @@ class SchemaOpts(object):
         self.ordered = getattr(meta, 'ordered', False)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
+        self.load_only = getattr(meta, 'load_only', ())
+        self.dump_only = getattr(meta, 'dump_only', ())
 
 
 class BaseSchema(base.SchemaABC):
@@ -253,6 +255,8 @@ class BaseSchema(base.SchemaABC):
         serialized results if ``value`` is `None`.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
+    :param tuple load_only: A list or tuple of fields to skip during serialization
+    :param tuple dump_only: A list or tuple of fields to skip during deserialization, read-only fields
     """
     TYPE_MAPPING = {
         text_type: fields.String,
@@ -321,6 +325,8 @@ class BaseSchema(base.SchemaABC):
             `collections.OrderedDict`.
         - ``index_errors``: If `True`, errors dictionaries will include the index
             of invalid items in a collection.
+        - ``load_only``: Tuple or list of fields to exclude from serialized results.
+        - ``dump_only``: Tuple or list of fields to exclude from deserialization
 
         .. versionchanged:: 2.0.0
             `__preprocessors__` and `__data_handlers__` are deprecated. Use
@@ -329,7 +335,8 @@ class BaseSchema(base.SchemaABC):
         pass
 
     def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
-                 many=False, skip_missing=False, context=None):
+                 many=False, skip_missing=False, context=None,
+                 load_only=(), dump_only=()):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -339,6 +346,8 @@ class BaseSchema(base.SchemaABC):
         self.strict = strict or self.opts.strict
         self.skip_missing = skip_missing or self.opts.skip_missing
         self.ordered = self.opts.ordered
+        self.load_only = set(load_only) or set(self.opts.load_only)
+        self.dump_only = set(dump_only) or set(self.opts.dump_only)
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -718,6 +727,9 @@ class BaseSchema(base.SchemaABC):
     def __set_field_attrs(self, fields_dict):
         """Set the parents of all field objects in fields_dict to self, and
         set the dateformat specified in ``class Meta``, if necessary.
+
+        Also set field load_only and dump_only values if field_name was
+        specified in ``class Meta``.
         """
         for field_name, field_obj in iteritems(fields_dict):
             if not field_obj.parent:
@@ -727,6 +739,10 @@ class BaseSchema(base.SchemaABC):
             if isinstance(field_obj, fields.DateTime):
                 if field_obj.dateformat is None:
                     field_obj.dateformat = self.opts.dateformat
+            if field_name in self.load_only:
+                field_obj.load_only = True
+            if field_name in self.dump_only:
+                field_obj.dump_only = True
         return fields_dict
 
     def __filter_fields(self, field_names, obj, many=False):
