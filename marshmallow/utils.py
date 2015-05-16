@@ -335,17 +335,6 @@ def get_callable_name(func):
         return func.__class__.__name__
 
 
-def get_func_name(func):
-    """Given a callable, return its name. Handles `functools.partial` objects.
-
-    .. deprecated:: 1.2.0
-        Renamed to :func:`get_callable_name`.
-    """
-    warnings.warn('get_func_name was renamed to get_callable_name. get_func_name '
-                  'will be removed in version 2.0', DeprecationWarning)
-    return get_callable_name(func)
-
-
 def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`.
     """

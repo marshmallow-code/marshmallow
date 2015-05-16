@@ -15,6 +15,7 @@ Deprecation/Removals:
 - Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
 - Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
 - ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` instead.
+- ``utils.get_func_name`` is removed. Use ``utils.get_callable_name`` instead.
 
 Bug fixes:
 

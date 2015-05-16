@@ -168,7 +168,7 @@ class Field(FieldABC):
         """
         errors = []
         for validator in self.validators:
-            func_name = utils.get_func_name(validator)
+            func_name = utils.get_callable_name(validator)
             msg = 'Validator {0}({1}) is False'.format(
                 func_name, value
             )

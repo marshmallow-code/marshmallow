@@ -175,7 +175,7 @@ class Unmarshaller(ErrorStore):
             else:
                 res = validator_func(output)
             if res is False:
-                func_name = utils.get_func_name(validator_func)
+                func_name = utils.get_callable_name(validator_func)
                 raise ValidationError('Schema validator {0}({1}) is False'.format(
                     func_name, dict(output)
                 ))
