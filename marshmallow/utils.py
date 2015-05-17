@@ -12,7 +12,6 @@ from calendar import timegm
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
-import warnings
 
 from marshmallow.compat import OrderedDict, binary_type, text_type
 
