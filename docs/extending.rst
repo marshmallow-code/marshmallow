@@ -181,17 +181,17 @@ You can register a custom error-handling function for a :class:`Schema` using th
 Schema-level Validation
 -----------------------
 
-You can register schema-level validation functions for a :class:`Schema` using the :meth:`marshmallow.validator <marshmallow.decorators.validator>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
+You can register schema-level validation functions for a :class:`Schema` using the :meth:`marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, validator, ValidationError
+    from marshmallow import Schema, fields, validates_schema, ValidationError
 
     class NumberSchema(Schema):
         field_a = fields.Integer()
         field_b = fields.Integer()
 
-        @validator
+        @validates_schema
         def validate_numbers(self, data):
             if data['field_b'] >= data['field_a']:
                 raise ValidationError('field_a must be greater than field_b')
@@ -204,7 +204,7 @@ You can register schema-level validation functions for a :class:`Schema` using t
 Validating Original Input Data
 ++++++++++++++++++++++++++++++
 
-Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validator <marshmallow.decorators.validator>`.
+Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
     :emphasize-lines: 5
@@ -213,7 +213,7 @@ Normally, unspecified field names are ignored by the validator. If you would lik
         foo = fields.Int()
         bar = fields.Int()
 
-        @validator(pass_original=True)
+        @validates_schema(pass_original=True)
         def check_unknown_fields(self, data, original_data):
             for key in original_data:
                 if key not in schema.fields:
@@ -236,7 +236,7 @@ If you want to store schema-level validation errors on a specific field, you can
         field_a = fields.Integer()
         field_b = fields.Integer()
 
-        @validator
+        @validates_schema
         def validate_numbers(self, data):
             if data['field_b'] >= data['field_a']:
                 raise ValidationError(

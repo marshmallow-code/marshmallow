@@ -6,7 +6,7 @@ from marshmallow import (
     post_dump,
     pre_load,
     post_load,
-    validator,
+    validates_schema,
     ValidationError,
 )
 
@@ -117,7 +117,7 @@ def test_decorated_processor_inheritance():
     }
 
 
-class TestValidatorDecorator:
+class TestValidatesSchmeaDecorator:
 
     def test_decorated_validators(self):
 
@@ -125,18 +125,18 @@ class TestValidatorDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validator
+            @validates_schema
             def validate_schema(self, data):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
-            @validator(raw=True)
+            @validates_schema(raw=True)
             def validate_raw(self, data, many):
                 if many:
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
-            @validator
+            @validates_schema
             def validate_bar(self, data):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
@@ -162,13 +162,13 @@ class TestValidatorDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validator(pass_original=True)
+            @validates_schema(pass_original=True)
             def validate_original(self, data, original_data):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validator(raw=True, pass_original=True)
+            @validates_schema(raw=True, pass_original=True)
             def check_unknown_fields(self, data, original_data, many):
                 def check(datum):
                     for key, val in datum.items():

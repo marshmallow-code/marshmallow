@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Add ``marshmallow.validator`` decorator for defining schema-level validators (:issue:`116`).
+- Add ``marshmallow.validates_schema`` decorator for defining schema-level validators (:issue:`116`).
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
 
@@ -14,7 +14,7 @@ Deprecation/Removals:
 
 - Remove ``skip_missing`` class Meta option. By default, missing inputs are excluded from serialized output (:issue:`211`).
 - Remove optional ``context`` parameter that gets passed to methods for ``Method`` fields.
-- ``Schema.validator`` is deprecated. Use ``marshmallow.validator`` instead.
+- ``Schema.validator`` is deprecated. Use ``marshmallow.validates_schema`` instead.
 - ``utils.get_func_name`` is removed. Use ``utils.get_callable_name`` instead.
 
 Bug fixes:
@@ -34,7 +34,7 @@ Changes from 2.0.0b2:
 
 - ``Boolean`` field serializes ``None`` to ``None``, for consistency with other fields (:issue:`213`). Thanks :user:`cmanallen` for reporting.
 - Bug fix: ``load_only`` fields do not get validated during serialization.
-- Implicit passing of original, raw data to Schema validators is removed. Use ``@marshmallow.validator(pass_original=True)`` instead.
+- Implicit passing of original, raw data to Schema validators is removed. Use ``@marshmallow.validates_schema(pass_original=True)`` instead.
 
 2.0.0b2 (2015-05-03)
 ++++++++++++++++++++

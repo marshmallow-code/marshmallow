@@ -7,7 +7,7 @@ from marshmallow.schema import (
     MarshalResult,
     UnmarshalResult,
 )
-from marshmallow.decorators import pre_dump, post_dump, pre_load, post_load, validator
+from marshmallow.decorators import pre_dump, post_dump, pre_load, post_load, validates_schema
 from marshmallow.utils import pprint, missing
 from marshmallow.exceptions import MarshallingError, UnmarshallingError, ValidationError
 
@@ -18,7 +18,7 @@ __license__ = 'MIT'
 __all__ = [
     'Schema',
     'SchemaOpts',
-    'validator',
+    'validates_schema',
     'pre_dump',
     'post_dump',
     'pre_load',

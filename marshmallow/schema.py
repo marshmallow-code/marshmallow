@@ -18,7 +18,7 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATOR
+from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATES_SCHEMA
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -438,10 +438,10 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0
         .. deprecated:: 2.0.0
-            Use `marshmallow.validator <marshmallow.decorators.validator>` instead.
+            Use `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` instead.
         """
         warnings.warn(
-            'Schema.validator is deprecated. Use the marshmallow.validator decorator '
+            'Schema.validator is deprecated. Use the marshmallow.validates_schema decorator '
             'instead.', category=DeprecationWarning
         )
         cls.__validators__ = cls.__validators__ or []
@@ -737,9 +737,9 @@ class BaseSchema(base.SchemaABC):
         return data
 
     def _invoke_validators(self, raw, data, original_data, many):
-        for attr_name in self.__processors__[(VALIDATOR, raw)]:
+        for attr_name in self.__processors__[(VALIDATES_SCHEMA, raw)]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATOR, raw)]
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, raw)]
             pass_original = validator_kwargs.get('pass_original', False)
             if raw:
                 validator = partial(validator, many=many)
