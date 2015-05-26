@@ -18,7 +18,8 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATES_SCHEMA
+from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
+                                    VALIDATES, VALIDATES_SCHEMA)
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -352,6 +353,7 @@ class BaseSchema(base.SchemaABC):
         self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)
+        self._push_field_validators()
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
@@ -720,6 +722,21 @@ class BaseSchema(base.SchemaABC):
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
         return ret
+
+    def _push_field_validators(self):
+        for attr_name in self.__processors__[(VALIDATES, False)]:
+            validator = getattr(self, attr_name)
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, False)]
+
+            try:
+                field = self.fields[validator_kwargs['field']]
+            except KeyError:
+                raise ValueError(
+                    '"{}" field does not exist.'
+                    .format(validator_kwargs['field'])
+                )
+            else:
+                field.validators.append(validator)
 
     def _invoke_dump_processors(self, tag_name, data, many):
         # The raw post-dump processors may do things like add an envelope, so
