@@ -615,6 +615,10 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError):
             field.deserialize('badvalue')
 
+    def test_constant_field_deserialization(self):
+        field = fields.Constant('something')
+        assert field.deserialize('whatever') == 'something'
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
         assert field.deserialize('Valid') == 'Valid'

@@ -48,6 +48,7 @@ __all__ = [
     'Str',
     'Bool',
     'Int',
+    'Constant',
 ]
 
 
@@ -1223,6 +1224,29 @@ class QuerySelectList(QuerySelect):
                 items.append(results.pop(index))
 
         return items
+
+
+class Constant(Field):
+    """A field that (de)serializes to a preset constant.  If you only want the
+    constant added for serialization or deserialization, you should use
+    ``dump_only=True`` or ``load_only=True`` respectively.
+
+    :param constant: The constant to return for the field attribute.
+
+    .. versionadded:: 2.0.0
+    """
+    _CHECK_ATTRIBUTE = False
+
+    def __init__(self, constant, **kwargs):
+        super(Constant, self).__init__(**kwargs)
+        self.constant = constant
+
+    def _serialize(self, value, *args, **kwargs):
+        return self.constant
+
+    def _deserialize(self, value):
+        return self.constant
+
 
 # Aliases
 URL = Url

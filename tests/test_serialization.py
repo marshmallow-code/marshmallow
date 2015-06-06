@@ -606,6 +606,17 @@ class TestFieldSerialization:
         with pytest.raises(ValidationError):
             field.serialize('du4', user)
 
+    def test_constant_field_serialization(self, user):
+        field = fields.Constant('something')
+        assert field.serialize('whatever', user) == 'something'
+
+    def test_constant_field_serialize_when_omitted(self):
+        class MiniUserSchema(Schema):
+            name = fields.Constant('bill')
+
+        s = MiniUserSchema()
+        assert s.dump({}).data['name'] == 'bill'
+
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_all_fields_serialize_none_to_none(self, FieldClass):
         if FieldClass == fields.Enum:
