@@ -41,7 +41,11 @@ PRE_DUMP = 'pre_dump'
 POST_DUMP = 'post_dump'
 PRE_LOAD = 'pre_load'
 POST_LOAD = 'post_load'
+VALIDATES = 'validates'
 VALIDATES_SCHEMA = 'validates_schema'
+
+def validates(field):
+    return tag_processor(VALIDATES, None, False, field=field)
 
 def validates_schema(fn=None, raw=False, pass_original=False):
     """Register a schema-level validates_schema method.
