@@ -34,3 +34,4 @@ Contributors (chronological)
 - Jimmy Jia `@taion <https://github.com/taion>`_
 - `@lustdante <https://github.com/lustdante>`_
 - Sergey Aganezov, Jr. `@sergey-aganezov-jr <https://github.com/sergey-aganezov-jr>`_
+- Kevin Stone `@kevinastone <https://github.com/kevinastone>`_
