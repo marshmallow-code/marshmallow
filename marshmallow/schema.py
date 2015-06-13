@@ -18,7 +18,8 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATES_SCHEMA
+from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
+                                    VALIDATES, VALIDATES_SCHEMA)
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -634,6 +635,7 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
+        self._invoke_field_validators(data=result, many=many)
         # Run schema-level migration
         self._invoke_validators(raw=True, data=result, original_data=data, many=many)
         self._invoke_validators(raw=False, data=result, original_data=data, many=many)
@@ -735,6 +737,44 @@ class BaseSchema(base.SchemaABC):
         data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
         data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
         return data
+
+    def _invoke_field_validators(self, data, many):
+        for attr_name in self.__processors__[(VALIDATES, False)]:
+            validator = getattr(self, attr_name)
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, False)]
+            field_name = validator_kwargs['field_name']
+
+            try:
+                field_obj = self.fields[field_name]
+            except KeyError:
+                raise ValueError('"{0}" field does not exist.'.format(field_name))
+
+            if many:
+                for idx, item in enumerate(data):
+                    try:
+                        value = item[field_name]
+                    except KeyError:
+                        pass
+                    else:
+                        self._unmarshal.call_and_store(
+                            getter_func=validator,
+                            data=value,
+                            field_name=field_name,
+                            field_obj=field_obj,
+                            index=(idx if self.opts.index_errors else None)
+                        )
+            else:
+                try:
+                    value = data[field_name]
+                except KeyError:
+                    pass
+                else:
+                    self._unmarshal.call_and_store(
+                        getter_func=validator,
+                        data=value,
+                        field_name=field_name,
+                        field_obj=field_obj
+                    )
 
     def _invoke_validators(self, raw, data, original_data, many):
         for attr_name in self.__processors__[(VALIDATES_SCHEMA, raw)]:
