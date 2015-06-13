@@ -6,6 +6,7 @@ from marshmallow import (
     post_dump,
     pre_load,
     post_load,
+    validates,
     validates_schema,
     ValidationError,
 )
@@ -117,7 +118,27 @@ def test_decorated_processor_inheritance():
     }
 
 
-class TestValidatesSchmeaDecorator:
+def test_validates_decorator():
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        @validates('foo')
+        def validate_foo(self, value):
+            if value != 42:
+                raise ValidationError('The answer to life the universe and everything.')
+
+    schema = MySchema()
+    errors = schema.validate({'foo': 41})
+    assert 'foo' in errors
+    assert errors['foo'][0] == 'The answer to life the universe and everything.'
+
+    errors = schema.validate([{'foo': 42}, {'foo': 43}], many=True)
+    assert 'foo' in errors[1]
+    assert len(errors[1]['foo']) == 1
+    assert errors[1]['foo'][0] == 'The answer to life the universe and everything.'
+
+
+class TestValidatesSchemaDecorator:
 
     def test_decorated_validators(self):
 
