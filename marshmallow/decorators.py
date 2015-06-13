@@ -5,12 +5,14 @@ These should be imported from the top-level `marshmallow` module.
 Example: ::
 
     from marshmallow import (
-        Schema, pre_load, pre_dump, post_load, validates_schema, ValidationError
+        Schema, pre_load, pre_dump, post_load, validates_schema,
+        validates, fields, ValidationError
     )
 
     class UserSchema(Schema):
 
         email = fields.Str(required=True)
+        age = fields.Integer(required=True)
 
         @post_load
         def lowerstrip_email(self, item):
@@ -32,16 +34,31 @@ Example: ::
             if len(data['email']) < 3:
                 raise ValidationError('Email must be more than 3 characters', 'email')
 
+        @validates('age')
+        def validate_age(self, data):
+            if data < 14:
+                raise ValidationError('Too young!')
+
 .. warning::
     The invocation order of decorated methods of the same type is not guaranteed.
     If you need to guarantee order of different processing steps, you should put
     them in the same processing method.
 """
+from __future__ import unicode_literals
+
+
 PRE_DUMP = 'pre_dump'
 POST_DUMP = 'post_dump'
 PRE_LOAD = 'pre_load'
 POST_LOAD = 'post_load'
+VALIDATES = 'validates'
 VALIDATES_SCHEMA = 'validates_schema'
+
+
+def validates(field_name):
+    """Register a field validator."""
+    return tag_processor(VALIDATES, None, False, field_name=field_name)
+
 
 def validates_schema(fn=None, raw=False, pass_original=False):
     """Register a schema-level validates_schema method.
@@ -54,6 +71,7 @@ def validates_schema(fn=None, raw=False, pass_original=False):
     an additional argument to the method.
     """
     return tag_processor(VALIDATES_SCHEMA, fn, raw, pass_original=pass_original)
+
 
 def pre_dump(fn=None, raw=False):
     """Register a method to invoke before serializing an object. The method
