@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Add ``marshmallow.validates_schema`` decorator for defining schema-level validators (:issue:`116`).
+- Add ``marshmallow.validates`` decorator for defining field validators as Schema methods (:issue:`116`). Thanks :user:`philtay`.
 - Performance improvements.
 - Defining ``__marshallable__`` on complex objects is no longer necessary.
 - Add ``fields.Constant``. Thanks :user:`kevinastone`.

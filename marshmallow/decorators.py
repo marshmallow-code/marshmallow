@@ -56,7 +56,10 @@ VALIDATES_SCHEMA = 'validates_schema'
 
 
 def validates(field_name):
-    """Register a field validator."""
+    """Register a field validator.
+
+    :param str field_name: Name of the field that the method validates.
+    """
     return tag_processor(VALIDATES, None, False, field_name=field_name)
 
 
