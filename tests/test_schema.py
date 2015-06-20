@@ -632,7 +632,6 @@ def test_load_errors_with_many():
     assert 'anotherbademail' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
-    u = User('Joe')
     with pytest.raises(ValueError):
         class BadSchema(Schema):
             name = fields.String()
@@ -642,7 +641,6 @@ def test_error_raised_if_fields_option_is_not_list():
 
 
 def test_error_raised_if_additional_option_is_not_list():
-    u = User('Joe')
     with pytest.raises(ValueError):
         class BadSchema(Schema):
             name = fields.String()

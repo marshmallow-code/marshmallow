@@ -400,12 +400,24 @@ class List(Field):
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
+    def get_value(self, attr, obj, accessor=None):
+        """Return the value for a given key from an object."""
+        value = super(List, self).get_value(attr, obj, accessor=accessor)
+        if self.container.attribute:
+            if utils.is_collection(value):
+                return [
+                    self.container.get_value(self.container.attribute, each)
+                    for each in value
+                ]
+            return self.container.get_value(self.container.attribute, value)
+        return value
+
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
         if utils.is_collection(value):
             return [self.container._serialize(each, attr, obj) for each in value]
-        return [self.container.serialize(attr, obj)]
+        return [self.container._serialize(value, attr, obj)]
 
     def _deserialize(self, value):
         if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
