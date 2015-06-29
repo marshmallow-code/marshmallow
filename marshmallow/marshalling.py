@@ -10,7 +10,7 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow import base, utils
+from marshmallow import utils
 from marshmallow.utils import missing
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -72,16 +72,6 @@ class ErrorStore(object):
             else:
                 errors.setdefault(field_name, []).extend(err.messages)
             value = missing
-        except TypeError:
-            # field declared as a class, not an instance
-            if (isinstance(field_obj, type) and
-                    issubclass(field_obj, base.FieldABC)):
-                msg = ('Field for "{0}" must be declared as a '
-                                'Field instance, not a class. '
-                                'Did you mean "fields.{1}()"?'
-                                .format(field_name, field_obj.__name__))
-                raise TypeError(msg)
-            raise
         return value
 
 class Marshaller(ErrorStore):
