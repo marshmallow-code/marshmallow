@@ -1,14 +1,15 @@
 Changelog
 ---------
 
-2.0.0 (unreleased)
-++++++++++++++++++
+2.0.0b4 (unreleased)
+++++++++++++++++++++
 
 Features:
 
 - ``List`` field respects the ``attribute`` argument of the inner field. Thanks :user:`jmcarp`.
+- The ``container`` field ``List`` field has access to its parent ``Schema`` via its ``parent`` attribute. Thanks again :user:`jmcarp`.
 
-2.0.0.b3 (2015-06-14)
+2.0.0b3 (2015-06-14)
 +++++++++++++++++++++
 
 Features:
