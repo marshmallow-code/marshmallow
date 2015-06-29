@@ -673,17 +673,20 @@ class BaseSchema(base.SchemaABC):
         return self.fields
 
     def __set_field_attrs(self, fields_dict):
-        """Set the parents of all field objects in fields_dict to self, and
-        set the dateformat specified in ``class Meta``, if necessary.
+        """Update fields with values from schema.
         """
         for field_name, field_obj in iteritems(fields_dict):
-            if not field_obj.parent:
-                field_obj.parent = self
-            if not field_obj.name:
-                field_obj.name = field_name
-            if isinstance(field_obj, fields.DateTime):
-                if field_obj.dateformat is None:
-                    field_obj.dateformat = self.opts.dateformat
+            try:
+                field_obj._add_to_schema(field_name, self)
+            except TypeError:
+                # field declared as a class, not an instance
+                if (isinstance(field_obj, type) and
+                        issubclass(field_obj, base.FieldABC)):
+                    msg = ('Field for "{0}" must be declared as a '
+                                    'Field instance, not a class. '
+                                    'Did you mean "fields.{1}()"?'
+                                    .format(field_name, field_obj.__name__))
+                    raise TypeError(msg)
         return fields_dict
 
     def __filter_fields(self, field_names, obj, many=False):

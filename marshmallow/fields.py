@@ -239,6 +239,16 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
+    def _add_to_schema(self, field_name, schema):
+        """Update field with values from its parent schema. Called by
+            :meth:`__set_field_attrs <marshmallow.Schema.__set_field_attrs>`.
+
+        :param str field_name: Field name set in schema
+        :param Schema schema: Parent schema
+        """
+        self.parent = self.parent or schema
+        self.name = self.name or field_name
+
     def _serialize(self, value, attr, obj):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
@@ -411,6 +421,10 @@ class List(Field):
                 ]
             return self.container.get_value(self.container.attribute, value)
         return value
+
+    def _add_to_schema(self, field_name, schema):
+        super(List, self)._add_to_schema(field_name, schema)
+        self.container._add_to_schema(field_name, schema)
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -722,6 +736,10 @@ class DateTime(Field):
         # or ``_desrialize`` methods This allows a Schema to dynamically set the
         # dateformat, e.g. from a Meta option
         self.dateformat = format
+
+    def _add_to_schema(self, field_name, schema):
+        super(DateTime, self)._add_to_schema(field_name, schema)
+        self.dateformat = self.dateformat or schema.opts.dateformat
 
     def _serialize(self, value, attr, obj):
         if value is None:
