@@ -6,7 +6,7 @@ import random
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validate
+from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import unicode, OrderedDict
 
@@ -1588,6 +1588,13 @@ class TestNestedSchema:
     def test_list_field(self, blog):
         serialized = BlogSchema().dump(blog)[0]
         assert serialized['categories'] == ["humor", "violence"]
+
+    def test_list_field_parent(self):
+        schema = BlogSchema()
+        assert schema.fields['categories'].parent == schema
+        assert schema.fields['categories'].name == 'categories'
+        assert type(schema.fields['categories'].container.parent) is BlogSchema
+        assert schema.fields['categories'].container.name == 'categories'
 
     def test_nested_load_many(self):
         in_data = {'title': 'Shine A Light', 'collaborators': [
