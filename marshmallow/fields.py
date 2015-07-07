@@ -379,7 +379,7 @@ class Nested(Field):
                 'Missing data for required field.')
         if self.many and not isinstance(value, list):
             raise ValidationError(
-                'Expected a list, got a {}.'.format(value.__class__.__name__))
+                'Expected a list, got a {0}.'.format(value.__class__.__name__))
 
         data, errors = self.schema.load(value)
         if errors:
