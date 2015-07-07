@@ -1685,7 +1685,7 @@ class TestNestedSchema:
             BadNestedFieldSchema().dump(blog)
 
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/188
-    def test_invalid_type_passed_to_nested_many_field(self):
+    def test_invalid_type_passed_to_nested_field(self):
         class InnerSchema(Schema):
             foo = fields.Field()
 
@@ -1699,7 +1699,35 @@ class TestNestedSchema:
 
         result = sch.load({'inner': 'invalid'})
         assert 'inner' in result.errors
-        assert result.errors['inner'][0] == 'Data must be a dict, got a str'
+        assert result.errors['inner'] == ['Expected a list, got a str.']
+
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema)
+
+        schema = OuterSchema()
+        _, errors = schema.load({'inner': 1})
+        assert errors['inner'] == ['Data must be a dict, got a int']
+
+    def test_missing_required_nested_field(self):
+        class InnerSchema(Schema):
+            foo = fields.Field(required=True)
+
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema, required=True)
+
+        class OuterSchemaMany(Schema):
+            inner = fields.Nested(InnerSchema, many=True, required=True)
+
+        schema = OuterSchema()
+        _, errors = schema.load({'inner': {}})
+        assert errors['inner'] == ['Missing data for required field.']
+
+        schemany = OuterSchemaMany()
+        _, errors = schemany.load({'inner': []})
+        assert errors['inner'] == ['Missing data for required field.']
+
+        _, errors = schemany.load({'inner': [{}]})
+        assert errors['inner'][0]['foo'] == ['Missing data for required field.']
 
 
 class TestSelfReference:

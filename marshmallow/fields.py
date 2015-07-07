@@ -374,6 +374,13 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
+        if self.required is True and not value:
+            raise ValidationError(
+                'Missing data for required field.')
+        if self.many and not isinstance(value, list):
+            raise ValidationError(
+                'Expected a list, got a {}.'.format(value.__class__.__name__))
+
         data, errors = self.schema.load(value)
         if errors:
             raise ValidationError(errors)
