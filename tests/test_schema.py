@@ -3,6 +3,7 @@
 
 import json
 import random
+from collections import namedtuple
 
 import pytest
 
@@ -685,6 +686,21 @@ def test_nested_only_and_exclude():
     result = sch.dump(data)
     assert 'foo' in result.data['inner']
     assert 'bar' not in result.data['inner']
+
+
+def test_nested_with_sets():
+    class Inner(Schema):
+        foo = fields.Field()
+
+    class Outer(Schema):
+        inners = fields.Nested(Inner, many=True)
+
+    sch = Outer()
+
+    DataClass = namedtuple('DataClass', ['foo'])
+    data = dict(inners=set([DataClass(42), DataClass(2)]))
+    result = sch.dump(data)
+    assert len(result.data['inners']) == 2
 
 
 def test_meta_serializer_fields():

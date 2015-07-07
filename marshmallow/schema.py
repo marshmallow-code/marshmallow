@@ -699,8 +699,8 @@ class BaseSchema(base.SchemaABC):
         """
         if obj and many:
             try:  # Homogeneous collection
-                obj_prototype = obj[0]
-            except IndexError:  # Nothing to serialize
+                obj_prototype = next(iter(obj))
+            except StopIteration:  # Nothing to serialize
                 return self.declared_fields
             obj = obj_prototype
         ret = self.dict_class()
