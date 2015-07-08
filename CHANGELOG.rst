@@ -9,6 +9,14 @@ Features:
 - ``List`` field respects the ``attribute`` argument of the inner field. Thanks :user:`jmcarp`.
 - The ``container`` field ``List`` field has access to its parent ``Schema`` via its ``parent`` attribute. Thanks again :user:`jmcarp`.
 
+Bug fixes:
+
+- ``fields.Nested`` correctly serializes nested ``sets`` (:issue:`233`). Thanks :user:`traut`.
+
+Changes from 2.0.0b3:
+
+- If ``load_from`` is used on deserialization, the value of ``load_from`` is used as the key in the errors dict (:issue:`232`). Thanks :user:`alexmorken`.
+
 2.0.0b3 (2015-06-14)
 +++++++++++++++++++++
 
