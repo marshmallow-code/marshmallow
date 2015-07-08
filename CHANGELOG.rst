@@ -9,6 +9,10 @@ Features:
 - ``List`` field respects the ``attribute`` argument of the inner field. Thanks :user:`jmcarp`.
 - The ``container`` field ``List`` field has access to its parent ``Schema`` via its ``parent`` attribute. Thanks again :user:`jmcarp`.
 
+Deprecation/Removals:
+
+- Legacy validator functions have been removed (:issue:`73`). Use the class-based validators in ``marshmallow.validate`` instead.
+
 Bug fixes:
 
 - ``fields.Nested`` correctly serializes nested ``sets`` (:issue:`233`). Thanks :user:`traut`.
