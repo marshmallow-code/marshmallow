@@ -256,7 +256,9 @@ class Unmarshaller(ErrorStore):
                         field_names=[attr_name],
                         fields=[field_obj]
                     )
+                field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
+                    field_name = field_obj.load_from
                     raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing:
                     _miss = field_obj.missing
@@ -266,7 +268,7 @@ class Unmarshaller(ErrorStore):
                 value = self.call_and_store(
                     getter_func=field_obj.deserialize,
                     data=raw_value,
-                    field_name=key,
+                    field_name=field_name,
                     field_obj=field_obj,
                     index=(index if index_errors else None)
                 )

@@ -56,6 +56,7 @@ class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized or deserialized.
+    On error, the name of the field will be returned.
 
     :param default: If set, this value will be used during serialization if the input value
         is missing. If not set, the field will be excluded from the serialized output if the
@@ -63,7 +64,8 @@ class Field(FieldABC):
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param str load_from: Additional key to look for when deserializing. Will only
-        be checked if the field's name is not found on the input dictionary.
+        be checked if the field's name is not found on the input dictionary. If checked,
+        it will return this parameter on error.
     :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
