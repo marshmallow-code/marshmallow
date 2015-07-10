@@ -1709,25 +1709,36 @@ class TestNestedSchema:
         assert errors['inner'] == ['Data must be a dict, got a int']
 
     def test_missing_required_nested_field(self):
-        class InnerSchema(Schema):
-            foo = fields.Field(required=True)
+        class Inner(Schema):
+            inner_req = fields.Field(required='Oops')
+            inner_not_req = fields.Field()
 
-        class OuterSchema(Schema):
-            inner = fields.Nested(InnerSchema, required=True)
+        class Middle(Schema):
+            middle_req = fields.Nested(Inner, required=True)
+            middle_not_req = fields.Nested(Inner)
 
-        class OuterSchemaMany(Schema):
-            inner = fields.Nested(InnerSchema, many=True, required=True)
+        class Outer(Schema):
+            outer_req = fields.Nested(Middle, required=True)
+            outer_many_req = fields.Nested(Middle, required=True, many=True)
+            outer_not_req = fields.Nested(Middle)
+            outer_many_not_req = fields.Nested(Middle, many=True)
 
-        schema = OuterSchema()
-        _, errors = schema.load({'inner': {}})
-        assert errors['inner'] == ['Missing data for required field.']
-
-        schemany = OuterSchemaMany()
-        _, errors = schemany.load({'inner': []})
-        assert errors['inner'] == ['Missing data for required field.']
-
-        _, errors = schemany.load({'inner': [{}]})
-        assert errors['inner'][0]['foo'] == ['Missing data for required field.']
+        outer = Outer()
+        data, errors = outer.load({})
+        assert errors == {
+            'outer_req': {
+                'middle_req': {
+                    'inner_req': ['Oops']
+                }
+            },
+            'outer_many_req': {
+                0: {
+                    'middle_req': {
+                        'inner_req': ['Oops']
+                    }
+                }
+            }
+        }
 
 
 class TestSelfReference:

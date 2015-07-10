@@ -301,6 +301,11 @@ class Nested(Field):
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
+    :param required: Raise an :exc:`ValidationError` during deserialization
+        if the field, *and* any required field values specified
+        in the `nested` schema, are not found in the data. If not a `bool`
+        (e.g. a `str`), the provided value will be used as the message of the
+        :exc:`ValidationError` instead of the default message.
     :param only: A tuple or string of the field(s) to marshal. If `None`, all fields
         will be marshalled. If a field name (string) is given, only a single
         value will be returned as output instead of a dictionary.
@@ -374,9 +379,6 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
-        if self.required is True and not value:
-            raise ValidationError(
-                'Missing data for required field.')
         if self.many and not isinstance(value, list):
             raise ValidationError(
                 'Expected a list, got a {0}.'.format(value.__class__.__name__))
@@ -385,6 +387,33 @@ class Nested(Field):
         if errors:
             raise ValidationError(errors)
         return data
+
+    def _validate_missing(self, value):
+        """Validate missing values. Raise a :exc:`ValidationError` if
+        `value` should be considered missing.
+        """
+        if value is missing_ and hasattr(self, 'required'):
+            errors = self._check_required()
+            if errors:
+                raise ValidationError(errors)
+        else:
+            super(Nested, self)._validate_missing(value)
+
+    def _check_required(self, errors={}):
+        if self.required:
+            for field_name, field in self.schema.fields.items():
+                if not field.required:
+                    continue
+                if isinstance(field, Nested):
+                    field._check_required(errors)
+                    if self.many:
+                        errors = {0: errors}
+                else:
+                    try:
+                        field._validate_missing(field.missing)
+                    except ValidationError as ve:
+                        errors[self.name] = {field_name: ve.messages}
+        return errors
 
 
 class List(Field):
