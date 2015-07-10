@@ -379,9 +379,9 @@ class Nested(Field):
         return ret
 
     def _deserialize(self, value):
-        if self.many and not isinstance(value, list):
+        if self.many and not utils.is_collection(value):
             raise ValidationError(
-                'Expected a list, got a {0}.'.format(value.__class__.__name__))
+                'Expected a collection of dicts, got a {0}.'.format(value.__class__.__name__))
 
         data, errors = self.schema.load(value)
         if errors:

@@ -1699,7 +1699,7 @@ class TestNestedSchema:
 
         result = sch.load({'inner': 'invalid'})
         assert 'inner' in result.errors
-        assert result.errors['inner'] == ['Expected a list, got a str.']
+        assert result.errors['inner'] == ['Expected a collection of dicts, got a str.']
 
         class OuterSchema(Schema):
             inner = fields.Nested(InnerSchema)
