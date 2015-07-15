@@ -1712,6 +1712,7 @@ class TestNestedSchema:
         class Inner(Schema):
             inner_req = fields.Field(required='Oops')
             inner_not_req = fields.Field()
+            inner_bad = fields.Integer(required='Int plz')
 
         class Middle(Schema):
             middle_req = fields.Nested(Inner, required=True)
@@ -1728,13 +1729,15 @@ class TestNestedSchema:
         assert errors == {
             'outer_req': {
                 'middle_req': {
-                    'inner_req': ['Oops']
+                    'inner_req': ['Oops'],
+                    'inner_bad': ['Int plz']
                 }
             },
             'outer_many_req': {
                 0: {
                     'middle_req': {
-                        'inner_req': ['Oops']
+                        'inner_req': ['Oops'],
+                        'inner_bad': ['Int plz']
                     }
                 }
             }
