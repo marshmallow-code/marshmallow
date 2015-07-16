@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.0.0b5 (unreleased)
+++++++++++++++++++++
+
+Features:
+
+- If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
+
 2.0.0b4 (2015-07-07)
 ++++++++++++++++++++
 
