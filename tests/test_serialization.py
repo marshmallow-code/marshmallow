@@ -83,6 +83,10 @@ class TestFieldSerialization:
         field = fields.Integer(default=None)
         assert field.serialize('age', user) is None
 
+    def test_callable_field(self, user):
+       field = fields.String()
+       assert field.serialize('call_me', user) == 'This was called.'
+
     def test_decimal_field(self, user):
         user.m1 = 12
         user.m2 = '12.355'
