@@ -94,6 +94,9 @@ class User(object):
     def since_created(self):
         return dt.datetime(2013, 11, 24) - self.created
 
+    def call_me(self):
+        return "This was called."
+
     def __repr__(self):
         return "<User {0}>".format(self.name)
 

@@ -4,8 +4,6 @@
 from __future__ import unicode_literals
 
 import re
-import functools
-import warnings
 from operator import attrgetter
 
 from marshmallow.compat import basestring, text_type, zip_longest
@@ -433,45 +431,3 @@ class ContainsOnly(OneOf):
                 del choices[index]
 
         return value
-
-
-#
-# Backward compatibility
-#
-
-def _deprecated(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        warnings.warn('{0} is deprecated. Use the class-based '
-                      'equivalent instead.'.format(func.__name__),
-                      category=DeprecationWarning)
-        return func(*args, **kwargs)
-    return wrapper
-
-@_deprecated
-def url(value, relative=False, error=None):
-    return URL(relative, error)(value) if value is not None else None
-
-@_deprecated
-def email(value, error=None):
-    return Email(error)(value) if value is not None else None
-
-@_deprecated
-def ranging(value, min=None, max=None, error=None):
-    return Range(min, max, error)(value) if value is not None else None
-
-@_deprecated
-def length(value, min=None, max=None, error=None):
-    return Length(min, max, error)(value) if value is not None else None
-
-@_deprecated
-def equal(value, comparable, error=None):
-    return Equal(comparable, error)(value) if value is not None else None
-
-@_deprecated
-def regexp(value, regex, flags=0, error=None):
-    return Regexp(regex, flags, error)(value) if value is not None else None
-
-@_deprecated
-def predicate(value, method, error=None, **kwargs):
-    return Predicate(method, error, **kwargs)(value) if value is not None else None

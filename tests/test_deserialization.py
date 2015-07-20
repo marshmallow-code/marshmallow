@@ -615,6 +615,10 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError):
             field.deserialize('badvalue')
 
+    def test_constant_field_deserialization(self):
+        field = fields.Constant('something')
+        assert field.deserialize('whatever') == 'something'
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
         assert field.deserialize('Valid') == 'Valid'
@@ -821,6 +825,32 @@ class TestSchemaDeserialization:
         result, errors = AliasingUserSerializer().load(data)
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
+
+    def test_deserialize_with_attribute_param_error_returns_field_name_not_attribute_name(self):
+        class AliasingUserSerializer(Schema):
+            username = fields.Email(attribute='email')
+            years = fields.Integer(attribute='age')
+        data = {
+            'username': 'foobar.com',
+            'years': '42'
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert errors
+        assert errors['username'] == [u'"foobar.com" is not a valid email address.']
+
+    def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String(load_from='Name')
+            username = fields.Email(attribute='email', load_from='UserName')
+            years = fields.Integer(attribute='age', load_from='Years')
+        data = {
+            'Name': 'Mick',
+            'UserName': 'foobar.com',
+            'years': 'abc'
+        }
+        result, errors = AliasingUserSerializer().load(data)
+        assert errors['UserName'] == [u'"foobar.com" is not a valid email address.']
+        assert errors['years'] == [u"invalid literal for int() with base 10: 'abc'"]
 
     def test_deserialize_with_load_from_param(self):
         class AliasingUserSerializer(Schema):

@@ -237,6 +237,26 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
     :meth:`Schema.dump` also returns a dictionary of errors, which will include any ``ValidationErrors`` raised during serialization. However, the ``required``, ``allow_none``, and ``validate`` parameters only apply during deserialization.
 
 
+Field Validators as Methods
++++++++++++++++++++++++++++
+
+It is often convenient to write validators as methods. Use the `validates <marshmallow.decorators.validates>` decorator to register field validator methods.
+
+.. code-block:: python
+
+    from marshmallow import fields, Schema, validates
+
+    class ItemSchema(Schema):
+        quantity = fields.Integer()
+
+        @validates('quantity')
+        def validate_quantity(self, value):
+            if n < 0:
+                raise ValidationError('Quantity must be greater than 0.')
+            if n > 30:
+                raise ValidationError('Quantity must not be greater than 30.')
+
+
 ``strict`` Mode
 +++++++++++++++
 

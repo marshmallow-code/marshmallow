@@ -3,10 +3,11 @@
 
 import json
 import random
+from collections import namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validate
+from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import unicode, OrderedDict
 
@@ -632,7 +633,6 @@ def test_load_errors_with_many():
     assert 'anotherbademail' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
-    u = User('Joe')
     with pytest.raises(ValueError):
         class BadSchema(Schema):
             name = fields.String()
@@ -642,7 +642,6 @@ def test_error_raised_if_fields_option_is_not_list():
 
 
 def test_error_raised_if_additional_option_is_not_list():
-    u = User('Joe')
     with pytest.raises(ValueError):
         class BadSchema(Schema):
             name = fields.String()
@@ -687,6 +686,21 @@ def test_nested_only_and_exclude():
     result = sch.dump(data)
     assert 'foo' in result.data['inner']
     assert 'bar' not in result.data['inner']
+
+
+def test_nested_with_sets():
+    class Inner(Schema):
+        foo = fields.Field()
+
+    class Outer(Schema):
+        inners = fields.Nested(Inner, many=True)
+
+    sch = Outer()
+
+    DataClass = namedtuple('DataClass', ['foo'])
+    data = dict(inners=set([DataClass(42), DataClass(2)]))
+    result = sch.dump(data)
+    assert len(result.data['inners']) == 2
 
 
 def test_meta_serializer_fields():
@@ -1590,6 +1604,13 @@ class TestNestedSchema:
     def test_list_field(self, blog):
         serialized = BlogSchema().dump(blog)[0]
         assert serialized['categories'] == ["humor", "violence"]
+
+    def test_list_field_parent(self):
+        schema = BlogSchema()
+        assert schema.fields['categories'].parent == schema
+        assert schema.fields['categories'].name == 'categories'
+        assert type(schema.fields['categories'].container.parent) is BlogSchema
+        assert schema.fields['categories'].container.name == 'categories'
 
     def test_nested_load_many(self):
         in_data = {'title': 'Shine A Light', 'collaborators': [

@@ -10,7 +10,7 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow import base, utils
+from marshmallow import utils
 from marshmallow.utils import missing
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -72,16 +72,6 @@ class ErrorStore(object):
             else:
                 errors.setdefault(field_name, []).extend(err.messages)
             value = missing
-        except TypeError:
-            # field declared as a class, not an instance
-            if (isinstance(field_obj, type) and
-                    issubclass(field_obj, base.FieldABC)):
-                msg = ('Field for "{0}" must be declared as a '
-                                'Field instance, not a class. '
-                                'Did you mean "fields.{1}()"?'
-                                .format(field_name, field_obj.__name__))
-                raise TypeError(msg)
-            raise
         return value
 
 class Marshaller(ErrorStore):
@@ -175,7 +165,7 @@ class Unmarshaller(ErrorStore):
             else:
                 res = validator_func(output)
             if res is False:
-                func_name = utils.get_func_name(validator_func)
+                func_name = utils.get_callable_name(validator_func)
                 raise ValidationError('Schema validator {0}({1}) is False'.format(
                     func_name, dict(output)
                 ))
@@ -266,7 +256,9 @@ class Unmarshaller(ErrorStore):
                         field_names=[attr_name],
                         fields=[field_obj]
                     )
+                field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
+                    field_name = field_obj.load_from
                     raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing:
                     _miss = field_obj.missing
@@ -276,7 +268,7 @@ class Unmarshaller(ErrorStore):
                 value = self.call_and_store(
                     getter_func=field_obj.deserialize,
                     data=raw_value,
-                    field_name=key,
+                    field_name=field_name,
                     field_obj=field_obj,
                     index=(index if index_errors else None)
                 )

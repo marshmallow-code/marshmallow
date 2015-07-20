@@ -18,7 +18,8 @@ from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD, VALIDATOR
+from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
+                                    VALIDATES, VALIDATES_SCHEMA)
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -446,10 +447,10 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0
         .. deprecated:: 2.0.0
-            Use `marshmallow.validator <marshmallow.decorators.validator>` instead.
+            Use `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` instead.
         """
         warnings.warn(
-            'Schema.validator is deprecated. Use the marshmallow.validator decorator '
+            'Schema.validator is deprecated. Use the marshmallow.validates_schema decorator '
             'instead.', category=DeprecationWarning
         )
         cls.__validators__ = cls.__validators__ or []
@@ -642,6 +643,7 @@ class BaseSchema(base.SchemaABC):
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
+        self._invoke_field_validators(data=result, many=many)
         # Run schema-level migration
         self._invoke_validators(raw=True, data=result, original_data=data, many=many)
         self._invoke_validators(raw=False, data=result, original_data=data, many=many)
@@ -679,24 +681,27 @@ class BaseSchema(base.SchemaABC):
         return self.fields
 
     def __set_field_attrs(self, fields_dict):
-        """Set the parents of all field objects in fields_dict to self, and
-        set the dateformat specified in ``class Meta``, if necessary.
+        """Update fields with values from schema.
 
         Also set field load_only and dump_only values if field_name was
         specified in ``class Meta``.
         """
         for field_name, field_obj in iteritems(fields_dict):
-            if not field_obj.parent:
-                field_obj.parent = self
-            if not field_obj.name:
-                field_obj.name = field_name
-            if isinstance(field_obj, fields.DateTime):
-                if field_obj.dateformat is None:
-                    field_obj.dateformat = self.opts.dateformat
-            if field_name in self.load_only:
-                field_obj.load_only = True
-            if field_name in self.dump_only:
-                field_obj.dump_only = True
+            try:
+                if field_name in self.load_only:
+                    field_obj.load_only = True
+                if field_name in self.dump_only:
+                    field_obj.dump_only = True
+                field_obj._add_to_schema(field_name, self)
+            except TypeError:
+                # field declared as a class, not an instance
+                if (isinstance(field_obj, type) and
+                        issubclass(field_obj, base.FieldABC)):
+                    msg = ('Field for "{0}" must be declared as a '
+                           'Field instance, not a class. '
+                           'Did you mean "fields.{1}()"?'
+                           .format(field_name, field_obj.__name__))
+                    raise TypeError(msg)
         return fields_dict
 
     def __filter_fields(self, field_names, obj, many=False):
@@ -709,8 +714,8 @@ class BaseSchema(base.SchemaABC):
         """
         if obj and many:
             try:  # Homogeneous collection
-                obj_prototype = obj[0]
-            except IndexError:  # Nothing to serialize
+                obj_prototype = next(iter(obj))
+            except StopIteration:  # Nothing to serialize
                 return self.declared_fields
             obj = obj_prototype
         ret = self.dict_class()
@@ -751,10 +756,48 @@ class BaseSchema(base.SchemaABC):
         data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
         return data
 
-    def _invoke_validators(self, raw, data, original_data, many):
-        for attr_name in self.__processors__[(VALIDATOR, raw)]:
+    def _invoke_field_validators(self, data, many):
+        for attr_name in self.__processors__[(VALIDATES, False)]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATOR, raw)]
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, False)]
+            field_name = validator_kwargs['field_name']
+
+            try:
+                field_obj = self.fields[field_name]
+            except KeyError:
+                raise ValueError('"{0}" field does not exist.'.format(field_name))
+
+            if many:
+                for idx, item in enumerate(data):
+                    try:
+                        value = item[field_name]
+                    except KeyError:
+                        pass
+                    else:
+                        self._unmarshal.call_and_store(
+                            getter_func=validator,
+                            data=value,
+                            field_name=field_name,
+                            field_obj=field_obj,
+                            index=(idx if self.opts.index_errors else None)
+                        )
+            else:
+                try:
+                    value = data[field_name]
+                except KeyError:
+                    pass
+                else:
+                    self._unmarshal.call_and_store(
+                        getter_func=validator,
+                        data=value,
+                        field_name=field_name,
+                        field_obj=field_obj
+                    )
+
+    def _invoke_validators(self, raw, data, original_data, many):
+        for attr_name in self.__processors__[(VALIDATES_SCHEMA, raw)]:
+            validator = getattr(self, attr_name)
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, raw)]
             pass_original = validator_kwargs.get('pass_original', False)
             if raw:
                 validator = partial(validator, many=many)

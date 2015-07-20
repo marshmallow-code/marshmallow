@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import pytest
+
 from marshmallow import (
     Schema,
     fields,
@@ -6,7 +8,8 @@ from marshmallow import (
     post_dump,
     pre_load,
     post_load,
-    validator,
+    validates,
+    validates_schema,
     ValidationError,
 )
 
@@ -117,7 +120,78 @@ def test_decorated_processor_inheritance():
     }
 
 
-class TestValidatorDecorator:
+class TestValidatesDecorator:
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        @validates('foo')
+        def validate_foo(self, value):
+            if value != 42:
+                raise ValidationError('The answer to life the universe and everything.')
+
+    def test_decorator(self):
+        schema = self.MySchema()
+
+        errors = schema.validate({'foo': 41})
+        assert 'foo' in errors
+        assert errors['foo'][0] == 'The answer to life the universe and everything.'
+
+        errors = schema.validate({'foo': 42})
+        assert errors == {}
+
+        errors = schema.validate([{'foo': 42}, {'foo': 43}], many=True)
+        assert 'foo' in errors[1]
+        assert len(errors[1]['foo']) == 1
+        assert errors[1]['foo'][0] == 'The answer to life the universe and everything.'
+
+        errors = schema.validate([{'foo': 42}, {'foo': 42}], many=True)
+        assert errors == {}
+
+        errors = schema.validate({})
+        assert errors == {}
+
+    def test_field_not_present(self):
+        class BadSchema(self.MySchema):
+            @validates('bar')
+            def validate_bar(self, value):
+                raise ValidationError('Never raised.')
+
+        schema = BadSchema()
+
+        with pytest.raises(ValueError) as excinfo:
+            errors = schema.validate({'foo': 42})
+        assert '"bar" field does not exist.' in str(excinfo)
+
+    def test_precedence(self):
+        class Schema2(self.MySchema):
+            foo = fields.Int(validate=lambda n: n != 42)
+            bar = fields.Int(validate=lambda n: n == 1)
+
+            @validates('bar')
+            def validate_bar(self, value):
+                if value != 2:
+                    raise ValidationError('Must be 2')
+
+        schema = Schema2()
+
+        errors = schema.validate({'foo': 42})
+        assert 'foo' in errors
+        assert len(errors['foo']) == 1
+        assert 'lambda' in errors['foo'][0]
+
+        errors = schema.validate({'bar': 3})
+        assert 'bar' in errors
+        assert len(errors['bar']) == 1
+        assert 'lambda' in errors['bar'][0]
+
+        errors = schema.validate({'bar': 1})
+        assert 'bar' in errors
+        assert len(errors['bar']) == 1
+        assert errors['bar'][0] == 'Must be 2'
+
+
+class TestValidatesSchemaDecorator:
 
     def test_decorated_validators(self):
 
@@ -125,18 +199,18 @@ class TestValidatorDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validator
+            @validates_schema
             def validate_schema(self, data):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
-            @validator(raw=True)
+            @validates_schema(raw=True)
             def validate_raw(self, data, many):
                 if many:
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
-            @validator
+            @validates_schema
             def validate_bar(self, data):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
@@ -162,13 +236,13 @@ class TestValidatorDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validator(pass_original=True)
+            @validates_schema(pass_original=True)
             def validate_original(self, data, original_data):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validator(raw=True, pass_original=True)
+            @validates_schema(raw=True, pass_original=True)
             def check_unknown_fields(self, data, original_data, many):
                 def check(datum):
                     for key, val in datum.items():

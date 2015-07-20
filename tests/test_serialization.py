@@ -83,6 +83,10 @@ class TestFieldSerialization:
         field = fields.Integer(default=None)
         assert field.serialize('age', user) is None
 
+    def test_callable_field(self, user):
+       field = fields.String()
+       assert field.serialize('call_me', user) == 'This was called.'
+
     def test_decimal_field(self, user):
         user.m1 = 12
         user.m2 = '12.355'
@@ -425,6 +429,18 @@ class TestFieldSerialization:
         field = fields.List(fields.DateTime)
         assert field.serialize('dtimes', obj) is None
 
+    def test_list_field_respect_inner_attribute(self):
+        now = dt.datetime.now()
+        obj = DateTimeList([now])
+        field = fields.List(fields.Int(attribute='day'))
+        assert field.serialize('dtimes', obj) == [now.day]
+
+    def test_list_field_respect_inner_attribute_single_value(self):
+        now = dt.datetime.now()
+        obj = DateTimeList(now)
+        field = fields.List(fields.Int(attribute='day'))
+        assert field.serialize('dtimes', obj) == [now.day]
+
     def test_list_field_work_with_generator_single_value(self):
         def custom_generator():
             yield dt.datetime.utcnow()
@@ -605,6 +621,17 @@ class TestFieldSerialization:
             field.serialize('du3', user)
         with pytest.raises(ValidationError):
             field.serialize('du4', user)
+
+    def test_constant_field_serialization(self, user):
+        field = fields.Constant('something')
+        assert field.serialize('whatever', user) == 'something'
+
+    def test_constant_field_serialize_when_omitted(self):
+        class MiniUserSchema(Schema):
+            name = fields.Constant('bill')
+
+        s = MiniUserSchema()
+        assert s.dump({}).data['name'] == 'bill'
 
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_all_fields_serialize_none_to_none(self, FieldClass):
