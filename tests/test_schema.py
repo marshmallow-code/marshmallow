@@ -2142,3 +2142,40 @@ class TestDefaults:
             assert key not in result.data
             # the rest of the keys are in the result.data
             assert all(k in result.data for k in d.keys())
+
+
+class TestLoadOnly:
+
+    class MySchema(Schema):
+        class Meta:
+            load_only = ('str_load_only',)
+            dump_only = ('str_dump_only',)
+
+        str_dump_only = fields.String()
+        str_load_only = fields.String()
+        str_regular = fields.String()
+
+    @pytest.fixture()
+    def schema(self):
+        return self.MySchema()
+
+    @pytest.fixture()
+    def data(self):
+        return dict(
+            str_dump_only='Dump Only',
+            str_load_only='Load Only',
+            str_regular='Regular String')
+
+    def test_load_only(self, schema, data):
+        result = schema.dump(data)
+        assert not result.errors
+        assert 'str_load_only' not in result.data
+        assert 'str_dump_only' in result.data
+        assert 'str_regular' in result.data
+
+    def test_dump_only(self, schema, data):
+        result = schema.load(data)
+        assert not result.errors
+        assert 'str_dump_only' not in result.data
+        assert 'str_load_only' in result.data
+        assert 'str_regular' in result.data
