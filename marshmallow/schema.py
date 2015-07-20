@@ -262,7 +262,8 @@ class BaseSchema(base.SchemaABC):
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
     :param tuple load_only: A list or tuple of fields to skip during serialization
-    :param tuple dump_only: A list or tuple of fields to skip during deserialization, read-only fields
+    :param tuple dump_only: A list or tuple of fields to skip during
+        deserialization, read-only fields
     """
     TYPE_MAPPING = {
         text_type: fields.String,
