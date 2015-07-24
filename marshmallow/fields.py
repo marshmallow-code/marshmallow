@@ -418,7 +418,7 @@ class Nested(Field):
                     try:
                         field._validate_missing(field.missing)
                     except ValidationError as ve:
-                        errors[field_name] = [ve.message]
+                        errors[field_name] = ve.messages
         return errors
 
 
