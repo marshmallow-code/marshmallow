@@ -399,23 +399,26 @@ class Nested(Field):
         else:
             super(Nested, self)._validate_missing(value)
 
-    def _check_required(self, errors={}):
+    def _check_required(self):
+        errors = {}
         if self.required:
             for field_name, field in self.schema.fields.items():
                 if not field.required:
                     continue
                 if isinstance(field, Nested):
-                    field._check_required(errors)
+                    error = field._check_required()
                     if self.many:
-                        errors = {0: errors}
+                        if 0 in errors:
+                            errors[0][field.name] = error
+                        else:
+                            errors[0] = {field.name: error}
+                    else:
+                        errors[field.name] = error
                 else:
                     try:
                         field._validate_missing(field.missing)
                     except ValidationError as ve:
-                        if self.name in errors:
-                            errors[self.name][field_name] = ve.messages
-                        else:
-                            errors[self.name] = {field_name: ve.messages}
+                        errors[field_name] = [ve.message]
         return errors
 
 

@@ -1716,7 +1716,9 @@ class TestNestedSchema:
 
         class Middle(Schema):
             middle_req = fields.Nested(Inner, required=True)
+            middle_req_2 = fields.Nested(Inner, required=True)
             middle_not_req = fields.Nested(Inner)
+            middle_field = fields.Field(required='middlin')
 
         class Outer(Schema):
             outer_req = fields.Nested(Middle, required=True)
@@ -1725,24 +1727,19 @@ class TestNestedSchema:
             outer_many_not_req = fields.Nested(Middle, many=True)
 
         outer = Outer()
+        expected = {
+            'outer_many_req': {0: {'middle_req': {'inner_bad': ['Int plz'],
+                                                   'inner_req': ['Oops']},
+                                    'middle_req_2': {'inner_bad': ['Int plz'],
+                                                     'inner_req': ['Oops']}},
+                                'middle_field': ['middlin']},
+             'outer_req': {'middle_field': ['middlin'],
+                           'middle_req': {'inner_bad': ['Int plz'],
+                                          'inner_req': ['Oops']},
+                           'middle_req_2': {'inner_bad': ['Int plz'],
+                                            'inner_req': ['Oops']}}}
         data, errors = outer.load({})
-        assert errors == {
-            'outer_req': {
-                'middle_req': {
-                    'inner_req': ['Oops'],
-                    'inner_bad': ['Int plz']
-                }
-            },
-            'outer_many_req': {
-                0: {
-                    'middle_req': {
-                        'inner_req': ['Oops'],
-                        'inner_bad': ['Int plz']
-                    }
-                }
-            }
-        }
-
+        assert errors == expected
 
 class TestSelfReference:
 
