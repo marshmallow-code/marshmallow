@@ -336,7 +336,7 @@ Then we create a custom :class:`Schema` that uses our options class.
         @pre_load(raw=True)
         def unwrap_envelope(self, data, many):
             key = self.opts.plural_name if many else self.opts.name
-            return {key: data}
+            return data[key]
 
         @post_dump(raw=True)
         def wrap_with_envelope(self, data, many):

@@ -316,7 +316,8 @@ def _get_value_for_key(key, obj, default):
         return obj[key]
     except (KeyError, AttributeError, IndexError, TypeError):
         try:
-            return getattr(obj, key)
+            attr = getattr(obj, key)
+            return attr() if callable(attr) else attr
         except AttributeError:
             return default
     return default
