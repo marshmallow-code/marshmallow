@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
+- Add ``load_only`` and ``dump_only`` class Meta options. Thanks :user:`kelvinhammond`.
 
 2.0.0b4 (2015-07-07)
 ++++++++++++++++++++
