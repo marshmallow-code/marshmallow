@@ -133,7 +133,7 @@ class Marshaller(ErrorStore):
                 field_obj=field_obj,
                 index=(index if index_errors else None)
             )
-            if value is missing:
+            if value is None:
                 continue
             items.append((key, value))
         if self.errors and strict:
