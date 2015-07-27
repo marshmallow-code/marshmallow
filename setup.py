@@ -6,6 +6,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand  # noqa
 
 TEST_REQUIREMENTS = ['pytest', 'pytz']
+EXTRA_REQUIREMENTS = ['python-dateutil', 'simplejson']
 
 
 class PyTest(TestCommand):
@@ -57,6 +58,7 @@ setup(
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
     tests_require=TEST_REQUIREMENTS,
+    extras_require={'reco': EXTRA_REQUIREMENTS},
     license=read('LICENSE'),
     zip_safe=False,
     keywords=('serialization', 'rest', 'json', 'api', 'marshal',
