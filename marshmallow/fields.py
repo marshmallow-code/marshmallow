@@ -7,6 +7,7 @@ import datetime as dt
 import uuid
 import warnings
 import decimal
+import time
 from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
@@ -768,15 +769,11 @@ class DateTime(Field):
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise err
-        elif utils.dateutil_available:
+        else:
             try:
-                return utils.from_datestring(value)
+                return dt.datetime(*time.strptime(value, self.dateformat)[0:6])
             except TypeError:
                 raise err
-        else:
-            warnings.warn('It is recommended that you install python-dateutil '
-                          'for improved datetime deserialization.')
-            raise err
 
 
 class LocalDateTime(DateTime):
