@@ -317,7 +317,11 @@ def _get_value_for_key(key, obj, default):
     except (KeyError, AttributeError, IndexError, TypeError):
         try:
             attr = getattr(obj, key)
-            return attr() if callable(attr) else attr
+            if callable(attr):
+                attr = attr()
+            if attr is None:
+                return default
+            return attr
         except AttributeError:
             return default
     return default
