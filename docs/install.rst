@@ -28,6 +28,13 @@ To install the latest pre-release version from the PyPI:
 
     $ pip install -U marshmallow --pre
 
+
+To install marshmallow with the recommended soft dependencies:
+
+::
+
+    $ pip install -U marshmallow[reco]
+
 Get the Bleeding Edge Version
 -----------------------------
 
