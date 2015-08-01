@@ -5,7 +5,7 @@ import decimal
 
 import pytest
 
-from marshmallow import fields, utils, Schema
+from marshmallow import fields, utils, Schema, validates
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
@@ -740,6 +740,28 @@ class TestSchemaDeserialization:
         assert isinstance(result, User)
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/253
+    def test_validators_run_before_make_object(self):
+        class UserSchema(Schema):
+            name = fields.String()
+
+            @validates('name')
+            def validate_name(self, value):
+                if len(value) < 3:
+                    raise ValidationError('Name too short')
+
+            def make_object(self, data):
+                return User(**data)
+
+        user_dict = {'name': 'foo'}
+        result, errors = UserSchema().load(user_dict)
+        assert isinstance(result, User)
+        assert result.name == 'foo'
+
+        invalid = {'name': 'fo'}
+        result, errors = UserSchema().load(invalid)
+        assert errors['name'][0] == 'Name too short'
 
     def test_make_object_many(self):
         class SimpleUserSchema3(Schema):

@@ -9,6 +9,10 @@ Features:
 - If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
 - Add ``load_only`` and ``dump_only`` class Meta options. Thanks :user:`kelvinhammond`.
 
+Bug fixes:
+
+- `make_object` is only called after all validators and postprocessors have finished (:issue:`253`). Thanks :user:`sunsongxp` for reporting.
+
 2.0.0b4 (2015-07-07)
 ++++++++++++++++++++
 
