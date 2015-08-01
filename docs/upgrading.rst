@@ -297,6 +297,44 @@ Use ``self.context`` to access a schema's context within a ``Method`` field.
         def writes_about_bikes(self, user):
             return 'bicycle' in self.context['blog'].title.lower()
 
+
+Error Messages for URL and Email Address Validation
+***************************************************
+
+The default error messages for URL and email validation were changed in 2.0.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, validate
+
+    class UserSchema(Schema):
+        email = fields.Str(validate=validate.Email())
+        homepage = fields.Str(validate=validate.URL())
+
+    schema = UserSchema()
+    invalid_data = {'email': 'foo', 'homepage': 'bar'}
+
+    # 1.0
+    schema.validate(invalid_data)
+    # {'email': ['"foo" is not a valid email address.'], 'homepage': ['"bar" is not a valid URL.']}
+
+    # 2.0
+    schema.validate(invalid_data)
+    # {'email': ['Invalid email address.'], 'homepage': ['Invalid URL.']}
+
+
+You can get the old messages by passing the ``error`` argument to the validators.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        email = fields.Str(validate=validate.Email(
+            error='"{input}" is not a valid email address.'
+        ))
+        homepage = fields.Str(validate=validate.URL(
+            error='"{input}" is not a valid URL.'
+        ))
+
 More
 ****
 
