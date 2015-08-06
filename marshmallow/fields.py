@@ -710,7 +710,8 @@ class DateTime(Field):
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If `None`, defaults to "iso".
+        or a date format string. If `None`, "iso" is used for serialization while deserialization will be attempted with
+        dateutil.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
@@ -762,18 +763,26 @@ class DateTime(Field):
         err = ValidationError(getattr(self, 'error', None) or msg)
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise err
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
         func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise err
-        else:
+        elif type(value) is str:
             try:
                 return dt.datetime(*time.strptime(value, self.dateformat)[0:6])
             except TypeError:
                 raise err
+        elif utils.dateutil_available:
+            try:
+                return utils.from_datestring(value)
+            except TypeError:
+                raise err
+        else:
+            warnings.warn('It is recommended that you install python-dateutil '
+                          'for improved datetime deserialization.')
+            raise err
 
 
 class LocalDateTime(DateTime):
