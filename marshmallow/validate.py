@@ -66,10 +66,10 @@ class Email(object):
         Error message to raise in case of a validation error.
     """
     USER_REGEX = re.compile(
-        r"(^[-!#$%&'*+/=?^_`{}|~0-9\w]+(\.[-!#$%&'*+/=?^_`{}|~0-9\w]+)*$"  # dot-atom
+        r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
         # quoted-string
         r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-        r'|\\[\001-\011\013\014\016-\177])*"$)', re.IGNORECASE | re.UNICODE)
+        r'|\\[\001-\011\013\014\016-\177])*"$)', re.IGNORECASE)
 
     DOMAIN_REGEX = re.compile(
         # domain
@@ -77,7 +77,7 @@ class Email(object):
         r'(?:[A-Z]{2,6}|[A-Z0-9-]{2,})$'
         # literal form, ipv4 address (SMTP 4.1.3)
         r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE | re.UNICODE)
+        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
 
     DOMAIN_WHITELIST = ('localhost',)
 

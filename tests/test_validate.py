@@ -88,8 +88,6 @@ def test_url_relative_invalid(invalid_url):
     "!#$%&'*+-/=?^_`{}|~@example.org",
     'niceandsimple@[64.233.160.0]',
     'niceandsimple@localhost',
-    u'josé@blah.com',
-    u'δοκ.ιμή@παράδειγμα.δοκιμή',
 ])
 def test_email_valid(valid_email):
     validator = validate.Email()
