@@ -16,6 +16,7 @@ Bug fixes:
 Other changes:
 
 - Change default error messages for ``URL`` and ``Email`` validators so that they don't include user input (:issue:`255`).
+- ``Email`` validator permits email addresses with non-ASCII characters, as per RFC 6530 (:issue:`221`). Thanks :user:`lextoumbourou` for reporting and :user:`mwstobo` for sending the patch.
 
 2.0.0b4 (2015-07-07)
 ++++++++++++++++++++

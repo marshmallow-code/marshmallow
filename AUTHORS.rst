@@ -38,3 +38,4 @@ Contributors (chronological)
 - Alex Morken `@alexmorken <https://github.com/alexmorken>`_
 - Sergey Polzunov `@traut <https://github.com/traut>`_
 - Kelvin Hammond `@kelvinhammond <https://github.com/kelvinhammond>`_
+- Matt Stobo `@mwstobo <https://github.com/mwstobo>`_
