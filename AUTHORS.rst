@@ -39,3 +39,4 @@ Contributors (chronological)
 - Sergey Polzunov `@traut <https://github.com/traut>`_
 - Kelvin Hammond `@kelvinhammond <https://github.com/kelvinhammond>`_
 - Matt Stobo `@mwstobo <https://github.com/mwstobo>`_
+- Max Orhai `@max-orhai <https://github.com/max-orhai>`_

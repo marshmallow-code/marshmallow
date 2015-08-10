@@ -8,6 +8,8 @@ Features:
 
 - If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
 - Add ``load_only`` and ``dump_only`` class Meta options. Thanks :user:`kelvinhammond`.
+- If a ``Nested`` field is required, recursively validate any required fields in the nested schema (:issue:`235`). Thanks :user:`max-orhai`.
+- Improve error message if a list of dicts is not passed to a ``Nested`` field for which ``many=True``. Thanks again :user:`max-orhai`.
 
 Bug fixes:
 
