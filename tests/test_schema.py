@@ -1685,7 +1685,7 @@ class TestNestedSchema:
             BadNestedFieldSchema().dump(blog)
 
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/188
-    def test_invalid_type_passed_to_nested_many_field(self):
+    def test_invalid_type_passed_to_nested_field(self):
         class InnerSchema(Schema):
             foo = fields.Field()
 
@@ -1699,8 +1699,47 @@ class TestNestedSchema:
 
         result = sch.load({'inner': 'invalid'})
         assert 'inner' in result.errors
-        assert result.errors['inner'][0] == 'Data must be a dict, got a str'
+        assert result.errors['inner'] == ['Expected a collection of dicts, got a str.']
 
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema)
+
+        schema = OuterSchema()
+        _, errors = schema.load({'inner': 1})
+        assert errors['inner'] == ['Data must be a dict, got a int']
+
+    def test_missing_required_nested_field(self):
+        class Inner(Schema):
+            inner_req = fields.Field(required='Oops')
+            inner_not_req = fields.Field()
+            inner_bad = fields.Integer(required='Int plz')
+
+        class Middle(Schema):
+            middle_req = fields.Nested(Inner, required=True)
+            middle_req_2 = fields.Nested(Inner, required=True)
+            middle_not_req = fields.Nested(Inner)
+            middle_field = fields.Field(required='middlin')
+
+        class Outer(Schema):
+            outer_req = fields.Nested(Middle, required=True)
+            outer_many_req = fields.Nested(Middle, required=True, many=True)
+            outer_not_req = fields.Nested(Middle)
+            outer_many_not_req = fields.Nested(Middle, many=True)
+
+        outer = Outer()
+        expected = {
+            'outer_many_req': {0: {'middle_req': {'inner_bad': ['Int plz'],
+                                                   'inner_req': ['Oops']},
+                                    'middle_req_2': {'inner_bad': ['Int plz'],
+                                                     'inner_req': ['Oops']}},
+                                'middle_field': ['middlin']},
+             'outer_req': {'middle_field': ['middlin'],
+                           'middle_req': {'inner_bad': ['Int plz'],
+                                          'inner_req': ['Oops']},
+                           'middle_req_2': {'inner_bad': ['Int plz'],
+                                            'inner_req': ['Oops']}}}
+        data, errors = outer.load({})
+        assert errors == expected
 
 class TestSelfReference:
 
