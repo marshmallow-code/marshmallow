@@ -777,7 +777,7 @@ class DateTime(Field):
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
-            except TypeError:
+            except (TypeError, AttributeError):
                 raise err
         else:
             warnings.warn('It is recommended that you install python-dateutil '
