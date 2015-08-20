@@ -10,9 +10,12 @@ python:
   - "2.6"
   - "pypy"
 
+before_install:
+  - pip install -U pip
+
 install:
   - pip install -U -r dev-requirements.txt
-  - pip install -U .
+  - pip install -U .[reco]
 
 before_script:
   - flake8 .

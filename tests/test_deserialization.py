@@ -5,7 +5,7 @@ import decimal
 
 import pytest
 
-from marshmallow import fields, utils, Schema
+from marshmallow import fields, utils, Schema, validates
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
@@ -741,6 +741,28 @@ class TestSchemaDeserialization:
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/253
+    def test_validators_run_before_make_object(self):
+        class UserSchema(Schema):
+            name = fields.String()
+
+            @validates('name')
+            def validate_name(self, value):
+                if len(value) < 3:
+                    raise ValidationError('Name too short')
+
+            def make_object(self, data):
+                return User(**data)
+
+        user_dict = {'name': 'foo'}
+        result, errors = UserSchema().load(user_dict)
+        assert isinstance(result, User)
+        assert result.name == 'foo'
+
+        invalid = {'name': 'fo'}
+        result, errors = UserSchema().load(invalid)
+        assert errors['name'][0] == 'Name too short'
+
     def test_make_object_many(self):
         class SimpleUserSchema3(Schema):
             name = fields.String()
@@ -836,7 +858,7 @@ class TestSchemaDeserialization:
         }
         result, errors = AliasingUserSerializer().load(data)
         assert errors
-        assert errors['username'] == [u'"foobar.com" is not a valid email address.']
+        assert errors['username'] == ['Invalid email address.']
 
     def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
         class AliasingUserSerializer(Schema):
@@ -849,7 +871,7 @@ class TestSchemaDeserialization:
             'years': 'abc'
         }
         result, errors = AliasingUserSerializer().load(data)
-        assert errors['UserName'] == [u'"foobar.com" is not a valid email address.']
+        assert errors['UserName'] == [u'Invalid email address.']
         assert errors['years'] == [u"invalid literal for int() with base 10: 'abc'"]
 
     def test_deserialize_with_load_from_param(self):
@@ -1004,7 +1026,7 @@ class TestSchemaDeserialization:
             ])
         _, errors = MySchema().load({'email': 'foo'})
         assert len(errors['email']) == 2
-        assert 'not a valid email address' in errors['email'][0]
+        assert 'Invalid email address.' in errors['email'][0]
 
     def test_multiple_errors_can_be_stored_for_a_url_field(self):
         def validate_with_bool(val):
@@ -1016,7 +1038,7 @@ class TestSchemaDeserialization:
             ])
         _, errors = MySchema().load({'url': 'foo'})
         assert len(errors['url']) == 2
-        assert 'not a valid URL' in errors['url'][0]
+        assert 'Invalid URL.' in errors['url'][0]
 
     def test_required_value_only_passed_to_validators_if_provided(self):
         class MySchema(Schema):

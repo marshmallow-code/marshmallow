@@ -64,7 +64,7 @@ class URL(Validator):
         r'(?::\d+)?)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
-    default_message = '"{input}" is not a valid URL.'
+    default_message = 'Invalid URL.'
 
     def __init__(self, relative=False, error=None):
         self.relative = relative
@@ -84,8 +84,6 @@ class URL(Validator):
         regex = self.RELATIVE_URL_REGEX if self.relative else self.URL_REGEX
 
         if not regex.search(value):
-            if regex.search('http://' + value):
-                message += ' Did you mean: "http://{0}"?'.format(value)
             raise ValidationError(message)
 
         return value
@@ -99,10 +97,10 @@ class Email(Validator):
     """
 
     USER_REGEX = re.compile(
-        r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*$"  # dot-atom
+        r"(^[-!#$%&'*+/=?^_`{}|~0-9\w]+(\.[-!#$%&'*+/=?^_`{}|~0-9\w]+)*$"  # dot-atom
         # quoted-string
         r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-        r'|\\[\001-\011\013\014\016-\177])*"$)', re.IGNORECASE)
+        r'|\\[\001-\011\013\014\016-\177])*"$)', re.IGNORECASE | re.UNICODE)
 
     DOMAIN_REGEX = re.compile(
         # domain
@@ -110,11 +108,11 @@ class Email(Validator):
         r'(?:[A-Z]{2,6}|[A-Z0-9-]{2,})$'
         # literal form, ipv4 address (SMTP 4.1.3)
         r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
+        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE | re.UNICODE)
 
     DOMAIN_WHITELIST = ('localhost',)
 
-    default_message = '"{input}" is not a valid email address.'
+    default_message = 'Invalid email address.'
 
     def __init__(self, error=None):
         self.error = error or self.default_message

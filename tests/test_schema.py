@@ -57,7 +57,7 @@ def test_dump_with_strict_mode_raises_error(SchemaClass):
     assert exc.field_names[0] == 'email'
 
     assert type(exc.messages) == dict
-    assert exc.messages == {'email': ['"invalid-email" is not a valid email address.']}
+    assert exc.messages == {'email': ['Invalid email address.']}
 
 def test_dump_resets_errors():
     class MySchema(Schema):
@@ -66,10 +66,10 @@ def test_dump_resets_errors():
     schema = MySchema()
     result = schema.dump(User('Joe', email='notvalid'))
     assert len(result.errors['email']) == 1
-    assert 'notvalid' in result.errors['email'][0]
+    assert 'Invalid email address.' in result.errors['email'][0]
     result = schema.dump(User('Steve', email='__invalid'))
     assert len(result.errors['email']) == 1
-    assert '__invalid' in result.errors['email'][0]
+    assert 'Invalid email address.' in result.errors['email'][0]
 
 def test_load_resets_errors():
     class MySchema(Schema):
@@ -78,10 +78,10 @@ def test_load_resets_errors():
     schema = MySchema()
     result = schema.load({'name': 'Joe', 'email': 'notvalid'})
     assert len(result.errors['email']) == 1
-    assert 'notvalid' in result.errors['email'][0]
+    assert 'Invalid email address.' in result.errors['email'][0]
     result = schema.load({'name': 'Joe', 'email': '__invalid'})
     assert len(result.errors['email']) == 1
-    assert '__invalid' in result.errors['email'][0]
+    assert 'Invalid email address.' in result.errors['email'][0]
 
 def test_dump_resets_error_fields():
     class MySchema(Schema):
@@ -337,7 +337,7 @@ class TestValidate:
         with pytest.raises(ValidationError) as excinfo:
             s.validate({'email': 'bad-email'})
         exc = excinfo.value
-        assert exc.messages == {'email': ['"bad-email" is not a valid email address.']}
+        assert exc.messages == {'email': ['Invalid email address.']}
         assert type(exc.fields[0]) == fields.Email
 
     def test_validate_required(self):
@@ -424,7 +424,7 @@ def test_stores_invalid_url_error(SchemaClass):
     user = {'name': 'Steve', 'homepage': 'www.foo.com'}
     result = SchemaClass().load(user)
     assert "homepage" in result.errors
-    expected = ['"www.foo.com" is not a valid URL. Did you mean: "http://www.foo.com"?']
+    expected = ['Invalid URL.']
     assert result.errors['homepage'] == expected
 
 @pytest.mark.parametrize('SchemaClass',
@@ -438,7 +438,7 @@ def test_stored_invalid_email():
     u = {'name': 'John', 'email': 'johnexample.com'}
     s = UserSchema().load(u)
     assert "email" in s.errors
-    assert s.errors['email'][0] == '"johnexample.com" is not a valid email address.'
+    assert s.errors['email'][0] == 'Invalid email address.'
 
 def test_integer_field():
     u = User("John", age=42.3)
@@ -575,13 +575,13 @@ def test_invalid_email():
     u = User('Joe', email='bademail')
     s = UserSchema().dump(u)
     assert 'email' in s.errors
-    assert 'bademail' in s.errors['email'][0]
+    assert 'Invalid email address.' in s.errors['email'][0]
 
 def test_invalid_url():
     u = User('Joe', homepage='badurl')
     s = UserSchema().dump(u)
     assert 'homepage' in s.errors
-    assert 'badurl' in s.errors['homepage'][0]
+    assert 'Invalid URL.' in s.errors['homepage'][0]
 
 def test_invalid_selection():
     u = User('Jonhy')
@@ -629,8 +629,8 @@ def test_load_errors_with_many():
     data, errors = ErrorSchema(many=True).load(data)
     assert 0 in errors
     assert 2 in errors
-    assert 'bademail' in errors[0]['email'][0]
-    assert 'anotherbademail' in errors[2]['email'][0]
+    assert 'Invalid email address.' in errors[0]['email'][0]
+    assert 'Invalid email address.' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
     with pytest.raises(ValueError):
@@ -1629,7 +1629,7 @@ class TestNestedSchema:
         )
         assert "email" in errors['user']
         assert len(errors['user']['email']) == 1
-        assert "not a valid email address." in errors['user']['email'][0]
+        assert "Invalid email address." in errors['user']['email'][0]
         # No problems with collaborators
         assert "collaborators" not in errors
 
@@ -1685,7 +1685,7 @@ class TestNestedSchema:
             BadNestedFieldSchema().dump(blog)
 
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/188
-    def test_invalid_type_passed_to_nested_many_field(self):
+    def test_invalid_type_passed_to_nested_field(self):
         class InnerSchema(Schema):
             foo = fields.Field()
 
@@ -1699,8 +1699,47 @@ class TestNestedSchema:
 
         result = sch.load({'inner': 'invalid'})
         assert 'inner' in result.errors
-        assert result.errors['inner'][0] == 'Data must be a dict, got a str'
+        assert result.errors['inner'] == ['Expected a collection of dicts, got a str.']
 
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema)
+
+        schema = OuterSchema()
+        _, errors = schema.load({'inner': 1})
+        assert errors['inner'] == ['Data must be a dict, got a int']
+
+    def test_missing_required_nested_field(self):
+        class Inner(Schema):
+            inner_req = fields.Field(required='Oops')
+            inner_not_req = fields.Field()
+            inner_bad = fields.Integer(required='Int plz')
+
+        class Middle(Schema):
+            middle_req = fields.Nested(Inner, required=True)
+            middle_req_2 = fields.Nested(Inner, required=True)
+            middle_not_req = fields.Nested(Inner)
+            middle_field = fields.Field(required='middlin')
+
+        class Outer(Schema):
+            outer_req = fields.Nested(Middle, required=True)
+            outer_many_req = fields.Nested(Middle, required=True, many=True)
+            outer_not_req = fields.Nested(Middle)
+            outer_many_not_req = fields.Nested(Middle, many=True)
+
+        outer = Outer()
+        expected = {
+            'outer_many_req': {0: {'middle_req': {'inner_bad': ['Int plz'],
+                                                   'inner_req': ['Oops']},
+                                    'middle_req_2': {'inner_bad': ['Int plz'],
+                                                     'inner_req': ['Oops']}},
+                                'middle_field': ['middlin']},
+             'outer_req': {'middle_field': ['middlin'],
+                           'middle_req': {'inner_bad': ['Int plz'],
+                                          'inner_req': ['Oops']},
+                           'middle_req_2': {'inner_bad': ['Int plz'],
+                                            'inner_req': ['Oops']}}}
+        data, errors = outer.load({})
+        assert errors == expected
 
 class TestSelfReference:
 

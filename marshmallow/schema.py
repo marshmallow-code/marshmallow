@@ -632,7 +632,6 @@ class BaseSchema(base.SchemaABC):
         else:
             preprocessors = []
 
-        postprocess_funcs = [self.make_object] if postprocess else []
         result = self._unmarshal(
             data,
             self.fields,
@@ -640,7 +639,6 @@ class BaseSchema(base.SchemaABC):
             strict=self.strict,
             validators=validators,
             preprocess=preprocessors,
-            postprocess=postprocess_funcs,
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
@@ -653,6 +651,12 @@ class BaseSchema(base.SchemaABC):
             self.__error_handler__(errors, data)
 
         result = self._invoke_load_processors(POST_LOAD, result, many)
+
+        if postprocess:
+            if many:
+                result = [self.make_object(each) for each in result]
+            else:
+                result = self.make_object(result)
 
         return result, errors
 

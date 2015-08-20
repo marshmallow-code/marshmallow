@@ -8,6 +8,17 @@ Features:
 
 - If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
 - Add ``load_only`` and ``dump_only`` class Meta options. Thanks :user:`kelvinhammond`.
+- If a ``Nested`` field is required, recursively validate any required fields in the nested schema (:issue:`235`). Thanks :user:`max-orhai`.
+- Improve error message if a list of dicts is not passed to a ``Nested`` field for which ``many=True``. Thanks again :user:`max-orhai`.
+
+Bug fixes:
+
+- `make_object` is only called after all validators and postprocessors have finished (:issue:`253`). Thanks :user:`sunsongxp` for reporting.
+
+Other changes:
+
+- Change default error messages for ``URL`` and ``Email`` validators so that they don't include user input (:issue:`255`).
+- ``Email`` validator permits email addresses with non-ASCII characters, as per RFC 6530 (:issue:`221`). Thanks :user:`lextoumbourou` for reporting and :user:`mwstobo` for sending the patch.
 
 2.0.0b4 (2015-07-07)
 ++++++++++++++++++++
