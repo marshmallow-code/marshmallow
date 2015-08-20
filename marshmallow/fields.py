@@ -769,7 +769,7 @@ class DateTime(Field):
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise err
-        elif type(value) is str:
+        elif type(value) is str and self.dateformat:
             try:
                 return dt.datetime(*time.strptime(value, self.dateformat)[0:6])
             except TypeError:
