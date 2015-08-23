@@ -1706,7 +1706,7 @@ class TestNestedSchema:
 
         schema = OuterSchema()
         _, errors = schema.load({'inner': 1})
-        assert errors['inner'] == ['Data must be a dict, got a int']
+        assert errors['inner']['_schema'] == ['Data must be a dict, got a int']
 
     def test_missing_required_nested_field(self):
         class Inner(Schema):

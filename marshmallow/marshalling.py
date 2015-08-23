@@ -248,13 +248,20 @@ class Unmarshaller(ErrorStore):
                 key = fields_dict[attr_name].attribute or attr_name
                 try:
                     raw_value = data.get(attr_name, missing)
-                except AttributeError:
+                except AttributeError:  # Input data is not a dict
                     msg = 'Data must be a dict, got a {0}'.format(data.__class__.__name__)
-                    raise ValidationError(
-                        msg,
-                        field_names=[attr_name],
-                        fields=[field_obj]
-                    )
+                    errors = self.get_errors(index=index)
+                    if strict:
+                        raise ValidationError(
+                            msg,
+                            field_names=[SCHEMA],
+                            fields=[]
+                        )
+                    else:
+                        errors = self.get_errors()
+                        errors.setdefault(SCHEMA, []).append(msg)
+                        # Input data type is incorrect, so we can bail out early
+                        break
                 field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
                     field_name = field_obj.load_from

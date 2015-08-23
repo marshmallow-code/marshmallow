@@ -1158,3 +1158,24 @@ def test_required_message_can_be_changed(message):
     expected = [message] if isinstance(message, basestring) else message
     assert expected == errs['age']
     assert data == {}
+
+# Regression test for https://github.com/marshmallow-code/marshmallow/issues/261
+def test_deserialize_doesnt_raise_exception_if_strict_is_false_and_input_type_is_incorrect():
+    class MySchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+    data, errs = MySchema().load([])
+    assert '_schema' in errs
+    assert errs['_schema'] == ['Data must be a dict, got a list']
+
+
+def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorrect():
+    class MySchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+    with pytest.raises(ValidationError) as excinfo:
+        MySchema(strict=True).load([])
+    assert 'Data must be a dict, got a list' in str(excinfo)
+    exc = excinfo.value
+    assert exc.field_names == ['_schema']
+    assert exc.fields == []

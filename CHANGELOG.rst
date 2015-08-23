@@ -14,6 +14,7 @@ Features:
 Bug fixes:
 
 - `make_object` is only called after all validators and postprocessors have finished (:issue:`253`). Thanks :user:`sunsongxp` for reporting.
+- If an invalid type is passed to ``Schema`` and ``strict=False``, store a ``_schema`` error in the errors dict, rather than raising an exception (:issue:`261`). Thanks :user:`density` for reporting.
 
 Other changes:
 
