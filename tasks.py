@@ -12,7 +12,7 @@ build_dir = os.path.join(docs_dir, '_build')
 def test():
     """Run the tests."""
     flake()
-    run('python setup.py test', echo=True, pty=True)
+    run('python setup.py test', echo=True)
 
 @task
 def flake():
@@ -48,7 +48,7 @@ def docs(clean=False, browse=False, watch=False):
     """Build the docs."""
     if clean:
         clean_docs()
-    run("sphinx-build %s %s" % (docs_dir, build_dir), pty=True)
+    run("sphinx-build %s %s" % (docs_dir, build_dir), echo=True)
     if browse:
         browse_docs()
     if watch:
@@ -69,7 +69,7 @@ def watch_docs():
 
 @task
 def readme(browse=False):
-    run("rst2html.py README.rst > README.html", pty=True)
+    run("rst2html.py README.rst > README.html")
     if browse:
         webbrowser.open_new_tab('README.html')
 
