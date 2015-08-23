@@ -741,6 +741,16 @@ class TestSchemaDeserialization:
         assert result.name == 'Monty'
         assert_almost_equal(result.age, 42.3)
 
+    # https://github.com/marshmallow-code/marshmallow/issues/243
+    def test_make_object_not_called_if_data_are_invalid(self):
+        class MySchema(Schema):
+            email = fields.Email()
+
+            def make_object(self, data):
+                assert False, 'make_object should not have been called'
+        result, errors = MySchema().load({'email': 'invalid'})
+        assert 'email' in errors
+
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/253
     def test_validators_run_before_make_object(self):
         class UserSchema(Schema):

@@ -598,9 +598,15 @@ class BaseSchema(base.SchemaABC):
         """Override-able method that defines how to create the final deserialization
         output. Defaults to noop (i.e. just return ``data`` as is).
 
+        .. note::
+
+            This method will only be invoked if when the input data are completely valid.
+
         :param dict data: The deserialized data.
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 2.0.0
+            Only invoked when data are valid.
         """
         return data
 
@@ -652,7 +658,7 @@ class BaseSchema(base.SchemaABC):
 
         result = self._invoke_load_processors(POST_LOAD, result, many)
 
-        if postprocess:
+        if not errors and postprocess:
             if many:
                 result = [self.make_object(each) for each in result]
             else:
