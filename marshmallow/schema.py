@@ -257,8 +257,6 @@ class BaseSchema(base.SchemaABC):
         instead of failing silently and storing the errors.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
-    :param bool skip_missing: If `True`, don't include key:value pairs in
-        serialized results if ``value`` is `None`.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
     :param tuple load_only: A list or tuple of fields to skip during serialization

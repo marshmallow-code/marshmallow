@@ -184,6 +184,7 @@ Schema-level Validation
 You can register schema-level validation functions for a :class:`Schema` using the :meth:`marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
 
 .. code-block:: python
+    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
 
@@ -268,16 +269,15 @@ However, if you want to specify how values are accessed from an object, you can 
         return obj.get(key, default)
 
 
-Handler Functions as Class Members
-----------------------------------
+Error Handlers and Accessors as Class Members
+---------------------------------------------
 
-You can register a Schema's error handler, validators, and accessor as optional class members. This might be useful for defining an abstract `Schema` class.
+You can register a Schema's error handler and accessor as optional class members. This might be useful for defining an abstract `Schema` class.
 
 .. code-block:: python
 
     class BaseSchema(Schema):
         __error_handler__ = handle_errors  # A function
-        __validators__ = [validate_schema]  # List of functions
         __accessor__ = get_from_dict  # A function
 
 
@@ -362,3 +362,15 @@ Our application schemas can now inherit from our custom schema class.
     result = ser.dump(user)
     result.data  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
 
+Using Context
+-------------
+
+The ``context`` attribute of a `Schema` is a general-purpose store for extra information that may be needed for (de)serialization. It may be used in both ``Schema`` and ``Field`` methods.
+
+.. code-block:: python
+
+    schema = UserSchema()
+    # Make current HTTP request available to
+    # custom fields, schema methods, schema validators, etc.
+    schema.context['request'] = request
+    schema.dump(user)
