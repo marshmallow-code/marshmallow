@@ -4,6 +4,10 @@ Changelog
 2.0.0x (unreleased)
 +++++++++++++++++++
 
+Features:
+
+- *Backwards-incompatible*: ``fields.Field._deserialize`` now takes ``attr`` and ``data`` as arguments (:issue:`172`). Thanks :user:`alexmic` for the suggestion.
+
 2.0.0b5 (2015-08-23)
 ++++++++++++++++++++
 
