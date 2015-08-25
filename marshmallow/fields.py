@@ -818,6 +818,11 @@ class DateTime(Field):
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise err
+        elif self.dateformat:
+            try:
+                return dt.datetime.strptime(value, self.dateformat)
+            except (TypeError, AttributeError, ValueError):
+                raise err
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
