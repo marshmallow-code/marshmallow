@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields
+from marshmallow import fields, Schema
 from marshmallow.marshalling import missing
 
-from tests.base import ALL_FIELDS
+from tests.base import ALL_FIELDS, User
 
 class TestFieldAliases:
 
@@ -39,6 +39,32 @@ class TestField:
     def test_error_raised_if_uncallable_validator_passed(self):
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
+
+    def test_custom_field_receives_attr_and_obj(self, user):
+        class MyField(fields.Field):
+            def _deserialize(self, val, attr, data):
+                assert attr == 'name'
+                assert data['foo'] == 42
+                return val
+
+        class MySchema(Schema):
+            name = MyField()
+
+        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        assert result.data == {'name': 'Monty'}
+
+    def test_custom_field_receives_load_from_if_set(self, user):
+        class MyField(fields.Field):
+            def _deserialize(self, val, attr, data):
+                assert attr == 'name'
+                assert data['foo'] == 42
+                return val
+
+        class MySchema(Schema):
+            Name = MyField(load_from='name')
+
+        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        assert result.data == {'Name': 'Monty'}
 
 
 class TestMetadata:

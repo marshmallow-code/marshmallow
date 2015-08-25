@@ -143,7 +143,7 @@ Similar to pre-processing and post-processing methods, schema validators are now
         if data['field_a'] < data['field_b']:
             raise ValidationError('field_a must be greater than field_b')
 
-    # 2.0 Deprecated API
+    # 2.0 API
     from marshmallow import Schema, fields, validator, ValidationError
 
     class MySchema(Schema):
@@ -194,33 +194,6 @@ Use ``ValidationError`` instead of ``MarshallingError`` and ``UnmarshallingError
 
 The :exc:`MarshallingError` and :exc:`UnmarshallingError` exceptions are deprecated in favor of a single :exc:`ValidationError <marshmallow.exceptions.ValidationError>`. Users who have written custom fields or are using ``strict`` mode will need to change their code accordingly.
 
-Custom Fields
--------------
-
-Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.ValidationError>` in their `_deserialize` and `_serialize` methods when a validation error occurs.
-
-.. code-block:: python
-    :emphasize-lines: 17
-
-    from marshmallow import fields, ValidationError
-    from marshmallow.exceptions import UnmarshallingError
-
-    # In 1.0, an UnmarshallingError was raised
-    class PasswordField(fields.Field):
-
-        def _deserialize(self, val):
-            if not len(val) >= 6:
-                raise UnmarshallingError('Password too short.')
-            return val
-
-    # In 2.0, an ValidationError is raised
-    class PasswordField(fields.Field):
-
-        def _deserialize(self, val):
-            if not len(val) >= 6:
-                raise ValidationError('Password too short.')
-            return val
-
 Handle ``ValidationError`` in strict mode
 -----------------------------------------
 
@@ -265,6 +238,37 @@ In 2.0, `strict` mode was improved so that you can access all error messages for
     #     'name': ['Missing data for required field.']
     # }
 
+
+
+Custom Fields
+*************
+
+Two changes must be made to make your custom fields compatible with version 2.0.
+
+- The `_deserialize <marshmallow.fields.Field._deserialize>` method of custom fields now receives ``attr`` (the key corresponding to the value to be deserialized) and the raw input ``data`` as arguments.
+- Custom fields should raise :exc:`ValidationError <marshmallow.exceptions.ValidationError>` in their `_deserialize` and `_serialize` methods when a validation error occurs.
+
+.. code-block:: python
+
+    from marshmallow import fields, ValidationError
+    from marshmallow.exceptions import UnmarshallingError
+
+    # In 1.0, an UnmarshallingError was raised
+    class PasswordField(fields.Field):
+
+        def _deserialize(self, val):
+            if not len(val) >= 6:
+                raise UnmarshallingError('Password too short.')
+            return val
+
+    # In 2.0, _deserialize receives attr and data,
+    # and a ValidationError is raised
+    class PasswordField(fields.Field):
+
+        def _deserialize(self, val, attr, data):
+            if not len(val) >= 6:
+                raise ValidationError('Password too short.')
+            return val
 
 
 Use ``OneOf`` instead of ``fields.Select``
