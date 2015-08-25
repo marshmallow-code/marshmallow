@@ -8,6 +8,10 @@ Features:
 
 - *Backwards-incompatible*: ``fields.Field._deserialize`` now takes ``attr`` and ``data`` as arguments (:issue:`172`). Thanks :user:`alexmic` and :user:`kevinastone` for the suggestion.
 
+Bug fixes:
+
+- If a date format string is passed to a ``DateTime`` field, it is always used for deserialization (:issue:`248`). Thanks :user:`bartaelterman` and :user:`praveen-p`.
+
 Support:
 
 - Documentation: Add "Using Context" section to "Extending Schemas" page (:issue:`224`).
