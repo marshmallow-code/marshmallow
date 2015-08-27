@@ -248,6 +248,17 @@ class TestFieldSerialization:
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero() and m7s.is_signed()
 
+    def test_boolean_field_serialization(self, user):
+        field = fields.Boolean()
+
+        user.truthy = 'non-falsy-ish'
+        user.falsy = 'false'
+        user.none = None
+
+        assert field.serialize('truthy', user) == True
+        assert field.serialize('falsy', user) == False
+        assert field.serialize('none', user) == None
+
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
             fields.Function("uncallable")

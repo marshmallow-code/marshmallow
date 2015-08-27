@@ -648,15 +648,20 @@ class Boolean(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    #: Values that will deserialize to `True`. If an empty set, any non-falsy
+    #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
     #  value will deserialize to `True`.
     truthy = set()
-    #: Values that will deserialize to `False`.
+    #: Values that will (de)serialize to `False`.
     falsy = set(['False', 'false', '0', 'null', 'None'])
 
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
+        elif value in self.truthy:
+            return True
+        elif value in self.falsy:
+            return False
+
         return bool(value)
 
     def _deserialize(self, value, attr, data):
