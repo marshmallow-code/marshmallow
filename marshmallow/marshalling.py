@@ -245,7 +245,6 @@ class Unmarshaller(ErrorStore):
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
                     continue
-                key = fields_dict[attr_name].attribute or attr_name
                 try:
                     raw_value = data.get(attr_name, missing)
                 except AttributeError:  # Input data is not a dict
@@ -285,6 +284,7 @@ class Unmarshaller(ErrorStore):
                     index=(index if index_errors else None)
                 )
                 if value is not missing:
+                    key = fields_dict[attr_name].attribute or attr_name
                     items.append((key, value))
             ret = dict_class(items)
         else:
