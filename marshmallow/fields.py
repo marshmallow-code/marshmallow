@@ -1205,6 +1205,10 @@ class QuerySelect(Field):
         keygetter = 'id'
         field = fields.QuerySelect(query, keygetter)
 
+    .. warning::
+        (De)serializing ths field is O(N). Do not use this with queries that
+        return large result sets.
+
     :param callable query: The query which will be executed at each
         (de)serialization to find the list of valid objects and keys.
     :param keygetter: Can be a callable or a string. In the former case, it must
@@ -1273,6 +1277,10 @@ class QuerySelectList(QuerySelect):
     versa. If any of the items in the list cannot be found in the
     query, this will result in a validation error. This field
     is ORM-agnostic.
+
+    .. warning::
+        (De)serializing ths field is O(N\ :sup:`2`). Do not use this with queries that
+        return large result sets.
 
     :param callable query: Same as :class:`QuerySelect`.
     :param keygetter: Same as :class:`QuerySelect`.
