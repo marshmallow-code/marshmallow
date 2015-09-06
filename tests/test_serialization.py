@@ -11,6 +11,8 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
 from tests.base import User, DummyModel, ALL_FIELDS
+from tests.shapes import Rectangle, shape_schema_disambiguation, Triangle
+
 
 class DateTimeList:
     def __init__(self, dtimes):
@@ -681,3 +683,44 @@ def test_serializing_named_tuple_with_meta():
     serialized = PointSerializer().dump(p)
     assert serialized.data['x'] == 4
     assert serialized.data['y'] == 2
+
+
+def test_serializing_polyfield_rectangle():
+    rect = Rectangle("blue", 4, 10)
+    Sticker = namedtuple('Sticker', ['shape', 'image'])
+    marshmallow_sticker = Sticker(rect, "marshmallow.png")
+    field = fields.PolyField(shape_schema_disambiguation)
+    rect_dict = field.serialize('shape', marshmallow_sticker)
+
+    assert rect_dict == {"length": 4, "width": 10, "color": "blue"}
+
+
+def test_serializing_polyfield_None():
+    rect = Rectangle(None, 4, 10)
+    Sticker = namedtuple('Sticker', ['shape', 'image'])
+    marshmallow_sticker = Sticker(rect, "marshmallow.png")
+    field = fields.PolyField(shape_schema_disambiguation)
+    rect_dict = field.serialize('shape', marshmallow_sticker)
+
+    assert rect_dict == {"length": 4, "width": 10, "color": None}
+
+
+def test_serializing_polyfield_many():
+    rect = Rectangle("blue", 4, 10)
+    tri = Triangle("red", 1, 100)
+    StickerCollection = namedtuple('StickerCollection', ['shapes', 'image'])
+    marshmallow_sticker_collection = StickerCollection([rect, tri], "marshmallow.png")
+    field = fields.PolyField(shape_schema_disambiguation, many=True)
+    shapes = field.serialize('shapes', marshmallow_sticker_collection)
+    expected_shapes = [
+        {"length": 4, "width": 10, "color": "blue"},
+        {"base": 1, "height": 100, "color": "red"}
+    ]
+    assert shapes == expected_shapes
+
+
+def test_invalid_polyfield():
+    Sticker = namedtuple('Sticker', ['shape', 'image'])
+    with pytest.raises(TypeError):
+        field = fields.PolyField(shape_schema_disambiguation)
+        field.serialize('shape', Sticker())

@@ -9,6 +9,8 @@ from marshmallow import fields, utils, Schema, validates
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
+from tests.shapes import Rectangle, shape_schema_disambiguation, Triangle
+
 from tests.base import (
     assert_almost_equal,
     assert_date_equal,
@@ -1209,3 +1211,74 @@ def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorr
     exc = excinfo.value
     assert exc.field_names == ['_schema']
     assert exc.fields == []
+
+
+class TestPolyField(object):
+
+    class ContrivedShapeClass(object):
+        def __init__(self, main, others):
+            self.main = main
+            self.others = others
+
+        def __eq__(self, other):
+            return self.__dict__ == other.__dict__
+
+    class ContrivedShapeClassSchema(Schema):
+        main = fields.PolyField(shape_schema_disambiguation, required=True)
+        others = fields.PolyField(shape_schema_disambiguation, allow_none=True, many=True)
+
+        def make_object(self, data):
+            return TestPolyField.ContrivedShapeClass(
+                data.get('main'),
+                data.get('others')
+            )
+
+    def test_deserialize_polyfield(self):
+        original = self.ContrivedShapeClass(
+            Rectangle('blue', 1, 100),
+            [Rectangle('pink', 4, 93), Triangle('red', 8, 45)]
+        )
+
+        data, errors = self.ContrivedShapeClassSchema(strict=True).load(
+            {'main': {'color': 'blue',
+                      'length': 1,
+                      'width': 100},
+             'others': [
+                 {'color': 'pink',
+                  'length': 4,
+                  'width': 93},
+                 {'color': 'red',
+                  'base': 8,
+                  'height': 45}]}
+        )
+        assert not errors
+        assert data == original
+
+    def test_deserialize_polyfield_none(self):
+        original = self.ContrivedShapeClass(
+            Rectangle("blue", 1, 100),
+            None
+        )
+
+        data, errors = self.ContrivedShapeClassSchema(strict=True).load(
+            {'main': {'color': 'blue',
+                      'length': 1,
+                      'width': 100},
+             'others': None}
+        )
+        assert not errors
+        assert data == original
+
+    def test_deserailize_polyfield_none_required(self):
+        with pytest.raises(ValidationError):
+            self.ContrivedShapeClassSchema(strict=True).load(
+                {'main': None,
+                 'others': None}
+            )
+
+    def test_deserialize_polyfield_invalid(self):
+        with pytest.raises(ValidationError):
+            self.ContrivedShapeClassSchema(strict=True).load(
+                {'main': {'color': 'blue', 'something': 4},
+                 'others': None}
+            )
