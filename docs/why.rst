@@ -12,7 +12,7 @@ Here are just a few reasons why you might use marshmallow.
 Agnostic.
 ---------
 
-Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice (for an example, see `Flask-Marshmallow <https://github.com/marshmallow-code/flask-marshmallow>`_).
+Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice (for examples, see `Flask-Marshmallow <https://github.com/marshmallow-code/flask-marshmallow>`_, and `Django REST Marshmallow <http://tomchristie.github.io/django-rest-marshmallow/>`_).
 
 Concise, familiar syntax.
 -------------------------
