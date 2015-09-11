@@ -393,7 +393,7 @@ class Nested(Field):
 
         data, errors = self.schema.load(value)
         if errors:
-            raise ValidationError(errors)
+            raise ValidationError(errors, data=data)
         return data
 
     def _validate_missing(self, value):

@@ -71,7 +71,9 @@ class ErrorStore(object):
                 errors[field_name] = err.messages
             else:
                 errors.setdefault(field_name, []).extend(err.messages)
-            value = missing
+            # When a Nested field fails validation, the marshalled data is stored
+            # on the ValidationError's data attribute
+            value = err.data or missing
         return value
 
 class Marshaller(ErrorStore):

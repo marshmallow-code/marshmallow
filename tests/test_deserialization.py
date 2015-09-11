@@ -1156,6 +1156,28 @@ class TestValidation:
             MethodSerializer(strict=True).load({'name': 'joseph'})
         assert 'is False' in str(excinfo)
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/269
+    def test_nested_data_is_stored_when_validation_fails(self):
+        class SchemaA(Schema):
+            x = fields.Integer()
+            y = fields.Integer(validate=lambda n: n > 0)
+            z = fields.Integer()
+
+        class SchemaB(Schema):
+            w = fields.Integer()
+            n = fields.Nested(SchemaA)
+
+        sch = SchemaB()
+
+        data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': 89, 'z': None}})
+        assert 'z' in errors['n']
+        assert data == {'w': 90, 'n': {'x': 90, 'y': 89}}
+
+        data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
+        assert 'y' in errors['n']
+        assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
+
+
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.Enum, fields.FormattedString]]
 @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
 def test_required_field_failure(FieldClass):  # noqa
