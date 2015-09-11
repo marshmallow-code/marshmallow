@@ -1303,7 +1303,7 @@ class QuerySelectList(QuerySelect):
             'The QuerySelectList field is deprecated.',
             category=DeprecationWarning
         )
-        super(QuerySelectList).__init__(*args, **kwargs)
+        super(QuerySelectList, self).__init__(*args, **kwargs)
 
     def _serialize(self, value, attr, obj):
         items = [self.keygetter(v) for v in value]
