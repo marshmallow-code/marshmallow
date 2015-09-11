@@ -224,8 +224,16 @@ class TestFieldDeserialization:
 
     def test_string_field_deserialization(self):
         field = fields.String()
-        assert field.deserialize(42) == '42'
+        assert field.deserialize('foo') == 'foo'
         assert field.deserialize(b'foo') == 'foo'
+
+        # https://github.com/marshmallow-code/marshmallow/issues/231
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42)
+        assert excinfo.value.args[0] == 'Not a valid string.'
+
+        with pytest.raises(ValidationError):
+            field.deserialize({})
 
     def test_boolean_field_deserialization(self):
         field = fields.Boolean()
@@ -239,7 +247,16 @@ class TestFieldDeserialization:
         assert field.deserialize('0') is False
         assert field.deserialize(1) is True
         assert field.deserialize(0) is False
-        assert field.deserialize(-1) is True
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({})
+        assert excinfo.value.args[0] == 'Not a valid boolean.'
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42)
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize('invalid-string')
 
     def test_boolean_field_deserialization_with_custom_truthy_values(self):
         class MyBoolean(fields.Boolean):
@@ -259,11 +276,8 @@ class TestFieldDeserialization:
         field = MyBoolean()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
-        expected_msg = '{0!r} is not in {1} nor {2}'.format(
-            text_type(in_val), field.truthy, field.falsy
-        )
+        expected_msg = 'Not a valid boolean.'
         assert str(excinfo.value.args[0]) == expected_msg
-
         field2 = MyBoolean(error='bad input')
         with pytest.raises(ValidationError) as excinfo:
             field2.deserialize(in_val)

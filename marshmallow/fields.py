@@ -509,6 +509,9 @@ class String(Field):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value, attr, data):
+        if not isinstance(value, basestring):
+            msg = 'Not a valid string.'
+            raise ValidationError(getattr(self, 'error', None) or msg)
         result = utils.ensure_text_type(value)
         return result
 
@@ -647,12 +650,11 @@ class Boolean(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-
     #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
     #  value will deserialize to `True`.
-    truthy = set()
+    truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
     #: Values that will (de)serialize to `False`.
-    falsy = set(['False', 'false', '0', 'null', 'None'])
+    falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -665,25 +667,19 @@ class Boolean(Field):
         return bool(value)
 
     def _deserialize(self, value, attr, data):
-        if not value:
-            return False
-        try:
-            value_str = text_type(value)
-        except TypeError as error:
-            msg = getattr(self, 'error', None) or text_type(error)
-            raise ValidationError(msg)
-        if value_str in self.falsy:
-            return False
-        elif self.truthy:
-            if value_str in self.truthy:
-                return True
-            else:
-                default_message = '{0!r} is not in {1} nor {2}'.format(
-                    value_str, self.truthy, self.falsy
-                )
-                msg = getattr(self, 'error', None) or default_message
-                raise ValidationError(msg)
-        return True
+        if not self.truthy:
+            return bool(value)
+        else:
+            try:
+                if value in self.truthy:
+                    return True
+                elif value in self.falsy:
+                    return False
+            except TypeError:
+                pass
+        raise ValidationError(
+            getattr(self, 'error', None) or 'Not a valid boolean.'
+        )
 
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
