@@ -9,6 +9,10 @@ Features:
 - *Backwards-incompatible*: ``fields.Field._deserialize`` now takes ``attr`` and ``data`` as arguments (:issue:`172`). Thanks :user:`alexmic` and :user:`kevinastone` for the suggestion.
 - Allow a ``Field's`` ``attribute`` to be modified during deserialization (:issue:`266`). Thanks :user:`floqqi`.
 
+Deprecation/Removals:
+
+- ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`).
+
 Bug fixes:
 
 - If a date format string is passed to a ``DateTime`` field, it is always used for deserialization (:issue:`248`). Thanks :user:`bartaelterman` and :user:`praveen-p`.

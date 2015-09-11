@@ -1206,8 +1206,9 @@ class QuerySelect(Field):
         field = fields.QuerySelect(query, keygetter)
 
     .. warning::
-        (De)serializing ths field is O(N). Do not use this with queries that
-        return large result sets.
+        Be careful when using this with queries that return large result sets.
+        The (de)serialization of this field has an algorithmic complexity of O(N),
+        where N is the number of query results.
 
     :param callable query: The query which will be executed at each
         (de)serialization to find the list of valid objects and keys.
@@ -1219,8 +1220,13 @@ class QuerySelect(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionadded:: 1.2.0
+    .. deprecated:: 2.0.0
     """
     def __init__(self, query, keygetter, **kwargs):
+        warnings.warn(
+            'The QuerySelect field is deprecated.',
+            category=DeprecationWarning
+        )
         self.query = query
         self.keygetter = keygetter if callable(keygetter) else attrgetter(keygetter)
         super(QuerySelect, self).__init__(**kwargs)
@@ -1279,8 +1285,10 @@ class QuerySelectList(QuerySelect):
     is ORM-agnostic.
 
     .. warning::
-        (De)serializing ths field is O(N\ :sup:`2`). Do not use this with queries that
-        return large result sets.
+        Be careful when using this with queries that return large result sets.
+        The (de)serialization of this field has an algorithmic complexity of O(N*M),
+        where N is the number of query results and M is the length of the list to
+        (de)serialize.
 
     :param callable query: Same as :class:`QuerySelect`.
     :param keygetter: Same as :class:`QuerySelect`.
@@ -1288,7 +1296,15 @@ class QuerySelectList(QuerySelect):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionadded:: 1.2.0
+    .. deprecated:: 2.0.0
     """
+    def __init__(self, *args, **kwargs):
+        warnings.warn(
+            'The QuerySelectList field is deprecated.',
+            category=DeprecationWarning
+        )
+        super(QuerySelectList).__init__(*args, **kwargs)
+
     def _serialize(self, value, attr, obj):
         items = [self.keygetter(v) for v in value]
 
