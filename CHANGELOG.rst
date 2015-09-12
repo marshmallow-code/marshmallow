@@ -10,11 +10,14 @@ Features:
 - Allow a ``Field's`` ``attribute`` to be modified during deserialization (:issue:`266`). Thanks :user:`floqqi`.
 - Allow partially-valid data to be return for ``Nested`` fields (:issue:`269`). Thanks :user:`jomag` for the suggestion.
 - Add ``Schema.on_bind_field`` hook which allows a ``Schema`` to modify its fields when they are bound.
+- Stricter validation of string, boolean, and number fields (:issue:`231`). Thanks :user:`touilleMan` for the suggestion.
+- Improve consistency of error messages.
 
 Deprecation/Removals:
 
 - Remove ``Schema.validator``, ``Schema.preprocessor``, and ``Schema.data_handler``. Use ``validates_schema``, ``pre_load``, and ``post_dump`` instead.
 - ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`).
+- ``utils.get_callable_name`` is removed.
 
 Bug fixes:
 

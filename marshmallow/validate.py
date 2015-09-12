@@ -64,7 +64,7 @@ class URL(Validator):
         r'(?::\d+)?)?'  # optional port
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
-    default_message = 'Invalid URL.'
+    default_message = 'Not a valid URL.'
 
     def __init__(self, relative=False, error=None):
         self.relative = relative
@@ -112,7 +112,7 @@ class Email(Validator):
 
     DOMAIN_WHITELIST = ('localhost',)
 
-    default_message = 'Invalid email address.'
+    default_message = 'Not a valid email address.'
 
     def __init__(self, error=None):
         self.error = error or self.default_message

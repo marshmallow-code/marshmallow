@@ -91,7 +91,7 @@ def test_url_repr():
     assert (
         repr(validate.URL(relative=False, error=None)) ==
         '<URL(relative=False, error={0!r})>'
-        .format('Invalid URL.')
+        .format('Not a valid URL.')
     )
     assert (
         repr(validate.URL(relative=True, error='foo')) ==
@@ -147,7 +147,7 @@ def test_email_repr():
     assert (
         repr(validate.Email(error=None)) ==
         '<Email(error={0!r})>'
-        .format('Invalid email address.')
+        .format('Not a valid email address.')
     )
     assert (
         repr(validate.Email(error='foo')) ==

@@ -178,12 +178,12 @@ class TestValidatesDecorator:
         errors = schema.validate({'foo': 42})
         assert 'foo' in errors
         assert len(errors['foo']) == 1
-        assert 'lambda' in errors['foo'][0]
+        assert 'Invalid value.' in errors['foo'][0]
 
         errors = schema.validate({'bar': 3})
         assert 'bar' in errors
         assert len(errors['bar']) == 1
-        assert 'lambda' in errors['bar'][0]
+        assert 'Invalid value.' in errors['bar'][0]
 
         errors = schema.validate({'bar': 1})
         assert 'bar' in errors

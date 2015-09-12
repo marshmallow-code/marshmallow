@@ -323,18 +323,6 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
-def get_callable_name(func):
-    """Given a callable, return its name. Handles `functools.partial` objects
-    and class-based callables.
-    """
-    if inspect.isfunction(func):
-        return func.__name__
-    elif isinstance(func, functools.partial):
-        return func.func.__name__
-    else:  # Callable class
-        return func.__class__.__name__
-
-
 def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`.
     """
