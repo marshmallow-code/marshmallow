@@ -13,6 +13,7 @@ Features:
 
 Deprecation/Removals:
 
+- Remove ``Schema.validator``, ``Schema.preprocessor``, and ``Schema.data_handler``. Use ``validates_schema``, ``pre_load``, and ``post_dump`` instead.
 - ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`).
 
 Bug fixes:
@@ -23,6 +24,7 @@ Support:
 
 - Documentation: Add "Using Context" section to "Extending Schemas" page (:issue:`224`).
 - Include tests and docs in release tarballs (:issue:`201`).
+- Test against Python 3.5.
 
 2.0.0b5 (2015-08-23)
 ++++++++++++++++++++
