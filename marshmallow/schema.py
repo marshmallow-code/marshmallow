@@ -79,7 +79,6 @@ class SchemaMeta(type):
     names to field objects. Also sets the ``opts`` class attribute, which is
     the Schema class's ``class Meta`` options.
     """
-    FUNC_LISTS = ('__validators__', '__data_handlers__', '__preprocessors__')
 
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get('Meta')
@@ -136,18 +135,7 @@ class SchemaMeta(type):
     def __init__(self, name, bases, attrs):
         super(SchemaMeta, self).__init__(name, bases, attrs)
         class_registry.register(name, self)
-        self._copy_func_attrs()
         self._resolve_processors()
-
-    def _copy_func_attrs(self):
-        """Copy non-shareable class function lists
-
-        Need to copy validators, data handlers, and preprocessors lists so they
-        are not shared among subclasses and ancestors.
-        """
-        for attr in self.FUNC_LISTS:
-            attr_copy = copy.copy(getattr(self, attr))
-            setattr(self, attr, attr_copy)
 
     def _resolve_processors(self):
         """Add in the decorated processors
@@ -284,16 +272,6 @@ class BaseSchema(base.SchemaABC):
 
     #: Custom error handler function. May be `None`.
     __error_handler__ = None
-
-    #  NOTE: The below class attributes must initially be `None` so that
-    #  every subclass references a different list of functions
-
-    #: List of registered post-processing functions.
-    __data_handlers__ = None
-    #: List of registered schema-level validation functions.
-    __validators__ = None
-    #: List of registered pre-processing functions.
-    __preprocessors__ = None
     #: Function used to get values of an object.
     __accessor__ = None
 
@@ -332,8 +310,9 @@ class BaseSchema(base.SchemaABC):
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
 
         .. versionchanged:: 2.0.0
-            `__preprocessors__` and `__data_handlers__` are deprecated. Use
-            `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump` instead.
+            `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
+            `marshmallow.decorators.validates_schema`,
+            `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump`.
         """
         pass
 
@@ -376,12 +355,6 @@ class BaseSchema(base.SchemaABC):
         if self._marshal.errors and callable(self.__error_handler__):
             self.__error_handler__(self._marshal.errors, obj)
 
-        # invoke registered callbacks
-        # NOTE: these callbacks will mutate the data
-        if self.__data_handlers__:
-            for callback in self.__data_handlers__:
-                if callable(callback):
-                    data = callback(self, data, obj)
         return data
 
     @property
@@ -417,61 +390,6 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 0.7.0
         """
         cls.__error_handler__ = func
-        return func
-
-    @classmethod
-    def data_handler(cls, func):
-        """Decorator that registers a post-processing function.
-        The function receives the :class:`Schema` instance, the serialized
-        data, and the original object as arguments and should return the
-        processed data.
-
-        .. versionadded:: 0.7.0
-        .. deprecated:: 2.0.0
-            Use `marshmallow.post_dump` instead.
-        """
-        warnings.warn(
-            'Schema.data_handler is deprecated. Use the marshmallow.post_dump decorator '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__data_handlers__ = cls.__data_handlers__ or []
-        cls.__data_handlers__.append(func)
-        return func
-
-    @classmethod
-    def validator(cls, func):
-        """Decorator that registers a schema validation function to be applied during
-        deserialization. The function receives the :class:`Schema` instance and the
-        input data as arguments and should return `False` if validation fails.
-
-        .. versionadded:: 1.0
-        .. deprecated:: 2.0.0
-            Use `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` instead.
-        """
-        warnings.warn(
-            'Schema.validator is deprecated. Use the marshmallow.validates_schema decorator '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__validators__ = cls.__validators__ or []
-        cls.__validators__.append(func)
-        return func
-
-    @classmethod
-    def preprocessor(cls, func):
-        """Decorator that registers a preprocessing function to be applied during
-        deserialization. The function receives the :class:`Schema` instance and the
-        input data as arguments and should return the modified dictionary of data.
-
-        .. versionadded:: 1.0
-        .. deprecated:: 2.0.0
-            Use `marshmallow.pre_load` instead.
-        """
-        warnings.warn(
-            'Schema.preprocessor is deprecated. Use the marshmallow.pre_load decorator '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__preprocessors__ = cls.__preprocessors__ or []
-        cls.__preprocessors__.append(func)
         return func
 
     @classmethod
@@ -624,25 +542,11 @@ class BaseSchema(base.SchemaABC):
 
         data = self._invoke_load_processors(PRE_LOAD, data, many)
 
-        # Bind self as the first argument of validators and preprocessors
-        if self.__validators__:
-            validators = [partial(func, self)
-                         for func in self.__validators__]
-        else:
-            validators = []
-        if self.__preprocessors__:
-            preprocessors = [partial(func, self)
-                            for func in self.__preprocessors__]
-        else:
-            preprocessors = []
-
         result = self._unmarshal(
             data,
             self.fields,
             many=many,
             strict=self.strict,
-            validators=validators,
-            preprocess=preprocessors,
             dict_class=self.dict_class,
             index_errors=self.opts.index_errors,
         )
