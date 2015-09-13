@@ -15,8 +15,8 @@ before_install:
   - pip install -U pip
 
 install:
-  - pip install -U -r dev-requirements.txt
   - pip install -U .[reco]
+  - pip install -U -r dev-requirements.txt
 
 before_script:
   - flake8 .
