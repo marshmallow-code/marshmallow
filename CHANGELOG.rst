@@ -9,6 +9,7 @@ Features:
 - *Backwards-incompatible*: ``fields.Field._deserialize`` now takes ``attr`` and ``data`` as arguments (:issue:`172`). Thanks :user:`alexmic` and :user:`kevinastone` for the suggestion.
 - Allow a ``Field's`` ``attribute`` to be modified during deserialization (:issue:`266`). Thanks :user:`floqqi`.
 - Allow partially-valid data to be return for ``Nested`` fields (:issue:`269`). Thanks :user:`jomag` for the suggestion.
+- Add ``Schema.bind_field`` hook which allows schema to modify its fields when they are bound.
 
 Deprecation/Removals:
 

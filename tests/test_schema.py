@@ -294,6 +294,17 @@ def test_default_many_symmetry():
     s_many.loads(s_many.dumps([u1, u2]).data)
 
 
+def test_bind_field_hook():
+    class MySchema(Schema):
+        foo = fields.Str()
+
+        def bind_field(self, field_name, field_obj):
+            field_obj.metadata['fname'] = field_name
+
+    schema = MySchema()
+    assert schema.fields['foo'].metadata['fname'] == 'foo'
+
+
 class TestValidate:
 
     def test_validate_returns_errors_dict(self):

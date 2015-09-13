@@ -689,6 +689,10 @@ class BaseSchema(base.SchemaABC):
         self.fields = ret
         return self.fields
 
+    def bind_field(self, field_name, field_obj):
+        """Hook to modify a field when it is bound to the `Schema`. No-op by default."""
+        return None
+
     def __set_field_attrs(self, fields_dict):
         """Update fields with values from schema.
 
@@ -701,6 +705,7 @@ class BaseSchema(base.SchemaABC):
                     field_obj.load_only = True
                 if field_name in self.dump_only:
                     field_obj.dump_only = True
+                self.bind_field(field_name, field_obj)
                 field_obj._add_to_schema(field_name, self)
             except TypeError:
                 # field declared as a class, not an instance
