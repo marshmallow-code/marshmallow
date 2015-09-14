@@ -271,3 +271,22 @@ class TestValidatesSchemaDecorator:
         assert '_schema' in errors[0]
         assert len(errors[0]['_schema']) == 1
         assert errors[0]['_schema'][0] == {'code': 'invalid_field'}
+
+    # https://github.com/marshmallow-code/marshmallow/issues/273
+    def test_allow_arbitrary_field_names_in_error(self):
+
+        class MySchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
+
+            @validates_schema(pass_original=True)
+            def strict_fields(self, data, original_data):
+                for key in original_data:
+                    if key not in self.fields:
+                        raise ValidationError('Unknown field name', key)
+
+        schema = MySchema()
+        errors = schema.validate({'foo': 2, 'baz': 42})
+        assert 'baz' in errors
+        assert len(errors['baz']) == 1
+        assert errors['baz'][0] == 'Unknown field name'
