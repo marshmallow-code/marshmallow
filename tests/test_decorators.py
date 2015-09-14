@@ -35,13 +35,13 @@ def test_decorated_processors():
             item['value'] = cls.TAG + item['value']
 
         # Explicitly raw, post dump, instance method, return modified item.
-        @post_dump(raw=True)
+        @post_dump(pass_many=True)
         def add_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return {key: data}
 
         # Explicitly raw, pre load, instance method, return modified item.
-        @pre_load(raw=True)
+        @pre_load(pass_many=True)
         def remove_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return data[key]
@@ -51,7 +51,7 @@ def test_decorated_processors():
             return 'data' if many else 'datum'
 
         # Explicitly not raw, pre load, instance method, modify in place.
-        @pre_load(raw=False)
+        @pre_load(pass_many=False)
         def remove_tag(self, item):
             item['value'] = item['value'][len(self.TAG):]
 
@@ -204,7 +204,7 @@ class TestValidatesSchemaDecorator:
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
-            @validates_schema(raw=True)
+            @validates_schema(pass_many=True)
             def validate_raw(self, data, many):
                 if many:
                     if len(data) < 2:
@@ -242,7 +242,7 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validates_schema(raw=True, pass_original=True)
+            @validates_schema(pass_many=True, pass_original=True)
             def check_unknown_fields(self, data, original_data, many):
                 def check(datum):
                     for key, val in datum.items():

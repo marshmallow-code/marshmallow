@@ -591,8 +591,8 @@ class BaseSchema(base.SchemaABC):
         )
         self._invoke_field_validators(data=result, many=many)
         # Run schema-level migration
-        self._invoke_validators(raw=True, data=result, original_data=data, many=many)
-        self._invoke_validators(raw=False, data=result, original_data=data, many=many)
+        self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
+        self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
@@ -703,18 +703,18 @@ class BaseSchema(base.SchemaABC):
         return ret
 
     def _invoke_dump_processors(self, tag_name, data, many):
-        # The raw post-dump processors may do things like add an envelope, so
-        # invoke those after invoking the non-raw processors which will expect
+        # The pass_many post-dump processors may do things like add an envelope, so
+        # invoke those after invoking the non-pass_many processors which will expect
         # to get a list of items.
-        data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
-        data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
+        data = self._invoke_processors(tag_name, pass_many=False, data=data, many=many)
+        data = self._invoke_processors(tag_name, pass_many=True, data=data, many=many)
         return data
 
     def _invoke_load_processors(self, tag_name, data, many):
-        # This has to invert the order of the dump processors, so run the raw
+        # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
-        data = self._invoke_processors(tag_name, raw=True, data=data, many=many)
-        data = self._invoke_processors(tag_name, raw=False, data=data, many=many)
+        data = self._invoke_processors(tag_name, pass_many=True, data=data, many=many)
+        data = self._invoke_processors(tag_name, pass_many=False, data=data, many=many)
         return data
 
     def _invoke_field_validators(self, data, many):
@@ -755,12 +755,12 @@ class BaseSchema(base.SchemaABC):
                         field_obj=field_obj
                     )
 
-    def _invoke_validators(self, raw, data, original_data, many):
-        for attr_name in self.__processors__[(VALIDATES_SCHEMA, raw)]:
+    def _invoke_validators(self, pass_many, data, original_data, many):
+        for attr_name in self.__processors__[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, raw)]
+            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, pass_many)]
             pass_original = validator_kwargs.get('pass_original', False)
-            if raw:
+            if pass_many:
                 validator = partial(validator, many=many)
             if many:
                 for idx, item in enumerate(data):
@@ -773,14 +773,14 @@ class BaseSchema(base.SchemaABC):
                     pass_original=pass_original)
         return None
 
-    def _invoke_processors(self, tag_name, raw, data, many):
-        for attr_name in self.__processors__[(tag_name, raw)]:
+    def _invoke_processors(self, tag_name, pass_many, data, many):
+        for attr_name in self.__processors__[(tag_name, pass_many)]:
             # This will be a bound method.
             processor = getattr(self, attr_name)
 
             # It's probably not worth the extra LoC to hoist this branch out of
             # the loop.
-            if raw:
+            if pass_many:
                 data = utils.if_none(processor(data, many), data)
             elif many:
                 data = [utils.if_none(processor(item), item) for item in data]
