@@ -94,7 +94,7 @@ class TestUnmarshaller:
         ]
         with pytest.raises(ValidationError) as excinfo:
             unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
-        assert 'Invalid email address.' in str(excinfo)
+        assert 'Not a valid email address.' in str(excinfo)
 
     def test_stores_errors(self, unmarshal):
         data = {'email': 'invalid-email'}

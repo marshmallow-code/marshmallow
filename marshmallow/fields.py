@@ -171,13 +171,10 @@ class Field(FieldABC):
         """
         errors = []
         for validator in self.validators:
-            func_name = utils.get_callable_name(validator)
-            msg = 'Validator {0}({1}) is False'.format(
-                func_name, value
-            )
             try:
                 if validator(value) is False:
-                    raise ValidationError(getattr(self, 'error', None) or msg)
+                    default_message = 'Invalid value.'
+                    raise ValidationError(getattr(self, 'error', None) or default_message)
             except ValidationError as err:
                 if isinstance(err.messages, dict):
                     errors.append(err.messages)
@@ -509,6 +506,9 @@ class String(Field):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value, attr, data):
+        if not isinstance(value, basestring):
+            msg = 'Not a valid string.'
+            raise ValidationError(getattr(self, 'error', None) or msg)
         result = utils.ensure_text_type(value)
         return result
 
@@ -516,9 +516,10 @@ class String(Field):
 class UUID(String):
     """A UUID field."""
 
+    default_error = 'Not a valid UUID.'
+
     def _deserialize(self, value, attr, data):
-        msg = 'Could not deserialize {0!r} to a UUID object.'.format(value)
-        err = ValidationError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
@@ -533,6 +534,7 @@ class Number(Field):
     """
 
     num_type = float
+    default_error = 'Not a valid number.'
 
     def __init__(self, as_string=False, **kwargs):
         self.as_string = as_string
@@ -549,7 +551,7 @@ class Number(Field):
         try:
             return self._format_num(value)
         except (TypeError, ValueError) as err:
-            raise ValidationError(getattr(self, 'error', None) or text_type(err))
+            raise ValidationError(getattr(self, 'error', None) or self.default_error)
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object and returns the
@@ -574,6 +576,7 @@ class Integer(Number):
     """
 
     num_type = int
+    default_error = 'Not a valid integer.'
 
 
 class Decimal(Number):
@@ -638,7 +641,7 @@ class Decimal(Number):
             return super(Decimal, self)._validated(value)
         except decimal.InvalidOperation:
             raise ValidationError(
-                getattr(self, 'error', None) or 'Invalid decimal value.'
+                getattr(self, 'error', None) or self.default_error
             )
 
 
@@ -647,12 +650,11 @@ class Boolean(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-
     #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
     #  value will deserialize to `True`.
-    truthy = set()
+    truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
     #: Values that will (de)serialize to `False`.
-    falsy = set(['False', 'false', '0', 'null', 'None'])
+    falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -665,25 +667,19 @@ class Boolean(Field):
         return bool(value)
 
     def _deserialize(self, value, attr, data):
-        if not value:
-            return False
-        try:
-            value_str = text_type(value)
-        except TypeError as error:
-            msg = getattr(self, 'error', None) or text_type(error)
-            raise ValidationError(msg)
-        if value_str in self.falsy:
-            return False
-        elif self.truthy:
-            if value_str in self.truthy:
-                return True
-            else:
-                default_message = '{0!r} is not in {1} nor {2}'.format(
-                    value_str, self.truthy, self.falsy
-                )
-                msg = getattr(self, 'error', None) or default_message
-                raise ValidationError(msg)
-        return True
+        if not self.truthy:
+            return bool(value)
+        else:
+            try:
+                if value in self.truthy:
+                    return True
+                elif value in self.falsy:
+                    return False
+            except TypeError:
+                pass
+        raise ValidationError(
+            getattr(self, 'error', None) or 'Not a valid boolean.'
+        )
 
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
@@ -786,6 +782,7 @@ class DateTime(Field):
     DEFAULT_FORMAT = 'iso'
 
     localtime = False
+    default_error = 'Not a valid datetime.'
 
     def __init__(self, format=None, **kwargs):
         super(DateTime, self).__init__(**kwargs)
@@ -812,8 +809,7 @@ class DateTime(Field):
             return value.strftime(self.dateformat)
 
     def _deserialize(self, value, attr, data):
-        msg = 'Could not deserialize {0!r} to a datetime object.'.format(value)
-        err = ValidationError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise err
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
@@ -854,6 +850,7 @@ class Time(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    default_error = 'Not a valid time.'
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -869,8 +866,7 @@ class Time(Field):
 
     def _deserialize(self, value, attr, data):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
-        msg = 'Could not deserialize {0!r} to a time object.'.format(value)
-        err = ValidationError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:   # falsy values are invalid
             raise err
         try:
@@ -883,6 +879,7 @@ class Date(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+    default_error = 'Not a valid date.'
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -898,8 +895,7 @@ class Date(Field):
         """Deserialize an ISO8601-formatted date string to a
         :class:`datetime.date` object.
         """
-        msg = 'Could not deserialize {0!r} to a date object.'.format(value)
-        err = ValidationError(getattr(self, 'error', None) or msg)
+        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:  # falsy values are invalid
             raise err
         try:
@@ -926,6 +922,8 @@ class TimeDelta(Field):
     DAYS = 'days'
     SECONDS = 'seconds'
     MICROSECONDS = 'microseconds'
+
+    default_error = 'Not a valid period of time.'
 
     def __init__(self, precision='seconds', error=None, **kwargs):
         precision = precision.lower()
@@ -959,16 +957,14 @@ class TimeDelta(Field):
         try:
             value = int(value)
         except (TypeError, ValueError):
-            msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise ValidationError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or self.default_error)
 
         kwargs = {self.precision: value}
 
         try:
             return dt.timedelta(**kwargs)
         except OverflowError:
-            msg = '{0!r} cannot be interpreted as a valid period of time.'.format(value)
-            raise ValidationError(getattr(self, 'error', None) or msg)
+            raise ValidationError(getattr(self, 'error', None) or self.default_error)
 
 
 class Fixed(Number):

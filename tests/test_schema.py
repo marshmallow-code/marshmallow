@@ -57,7 +57,7 @@ def test_dump_with_strict_mode_raises_error(SchemaClass):
     assert exc.field_names[0] == 'email'
 
     assert type(exc.messages) == dict
-    assert exc.messages == {'email': ['Invalid email address.']}
+    assert exc.messages == {'email': ['Not a valid email address.']}
 
 def test_dump_resets_errors():
     class MySchema(Schema):
@@ -66,10 +66,10 @@ def test_dump_resets_errors():
     schema = MySchema()
     result = schema.dump(User('Joe', email='notvalid'))
     assert len(result.errors['email']) == 1
-    assert 'Invalid email address.' in result.errors['email'][0]
+    assert 'Not a valid email address.' in result.errors['email'][0]
     result = schema.dump(User('Steve', email='__invalid'))
     assert len(result.errors['email']) == 1
-    assert 'Invalid email address.' in result.errors['email'][0]
+    assert 'Not a valid email address.' in result.errors['email'][0]
 
 def test_load_resets_errors():
     class MySchema(Schema):
@@ -78,10 +78,10 @@ def test_load_resets_errors():
     schema = MySchema()
     result = schema.load({'name': 'Joe', 'email': 'notvalid'})
     assert len(result.errors['email']) == 1
-    assert 'Invalid email address.' in result.errors['email'][0]
+    assert 'Not a valid email address.' in result.errors['email'][0]
     result = schema.load({'name': 'Joe', 'email': '__invalid'})
     assert len(result.errors['email']) == 1
-    assert 'Invalid email address.' in result.errors['email'][0]
+    assert 'Not a valid email address.' in result.errors['email'][0]
 
 def test_dump_resets_error_fields():
     class MySchema(Schema):
@@ -348,7 +348,7 @@ class TestValidate:
         with pytest.raises(ValidationError) as excinfo:
             s.validate({'email': 'bad-email'})
         exc = excinfo.value
-        assert exc.messages == {'email': ['Invalid email address.']}
+        assert exc.messages == {'email': ['Not a valid email address.']}
         assert type(exc.fields[0]) == fields.Email
 
     def test_validate_required(self):
@@ -435,7 +435,7 @@ def test_stores_invalid_url_error(SchemaClass):
     user = {'name': 'Steve', 'homepage': 'www.foo.com'}
     result = SchemaClass().load(user)
     assert "homepage" in result.errors
-    expected = ['Invalid URL.']
+    expected = ['Not a valid URL.']
     assert result.errors['homepage'] == expected
 
 @pytest.mark.parametrize('SchemaClass',
@@ -449,7 +449,7 @@ def test_stored_invalid_email():
     u = {'name': 'John', 'email': 'johnexample.com'}
     s = UserSchema().load(u)
     assert "email" in s.errors
-    assert s.errors['email'][0] == 'Invalid email address.'
+    assert s.errors['email'][0] == 'Not a valid email address.'
 
 def test_integer_field():
     u = User("John", age=42.3)
@@ -586,13 +586,13 @@ def test_invalid_email():
     u = User('Joe', email='bademail')
     s = UserSchema().dump(u)
     assert 'email' in s.errors
-    assert 'Invalid email address.' in s.errors['email'][0]
+    assert 'Not a valid email address.' in s.errors['email'][0]
 
 def test_invalid_url():
     u = User('Joe', homepage='badurl')
     s = UserSchema().dump(u)
     assert 'homepage' in s.errors
-    assert 'Invalid URL.' in s.errors['homepage'][0]
+    assert 'Not a valid URL.' in s.errors['homepage'][0]
 
 def test_invalid_selection():
     u = User('Jonhy')
@@ -640,8 +640,8 @@ def test_load_errors_with_many():
     data, errors = ErrorSchema(many=True).load(data)
     assert 0 in errors
     assert 2 in errors
-    assert 'Invalid email address.' in errors[0]['email'][0]
-    assert 'Invalid email address.' in errors[2]['email'][0]
+    assert 'Not a valid email address.' in errors[0]['email'][0]
+    assert 'Not a valid email address.' in errors[2]['email'][0]
 
 def test_error_raised_if_fields_option_is_not_list():
     with pytest.raises(ValueError):
@@ -1111,7 +1111,7 @@ class TestNestedSchema:
         )
         assert "email" in errors['user']
         assert len(errors['user']['email']) == 1
-        assert "Invalid email address." in errors['user']['email'][0]
+        assert 'Not a valid email address.' in errors['user']['email'][0]
         # No problems with collaborators
         assert "collaborators" not in errors
 

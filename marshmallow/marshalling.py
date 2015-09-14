@@ -10,7 +10,6 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow import utils
 from marshmallow.utils import missing
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -158,6 +157,8 @@ class Unmarshaller(ErrorStore):
     .. versionadded:: 1.0.0
     """
 
+    default_schema_validation_error = 'Invalid data.'
+
     def _run_validator(self, validator_func, output,
             original_data, fields_dict, index=None,
             strict=False, many=False, pass_original=False):
@@ -167,10 +168,7 @@ class Unmarshaller(ErrorStore):
             else:
                 res = validator_func(output)
             if res is False:
-                func_name = utils.get_callable_name(validator_func)
-                raise ValidationError('Schema validator {0}({1}) is False'.format(
-                    func_name, dict(output)
-                ))
+                raise ValidationError(self.default_schema_validation_error)
         except ValidationError as err:
             errors = self.get_errors(index=index)
             # Store or reraise errors

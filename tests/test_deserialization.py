@@ -62,19 +62,26 @@ class TestFieldDeserialization:
     [
         'bad',
         '',
+        {},
     ])
     def test_invalid_float_field_deserialization(self, in_val):
         field = fields.Float()
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
+        assert excinfo.value.args[0] == 'Not a valid number.'
 
     def test_integer_field_deserialization(self):
         field = fields.Integer()
         assert field.deserialize('42') == 42
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize('42.0')
+        assert excinfo.value.args[0] == 'Not a valid integer.'
         with pytest.raises(ValidationError):
             field.deserialize('bad')
+        assert excinfo.value.args[0] == 'Not a valid integer.'
+        with pytest.raises(ValidationError):
+            field.deserialize({})
+        assert excinfo.value.args[0] == 'Not a valid integer.'
 
     def test_decimal_field_deserialization(self):
         m1 = 12
@@ -92,7 +99,7 @@ class TestFieldDeserialization:
         assert field.deserialize(m3) == decimal.Decimal(1)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m4)
-        assert excinfo.value.args[0] == 'Invalid decimal value.'
+        assert excinfo.value.args[0] == 'Not a valid number.'
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
 
@@ -112,9 +119,10 @@ class TestFieldDeserialization:
         assert field.deserialize(m3) == decimal.Decimal(1)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m4)
-        assert excinfo.value.args[0] == 'Invalid decimal value.'
-        with pytest.raises(ValidationError):
+        assert excinfo.value.args[0] == 'Not a valid number.'
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Not a valid number.'
 
     def test_decimal_field_with_places_and_rounding(self):
         m1 = 12
@@ -224,8 +232,16 @@ class TestFieldDeserialization:
 
     def test_string_field_deserialization(self):
         field = fields.String()
-        assert field.deserialize(42) == '42'
+        assert field.deserialize('foo') == 'foo'
         assert field.deserialize(b'foo') == 'foo'
+
+        # https://github.com/marshmallow-code/marshmallow/issues/231
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42)
+        assert excinfo.value.args[0] == 'Not a valid string.'
+
+        with pytest.raises(ValidationError):
+            field.deserialize({})
 
     def test_boolean_field_deserialization(self):
         field = fields.Boolean()
@@ -239,7 +255,16 @@ class TestFieldDeserialization:
         assert field.deserialize('0') is False
         assert field.deserialize(1) is True
         assert field.deserialize(0) is False
-        assert field.deserialize(-1) is True
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({})
+        assert excinfo.value.args[0] == 'Not a valid boolean.'
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42)
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize('invalid-string')
 
     def test_boolean_field_deserialization_with_custom_truthy_values(self):
         class MyBoolean(fields.Boolean):
@@ -259,11 +284,8 @@ class TestFieldDeserialization:
         field = MyBoolean()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
-        expected_msg = '{0!r} is not in {1} nor {2}'.format(
-            text_type(in_val), field.truthy, field.falsy
-        )
+        expected_msg = 'Not a valid boolean.'
         assert str(excinfo.value.args[0]) == expected_msg
-
         field2 = MyBoolean(error='bad input')
         with pytest.raises(ValidationError) as excinfo:
             field2.deserialize(in_val)
@@ -285,7 +307,7 @@ class TestFieldDeserialization:
         field = fields.DateTime()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Could not deserialize {0!r} to a datetime object.'.format(in_value)
+        msg = 'Not a valid datetime.'.format(in_value)
         assert msg in str(excinfo)
 
     def test_custom_date_format_datetime_field_deserialization(self):
@@ -297,7 +319,7 @@ class TestFieldDeserialization:
         #deserialization should fail when datestring is not of same format
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(datestring)
-        msg = 'Could not deserialize {0!r} to a datetime object.'.format(datestring)
+        msg = 'Not a valid datetime.'.format(datestring)
         assert msg in str(excinfo)
         field = fields.DateTime(format='%H:%M:%S %Y-%m-%d')
         assert_datetime_equal(field.deserialize(datestring), dtime)
@@ -356,7 +378,7 @@ class TestFieldDeserialization:
         field = fields.Time()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_data)
-        msg = 'Could not deserialize {0!r} to a time object.'.format(in_data)
+        msg = 'Not a valid time.'
         assert msg in str(excinfo)
 
     def test_fixed_field_deserialization(self):
@@ -423,8 +445,7 @@ class TestFieldDeserialization:
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = '{0!r} cannot be interpreted as a valid period of time.'.format(in_value)
-        assert msg in str(excinfo)
+        assert excinfo.value.args[0] == 'Not a valid period of time.'
 
     def test_date_field_deserialization(self):
         field = fields.Date()
@@ -444,8 +465,8 @@ class TestFieldDeserialization:
         field = fields.Date()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Could not deserialize {0!r} to a date object.'.format(in_value)
-        assert msg in str(excinfo)
+        msg = 'Not a valid date.'
+        assert excinfo.value.args[0] == msg
 
     def test_price_field_deserialization(self):
         field = fields.Price()
@@ -454,11 +475,13 @@ class TestFieldDeserialization:
     def test_url_field_deserialization(self):
         field = fields.Url()
         assert field.deserialize('https://duckduckgo.com') == 'https://duckduckgo.com'
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize('badurl')
+        assert excinfo.value.args[0][0] == 'Not a valid URL.'
         # Relative URLS not allowed by default
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize('/foo/bar')
+        assert excinfo.value.args[0][0] == 'Not a valid URL.'
 
     def test_relative_url_field_deserialization(self):
         field = fields.Url(relative=True)
@@ -467,8 +490,9 @@ class TestFieldDeserialization:
     def test_email_field_deserialization(self):
         field = fields.Email()
         assert field.deserialize('foo@bar.com') == 'foo@bar.com'
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalidemail')
+        assert excinfo.value.args[0][0] == 'Not a valid email address.'
 
     def test_function_field_deserialization_is_noop_by_default(self):
         field = fields.Function(lambda x: None)
@@ -498,8 +522,8 @@ class TestFieldDeserialization:
         field = fields.UUID()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Could not deserialize {0!r} to a UUID object.'.format(in_value)
-        assert msg in str(excinfo)
+
+        assert excinfo.value.args[0] == 'Not a valid UUID.'
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):
@@ -644,7 +668,7 @@ class TestFieldDeserialization:
         assert field.deserialize('Valid') == 'Valid'
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
-        assert 'Validator <lambda>(invalid) is False' in str(excinfo)
+        assert excinfo.value.args[0][0] == 'Invalid value.'
         assert type(excinfo.value) == ValidationError
 
     def test_field_deserialization_with_user_validator_class_that_returns_bool(self):
@@ -658,7 +682,7 @@ class TestFieldDeserialization:
         assert field.deserialize('valid') == 'valid'
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
-        assert 'Validator MyValidator(invalid) is False' in str(excinfo)
+        assert 'Invalid value.' in str(excinfo)
 
     def test_field_deserialization_with_user_validator_that_raises_error_with_list(self):
         def validator(val):
@@ -701,7 +725,7 @@ class TestFieldDeserialization:
             assert field.deserialize('Valid') == 'Valid'
             with pytest.raises(ValidationError) as excinfo:
                 field.deserialize('invalid')
-            assert 'Validator <lambda>(invalid) is False' in str(excinfo)
+            assert 'Invalid value.' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
@@ -888,7 +912,7 @@ class TestSchemaDeserialization:
         }
         result, errors = AliasingUserSerializer().load(data)
         assert errors
-        assert errors['username'] == ['Invalid email address.']
+        assert errors['username'] == ['Not a valid email address.']
 
     def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
         class AliasingUserSerializer(Schema):
@@ -901,8 +925,8 @@ class TestSchemaDeserialization:
             'years': 'abc'
         }
         result, errors = AliasingUserSerializer().load(data)
-        assert errors['UserName'] == [u'Invalid email address.']
-        assert errors['years'] == [u"invalid literal for int() with base 10: 'abc'"]
+        assert errors['UserName'] == [u'Not a valid email address.']
+        assert errors['years'] == [u'Not a valid integer.']
 
     def test_deserialize_with_load_from_param(self):
         class AliasingUserSerializer(Schema):
@@ -1056,7 +1080,7 @@ class TestSchemaDeserialization:
             ])
         _, errors = MySchema().load({'email': 'foo'})
         assert len(errors['email']) == 2
-        assert 'Invalid email address.' in errors['email'][0]
+        assert 'Not a valid email address.' in errors['email'][0]
 
     def test_multiple_errors_can_be_stored_for_a_url_field(self):
         def validate_with_bool(val):
@@ -1068,7 +1092,7 @@ class TestSchemaDeserialization:
             ])
         _, errors = MySchema().load({'url': 'foo'})
         assert len(errors['url']) == 2
-        assert 'Invalid URL.' in errors['url'][0]
+        assert 'Not a valid URL.' in errors['url'][0]
 
     def test_required_value_only_passed_to_validators_if_provided(self):
         class MySchema(Schema):
@@ -1154,7 +1178,8 @@ class TestValidation:
         assert MethodSerializer(strict=True).load({'name': 'joe'})
         with pytest.raises(ValidationError) as excinfo:
             MethodSerializer(strict=True).load({'name': 'joseph'})
-        assert 'is False' in str(excinfo)
+
+        assert 'Invalid value.' in str(excinfo)
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/269
     def test_nested_data_is_stored_when_validation_fails(self):
