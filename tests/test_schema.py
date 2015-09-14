@@ -839,52 +839,62 @@ def test_serializing_none_meta():
 class CustomError(Exception):
     pass
 
+def handle_errors(schema, errors, obj):
+    raise CustomError('Something bad happened')
+
 class MySchema(Schema):
     name = fields.String()
     email = fields.Email()
     age = fields.Integer()
 
+    class Meta:
+        error_handler = handle_errors
+
 class MySchema2(Schema):
     homepage = fields.URL()
 
+    class Meta:
+        error_handler = handle_errors
+
 class TestErrorHandler:
 
-    def test_dump_with_custom_error_handler(self, user):
-        @MySchema.error_handler
-        def handle_errors(serializer, errors, obj):
-            assert isinstance(serializer, MySchema)
-            assert 'age' in errors
-            assert isinstance(obj, User)
-            raise CustomError('Something bad happened')
+    def test_error_handler_decorator_is_deprecated(self):
 
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.error_handler
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
+
+    def test_dump_with_custom_error_handler(self, user):
         user.age = 'notavalidage'
         with pytest.raises(CustomError):
             MySchema().dump(user)
 
     def test_load_with_custom_error_handler(self):
-        @MySchema.error_handler
-        def handle_errors(serializer, errors, data):
-            assert isinstance(serializer, MySchema)
+        def handle_errors3(serializer, errors, data):
+            assert isinstance(serializer, MySchema3)
             assert 'email' in errors
             assert isinstance(data, dict)
             raise CustomError('Something bad happened')
+
+        class MySchema3(Schema):
+            email = fields.Email()
+
+            class Meta:
+                error_handler = handle_errors3
         with pytest.raises(CustomError):
-            MySchema().load({'email': 'invalid'})
+            MySchema3().load({'email': 'invalid'})
 
     def test_validate_with_custom_error_handler(self):
-        @MySchema.error_handler
-        def handle_errors(schema, errors, data):
-            raise CustomError('Something bad happened')
-
         with pytest.raises(CustomError):
-            MySchema().validate({'email': 'invalid'})
+            MySchema().validate({'age': 'notvalid', 'email': 'invalid'})
 
     def test_multiple_serializers_with_same_error_handler(self, user):
-
-        @MySchema.error_handler
-        @MySchema2.error_handler
-        def handle_errors(serializer, errors, obj):
-            raise CustomError('Something bad happened')
         user.email = 'bademail'
         user.homepage = 'foo'
 
@@ -1480,11 +1490,26 @@ def get_from_dict(schema, key, obj, default=None):
 
 class TestAccessor:
 
+    def test_accessor_decorator_is_deprecated(self):
+
+        def deprecated():
+            class MySchema(Schema):
+                pass
+
+            @MySchema.accessor
+            def f(*args, **kwargs):
+                pass
+
+        pytest.deprecated_call(deprecated)
+
     def test_accessor_is_used(self):
         class UserDictSchema(Schema):
-            __accessor__ = get_from_dict
             name = fields.Str()
             email = fields.Email()
+
+            class Meta:
+                accessor = get_from_dict
+
         user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
         schema = UserDictSchema()
         result = schema.dump(user_dict)
@@ -1498,9 +1523,11 @@ class TestAccessor:
 
     def test_accessor_with_many(self):
         class UserDictSchema(Schema):
-            __accessor__ = get_from_dict
             name = fields.Str()
             email = fields.Email()
+
+            class Meta:
+                accessor = get_from_dict
 
         user_dicts = [{'_name': 'joe', '_email': 'joe@shmoe.com'},
                       {'_name': 'jane', '_email': 'jane@shmane.com'}]
@@ -1516,24 +1543,6 @@ class TestAccessor:
         with pytest.raises(AttributeError):
             schema.dump(users)
 
-    def test_accessor_decorator(self):
-        class UserDictSchema(Schema):
-            name = fields.Str()
-            email = fields.Email()
-
-        @UserDictSchema.accessor
-        def get_from_dict2(schema, key, obj, default=None):
-            return obj.get('_' + key, default)
-        user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
-        schema = UserDictSchema()
-        result = schema.dump(user_dict)
-        assert result.data['name'] == user_dict['_name']
-        assert result.data['email'] == user_dict['_email']
-        assert not result.errors
-        # can't serialize User object
-        user = User(name='joe', email='joe@shmoe.com')
-        with pytest.raises(AttributeError):
-            schema.dump(user)
 
 class TestRequiredFields:
 
