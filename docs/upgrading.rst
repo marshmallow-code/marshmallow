@@ -268,7 +268,6 @@ In 2.0, `strict` mode was improved so that you can access all error messages for
     # }
 
 
-
 Custom Fields
 *************
 
@@ -298,7 +297,6 @@ Two changes must be made to make your custom fields compatible with version 2.0.
             if not len(val) >= 6:
                 raise ValidationError('Password too short.')
             return val
-
 
 Use ``OneOf`` instead of ``fields.Select``
 ******************************************

@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-2.0.0x (unreleased)
-+++++++++++++++++++
+2.0.0rc1 (2015-09-13)
++++++++++++++++++++++
 
 Features:
 
@@ -15,7 +15,7 @@ Features:
 
 Deprecation/Removals:
 
-- Remove ``Schema.validator``, ``Schema.preprocessor``, and ``Schema.data_handler``. Use ``validates_schema``, ``pre_load``, and ``post_dump`` instead.
+- ``Schema.validator``, ``Schema.preprocessor``, and ``Schema.data_handler`` are removed. Use ``validates_schema``, ``pre_load``, and ``post_dump`` instead.
 - ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`).
 - ``utils.get_callable_name`` is removed.
 
