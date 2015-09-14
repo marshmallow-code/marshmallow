@@ -54,28 +54,19 @@ def plain_function(f):
 
     Returns `None` if callable is `None`.
     """
-    if f:
-        if PY2:
-            return f.im_func
-        else:  # Python 3 doesn't have bound/unbound methods, so don't need to do anything
-            return f
-    return None
+    if PY2 and f:
+        return f.im_func
+    # Python 3 doesn't have bound/unbound methods, so don't need to do anything
+    return f
 
+# From six
 def with_metaclass(meta, *bases):
-    """Defines a metaclass.
+    """Create a base class with a metaclass."""
+    # This requires a bit of explanation: the basic idea is to make a dummy
+    # metaclass for one level of class instantiation that replaces itself with
+    # the actual metaclass.
+    class metaclass(meta):  # noqa
 
-    Creates a dummy class with a dummy metaclass. When subclassed, the dummy
-    metaclass is used, which has a constructor that instantiates a
-    new class from the original parent. This ensures that the dummy class and
-    dummy metaclass are not in the inheritance tree.
-
-    Credit to Armin Ronacher.
-    """
-    class metaclass(meta):
-        __call__ = type.__call__
-        __init__ = type.__init__
         def __new__(cls, name, this_bases, d):
-            if this_bases is None:
-                return type.__new__(cls, name, (), d)
             return meta(name, bases, d)
-    return metaclass('temporary_class', None, {})
+    return type.__new__(metaclass, 'temporary_class', (), {})
