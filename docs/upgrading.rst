@@ -124,8 +124,39 @@ The pre- and post-processing API was significantly improved for better consisten
 
 See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
-Custom Accessor and Error Handler
-*********************************
+Schema Validators
+*****************
+
+Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validates_schema <marshmallow.decorators.validates_schema>`. `Schema.validator` is removed.
+
+.. code-block:: python
+
+    # 1.0 API
+    from marshmallow import Schema, fields, ValidationError
+
+    class MySchema(Schema):
+        field_a = fields.Int(required=True)
+        field_b = fields.Int(required=True)
+
+    @ExampleSchema.validator
+    def validate_schema(schema, data):
+        if data['field_a'] < data['field_b']:
+            raise ValidationError('field_a must be greater than field_b')
+
+    # 2.0 API
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
+    class MySchema(Schema):
+        field_a = fields.Int(required=True)
+        field_b = fields.Int(required=True)
+
+        @validates_schema
+        def validate_schema(self, data):
+            if data['field_a'] < data['field_b']:
+                raise ValidationError('field_a must be greater than field_b')
+
+Custom Accessors and Error Handlers
+***********************************
 
 Custom accessors and error handlers are now defined as ``class Meta`` options. `Schema.accessor` and `Schema.error_handler` are deprecated.
 
@@ -146,44 +177,12 @@ Custom accessors and error handlers are now defined as ``class Meta`` options. `
         raise CustomError('Something bad happened')
 
     # 2.0 API
-
     class ExampleSchema(Schema):
         field_a = fields.Int()
 
         class Meta:
             accessor = get_from_dict
             error_handler = handle_errors
-
-Schema Validators
-*****************
-
-Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validator <marshmallow.decorators.validator>`. `Schema.validator <marshmallow.Schema.validator>` is deprecated.
-
-.. code-block:: python
-
-    # 1.0 Deprecated API
-    from marshmallow import Schema, fields, ValidationError
-
-    class MySchema(Schema):
-        field_a = fields.Int(required=True)
-        field_b = fields.Int(required=True)
-
-    @ExampleSchema.validator
-    def validate_schema(schema, data):
-        if data['field_a'] < data['field_b']:
-            raise ValidationError('field_a must be greater than field_b')
-
-    # 2.0 API
-    from marshmallow import Schema, fields, validator, ValidationError
-
-    class MySchema(Schema):
-        field_a = fields.Int(required=True)
-        field_b = fields.Int(required=True)
-
-        @validator
-        def validate_schema(self, data):
-            if data['field_a'] < data['field_b']:
-                raise ValidationError('field_a must be greater than field_b')
 
 Error Format when ``many=True``
 *******************************
