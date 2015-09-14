@@ -37,6 +37,30 @@ else:
     from collections import OrderedDict
     OrderedDict = OrderedDict
 
+def plain_function(f):
+    """Ensure that ``callable`` is a plain function rather than an unbound method, as
+    may happen in Python 2 when setting functions as class variables. This is particularly
+    useful for class Meta options that are functions. ::
+
+        class MySchemaOpts(SchemaOpts):
+            def __init__(self, meta):
+                self.some_option = plain_function(getattr(meta, 'some_option', None))
+
+        class MySchema(Schema):
+            OPTIONS_CLASS = MySchemaOpts
+
+            class Meta:
+                some_option = my_function
+
+    Returns `None` if callable is `None`.
+    """
+    if f:
+        if PY2:
+            return f.im_func
+        else:  # Python 3 doesn't have bound/unbound methods, so don't need to do anything
+            return f
+    return None
+
 def with_metaclass(meta, *bases):
     """Defines a metaclass.
 
