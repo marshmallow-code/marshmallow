@@ -298,6 +298,18 @@ Two changes must be made to make your custom fields compatible with version 2.0.
                 raise ValidationError('Password too short.')
             return val
 
+
+To make a field compatible with both marshmallow 1.x and 2.x, you can pass `*args` and `**kwargs` to the signature.
+
+.. code-block:: python
+
+    class PasswordField(fields.Field):
+
+        def _deserialize(self, val, *args, **kwargs):
+            if not len(val) >= 6:
+                raise ValidationError('Password too short.')
+            return val
+
 Use ``OneOf`` instead of ``fields.Select``
 ******************************************
 
