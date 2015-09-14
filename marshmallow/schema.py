@@ -350,6 +350,10 @@ class BaseSchema(base.SchemaABC):
         )
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
+        self.extra = extra
+        self.context = context or {}
+        self._update_fields(many=many)
+
         # Accessor function takes schema as first argument
         self._accessor = partial(self.opts.accessor, self) if self.opts.accessor else None
         # Error handler also takes schema as first argument
@@ -357,9 +361,6 @@ class BaseSchema(base.SchemaABC):
             self._error_handler = partial(self.opts.error_handler, self)
         else:
             self._error_handler = None
-        self.extra = extra
-        self.context = context or {}
-        self._update_fields(many=many)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
