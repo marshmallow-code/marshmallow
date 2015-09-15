@@ -9,9 +9,7 @@ pytz
 wheel
 
 # Testing
-# Need development version of pytest for py35 compat
-# https://github.com/pytest-dev/pytest/issues/744
-git+https://github.com/pytest-dev/pytest.git
+pytest>=2.7.3
 tox>=1.5.0
 
 # Syntax checking
