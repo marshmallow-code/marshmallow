@@ -87,7 +87,7 @@ def pre_dump(fn=None, pass_many=False):
     return tag_processor(PRE_DUMP, fn, pass_many)
 
 
-def post_dump(fn=None, pass_many=False):
+def post_dump(fn=None, pass_many=False, pass_original=False):
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
@@ -95,7 +95,7 @@ def post_dump(fn=None, pass_many=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return tag_processor(POST_DUMP, fn, pass_many)
+    return tag_processor(POST_DUMP, fn, pass_many, pass_original=pass_original)
 
 
 def pre_load(fn=None, pass_many=False):
@@ -109,7 +109,7 @@ def pre_load(fn=None, pass_many=False):
     return tag_processor(PRE_LOAD, fn, pass_many)
 
 
-def post_load(fn=None, pass_many=False):
+def post_load(fn=None, pass_many=False, pass_original=False):
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
@@ -117,7 +117,7 @@ def post_load(fn=None, pass_many=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return tag_processor(POST_LOAD, fn, pass_many)
+    return tag_processor(POST_LOAD, fn, pass_many, pass_original=pass_original)
 
 
 class _StaticProcessorMethod(staticmethod):

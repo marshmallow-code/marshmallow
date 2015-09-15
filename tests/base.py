@@ -125,7 +125,6 @@ class DummyModel(object):
 
 ###### Schemas #####
 
-
 class Uppercased(fields.Field):
     """Custom field formatting example."""
 
