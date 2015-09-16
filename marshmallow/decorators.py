@@ -120,16 +120,6 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     return tag_processor(POST_LOAD, fn, pass_many, pass_original=pass_original)
 
 
-class _StaticProcessorMethod(staticmethod):
-    """Allows setting attributes on a staticmethod"""
-    pass
-
-
-class _ClassProcessorMethod(classmethod):
-    """Allows setting attributes on a classmethod"""
-    pass
-
-
 def tag_processor(tag_name, fn, pass_many, **kwargs):
     """Tags decorated processor function to be picked up later
 
@@ -138,23 +128,6 @@ def tag_processor(tag_name, fn, pass_many, **kwargs):
     """
     if fn is None:  # Allow decorator to be used with no arguments
         return lambda fn_actual: tag_processor(tag_name, fn_actual, pass_many, **kwargs)
-
-    # Special-case rewrapping staticmethod and classmethod, because we can't
-    # directly set attributes on those.
-    if isinstance(fn, staticmethod):
-        try:
-            unwrapped = fn.__func__
-        except AttributeError:
-            # For Python 2.6.
-            unwrapped = fn.__get__(True)
-        fn = _StaticProcessorMethod(unwrapped)
-    elif isinstance(fn, classmethod):
-        try:
-            unwrapped = fn.__func__
-        except AttributeError:
-            # For Python 2.6.
-            unwrapped = fn.__get__(True).im_func
-        fn = _ClassProcessorMethod(unwrapped)
 
     # Set a marshmallow_tags attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
