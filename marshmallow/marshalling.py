@@ -174,7 +174,8 @@ class Unmarshaller(ErrorStore):
             # Store or reraise errors
             if err.field_names:
                 field_names = err.field_names
-                field_objs = [fields_dict[each] for each in field_names]
+                field_objs = [fields_dict[each] if each in fields_dict else None
+                              for each in field_names]
             else:
                 field_names = [SCHEMA]
                 field_objs = []
