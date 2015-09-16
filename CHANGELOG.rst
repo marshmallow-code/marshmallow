@@ -8,7 +8,11 @@ Deprecation/Removals:
 
 - ``make_object`` is deprecated. Use a ``post_load`` method instead (:issue:`277`). **This method will be removed in the final 2.0 release**.
 
-Changes since 2.0.0rc1:
+Bug fixes:
+
+- Allow non-field names to be passed to ``ValidationError`` (:issue:`273`). Thanks :user:`evgeny-sureev` for the catch and patch.
+
+Changes from 2.0.0rc1:
 
 - The ``raw`` parameter of the ``pre_*``, ``post_*``, ``validates_schema`` decorators was renamed to ``pass_many`` (:issue:`276`).
 - Add ``pass_original`` parameter to ``post_load`` and ``post_dump`` (:issue:`216`).

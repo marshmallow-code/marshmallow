@@ -43,3 +43,4 @@ Contributors (chronological)
 - Praveen `@praveen-p <https://github.com/praveen-p>`_
 - Stas Sușcov `@stas <https://github.com/stas>`_
 - Florian `@floqqi <https://github.com/floqqi>`_
+- Evgeny Sureev `@evgeny-sureev <https://github.com/evgeny-sureev>`_
