@@ -29,12 +29,12 @@ Data pre-processing and post-processing methods can be registered using the `pre
     result['slug']  # => 'steve-loria'
 
 
-Passing Raw Data
-++++++++++++++++
+Passing "many"
+++++++++++++++
 
 By default, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the schema at runtime.
 
-In cases where your pre- and post-processing methods need to receive the raw data passed to the `Schema`, pass ``raw=True`` to the method decorators. The method will receive the raw input data (which may be a single datum or a collection) and the boolean value of ``many``.
+In cases where your pre- and post-processing methods need to receive the input collection  when ``many=True``, add ``pass_many=True`` to the method decorators. The method will receive the input data (which may be a single datum or a collection) and the boolean value of ``many``.
 
 
 Example: Enveloping
@@ -56,12 +56,12 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
             """Helper to get the envelope key."""
             return 'users' if many else 'user'
 
-        @pre_load(raw=True)
+        @pre_load(pass_many=True)
         def unwrap_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return data[key]
 
-        @post_dump(raw=True)
+        @post_dump(pass_many=True)
         def wrap_with_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return {key: data}
@@ -90,19 +90,19 @@ Pre-/Post-processor Invocation Order
 
 In summary, the processing pipeline for deserialization is as follows:
 
-1. ``@pre_load(raw=True)`` methods
-2. ``@pre_load(raw=False)`` methods
+1. ``@pre_load(pass_many=True)`` methods
+2. ``@pre_load(pass_many=False)`` methods
 3. ``load(in_data, many)`` (validation and deserialization)
-4. ``@post_load(raw=True)`` methods
-5. ``@post_load(raw=False)`` methods
+4. ``@post_load(pass_many=True)`` methods
+5. ``@post_load(pass_many=False)`` methods
 
-The pipeline for serialization is similar, except that the "raw" processors are invoked *after* the "non-raw" processors.
+The pipeline for serialization is similar, except that the "pass_many" processors are invoked *after* the "non-raw" processors.
 
-1. ``@pre_dump(raw=False)`` methods
-2. ``@pre_dump(raw=True)`` methods
+1. ``@pre_dump(pass_many=False)`` methods
+2. ``@pre_dump(pass_many=True)`` methods
 3. ``dump(obj, many)`` (serialization)
-4. ``@post_dump(raw=False)`` methods
-5. ``@post_dump(raw=True)`` methods
+4. ``@post_dump(pass_many=False)`` methods
+5. ``@post_dump(pass_many=True)`` methods
 
 
 .. warning::
@@ -323,12 +323,12 @@ Then we create a custom :class:`Schema` that uses our options class.
     class NamespacedSchema(Schema):
         OPTIONS_CLASS = NamespaceOpts
 
-        @pre_load(raw=True)
+        @pre_load(pass_many=True)
         def unwrap_envelope(self, data, many):
             key = self.opts.plural_name if many else self.opts.name
             return data[key]
 
-        @post_dump(raw=True)
+        @post_dump(pass_many=True)
         def wrap_with_envelope(self, data, many):
             key = self.opts.plural_name if many else self.opts.name
             return {key: data}

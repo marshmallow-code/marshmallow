@@ -108,19 +108,20 @@ Notice that the datetime string was converted to a `datetime` object.
 Deserializing to Objects
 ++++++++++++++++++++++++
 
-In order to deserialize to an object, define the :meth:`make_object <Schema.make_object>` method of your :class:`Schema`. The method receives a dictionary of deserialized data as its only parameter.
+In order to deserialize to an object, define a method of your :class:`Schema` and decorate it with `post_load <marshmallow.decorators.post_load>`. The method receives a dictionary of deserialized data as its only parameter.
 
 .. code-block:: python
-    :emphasize-lines: 8,9
+    :emphasize-lines: 8-10
 
-    # Same as above, but this time we define ``make_object``
+    from marshmallow import Schema, fields, post_load
+
     class UserSchema(Schema):
-
         name = fields.Str()
         email = fields.Email()
         created_at = fields.DateTime()
 
-        def make_object(self, data):
+        @post_load
+        def make_user(self, data):
             return User(**data)
 
 Now, the :meth:`load <Schema.load>` method will return a ``User`` object.

@@ -550,7 +550,7 @@ class BaseSchema(base.SchemaABC):
         return errors
 
     def make_object(self, data):
-        """Override-able method that defines how to create the final deserialization
+        """DEPRECATED: Override-able method that defines how to create the final deserialization
         output. Defaults to noop (i.e. just return ``data`` as is).
 
         .. note::
@@ -560,8 +560,8 @@ class BaseSchema(base.SchemaABC):
         :param dict data: The deserialized data.
 
         .. versionadded:: 1.0.0
-        .. versionchanged:: 2.0.0
-            Only invoked when data are valid.
+        .. deprecated:: 2.0.0
+            Use a `post_load <marshmallow.decorators.post_load>` method instead.
         """
         return data
 

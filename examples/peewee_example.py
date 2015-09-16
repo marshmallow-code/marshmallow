@@ -52,7 +52,7 @@ class UserSchema(Schema):
         return data
 
     # We add a post_dump hook to add an envelope to responses
-    @post_dump(raw=True)
+    @post_dump(pass_many=True)
     def wrap(self, data, many):
         key = 'users' if many else 'user'
         return {
@@ -68,7 +68,7 @@ class TodoSchema(Schema):
     posted_on = fields.DateTime(dump_only=True)
 
     # Again, add an envelope to responses
-    @post_dump(raw=True)
+    @post_dump(pass_many=True)
     def wrap(self, data, many):
         key = 'todos' if many else 'todo'
         return {

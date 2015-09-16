@@ -184,6 +184,34 @@ Custom accessors and error handlers are now defined as ``class Meta`` options. `
             accessor = get_from_dict
             error_handler = handle_errors
 
+Use `post_load <marshmallow.decorators.post_load>` instead of `make_object`
+***************************************************************************
+
+The `make_object` method was deprecated from the `Schema <marshmallow.Schema>` API (see :issue:`277` for the rationale). In order to deserialize to an object, use a `post_load <marshmallow.decorators.post_load>` method.
+
+.. code-block:: python
+
+    # 1.0
+    from marshmallow import Schema, fields, post_load
+
+    class UserSchema(Schema):
+        name = fields.Str()
+        created_at = fields.DateTime()
+
+        def make_object(self, data):
+            return User(**data)
+
+    # 2.0
+    from marshmallow import Schema, fields, post_load
+
+    class UserSchema(Schema):
+        name = fields.Str()
+        created_at = fields.DateTime()
+
+        @post_load
+        def make_user(self, data):
+            return User(**data)
+
 Error Format when ``many=True``
 *******************************
 
@@ -341,42 +369,47 @@ Use ``self.context`` to access a schema's context within a ``Method`` field.
             return 'bicycle' in self.context['blog'].title.lower()
 
 
-Error Messages for URL and Email Address Validation
-***************************************************
+Validation Error Messages
+*************************
 
-The default error messages for URL and email validation were changed in 2.0.
+The default error messages for many fields and validators have been changed for better consistency.
 
 .. code-block:: python
 
     from marshmallow import Schema, fields, validate
 
-    class UserSchema(Schema):
+    class ValidatingSchema(Schema):
+        foo = fields.Str()
+        bar = fields.Bool()
+        baz = fields.Int()
+        qux = fields.Float()
+        spam = fields.Decimal(2, 2)
+        eggs = fields.DateTime()
         email = fields.Str(validate=validate.Email())
         homepage = fields.Str(validate=validate.URL())
 
-    schema = UserSchema()
-    invalid_data = {'email': 'foo', 'homepage': 'bar'}
-
-    # 1.0
-    schema.validate(invalid_data)
-    # {'email': ['"foo" is not a valid email address.'], 'homepage': ['"bar" is not a valid URL.']}
-
-    # 2.0
-    schema.validate(invalid_data)
-    # {'email': ['Invalid email address.'], 'homepage': ['Invalid URL.']}
-
-
-You can get the old messages by passing the ``error`` argument to the validators.
-
-.. code-block:: python
-
-    class UserSchema(Schema):
-        email = fields.Str(validate=validate.Email(
-            error='"{input}" is not a valid email address.'
-        ))
-        homepage = fields.Str(validate=validate.URL(
-            error='"{input}" is not a valid URL.'
-        ))
+    schema = ValidatingSchema()
+    invalid_data = {
+        'foo': 42,  # not a string
+        'bar': 24,  # not a bool
+        'baz': 'invalid-integer',
+        'qux': 'invalid-float',
+        'spam': 'invalid-decimal',
+        'eggs': 'invalid-datetime',
+        'email': 'invalid-email',
+        'homepage': 'invalid-url',
+    }
+    errors = schema.validate(invalid_data)
+    # {
+    #     'foo': ['Not a valid string.'],
+    #     'bar': ['Not a valid boolean.'],
+    #     'baz': ['Not a valid integer.'],
+    #     'qux': ['Not a valid number.'],
+    #     'spam': ['Not a valid number.']
+    #     'eggs': ['Not a valid datetime.'],
+    #     'email': ['Not a valid email address.'],
+    #     'homepage': ['Not a valid URL.'],
+    # }
 
 More
 ****

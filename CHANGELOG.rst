@@ -4,6 +4,10 @@ Changelog
 2.0.0rc2 (unreleased)
 +++++++++++++++++++++
 
+Deprecation/Removals:
+
+- ``make_object`` is deprecated. Use a ``post_load`` method instead (:issue:`277`). **This method will be removed in the final 2.0 release**.
+
 Changes since 2.0.0rc1:
 
 - The ``raw`` parameter of the ``pre_*``, ``post_*``, ``validates_schema`` decorators was renamed to ``pass_many`` (:issue:`276`).
