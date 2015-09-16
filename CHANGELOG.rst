@@ -4,6 +4,12 @@ Changelog
 2.0.0rc2 (unreleased)
 +++++++++++++++++++++
 
+Changes since 2.0.0rc1:
+
+- The ``raw`` parameter of the ``pre_*``, ``post_*``, ``validates_schema`` decorators was renamed to ``pass_many`` (:issue:`276`).
+- Add ``pass_original`` parameter to ``post_load`` and ``post_dump`` (:issue:`216`).
+- Methods decorated with the ``pre_*``, ``post_*``, and ``validates_*`` decorators must be instance methods. Class methods and instance methods are not supported at this time.
+
 2.0.0rc1 (2015-09-13)
 +++++++++++++++++++++
 

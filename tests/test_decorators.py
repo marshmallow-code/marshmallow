@@ -13,6 +13,7 @@ from marshmallow import (
     ValidationError,
 )
 
+
 def test_decorated_processors():
     class ExampleSchema(Schema):
         """Includes different ways to invoke decorators and set up methods"""
@@ -23,25 +24,23 @@ def test_decorated_processors():
 
         # Implicit default raw, pre dump, static method, return modified item.
         @pre_dump
-        @staticmethod
-        def increment_value(item):
+        def increment_value(self, item):
             item['value'] += 1
             return item
 
         # Implicit default raw, post dump, class method, modify in place.
         @post_dump
-        @classmethod
-        def add_tag(cls, item):
-            item['value'] = cls.TAG + item['value']
+        def add_tag(self, item):
+            item['value'] = self.TAG + item['value']
 
         # Explicitly raw, post dump, instance method, return modified item.
-        @post_dump(raw=True)
+        @post_dump(pass_many=True)
         def add_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return {key: data}
 
         # Explicitly raw, pre load, instance method, return modified item.
-        @pre_load(raw=True)
+        @pre_load(pass_many=True)
         def remove_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return data[key]
@@ -51,7 +50,7 @@ def test_decorated_processors():
             return 'data' if many else 'datum'
 
         # Explicitly not raw, pre load, instance method, modify in place.
-        @pre_load(raw=False)
+        @pre_load(pass_many=False)
         def remove_tag(self, item):
             item['value'] = item['value'][len(self.TAG):]
 
@@ -76,31 +75,123 @@ def test_decorated_processors():
     items_loaded = schema.load(items_dumped, many=True).data
     assert items_loaded == make_items()
 
+class TestPassOriginal:
+
+    def test_pass_original_single_no_mutation(self):
+        class MySchema(Schema):
+            foo = fields.Field()
+
+            @post_load(pass_original=True)
+            def post_load(self, data, input_data):
+                ret = data.copy()
+                ret['_post_load'] = input_data['sentinel']
+                return ret
+
+            @post_dump(pass_original=True)
+            def post_dump(self, data, obj):
+                ret = data.copy()
+                ret['_post_dump'] = obj['sentinel']
+                return ret
+
+        schema = MySchema()
+        datum = {'foo': 42, 'sentinel': 24}
+        item_loaded = schema.load(datum).data
+        assert item_loaded['foo'] == 42
+        assert item_loaded['_post_load'] == 24
+
+        item_dumped = schema.dump(datum).data
+
+        assert item_dumped['foo'] == 42
+        assert item_dumped['_post_dump'] == 24
+
+    def test_pass_original_single_with_mutation(self):
+        class MySchema(Schema):
+            foo = fields.Field()
+
+            @post_load(pass_original=True)
+            def post_load(self, data, input_data):
+                data['_post_load'] = input_data['post_load']
+
+        schema = MySchema()
+        item_loaded = schema.load({'foo': 42, 'post_load': 24}).data
+        assert item_loaded['foo'] == 42
+        assert item_loaded['_post_load'] == 24
+
+    def test_pass_original_many(self):
+        class MySchema(Schema):
+            foo = fields.Field()
+
+            @post_load(pass_many=True, pass_original=True)
+            def post_load(self, data, many, original):
+                if many:
+                    ret = []
+                    for item, orig_item in zip(data, original):
+                        item['_post_load'] = orig_item['sentinel']
+                        ret.append(item)
+                else:
+                    ret = data.copy()
+                    ret['_post_load'] = original['sentinel']
+                return ret
+
+            @post_dump(pass_many=True, pass_original=True)
+            def post_dump(self, data, many, original):
+                if many:
+                    ret = []
+                    for item, orig_item in zip(data, original):
+                        item['_post_dump'] = orig_item['sentinel']
+                        ret.append(item)
+                else:
+                    ret = data.copy()
+                    ret['_post_dump'] = original['sentinel']
+                return ret
+
+        schema = MySchema()
+        data = [{'foo': 42, 'sentinel': 24}, {'foo': 424, 'sentinel': 242}]
+        items_loaded = schema.load(data, many=True).data
+        assert items_loaded == [
+            {'foo': 42, '_post_load': 24},
+            {'foo': 424, '_post_load': 242},
+        ]
+        test_values = [e['_post_load'] for e in items_loaded]
+        assert test_values == [24, 242]
+
+        items_dumped = schema.dump(data, many=True).data
+        assert items_dumped == [
+            {'foo': 42, '_post_dump': 24},
+            {'foo': 424, '_post_dump': 242},
+        ]
+
+        # Also check load/dump of single item
+
+        datum = {'foo': 42, 'sentinel': 24}
+        item_loaded = schema.load(datum, many=False).data
+        assert item_loaded == {'foo': 42, '_post_load': 24}
+
+        item_dumped = schema.dump(datum, many=False).data
+        assert item_dumped == {'foo': 42, '_post_dump': 24}
 
 def test_decorated_processor_inheritance():
     class ParentSchema(Schema):
+
         @post_dump
-        @staticmethod
-        def inherited(item):
+        def inherited(self, item):
             item['inherited'] = 'inherited'
             return item
 
         @post_dump
-        @staticmethod
-        def overridden(item):
+        def overridden(self, item):
             item['overridden'] = 'base'
             return item
 
         @post_dump
-        @staticmethod
-        def deleted(item):
+        def deleted(self, item):
             item['deleted'] = 'retained'
             return item
 
     class ChildSchema(ParentSchema):
+
         @post_dump
-        @staticmethod
-        def overridden(item):
+        def overridden(self, item):
             item['overridden'] = 'overridden'
             return item
 
@@ -119,19 +210,18 @@ def test_decorated_processor_inheritance():
         'overridden': 'overridden'
     }
 
+class ValidatesSchema(Schema):
+    foo = fields.Int()
+
+    @validates('foo')
+    def validate_foo(self, value):
+        if value != 42:
+            raise ValidationError('The answer to life the universe and everything.')
 
 class TestValidatesDecorator:
 
-    class MySchema(Schema):
-        foo = fields.Int()
-
-        @validates('foo')
-        def validate_foo(self, value):
-            if value != 42:
-                raise ValidationError('The answer to life the universe and everything.')
-
-    def test_decorator(self):
-        schema = self.MySchema()
+    def test_validates_decorator(self):
+        schema = ValidatesSchema()
 
         errors = schema.validate({'foo': 41})
         assert 'foo' in errors
@@ -152,7 +242,7 @@ class TestValidatesDecorator:
         assert errors == {}
 
     def test_field_not_present(self):
-        class BadSchema(self.MySchema):
+        class BadSchema(ValidatesSchema):
             @validates('bar')
             def validate_bar(self, value):
                 raise ValidationError('Never raised.')
@@ -160,11 +250,11 @@ class TestValidatesDecorator:
         schema = BadSchema()
 
         with pytest.raises(ValueError) as excinfo:
-            errors = schema.validate({'foo': 42})
+            schema.validate({'foo': 42})
         assert '"bar" field does not exist.' in str(excinfo)
 
     def test_precedence(self):
-        class Schema2(self.MySchema):
+        class Schema2(ValidatesSchema):
             foo = fields.Int(validate=lambda n: n != 42)
             bar = fields.Int(validate=lambda n: n == 1)
 
@@ -204,7 +294,7 @@ class TestValidatesSchemaDecorator:
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
-            @validates_schema(raw=True)
+            @validates_schema(pass_many=True)
             def validate_raw(self, data, many):
                 if many:
                     if len(data) < 2:
@@ -242,7 +332,7 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validates_schema(raw=True, pass_original=True)
+            @validates_schema(pass_many=True, pass_original=True)
             def check_unknown_fields(self, data, original_data, many):
                 def check(datum):
                     for key, val in datum.items():
