@@ -76,12 +76,15 @@ def readme(browse=False):
 @task
 def publish(test=False):
     """Publish to the cheeseshop."""
+    clean()
     try:
         __import__('wheel')
     except ImportError:
         print('wheel required. Run `pip install wheel`.')
         sys.exit(1)
     if test:
-        run('python setup.py register -r test sdist bdist_wheel upload -r test', echo=True)
+        run('python setup.py register -r test sdist bdist_wheel', echo=True)
+        run('twine upload dist/* -r test', echo=True)
     else:
-        run('python setup.py register sdist bdist_wheel upload', echo=True)
+        run('python setup.py register sdist bdist_wheel', echo=True)
+        run('twine upload dist/*', echo=True)
