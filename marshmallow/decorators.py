@@ -39,6 +39,10 @@ Example: ::
             if data < 14:
                 raise ValidationError('Too young!')
 
+.. note::
+    These decorators only work with instance methods. Class and static
+    methods are not supported.
+
 .. warning::
     The invocation order of decorated methods of the same type is not guaranteed.
     If you need to guarantee order of different processing steps, you should put
@@ -121,7 +125,11 @@ def post_load(fn=None, pass_many=False, pass_original=False):
 
 
 def tag_processor(tag_name, fn, pass_many, **kwargs):
-    """Tags decorated processor function to be picked up later
+    """Tags decorated processor function to be picked up later.
+
+    .. note::
+        Currently ony works with functions and instance methods. Class and
+        static methods are not supported.
 
     :return: Decorated function if supplied, else this decorator with its args
         bound.
