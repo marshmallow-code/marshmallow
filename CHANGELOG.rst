@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.0.0rc2 (unreleased)
+2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++
 
 Deprecation/Removals:
