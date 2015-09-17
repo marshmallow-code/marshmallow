@@ -1197,10 +1197,11 @@ class TestNestedSchema:
             inner_bad = fields.Integer(required='Int plz')
 
         class Middle(Schema):
-            middle_req = fields.Nested(Inner, required=True)
+            middle_many_req = fields.Nested(Inner, required=True, many=True)
             middle_req_2 = fields.Nested(Inner, required=True)
             middle_not_req = fields.Nested(Inner)
             middle_field = fields.Field(required='middlin')
+
 
         class Outer(Schema):
             outer_req = fields.Nested(Middle, required=True)
@@ -1210,14 +1211,14 @@ class TestNestedSchema:
 
         outer = Outer()
         expected = {
-            'outer_many_req': {0: {'middle_req': {'inner_bad': ['Int plz'],
-                                                   'inner_req': ['Oops']},
-                                    'middle_req_2': {'inner_bad': ['Int plz'],
-                                                     'inner_req': ['Oops']}},
-                                'middle_field': ['middlin']},
+            'outer_many_req': {0: {'middle_many_req': {0: {'inner_bad': ['Int plz'],
+                                                           'inner_req': ['Oops']}},
+                                   'middle_req_2': {'inner_bad': ['Int plz'],
+                                                    'inner_req': ['Oops']},
+                                   'middle_field': ['middlin']}},
              'outer_req': {'middle_field': ['middlin'],
-                           'middle_req': {'inner_bad': ['Int plz'],
-                                          'inner_req': ['Oops']},
+                           'middle_many_req': {0: {'inner_bad': ['Int plz'],
+                                              'inner_req': ['Oops']}},
                            'middle_req_2': {'inner_bad': ['Int plz'],
                                             'inner_req': ['Oops']}}}
         data, errors = outer.load({})

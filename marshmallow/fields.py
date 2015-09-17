@@ -411,19 +411,14 @@ class Nested(Field):
                 if not field.required:
                     continue
                 if isinstance(field, Nested):
-                    error = field._check_required()
-                    if self.many:
-                        if 0 in errors:
-                            errors[0][field.name] = error
-                        else:
-                            errors[0] = {field.name: error}
-                    else:
-                        errors[field.name] = error
+                    errors[field_name] = field._check_required()
                 else:
                     try:
                         field._validate_missing(field.missing)
                     except ValidationError as ve:
                         errors[field_name] = ve.messages
+            if self.many:
+                    errors = {0: errors}
         return errors
 
 
