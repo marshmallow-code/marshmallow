@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.0.0 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.
+
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++
 

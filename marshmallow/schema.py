@@ -462,12 +462,14 @@ class BaseSchema(base.SchemaABC):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
+
         if isinstance(obj, types.GeneratorType):
             obj = list(obj)
-        if update_fields:
-            self._update_fields(obj, many=many)
 
         processed_obj = self._invoke_dump_processors(PRE_DUMP, obj, many, original_data=obj)
+
+        if update_fields:
+            self._update_fields(processed_obj, many=many)
 
         preresult = self._marshal(
             processed_obj,

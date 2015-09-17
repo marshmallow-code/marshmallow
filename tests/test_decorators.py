@@ -210,6 +210,22 @@ def test_decorated_processor_inheritance():
         'overridden': 'overridden'
     }
 
+# https://github.com/marshmallow-code/marshmallow/issues/229#issuecomment-138949436
+def test_pre_dump_is_invoked_before_implicit_field_generation():
+    class Foo(Schema):
+        field = fields.Integer()
+
+        @pre_dump
+        def hook(s, data):
+            data['generated_field'] = 7
+
+        class Meta:
+            # Removing generated_field from here drops it from the output
+            fields = ('field', 'generated_field')
+
+    assert Foo().dump({"field": 5}).data == {'field': 5, 'generated_field': 7}
+
+
 class ValidatesSchema(Schema):
     foo = fields.Int()
 
