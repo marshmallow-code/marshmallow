@@ -551,22 +551,6 @@ class BaseSchema(base.SchemaABC):
         _, errors = self._do_load(data, many, postprocess=False)
         return errors
 
-    def make_object(self, data):
-        """DEPRECATED: Override-able method that defines how to create the final deserialization
-        output. Defaults to noop (i.e. just return ``data`` as is).
-
-        .. note::
-
-            This method will only be invoked if when the input data are completely valid.
-
-        :param dict data: The deserialized data.
-
-        .. versionadded:: 1.0.0
-        .. deprecated:: 2.0.0
-            Use a `post_load <marshmallow.decorators.post_load>` method instead.
-        """
-        return data
-
     ##### Private Helpers #####
 
     def _do_load(self, data, many=None, postprocess=True):
@@ -576,7 +560,7 @@ class BaseSchema(base.SchemaABC):
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool postprocess: Whether to postprocess the data with `make_object`.
+        :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
         many = self.many if many is None else bool(many)
@@ -602,13 +586,8 @@ class BaseSchema(base.SchemaABC):
             if callable(error_handler):
                 error_handler(errors, data)
 
-        result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
-
         if not errors and postprocess:
-            if many:
-                result = [self.make_object(each) for each in result]
-            else:
-                result = self.make_object(result)
+            result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
 
         return result, errors
 

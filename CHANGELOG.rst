@@ -4,6 +4,10 @@ Changelog
 2.0.0 (unreleased)
 ++++++++++++++++++
 
+Derecation/Removals:
+
+- Remove ``make_object``. Use a ``post_load`` method instead (:issue:`277`).
+
 Bug fixes:
 
 - ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.

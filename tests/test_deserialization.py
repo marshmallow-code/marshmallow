@@ -772,67 +772,6 @@ class TestSchemaDeserialization:
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
 
-    def test_make_object(self):
-        class SimpleUserSchema2(Schema):
-            name = fields.String()
-            age = fields.Float()
-
-            def make_object(self, data):
-                return User(**data)
-        user_dict = {'name': 'Monty', 'age': '42.3'}
-        result, errors = SimpleUserSchema2().load(user_dict)
-        assert isinstance(result, User)
-        assert result.name == 'Monty'
-        assert_almost_equal(result.age, 42.3)
-
-    # https://github.com/marshmallow-code/marshmallow/issues/243
-    def test_make_object_not_called_if_data_are_invalid(self):
-        class MySchema(Schema):
-            email = fields.Email()
-
-            def make_object(self, data):
-                assert False, 'make_object should not have been called'
-        result, errors = MySchema().load({'email': 'invalid'})
-        assert 'email' in errors
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/253
-    def test_validators_run_before_make_object(self):
-        class UserSchema(Schema):
-            name = fields.String()
-
-            @validates('name')
-            def validate_name(self, value):
-                if len(value) < 3:
-                    raise ValidationError('Name too short')
-
-            def make_object(self, data):
-                return User(**data)
-
-        user_dict = {'name': 'foo'}
-        result, errors = UserSchema().load(user_dict)
-        assert isinstance(result, User)
-        assert result.name == 'foo'
-
-        invalid = {'name': 'fo'}
-        result, errors = UserSchema().load(invalid)
-        assert errors['name'][0] == 'Name too short'
-
-    def test_make_object_many(self):
-        class SimpleUserSchema3(Schema):
-            name = fields.String()
-            age = fields.Float()
-
-            def make_object(self, data):
-                return User(**data)
-
-        users_data = [
-            {'name': 'Mick', 'age': '914'},
-            {'name': 'Keith', 'age': '8442'}
-        ]
-        result, errors = SimpleUserSchema3(many=True).load(users_data)
-        assert len(result) == len(users_data)
-        assert all([isinstance(each, User) for each in result])
-
     def test_exclude(self):
         schema = SimpleUserSchema(exclude=('age', ))
         result = schema.load({'name': 'Monty', 'age': 42})

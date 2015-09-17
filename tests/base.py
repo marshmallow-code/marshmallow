@@ -5,7 +5,7 @@ import uuid
 
 import pytz
 
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, post_load
 from marshmallow.compat import text_type
 from marshmallow.exceptions import ValidationError
 
@@ -165,7 +165,8 @@ class UserSchema(Schema):
         except TypeError as te:
             raise ValidationError(text_type(te))
 
-    def make_object(self, data):
+    @post_load
+    def make_user(self, data):
         return User(**data)
 
 
