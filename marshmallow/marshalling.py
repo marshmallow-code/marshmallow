@@ -199,26 +199,14 @@ class Unmarshaller(ErrorStore):
                     field_names=field_names
                 )
 
-    def _validate(self, validators, output, original_data, fields_dict, index=None, strict=False):
-        """Perform schema-level validation. Stores errors if ``strict`` is `False`.
-        """
-        for validator_func in validators:
-            self._run_validator(validator_func, output, original_data, fields_dict,
-                    index=index, strict=strict)
-        return output
-
-    def deserialize(self, data, fields_dict, many=False, validators=None,
-            preprocess=None, postprocess=None, strict=False, dict_class=dict,
-            index_errors=True, index=None):
+    def deserialize(self, data, fields_dict, many=False, strict=False,
+            dict_class=dict, index_errors=True, index=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to `True` if ``data`` should be deserialized as
             a collection.
-        :param list validators: List of validation functions to apply to the
-            deserialized dictionary.
-        :param list preprocess: List of pre-processing functions.
         :param bool strict: If `True`, raise errors if invalid data are passed in
             instead of failing silently and storing the errors.
         :param type dict_class: Dictionary class used to construct the output.
@@ -234,13 +222,11 @@ class Unmarshaller(ErrorStore):
         if many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
-                        validators=validators, preprocess=preprocess,
                         strict=strict, dict_class=dict_class,
                         index=idx, index_errors=index_errors)
                     for idx, d in enumerate(data)]
             self._pending = False
             return ret
-        original_data = data
         if data is not None:
             items = []
             for attr_name, field_obj in iteritems(fields_dict):
@@ -291,14 +277,6 @@ class Unmarshaller(ErrorStore):
         else:
             ret = None
 
-        if preprocess:
-            preprocess = preprocess or []
-            for func in preprocess:
-                ret = func(ret)
-        if validators:
-            validators = validators or []
-            ret = self._validate(validators, ret, original_data, fields_dict=fields_dict,
-                                 strict=strict, index=(index if index_errors else None))
         if self.errors and strict:
             raise ValidationError(
                 self.errors,

@@ -222,34 +222,3 @@ class TestUnmarshaller:
         assert 'years' not in result
 
         assert 'always_invalid' not in unmarshal.errors
-
-    def test_preprocessing_function(self, unmarshal):
-        data = {'a': 10}
-        fields_dict = {
-            'a': fields.Integer(),
-        }
-
-        def preprocessor(in_vals):
-            in_vals['a'] += 1
-            return in_vals
-
-        result = unmarshal.deserialize(data, fields_dict, preprocess=[preprocessor])
-        assert result['a'] == 11
-
-    def test_preprocessing_many(self, unmarshal):
-        data = [
-            {'a': 12},
-            {'a': 34},
-        ]
-        fields_dict = {
-            'a': fields.Integer(),
-        }
-
-        def preprocessor(in_vals):
-            in_vals['a'] += 1
-            return in_vals
-
-        result = unmarshal.deserialize(data,
-            fields_dict, preprocess=[preprocessor], many=True)
-        assert result[0]['a'] == 13
-        assert result[1]['a'] == 35
