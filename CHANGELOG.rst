@@ -6,19 +6,18 @@ Changelog
 
 Features:
 
-- Make default error messages more easily configurable with the ``Fields.default_error_messages`` attribute and ``error_messages`` parameter..
+- Make error messages configurable at the class level and instance level (``Field.default_error_messages`` attribute and ``error_messages`` parameter, respectively).
 
 Derecation/Removals:
 
 - Remove ``make_object``. Use a ``post_load`` method instead (:issue:`277`).
-- Remove the ``error`` attribute of ``Field``.
+- Remove the ``error`` parameter and attribute of ``Field``.
 - Passing string arguments to ``required`` and ``allow_none`` is deprecated. Pass the ``error_messages`` argument instead.
 
 Bug fixes:
 
+- Fix error format for ``Nested`` fields when ``many=True``. Thanks :user:`alexmorken`.
 - ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.
-
-Changes from 2.0.0rc2:
 
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++
