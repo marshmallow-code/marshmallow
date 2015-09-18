@@ -360,6 +360,15 @@ Error messages can be customized at the `Field` class or instance level.
             'invalid': 'You passed a bad number.'
         }
 
+Passing a string to ``required`` is deprecated.
+
+.. code-block:: python
+
+    # 1.0
+    field = fields.Str(required='Missing required argument.')
+
+    # 2.0
+    field = fields.Str(error_messages={'required': 'Missing required argument.'})
 
 
 Use ``OneOf`` instead of ``fields.Select``
