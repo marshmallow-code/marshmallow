@@ -286,7 +286,7 @@ class TestFieldDeserialization:
             field.deserialize(in_val)
         expected_msg = 'Not a valid boolean.'
         assert str(excinfo.value.args[0]) == expected_msg
-        field2 = MyBoolean(error='bad input')
+        field2 = MyBoolean(error_messages={'invalid': 'bad input'})
         with pytest.raises(ValidationError) as excinfo:
             field2.deserialize(in_val)
         assert str(excinfo.value.args[0]) == 'bad input'
@@ -728,7 +728,8 @@ class TestFieldDeserialization:
             assert 'Invalid value.' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
-        field = fields.String(validate=lambda s: s.lower() == 'valid', error='Bad value.')
+        field = fields.String(validate=lambda s: s.lower() == 'valid',
+                error_messages={'validator_failed': 'Bad value.'})
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
@@ -1044,6 +1045,7 @@ class TestSchemaDeserialization:
         # required value missing
         assert len(errors['foo']) == 1
         assert 'Missing data for required field.' in errors['foo']
+
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])

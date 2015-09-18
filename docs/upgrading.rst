@@ -338,6 +338,30 @@ To make a field compatible with both marshmallow 1.x and 2.x, you can pass `*arg
                 raise ValidationError('Password too short.')
             return val
 
+Custom Error Messages
+*********************
+
+Error messages can be customized at the `Field` class or instance level.
+
+
+.. code-block:: python
+
+    # 1.0
+    field = fields.Number(error='You passed a bad number')
+
+    # 2.0
+    # Instance-level
+    field = fields.Number(error_messages={'invalid': 'You passed a bad number.'})
+
+
+    # Class-level
+    class MyNumberField(fields.Number):
+        default_error_messages = {
+            'invalid': 'You passed a bad number.'
+        }
+
+
+
 Use ``OneOf`` instead of ``fields.Select``
 ******************************************
 
