@@ -51,6 +51,11 @@ __all__ = [
     'Constant',
 ]
 
+MISSING_ERROR_MESSAGE = (
+    'ValidationError raised by `{class_name}`, but error key `{key}` does '
+    'not exist in the `error_messages` dictionary.'
+)
+
 
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
@@ -113,17 +118,21 @@ class Field(FieldABC):
     _CHECK_ATTRIBUTE = True
     _creation_index = 0  # Used for sorting
 
+    #: Default error messages for various kinds of errors. The keys in this dictionary
+    #: are passed to `Field.fail`. The values are error messages passed to
+    #: :exc:`marshmallow.ValidationError`.
+    default_error_messages = {
+        'required': 'Missing data for required field.',
+        'null': 'Field may not be null.',
+        'validator_failed': 'Invalid value.'
+    }
+
     def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
                  validate=None, required=False, allow_none=False, load_only=False,
-                 dump_only=False, missing=missing_, **metadata):
+                 dump_only=False, missing=missing_, error_messages=None, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
-        if error:
-            warnings.warn('The error parameter is deprecated. Raise a '
-                          'marshmallow.ValidationError in your validators '
-                          'instead.', category=DeprecationWarning)
-        self.error = error
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
@@ -138,7 +147,19 @@ class Field(FieldABC):
             raise ValueError("The 'validate' parameter must be a callable "
                              "or a collection of callables.")
 
+        if isinstance(required, basestring):
+            warnings.warn(
+                'Passing a string for `required` is deprecated. Pass '
+                '{"required": "Your message"} to `error_messages` instead.',
+                DeprecationWarning
+            )
         self.required = required
+        if isinstance(allow_none, basestring):
+            warnings.warn(
+                'Passing a string for `allow_none` is deprecated. Pass '
+                '{"null": "Your message"} to `error_messages` instead.',
+                DeprecationWarning
+            )
         self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
@@ -148,12 +169,20 @@ class Field(FieldABC):
         Field._creation_index += 1
         self.parent = FieldABC.parent
 
+        # Collect default error message from self and parent classes
+        messages = {}
+        for cls in reversed(self.__class__.__mro__):
+            messages.update(getattr(cls, 'default_error_messages', {}))
+        messages.update(error_messages or {})
+        self.error_messages = messages
+
     def __repr__(self):
         return ('<fields.{ClassName}(default={self.default!r}, '
-                'attribute={self.attribute!r}, error={self.error!r}, '
+                'attribute={self.attribute!r}, '
                 'validate={self.validate}, required={self.required}, '
                 'load_only={self.load_only}, dump_only={self.dump_only}, '
-                'missing={self.missing}, allow_none={self.allow_none})>'
+                'missing={self.missing}, allow_none={self.allow_none}, '
+                'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, attr, obj, accessor=None):
@@ -173,8 +202,7 @@ class Field(FieldABC):
         for validator in self.validators:
             try:
                 if validator(value) is False:
-                    default_message = 'Invalid value.'
-                    raise ValidationError(getattr(self, 'error', None) or default_message)
+                    self.fail('validator_failed')
             except ValidationError as err:
                 if isinstance(err.messages, dict):
                     errors.append(err.messages)
@@ -183,19 +211,34 @@ class Field(FieldABC):
         if errors:
             raise ValidationError(errors)
 
+    # Hat tip to django-rest-framework.
+    def fail(self, key, **kwargs):
+        """A helper method that simply raises a `ValidationError`.
+        """
+        try:
+            msg = self.error_messages[key]
+        except KeyError:
+            class_name = self.__class__.__name__
+            msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
+            raise AssertionError(msg)
+        message_string = msg.format(**kwargs)
+        raise ValidationError(message_string)
+
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
         if value is missing_:
             if hasattr(self, 'required') and self.required:
-                default_message = 'Missing data for required field.'
+                default_message = self.error_messages['required']
+                # TODO: Remove isinstance check when `required` strings are removed from API
                 message = (default_message if isinstance(self.required, bool) else
                             self.required)
                 raise ValidationError(message)
         if value is None:
             if hasattr(self, 'allow_none') and self.allow_none is not True:
-                default_message = 'Field may not be null.'
+                default_message = self.error_messages['null']
+                # TODO: Remove isinstance check when `allow_none` strings are removed from API
                 message = (default_message if isinstance(self.allow_none, bool) else
                             self.allow_none)
                 raise ValidationError(message)
@@ -319,6 +362,10 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    default_error_messages = {
+        'type': 'Expected a collection of dicts, got a {type}.',
+    }
+
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None,
                 many=False, **kwargs):
         self.nested = nested
@@ -385,8 +432,7 @@ class Nested(Field):
 
     def _deserialize(self, value, attr, data):
         if self.many and not utils.is_collection(value):
-            raise ValidationError(
-                'Expected a collection of dicts, got a {0}.'.format(value.__class__.__name__))
+            self.fail('type', type=value.__class__.__name__)
 
         data, errors = self.schema.load(value)
         if errors:
@@ -492,6 +538,10 @@ class String(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    default_error_messages = {
+        'invalid': 'Not a valid string.'
+    }
+
     def __init__(self, *args, **kwargs):
         return super(String, self).__init__(*args, **kwargs)
 
@@ -502,23 +552,21 @@ class String(Field):
 
     def _deserialize(self, value, attr, data):
         if not isinstance(value, basestring):
-            msg = 'Not a valid string.'
-            raise ValidationError(getattr(self, 'error', None) or msg)
-        result = utils.ensure_text_type(value)
-        return result
+            self.fail('invalid')
+        return utils.ensure_text_type(value)
 
 
 class UUID(String):
     """A UUID field."""
-
-    default_error = 'Not a valid UUID.'
+    default_error_messages = {
+        'invalid_guid': 'Not a valid UUID.'
+    }
 
     def _deserialize(self, value, attr, data):
-        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
-            raise err
+            self.fail('invalid_guid')
 
 
 class Number(Field):
@@ -529,7 +577,9 @@ class Number(Field):
     """
 
     num_type = float
-    default_error = 'Not a valid number.'
+    default_error_messages = {
+        'invalid': 'Not a valid number.'
+    }
 
     def __init__(self, as_string=False, **kwargs):
         self.as_string = as_string
@@ -546,7 +596,7 @@ class Number(Field):
         try:
             return self._format_num(value)
         except (TypeError, ValueError) as err:
-            raise ValidationError(getattr(self, 'error', None) or self.default_error)
+            self.fail('invalid')
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object and returns the
@@ -571,7 +621,9 @@ class Integer(Number):
     """
 
     num_type = int
-    default_error = 'Not a valid integer.'
+    default_error_messages = {
+        'invalid': 'Not a valid integer.'
+    }
 
 
 class Decimal(Number):
@@ -635,9 +687,7 @@ class Decimal(Number):
         try:
             return super(Decimal, self)._validated(value)
         except decimal.InvalidOperation:
-            raise ValidationError(
-                getattr(self, 'error', None) or self.default_error
-            )
+            self.fail('invalid')
 
 
 class Boolean(Field):
@@ -650,6 +700,10 @@ class Boolean(Field):
     truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
     #: Values that will (de)serialize to `False`.
     falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
+
+    default_error_messages = {
+        'invalid': 'Not a valid boolean.'
+    }
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -672,9 +726,7 @@ class Boolean(Field):
                     return False
             except TypeError:
                 pass
-        raise ValidationError(
-            getattr(self, 'error', None) or 'Not a valid boolean.'
-        )
+        self.fail('invalid')
 
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
@@ -690,6 +742,9 @@ class FormattedString(Field):
         res = ser.dump(user)
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
+    default_error_messages = {
+        'format': 'Cannot format string with given data.'
+    }
 
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)
@@ -700,7 +755,7 @@ class FormattedString(Field):
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
         except (TypeError, IndexError) as error:
-            raise ValidationError(getattr(self, 'error', None) or error)
+            self.fail('format')
 
 
 class Float(Number):
@@ -777,7 +832,9 @@ class DateTime(Field):
     DEFAULT_FORMAT = 'iso'
 
     localtime = False
-    default_error = 'Not a valid datetime.'
+    default_error_messages = {
+        'invalid': 'Not a valid datetime.'
+    }
 
     def __init__(self, format=None, **kwargs):
         super(DateTime, self).__init__(**kwargs)
@@ -804,30 +861,29 @@ class DateTime(Field):
             return value.strftime(self.dateformat)
 
     def _deserialize(self, value, attr, data):
-        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise err
+            raise self.fail('invalid')
         self.dateformat = self.dateformat or self.DEFAULT_FORMAT
         func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
-                raise err
+                raise self.fail('invalid')
         elif self.dateformat:
             try:
                 return dt.datetime.strptime(value, self.dateformat)
             except (TypeError, AttributeError, ValueError):
-                raise err
+                raise self.fail('invalid')
         elif utils.dateutil_available:
             try:
                 return utils.from_datestring(value)
             except TypeError:
-                raise err
+                raise self.fail('invalid')
         else:
             warnings.warn('It is recommended that you install python-dateutil '
                           'for improved datetime deserialization.')
-            raise err
+            raise self.fail('invalid')
 
 
 class LocalDateTime(DateTime):
@@ -845,7 +901,9 @@ class Time(Field):
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    default_error = 'Not a valid time.'
+    default_error_messages = {
+        'invalid': 'Not a valid time.'
+    }
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -861,20 +919,22 @@ class Time(Field):
 
     def _deserialize(self, value, attr, data):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
-        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:   # falsy values are invalid
+            self.fail('invalid')
             raise err
         try:
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
-            raise err
+            self.fail('invalid')
 
 class Date(Field):
     """ISO8601-formatted date string.
 
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    default_error = 'Not a valid date.'
+    default_error_messages = {
+        'invalid': 'Not a valid date.'
+    }
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -890,13 +950,12 @@ class Date(Field):
         """Deserialize an ISO8601-formatted date string to a
         :class:`datetime.date` object.
         """
-        err = ValidationError(getattr(self, 'error', None) or self.default_error)
         if not value:  # falsy values are invalid
-            raise err
+            self.fail('invalid')
         try:
             return utils.from_iso_date(value)
         except (AttributeError, TypeError, ValueError):
-            raise err
+            self.fail('invalid')
 
 
 class TimeDelta(Field):
@@ -918,7 +977,10 @@ class TimeDelta(Field):
     SECONDS = 'seconds'
     MICROSECONDS = 'microseconds'
 
-    default_error = 'Not a valid period of time.'
+    default_error_messages = {
+        'invalid': 'Not a valid period of time.',
+        'format': '{input!r} cannot be formatted as a timedelta.'
+    }
 
     def __init__(self, precision='seconds', error=None, **kwargs):
         precision = precision.lower()
@@ -945,21 +1007,20 @@ class TimeDelta(Field):
                 else:  # microseconds
                     return seconds * 10**6 + value.microseconds  # flake8: noqa
         except AttributeError:
-            msg = '{0!r} cannot be formatted as a timedelta.'.format(value)
-            raise ValidationError(getattr(self, 'error', None) or msg)
+            self.fail('format', input=value)
 
     def _deserialize(self, value, attr, data):
         try:
             value = int(value)
         except (TypeError, ValueError):
-            raise ValidationError(getattr(self, 'error', None) or self.default_error)
+            self.fail('invalid')
 
         kwargs = {self.precision: value}
 
         try:
             return dt.timedelta(**kwargs)
         except OverflowError:
-            raise ValidationError(getattr(self, 'error', None) or self.default_error)
+            self.fail('invalid')
 
 
 class Fixed(Number):
@@ -985,11 +1046,9 @@ class Fixed(Number):
         try:
             dvalue = utils.float_to_decimal(float(value))
         except (TypeError, ValueError) as err:
-            raise ValidationError(getattr(self, 'error', None) or text_type(err))
+            self.fail('invalid')
         if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
-            raise ValidationError(
-                getattr(self, 'error', None) or 'Invalid Fixed precision number.'
-            )
+            self.fail('invalid')
         return utils.decimal_to_fixed(dvalue, self.precision)
 
 
@@ -1029,6 +1088,7 @@ class Url(ValidatedField, String):
     :param bool relative: Allow relative URLs.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
+    default_error_messages = {'invalid': 'Not a valid URL.'}
 
     def __init__(self, relative=False, **kwargs):
         String.__init__(self, **kwargs)
@@ -1037,7 +1097,7 @@ class Url(ValidatedField, String):
         # stored.
         self.validators.insert(0, validate.URL(
             relative=self.relative,
-            error=getattr(self, 'error')
+            error=self.error_messages['invalid']
         ))
 
     def _validated(self, value):
@@ -1045,7 +1105,7 @@ class Url(ValidatedField, String):
             return None
         return validate.URL(
             relative=self.relative,
-            error=getattr(self, 'error')
+            error=self.error_messages['invalid']
         )(value)
 
 
@@ -1056,17 +1116,18 @@ class Email(ValidatedField, String):
     :param args: The same positional arguments that :class:`String` receives.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
+    default_error_messages = {'invalid': 'Not a valid email address.'}
     def __init__(self, *args, **kwargs):
         String.__init__(self, *args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, validate.Email(error=getattr(self, 'error')))
+        self.validators.insert(0, validate.Email(error=self.error_messages['invalid']))
 
     def _validated(self, value):
         if value is None:
             return None
         return validate.Email(
-            error=getattr(self, 'error')
+            error=self.error_messages['invalid']
         )(value)
 
 
@@ -1161,6 +1222,10 @@ class Select(Field):
 
     :raise: ValidationError if attribute's value is not one of the given choices.
     """
+
+    default_error_messages = {
+        'invalid': 'Not a valid choice.'
+    }
     def __init__(self, choices, **kwargs):
         warnings.warn(
             'The Select field is deprecated. Use the '
@@ -1172,10 +1237,7 @@ class Select(Field):
 
     def _validated(self, value):
         if value not in self.choices:
-            raise ValidationError(
-                getattr(self, 'error', None) or
-                "{0!r} is not a valid choice for this field.".format(value)
-            )
+            self.fail('invalid')
         return value
 
     def _serialize(self, value, attr, obj):
@@ -1213,6 +1275,11 @@ class QuerySelect(Field):
     .. versionadded:: 1.2.0
     .. deprecated:: 2.0.0
     """
+    default_error_messages = {
+        'invalid_key': 'Invalid key.',
+        'invalid_object': 'Invalid object.',
+    }
+
     def __init__(self, query, keygetter, **kwargs):
         warnings.warn(
             'The QuerySelect field is deprecated.',
@@ -1255,17 +1322,14 @@ class QuerySelect(Field):
         for key in self.keys():
             if key == value:
                 return value
-
-        error = getattr(self, 'error', None) or 'Invalid object.'
-        raise ValidationError(error)
+        self.fail('invalid_object')
 
     def _deserialize(self, value, attr, data):
         for key, result in self.pairs():
             if key == value:
                 return result
 
-        error = getattr(self, 'error', None) or 'Invalid key.'
-        raise ValidationError(error)
+        self.fail('invalid_key')
 
 
 class QuerySelectList(QuerySelect):
@@ -1289,6 +1353,11 @@ class QuerySelectList(QuerySelect):
     .. versionadded:: 1.2.0
     .. deprecated:: 2.0.0
     """
+    default_error_messages = {
+        'invalid_keys': 'Invalid keys.',
+        'invalid_objects': 'Invalid objects.',
+    }
+
     def __init__(self, *args, **kwargs):
         warnings.warn(
             'The QuerySelectList field is deprecated.',
@@ -1308,8 +1377,7 @@ class QuerySelectList(QuerySelect):
             try:
                 keys.remove(item)
             except ValueError:
-                error = getattr(self, 'error', None) or 'Invalid objects.'
-                raise ValidationError(error)
+                self.fail('invalid_objects')
 
         return items
 
@@ -1324,8 +1392,7 @@ class QuerySelectList(QuerySelect):
             try:
                 index = keys.index(val)
             except ValueError:
-                error = getattr(self, 'error', None) or 'Invalid keys.'
-                raise ValidationError(error)
+                self.fail('invalid_keys')
             else:
                 del keys[index]
                 items.append(results.pop(index))

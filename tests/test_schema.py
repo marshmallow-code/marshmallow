@@ -598,7 +598,7 @@ def test_invalid_selection():
     u = User('Jonhy')
     u.sex = 'hybrid'
     s = UserSchema().dump(u)
-    assert "'hybrid' is not a valid choice for this field." in s.errors['sex']
+    assert "Not a valid choice." in s.errors['sex']
 
 def test_custom_json():
     class UserJSONSchema(Schema):
@@ -615,9 +615,9 @@ def test_custom_json():
 
 def test_custom_error_message():
     class ErrorSchema(Schema):
-        email = fields.Email(error="Invalid email")
-        homepage = fields.Url(error="Bad homepage.")
-        balance = fields.Fixed(error="Bad balance.")
+        email = fields.Email(error_messages={'invalid': 'Invalid email'})
+        homepage = fields.Url(error_messages={'invalid': 'Bad homepage.'})
+        balance = fields.Fixed(error_messages={'invalid': 'Bad balance.'})
 
     u = {'email': 'joe.net', 'homepage': 'joe@example.com', 'balance': 'blah'}
     s = ErrorSchema()
@@ -1336,7 +1336,8 @@ def test_deserialization_with_required_field_and_custom_validator():
     class ValidatingSchema(Schema):
         color = fields.String(required=True,
                         validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
-                        error="Color must be red or blue")
+                        error_messages={
+                            'validator_failed': "Color must be red or blue"})
 
     data, errors = ValidatingSchema().load({'name': 'foo'})
     assert errors
