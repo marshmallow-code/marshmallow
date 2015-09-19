@@ -88,8 +88,8 @@ class Field(FieldABC):
         found in the input data. May be a value or a callable.
     :param metadata: Extra arguments to be stored as metadata.
 
-    .. versionchanged:: 1.0.0
-        Deprecated `error` parameter. Raise a :exc:`marshmallow.ValidationError` instead.
+    .. versionchanged:: 2.0.0
+        Removed `error` parameter. Use ``error_messages`` instead.
 
     .. versionchanged:: 2.0.0
         Added `allow_none` parameter, which makes validation/deserialization of `None`
