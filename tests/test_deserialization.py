@@ -7,7 +7,7 @@ import pytest
 
 from marshmallow import fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import basestring
 
 from tests.base import (
     assert_almost_equal,
@@ -394,14 +394,14 @@ class TestFieldDeserialization:
         assert result.microseconds == 0
 
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        result = field.deserialize(10**6 + 1)
+        result = field.deserialize(10 ** 6 + 1)
         assert isinstance(result, dt.timedelta)
         assert result.days == 0
         assert result.seconds == 1
         assert result.microseconds == 1
 
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        result = field.deserialize(86400 * 10**6 + 1)
+        result = field.deserialize(86400 * 10 ** 6 + 1)
         assert isinstance(result, dt.timedelta)
         assert result.days == 1
         assert result.seconds == 0
@@ -1009,8 +1009,6 @@ class TestSchemaDeserialization:
         assert len(errors['foo']) == 1
         assert 'Missing data for required field.' in errors['foo']
 
-
-
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
 validators_gen_float = (func for func in
@@ -1140,7 +1138,7 @@ def test_deserialize_doesnt_raise_exception_if_strict_is_false_and_input_type_is
         bar = fields.Field()
     data, errs = MySchema().load([])
     assert '_schema' in errs
-    assert errs['_schema'] == ['Data must be a dict, got a list']
+    assert errs['_schema'] == ['Invalid input type.']
 
 
 def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorrect():
@@ -1149,7 +1147,7 @@ def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorr
         bar = fields.Field()
     with pytest.raises(ValidationError) as excinfo:
         MySchema(strict=True).load([])
-    assert 'Data must be a dict, got a list' in str(excinfo)
+    assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']
     assert exc.fields == []

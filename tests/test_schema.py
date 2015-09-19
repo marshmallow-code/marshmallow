@@ -10,7 +10,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import unicode, OrderedDict
+from marshmallow.compat import OrderedDict
 
 from tests.base import *  # noqa
 
@@ -1170,7 +1170,7 @@ class TestNestedSchema:
 
         schema = OuterSchema()
         _, errors = schema.load({'inner': 1})
-        assert errors['inner']['_schema'] == ['Data must be a dict, got a int']
+        assert errors['inner']['_schema'] == ['Invalid input type.']
 
     def test_missing_required_nested_field(self):
         class Inner(Schema):
@@ -1183,7 +1183,6 @@ class TestNestedSchema:
             middle_req_2 = fields.Nested(Inner, required=True)
             middle_not_req = fields.Nested(Inner)
             middle_field = fields.Field(required='middlin')
-
 
         class Outer(Schema):
             outer_req = fields.Nested(Middle, required=True)
@@ -1198,7 +1197,7 @@ class TestNestedSchema:
                                    'middle_req_2': {'inner_bad': ['Int plz'],
                                                     'inner_req': ['Oops']},
                                    'middle_field': ['middlin']}},
-             'outer_req': {'middle_field': ['middlin'],
+            'outer_req': {'middle_field': ['middlin'],
                            'middle_many_req': {0: {'inner_bad': ['Int plz'],
                                               'inner_req': ['Oops']}},
                            'middle_req_2': {'inner_bad': ['Int plz'],
