@@ -5,7 +5,7 @@ import decimal
 
 import pytest
 
-from marshmallow import fields, utils, Schema, validates
+from marshmallow import fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import text_type, basestring
 
@@ -26,8 +26,6 @@ class TestDeserializingNone:
     def test_fields_allow_none_deserialize_to_none(self, FieldClass):
         if FieldClass == fields.FormattedString:
             field = FieldClass(src_str='foo', allow_none=True)
-        elif FieldClass == fields.Enum:
-            field = FieldClass(choices=['foo', 'bar'], allow_none=True)
         else:
             field = FieldClass(allow_none=True)
         field.deserialize(None) is None
@@ -38,8 +36,6 @@ class TestDeserializingNone:
         # by default, allow_none=False
         if FieldClass == fields.FormattedString:
             field = FieldClass(src_str='foo')
-        elif FieldClass == fields.Enum:
-            field = FieldClass(choices=['foo', 'bar'])
         else:
             field = FieldClass()
         with pytest.raises(ValidationError) as excinfo:
@@ -291,11 +287,6 @@ class TestFieldDeserialization:
             field2.deserialize(in_val)
         assert str(excinfo.value.args[0]) == 'bad input'
 
-    def test_arbitrary_field_deserialization(self):
-        field = fields.Arbitrary()
-        expected = text_type(utils.float_to_decimal(float(42)))
-        assert field.deserialize('42') == expected
-
     @pytest.mark.parametrize('in_value',
     [
         'not-a-datetime',
@@ -381,17 +372,6 @@ class TestFieldDeserialization:
         msg = 'Not a valid time.'
         assert msg in str(excinfo)
 
-    def test_fixed_field_deserialization(self):
-        field = fields.Fixed(decimals=3)
-        assert field.deserialize('12.3456') == '12.346'
-        field.deserialize('12.3456') == '12.346'
-        assert field.deserialize(12.3456) == '12.346'
-
-    def test_fixed_field_deserialize_invalid_value(self):
-        field = fields.Fixed(decimals=3)
-        with pytest.raises(ValidationError):
-            field.deserialize('badvalue')
-
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
         result = field.deserialize('42')
@@ -467,10 +447,6 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
         msg = 'Not a valid date.'
         assert excinfo.value.args[0] == msg
-
-    def test_price_field_deserialization(self):
-        field = fields.Price()
-        assert field.deserialize('12.345') == '12.35'
 
     def test_url_field_deserialization(self):
         field = fields.Url()
@@ -561,12 +537,6 @@ class TestFieldDeserialization:
         with pytest.raises(ValueError):
             s.fields['uppername'].deserialize('STEVE')
 
-    def test_enum_field_deserialization(self):
-        field = fields.Enum(['red', 'blue'])
-        assert field.deserialize('red') == 'red'
-        with pytest.raises(ValidationError):
-            field.deserialize('notvalid')
-
     def test_query_select_field_func_key_deserialization(self):
         query = lambda: [DummyModel(ch) for ch in 'abc']
 
@@ -630,13 +600,6 @@ class TestFieldDeserialization:
             field.deserialize(['a', 'b', 'f'])
         with pytest.raises(ValidationError):
             field.deserialize(['a', 'b', 'b'])
-
-    def test_fixed_list_field_deserialization(self):
-        field = fields.List(fields.Fixed(3))
-        nums = (1, 2, 3)
-        assert field.deserialize(nums) == ['1.000', '2.000', '3.000']
-        with pytest.raises(ValidationError):
-            field.deserialize((1, 2, 'invalid'))
 
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
@@ -741,12 +704,12 @@ class SimpleUserSchema(Schema):
 
 class Validator(Schema):
     email = fields.Email()
-    colors = fields.Enum(['red', 'blue'])
+    colors = fields.Str(validate=validate.OneOf(['red', 'blue']))
     age = fields.Integer(validate=lambda n: n > 0)
 
 class Validators(Schema):
     email = fields.Email()
-    colors = fields.Enum(['red', 'blue'])
+    colors = fields.Str(validate=validate.OneOf(['red', 'blue']))
     age = fields.Integer(validate=[lambda n: n > 0, lambda n: n < 100])
 
 class TestSchemaDeserialization:
@@ -1147,7 +1110,7 @@ class TestValidation:
         assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
 
 
-FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.Enum, fields.FormattedString]]
+FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
 @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
 def test_required_field_failure(FieldClass):  # noqa
     class RequireSchema(Schema):
@@ -1156,16 +1119,6 @@ def test_required_field_failure(FieldClass):  # noqa
     data, errs = RequireSchema().load(user_data)
     assert "Missing data for required field." in errs['age']
     assert data == {}
-
-
-def test_required_enum():
-    class ColorSchema(Schema):
-        color = fields.Enum(['red', 'white', 'blue'], required=True)
-    in_data = {'name': 'Phil'}
-    data, errs = ColorSchema().load(in_data)
-    assert "Missing data for required field." in errs['color']
-    assert data == {}
-
 
 @pytest.mark.parametrize('message', ['My custom required message',
                                      {'error': 'something', 'code': 400},

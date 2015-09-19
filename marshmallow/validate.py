@@ -349,7 +349,7 @@ class OneOf(Validator):
     :param iterable choices: A sequence of valid values.
     :param iterable labels: Optional sequence of labels to pair with the choices.
     :param str error: Error message to raise in case of a validation error. Can be
-        interpolated using `{input}`, `{choices}` and `{labels}`.
+        interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
     default_message = 'Not a valid choice.'
