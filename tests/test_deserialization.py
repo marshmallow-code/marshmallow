@@ -98,6 +98,7 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == 'Not a valid number.'
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Not a valid number.'
 
     def test_decimal_field_with_places(self):
         m1 = 12
@@ -369,8 +370,7 @@ class TestFieldDeserialization:
         field = fields.Time()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_data)
-        msg = 'Not a valid time.'
-        assert msg in str(excinfo)
+        assert excinfo.value.args[0] == 'Not a valid time.'
 
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()

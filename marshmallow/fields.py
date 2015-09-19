@@ -650,6 +650,10 @@ class Decimal(Number):
 
     num_type = decimal.Decimal
 
+    default_error_messages = {
+        'special': 'Special numeric values are not permitted.',
+    }
+
     def __init__(self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs):
         self.places = decimal.Decimal((0, (1,), -places)) if places is not None else None
         self.rounding = rounding
@@ -668,9 +672,7 @@ class Decimal(Number):
                 return decimal.Decimal('NaN')  # avoid sNaN, -sNaN and -NaN
         else:
             if num.is_nan() or num.is_infinite():
-                raise ValidationError(
-                    getattr(self, 'error', None) or 'Special numeric values are not permitted.'
-                )
+                self.fail('special')
 
         if self.places is not None and num.is_finite():
             num = num.quantize(self.places, rounding=self.rounding)
@@ -793,7 +795,8 @@ class DateTime(Field):
 
     localtime = False
     default_error_messages = {
-        'invalid': 'Not a valid datetime.'
+        'invalid': 'Not a valid datetime.',
+        'format': '"{input}" cannot be formatted as a datetime.',
     }
 
     def __init__(self, format=None, **kwargs):
@@ -816,7 +819,7 @@ class DateTime(Field):
             try:
                 return format_func(value, localtime=self.localtime)
             except (AttributeError, ValueError) as err:
-                raise ValidationError(getattr(self, 'error', None) or text_type(err))
+                self.fail('format', input=value)
         else:
             return value.strftime(self.dateformat)
 
@@ -862,7 +865,8 @@ class Time(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     default_error_messages = {
-        'invalid': 'Not a valid time.'
+        'invalid': 'Not a valid time.',
+        'format': '"{input}" cannot be formatted as a time.',
     }
 
     def _serialize(self, value, attr, obj):
@@ -871,8 +875,7 @@ class Time(Field):
         try:
             ret = value.isoformat()
         except AttributeError:
-            msg = '{0!r} cannot be formatted as a time.'.format(value)
-            raise ValidationError(getattr(self, 'error', None) or msg)
+            self.fail('format', input=value)
         if value.microsecond:
             return ret[:12]
         return ret
@@ -893,7 +896,8 @@ class Date(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     default_error_messages = {
-        'invalid': 'Not a valid date.'
+        'invalid': 'Not a valid date.',
+        'format': '"{input}" cannot be formatted as a date.',
     }
 
     def _serialize(self, value, attr, obj):
@@ -902,8 +906,7 @@ class Date(Field):
         try:
             return value.isoformat()
         except AttributeError:
-            msg = '{0} cannot be formatted as a date.'.format(repr(value))
-            raise ValidationError(getattr(self, 'error', None) or msg)
+            self.fail('format', input=value)
         return value
 
     def _deserialize(self, value, attr, data):

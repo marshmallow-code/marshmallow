@@ -562,12 +562,12 @@ def test_can_serialize_time(user, serialized_user):
 def test_invalid_time():
     u = User('Joe', time_registered='foo')
     s = UserSchema().dump(u)
-    assert "'foo' cannot be formatted as a time." in s.errors['time_registered']
+    assert '"foo" cannot be formatted as a time.' in s.errors['time_registered']
 
 def test_invalid_date():
     u = User("Joe", birthdate='foo')
     s = UserSchema().dump(u)
-    assert "'foo' cannot be formatted as a date." in s.errors['birthdate']
+    assert '"foo" cannot be formatted as a date.' in s.errors['birthdate']
 
 def test_invalid_email():
     u = User('Joe', email='bademail')

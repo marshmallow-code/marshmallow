@@ -300,10 +300,24 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
 
-    def test_datetime_deserializes_to_iso_by_default(self, user):
+    def test_datetime_serializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
         expected = utils.isoformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
+        assert field.serialize('created', user) == expected
+
+    @pytest.mark.parametrize('value',
+    [
+        'invalid',
+        [],
+        24,
+    ])
+    def test_datetime_invalid_serialization(self, value, user):
+        field = fields.DateTime()
+        user.created = value
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.serialize('created', user)
+        assert excinfo.value.args[0] == '"{0}" cannot be formatted as a datetime.'.format(value)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_datetime_field_rfc822(self, fmt, user):
@@ -357,12 +371,42 @@ class TestFieldSerialization:
         user.time_registered = None
         assert field.serialize('time_registered', user) is None
 
+    @pytest.mark.parametrize('in_data',
+    [
+        'badvalue',
+        '',
+        [],
+        42,
+    ])
+    def test_invalid_time_field_serialization(self, in_data, user):
+        field = fields.Time()
+        user.time_registered = in_data
+        with pytest.raises(ValidationError) as excinfo:
+            field.serialize('time_registered', user)
+        msg = '"{0}" cannot be formatted as a time.'.format(in_data)
+        assert excinfo.value.args[0] == msg
+
     def test_date_field(self, user):
         field = fields.Date()
         assert field.serialize('birthdate', user) == user.birthdate.isoformat()
 
         user.birthdate = None
         assert field.serialize('birthdate', user) is None
+
+    @pytest.mark.parametrize('in_data',
+    [
+        'badvalue',
+        '',
+        [],
+        42,
+    ])
+    def test_invalid_date_field_serialization(self, in_data, user):
+        field = fields.Date()
+        user.birthdate = in_data
+        with pytest.raises(ValidationError) as excinfo:
+            field.serialize('birthdate', user)
+        msg = '"{0}" cannot be formatted as a date.'.format(in_data)
+        assert excinfo.value.args[0] == msg
 
     def test_timedelta_field(self, user):
         user.d1 = dt.timedelta(days=1, seconds=1, microseconds=1)
