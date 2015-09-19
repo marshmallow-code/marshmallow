@@ -235,8 +235,10 @@ class Unmarshaller(ErrorStore):
                 try:
                     raw_value = data.get(attr_name, missing)
                 except AttributeError:  # Input data is not a dict
-                    msg = 'Data must be a dict, got a {0}'.format(data.__class__.__name__)
                     errors = self.get_errors(index=index)
+                    msg = field_obj.error_messages['type'].format(
+                        input=data, input_type=data.__class__.__name__
+                    )
                     if strict:
                         raise ValidationError(
                             msg,
