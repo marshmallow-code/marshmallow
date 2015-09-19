@@ -409,13 +409,6 @@ class TestFieldSerialization:
         user.d6 = None
         assert field.serialize('d6', user) is None
 
-    def test_select_field(self, user):
-        field = fields.Select(['male', 'female', 'transexual', 'asexual'])
-        assert field.serialize("sex", user) == "male"
-        invalid = User('foo', sex='alien')
-        with pytest.raises(ValidationError):
-            field.serialize('sex', invalid)
-
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
         field = fields.List(fields.DateTime)
@@ -527,45 +520,6 @@ class TestFieldSerialization:
                 'of marshmallow.base.FieldABC')
         assert expected_msg in str(excinfo)
 
-    def test_arbitrary_field(self, user):
-        field = fields.Arbitrary()
-        user.age = 12.3
-        result = field.serialize('age', user)
-        assert result == text_type(utils.float_to_decimal(user.age))
-
-    def test_arbitrary_field_invalid_value(self, user):
-        field = fields.Arbitrary()
-        with pytest.raises(ValidationError):
-            user.age = 'invalidvalue'
-            field.serialize('age', user)
-
-    def test_fixed_field(self, user):
-        field = fields.Fixed(3)
-        user.age = 42
-        result = field.serialize('age', user)
-        assert result == '42.000'
-
-    def test_fixed_field_none(self, user):
-        field = fields.Fixed()
-        user.age = None
-        assert field.serialize('age', user) is None
-
-    def test_fixed_field_invalid_value(self, user):
-        field = fields.Fixed()
-        with pytest.raises(ValidationError):
-            user.age = 'invalidvalue'
-            field.serialize('age', user)
-
-    def test_price_field(self, user):
-        field = fields.Price()
-        user.balance = 100
-        assert field.serialize('balance', user) == '100.00'
-
-    def test_price_field_none(self, user):
-        field = fields.Price()
-        user.balance = None
-        assert field.serialize('balance', user) is None
-
     def test_serialize_does_not_apply_validators(self, user):
         field = fields.Field(validate=lambda x: False)
         # No validation error raised
@@ -646,9 +600,7 @@ class TestFieldSerialization:
 
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_all_fields_serialize_none_to_none(self, FieldClass):
-        if FieldClass == fields.Enum:
-            field = FieldClass(['bar', 'baz', None])
-        elif FieldClass == fields.FormattedString:
+        if FieldClass == fields.FormattedString:
             field = FieldClass('{foo}', allow_none=True)
         else:
             field = FieldClass(allow_none=True)

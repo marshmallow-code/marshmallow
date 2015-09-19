@@ -28,23 +28,18 @@ __all__ = [
     'Boolean',
     'FormattedString',
     'Float',
-    'Arbitrary',
     'DateTime',
     'LocalDateTime',
     'Time',
     'Date',
     'TimeDelta',
-    'Fixed',
-    'Price',
     'Url',
     'URL',
     'Email',
     'Method',
     'Function',
-    'Select',
     'QuerySelect',
     'QuerySelectList',
-    'Enum',
     'Str',
     'Bool',
     'Int',
@@ -769,41 +764,6 @@ class Float(Number):
     num_type = float
 
 
-class Arbitrary(Number):
-    """A floating point number with an arbitrary precision,
-    formatted as as string.
-    ex: 634271127864378216478362784632784678324.23432
-
-    :param args: The same positional arguments that :class:`Number` receives.
-    :param kwargs: The same keyword arguments that :class:`Number` receives.
-
-    .. deprecated:: 1.2.0
-        Use `Decimal` instead.
-    """
-    # No as_string param
-    def __init__(self, *args, **kwargs):
-        warnings.warn(
-            'The Arbitrary field is deprecated. Use the Decimal field instead.',
-            category=DeprecationWarning
-        )
-        super(Arbitrary, self).__init__(*args, **kwargs)
-
-    def _validated(self, value):
-        """Format ``value`` or raise ``exception_class`` if an error occurs."""
-        try:
-            if value is None:
-                return self.default
-            return text_type(utils.float_to_decimal(float(value)))
-        except ValueError as ve:
-            raise ValidationError(text_type(ve))
-
-    def _serialize(self, value, attr, obj):
-        return self._validated(value)
-
-    def _deserialize(self, value, attr, data):
-        return self._validated(value)
-
-
 class DateTime(Field):
     """A formatted datetime string in UTC.
 
@@ -1023,51 +983,6 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
-class Fixed(Number):
-    """A fixed-precision number as a string.
-
-    :param kwargs: The same keyword arguments that :class:`Number` receives.
-
-    .. deprecated:: 1.2.0
-        Use `Decimal` instead.
-    """
-
-    def __init__(self, decimals=5, *args, **kwargs):
-        warnings.warn(
-            'The Fixed field is deprecated. Use the Decimal field instead.',
-            category=DeprecationWarning
-        )
-        super(Fixed, self).__init__(*args, **kwargs)
-        self.precision = decimal.Decimal('0.' + '0' * (decimals - 1) + '1')
-
-    def _validated(self, value):
-        if value is None:
-            return None
-        try:
-            dvalue = utils.float_to_decimal(float(value))
-        except (TypeError, ValueError) as err:
-            self.fail('invalid')
-        if not dvalue.is_normal() and dvalue != utils.ZERO_DECIMAL:
-            self.fail('invalid')
-        return utils.decimal_to_fixed(dvalue, self.precision)
-
-
-class Price(Fixed):
-    """A Price field with fixed precision.
-
-    :param kwargs: The same keyword arguments that :class:`Fixed` receives.
-
-    .. deprecated:: 1.2.0
-        Use `Decimal` instead.
-    """
-    def __init__(self, decimals=2, **kwargs):
-        warnings.warn(
-            'The Price field is deprecated. Use the Decimal field for dealing with '
-            'money values.',
-            category=DeprecationWarning
-        )
-        super(Price, self).__init__(decimals=decimals, **kwargs)
-
 class ValidatedField(Field):
     """A field that validates input on serialization."""
 
@@ -1211,40 +1126,6 @@ class Function(Field):
         if self.deserialize_func:
             return self.deserialize_func(value)
         return value
-
-
-class Select(Field):
-    """A field that provides a set of values which an attribute must be
-    contrained to.
-
-    :param choices: A list of valid values.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
-
-    :raise: ValidationError if attribute's value is not one of the given choices.
-    """
-
-    default_error_messages = {
-        'invalid': 'Not a valid choice.'
-    }
-    def __init__(self, choices, **kwargs):
-        warnings.warn(
-            'The Select field is deprecated. Use the '
-            'marshmallow.validate.OneOf validator '
-            'instead.', category=DeprecationWarning
-        )
-        self.choices = choices
-        return super(Select, self).__init__(**kwargs)
-
-    def _validated(self, value):
-        if value not in self.choices:
-            self.fail('invalid')
-        return value
-
-    def _serialize(self, value, attr, obj):
-        return self._validated(value)
-
-    def _deserialize(self, value, attr, data):
-        return self._validated(value)
 
 
 class QuerySelect(Field):
@@ -1424,7 +1305,6 @@ class Constant(Field):
 
 # Aliases
 URL = Url
-Enum = Select
 Str = String
 Bool = Boolean
 Int = Integer

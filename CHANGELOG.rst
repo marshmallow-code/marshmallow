@@ -12,7 +12,9 @@ Derecation/Removals:
 
 - Remove ``make_object``. Use a ``post_load`` method instead (:issue:`277`).
 - Remove the ``error`` parameter and attribute of ``Field``.
-- Passing string arguments to ``required`` and ``allow_none`` is deprecated. Pass the ``error_messages`` argument instead.
+- Passing string arguments to ``required`` and ``allow_none`` is deprecated. Pass the ``error_messages`` argument instead. **This API will be removed in version 2.1**.
+- Remove ``Arbitrary``, ``Fixed``, and ``Price`` fields (:issue:`86`). Use ``Decimal`` instead.
+- Remove ``Select`` / ``Enum`` fields (:issue:`135`). Use the ``OneOf`` validator instead.
 
 Bug fixes:
 
@@ -51,7 +53,7 @@ Features:
 Deprecation/Removals:
 
 - ``Schema.validator``, ``Schema.preprocessor``, and ``Schema.data_handler`` are removed. Use ``validates_schema``, ``pre_load``, and ``post_dump`` instead.
-- ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`).
+- ``QuerySelect``  and ``QuerySelectList`` are deprecated (:issue:`227`). **These fields will be removed in version 2.1.**
 - ``utils.get_callable_name`` is removed.
 
 Bug fixes:

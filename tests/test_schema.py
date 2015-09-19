@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
+import simplejson as json
+import decimal
 import random
 from collections import namedtuple
 
@@ -457,25 +458,11 @@ def test_integer_field():
     assert type(serialized.data['age']) == int
     assert serialized.data['age'] == 42
 
-def test_fixed_field():
-    u = User("John", age=42.3)
-    serialized = UserFixedSchema().dump(u)
-    assert serialized.data['age'] == "42.30"
-
 def test_as_string():
     u = User("John", age=42.3)
     serialized = UserFloatStringSchema().dump(u)
     assert type(serialized.data['age']) == str
     assert_almost_equal(float(serialized.data['age']), 42.3)
-
-def test_decimal_field():
-    u = User("John", age=42.3)
-    s = UserDecimalSchema().dump(u)
-    assert type(s.data['age']) == unicode
-    assert_almost_equal(float(s.data['age']), 42.3)
-
-def test_price_field(serialized_user):
-    assert serialized_user.data['balance'] == "100.00"
 
 def test_extra():
     user = User("Joe", email="joe@foo.com")
@@ -594,12 +581,6 @@ def test_invalid_url():
     assert 'homepage' in s.errors
     assert 'Not a valid URL.' in s.errors['homepage'][0]
 
-def test_invalid_selection():
-    u = User('Jonhy')
-    u.sex = 'hybrid'
-    s = UserSchema().dump(u)
-    assert "Not a valid choice." in s.errors['sex']
-
 def test_custom_json():
     class UserJSONSchema(Schema):
         name = fields.String()
@@ -617,7 +598,7 @@ def test_custom_error_message():
     class ErrorSchema(Schema):
         email = fields.Email(error_messages={'invalid': 'Invalid email'})
         homepage = fields.Url(error_messages={'invalid': 'Bad homepage.'})
-        balance = fields.Fixed(error_messages={'invalid': 'Bad balance.'})
+        balance = fields.Decimal(error_messages={'invalid': 'Bad balance.'})
 
     u = {'email': 'joe.net', 'homepage': 'joe@example.com', 'balance': 'blah'}
     s = ErrorSchema()
@@ -717,14 +698,15 @@ def test_nested_with_sets():
 def test_meta_serializer_fields():
     u = User("John", age=42.3, email="john@example.com",
              homepage="http://john.com")
-    s = UserMetaSchema().dump(u)
-    assert s.data['name'] == u.name
-    assert s.data['balance'] == "100.00"
-    assert s.data['uppername'] == "JOHN"
-    assert s.data['is_old'] is False
-    assert s.data['created'] == utils.isoformat(u.created)
-    assert s.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
-    assert s.data['finger_count'] == 10
+    result = UserMetaSchema().dump(u)
+    assert not result.errors
+    assert result.data['name'] == u.name
+    assert result.data['balance'] == decimal.Decimal('100.00')
+    assert result.data['uppername'] == "JOHN"
+    assert result.data['is_old'] is False
+    assert result.data['created'] == utils.isoformat(u.created)
+    assert result.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
+    assert result.data['finger_count'] == 10
 
 
 def test_meta_fields_mapping(user):
@@ -735,7 +717,7 @@ def test_meta_fields_mapping(user):
     assert type(s.fields['updated']) == fields.DateTime
     assert type(s.fields['updated_local']) == fields.LocalDateTime
     assert type(s.fields['age']) == fields.Float
-    assert type(s.fields['balance']) == fields.Price
+    assert type(s.fields['balance']) == fields.Decimal
     assert type(s.fields['registered']) == fields.Boolean
     assert type(s.fields['sex_choices']) == fields.Raw
     assert type(s.fields['hair_colors']) == fields.Raw

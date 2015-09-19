@@ -8,9 +8,6 @@ from tests.base import ALL_FIELDS, User
 
 class TestFieldAliases:
 
-    def test_enum_is_select(self):
-        assert fields.Enum is fields.Select
-
     def test_int_is_integer(self):
         assert fields.Int is fields.Integer
 
@@ -73,7 +70,7 @@ class TestMetadata:
 
     FIELDS_TO_TEST = [
         field for field in ALL_FIELDS
-        if field not in [fields.Enum, fields.FormattedString]
+        if field not in [fields.FormattedString]
     ]
 
     @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
@@ -88,9 +85,6 @@ class TestMetadata:
         field = fields.FormattedString('hello {name}', description='a greeting')
         assert field.metadata == {'description': 'a greeting'}
 
-    def test_metadata_may_be_added_to_enum_field(self):
-        field = fields.Enum(['red', 'blue'], description='A color')
-        assert field.metadata == {'description': 'A color'}
 
 class TestErrorMessages:
 
