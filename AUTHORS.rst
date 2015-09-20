@@ -44,3 +44,4 @@ Contributors (chronological)
 - Stas Sușcov `@stas <https://github.com/stas>`_
 - Florian `@floqqi <https://github.com/floqqi>`_
 - Evgeny Sureev `@evgeny-sureev <https://github.com/evgeny-sureev>`_
+- Matt Bachmann `@Bachmann1234 <https://github.com/Bachmann1234>`_
