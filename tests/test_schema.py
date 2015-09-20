@@ -1163,7 +1163,7 @@ class TestNestedSchema:
 
         result = sch.load({'inner': 'invalid'})
         assert 'inner' in result.errors
-        assert result.errors['inner'] == ['Expected a collection of dicts, got a str.']
+        assert result.errors['inner'] == ['Invalid type.']
 
         class OuterSchema(Schema):
             inner = fields.Nested(InnerSchema)
@@ -1174,15 +1174,15 @@ class TestNestedSchema:
 
     def test_missing_required_nested_field(self):
         class Inner(Schema):
-            inner_req = fields.Field(required='Oops')
+            inner_req = fields.Field(required=True, error_messages={'required': 'Oops'})
             inner_not_req = fields.Field()
-            inner_bad = fields.Integer(required='Int plz')
+            inner_bad = fields.Integer(required=True, error_messages={'required': 'Int plz'})
 
         class Middle(Schema):
             middle_many_req = fields.Nested(Inner, required=True, many=True)
             middle_req_2 = fields.Nested(Inner, required=True)
             middle_not_req = fields.Nested(Inner)
-            middle_field = fields.Field(required='middlin')
+            middle_field = fields.Field(required=True, error_messages={'required': 'middlin'})
 
         class Outer(Schema):
             outer_req = fields.Nested(Middle, required=True)

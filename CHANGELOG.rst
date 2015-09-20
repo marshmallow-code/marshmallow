@@ -20,6 +20,7 @@ Bug fixes:
 
 - Fix error format for ``Nested`` fields when ``many=True``. Thanks :user:`alexmorken`.
 - ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.
+- Return correct "required" error message for ``Nested`` field.
 
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++

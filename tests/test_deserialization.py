@@ -775,6 +775,54 @@ class TestSchemaDeserialization:
         assert author['name'] == 'Mick'
         assert author['age'] == 914
 
+    def test_nested_single_none_not_allowed(self):
+        class PetSchema(Schema):
+            name = fields.Str()
+
+        class OwnerSchema(Schema):
+            pet = fields.Nested(PetSchema(), allow_none=False)
+
+        sch = OwnerSchema()
+        errors = sch.validate({'pet': None})
+        assert 'pet' in errors
+        assert errors['pet'] == ['Field may not be null.']
+
+    def test_nested_many_non_not_allowed(self):
+        class PetSchema(Schema):
+            name = fields.Str()
+
+        class StoreSchema(Schema):
+            pets = fields.Nested(PetSchema(), allow_none=False, many=True)
+
+        sch = StoreSchema()
+        errors = sch.validate({'pets': None})
+        assert 'pets' in errors
+        assert errors['pets'] == ['Field may not be null.']
+
+    def test_nested_single_required_missing(self):
+        class PetSchema(Schema):
+            name = fields.Str()
+
+        class OwnerSchema(Schema):
+            pet = fields.Nested(PetSchema(), required=True)
+
+        sch = OwnerSchema()
+        errors = sch.validate({})
+        assert 'pet' in errors
+        assert errors['pet'] == ['Missing data for required field.']
+
+    def test_nested_many_required_missing(self):
+        class PetSchema(Schema):
+            name = fields.Str()
+
+        class StoreSchema(Schema):
+            pets = fields.Nested(PetSchema(), required=True, many=True)
+
+        sch = StoreSchema()
+        errors = sch.validate({})
+        assert 'pets' in errors
+        assert errors['pets'] == ['Missing data for required field.']
+
     def test_none_deserialization(self):
         result, errors = SimpleUserSchema().load(None)
         assert result is None

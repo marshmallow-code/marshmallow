@@ -455,8 +455,11 @@ class Nested(Field):
                         field._validate_missing(field.missing)
                     except ValidationError as ve:
                         errors[field_name] = ve.messages
-            if self.many:
-                    errors = {0: errors}
+            if self.many and errors:
+                errors = {0: errors}
+            # No inner errors; just raise required error like normal
+            if not errors:
+                self.fail('required')
         return errors
 
 
