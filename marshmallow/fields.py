@@ -66,19 +66,14 @@ class Field(FieldABC):
     :param str load_from: Additional key to look for when deserializing. Will only
         be checked if the field's name is not found on the input dictionary. If checked,
         it will return this parameter on error.
-    :param str error: Error message stored upon validation failure.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`ValidationError` is raised.
     :param required: Raise an :exc:`ValidationError` if the field value
-        is not supplied during deserialization. If not a `bool` (e.g. a `str`),
-        the provided value will be used as the message of the
-        :exc:`ValidationError` instead of the default message.
+        is not supplied during deserialization.
     :param allow_none: Set to `True` if `None` should be considered a valid value during
-        validation/deserialization. If not a `bool` (e.g. a `str`), the provided
-        value will be used as the message of the :exc:`ValidationError` instead
-        of the default message.
+        validation/deserialization.
     :param bool load_only: If `True` skip this field during serialization, otherwise
         its value will be present in the serialized data.
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
@@ -86,6 +81,7 @@ class Field(FieldABC):
         HTTP API, this effectively marks the field as "read-only".
     :param missing: Default deserialization value for the field if the field is not
         found in the input data. May be a value or a callable.
+    :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 2.0.0
@@ -359,7 +355,7 @@ class Nested(Field):
     """
 
     default_error_messages = {
-        'type': 'Expected a collection of dicts, got a {type}.',
+        'type': 'Invalid type.',
     }
 
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None,
@@ -428,7 +424,7 @@ class Nested(Field):
 
     def _deserialize(self, value, attr, data):
         if self.many and not utils.is_collection(value):
-            self.fail('type', type=value.__class__.__name__)
+            self.fail('type', input=value, type=value.__class__.__name__)
 
         data, errors = self.schema.load(value)
         if errors:
