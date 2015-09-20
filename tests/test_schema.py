@@ -1252,6 +1252,16 @@ class TestSelfReference:
         assert data['employer']['name'] == employer.name
         assert data['employer']['age'] == employer.age
 
+    def test_recursive_missing_required_field(self):
+        class BasicSchema(Schema):
+            sub_basics = fields.Nested("self", required=True)
+
+        data, errors = BasicSchema().load({})
+        assert data == {}
+        assert errors == {
+            'sub_basics': ['Missing data for required field.']
+        }
+
     def test_nested_self_with_only_param(self, user, employer):
         class SelfSchema(Schema):
             employer = fields.Nested('self', only=('name', ))

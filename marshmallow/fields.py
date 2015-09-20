@@ -50,6 +50,7 @@ MISSING_ERROR_MESSAGE = (
     'ValidationError raised by `{class_name}`, but error key `{key}` does '
     'not exist in the `error_messages` dictionary.'
 )
+_RECURSIVE_NESTED = 'self'
 
 
 class Field(FieldABC):
@@ -392,7 +393,7 @@ class Nested(Field):
                 self.__schema = self.nested(many=self.many,
                         only=only, exclude=self.exclude)
             elif isinstance(self.nested, basestring):
-                if self.nested == 'self':
+                if self.nested == _RECURSIVE_NESTED:
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
                             exclude=self.exclude)
@@ -440,6 +441,8 @@ class Nested(Field):
         `value` should be considered missing.
         """
         if value is missing_ and hasattr(self, 'required'):
+            if self.nested == _RECURSIVE_NESTED:
+                self.fail('required')
             errors = self._check_required()
             if errors:
                 raise ValidationError(errors)
