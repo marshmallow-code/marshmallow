@@ -214,6 +214,14 @@ class Field(FieldABC):
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
             raise AssertionError(msg)
         message_string = msg.format(**kwargs)
+
+        # TODO: Remove this special casing once `required`and `allow_non` strings are
+        # removed from the API
+        if key == 'required':
+            message_string = message_string if isinstance(self.required, bool) else self.required
+        elif key == 'null':
+            message_string = message_string if isinstance(self.allow_none, bool) else self.allow_none
+
         raise ValidationError(message_string)
 
     def _validate_missing(self, value):
@@ -222,18 +230,10 @@ class Field(FieldABC):
         """
         if value is missing_:
             if hasattr(self, 'required') and self.required:
-                default_message = self.error_messages['required']
-                # TODO: Remove isinstance check when `required` strings are removed from API
-                message = (default_message if isinstance(self.required, bool) else
-                            self.required)
-                raise ValidationError(message)
+                self.fail('required')
         if value is None:
             if hasattr(self, 'allow_none') and self.allow_none is not True:
-                default_message = self.error_messages['null']
-                # TODO: Remove isinstance check when `allow_none` strings are removed from API
-                message = (default_message if isinstance(self.allow_none, bool) else
-                            self.allow_none)
-                raise ValidationError(message)
+                self.fail('null')
 
     def serialize(self, attr, obj, accessor=None):
         """Pulls the value for the given key from the object, applies the
