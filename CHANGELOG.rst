@@ -30,6 +30,7 @@ Bug fixes:
 Deprecation/Removals:
 
 - ``make_object`` is deprecated. Use a ``post_load`` method instead (:issue:`277`). **This method will be removed in the final 2.0 release**.
+- ``Schema.accessor`` and ``Schema.error_handler`` decorators are deprecated. Define the ``accessor`` and ``error_handler`` class Meta options instead.
 
 Bug fixes:
 
