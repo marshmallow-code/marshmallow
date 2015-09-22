@@ -1262,6 +1262,46 @@ class TestSelfReference:
             'sub_basics': ['Missing data for required field.']
         }
 
+    def test_recursive_missing_required_field_one_level_in(self):
+        class BasicSchema(Schema):
+            sub_basics = fields.Nested("self", required=True, exclude=('sub_basics', ))
+            simple_field = fields.Str(required=True)
+
+        class DeepSchema(Schema):
+            basic = fields.Nested(BasicSchema(), required=True)
+
+        data, errors = DeepSchema().load({})
+        assert data == {}
+
+        assert errors == {
+            'basic': {
+                'sub_basics':  [u'Missing data for required field.'] ,
+                'simple_field': [u'Missing data for required field.'],
+            }
+        }
+
+        partially_valid = {
+            'basic': {'sub_basics': {'simple_field': 'foo'}}
+        }
+        data, errors = DeepSchema().load(partially_valid)
+        assert data == partially_valid
+        assert errors == {
+            'basic': {
+                'simple_field': [u'Missing data for required field.'],
+            }
+        }
+
+        partially_valid2 = {
+            'basic': {'simple_field': 'foo'}
+        }
+        data, errors = DeepSchema().load(partially_valid2)
+        assert data == partially_valid2
+        assert errors == {
+            'basic': {
+                'sub_basics': ['Missing data for required field.'],
+            }
+        }
+
     def test_nested_self_with_only_param(self, user, employer):
         class SelfSchema(Schema):
             employer = fields.Nested('self', only=('name', ))
