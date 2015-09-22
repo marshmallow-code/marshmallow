@@ -8,7 +8,7 @@ Features:
 
 - Make error messages configurable at the class level and instance level (``Field.default_error_messages`` attribute and ``error_messages`` parameter, respectively).
 
-Derecation/Removals:
+Deprecation/Removals:
 
 - Remove ``make_object``. Use a ``post_load`` method instead (:issue:`277`).
 - Remove the ``error`` parameter and attribute of ``Field``.
@@ -22,6 +22,7 @@ Bug fixes:
 - ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.
 - Return correct "required" error message for ``Nested`` field.
 - Prevent infinite loop when validating a required, self-nested field. Thanks :user:`Bachmann1234` for the fix.
+- Non-collection values are invalid input for ``List`` field (:issue:`231`). Thanks :user:`density` for reporting.
 
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++

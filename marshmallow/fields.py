@@ -482,6 +482,9 @@ class List(Field):
         The ``allow_none`` parameter now applies to deserialization and
         has the same semantics as the other fields.
     """
+    default_error_messages = {
+        'invalid': 'Not a valid list.',
+    }
 
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
@@ -522,13 +525,11 @@ class List(Field):
         return [self.container._serialize(value, attr, obj)]
 
     def _deserialize(self, value, attr, data):
-        if utils.is_indexable_but_not_string(value) and not isinstance(value, dict):
+        if utils.is_collection(value):
             # Convert all instances in typed list to container type
             return [self.container.deserialize(each) for each in value]
-        if value is None:
-            return []
-        return [self.container.deserialize(value)]
-
+        else:
+            self.fail('invalid')
 
 class String(Field):
     """A string field.

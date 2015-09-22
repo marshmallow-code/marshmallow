@@ -610,17 +610,28 @@ class TestFieldDeserialization:
         for actual, expected in zip(result, dtimes):
             assert_date_equal(actual, expected)
 
-    def test_list_field_deserialize_single_value(self):
+    def test_list_field_deserialize_invalid_item(self):
         field = fields.List(fields.DateTime)
-        dtime = dt.datetime.utcnow()
-        result = field.deserialize(dtime.isoformat())
-        assert type(result) == list
-        assert_datetime_equal(result[0], dtime)
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(['badvalue'])
+        assert excinfo.value.args[0] == 'Not a valid datetime.'
 
-    def test_list_field_deserialize_invalid_value(self):
-        field = fields.List(fields.DateTime)
-        with pytest.raises(ValidationError):
-            field.deserialize('badvalue')
+        field = fields.List(fields.Str())
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(['good', 42])
+        assert excinfo.value.args[0] == 'Not a valid string.'
+
+    @pytest.mark.parametrize('value',
+    [
+        'notalist',
+        42,
+        {},
+    ])
+    def test_list_field_deserialize_value_that_is_not_a_list(self, value):
+        field = fields.List(fields.Str())
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(value)
+        assert excinfo.value.args[0] == 'Not a valid list.'
 
     def test_constant_field_deserialization(self):
         field = fields.Constant('something')
