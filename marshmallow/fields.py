@@ -451,7 +451,11 @@ class Nested(Field):
             for field_name, field in self.schema.fields.items():
                 if not field.required:
                     continue
-                if isinstance(field, Nested):
+                if (
+                    isinstance(field, Nested) and
+                    self.nested != _RECURSIVE_NESTED and
+                    field.nested != _RECURSIVE_NESTED
+                ):
                     errors[field_name] = field._check_required()
                 else:
                     try:
