@@ -860,8 +860,9 @@ class TestErrorHandler:
         class MySchema3(Schema):
             email = fields.Email()
 
-            def handle_errors(self, errors, data):
-                assert 'email' in errors
+            def handle_errors(self, error, data):
+                assert type(error) is ValidationError
+                assert 'email' in error.messages
                 assert isinstance(data, dict)
                 raise CustomError('Something bad happened')
 
@@ -885,8 +886,11 @@ class TestErrorHandler:
 class TestFieldValidation:
 
     def test_errors_are_cleared_after_loading_collection(self):
+        def always_fail(val):
+            raise ValidationError('lol')
+
         class MySchema(Schema):
-            foo = fields.Str(validate=lambda x: False)
+            foo = fields.Str(validate=always_fail)
 
         schema = MySchema()
         _, errors = schema.load([

@@ -17,6 +17,7 @@ from functools import partial
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
                                 binary_type, OrderedDict)
+from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
@@ -467,19 +468,25 @@ class BaseSchema(base.SchemaABC):
         if update_fields:
             self._update_fields(processed_obj, many=many)
 
-        preresult = self._marshal(
-            processed_obj,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            # TODO: Remove self.__accessor__ in a later release
-            accessor=self.get_attribute or self.__accessor__,
-            dict_class=self.dict_class,
-            index_errors=self.opts.index_errors,
-            **kwargs
-        )
+        try:
+            preresult = self._marshal(
+                processed_obj,
+                self.fields,
+                many=many,
+                # TODO: Remove self.__accessor__ in a later release
+                accessor=self.get_attribute or self.__accessor__,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+                **kwargs
+            )
+        except ValidationError as error:
+            errors = self._marshal.errors
+            preresult = error.data
+            if self.strict:
+                raise error
+        else:
+            errors = {}
         result = self._postprocess(preresult, many, obj=obj)
-        errors = self._marshal.errors
 
         result = self._invoke_dump_processors(POST_DUMP, result, many, original_data=obj)
 
@@ -563,24 +570,42 @@ class BaseSchema(base.SchemaABC):
 
         processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
 
-        result = self._unmarshal(
-            processed_data,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            dict_class=self.dict_class,
-            index_errors=self.opts.index_errors,
-        )
+        try:
+            result = self._unmarshal(
+                processed_data,
+                self.fields,
+                many=many,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
+        except ValidationError as error:
+            result = error.data
+            self.handle_errors(error, data)
+            if self.strict:
+                raise error
+        else:
+            errors = {}
         self._invoke_field_validators(data=result, many=many)
-        # Run schema-level migration
-        self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
-        self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
+        # Run schema-level migration
+        try:
+            self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
+        except ValidationError as err:
+            if self.strict:
+                raise err
+            else:
+                errors.update(err.messages)
+        try:
+            self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
+        except ValidationError as err:
+            if self.strict:
+                raise err
+            else:
+                errors.update(err.messages)
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self.handle_errors or self.__error_handler__
-            if callable(error_handler):
-                error_handler(errors, data)
+            if self.__error_handler__ and callable(self.__error_handler__):
+                self.__error_handler__(errors, data)
 
         if not errors and postprocess:
             result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
@@ -746,11 +771,11 @@ class BaseSchema(base.SchemaABC):
             if many:
                 for idx, item in enumerate(data):
                     self._unmarshal._run_validator(validator,
-                        item, original_data, self.fields, strict=self.strict, many=many,
+                        item, original_data, self.fields, many=many,
                         index=idx, pass_original=pass_original)
             else:
                 self._unmarshal._run_validator(validator,
-                    data, original_data, self.fields, strict=self.strict, many=many,
+                    data, original_data, self.fields, many=many,
                     pass_original=pass_original)
         return None
 

@@ -85,7 +85,7 @@ class Marshaller(ErrorStore):
         self.prefix = prefix
         ErrorStore.__init__(self)
 
-    def serialize(self, obj, fields_dict, many=False, strict=False,
+    def serialize(self, obj, fields_dict, many=False,
                   accessor=None, dict_class=dict, index_errors=True, index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
@@ -94,8 +94,6 @@ class Marshaller(ErrorStore):
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to `True` if ``data`` should be serialized as
             a collection.
-        :param bool strict: If `True`, raise errors if invalid data are passed in
-            instead of failing silently and storing the errors.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
@@ -112,11 +110,18 @@ class Marshaller(ErrorStore):
             self.reset_errors()
         if many and obj is not None:
             self._pending = True
-            ret = [self.serialize(d, fields_dict, many=False, strict=strict,
+            ret = [self.serialize(d, fields_dict, many=False,
                                     dict_class=dict_class, accessor=accessor,
                                     index=idx, index_errors=index_errors)
                     for idx, d in enumerate(obj)]
             self._pending = False
+            if self.errors:
+                raise ValidationError(
+                    self.errors,
+                    field_names=self.error_field_names,
+                    fields=self.error_fields,
+                    data=ret,
+                )
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -137,13 +142,15 @@ class Marshaller(ErrorStore):
             if value is missing:
                 continue
             items.append((key, value))
-        if self.errors and strict:
+        ret = dict_class(items)
+        if self.errors and not self._pending:
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
-                fields=self.error_fields
+                fields=self.error_fields,
+                data=ret
             )
-        return dict_class(items)
+        return ret
 
     # Make an instance callable
     __call__ = serialize
@@ -161,7 +168,7 @@ class Unmarshaller(ErrorStore):
 
     def _run_validator(self, validator_func, output,
             original_data, fields_dict, index=None,
-            strict=False, many=False, pass_original=False):
+            many=False, pass_original=False):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
                 res = validator_func(output, original_data)
@@ -192,14 +199,13 @@ class Unmarshaller(ErrorStore):
                     errors.setdefault(field_name, []).append(err.messages)
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
-            if strict:
-                raise ValidationError(
-                    self.errors,
-                    fields=field_objs,
-                    field_names=field_names
-                )
+            raise ValidationError(
+                self.errors,
+                fields=field_objs,
+                field_names=field_names
+            )
 
-    def deserialize(self, data, fields_dict, many=False, strict=False,
+    def deserialize(self, data, fields_dict, many=False,
             dict_class=dict, index_errors=True, index=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
@@ -207,8 +213,6 @@ class Unmarshaller(ErrorStore):
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to `True` if ``data`` should be deserialized as
             a collection.
-        :param bool strict: If `True`, raise errors if invalid data are passed in
-            instead of failing silently and storing the errors.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
             ``self.errors`` when ``many=True``.
@@ -222,10 +226,18 @@ class Unmarshaller(ErrorStore):
         if many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
-                        strict=strict, dict_class=dict_class,
+                        dict_class=dict_class,
                         index=idx, index_errors=index_errors)
                     for idx, d in enumerate(data)]
+
             self._pending = False
+            if self.errors:
+                raise ValidationError(
+                    self.errors,
+                    field_names=self.error_field_names,
+                    fields=self.error_fields,
+                    data=ret,
+                )
             return ret
         if data is not None:
             items = []
@@ -239,17 +251,12 @@ class Unmarshaller(ErrorStore):
                     msg = field_obj.error_messages['type'].format(
                         input=data, input_type=data.__class__.__name__
                     )
-                    if strict:
-                        raise ValidationError(
-                            msg,
-                            field_names=[SCHEMA],
-                            fields=[]
-                        )
-                    else:
-                        errors = self.get_errors()
-                        errors.setdefault(SCHEMA, []).append(msg)
-                        # Input data type is incorrect, so we can bail out early
-                        break
+                    self.error_field_names = [SCHEMA]
+                    self.error_fields = []
+                    errors = self.get_errors()
+                    errors.setdefault(SCHEMA, []).append(msg)
+                    # Input data type is incorrect, so we can bail out early
+                    break
                 field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
                     field_name = field_obj.load_from
@@ -279,11 +286,12 @@ class Unmarshaller(ErrorStore):
         else:
             ret = None
 
-        if self.errors and strict:
+        if self.errors and not self._pending:
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
-                fields=self.error_fields
+                fields=self.error_fields,
+                data=ret,
             )
         return ret
 
