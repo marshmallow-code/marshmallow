@@ -827,14 +827,9 @@ class MySchema(Schema):
     email = fields.Email()
     age = fields.Integer()
 
-    def handle_errors(self, errors, obj):
+    def handle_error(self, errors, obj):
         raise CustomError('Something bad happened')
 
-class MySchema2(Schema):
-    homepage = fields.URL()
-
-    def handle_errors(self, errors, obj):
-        raise CustomError('Something bad happened')
 
 class TestErrorHandler:
 
@@ -861,7 +856,7 @@ class TestErrorHandler:
         class MySchema3(Schema):
             email = fields.Email()
 
-            def handle_errors(self, error, data):
+            def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
@@ -879,7 +874,7 @@ class TestErrorHandler:
             email = fields.Email()
             url = fields.URL()
 
-            def handle_errors(self, error, data):
+            def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
@@ -901,7 +896,7 @@ class TestErrorHandler:
                 if value < 0:
                     raise ValidationError('Must be greater than 0.')
 
-            def handle_errors(self, error, data):
+            def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'num' in error.messages
                 assert error.field_names == ['num']
@@ -922,7 +917,7 @@ class TestErrorHandler:
             def validates_schema(self, data):
                 raise ValidationError('Invalid schema!')
 
-            def handle_errors(self, error, data):
+            def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert '_schema' in error.messages
                 assert error.field_names == ['_schema']
@@ -937,15 +932,6 @@ class TestErrorHandler:
         with pytest.raises(CustomError):
             MySchema().validate({'age': 'notvalid', 'email': 'invalid'})
 
-    def test_multiple_serializers_with_same_error_handler(self, user):
-        user.email = 'bademail'
-        user.homepage = 'foo'
-
-        user = {'email': 'bademail', 'homepage': 'foo'}
-        with pytest.raises(CustomError):
-            MySchema().load(user)
-        with pytest.raises(CustomError):
-            MySchema2().load(user)
 
 class TestFieldValidation:
 

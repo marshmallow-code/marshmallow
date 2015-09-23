@@ -257,7 +257,7 @@ class BaseSchema(base.SchemaABC):
         `marshmallow.decorators.validates_schema`,
         `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump`.
         `__accessor__` and `__error_handler__` are deprecated. Implement the
-        `handle_errors` and `get_attribute` methods instead.
+        `handle_error` and `get_attribute` methods instead.
         """
     TYPE_MAPPING = {
         text_type: fields.String,
@@ -357,7 +357,7 @@ class BaseSchema(base.SchemaABC):
                 data.update(self.extra)
         if self._marshal.errors:
             # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self.handle_errors or self.__error_handler__
+            error_handler = self.handle_error or self.__error_handler__
             if callable(error_handler):
                 error_handler(self._marshal.errors, obj)
 
@@ -373,8 +373,12 @@ class BaseSchema(base.SchemaABC):
 
     ##### Override-able methods #####
 
-    def handle_errors(self, errors, data):
+    def handle_error(self, error, data):
         """Custom error handler function for the schema.
+
+
+        :param ValidationError error: The `ValidationError` raised during (de)serialization.
+        :param data: The original input data.
 
         .. versionadded:: 2.0.0
         """
@@ -580,8 +584,6 @@ class BaseSchema(base.SchemaABC):
             )
         except ValidationError as error:
             result = error.data
-            if self.strict:
-                raise error
         else:
             errors = {}
         self._invoke_field_validators(data=result, many=many)
@@ -590,17 +592,11 @@ class BaseSchema(base.SchemaABC):
         try:
             self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
         except ValidationError as err:
-            if self.strict:
-                raise err
-            else:
-                errors.update(err.messages)
+            errors.update(err.messages)
         try:
             self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
         except ValidationError as err:
-            if self.strict:
-                raise err
-            else:
-                errors.update(err.messages)
+            errors.update(err.messages)
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             if self.__error_handler__ and callable(self.__error_handler__):
@@ -611,7 +607,9 @@ class BaseSchema(base.SchemaABC):
                 fields=self._unmarshal.error_fields,
                 data=data
             )
-            self.handle_errors(exc, data)
+            self.handle_error(exc, data)
+            if self.strict:
+                raise exc
 
         if not errors and postprocess:
             result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
