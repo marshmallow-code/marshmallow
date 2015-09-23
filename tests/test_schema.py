@@ -8,7 +8,7 @@ from collections import namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
+from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validates, validates_schema
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import OrderedDict
 
@@ -856,6 +856,7 @@ class TestErrorHandler:
             MySchema().dump(user)
 
     def test_load_with_custom_error_handler(self):
+        in_data = {'email': 'invalid'}
 
         class MySchema3(Schema):
             email = fields.Email()
@@ -863,11 +864,74 @@ class TestErrorHandler:
             def handle_errors(self, error, data):
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
-                assert isinstance(data, dict)
+                assert error.field_names == ['email']
+                assert error.fields == [self.fields['email']]
+                assert data == in_data
                 raise CustomError('Something bad happened')
 
         with pytest.raises(CustomError):
-            MySchema3().load({'email': 'invalid'})
+            MySchema3().load(in_data)
+
+    def test_load_with_custom_error_handler_and_partially_valid_data(self):
+        in_data = {'email': 'invalid', 'url': 'http://valid.com'}
+
+        class MySchema(Schema):
+            email = fields.Email()
+            url = fields.URL()
+
+            def handle_errors(self, error, data):
+                assert type(error) is ValidationError
+                assert 'email' in error.messages
+                assert error.field_names == ['email']
+                assert error.fields == [self.fields['email']]
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
+
+    def test_custom_error_handler_with_validates_decorator(self):
+        in_data = {'num': -1}
+
+        class MySchema(Schema):
+            num = fields.Int()
+
+            @validates('num')
+            def validate_num(self, value):
+                if value < 0:
+                    raise ValidationError('Must be greater than 0.')
+
+            def handle_errors(self, error, data):
+                assert type(error) is ValidationError
+                assert 'num' in error.messages
+                assert error.field_names == ['num']
+                assert error.fields == [self.fields['num']]
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
+
+    def test_custom_error_handler_with_validates_schema_decorator(self):
+        in_data = {'num': -1}
+
+        class MySchema(Schema):
+            num = fields.Int()
+
+            @validates_schema
+            def validates_schema(self, data):
+                raise ValidationError('Invalid schema!')
+
+            def handle_errors(self, error, data):
+                assert type(error) is ValidationError
+                assert '_schema' in error.messages
+                assert error.field_names == ['_schema']
+                assert error.fields == []
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
 
     def test_validate_with_custom_error_handler(self):
         with pytest.raises(CustomError):

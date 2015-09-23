@@ -186,6 +186,8 @@ class Unmarshaller(ErrorStore):
             else:
                 field_names = [SCHEMA]
                 field_objs = []
+            self.error_field_names = field_names
+            self.error_fields = field_objs
             for field_name in field_names:
                 if isinstance(err.messages, (list, tuple)):
                     # self.errors[field_name] may be a dict if schemas are nested
@@ -202,7 +204,8 @@ class Unmarshaller(ErrorStore):
             raise ValidationError(
                 self.errors,
                 fields=field_objs,
-                field_names=field_names
+                field_names=field_names,
+                data=output
             )
 
     def deserialize(self, data, fields_dict, many=False,
