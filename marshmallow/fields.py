@@ -178,14 +178,14 @@ class Field(FieldABC):
                 'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
-    def get_value(self, attr, obj, accessor=None):
+    def get_value(self, attr, obj, accessor=None, default=missing_):
         """Return the value for a given key from an object."""
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
         accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
-        return accessor_func(check_key, obj)
+        return accessor_func(check_key, obj, default)
 
     def _validate(self, value):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -476,7 +476,7 @@ class List(Field):
 
     Example: ::
 
-        numbers = fields.List(fields.Float)
+        numbers = fields.List(fields.Float())
 
     :param Field cls_or_instance: A field class or instance.
     :param bool default: Default value for serialization.

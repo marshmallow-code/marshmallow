@@ -8,7 +8,7 @@ from collections import namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult
+from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validates, validates_schema
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import OrderedDict
 
@@ -821,22 +821,15 @@ def test_serializing_none_meta():
 class CustomError(Exception):
     pass
 
-def handle_errors(schema, errors, obj):
-    raise CustomError('Something bad happened')
 
 class MySchema(Schema):
     name = fields.String()
     email = fields.Email()
     age = fields.Integer()
 
-    class Meta:
-        error_handler = handle_errors
+    def handle_error(self, errors, obj):
+        raise CustomError('Something bad happened')
 
-class MySchema2(Schema):
-    homepage = fields.URL()
-
-    class Meta:
-        error_handler = handle_errors
 
 class TestErrorHandler:
 
@@ -858,60 +851,96 @@ class TestErrorHandler:
             MySchema().dump(user)
 
     def test_load_with_custom_error_handler(self):
-        def handle_errors3(serializer, errors, data):
-            assert isinstance(serializer, MySchema3)
-            assert 'email' in errors
-            assert isinstance(data, dict)
-            raise CustomError('Something bad happened')
+        in_data = {'email': 'invalid'}
 
         class MySchema3(Schema):
             email = fields.Email()
 
-            class Meta:
-                error_handler = handle_errors3
+            def handle_error(self, error, data):
+                assert type(error) is ValidationError
+                assert 'email' in error.messages
+                assert error.field_names == ['email']
+                assert error.fields == [self.fields['email']]
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
         with pytest.raises(CustomError):
-            MySchema3().load({'email': 'invalid'})
+            MySchema3().load(in_data)
+
+    def test_load_with_custom_error_handler_and_partially_valid_data(self):
+        in_data = {'email': 'invalid', 'url': 'http://valid.com'}
+
+        class MySchema(Schema):
+            email = fields.Email()
+            url = fields.URL()
+
+            def handle_error(self, error, data):
+                assert type(error) is ValidationError
+                assert 'email' in error.messages
+                assert error.field_names == ['email']
+                assert error.fields == [self.fields['email']]
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
+
+    def test_custom_error_handler_with_validates_decorator(self):
+        in_data = {'num': -1}
+
+        class MySchema(Schema):
+            num = fields.Int()
+
+            @validates('num')
+            def validate_num(self, value):
+                if value < 0:
+                    raise ValidationError('Must be greater than 0.')
+
+            def handle_error(self, error, data):
+                assert type(error) is ValidationError
+                assert 'num' in error.messages
+                assert error.field_names == ['num']
+                assert error.fields == [self.fields['num']]
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
+
+    def test_custom_error_handler_with_validates_schema_decorator(self):
+        in_data = {'num': -1}
+
+        class MySchema(Schema):
+            num = fields.Int()
+
+            @validates_schema
+            def validates_schema(self, data):
+                raise ValidationError('Invalid schema!')
+
+            def handle_error(self, error, data):
+                assert type(error) is ValidationError
+                assert '_schema' in error.messages
+                assert error.field_names == ['_schema']
+                assert error.fields == []
+                assert data == in_data
+                raise CustomError('Something bad happened')
+
+        with pytest.raises(CustomError):
+            MySchema().load(in_data)
 
     def test_validate_with_custom_error_handler(self):
         with pytest.raises(CustomError):
             MySchema().validate({'age': 'notvalid', 'email': 'invalid'})
 
-    def test_multiple_serializers_with_same_error_handler(self, user):
-        user.email = 'bademail'
-        user.homepage = 'foo'
-
-        user = {'email': 'bademail', 'homepage': 'foo'}
-        with pytest.raises(CustomError):
-            MySchema().load(user)
-        with pytest.raises(CustomError):
-            MySchema2().load(user)
-
-    def test_setting_error_handler_class_attribute(self):
-        def handle_errors(serializer, errors, obj):
-            raise CustomError('Something bad happened')
-
-        class ErrorSchema(Schema):
-            email = fields.Email()
-            __error_handler__ = handle_errors
-
-        class ErrorSchemaSub(ErrorSchema):
-            pass
-
-        user = {'email': 'invalid'}
-
-        ser = ErrorSchema()
-        with pytest.raises(CustomError):
-            ser.load(user)
-
-        subser = ErrorSchemaSub()
-        with pytest.raises(CustomError):
-            subser.load(user)
 
 class TestFieldValidation:
 
     def test_errors_are_cleared_after_loading_collection(self):
+        def always_fail(val):
+            raise ValidationError('lol')
+
         class MySchema(Schema):
-            foo = fields.Str(validate=lambda x: False)
+            foo = fields.Str(validate=always_fail)
 
         schema = MySchema()
         _, errors = schema.load([
@@ -1540,8 +1569,8 @@ class TestAccessor:
             name = fields.Str()
             email = fields.Email()
 
-            class Meta:
-                accessor = get_from_dict
+            def get_attribute(self, attr, obj, default):
+                return get_from_dict(self, attr, obj, default)
 
         user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
         schema = UserDictSchema()
@@ -1559,8 +1588,8 @@ class TestAccessor:
             name = fields.Str()
             email = fields.Email()
 
-            class Meta:
-                accessor = get_from_dict
+            def get_attribute(self, attr, obj, default):
+                return get_from_dict(self, attr, obj, default)
 
         user_dicts = [{'_name': 'joe', '_email': 'joe@shmoe.com'},
                       {'_name': 'jane', '_email': 'jane@shmane.com'}]

@@ -16,7 +16,8 @@ from functools import partial
 
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict, plain_function)
+                                binary_type, OrderedDict)
+from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
@@ -203,10 +204,6 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
-        # In Py2, accessor and error_handler will be unbound functions;
-        # we need to get the plain functions
-        self.accessor = plain_function(getattr(meta, 'accessor', None))
-        self.error_handler = plain_function(getattr(meta, 'error_handler', None))
 
 
 class BaseSchema(base.SchemaABC):
@@ -259,9 +256,9 @@ class BaseSchema(base.SchemaABC):
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
         `marshmallow.decorators.validates_schema`,
         `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump`.
-        `__accessor__` and `__error_handler__` are deprecated in favor of the
-        ``accessor`` and ``error_handler`` class Meta options.
-    """
+        `__accessor__` and `__error_handler__` are deprecated. Implement the
+        `handle_error` and `get_attribute` methods instead.
+        """
     TYPE_MAPPING = {
         text_type: fields.String,
         binary_type: fields.String,
@@ -319,14 +316,6 @@ class BaseSchema(base.SchemaABC):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
-        - ``accessor``: Function which defines how to pull values from an object
-            to serialize. The function receives the :class:`Schema` instance, the
-            ``key`` of the value to get, the ``obj`` to serialize, and an optional
-            ``default`` value.
-        - ``error_handler``: Error handler function for the schema.
-            The function receives the :class:`Schema` instance, a dictionary of errors,
-            and the serialized object (if serializing data) or data dictionary (if
-            deserializing data) as arguments.
         """
         pass
 
@@ -354,14 +343,6 @@ class BaseSchema(base.SchemaABC):
         self.context = context or {}
         self._update_fields(many=many)
 
-        # Accessor function takes schema as first argument
-        self._accessor = partial(self.opts.accessor, self) if self.opts.accessor else None
-        # Error handler also takes schema as first argument
-        if self.opts.error_handler:
-            self._error_handler = partial(self.opts.error_handler, self)
-        else:
-            self._error_handler = None
-
     def __repr__(self):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
             ClassName=self.__class__.__name__, self=self
@@ -376,7 +357,7 @@ class BaseSchema(base.SchemaABC):
                 data.update(self.extra)
         if self._marshal.errors:
             # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self._error_handler or self.__error_handler__
+            error_handler = self.handle_error or self.__error_handler__
             if callable(error_handler):
                 error_handler(self._marshal.errors, obj)
 
@@ -390,7 +371,26 @@ class BaseSchema(base.SchemaABC):
     def set_class(self):
         return OrderedSet if self.ordered else set
 
-    ##### Handler decorators #####
+    ##### Override-able methods #####
+
+    def handle_error(self, error, data):
+        """Custom error handler function for the schema.
+
+        :param ValidationError error: The `ValidationError` raised during (de)serialization.
+        :param data: The original input data.
+
+        .. versionadded:: 2.0.0
+        """
+        pass
+
+    def get_attribute(self, attr, obj, default):
+        """Defines how to pull values from an object to serialize.
+
+        .. versionadded:: 2.0.0
+        """
+        return utils.get_value(attr, obj, default)
+
+    ##### Handler decorators (deprecated) #####
 
     @classmethod
     def error_handler(cls, func):
@@ -471,19 +471,25 @@ class BaseSchema(base.SchemaABC):
         if update_fields:
             self._update_fields(processed_obj, many=many)
 
-        preresult = self._marshal(
-            processed_obj,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            # TODO: Remove self.__accessor__ in a later release
-            accessor=self._accessor or self.__accessor__,
-            dict_class=self.dict_class,
-            index_errors=self.opts.index_errors,
-            **kwargs
-        )
+        try:
+            preresult = self._marshal(
+                processed_obj,
+                self.fields,
+                many=many,
+                # TODO: Remove self.__accessor__ in a later release
+                accessor=self.get_attribute or self.__accessor__,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+                **kwargs
+            )
+        except ValidationError as error:
+            errors = self._marshal.errors
+            preresult = error.data
+            if self.strict:
+                raise error
+        else:
+            errors = {}
         result = self._postprocess(preresult, many, obj=obj)
-        errors = self._marshal.errors
 
         result = self._invoke_dump_processors(POST_DUMP, result, many, original_data=obj)
 
@@ -567,24 +573,42 @@ class BaseSchema(base.SchemaABC):
 
         processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
 
-        result = self._unmarshal(
-            processed_data,
-            self.fields,
-            many=many,
-            strict=self.strict,
-            dict_class=self.dict_class,
-            index_errors=self.opts.index_errors,
-        )
+        try:
+            result = self._unmarshal(
+                processed_data,
+                self.fields,
+                many=many,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
+        except ValidationError as error:
+            result = error.data
+        else:
+            errors = {}
         self._invoke_field_validators(data=result, many=many)
-        # Run schema-level migration
-        self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
-        self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
         errors = self._unmarshal.errors
+        # Run schema-level migration
+        try:
+            self._invoke_validators(pass_many=True, data=result, original_data=data, many=many)
+        except ValidationError as err:
+            errors.update(err.messages)
+        try:
+            self._invoke_validators(pass_many=False, data=result, original_data=data, many=many)
+        except ValidationError as err:
+            errors.update(err.messages)
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self._error_handler or self.__error_handler__
-            if callable(error_handler):
-                error_handler(errors, data)
+            if self.__error_handler__ and callable(self.__error_handler__):
+                self.__error_handler__(errors, data)
+            exc = ValidationError(
+                errors,
+                field_names=self._unmarshal.error_field_names,
+                fields=self._unmarshal.error_fields,
+                data=data
+            )
+            self.handle_error(exc, data)
+            if self.strict:
+                raise exc
 
         if not errors and postprocess:
             result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
@@ -750,11 +774,11 @@ class BaseSchema(base.SchemaABC):
             if many:
                 for idx, item in enumerate(data):
                     self._unmarshal._run_validator(validator,
-                        item, original_data, self.fields, strict=self.strict, many=many,
+                        item, original_data, self.fields, many=many,
                         index=idx, pass_original=pass_original)
             else:
                 self._unmarshal._run_validator(validator,
-                    data, original_data, self.fields, strict=self.strict, many=many,
+                    data, original_data, self.fields, many=many,
                     pass_original=pass_original)
         return None
 

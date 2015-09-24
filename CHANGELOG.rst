@@ -24,12 +24,18 @@ Bug fixes:
 - Prevent infinite loop when validating a required, self-nested field. Thanks :user:`Bachmann1234` for the fix.
 - Non-collection values are invalid input for ``List`` field (:issue:`231`). Thanks :user:`density` for reporting.
 
+Changes from 2.0.0rc2:
+
+- ``error_handler`` and ``accessor`` options are replaced with the ``handl_error`` and ``get_attribute`` methods :issue:`284`.
+- Remove ``marshmallow.compat.plain_function`` since it is no longer used.
+
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++
 
 Deprecation/Removals:
 
 - ``make_object`` is deprecated. Use a ``post_load`` method instead (:issue:`277`). **This method will be removed in the final 2.0 release**.
+- ``Schema.accessor`` and ``Schema.error_handler`` decorators are deprecated. Define the ``accessor`` and ``error_handler`` class Meta options instead.
 
 Bug fixes:
 
