@@ -166,7 +166,7 @@ class Unmarshaller(ErrorStore):
 
     default_schema_validation_error = 'Invalid data.'
 
-    def _run_validator(self, validator_func, output,
+    def run_validator(self, validator_func, output,
             original_data, fields_dict, index=None,
             many=False, pass_original=False):
         try:
