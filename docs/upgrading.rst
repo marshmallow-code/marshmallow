@@ -158,7 +158,7 @@ Similar to pre-processing and post-processing methods, schema validators are now
 Custom Accessors and Error Handlers
 ***********************************
 
-Custom accessors and error handlers are now defined as ``class Meta`` options. `Schema.accessor` and `Schema.error_handler` are deprecated.
+Custom accessors and error handlers are now defined as methods. `Schema.accessor` and `Schema.error_handler` are deprecated.
 
 .. code-block:: python
 
@@ -169,20 +169,23 @@ Custom accessors and error handlers are now defined as ``class Meta`` options. `
         field_a = fields.Int()
 
     @ExampleSchema.accessor
-    def get_from_dict(schema, key, obj, default=None):
-        return obj.get('_' + key, default)
+    def get_from_dict(schema, attr, obj, default=None):
+        return obj.get(attr, default)
 
     @ExampleSchema.error_handler
     def handle_errors(schema, errors, obj):
-        raise CustomError('Something bad happened')
+        raise CustomError('Something bad happened', messages=errors)
 
     # 2.0 API
     class ExampleSchema(Schema):
         field_a = fields.Int()
 
-        class Meta:
-            accessor = get_from_dict
-            error_handler = handle_errors
+        def get_attribute(self, attr, obj, default):
+            return obj.get(attr, default)
+
+        # handle_error gets passed a ValidationError
+        def handle_error(self, exc, data):
+            raise CustomError('Something bad happened', messages=exc.messages)
 
 Use `post_load <marshmallow.decorators.post_load>` instead of `make_object`
 ***************************************************************************
@@ -420,17 +423,19 @@ The default error messages for many fields and validators have been changed for 
         eggs = fields.DateTime()
         email = fields.Str(validate=validate.Email())
         homepage = fields.Str(validate=validate.URL())
+        nums = fields.List(fields.Int())
 
     schema = ValidatingSchema()
     invalid_data = {
-        'foo': 42,  # not a string
-        'bar': 24,  # not a bool
+        'foo': 42,
+        'bar': 24,
         'baz': 'invalid-integer',
         'qux': 'invalid-float',
         'spam': 'invalid-decimal',
         'eggs': 'invalid-datetime',
         'email': 'invalid-email',
         'homepage': 'invalid-url',
+        'nums': 'invalid-list',
     }
     errors = schema.validate(invalid_data)
     # {
@@ -442,6 +447,7 @@ The default error messages for many fields and validators have been changed for 
     #     'eggs': ['Not a valid datetime.'],
     #     'email': ['Not a valid email address.'],
     #     'homepage': ['Not a valid URL.'],
+    #     'nums': ['Not a valid list.'],
     # }
 
 More

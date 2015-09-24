@@ -24,6 +24,10 @@ Bug fixes:
 - Prevent infinite loop when validating a required, self-nested field. Thanks :user:`Bachmann1234` for the fix.
 - Non-collection values are invalid input for ``List`` field (:issue:`231`). Thanks :user:`density` for reporting.
 
+Changes from 2.0.0rc2:
+
+- ``error_handler`` and ``accessor`` options are replaced with the ``handl_error`` and ``get_attribute`` methods :issue:`284`.
+
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++
 

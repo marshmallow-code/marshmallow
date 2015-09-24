@@ -476,7 +476,7 @@ class List(Field):
 
     Example: ::
 
-        numbers = fields.List(fields.Float)
+        numbers = fields.List(fields.Float())
 
     :param Field cls_or_instance: A field class or instance.
     :param bool default: Default value for serialization.
