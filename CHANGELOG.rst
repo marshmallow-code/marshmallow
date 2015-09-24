@@ -27,6 +27,7 @@ Bug fixes:
 Changes from 2.0.0rc2:
 
 - ``error_handler`` and ``accessor`` options are replaced with the ``handl_error`` and ``get_attribute`` methods :issue:`284`.
+- Remove ``marshmallow.compat.plain_function`` since it is no longer used.
 
 2.0.0rc2 (2015-09-16)
 +++++++++++++++++++++

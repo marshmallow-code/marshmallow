@@ -376,7 +376,6 @@ class BaseSchema(base.SchemaABC):
     def handle_error(self, error, data):
         """Custom error handler function for the schema.
 
-
         :param ValidationError error: The `ValidationError` raised during (de)serialization.
         :param data: The original input data.
 

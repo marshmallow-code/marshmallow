@@ -150,7 +150,7 @@ Handling Errors
 
 By default, :meth:`Schema.dump` and :meth:`Schema.load` will return validation errors as a dictionary (unless ``strict`` mode is enabled).
 
-You can specify a custom error-handling function for a :class:`Schema` by overriding `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the `ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
+You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the `ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
 
 .. code-block:: python
     :emphasize-lines: 10-13
