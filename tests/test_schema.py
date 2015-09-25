@@ -654,6 +654,15 @@ def test_only_and_exclude():
     assert 'bar' not in result.data
 
 
+def test_exclude_invalid_attribute():
+
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    sch = MySchema(exclude=('bar', ))
+    assert sch.dump({'foo': 42}).data == {'foo': 42}
+
+
 def test_only_with_invalid_attribute():
     class MySchema(Schema):
         foo = fields.Field()
@@ -662,6 +671,15 @@ def test_only_with_invalid_attribute():
     with pytest.raises(KeyError) as excinfo:
         sch.dump(dict(foo=42))
     assert '"bar" is not a valid field' in str(excinfo.value.args[0])
+
+def test_only_bounded_by_fields():
+    class MySchema(Schema):
+
+        class Meta:
+            fields = ('foo', )
+
+    sch = MySchema(only=('baz', ))
+    assert sch.dump({'foo': 42}).data == {}
 
 
 def test_nested_only_and_exclude():
