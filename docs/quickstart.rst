@@ -274,7 +274,7 @@ It is often convenient to write validators as methods. Use the `validates <marsh
 
 .. seealso::
 
-    You can register a custom error handler function for a schema using the :func:`error_handler <Schema.error_handler>` decorator. See the :ref:`Extending Schemas <extending>` page for more info.
+    You can register a custom error handler function for a schema by overriding the :func:`handle_error <Schema.handle_error>` method. See the :ref:`Extending Schemas <extending>` page for more info.
 
 .. seealso::
 

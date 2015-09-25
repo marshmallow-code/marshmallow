@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.0.0 (unreleased)
+2.0.0 (2015-09-25)
 ++++++++++++++++++
 
 Features:
@@ -21,11 +21,11 @@ Bug fixes:
 - Fix error format for ``Nested`` fields when ``many=True``. Thanks :user:`alexmorken`.
 - ``pre_dump`` methods are invoked before implicit field creation. Thanks :user:`makmanalp` for reporting.
 - Return correct "required" error message for ``Nested`` field.
-- The ``only`` argument passed to a ``Schema`` is bounded by he ``fields`` option (:issue:`183`). Thanks :user:`lustdante` for the suggestion.
+- The ``only`` argument passed to a ``Schema`` is bounded by the ``fields`` option (:issue:`183`). Thanks :user:`lustdante` for the suggestion.
 
 Changes from 2.0.0rc2:
 
-- ``error_handler`` and ``accessor`` options are replaced with the ``handl_error`` and ``get_attribute`` methods :issue:`284`.
+- ``error_handler`` and ``accessor`` options are replaced with the ``handle_error`` and ``get_attribute`` methods :issue:`284`.
 - Remove ``marshmallow.compat.plain_function`` since it is no longer used.
 - Non-collection values are invalid input for ``List`` field (:issue:`231`). Thanks :user:`density` for reporting.
 - Bug fix: Prevent infinite loop when validating a required, self-nested field. Thanks :user:`Bachmann1234` for the fix.
