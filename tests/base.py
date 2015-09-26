@@ -64,9 +64,9 @@ def assert_time_equal(t1, t2, microseconds=True):
 class User(object):
     SPECIES = "Homo sapiens"
 
-    def __init__(self, name, age=0, id_=None, homepage=None,
-                 email=None, registered=True, time_registered=None,
-                 birthdate=None, balance=100, sex='male', employer=None):
+    def __init__(self, name, age=0, id_=None, homepage=None, email=None,
+                 registered=True, time_registered=None, birthdate=None,
+                 balance=100, sex='male', employer=None, various_data=None):
         self.name = name
         self.age = age
         # A naive datetime
@@ -89,6 +89,9 @@ class User(object):
         self.sex = sex
         self.employer = employer
         self.relatives = []
+        self.various_data = various_data or {'pets': ['cat', 'dog'],
+                                             'address': "1600 Pennsylvania Ave\n"
+                                                        "Washington, DC 20006"}
 
     @property
     def since_created(self):
@@ -158,6 +161,7 @@ class UserSchema(Schema):
     birthdate = fields.Date()
     since_created = fields.TimeDelta()
     sex = fields.Str(validate=validate.OneOf(['male', 'female']))
+    various_data = fields.Dict()
 
     class Meta:
         json_module = simplejson
@@ -183,6 +187,7 @@ class UserMetaSchema(Schema):
     species = fields.String(attribute="SPECIES")
     homepage = fields.Url()
     email = fields.Email()
+    various_data = fields.Dict()
 
     def get_is_old(self, obj):
         try:
@@ -195,7 +200,7 @@ class UserMetaSchema(Schema):
                   'uppername', 'email', 'balance', 'is_old', 'lowername',
                   "updated_local", "species", 'registered', 'hair_colors',
                   'sex_choices', "finger_count", 'uid', 'time_registered',
-                  'birthdate', 'since_created')
+                  'birthdate', 'since_created', 'various_data')
 
 
 class UserExcludeSchema(UserSchema):

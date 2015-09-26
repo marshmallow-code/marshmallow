@@ -19,6 +19,7 @@ __all__ = [
     'Field',
     'Raw',
     'Nested',
+    'Dict',
     'List',
     'String',
     'UUID',
@@ -994,6 +995,31 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
+class Dict(Field):
+    """A dict field. Supports dicts and dict-like objects.
+
+    .. versionadded:: 2.1.0
+    """
+
+    default_error_messages = {
+        'invalid': 'Not a valid dict.'
+    }
+
+    def _validated(self, value):
+        if utils.is_dict(value):
+            return value
+        else:
+            self.fail('invalid')
+
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
+        return self._validated(value)
+
+    def _deserialize(self, value, attr, data):
+        return self._validated(value)
+
+
 class ValidatedField(Field):
     """A field that validates input on serialization."""
 
@@ -1003,6 +1029,7 @@ class ValidatedField(Field):
     def _serialize(self, value, *args, **kwargs):
         ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
         return self._validated(ret)
+
 
 class Url(ValidatedField, String):
     """A validated URL field. Validation occurs during both serialization and

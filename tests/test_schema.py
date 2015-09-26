@@ -513,11 +513,12 @@ def test_serializing_empty_list_returns_empty_list():
 
 
 def test_serializing_dict():
-    user = {"name": "foo", "email": "foo@bar.com", "age": 'badage'}
+    user = {"name": "foo", "email": "foo@bar.com", "age": 'badage', "various_data": {"foo": "bar"}}
     s = UserSchema().dump(user)
     assert s.data['name'] == "foo"
     assert 'age' in s.errors
     assert 'age' not in s.data
+    assert s.data['various_data'] == {"foo": "bar"}
 
 
 def test_serializing_dict_with_meta_fields():
@@ -580,6 +581,12 @@ def test_invalid_url():
     s = UserSchema().dump(u)
     assert 'homepage' in s.errors
     assert 'Not a valid URL.' in s.errors['homepage'][0]
+
+def test_invalid_dict():
+    u = User('Joe', various_data='baddict')
+    s = UserSchema().dump(u)
+    assert 'various_data' in s.errors
+    assert 'Not a valid dict.' in s.errors['various_data'][0]
 
 def test_custom_json():
     class UserJSONSchema(Schema):
@@ -725,6 +732,7 @@ def test_meta_serializer_fields():
     assert result.data['created'] == utils.isoformat(u.created)
     assert result.data['updated_local'] == utils.isoformat(u.updated, localtime=True)
     assert result.data['finger_count'] == 10
+    assert result.data['various_data'] == dict(u.various_data)
 
 
 def test_meta_fields_mapping(user):

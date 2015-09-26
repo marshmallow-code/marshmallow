@@ -274,6 +274,22 @@ class TestFieldSerialization:
         field = fields.Email()
         assert field.serialize('email', user) is None
 
+    def test_dict_field_serialize_none(self, user):
+        user.various_data = None
+        field = fields.Dict()
+        assert field.serialize('various_data', user) is None
+
+    def test_dict_field_validates(self, user):
+        user.various_data = 'baddata'
+        field = fields.Dict()
+        with pytest.raises(ValidationError):
+            field.serialize('various_data', user)
+
+    def test_dict_field_serialize(self, user):
+        user.various_data = {"foo": "bar"}
+        field = fields.Dict()
+        assert field.serialize('various_data', user) == {"foo": "bar"}
+
     def test_url_field_serialize_none(self, user):
         user.homepage = None
         field = fields.Url()

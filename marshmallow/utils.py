@@ -47,6 +47,13 @@ def is_generator(obj):
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
+def is_dict(obj):
+    """Return True if ``obj`` implements the `collections.Mapping` ABC (`dict`,
+    `collections.OrderedDict`, etc.)
+    """
+    return isinstance(obj, collections.Mapping)
+
+
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
