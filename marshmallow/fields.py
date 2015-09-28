@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import collections
 import datetime as dt
 import uuid
 import warnings
@@ -1006,7 +1007,7 @@ class Dict(Field):
     }
 
     def _validated(self, value):
-        if utils.is_dict(value):
+        if isinstance(value, collections.Mapping):
             return value
         else:
             self.fail('invalid')

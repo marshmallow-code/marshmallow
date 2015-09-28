@@ -25,6 +25,7 @@ ALL_FIELDS = [
     fields.Time,
     fields.Date,
     fields.TimeDelta,
+    fields.Dict,
     fields.Url,
     fields.Email,
     fields.FormattedString,

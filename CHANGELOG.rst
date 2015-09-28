@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-2.1.0 (date pending)
-++++++++++++++++++++
+2.1.0 (unreleased)
+++++++++++++++++++
 
 Features:
 
