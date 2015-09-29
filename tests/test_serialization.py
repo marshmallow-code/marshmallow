@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import datetime as dt
 import decimal
 
@@ -8,7 +8,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import basestring, OrderedDict
 
 from tests.base import User, DummyModel, ALL_FIELDS
 
