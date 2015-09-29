@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import datetime as dt
 import decimal
 
@@ -279,16 +279,22 @@ class TestFieldSerialization:
         field = fields.Dict()
         assert field.serialize('various_data', user) is None
 
-    def test_dict_field_validates(self, user):
-        user.various_data = 'baddata'
+    def test_dict_field_invalid_dict_but_okay(self, user):
+        user.various_data = 'okaydict'
         field = fields.Dict()
-        with pytest.raises(ValidationError):
-            field.serialize('various_data', user)
+        field.serialize('various_data', user)
+        assert field.serialize('various_data', user) == 'okaydict'
 
     def test_dict_field_serialize(self, user):
         user.various_data = {"foo": "bar"}
         field = fields.Dict()
         assert field.serialize('various_data', user) == {"foo": "bar"}
+
+    def test_dict_field_serialize_ordereddict(self, user):
+        user.various_data = OrderedDict([("foo", "bar"), ("bar", "baz")])
+        field = fields.Dict()
+        assert field.serialize('various_data', user) == \
+            OrderedDict([("foo", "bar"), ("bar", "baz")])
 
     def test_url_field_serialize_none(self, user):
         user.homepage = None

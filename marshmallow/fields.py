@@ -1012,11 +1012,6 @@ class Dict(Field):
         else:
             self.fail('invalid')
 
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return None
-        return self._validated(value)
-
     def _deserialize(self, value, attr, data):
         return self._validated(value)
 

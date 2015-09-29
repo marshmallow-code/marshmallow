@@ -582,11 +582,10 @@ def test_invalid_url():
     assert 'homepage' in s.errors
     assert 'Not a valid URL.' in s.errors['homepage'][0]
 
-def test_invalid_dict():
+def test_invalid_dict_but_okay():
     u = User('Joe', various_data='baddict')
     s = UserSchema().dump(u)
-    assert 'various_data' in s.errors
-    assert 'Not a valid dict.' in s.errors['various_data'][0]
+    assert 'various_data' not in s.errors
 
 def test_custom_json():
     class UserJSONSchema(Schema):
