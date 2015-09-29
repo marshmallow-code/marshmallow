@@ -453,7 +453,7 @@ class TestFieldDeserialization:
         assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('baddict')
-        assert excinfo.value.args[0] == 'Not a valid dict.'
+        assert excinfo.value.args[0] == 'Not a valid mapping type.'
 
     def test_url_field_deserialization(self):
         field = fields.Url()

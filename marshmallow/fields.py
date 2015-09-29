@@ -1003,7 +1003,7 @@ class Dict(Field):
     """
 
     default_error_messages = {
-        'invalid': 'Not a valid dict.'
+        'invalid': 'Not a valid mapping type.'
     }
 
     def _validated(self, value):
