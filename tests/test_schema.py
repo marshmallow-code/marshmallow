@@ -8,7 +8,10 @@ from collections import namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, utils, MarshalResult, UnmarshalResult, validates, validates_schema
+from marshmallow import (
+    Schema, fields, utils, MarshalResult, UnmarshalResult,
+    validates, validates_schema
+)
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import OrderedDict
 

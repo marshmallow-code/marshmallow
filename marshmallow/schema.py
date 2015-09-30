@@ -339,6 +339,12 @@ class BaseSchema(base.SchemaABC):
         )
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
+        if extra:
+            warnings.warn(
+                'The `extra` argument is deprecated. Use a post_dump '
+                'method to add additional data instead.',
+                DeprecationWarning
+            )
         self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)

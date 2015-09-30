@@ -8,6 +8,10 @@ Features:
 
 - Add ``Dict`` field for arbitrary mapping data (:issue:`251`). Thanks :user:`dwieeb` for adding this and :user:`Dowwie` for the suggestion.
 
+Deprecation/Removals:
+
+- The ``extra`` param of ``Schmea`` is deprecated. Add extra data in a ``post_load`` method instead.
+
 2.0.0 (2015-09-25)
 ++++++++++++++++++
 
