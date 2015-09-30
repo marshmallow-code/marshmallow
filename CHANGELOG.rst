@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Add ``Dict`` field for arbitrary mapping data (:issue:`251`).
+- Add ``Dict`` field for arbitrary mapping data (:issue:`251`). Thanks :user:`dwieeb` for adding this and :user:`Dowwie` for the suggestion.
 
 2.0.0 (2015-09-25)
 ++++++++++++++++++
