@@ -774,6 +774,7 @@ class BaseSchema(base.SchemaABC):
                     )
 
     def _invoke_validators(self, pass_many, data, original_data, many):
+        errors = {}
         for attr_name in self.__processors__[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, pass_many)]
@@ -782,13 +783,21 @@ class BaseSchema(base.SchemaABC):
                 validator = partial(validator, many=many)
             if many:
                 for idx, item in enumerate(data):
-                    self._unmarshal.run_validator(validator,
-                        item, original_data, self.fields, many=many,
-                        index=idx, pass_original=pass_original)
+                    try:
+                        self._unmarshal.run_validator(validator,
+                                                  item, original_data, self.fields, many=many,
+                                                  index=idx, pass_original=pass_original)
+                    except ValidationError as err:
+                        errors.update(err.messages)
             else:
-                self._unmarshal.run_validator(validator,
-                    data, original_data, self.fields, many=many,
-                    pass_original=pass_original)
+                try:
+                    self._unmarshal.run_validator(validator,
+                                              data, original_data, self.fields, many=many,
+                                              pass_original=pass_original)
+                except ValidationError as err:
+                    errors.update(err.messages)
+        if errors:
+            raise ValidationError(errors)
         return None
 
     def _invoke_processors(self, tag_name, pass_many, data, many, original_data=None):
