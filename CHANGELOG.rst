@@ -11,6 +11,7 @@ Features:
 Deprecation/Removals:
 
 - The ``extra`` param of ``Schmea`` is deprecated. Add extra data in a ``post_load`` method instead.
+- ``UnmarshallingError`` and ``MarshallingError`` are removed.
 
 2.0.0 (2015-09-25)
 ++++++++++++++++++
