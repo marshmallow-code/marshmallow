@@ -8,7 +8,7 @@ import pytest
 
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import basestring, OrderedDict
 
 from tests.base import User, DummyModel, ALL_FIELDS
 
@@ -273,6 +273,28 @@ class TestFieldSerialization:
         user.email = None
         field = fields.Email()
         assert field.serialize('email', user) is None
+
+    def test_dict_field_serialize_none(self, user):
+        user.various_data = None
+        field = fields.Dict()
+        assert field.serialize('various_data', user) is None
+
+    def test_dict_field_invalid_dict_but_okay(self, user):
+        user.various_data = 'okaydict'
+        field = fields.Dict()
+        field.serialize('various_data', user)
+        assert field.serialize('various_data', user) == 'okaydict'
+
+    def test_dict_field_serialize(self, user):
+        user.various_data = {"foo": "bar"}
+        field = fields.Dict()
+        assert field.serialize('various_data', user) == {"foo": "bar"}
+
+    def test_dict_field_serialize_ordereddict(self, user):
+        user.various_data = OrderedDict([("foo", "bar"), ("bar", "baz")])
+        field = fields.Dict()
+        assert field.serialize('various_data', user) == \
+            OrderedDict([("foo", "bar"), ("bar", "baz")])
 
     def test_url_field_serialize_none(self, user):
         user.homepage = None

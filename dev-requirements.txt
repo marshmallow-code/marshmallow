@@ -10,8 +10,9 @@ wheel
 twine
 
 # Testing
-pytest>=2.7.3
+pytest==2.8.0
 tox>=1.5.0
+simplejson
 
 # Syntax checking
 flake8==2.4.1

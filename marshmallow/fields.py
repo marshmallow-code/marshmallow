@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import collections
 import datetime as dt
 import uuid
 import warnings
@@ -19,6 +20,7 @@ __all__ = [
     'Field',
     'Raw',
     'Nested',
+    'Dict',
     'List',
     'String',
     'UUID',
@@ -994,6 +996,28 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
+class Dict(Field):
+    """A dict field. Supports dicts and dict-like objects.
+
+    .. note::
+        This field is only appropriate when the structure of
+        nested data is not known. For structured data, use
+        `Nested`.
+
+    .. versionadded:: 2.1.0
+    """
+
+    default_error_messages = {
+        'invalid': 'Not a valid mapping type.'
+    }
+
+    def _deserialize(self, value, attr, data):
+        if isinstance(value, collections.Mapping):
+            return value
+        else:
+            self.fail('invalid')
+
+
 class ValidatedField(Field):
     """A field that validates input on serialization."""
 
@@ -1003,6 +1027,7 @@ class ValidatedField(Field):
     def _serialize(self, value, *args, **kwargs):
         ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
         return self._validated(ret)
+
 
 class Url(ValidatedField, String):
     """A validated URL field. Validation occurs during both serialization and

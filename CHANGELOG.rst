@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.1.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add ``Dict`` field for arbitrary mapping data (:issue:`251`).
+
 2.0.0 (2015-09-25)
 ++++++++++++++++++
 
