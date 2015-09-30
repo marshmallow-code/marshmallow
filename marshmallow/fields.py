@@ -999,6 +999,11 @@ class TimeDelta(Field):
 class Dict(Field):
     """A dict field. Supports dicts and dict-like objects.
 
+    .. note::
+        This field is only appropriate when the structure of
+        nested data is not known. For structured data, use
+        `Nested`.
+
     .. versionadded:: 2.1.0
     """
 
@@ -1006,14 +1011,11 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.'
     }
 
-    def _validated(self, value):
+    def _deserialize(self, value, attr, data):
         if isinstance(value, collections.Mapping):
             return value
         else:
             self.fail('invalid')
-
-    def _deserialize(self, value, attr, data):
-        return self._validated(value)
 
 
 class ValidatedField(Field):
