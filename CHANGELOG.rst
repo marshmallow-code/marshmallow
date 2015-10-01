@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Add ``Dict`` field for arbitrary mapping data (:issue:`251`). Thanks :user:`dwieeb` for adding this and :user:`Dowwie` for the suggestion.
+- Add ``Field.root`` property, which references the field's Schema.
 
 Deprecation/Removals:
 
@@ -17,6 +18,10 @@ Bug fixes:
 
 - Fix storing multiple schema-level validation errors (:issue:`287`). Thanks :user:`evgeny-sureev` for the patch.
 - If ``missing=None`` on a field, ``allow_none`` will be set to ``True``.
+
+Other changes:
+
+- A ``List's`` inner field will have the list field set as its parent. Use ``root`` to access the ``Schema``.
 
 2.0.0 (2015-09-25)
 ++++++++++++++++++

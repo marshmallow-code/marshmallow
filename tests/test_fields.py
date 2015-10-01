@@ -66,6 +66,33 @@ class TestField:
         assert result.data == {'Name': 'Monty'}
 
 
+class TestParentAndName:
+    class MySchema(Schema):
+        foo = fields.Field()
+        bar = fields.List(fields.Str())
+
+    @pytest.fixture()
+    def schema(self):
+        return self.MySchema()
+
+    def test_simple_field_parent_and_name(self, schema):
+        assert schema.fields['foo'].parent == schema
+        assert schema.fields['foo'].name == 'foo'
+        assert schema.fields['bar'].parent == schema
+        assert schema.fields['bar'].name == 'bar'
+
+    def test_list_field_inner_parent_and_name(self, schema):
+        assert schema.fields['bar'].container.parent == schema.fields['bar']
+        assert schema.fields['bar'].container.name == 'bar'
+
+    def test_simple_field_root(self, schema):
+        assert schema.fields['foo'].root == schema
+        assert schema.fields['bar'].root == schema
+
+    def test_list_field_inner_root(self, schema):
+        assert schema.fields['bar'].container.root == schema
+
+
 class TestMetadata:
 
     FIELDS_TO_TEST = [

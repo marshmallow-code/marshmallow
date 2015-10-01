@@ -1126,13 +1126,6 @@ class TestNestedSchema:
         serialized = BlogSchema().dump(blog)[0]
         assert serialized['categories'] == ["humor", "violence"]
 
-    def test_list_field_parent(self):
-        schema = BlogSchema()
-        assert schema.fields['categories'].parent == schema
-        assert schema.fields['categories'].name == 'categories'
-        assert type(schema.fields['categories'].container.parent) is BlogSchema
-        assert schema.fields['categories'].container.name == 'categories'
-
     def test_nested_load_many(self):
         in_data = {'title': 'Shine A Light', 'collaborators': [
             {'name': 'Mick', 'email': 'mick@stones.com'},

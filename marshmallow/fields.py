@@ -328,10 +328,20 @@ class Field(FieldABC):
         """
         return value
 
+    # Properties
+
     @property
     def context(self):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
+
+    @property
+    def root(self):
+        """Reference to the top-level `Schema` that this field belongs to."""
+        ret = self
+        while ret.parent:
+            ret = ret.parent
+        return ret
 
 class Raw(Field):
     """Field that applies no formatting or validation."""
@@ -529,7 +539,8 @@ class List(Field):
 
     def _add_to_schema(self, field_name, schema):
         super(List, self)._add_to_schema(field_name, schema)
-        self.container._add_to_schema(field_name, schema)
+        self.container.parent = self
+        self.container.name = field_name
 
     def _serialize(self, value, attr, obj):
         if value is None:
