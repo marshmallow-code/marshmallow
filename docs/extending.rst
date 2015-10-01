@@ -362,3 +362,31 @@ The ``context`` attribute of a `Schema` is a general-purpose store for extra inf
     # custom fields, schema methods, schema validators, etc.
     schema.context['request'] = request
     schema.dump(user)
+
+
+Inhereiting Schemas
+-------------------
+
+Is it possible to inhereit a `Schema` using Python class inheritance. This helps avoid code duplication.
+
+.. code-block:: python
+
+    class EmployeeSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+
+    class DriverSchema(EmployeeSchema):
+        car = fields.String()
+
+    class ManagerSchema(EmployeeSchema):
+        title = fields.String()
+
+    manager_input = {
+        "name": "Mike",
+        "email": "bad_email",
+        "title": "CIO"
+    }
+    schema = ManagerSchema()
+    result = schema.load(manager_input)
+    result.data  # {'title': 'CIO', 'name': 'Mike'}
+    result.errors  # {'email': ['"bad_email" is not a valid email address.']}
