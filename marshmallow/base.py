@@ -9,9 +9,7 @@ import copy
 class FieldABC(object):
     """Abstract base class from which all Field classes inherit.
     """
-    #: The `Schema` the field is attached to.
     parent = None
-    #: The field's name.
     name = None
 
     def serialize(self, attr, obj, accessor=None):
@@ -20,10 +18,10 @@ class FieldABC(object):
     def deserialize(self, value):
         raise NotImplementedError
 
-    def _serialize(self, value, key, obj):
+    def _serialize(self, value, attr, obj):
         raise NotImplementedError
 
-    def _deserialize(self, value):
+    def _deserialize(self, value, attr, ob):
         raise NotImplementedError
 
     def __deepcopy__(self, memo):
