@@ -10,7 +10,7 @@ marshmallow: simplified object serialization
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
-Homepage: http://marshmallow.rtfd.org/
+Homepage: http://marshmallow.readthedocs.org/
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
@@ -55,7 +55,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at http://marshmallow.rtfd.org/ .
+Full documentation is available at http://marshmallow.readthedocs.org/ .
 
 Requirements
 ============
@@ -67,7 +67,7 @@ marshmallow has no external dependencies outside of the Python standard library,
 Project Links
 =============
 
-- Docs: http://marshmallow.rtfd.org/
+- Docs: http://marshmallow.readthedocs.org/
 - Changelog: http://marshmallow.readthedocs.org/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues

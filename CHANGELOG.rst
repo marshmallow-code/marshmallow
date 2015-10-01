@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.1.0 (unreleased)
+2.1.0 (2015-09-30)
 ++++++++++++++++++
 
 Features:
@@ -11,7 +11,7 @@ Features:
 
 Deprecation/Removals:
 
-- The ``extra`` param of ``Schmea`` is deprecated. Add extra data in a ``post_load`` method instead.
+- The ``extra`` param of ``Schema`` is deprecated. Add extra data in a ``post_load`` method instead.
 - ``UnmarshallingError`` and ``MarshallingError`` are removed.
 
 Bug fixes:
@@ -34,7 +34,7 @@ Deprecation/Removals:
 
 - Remove ``make_object``. Use a ``post_load`` method instead (:issue:`277`).
 - Remove the ``error`` parameter and attribute of ``Field``.
-- Passing string arguments to ``required`` and ``allow_none`` is deprecated. Pass the ``error_messages`` argument instead. **This API will be removed in version 2.1**.
+- Passing string arguments to ``required`` and ``allow_none`` is deprecated. Pass the ``error_messages`` argument instead. **This API will be removed in version 2.2**.
 - Remove ``Arbitrary``, ``Fixed``, and ``Price`` fields (:issue:`86`). Use ``Decimal`` instead.
 - Remove ``Select`` / ``Enum`` fields (:issue:`135`). Use the ``OneOf`` validator instead.
 
