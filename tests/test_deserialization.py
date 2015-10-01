@@ -42,6 +42,11 @@ class TestDeserializingNone:
             field.deserialize(None)
         assert 'Field may not be null.' in str(excinfo)
 
+    def test_allow_none_is_true_if_missing_is_true(self):
+        field = fields.Field(missing=None)
+        assert field.allow_none is True
+        field.deserialize(None) is None
+
     def test_list_field_deserialize_none_to_empty_list(self):
         field = fields.List(fields.String(allow_none=True), allow_none=True)
         assert field.deserialize(None) is None

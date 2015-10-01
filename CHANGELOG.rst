@@ -13,6 +13,11 @@ Deprecation/Removals:
 - The ``extra`` param of ``Schmea`` is deprecated. Add extra data in a ``post_load`` method instead.
 - ``UnmarshallingError`` and ``MarshallingError`` are removed.
 
+Bug fixes:
+
+- Fix storing multiple schema-level validation errors (:issue:`287`). Thanks :user:`evgeny-sureev` for the patch.
+- If ``missing=None`` on a field, ``allow_none`` will be set to ``True``.
+
 2.0.0 (2015-09-25)
 ++++++++++++++++++
 

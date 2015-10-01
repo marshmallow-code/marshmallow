@@ -75,8 +75,9 @@ class Field(FieldABC):
         If it returns `False`, an :exc:`ValidationError` is raised.
     :param required: Raise an :exc:`ValidationError` if the field value
         is not supplied during deserialization.
-    :param allow_none: Set to `True` if `None` should be considered a valid value during
-        validation/deserialization.
+    :param allow_none: Set this to `True` if `None` should be considered a valid value during
+        validation/deserialization. If ``missing=None`` and ``allow_none`` is unset,
+        will default to ``True``. Otherwise, the default is ``False``.
     :param bool load_only: If `True` skip this field during serialization, otherwise
         its value will be present in the serialized data.
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
@@ -123,7 +124,7 @@ class Field(FieldABC):
     }
 
     def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
-                 validate=None, required=False, allow_none=False, load_only=False,
+                 validate=None, required=False, allow_none=None, load_only=False,
                  dump_only=False, missing=missing_, error_messages=None, **metadata):
         self.default = default
         self.attribute = attribute
@@ -155,7 +156,14 @@ class Field(FieldABC):
                 '{"null": "Your message"} to `error_messages` instead.',
                 DeprecationWarning
             )
-        self.allow_none = allow_none
+        # If missing=None, None should be considered valid by default
+        if allow_none is None:
+            if missing is None:
+                self.allow_none = True
+            else:
+                self.allow_none = False
+        else:
+            self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
         self.missing = missing
