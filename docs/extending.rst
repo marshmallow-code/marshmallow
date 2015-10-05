@@ -43,7 +43,7 @@ Example: Enveloping
 One common use case is to wrap data in a namespace upon serialization and unwrap the data during deserialization.
 
 .. code-block:: python
-    :emphasize-lines: 17,18,22,23
+    :emphasize-lines: 17,18,22,23,27,28
 
     from marshmallow import Schema, fields, pre_load, post_load, post_dump
 

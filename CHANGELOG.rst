@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.2.0 (unreleased)
+++++++++++++++++++
+
+Support:
+
+- Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.
+
 2.1.0 (2015-09-30)
 ++++++++++++++++++
 
