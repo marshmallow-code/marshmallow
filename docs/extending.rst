@@ -43,18 +43,23 @@ Example: Enveloping
 One common use case is to wrap data in a namespace upon serialization and unwrap the data during deserialization.
 
 .. code-block:: python
-    :emphasize-lines: 12,13,17,18
+    :emphasize-lines: 17,18,22,23,27,28
 
     from marshmallow import Schema, fields, pre_load, post_load, post_dump
 
-    class UserSchema(Schema):
-        name = fields.Str()
-        email = fields.Email()
+    class BaseSchema(Schema):
+        # Custom options
+        __envelope__ = {
+            'single': None,
+            'many': None
+        }
+        __model__ = User
 
-        @staticmethod
-        def get_envelope_key(many):
+        def get_envelope_key(self, many):
             """Helper to get the envelope key."""
-            return 'users' if many else 'user'
+            key = self.__envelope__['many'] if many else self.__envelope__['single']
+            assert key is not None, "Envelope key undefined"
+            return key
 
         @pre_load(pass_many=True)
         def unwrap_envelope(self, data, many):
@@ -67,8 +72,17 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
             return {key: data}
 
         @post_load
-        def make_user(self, data):
-            return User(**data)
+        def make_object(self, data):
+            return self.__model__(**data)
+
+    class UserSchema(BaseSchema):
+        __envelope__ = {
+            'single': 'user',
+            'many': 'users',
+        }
+        __model__ = User
+        name = fields.Str()
+        email = fields.Email()
 
     user_schema = UserSchema()
 
@@ -84,6 +98,7 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
 
     user_objs = user_schema.load(users_data, many=True).data
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
+
 
 Pre-/Post-processor Invocation Order
 ++++++++++++++++++++++++++++++++++++
