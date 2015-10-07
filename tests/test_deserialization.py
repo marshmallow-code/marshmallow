@@ -1089,6 +1089,28 @@ class TestSchemaDeserialization:
         assert len(errors['foo']) == 1
         assert 'Missing data for required field.' in errors['foo']
 
+    @pytest.mark.parametrize('partial_schema',
+    [
+        True,
+        False
+    ])
+    def test_partial_deserialization(self, partial_schema):
+        class MySchema(Schema):
+            foo = fields.Field(required=True)
+            bar = fields.Field(required=True)
+
+        schema_args = {}
+        load_args = {}
+        if partial_schema:
+            schema_args['partial'] = True
+        else:
+            load_args['partial'] = True
+        data, errors = MySchema(**schema_args).load({'foo': 3}, **load_args)
+
+        assert data['foo'] == 3
+        assert 'bar' not in data
+        assert not errors
+
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
 validators_gen_float = (func for func in

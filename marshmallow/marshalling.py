@@ -208,7 +208,7 @@ class Unmarshaller(ErrorStore):
                 data=output
             )
 
-    def deserialize(self, data, fields_dict, many=False,
+    def deserialize(self, data, fields_dict, many=False, partial=False,
             dict_class=dict, index_errors=True, index=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
@@ -216,6 +216,7 @@ class Unmarshaller(ErrorStore):
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param bool many: Set to `True` if ``data`` should be deserialized as
             a collection.
+        :param bool partial: If `True`, ignore missing fields.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
             ``self.errors`` when ``many=True``.
@@ -229,7 +230,7 @@ class Unmarshaller(ErrorStore):
         if many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
-                        dict_class=dict_class,
+                        partial=partial, dict_class=dict_class,
                         index=idx, index_errors=index_errors)
                     for idx, d in enumerate(data)]
 
@@ -265,6 +266,8 @@ class Unmarshaller(ErrorStore):
                     field_name = field_obj.load_from
                     raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing:
+                    if partial:
+                        continue
                     _miss = field_obj.missing
                     raw_value = _miss() if callable(_miss) else _miss
                 if raw_value is missing and not field_obj.required:

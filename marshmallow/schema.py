@@ -12,7 +12,7 @@ import types
 import uuid
 import warnings
 from collections import namedtuple
-from functools import partial
+import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
@@ -251,6 +251,7 @@ class BaseSchema(base.SchemaABC):
     :param tuple load_only: A list or tuple of fields to skip during serialization
     :param tuple dump_only: A list or tuple of fields to skip during
         deserialization, read-only fields
+    :param bool partial: If `True`, ignore missing fields when deserializing.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -320,7 +321,8 @@ class BaseSchema(base.SchemaABC):
         pass
 
     def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
-                 many=False, context=None, load_only=(), dump_only=()):
+                 many=False, context=None, load_only=(), dump_only=(),
+                 partial=False):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -331,6 +333,7 @@ class BaseSchema(base.SchemaABC):
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
+        self.partial = partial
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -519,19 +522,21 @@ class BaseSchema(base.SchemaABC):
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
-    def load(self, data, many=None):
+    def load(self, data, many=None, partial=None):
         """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
+        :param bool partial: Whether to ignore missing fields. If `None`, the
+            value for `self.partial` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        result, errors = self._do_load(data, many, postprocess=True)
+        result, errors = self._do_load(data, many, partial, postprocess=True)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data, many=None, *args, **kwargs):
@@ -540,13 +545,20 @@ class BaseSchema(base.SchemaABC):
         :param str json_data: A JSON string of the data to deserialize.
         :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
             value for `self.many` is used.
+        :param bool partial: Whether to ignore missing fields. If `None`, the
+            value for `self.partial` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
+        # TODO: This avoids breaking backward compatibility if people were
+        # passing in positional args after `many` for use by `json.loads`, but
+        # ideally we shouldn't have to do this.
+        partial = kwargs.pop('partial', None)
+
         data = self.opts.json_module.loads(json_data, *args, **kwargs)
-        return self.load(data, many=many)
+        return self.load(data, many=many, partial=partial)
 
     def validate(self, data, many=None):
         """Validate `data` against the schema, returning a dictionary of
@@ -565,17 +577,20 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _do_load(self, data, many=None, postprocess=True):
+    def _do_load(self, data, many=None, partial=None, postprocess=True):
         """Deserialize `data`, returning the deserialized result and a dictonary of
         validation errors.
 
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
+        :param bool partial: Whether to ignore missing fields. If `None`, the
+            value for `self.partial` is used.
         :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
         many = self.many if many is None else bool(many)
+        partial = self.partial if partial is None else bool(partial)
 
         processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
 
@@ -584,6 +599,7 @@ class BaseSchema(base.SchemaABC):
                 processed_data,
                 self.fields,
                 many=many,
+                partial=partial,
                 dict_class=self.dict_class,
                 index_errors=self.opts.index_errors,
             )
@@ -780,7 +796,7 @@ class BaseSchema(base.SchemaABC):
             validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, pass_many)]
             pass_original = validator_kwargs.get('pass_original', False)
             if pass_many:
-                validator = partial(validator, many=many)
+                validator = functools.partial(validator, many=many)
             if many:
                 for idx, item in enumerate(data):
                     try:
