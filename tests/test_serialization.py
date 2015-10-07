@@ -657,6 +657,15 @@ class TestFieldSerialization:
         field = fields.Constant('something')
         assert field.serialize('whatever', user) == 'something'
 
+    def test_constant_is_always_included_in_serialized_data(self):
+
+        class MySchema(Schema):
+            foo = fields.Constant(42)
+
+        sch = MySchema()
+        assert sch.dump({'bar': 24}).data['foo'] == 42
+        assert sch.dump({'foo': 24}).data['foo'] == 42
+
     def test_constant_field_serialize_when_omitted(self):
         class MiniUserSchema(Schema):
             name = fields.Constant('bill')

@@ -1350,6 +1350,8 @@ class Constant(Field):
     def __init__(self, constant, **kwargs):
         super(Constant, self).__init__(**kwargs)
         self.constant = constant
+        self.missing = constant
+        self.default = constant
 
     def _serialize(self, value, *args, **kwargs):
         return self.constant

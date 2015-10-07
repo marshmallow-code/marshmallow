@@ -649,6 +649,15 @@ class TestFieldDeserialization:
         field = fields.Constant('something')
         assert field.deserialize('whatever') == 'something'
 
+    def test_constant_is_always_included_in_deserialized_data(self):
+
+        class MySchema(Schema):
+            foo = fields.Constant(42)
+
+        sch = MySchema()
+        assert sch.load({'bar': 24}).data['foo'] == 42
+        assert sch.load({'foo': 24}).data['foo'] == 42
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
         assert field.deserialize('Valid') == 'Valid'
