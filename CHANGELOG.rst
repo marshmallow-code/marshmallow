@@ -8,6 +8,13 @@ Support:
 
 - Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.
 
+2.1.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- ``Constant`` field deserializes to its value regardless of whether its field name is present in input data (:issue:`291`). Thanks :user:`fayazkhan` for reporting.
+
 2.1.0 (2015-09-30)
 ++++++++++++++++++
 
