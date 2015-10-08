@@ -4,6 +4,10 @@ Changelog
 2.2.0 (unreleased)
 ++++++++++++++++++
 
+Features:
+
+- Add support for partial deserialization with the ``partial`` argument to ``Schema`` and ``Schema.load`` (:issue:`290`). Thanks :user:`taion`.
+
 Support:
 
 - Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.
