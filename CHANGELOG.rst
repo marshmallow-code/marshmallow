@@ -12,7 +12,7 @@ Support:
 
 - Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.
 
-2.1.1 (unreleased)
+2.1.1 (2015-10-07)
 ++++++++++++++++++
 
 Bug fixes:
