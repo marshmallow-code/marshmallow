@@ -68,7 +68,7 @@ def validates(field_name):
 
 
 def validates_schema(fn=None, pass_many=False, pass_original=False):
-    """Register a schema-level validates_schema method.
+    """Register a schema-level validator.
 
     By default, receives a single object at a time, regardless of whether ``many=True``
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)

@@ -235,7 +235,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
 .. note::
 
-    :meth:`Schema.dump` also returns a dictionary of errors, which will include any ``ValidationErrors`` raised during serialization. However, the ``required``, ``allow_none``, and ``validate`` parameters only apply during deserialization.
+    :meth:`Schema.dump` also returns a dictionary of errors, which will include any ``ValidationErrors`` raised during serialization. However, ``required``, ``allow_none``, ``validate``, `@validates <marshmallow.decorators.validates>`, and `@validates_schema <marshmallow.decorators.validates_schema>` only apply during deserialization.
 
 
 Field Validators as Methods
