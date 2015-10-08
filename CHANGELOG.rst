@@ -8,6 +8,10 @@ Features:
 
 - Add support for partial deserialization with the ``partial`` argument to ``Schema`` and ``Schema.load`` (:issue:`290`). Thanks :user:`taion`.
 
+Deprecation/Removals:
+
+- ``Query`` and ``QuerySelect`` fields are removed.
+
 Support:
 
 - Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.

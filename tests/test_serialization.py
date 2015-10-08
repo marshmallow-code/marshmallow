@@ -591,68 +591,6 @@ class TestFieldSerialization:
         # No validation error raised
         assert field.serialize('age', user) == user.age
 
-    def test_query_select_field_func_key(self, user):
-        user.du1 = DummyModel('a')
-        user.du2 = DummyModel('b')
-        user.du3 = DummyModel('c')
-        user.du4 = DummyModel('d')
-        query = lambda: [DummyModel(ch) for ch in 'abc']
-
-        field = fields.QuerySelect(query, str)
-        assert field.serialize('du1', user) == 'bar a'
-        assert field.serialize('du2', user) == 'bar b'
-        assert field.serialize('du3', user) == 'bar c'
-        with pytest.raises(ValidationError):
-            field.serialize('du4', user)
-
-    def test_query_select_field_string_key(self, user):
-        user.du1 = DummyModel('a')
-        user.du2 = DummyModel('b')
-        user.du3 = DummyModel('c')
-        user.du4 = DummyModel('d')
-        query = lambda: [DummyModel(ch) for ch in 'abc']
-
-        field = fields.QuerySelect(query, 'foo')
-        assert field.serialize('du1', user) == 'a'
-        assert field.serialize('du2', user) == 'b'
-        assert field.serialize('du3', user) == 'c'
-        with pytest.raises(ValidationError):
-            field.serialize('du4', user)
-
-    def test_query_select_list_field_func_key(self, user):
-        user.du1 = [DummyModel('a'), DummyModel('c'), DummyModel('b')]
-        user.du2 = [DummyModel('d'), DummyModel('e'), DummyModel('e')]
-        user.du3 = [DummyModel('a'), DummyModel('b'), DummyModel('f')]
-        user.du4 = [DummyModel('a'), DummyModel('b'), DummyModel('b')]
-        user.du5 = []
-        query = lambda: [DummyModel(ch) for ch in 'abecde']
-
-        field = fields.QuerySelectList(query, str)
-        assert field.serialize('du1', user) == ['bar a', 'bar c', 'bar b']
-        assert field.serialize('du2', user) == ['bar d', 'bar e', 'bar e']
-        assert field.serialize('du5', user) == []
-        with pytest.raises(ValidationError):
-            field.serialize('du3', user)
-        with pytest.raises(ValidationError):
-            field.serialize('du4', user)
-
-    def test_query_select_list_field_string_key(self, user):
-        user.du1 = [DummyModel('a'), DummyModel('c'), DummyModel('b')]
-        user.du2 = [DummyModel('d'), DummyModel('e'), DummyModel('e')]
-        user.du3 = [DummyModel('a'), DummyModel('b'), DummyModel('f')]
-        user.du4 = [DummyModel('a'), DummyModel('b'), DummyModel('b')]
-        user.du5 = []
-        query = lambda: [DummyModel(ch) for ch in 'abecde']
-
-        field = fields.QuerySelectList(query, 'foo')
-        assert field.serialize('du1', user) == ['a', 'c', 'b']
-        assert field.serialize('du2', user) == ['d', 'e', 'e']
-        assert field.serialize('du5', user) == []
-        with pytest.raises(ValidationError):
-            field.serialize('du3', user)
-        with pytest.raises(ValidationError):
-            field.serialize('du4', user)
-
     def test_constant_field_serialization(self, user):
         field = fields.Constant('something')
         assert field.serialize('whatever', user) == 'something'
