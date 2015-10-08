@@ -98,6 +98,40 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
     data['is_author']  # => True
     data['likes_bikes']  # => True
 
+
+Customizing Error Messages
+--------------------------
+
+Validation error messages for fields can be configured a the class or instance level.
+
+At the class level, default error messages are defined as a mapping from error codes to error messages.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+    class MyDate(fields.Date):
+        default_error_messages = {
+            'invalid': 'Please provide a valid date.',
+        }
+
+.. note::
+    A `Field's` ``default_error_messages`` dictionary gets merged with its parent classes' ``default_error_messages`` dictionaries.
+
+Error messages can also be passed to a `Field's` constructor.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class UserSchema(Schema):
+
+        name = fields.Str(
+            required=True,
+            error_messages={'required': 'Please provide a name.'}
+        )
+
+
 Next Steps
 ----------
 

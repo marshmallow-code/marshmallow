@@ -1161,7 +1161,7 @@ def test_required_field_failure(FieldClass):  # noqa
                                      ['first error', 'second error']])
 def test_required_message_can_be_changed(message):
     class RequireSchema(Schema):
-        age = fields.Integer(required=message)
+        age = fields.Integer(required=True, error_messages={'required': message})
 
     user_data = {"name": "Phil"}
     data, errs = RequireSchema().load(user_data)

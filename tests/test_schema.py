@@ -1671,7 +1671,8 @@ class TestRequiredFields:
 
     def test_allow_none_custom_message(self, data):
         class MySchema(Schema):
-            allow_none_field = fields.Field(allow_none='<custom>')
+            allow_none_field = fields.Field(allow_none=False,
+                error_messages={'null': '<custom>'})
 
         schema = MySchema()
         errors = schema.validate({'allow_none_field': None})

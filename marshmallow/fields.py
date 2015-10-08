@@ -73,7 +73,7 @@ class Field(FieldABC):
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`ValidationError` is raised.
-    :param required: Raise an :exc:`ValidationError` if the field value
+    :param required: Raise a :exc:`ValidationError` if the field value
         is not supplied during deserialization.
     :param allow_none: Set this to `True` if `None` should be considered a valid value during
         validation/deserialization. If ``missing=None`` and ``allow_none`` is unset,
@@ -143,19 +143,7 @@ class Field(FieldABC):
             raise ValueError("The 'validate' parameter must be a callable "
                              "or a collection of callables.")
 
-        if isinstance(required, basestring):
-            warnings.warn(
-                'Passing a string for `required` is deprecated. Pass '
-                '{"required": "Your message"} to `error_messages` instead.',
-                DeprecationWarning
-            )
         self.required = required
-        if isinstance(allow_none, basestring):
-            warnings.warn(
-                'Passing a string for `allow_none` is deprecated. Pass '
-                '{"null": "Your message"} to `error_messages` instead.',
-                DeprecationWarning
-            )
         # If missing=None, None should be considered valid by default
         if allow_none is None:
             if missing is None:
@@ -224,16 +212,9 @@ class Field(FieldABC):
             class_name = self.__class__.__name__
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
             raise AssertionError(msg)
-        message_string = msg.format(**kwargs)
-
-        # TODO: Remove this special casing once `required`and `allow_non` strings are
-        # removed from the API
-        if key == 'required':
-            message_string = message_string if isinstance(self.required, bool) else self.required
-        elif key == 'null':
-            message_string = message_string if isinstance(self.allow_none, bool) else self.allow_none
-
-        raise ValidationError(message_string)
+        if isinstance(msg, basestring):
+            msg = msg.format(**kwargs)
+        raise ValidationError(msg)
 
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
