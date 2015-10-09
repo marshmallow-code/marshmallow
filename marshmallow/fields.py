@@ -40,8 +40,6 @@ __all__ = [
     'Email',
     'Method',
     'Function',
-    'QuerySelect',
-    'QuerySelectList',
     'Str',
     'Bool',
     'Int',
