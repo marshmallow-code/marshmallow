@@ -536,7 +536,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        result, errors = self._do_load(data, many, partial, postprocess=True)
+        result, errors = self._do_load(data, many, partial=partial, postprocess=True)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data, many=None, *args, **kwargs):
