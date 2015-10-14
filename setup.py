@@ -12,8 +12,8 @@ EXTRA_REQUIREMENTS = ['python-dateutil', 'simplejson']
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.test_args = ['--verbose', 'tests/']
-        self.test_suite = True
+        self.verbose = True
+        self.test_suite = 'tests'
 
     def run_tests(self):
         import pytest
