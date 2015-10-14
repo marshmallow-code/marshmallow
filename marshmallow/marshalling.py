@@ -21,6 +21,8 @@ __all__ = [
     'Unmarshaller',
 ]
 
+# Key used for field-level validation errors on nested fields
+FIELD = '_field'
 
 class ErrorStore(object):
 
@@ -68,6 +70,8 @@ class ErrorStore(object):
             # Warning: Mutation!
             if isinstance(err.messages, dict):
                 errors[field_name] = err.messages
+            elif isinstance(errors.get(field_name), dict):
+                errors[field_name].setdefault(FIELD, []).extend(err.messages)
             else:
                 errors.setdefault(field_name, []).extend(err.messages)
             # When a Nested field fails validation, the marshalled data is stored
