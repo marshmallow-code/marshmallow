@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.1.2 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing data to schema validator when using ``@validates_schema(many=True)`` (:issue:`297`). Thanks :user:`d-sutherland` for reporting.
+
 2.1.1 (2015-10-07)
 ++++++++++++++++++
 

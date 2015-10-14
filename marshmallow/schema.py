@@ -781,7 +781,7 @@ class BaseSchema(base.SchemaABC):
             pass_original = validator_kwargs.get('pass_original', False)
             if pass_many:
                 validator = partial(validator, many=many)
-            if many:
+            if many and not pass_many:
                 for idx, item in enumerate(data):
                     try:
                         self._unmarshal.run_validator(validator,

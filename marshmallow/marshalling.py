@@ -202,7 +202,7 @@ class Unmarshaller(ErrorStore):
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
             raise ValidationError(
-                self.errors,
+                errors,
                 fields=field_objs,
                 field_names=field_names,
                 data=output
