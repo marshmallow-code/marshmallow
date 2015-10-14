@@ -1,25 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import sys
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand  # noqa
 
-TEST_REQUIREMENTS = ['pytest', 'pytz']
 EXTRA_REQUIREMENTS = ['python-dateutil', 'simplejson']
-
-
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = ['--verbose', 'tests/']
-        self.test_suite = True
-
-    def run_tests(self):
-        import pytest
-        errcode = pytest.main(self.test_args)
-        sys.exit(errcode)
-
 
 def find_version(fname):
     """Attempts to find the version number in the file names fname.
@@ -57,7 +41,6 @@ setup(
     packages=find_packages(exclude=('test*', 'examples')),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
-    tests_require=TEST_REQUIREMENTS,
     extras_require={'reco': EXTRA_REQUIREMENTS},
     license=read('LICENSE'),
     zip_safe=False,
@@ -77,6 +60,5 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
-    test_suite='tests',
-    cmdclass={'test': PyTest},
+    test_suite='tests'
 )

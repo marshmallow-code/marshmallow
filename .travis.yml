@@ -18,7 +18,4 @@ install:
   - pip install -U .[reco]
   - pip install -U -r dev-requirements.txt
 
-before_script:
-  - flake8 .
-
-script: python setup.py test
+script: invoke test
