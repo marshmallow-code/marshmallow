@@ -7,6 +7,7 @@ Changelog
 Bug fixes:
 
 - Fix passing data to schema validator when using ``@validates_schema(many=True)`` (:issue:`297`). Thanks :user:`d-sutherland` for reporting.
+- Fix usage of ``@validates`` with a nested field when ``many=True`` (:issue:`298`). Thanks :user:`nelfin` for the catch and patch.
 
 2.1.1 (2015-10-07)
 ++++++++++++++++++
