@@ -689,7 +689,13 @@ class BaseSchema(base.SchemaABC):
         """
         if obj and many:
             try:  # Homogeneous collection
-                obj_prototype = next(iter(obj))
+                # Prefer getitem over iter not to break serialization when using PyMongo cursors.
+                # Using iter modifies the cursor position and the serialized array will be missing
+                # the first item.
+                if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
+                    obj_prototype = obj[0]
+                else:
+                    obj_prototype = next(iter(obj))
             except StopIteration:  # Nothing to serialize
                 return self.declared_fields
             obj = obj_prototype
