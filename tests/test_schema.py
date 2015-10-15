@@ -1222,6 +1222,23 @@ class TestNestedSchema:
         _, errors = schema.load({'inner': 1})
         assert errors['inner']['_schema'] == ['Invalid input type.']
 
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/298
+    def test_all_errors_on_many_nested_field_with_validates_decorator(self):
+        class Inner(Schema):
+            req = fields.Field(required=True)
+
+        class Outer(Schema):
+            inner = fields.Nested(Inner, many=True)
+
+            @validates('inner')
+            def validates_inner(self, data):
+                raise ValidationError('not a chance')
+
+        outer = Outer()
+        _, errors = outer.load({'inner': [{}]})
+        assert 'inner' in errors
+        assert '_field' in errors['inner']
+
     def test_missing_required_nested_field(self):
         class Inner(Schema):
             inner_req = fields.Field(required=True, error_messages={'required': 'Oops'})

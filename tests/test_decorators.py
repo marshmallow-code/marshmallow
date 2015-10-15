@@ -313,6 +313,7 @@ class TestValidatesSchemaDecorator:
             @validates_schema(pass_many=True)
             def validate_raw(self, data, many):
                 if many:
+                    assert type(data) is list
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
@@ -327,9 +328,9 @@ class TestValidatesSchemaDecorator:
         assert errors['_schema'][0] == 'Must be greater than 3'
 
         errors = schema.validate([{'foo': 4}], many=True)
-        assert '_schema' in errors[0]
-        assert len(errors[0]['_schema']) == 1
-        assert errors[0]['_schema'][0] == 'Must provide at least 2 items'
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+        assert errors['_schema'][0] == 'Must provide at least 2 items'
 
         errors = schema.validate({'foo': 4, 'bar': -1})
         assert 'bar' in errors
@@ -354,14 +355,14 @@ class TestValidatesSchemaDecorator:
 
         schema = MySchema()
         errors = schema.validate({'foo': 3, 'bar': -1})
-        assert len(errors) == 1
+        assert type(errors) is dict
         assert '_schema' in errors
         assert len(errors['_schema']) == 2
         assert 'Must be greater than 3' in errors['_schema']
         assert 'bar must not be negative' in errors['_schema']
 
         errors = schema.validate([{'foo': 3, 'bar': -1}, {'foo': 3}], many=True)
-        assert len(errors) == 2
+        assert type(errors) is dict
         assert '_schema' in errors[0]
         assert len(errors[0]['_schema']) == 2
         assert 'Must be greater than 3' in errors[0]['_schema']
@@ -406,10 +407,9 @@ class TestValidatesSchemaDecorator:
 
         schema = MySchema()
         errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
-        assert 0 in errors
-        assert '_schema' in errors[0]
-        assert len(errors[0]['_schema']) == 1
-        assert errors[0]['_schema'][0] == {'code': 'invalid_field'}
+        assert '_schema' in errors
+        assert len(errors['_schema']) == 1
+        assert errors['_schema'][0] == {'code': 'invalid_field'}
 
     # https://github.com/marshmallow-code/marshmallow/issues/273
     def test_allow_arbitrary_field_names_in_error(self):

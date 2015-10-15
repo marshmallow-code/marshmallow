@@ -18,6 +18,14 @@ Support:
 - Add example of Schema inheritance in docs (:issue:`225`). Thanks :user:`martinstein` for the suggestion and :user:`juanrossi` for the PR.
 - Add "Customizing Error Messages" section to custom fields docs.
 
+2.1.2 (2015-10-14)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing data to schema validator when using ``@validates_schema(many=True)`` (:issue:`297`). Thanks :user:`d-sutherland` for reporting.
+- Fix usage of ``@validates`` with a nested field when ``many=True`` (:issue:`298`). Thanks :user:`nelfin` for the catch and patch.
+
 2.1.1 (2015-10-07)
 ++++++++++++++++++
 
