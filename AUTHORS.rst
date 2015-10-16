@@ -47,3 +47,4 @@ Contributors (chronological)
 - Matt Bachmann `@Bachmann1234 <https://github.com/Bachmann1234>`_
 - Daniel Imhoff `@dwieeb <https://github.com/dwieeb>`_
 - Andrew Haigh `@nelfin <https://github.com/nelfin>`_
+- `@Mise <https://github.com/Mise>`_

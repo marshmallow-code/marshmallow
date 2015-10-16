@@ -689,9 +689,9 @@ class BaseSchema(base.SchemaABC):
         """
         if obj and many:
             try:  # Homogeneous collection
-                # Prefer getitem over iter not to break serialization when using PyMongo cursors.
-                # Using iter modifies the cursor position and the serialized array will be missing
-                # the first item.
+                # Prefer getitem over iter to prevent breaking serialization
+                # of objects for which iter will modify position in the collection
+                # e.g. Pymongo cursors
                 if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
                     obj_prototype = obj[0]
                 else:
