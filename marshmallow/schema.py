@@ -705,8 +705,14 @@ class BaseSchema(base.SchemaABC):
         """
         if obj and many:
             try:  # Homogeneous collection
-                obj_prototype = next(iter(obj))
-            except StopIteration:  # Nothing to serialize
+                # Prefer getitem over iter to prevent breaking serialization
+                # of objects for which iter will modify position in the collection
+                # e.g. Pymongo cursors
+                if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
+                    obj_prototype = obj[0]
+                else:
+                    obj_prototype = next(iter(obj))
+            except (StopIteration, IndexError):  # Nothing to serialize
                 return self.declared_fields
             obj = obj_prototype
         ret = self.dict_class()
