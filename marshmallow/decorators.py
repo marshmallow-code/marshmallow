@@ -50,6 +50,8 @@ Example: ::
 """
 from __future__ import unicode_literals
 
+import functools
+
 
 PRE_DUMP = 'pre_dump'
 POST_DUMP = 'post_dump'
@@ -134,8 +136,11 @@ def tag_processor(tag_name, fn, pass_many, **kwargs):
     :return: Decorated function if supplied, else this decorator with its args
         bound.
     """
-    if fn is None:  # Allow decorator to be used with no arguments
-        return lambda fn_actual: tag_processor(tag_name, fn_actual, pass_many, **kwargs)
+    # Allow using this as either a decorator or a decorator factory.
+    if fn is None:
+        return functools.partial(
+            tag_processor, tag_name, pass_many=pass_many, **kwargs
+        )
 
     # Set a marshmallow_tags attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
