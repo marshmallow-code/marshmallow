@@ -252,9 +252,9 @@ It is often convenient to write validators as methods. Use the `validates <marsh
 
         @validates('quantity')
         def validate_quantity(self, value):
-            if n < 0:
+            if value < 0:
                 raise ValidationError('Quantity must be greater than 0.')
-            if n > 30:
+            if value > 30:
                 raise ValidationError('Quantity must not be greater than 30.')
 
 
