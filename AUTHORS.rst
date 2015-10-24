@@ -49,3 +49,4 @@ Contributors (chronological)
 - Juan Rossi `@juanrossi <https://github.com/juanrossi>`_
 - Andrew Haigh `@nelfin <https://github.com/nelfin>`_
 - `@Mise <https://github.com/Mise>`_
+- Taylor Edmiston `@tedmiston <https://github.com/tedmiston>`_
