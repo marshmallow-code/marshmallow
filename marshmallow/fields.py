@@ -779,6 +779,11 @@ class DateTime(Field):
 
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
 
+    Timezone-naive `datetime` objects are converted to
+    UTC (+00:00) by :meth:`Schema.dump <marshmallow.Schema.dump>`.
+    :meth:`Schema.load <marshmallow.Schema.load>` returns `datetime`
+    objects that are timezone-aware.
+
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
