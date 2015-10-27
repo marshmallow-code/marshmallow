@@ -67,6 +67,7 @@ class Field(FieldABC):
     :param str load_from: Additional key to look for when deserializing. Will only
         be checked if the field's name is not found on the input dictionary. If checked,
         it will return this parameter on error.
+    :param str dump_to: Field name to use as a key when serializing.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
@@ -121,12 +122,13 @@ class Field(FieldABC):
         'validator_failed': 'Invalid value.'
     }
 
-    def __init__(self, default=missing_, attribute=None, load_from=None, error=None,
-                 validate=None, required=False, allow_none=None, load_only=False,
+    def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
+                 error=None, validate=None, required=False, allow_none=None, load_only=False,
                  dump_only=False, missing=missing_, error_messages=None, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
+        self.dump_to = dump_to  # this flag is used by Marshaller
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):

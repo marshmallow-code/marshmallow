@@ -131,7 +131,9 @@ class Marshaller(ErrorStore):
         for attr_name, field_obj in iteritems(fields_dict):
             if getattr(field_obj, 'load_only', False):
                 continue
-            if not self.prefix:
+            if field_obj.dump_to:
+                key = field_obj.dump_to
+            elif not self.prefix:
                 key = attr_name
             else:
                 key = ''.join([self.prefix, attr_name])
