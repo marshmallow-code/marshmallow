@@ -53,6 +53,21 @@ class TestMarshaller:
         marshal({'email': 'invalid'}, fields_dict)
         assert 'email' not in marshal.errors
 
+    def test_serialize_fields_with_dump_to_param(self, marshal):
+        data = {
+            'name': 'Mike',
+            'email': 'm@wazow.ski',
+        }
+        fields_dict = {
+            'name': fields.String(dump_to='NaMe'),
+            'email': fields.Email(attribute='email', dump_to='EmAiL'),
+        }
+        result = marshal.serialize(data, fields_dict)
+        assert result['NaMe'] == 'Mike'
+        assert result['EmAiL'] == 'm@wazow.ski'
+
+
+
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
             {'email': 'bar@example.com'},

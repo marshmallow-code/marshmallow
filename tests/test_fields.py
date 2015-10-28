@@ -65,6 +65,18 @@ class TestField:
         result = MySchema().load({'name': 'Monty', 'foo': 42})
         assert result.data == {'Name': 'Monty'}
 
+    def test_custom_field_follows_dump_to_if_set(self, user):
+        class MyField(fields.Field):
+            def _serialize(self, val, attr, data):
+                assert attr == 'name'
+                assert data['foo'] == 42
+                return val
+
+        class MySchema(Schema):
+            name = MyField(dump_to='_NaMe')
+
+        result = MySchema().dump({'name': 'Monty', 'foo': 42})
+        assert result.data == {'_NaMe': 'Monty'}
 
 class TestParentAndName:
     class MySchema(Schema):

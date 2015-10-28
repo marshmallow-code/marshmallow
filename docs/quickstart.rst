@@ -375,6 +375,29 @@ By default `Schemas` will unmarshal an input dictionary to an output dictionary 
 
 .. _meta_options:
 
+
+Specifying Serialization Keys
+-------------------------------
+
+If you want to marshal a field to a different key than the field name you can use `dump_to`, which is analogous to `load_from`.
+
+.. code-block:: python
+    :emphasize-lines: 2,3,11,12
+
+    class UserSchema(Schema):
+        name = fields.String(dump_to='TheName')
+        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
+
+    data = {
+        'name': 'Mike',
+        'CamelCasedEmail': 'foo@bar.com'
+    }
+    s = UserSchema()
+    result, errors = s.dump(data)
+    #{'TheName': u'Mike',
+    # 'CamelCasedEmail': 'foo@bar.com'}
+
+
 Refactoring: Implicit Field Creation
 ------------------------------------
 
