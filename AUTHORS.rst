@@ -50,3 +50,4 @@ Contributors (chronological)
 - Andrew Haigh `@nelfin <https://github.com/nelfin>`_
 - `@Mise <https://github.com/Mise>`_
 - Taylor Edmiston `@tedmiston <https://github.com/tedmiston>`_
+- Francisco Demartino `@franciscod <https://github.com/franciscod>`_

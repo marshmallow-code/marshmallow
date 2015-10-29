@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.3.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` for the PR.
+
 2.2.0 (2015-10-26)
 ++++++++++++++++++
 
