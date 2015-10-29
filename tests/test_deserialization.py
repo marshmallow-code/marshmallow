@@ -849,6 +849,33 @@ class TestSchemaDeserialization:
         assert 'pets' in errors
         assert errors['pets'] == ['Missing data for required field.']
 
+    def test_nested_only_basestring(self):
+        class ANestedSchema(Schema):
+            pk = fields.Str()
+
+        class MainSchema(Schema):
+            pk = fields.Str()
+            child = fields.Nested(ANestedSchema, only='pk')
+
+        sch = MainSchema()
+        result = sch.load({'pk': '123', 'child': '456'})
+        assert len(result.errors) == 0
+        assert result.data['child']['pk'] == '456'
+
+    def test_nested_only_basestring_with_list_data(self):
+        class ANestedSchema(Schema):
+            pk = fields.Str()
+
+        class MainSchema(Schema):
+            pk = fields.Str()
+            children = fields.Nested(ANestedSchema, only='pk', many=True)
+
+        sch = MainSchema()
+        result = sch.load({'pk': '123', 'children': ['456', '789']})
+        assert len(result.errors) == 0
+        assert result.data['children'][0]['pk'] == '456'
+        assert result.data['children'][1]['pk'] == '789'
+
     def test_none_deserialization(self):
         result, errors = SimpleUserSchema().load(None)
         assert result is None

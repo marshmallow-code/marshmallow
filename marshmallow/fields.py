@@ -462,6 +462,11 @@ class Nested(Field):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
+        if isinstance(self.only, basestring):  # self.only is a field name
+            if self.many:
+                value = [{self.only: v} for v in value]
+            else:
+                value = {self.only: value}
         data, errors = self.schema.load(value)
         if errors:
             raise ValidationError(errors, data=data)
