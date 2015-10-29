@@ -322,6 +322,38 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
 
+    def test_serialize_with_dump_to_param(self):
+        class DumpToSchema(Schema):
+            name = fields.String(dump_to='NamE')
+            years = fields.Integer(dump_to='YearS')
+        data = {
+            'name': 'Richard',
+            'years': 11
+        }
+        result, errors = DumpToSchema().dump(data)
+        assert result == {
+            'NamE': 'Richard',
+            'YearS': 11
+        }
+
+    def test_serialize_with_attribute_and_dump_to_uses_dump_to(self):
+        class ConfusedDumpToAndAttributeSerializer(Schema):
+            name = fields.String(dump_to="FullName")
+            username = fields.String(attribute='uname', dump_to='UserName')
+            years = fields.Integer(attribute='le_wild_age', dump_to='Years')
+        data = {
+            'name': 'Mick',
+            'uname': 'mick_the_awesome',
+            'le_wild_age': 999
+        }
+        result, errors = ConfusedDumpToAndAttributeSerializer().dump(data)
+
+        assert result == {
+            'FullName': 'Mick',
+            'UserName': 'mick_the_awesome',
+            'Years': 999,
+        }
+
     def test_datetime_serializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
         expected = utils.isoformat(user.created, localtime=False)
