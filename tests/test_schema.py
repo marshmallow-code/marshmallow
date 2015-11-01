@@ -1424,7 +1424,7 @@ class TestPassCallableForSchema:
 
         assert isinstance(NestedCallable._declared_fields['user'].schema, UserSchema)
 
-    def test_raise_error_on_non_schema_return(self, blog):
+    def test_nested_raises_error_on_non_schema_return(self, blog):
         def make_schema(**kwargs):
             return None
 
@@ -1434,7 +1434,7 @@ class TestPassCallableForSchema:
         with pytest.raises(ValueError):
             BustedCallableSchema._declared_fields['user'].schema
 
-    def test_pass_args_to_callable(self):
+    def test_nested_passes_args_to_callable(self):
         def make_schema(many, only, exclude):
             return UserSchema(many=many, exclude=exclude, only=only)
 
@@ -1444,6 +1444,8 @@ class TestPassCallableForSchema:
         nested = NestedCallable._declared_fields['user'].schema
 
         assert nested.many and nested.exclude == ('homepage', 'id')
+
+
 
 
 class RequiredUserSchema(Schema):
