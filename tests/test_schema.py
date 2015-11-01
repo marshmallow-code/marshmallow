@@ -1415,11 +1415,6 @@ class TestSelfReference:
 
 
 class TestPassCallableForSchema:
-    @pytest.fixture
-    def user(self):
-        return User(name="Monty", age=81)
-
-
     def test_pass_callable_to_nested(self):
         def make_schema(**kwargs):
             return UserSchema()
