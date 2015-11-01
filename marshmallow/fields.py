@@ -398,6 +398,13 @@ class Nested(Field):
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
                             only=only, exclude=self.exclude)
+            elif callable(self.nested):
+                schema = self.nested(many=self.many, exclude=self.exclude,
+                                     only=only)
+                if not isinstance(schema, SchemaABC):
+                    raise ValueError('Nested callable must return a Schema'
+                                     ' not {0}.'.format(self.nested.__class__))
+                self.__schema = schema
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))

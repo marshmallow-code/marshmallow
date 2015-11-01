@@ -1413,6 +1413,44 @@ class TestSelfReference:
         assert data['relatives'][0]['name'] == person.relatives[0].name
         assert data['relatives'][0]['age'] == person.relatives[0].age
 
+
+class TestPassCallableForSchema:
+    @pytest.fixture
+    def user(self):
+        return User(name="Monty", age=81)
+
+
+    def test_pass_callable_to_nested(self):
+        def make_schema(**kwargs):
+            return UserSchema()
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema)
+
+        assert isinstance(NestedCallable._declared_fields['user'].schema, UserSchema)
+
+    def test_raise_error_on_non_schema_return(self, blog):
+        def make_schema(**kwargs):
+            return None
+
+        class BustedCallableSchema(Schema):
+            user = fields.Nested(make_schema)
+
+        with pytest.raises(ValueError):
+            BustedCallableSchema._declared_fields['user'].schema
+
+    def test_pass_args_to_callable(self):
+        def make_schema(many, only, exclude):
+            return UserSchema(many=many, exclude=exclude, only=only)
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema, many=True, exclude=('homepage', 'id'))
+
+        nested = NestedCallable._declared_fields['user'].schema
+
+        assert nested.many and nested.exclude == ('homepage', 'id')
+
+
 class RequiredUserSchema(Schema):
     name = fields.Field(required=True)
 
