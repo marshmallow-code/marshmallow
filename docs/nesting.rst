@@ -214,6 +214,42 @@ If the object to be marshalled has a relationship to an object of the same type,
     #     }
     # }
 
+Using A Callable To Nest
+------------------------
+
+It's also possible to use a callable to nest a `Schema`. The callable must accept
+the many, exclude, only, parent and context keywords and it must return an instance
+of `Schema` as well. The passed callable may be a function, method or object that 
+defines `__call__`.
+
+.. code-block:: python
+    :emphasize-lines: 1,6
+
+    def make_schema(many, exclude, only, **kwargs):
+        return UserSchema(many=many, exclude=exclude, only=only)
+
+    class BlogSchema(Schema):
+        title = fields.String()
+        author = fields.Nested(make_schema)
+
+    user = User(name="Monty", email="monty@python.com")
+    blog = Blog(title="The Architects", author=user)
+    result, errors = BlogSchema().dump(blog)
+    pprint(result)
+    #{'title': u'The Architects',
+    #{'author': {'name': u'Monty',
+    #            'email': u'monty@python.com',
+    #            'created_at': '2014-08-17T14:58:57.600623+00:00'}}
+
+Alternatively, the function could examine it's parameters and dynamically determine
+which schema to return, or provide extra configuration to it.
+
+.. note::
+    Once a schema has been instantiated and used, the `Nested` field holds a reference
+    to it, meaning the callable will only be invoked once for each instance of the
+    schema that holds reference to the `Nested` field.
+
+
 Next Steps
 ----------
 
