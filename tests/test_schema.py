@@ -1424,7 +1424,7 @@ class TestPassCallableForSchema:
 
         assert isinstance(NestedCallable._declared_fields['user'].schema, UserSchema)
 
-    def test_nested_raises_error_on_non_schema_return(self, blog):
+    def test_nested_raises_error_on_non_schema_return(self):
         def make_schema(**kwargs):
             return None
 
