@@ -1413,6 +1413,56 @@ class TestSelfReference:
         assert data['relatives'][0]['name'] == person.relatives[0].name
         assert data['relatives'][0]['age'] == person.relatives[0].age
 
+
+class TestPassCallableForSchema:
+    def test_pass_callable_to_nested(self):
+        def make_schema(**kwargs):
+            return UserSchema()
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema)
+
+        assert isinstance(NestedCallable._declared_fields['user'].schema, UserSchema)
+
+    def test_nested_raises_error_on_non_schema_return(self):
+        def make_schema(**kwargs):
+            return None
+
+        class BustedCallableSchema(Schema):
+            user = fields.Nested(make_schema)
+
+        with pytest.raises(ValueError):
+            BustedCallableSchema._declared_fields['user'].schema
+
+    def test_nested_passes_args_to_callable(self):
+        def make_schema(many, only, exclude, **kwargs):
+            return UserSchema(many=many, exclude=exclude, only=only)
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema, many=True, exclude=('homepage', 'id'))
+
+        nested = NestedCallable._declared_fields['user'].schema
+
+        assert nested.many and nested.exclude == ('homepage', 'id')
+
+    def test_nested_passes_context_and_parent(self, user):
+        check = {'parent': None, 'context': None}
+
+        def make_schema(many, exclude, only, parent, context):
+            check['parent'] = parent
+            check['context'] = context
+            return UserSchema()
+
+        thing = namedtuple('thing', ['user'])
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema)
+
+        NestedCallable().dump(thing(user))
+
+        assert check['parent'] is not None
+        assert check['context'] is not None
+
 class RequiredUserSchema(Schema):
     name = fields.Field(required=True)
 

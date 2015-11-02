@@ -339,8 +339,9 @@ class Nested(Field):
         collaborators = fields.Nested(UserSchema, many=True, only='id')
         parent = fields.Nested('self')
 
-    :param Schema nested: The Schema class or class name (string)
-        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param Schema nested: The Schema class, class name (string)
+        to nest, ``"self"`` to nest the :class:`Schema` within itself or a callable
+        that returns a :class:`Schema` instance.
     :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
     :param required: Raise an :exc:`ValidationError` during deserialization
@@ -376,6 +377,9 @@ class Nested(Field):
 
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
+
+        .. versionchanged:: 2.3.0
+            Allow callable to be provided in addition to string, instance and class
         """
         # Ensure that only parameter is a tuple
         if isinstance(self.only, basestring):
@@ -398,6 +402,14 @@ class Nested(Field):
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
                             only=only, exclude=self.exclude)
+            elif callable(self.nested):
+                context = getattr(self.parent, 'context', {})
+                schema = self.nested(many=self.many, exclude=self.exclude,
+                                     only=only, parent=self.parent, context=context)
+                if not isinstance(schema, SchemaABC):
+                    raise ValueError('Nested callable must return a Schema'
+                                     ' not {0}.'.format(self.nested.__class__))
+                self.__schema = schema
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
