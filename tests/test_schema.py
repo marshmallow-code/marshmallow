@@ -1435,7 +1435,7 @@ class TestPassCallableForSchema:
             BustedCallableSchema._declared_fields['user'].schema
 
     def test_nested_passes_args_to_callable(self):
-        def make_schema(many, only, exclude):
+        def make_schema(many, only, exclude, **kwargs):
             return UserSchema(many=many, exclude=exclude, only=only)
 
         class NestedCallable(Schema):
@@ -1445,8 +1445,23 @@ class TestPassCallableForSchema:
 
         assert nested.many and nested.exclude == ('homepage', 'id')
 
+    def test_nested_passes_context_and_parent(self, user):
+        check = {'parent': None, 'context': None}
 
+        def make_schema(many, exclude, only, parent, context):
+            check['parent'] = parent
+            check['context'] = context
+            return UserSchema()
 
+        thing = namedtuple('thing', ['user'])
+
+        class NestedCallable(Schema):
+            user = fields.Nested(make_schema)
+
+        NestedCallable().dump(thing(user))
+
+        assert check['parent'] is not None
+        assert check['context'] is not None
 
 class RequiredUserSchema(Schema):
     name = fields.Field(required=True)
