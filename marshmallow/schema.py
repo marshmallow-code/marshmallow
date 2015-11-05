@@ -767,7 +767,7 @@ class BaseSchema(base.SchemaABC):
                 field_obj = self.fields[field_name]
             except KeyError:
                 if field_name in self.declared_fields:
-                    return
+                    continue
                 raise ValueError('"{0}" field does not exist.'.format(field_name))
 
             if many:
