@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` for the PR.
+- Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` and :user:`ewang` for the PRs.
 
 2.2.0 (2015-10-26)
 ++++++++++++++++++

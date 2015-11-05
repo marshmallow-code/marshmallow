@@ -51,3 +51,4 @@ Contributors (chronological)
 - `@Mise <https://github.com/Mise>`_
 - Taylor Edmiston `@tedmiston <https://github.com/tedmiston>`_
 - Francisco Demartino `@franciscod <https://github.com/franciscod>`_
+- Eric Wang `@ewang <https://github.com/ewang>`_
