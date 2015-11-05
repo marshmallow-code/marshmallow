@@ -66,7 +66,12 @@ class TestMarshaller:
         assert result['NaMe'] == 'Mike'
         assert result['EmAiL'] == 'm@wazow.ski'
 
-
+    def test_serialize_fields_with_dump_to_and_prefix_params(self):
+        u = User("Foo", email="foo@bar.com")
+        marshal = Marshaller(prefix='usr_')
+        result = marshal(u, {"email": fields.Email(dump_to='EmAiL'), 'name': fields.String(dump_to='NaMe')})
+        assert result['usr_NaMe'] == u.name
+        assert result['usr_EmAiL'] == u.email
 
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
