@@ -1009,12 +1009,16 @@ class TestFieldValidation:
             b = fields.Field()
 
             @validates('a')
-            def validate_a(val):
-                raise ValidationError({'code': 'invalid'})
+            def validate_a(self, val):
+                raise ValidationError({'code': 'invalid_a'})
+
+            @validates('b')
+            def validate_b(self, val):
+                raise ValidationError({'code': 'invalid_b'})
 
         s = MySchema(only=('b',))
         errors = s.validate({'b': 'data'})
-        assert errors == {}
+        assert errors == {'b': {'code': 'invalid_b'}}
 
 
 def test_schema_repr():
