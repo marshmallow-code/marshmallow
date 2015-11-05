@@ -1003,6 +1003,19 @@ class TestFieldValidation:
         errors = s.validate({'foo': 42})
         assert errors['foo'] == [{'code': 'invalid_foo'}]
 
+    def test_ignored_if_not_in_only(self):
+        class MySchema(Schema):
+            a = fields.Field()
+            b = fields.Field()
+
+            @validates('a')
+            def validate_a(val):
+                raise ValidationError({'code': 'invalid'})
+
+        s = MySchema(only=('b',))
+        errors = s.validate({'b': 'data'})
+        assert errors == {}
+
 
 def test_schema_repr():
     class MySchema(Schema):
