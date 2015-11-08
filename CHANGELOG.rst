@@ -8,6 +8,10 @@ Features:
 
 - Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` and :user:`ewang` for the PRs.
 
+Bug fixes:
+
+- Skip field validators for fields that aren't included in ``only`` (:issue:`320`). Thanks :user:`carlos-alberto` for reporting and :user:`eprikazc` for the PR.
+
 2.2.0 (2015-10-26)
 ++++++++++++++++++
 
