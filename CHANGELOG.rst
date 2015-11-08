@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.2.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Skip field validators for fields that aren't included in ``only`` (:issue:`320`). Thanks :user:`carlos-alberto` for reporting and :user:`eprikazc` for the PR.
+
 2.2.0 (2015-10-26)
 ++++++++++++++++++
 
