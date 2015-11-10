@@ -1133,40 +1133,59 @@ class Method(Field):
 class Function(Field):
     """A field that takes the value returned by a function.
 
-    :param callable func: A callable from which to retrieve the value.
+    :param callable func: This argument is to be depreciated. It exists for
+        backwards compatiblity. Use serialize instead.
+
+        A callable from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
         to be serialized. It can also optionally take a ``context`` argument,
         which is a dictionary of context variables passed to the serializer.
-    :param callable deserialize: Deserialization function that takes the value
-        to be deserialized as its only argument.
+    :param callable deserialize: A callable from which to retrieve the value.
+        The function must take a single argument ``value`` which is the value
+        to be deserialized. It can also optionally take a ``context`` argument,
+        which is a dictionary of context variables passed to the deserializer.
+        If no callable is provided then ```value``` we be passed through
+        unchanged.
+    :param callable serialize: A callable from which to retrieve the value.
+        The function must take a single argument ``obj`` which is the object
+        to be serialized. It can also optionally take a ``context`` argument,
+        which is a dictionary of context variables passed to the serializer.
+        If no callable is provided then the ```load_only``` flag will be set
+        to True.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, func, deserialize=None, **kwargs):
-        super(Function, self).__init__(**kwargs)
-        self.func = utils.callable_or_raise(func)
-        if deserialize:
-            self.deserialize_func = utils.callable_or_raise(deserialize)
-        else:
-            self.deserialize_func = None
+    def __init__(self, func=None, deserialize=None, serialize=None, **kwargs):
+        if func:
+            warnings.warn('Argument func of fields.Function is being depreciated.'
+                          ' Use the serialize argument instead.')
+            serialize = func
+
+        super(Function, self).__init__(load_only=not serialize, **kwargs)
+        self.serialize_func = serialize and utils.callable_or_raise(serialize)
+        self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj):
         try:
-            if len(utils.get_func_args(self.func)) > 1:
-                if self.parent.context is None:
-                    msg = 'No context available for Function field {0!r}'.format(attr)
-                    raise ValidationError(msg)
-                return self.func(obj, self.parent.context)
-            else:
-                return self.func(obj)
+            return self._call_or_raise(self.serialize_func, obj, attr)
         except AttributeError:  # the object is not expected to have the attribute
             pass
         return missing_
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, obj):
         if self.deserialize_func:
-            return self.deserialize_func(value)
+            return self._call_or_raise(self.deserialize_func, value, attr)
         return value
+
+    def _call_or_raise(self, func, value, attr):
+        if len(utils.get_func_args(func)) > 1:
+            if self.parent.context is None:
+                msg = 'No context available for Function field {0!r}'.format(attr)
+                raise ValidationError(msg)
+            return func(value, self.parent.context)
+        else:
+            return func(value)
+
 
 
 class Constant(Field):

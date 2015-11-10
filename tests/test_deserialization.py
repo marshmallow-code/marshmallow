@@ -3,6 +3,7 @@ import datetime as dt
 import uuid
 import decimal
 
+import mock
 import pytest
 
 from marshmallow import fields, utils, Schema, validate
@@ -492,6 +493,15 @@ class TestFieldDeserialization:
         field = fields.Function(lambda x: None,
                                 deserialize=lambda val: val.upper())
         assert field.deserialize('foo') == 'FOO'
+
+    def test_function_field_deserialization_with_context(self):
+        field = fields.Function(
+            lambda x: None,
+            deserialize=lambda val, context: val.upper() + context['key']
+        )
+        field.parent = mock.MagicMock()
+        field.parent.context = {'key': 'BAR'}
+        assert field.deserialize('foo') == 'FOOBAR'
 
     def test_uuid_field_deserialization(self):
         field = fields.UUID()
