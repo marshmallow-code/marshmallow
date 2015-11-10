@@ -10,7 +10,6 @@ wheel
 twine
 
 # Testing
-mock
 pytest==2.8.0
 tox>=1.5.0
 simplejson

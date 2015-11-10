@@ -69,11 +69,12 @@ class TestFieldSerialization:
         assert field.load_only
 
     def test_function_field_passed_serialize_with_context(self, user, monkeypatch):
+        class Parent(Schema):
+            pass
         field = fields.Function(
             serialize=lambda obj, context: obj.name.upper() + context['key']
         )
-        field.parent = mock.MagicMock()
-        field.parent.context = {'key': 'BAR'}
+        field.parent = Parent(context={'key': 'BAR'})
         assert "FOOBAR" == field.serialize("key", user)
 
     def test_function_field_passed_uncallable_object(self):

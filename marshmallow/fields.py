@@ -1133,27 +1133,27 @@ class Method(Field):
 class Function(Field):
     """A field that takes the value returned by a function.
 
-    :param callable func: This argument is to be depreciated. It exists for
-        backwards compatiblity. Use serialize instead.
-    :param callable deserialize: A callable from which to retrieve the value.
-        The function must take a single argument ``value`` which is the value
-        to be deserialized. It can also optionally take a ``context`` argument,
-        which is a dictionary of context variables passed to the deserializer.
-        If no callable is provided then ```value``` will be passed through
-        unchanged.
     :param callable serialize: A callable from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
         to be serialized. It can also optionally take a ``context`` argument,
         which is a dictionary of context variables passed to the serializer.
         If no callable is provided then the ```load_only``` flag will be set
         to True.
+    :param callable deserialize: A callable from which to retrieve the value.
+        The function must take a single argument ``value`` which is the value
+        to be deserialized. It can also optionally take a ``context`` argument,
+        which is a dictionary of context variables passed to the deserializer.
+        If no callable is provided then ```value``` will be passed through
+        unchanged.
+    :param callable func: This argument is to be deprecated. It exists for
+        backwards compatiblity. Use serialize instead.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, func=None, deserialize=None, serialize=None, **kwargs):
+    def __init__(self, serialize=None, deserialize=None, func=None, **kwargs):
         if func:
-            warnings.warn('Argument func of fields.Function is being depreciated.'
-                          ' Use the serialize argument instead.')
+            warnings.warn('"func" argument of fields.Function is deprecated. '
+                          'Use the "serialize" argument instead.')
             serialize = func
 
         super(Function, self).__init__(load_only=not serialize, **kwargs)
@@ -1167,7 +1167,7 @@ class Function(Field):
             pass
         return missing_
 
-    def _deserialize(self, value, attr, obj):
+    def _deserialize(self, value, attr, data):
         if self.deserialize_func:
             return self._call_or_raise(self.deserialize_func, value, attr)
         return value
