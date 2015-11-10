@@ -1135,16 +1135,11 @@ class Function(Field):
 
     :param callable func: This argument is to be depreciated. It exists for
         backwards compatiblity. Use serialize instead.
-
-        A callable from which to retrieve the value.
-        The function must take a single argument ``obj`` which is the object
-        to be serialized. It can also optionally take a ``context`` argument,
-        which is a dictionary of context variables passed to the serializer.
     :param callable deserialize: A callable from which to retrieve the value.
         The function must take a single argument ``value`` which is the value
         to be deserialized. It can also optionally take a ``context`` argument,
         which is a dictionary of context variables passed to the deserializer.
-        If no callable is provided then ```value``` we be passed through
+        If no callable is provided then ```value``` will be passed through
         unchanged.
     :param callable serialize: A callable from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
