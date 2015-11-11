@@ -55,9 +55,26 @@ class TestFieldSerialization:
         field = fields.Field(default=lambda: 'nan')
         assert field.serialize('age', {}) == 'nan'
 
-    def test_function_field(self, user):
+    def test_function_field_passed_func(self, user):
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
+
+    def test_function_field_passed_serialize(self, user):
+        field = fields.Function(serialize=lambda obj: obj.name.upper())
+        assert "FOO" == field.serialize("key", user)
+
+    def test_function_field_load_only(self):
+        field = fields.Function(deserialize=lambda obj: None)
+        assert field.load_only
+
+    def test_function_field_passed_serialize_with_context(self, user, monkeypatch):
+        class Parent(Schema):
+            pass
+        field = fields.Function(
+            serialize=lambda obj, context: obj.name.upper() + context['key']
+        )
+        field.parent = Parent(context={'key': 'BAR'})
+        assert "FOOBAR" == field.serialize("key", user)
 
     def test_function_field_passed_uncallable_object(self):
         with pytest.raises(ValueError):

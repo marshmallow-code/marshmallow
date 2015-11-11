@@ -493,6 +493,16 @@ class TestFieldDeserialization:
                                 deserialize=lambda val: val.upper())
         assert field.deserialize('foo') == 'FOO'
 
+    def test_function_field_deserialization_with_context(self):
+        class Parent(Schema):
+            pass
+        field = fields.Function(
+            lambda x: None,
+            deserialize=lambda val, context: val.upper() + context['key']
+        )
+        field.parent = Parent(context={'key': 'BAR'})
+        assert field.deserialize('foo') == 'FOOBAR'
+
     def test_uuid_field_deserialization(self):
         field = fields.UUID()
         uuid_str = str(uuid.uuid4())
