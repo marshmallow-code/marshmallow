@@ -3,7 +3,6 @@ import datetime as dt
 import uuid
 import decimal
 
-import mock
 import pytest
 
 from marshmallow import fields, utils, Schema, validate

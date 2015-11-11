@@ -4,7 +4,6 @@ from collections import namedtuple
 import datetime as dt
 import decimal
 
-import mock
 import pytest
 
 from marshmallow import Schema, fields, utils
