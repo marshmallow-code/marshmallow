@@ -9,6 +9,7 @@ Features:
 - Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` and :user:`ewang` for the PRs.
 - The ``deserialize`` function passed to ``fields.Function`` can optionally receive a ``context`` argument (:issue:`324`). Thanks :user:`DamianHeard`.
 - The ``serialize`` function passed to ``fields.Function`` is optional (:issue:`325`). Thanks again :user:`DamianHeard`.
+- ``fields.Function's`` ``dump_only`` and ``load_only`` attributes are set based on the values of ``serialize`` and ``deserialize``.
 
 Deprecation/Removal:
 

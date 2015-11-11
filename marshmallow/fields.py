@@ -1156,10 +1156,12 @@ class Function(Field):
     def __init__(self, serialize=None, deserialize=None, func=None, **kwargs):
         if func:
             warnings.warn('"func" argument of fields.Function is deprecated. '
-                          'Use the "serialize" argument instead.')
+                          'Use the "serialize" argument instead.', DeprecationWarning)
             serialize = func
-
-        super(Function, self).__init__(load_only=not serialize, **kwargs)
+        # Set dump_only and load_only based on arguments
+        kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
+        kwargs['load_only'] = bool(deserialize) and not bool(serialize)
+        super(Function, self).__init__(**kwargs)
         self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
