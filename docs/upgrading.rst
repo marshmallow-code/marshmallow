@@ -7,6 +7,25 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
+Upgrading to 2.3
+++++++++++++++++
+
+The ``func`` parameter of `fields.Function <marshmallow.fields.Function>` was renamed to ``serialize``.
+
+
+.. code-block:: python
+
+    # YES
+    lowername = fields.Function(serialize=lambda obj: obj.name.lower())
+    # or
+    lowername = fields.Function(lambda obj: obj.name.lower())
+
+    # NO
+    lowername = fields.Function(func=lambda obj: obj.name.lower())
+
+
+The ``func`` parameter is still available for backwards-compatibility. It will be removed in marshmallow 3.0.
+
 Upgrading to 2.0
 ++++++++++++++++
 

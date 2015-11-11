@@ -1147,6 +1147,9 @@ class Function(Field):
         unchanged.
     :param callable func: This argument is to be deprecated. It exists for
         backwards compatiblity. Use serialize instead.
+
+    .. versionchanged:: 2.3.0
+        Deprecated ``func`` parameter in favor of ``serialize``.
     """
     _CHECK_ATTRIBUTE = False
 
