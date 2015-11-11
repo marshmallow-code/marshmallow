@@ -59,27 +59,12 @@ class TestFieldSerialization:
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
 
-    def test_function_field_passed_serialize_only_is_dump_only(self, user):
-        field = fields.Function(serialize=lambda obj: obj.name.upper())
-        assert field.dump_only is True
-
-    def test_function_field_passed_deserialize_and_serialize_is_not_dump_only(self):
-        field = fields.Function(
-            serialize=lambda val: val.lower(),
-            deserialize=lambda val: val.upper()
-        )
-        assert field.dump_only is False
-
     def test_function_field_passed_serialize(self, user):
         field = fields.Function(serialize=lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
 
     def test_function_field_passed_func_is_deprecated(self):
         pytest.deprecated_call(lambda: fields.Function(func=lambda obj: obj.name.upper()))
-
-    def test_function_field_load_only(self):
-        field = fields.Function(deserialize=lambda obj: None)
-        assert field.load_only
 
     def test_function_field_passed_serialize_with_context(self, user, monkeypatch):
         class Parent(Schema):
