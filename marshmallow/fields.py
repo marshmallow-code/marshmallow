@@ -1099,19 +1099,28 @@ class Method(Field):
 
     .. versionchanged:: 2.0.0
         Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
+    .. versionchanged:: 2.3.0
+        Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
+        ``serialize`` to not be passed at all.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, method_name, deserialize=None, **kwargs):
-        self.method_name = method_name
-        if deserialize:
-            self.deserialize_method_name = deserialize
-        else:
-            self.deserialize_method_name = None
+    def __init__(self, serialize=None, deserialize=None, method_name=None, **kwargs):
+        if method_name is not None:
+            warnings.warn('"method_name" argument of fields.Method is deprecated. '
+                          'Use the "serialize" argument instead.', DeprecationWarning)
+
+        self.serialize_method_name = serialize or method_name
+        self.deserialize_method_name = deserialize
         super(Method, self).__init__(**kwargs)
 
     def _serialize(self, value, attr, obj):
-        method = utils.callable_or_raise(getattr(self.parent, self.method_name, None))
+        if not self.serialize_method_name:
+            return missing_
+
+        method = utils.callable_or_raise(
+            getattr(self.parent, self.serialize_method_name, None)
+        )
         try:
             return method(obj)
         except AttributeError:

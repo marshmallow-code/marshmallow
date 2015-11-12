@@ -9,6 +9,7 @@ import pytest
 from marshmallow import Schema, fields, utils
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring, OrderedDict
+from marshmallow.utils import missing as missing_
 
 from tests.base import User, DummyModel, ALL_FIELDS
 
@@ -337,6 +338,16 @@ class TestFieldSerialization:
         u = User('Foo')
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
+
+    def test_method_prefers_serialize_over_method_name(self):
+        m = fields.Method(serialize='serialize', method_name='method')
+        assert m.serialize_method_name == 'serialize'
+
+    def test_method_with_no_serialize_is_missing(self):
+        m = fields.Method()
+        m.parent = Schema()
+
+        assert m.serialize('', '', '') is missing_
 
     def test_serialize_with_dump_to_param(self):
         class DumpToSchema(Schema):
