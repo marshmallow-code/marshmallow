@@ -559,6 +559,16 @@ class TestFieldDeserialization:
         with pytest.raises(ValueError):
             s.fields['uppername'].deserialize('STEVE')
 
+    def test_method_field_deserialize_only(self):
+        class MethodDeserializeOnly(Schema):
+            def lowercase_name(self, value):
+                return value.lower()
+
+        m = fields.Method(deserialize='lowercase_name')
+        m.parent = MethodDeserializeOnly()
+
+        assert m.deserialize('ALEC') == 'alec'
+
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
         dstrings = [each.isoformat() for each in dtimes]
