@@ -1110,7 +1110,7 @@ class Method(Field):
             warnings.warn('"method_name" argument of fields.Method is deprecated. '
                           'Use the "serialize" argument instead.', DeprecationWarning)
 
-        self.serialize_method_name = serialize or method_name
+        self.serialize_method_name = self.method_name = serialize or method_name
         self.deserialize_method_name = deserialize
         super(Method, self).__init__(**kwargs)
 
@@ -1168,7 +1168,7 @@ class Function(Field):
                           'Use the "serialize" argument instead.', DeprecationWarning)
             serialize = func
         super(Function, self).__init__(**kwargs)
-        self.serialize_func = serialize and utils.callable_or_raise(serialize)
+        self.serialize_func = self.func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj):
