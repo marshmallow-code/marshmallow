@@ -15,7 +15,6 @@ from marshmallow.exceptions import ValidationError
 
 __version__ = '2.3.0.dev0'
 __author__ = 'Steven Loria'
-__license__ = 'MIT'
 
 __all__ = [
     'Schema',

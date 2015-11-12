@@ -15,7 +15,7 @@ Deprecation/Removal:
 
 - The ``func`` argument of ``fields.Function`` has been renamed to ``serialize``. ``func`` is still present for backwards-compatibility, but it will be removed in marshmallow 3.0.
 
-2.2.1 (unreleased)
+2.2.1 (2015-11-11)
 ++++++++++++++++++
 
 Bug fixes:
