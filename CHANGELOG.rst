@@ -6,14 +6,17 @@ Changelog
 
 Features:
 
-- Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion and :user:`franciscod` and :user:`ewang` for the PRs.
+- Add ``dump_to`` parameter to fields (:issue:`310`). Thanks :user:`ShayanArmanPercolate` for the suggestion. Thanks :user:`franciscod` and :user:`ewang` for the PRs.
 - The ``deserialize`` function passed to ``fields.Function`` can optionally receive a ``context`` argument (:issue:`324`). Thanks :user:`DamianHeard`.
 - The ``serialize`` function passed to ``fields.Function`` is optional (:issue:`325`). Thanks again :user:`DamianHeard`.
-- ``fields.Function's`` ``dump_only`` and ``load_only`` attributes are set based on the values of ``serialize`` and ``deserialize``.
+- The ``serialize`` function passed to ``fields.Method`` is optional (:issue:`329`). Thanks :user:`justanr`.
 
 Deprecation/Removal:
 
-- The ``func`` argument of ``fields.Function`` has been renamed to ``serialize``. ``func`` is still present for backwards-compatibility, but it will be removed in marshmallow 3.0.
+- The ``func`` argument of ``fields.Function`` has been renamed to ``serialize``.
+- The ``method_name`` argument of ``fields.Method`` has been renamed to ``serialize``. 
+
+``func`` and ``method_name`` are still present for backwards-compatibility, but they will both be removed in marshmallow 3.0.
 
 2.2.1 (2015-11-11)
 ++++++++++++++++++
