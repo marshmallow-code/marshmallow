@@ -84,6 +84,15 @@ def test_get_value_from_dict():
     assert utils.get_value('items', d) == ['foo', 'bar']
     assert utils.get_value('keys', d) == ['baz', 'quux']
 
+def test_get_value():
+    l = [1,2,3]
+    assert utils.get_value(1, l) == 2
+
+    class MyInt(int):
+        pass
+
+    assert utils.get_value(MyInt(1), l) == 2
+
 def test_is_keyed_tuple():
     Point = namedtuple('Point', ['x', 'y'])
     p = Point(24, 42)
