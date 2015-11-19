@@ -301,7 +301,7 @@ def pluck(dictlist, key):
 
 def get_value(key, obj, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
-    if type(key) == int:
+    if isinstance(key, int):
         return _get_value_for_key(key, obj, default)
     else:
         return _get_value_for_keys(key.split('.'), obj, default)
