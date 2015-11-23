@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.3.0 (unreleased)
+2.3.0 (2015-11-22)
 ++++++++++++++++++
 
 Features:
@@ -14,7 +14,7 @@ Features:
 Deprecation/Removal:
 
 - The ``func`` argument of ``fields.Function`` has been renamed to ``serialize``.
-- The ``method_name`` argument of ``fields.Method`` has been renamed to ``serialize``. 
+- The ``method_name`` argument of ``fields.Method`` has been renamed to ``serialize``.
 
 ``func`` and ``method_name`` are still present for backwards-compatibility, but they will both be removed in marshmallow 3.0.
 
