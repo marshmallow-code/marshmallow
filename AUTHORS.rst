@@ -55,3 +55,4 @@ Contributors (chronological)
 - Eugene Prikazchikov `@eprikazc <https://github.com/eprikazc>`_
 - Damian Heard `@DamianHeard <https://github.com/DamianHeard>`_
 - Alec Reiter `@justanr <https://github.com/justanr>`_
+- Dan Sutherland `@d-sutherland <https://github.com/d-sutherland>`_
