@@ -800,7 +800,7 @@ class BaseSchema(base.SchemaABC):
                         field_obj=field_obj
                     )
 
-    def _invoke_validators(self, pass_many, data, original_data, many, field_errors):
+    def _invoke_validators(self, pass_many, data, original_data, many, field_errors=False):
         errors = {}
         for attr_name in self.__processors__[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)

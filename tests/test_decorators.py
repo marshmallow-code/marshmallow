@@ -433,7 +433,7 @@ class TestValidatesSchemaDecorator:
     def test_skip_on_field_errors(self):
 
         class MySchema(Schema):
-            foo = fields.Int(required=True)
+            foo = fields.Int(required=True, validate=lambda n: n == 3)
             bar = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
@@ -461,6 +461,10 @@ class TestValidatesSchemaDecorator:
         # check that schema errors don't occur when field errors do
         errors = schema.validate({'foo': 3, 'bar': 'not an int'})
         assert 'bar' in errors
+        assert '_schema' not in errors
+
+        errors = schema.validate({'foo': 2, 'bar': 2})
+        assert 'foo' in errors
         assert '_schema' not in errors
 
         errors = schema.validate([{'foo': 3, 'bar': 'not an int'}], many=True)
