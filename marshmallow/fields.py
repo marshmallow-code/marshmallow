@@ -752,6 +752,7 @@ class FormattedString(Field):
     default_error_messages = {
         'format': 'Cannot format string with given data.'
     }
+    _CHECK_ATTRIBUTE = False
 
     def __init__(self, src_str, *args, **kwargs):
         Field.__init__(self, *args, **kwargs)

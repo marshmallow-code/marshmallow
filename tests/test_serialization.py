@@ -440,6 +440,13 @@ class TestFieldSerialization:
         user = User(name='Monty')
         assert field.serialize('name', user) == 'Hello Monty'
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/348
+    def test_formattedstring_field_on_schema(self):
+        class MySchema(Schema):
+            greeting = fields.FormattedString('Hello {name}')
+        user = User(name='Monty')
+        assert MySchema().dump(user).data['greeting'] == 'Hello Monty'
+
     def test_string_field_default_to_empty_string(self, user):
         field = fields.String(default='')
         assert field.serialize("notfound", {}) == ''
