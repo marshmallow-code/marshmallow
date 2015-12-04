@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.4.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add ``skip_on_field_errors`` parameter to ``validates_schema`` (:issue:`323`). Thanks :user:`jjvattamattom` for the suggestion and :user:`d-sutherland` for the PR.
+
 2.3.0 (2015-11-22)
 ++++++++++++++++++
 

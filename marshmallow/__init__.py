@@ -13,7 +13,7 @@ from marshmallow.decorators import (
 from marshmallow.utils import pprint, missing
 from marshmallow.exceptions import ValidationError
 
-__version__ = '2.3.0'
+__version__ = '2.4.0.dev0'
 __author__ = 'Steven Loria'
 
 __all__ = [
