@@ -11,6 +11,7 @@ Features:
 Bug fixes:
 
 - Fix ``FormattedString`` serialization (:issue:`348`). Thanks :user:`acaird` for reporting.
+- Fix ``@validates`` behavior when used when ``attribute`` is specified and ``strict=True`` (:issue:`350`). Thanks :user:`density` for reporting.
 
 2.3.0 (2015-11-22)
 ++++++++++++++++++

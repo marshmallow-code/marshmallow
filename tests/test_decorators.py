@@ -236,6 +236,34 @@ class ValidatesSchema(Schema):
 
 class TestValidatesDecorator:
 
+    def test_validates_and_strict(self):
+        class VSchema(Schema):
+            s = fields.String()
+
+            @validates('s')
+            def validate_string(self, data):
+                raise ValidationError('nope')
+
+        with pytest.raises(ValidationError) as excinfo:
+            VSchema(strict=True).load({'s': 'bar'})
+
+        assert excinfo.value.messages == {'s': ['nope']}
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/350
+    def test_validates_with_attribute_and_strict(self):
+        class S1(Schema):
+            s = fields.String(attribute='string_name')
+
+            @validates('s')
+            def validate_string(self, data):
+                raise ValidationError('nope')
+        with pytest.raises(ValidationError) as excinfo:
+            S1(strict=True).load({'s': 'foo'})
+        assert excinfo.value.messages == {'s': ['nope']}
+
+        with pytest.raises(ValidationError):
+            S1(strict=True, many=True).load([{'s': 'foo'}])
+
     def test_validates_decorator(self):
         schema = ValidatesSchema()
 
