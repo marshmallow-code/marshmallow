@@ -8,7 +8,6 @@ import datetime as dt
 import decimal
 import inspect
 import json
-import types
 import uuid
 import warnings
 from collections import namedtuple
@@ -472,7 +471,7 @@ class BaseSchema(base.SchemaABC):
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
 
-        if isinstance(obj, types.GeneratorType):
+        if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
         processed_obj = self._invoke_dump_processors(PRE_DUMP, obj, many, original_data=obj)

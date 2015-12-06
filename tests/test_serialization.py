@@ -2,6 +2,7 @@
 """Tests for field serialization."""
 from collections import namedtuple
 import datetime as dt
+import itertools
 import decimal
 
 import pytest
@@ -11,7 +12,7 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring, OrderedDict
 from marshmallow.utils import missing as missing_
 
-from tests.base import User, DummyModel, ALL_FIELDS
+from tests.base import User, ALL_FIELDS
 
 class DateTimeList:
     def __init__(self, dtimes):
@@ -712,3 +713,14 @@ def test_serializing_named_tuple_with_meta():
     serialized = PointSerializer().dump(p)
     assert serialized.data['x'] == 4
     assert serialized.data['y'] == 2
+
+
+def test_serializing_slice():
+    values = [{'value': value} for value in range(5)]
+    slice = itertools.islice(values, None)
+
+    class ValueSchema(Schema):
+        value = fields.Int()
+
+    serialized = ValueSchema(many=True).dump(slice).data
+    assert serialized == values
