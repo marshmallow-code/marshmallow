@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.4.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Serializing an iterator will not drop the first item (:issue:`343`, :issue:`353`). Thanks :user:`jmcarp` for the patch. Thanks :user:`edgarallang` and :user:`jmcarp` for reporting.
+
 2.4.0 (2015-12-06)
 ++++++++++++++++++
 
