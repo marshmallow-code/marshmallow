@@ -204,12 +204,6 @@ class Unmarshaller(ErrorStore):
                     errors.setdefault(field_name, []).append(err.messages)
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
-            raise ValidationError(
-                errors,
-                fields=field_objs,
-                field_names=field_names,
-                data=output
-            )
 
     def deserialize(self, data, fields_dict, many=False, partial=False,
             dict_class=dict, index_errors=True, index=None):
