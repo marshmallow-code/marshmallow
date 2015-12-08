@@ -327,6 +327,24 @@ class TestValidatesDecorator:
 
 class TestValidatesSchemaDecorator:
 
+    def test_validator_nested_many(self):
+
+        class NestedSchema(Schema):
+            foo = fields.Int(required=True)
+
+            @validates_schema
+            def validate_schema(self, data):
+                raise ValidationError('This will never work', 'foo')
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, required=True, many=True)
+
+        schema = MySchema()
+        errors = schema.validate({'nested': [1]})
+        import pdb; pdb.set_trace()
+
+        assert errors
+
     def test_decorated_validators(self):
 
         class MySchema(Schema):
