@@ -56,3 +56,4 @@ Contributors (chronological)
 - Damian Heard `@DamianHeard <https://github.com/DamianHeard>`_
 - Alec Reiter `@justanr <https://github.com/justanr>`_
 - Dan Sutherland `@d-sutherland <https://github.com/d-sutherland>`_
+- Jeff Widman `@jeffwidman <https://github.com/jeffwidman>`_
