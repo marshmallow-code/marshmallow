@@ -174,7 +174,7 @@ Validation
     result.errors  # => {'email': ['"foo" is not a valid email address.']}
 
 
-When validating a collection, the errors dictionary will be keyed on the indicies of invalid items.
+When validating a collection, the errors dictionary will be keyed on the indices of invalid items.
 
 .. code-block:: python
 
