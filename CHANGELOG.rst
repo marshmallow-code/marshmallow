@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.4.2 (2015-12-08)
+++++++++++++++++++
+
+Bug fixes:
+
+- Prevent duplicate error messages when validating nested collections (:issue:`360`). Thanks :user:`alexmorken` for the catch and patch.
+
 2.4.1 (2015-12-07)
 ++++++++++++++++++
 
