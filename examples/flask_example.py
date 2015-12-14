@@ -48,7 +48,7 @@ class QuoteSchema(Schema):
     posted_at = fields.DateTime(dump_only=True)
 
     # Allow client to pass author's full name in request body
-    # e.g. {"author': 'Tim Peters"} rather than {"first": "Tum", "last": "Peters"}
+    # e.g. {"author': 'Tim Peters"} rather than {"first": "Tim", "last": "Peters"}
     @pre_load
     def process_author(self, data):
         author_name = data.get('author')
