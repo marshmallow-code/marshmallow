@@ -50,6 +50,7 @@ Project Info
     why
     changelog
     upgrading
+    ecosystem
     license
     authors
     contributing

@@ -64,6 +64,14 @@ Requirements
 
 marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
 
+
+Ecosystem
+=========
+
+A list of marshmallow-relaeted libraries can be found at the GitHub wiki here:
+
+https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem
+
 Project Links
 =============
 
@@ -71,7 +79,6 @@ Project Links
 - Changelog: http://marshmallow.readthedocs.org/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
-
 
 License
 =======
