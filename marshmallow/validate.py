@@ -40,10 +40,12 @@ class URL(Validator):
     :param bool relative: Whether to allow relative URLs.
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
+    :param set schemes: Valid schemes. By default, ``http``, ``https``,
+        ``ftp``, and ``ftps`` are allowed.
     """
 
     URL_REGEX = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
+        r'^(?:[a-z0-9\.\-\+]*)://'  # scheme is validated separately
         r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
         r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
@@ -54,7 +56,7 @@ class URL(Validator):
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
     RELATIVE_URL_REGEX = re.compile(
-        r'^((?:http|ftp)s?://'  # http:// or https://
+        r'^((?:[a-z0-9\.\-\+]*)://'  # scheme is validated separately
         r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
         r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
         r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
@@ -65,10 +67,13 @@ class URL(Validator):
         r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
 
     default_message = 'Not a valid URL.'
+    default_schemes = set(['http', 'https', 'ftp', 'ftps'])
 
-    def __init__(self, relative=False, error=None):
+    # TODO; Switch position of `error` and `schemes` in 3.0
+    def __init__(self, relative=False, error=None, schemes=None):
         self.relative = relative
         self.error = error or self.default_message
+        self.schemes = schemes or self.default_schemes
 
     def _repr_args(self):
         return 'relative={0!r}'.format(self.relative)
@@ -80,6 +85,12 @@ class URL(Validator):
         message = self._format_error(value)
         if not value:
             raise ValidationError(message)
+
+        # Check first if the scheme is valid
+        if '://' in value:
+            scheme = value.split('://')[0].lower()
+            if scheme not in self.schemes:
+                raise ValidationError(message)
 
         regex = self.RELATIVE_URL_REGEX if self.relative else self.URL_REGEX
 

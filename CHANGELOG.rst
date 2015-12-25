@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.5.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add ``schemes`` argument to ``validate.URL`` (:issue:`356`).
+
 2.4.2 (2015-12-08)
 ++++++++++++++++++
 

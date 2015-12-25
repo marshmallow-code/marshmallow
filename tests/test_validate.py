@@ -81,6 +81,26 @@ def test_url_relative_invalid(invalid_url):
     with pytest.raises(ValidationError):
         validator(invalid_url)
 
+def test_url_custom_scheme():
+    validator = validate.URL()
+    # By default, ws not allowed
+    url = 'ws://test.test'
+    with pytest.raises(ValidationError):
+        validator(url)
+
+    validator = validate.URL(schemes=set(['http', 'https', 'ws']))
+    assert validator(url) == url
+
+def test_url_relative_and_custom_schemes():
+    validator = validate.URL(relative=True)
+    # By default, ws not allowed
+    url = 'ws://test.test'
+    with pytest.raises(ValidationError):
+        validator(url)
+
+    validator = validate.URL(relative=True, schemes=set(['http', 'https', 'ws']))
+    assert validator(url) == url
+
 def test_url_custom_message():
     validator = validate.URL(error="{input} ain't an URL")
     with pytest.raises(ValidationError) as excinfo:
