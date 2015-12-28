@@ -4,6 +4,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import functools
 import datetime as dt
 import uuid
 import warnings
@@ -142,6 +143,7 @@ class Field(FieldABC):
         else:
             raise ValueError("The 'validate' parameter must be a callable "
                              "or a collection of callables.")
+        self._method_validators = []
 
         self.required = required
         # If missing=None, None should be considered valid by default
@@ -263,6 +265,27 @@ class Field(FieldABC):
         self._validate(output)
         return output
 
+    def validator(self, func):
+        """Decorator to register an instance method of a `Schema` as a
+        validator. ::
+
+            from marshmallow import Schema, fields
+
+            class ItemSchema(Schema):
+                quantity = fields.Int()
+
+                @quantity.validator
+                def validate_quantity(self, value):
+                    if quantity > 30:
+                        raise ValidationError('Must not be less than 30.')
+
+        :versionadded: 2.5.0
+        """
+        # Func is an unbound method. We partial it when the field gets bound
+        # to the schema in `_add_to_schema`
+        self._method_validators.append(func)
+        return func
+
     # Methods for concrete classes to override.
 
     def _add_to_schema(self, field_name, schema):
@@ -274,6 +297,10 @@ class Field(FieldABC):
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
+        # Bind registered method validators so that the `self` argument
+        # is the Schema
+        for validator in self._method_validators:
+            self.validators.append(functools.partial(validator, schema))
 
     def _serialize(self, value, attr, obj):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
