@@ -1067,6 +1067,31 @@ class TestSchemaDeserialization:
         assert 'bar' not in data
         assert not errors
 
+    def test_partial_fields_deserialization(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True)
+            bar = fields.Field(required=True)
+            baz = fields.Field(required=True)
+
+        data, errors = MySchema().load({'foo': 3}, partial=tuple())
+        assert data['foo'] == 3
+        assert 'bar' in errors
+        assert 'baz' in errors
+
+        data, errors = MySchema().load({'foo': 3}, partial=('bar', 'baz'))
+        assert data['foo'] == 3
+        assert 'bar' not in data
+        assert 'baz' not in data
+        assert not errors
+
+        data, errors = MySchema(partial=True).load({'foo': 3}, partial=('bar', 'baz'))
+        assert data['foo'] == 3
+        assert 'bar' not in data
+        assert 'baz' not in data
+        assert not errors
+
+
+
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
 validators_gen_float = (func for func in

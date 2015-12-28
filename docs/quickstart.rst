@@ -306,7 +306,20 @@ Dictionaries or lists are also accepted as the custom error message, in case you
 Partial Loading
 +++++++++++++++
 
-When using the same schema in multiple places, you may only want to check required fields some of the time when deserializing. You can ignore missing fields entirely by setting ``partial=True``.
+When using the same schema in multiple places, you may only want to check required fields some of the time when deserializing by specifying them in ``partial``.
+
+.. code-block:: python
+    :emphasize-lines: 5,6
+
+    class UserSchema(Schema):
+        name = fields.String(required=True)
+        age = fields.Integer(required=True)
+
+    data, errors = UserSchema().load({'age': 42}, partial=('name',))
+    # OR UserSchema(partial=('name',)).load({'age': 42})
+    data, errors  # => ({'age': 42}, {})
+
+Or you can ignore missing fields entirely by setting ``partial=True``.
 
 .. code-block:: python
     :emphasize-lines: 5,6
