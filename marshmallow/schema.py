@@ -94,7 +94,7 @@ class SchemaMeta(type):
                     break
             else:
                 ordered = False
-        cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
+        cls_fields = _get_fields(attrs, base.FieldABC, pop=False, ordered=ordered)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC)
 
