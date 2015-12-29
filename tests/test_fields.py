@@ -29,7 +29,8 @@ class TestField:
                                 'validate=None, required=False, '
                                 'load_only=False, dump_only=False, '
                                 'missing={missing}, allow_none=False, '
-                                'error_messages={error_messages})>'
+                                'error_messages={error_messages}, '
+                                'envelope=())>'
                                 .format(default, missing=missing,
                                         error_messages=field.error_messages))
         int_field = fields.Integer(validate=lambda x: True)

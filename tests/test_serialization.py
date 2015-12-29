@@ -691,6 +691,23 @@ class TestFieldSerialization:
         else:
             assert res is None
 
+    def test_serialize_enveloped(self):
+        class MySchema(Schema):
+            foo = fields.Field(envelope=('one',))
+            bar = fields.Field(envelope=('one', 'two'))
+            baz = fields.Field(envelope=('one',))
+            qux = fields.Field(envelope=('two', 'three'), dump_to='quack')
+            quux = fields.Field()
+
+        data, errors = MySchema().dump(
+            {'foo': 'oof', 'bar': 'rab', 'baz': 'zab', 'qux': 'xuq', 'quux': 'xuuq'})
+
+        assert data == {
+            'one': {'foo': 'oof', 'two': {'bar': 'rab'}, 'baz': 'zab'},
+            'two': {'three': {'quack': 'xuq'}},
+            'quux': 'xuuq'
+        }
+
 
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])

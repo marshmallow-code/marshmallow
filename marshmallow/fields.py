@@ -85,6 +85,8 @@ class Field(FieldABC):
     :param missing: Default deserialization value for the field if the field is not
         found in the input data. May be a value or a callable.
     :param dict error_messages: Overrides for `Field.default_error_messages`.
+    :param tuple envelope: tuple with keys of the dictionaries that the field
+        is nested under and will subsequently be loaded from and dumped to.
     :param metadata: Extra arguments to be stored as metadata.
 
     .. versionchanged:: 2.0.0
@@ -124,11 +126,12 @@ class Field(FieldABC):
 
     def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
                  error=None, validate=None, required=False, allow_none=None, load_only=False,
-                 dump_only=False, missing=missing_, error_messages=None, **metadata):
+                 dump_only=False, missing=missing_, error_messages=None, envelope=tuple(), **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
         self.dump_to = dump_to  # this flag is used by Marshaller
+        self.envelope = envelope  # this flag is used by (Un)Marshaller
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
@@ -173,7 +176,8 @@ class Field(FieldABC):
                 'validate={self.validate}, required={self.required}, '
                 'load_only={self.load_only}, dump_only={self.dump_only}, '
                 'missing={self.missing}, allow_none={self.allow_none}, '
-                'error_messages={self.error_messages})>'
+                'error_messages={self.error_messages}, '
+                'envelope={self.envelope})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, attr, obj, accessor=None, default=missing_):

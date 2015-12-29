@@ -398,6 +398,30 @@ If you want to marshal a field to a different key than the field name you can us
     # 'CamelCasedEmail': 'foo@bar.com'}
 
 
+Enveloping Keys
+-------------------------------
+
+If you want to marshal or unmarshal fields that are enveloped, you can use `envelope` to specify a tuple of keys that a field is nested in.
+
+.. code-block:: python
+    :emphasize-lines: 2,3,4,14
+
+    class UserSchema(Schema):
+        id = fields.String(envelope=('data',))
+        name = fields.String(envelope=('data', 'attributes'))
+        email = fields.Email(envelope=('data', 'attributes'))
+
+    data = {
+        'id': '5',
+        'name': 'Mike',
+        'email': 'foo@bar.com',
+    }
+    s = UserSchema()
+    result, errors = s.dump(data)
+    #{'data': {'attributes': {'email': 'foo@bar.com', 'name': 'Mike'}, 'id': '5'}}
+    result, errors = s.load(result)
+    #{'email': 'foo@bar.com', 'id': '5', 'name': 'Mike'}
+
 Refactoring: Implicit Field Creation
 ------------------------------------
 

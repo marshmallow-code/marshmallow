@@ -685,6 +685,23 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
+    def test_deserialize_enveloped(self):
+        class MySchema(Schema):
+            foo = fields.Field(envelope=('one',))
+            bar = fields.Field(envelope=('one', 'two'))
+            baz = fields.Field(envelope=('one',))
+            qux = fields.Field(envelope=('two', 'three'), load_from='quack')
+            quux = fields.Field()
+
+        input_data = {
+            'one': {'foo': 'oof', 'two': {'bar': 'rab'}, 'baz': 'zab'},
+            'two': {'three': {'quack': 'xuq'}},
+            'quux': 'xuuq'
+        }
+        data, errors = MySchema().load(input_data)
+        assert data == {'foo': 'oof', 'bar': 'rab', 'baz': 'zab', 'qux': 'xuq',
+                        'quux': 'xuuq'}
+
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):
     name = fields.String()
