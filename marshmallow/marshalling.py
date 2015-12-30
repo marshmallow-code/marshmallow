@@ -127,7 +127,7 @@ class Marshaller(ErrorStore):
                     data=ret,
                 )
             return ret
-        items = []
+        items = dict_class()
         for attr_name, field_obj in iteritems(fields_dict):
             if getattr(field_obj, 'load_only', False):
                 continue
@@ -144,16 +144,23 @@ class Marshaller(ErrorStore):
             )
             if value is missing:
                 continue
-            items.append((key, value))
-        ret = dict_class(items)
+
+            # Nest value inside the desired envelope.
+            dict_ = items
+            for key_ in field_obj.envelope:
+                if key_ not in dict_:
+                    dict_[key_] = dict_class()
+                dict_ = dict_[key_]
+            dict_[key] = value
+
         if self.errors and not self._pending:
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
                 fields=self.error_fields,
-                data=ret
+                data=items
             )
-        return ret
+        return items
 
     # Make an instance callable
     __call__ = serialize
@@ -246,7 +253,8 @@ class Unmarshaller(ErrorStore):
                 if field_obj.dump_only:
                     continue
                 try:
-                    raw_value = data.get(attr_name, missing)
+                    raw_value =\
+                        self._get_enveloped(data, attr_name, field_obj.envelope)
                 except AttributeError:  # Input data is not a dict
                     errors = self.get_errors(index=index)
                     msg = field_obj.error_messages['type'].format(
@@ -261,7 +269,8 @@ class Unmarshaller(ErrorStore):
                 field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
                     field_name = field_obj.load_from
-                    raw_value = data.get(field_obj.load_from, missing)
+                    raw_value =\
+                        self._get_enveloped(data, field_name, field_obj.envelope)
                 if raw_value is missing:
                     if partial:
                         continue
@@ -297,6 +306,24 @@ class Unmarshaller(ErrorStore):
                 data=ret,
             )
         return ret
+
+    @staticmethod
+    def _get_enveloped(data, attr_name, envelope=tuple(), default=missing):
+        """Get the value of ``attr_name``, optionally nested inside ``envelope``,
+         from dictionary ``data``.
+
+        :param dict data: Dictionary to look in.
+        :param str attr_name: Name of dictionary key to look for.
+        :param tuple envelope: tuple representing the keys of the dictionaries
+            that the attribute is nested under.
+        :param default: Default value to return if ``attr_name`` cannot be found.
+        :return: Value of ``attr_name`` in ``data``, or ``default``.
+        """
+        for key in envelope:
+            if key not in data:
+                return default
+            data = data[key]
+        return data.get(attr_name, default)
 
     # Make an instance callable
     __call__ = deserialize
