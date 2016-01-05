@@ -1017,6 +1017,16 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.'
     }
 
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return value
+        try:
+            return dict(value)
+        except (TypeError, ValueError):
+            return value
+
     def _deserialize(self, value, attr, data):
         if isinstance(value, collections.Mapping):
             return value

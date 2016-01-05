@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for field serialization."""
-from collections import namedtuple
+from collections import Mapping, namedtuple
 import datetime as dt
 import itertools
 import decimal
@@ -313,6 +313,18 @@ class TestFieldSerialization:
         field = fields.Dict()
         assert field.serialize('various_data', user) == \
             OrderedDict([("foo", "bar"), ("bar", "baz")])
+
+    def test_dict_field_serialize_mapping(self, user):
+        class MappedCollection(Mapping):
+            obj = {"foo": "bar"}
+            __getitem__ = obj.__getitem__
+            __iter__ = obj.__iter__
+            __len__ = obj.__len__
+        user.various_data = MappedCollection()
+        field = fields.Dict()
+        serialized = field.serialize('various_data', user)
+        assert serialized == {"foo": "bar"}
+        assert isinstance(serialized, dict)
 
     def test_url_field_serialize_none(self, user):
         user.homepage = None
