@@ -250,7 +250,9 @@ class BaseSchema(base.SchemaABC):
     :param tuple load_only: A list or tuple of fields to skip during serialization
     :param tuple dump_only: A list or tuple of fields to skip during
         deserialization, read-only fields
-    :param bool partial: If `True`, ignore missing fields when deserializing.
+    :param bool|tuple partial: Whether to ignore missing fields. If its value
+        is an iterable, only missing fields listed in that iterable will be
+        ignored.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -528,8 +530,9 @@ class BaseSchema(base.SchemaABC):
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool partial: Whether to ignore missing fields. If `None`, the
-            value for `self.partial` is used.
+        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
+            the value for `self.partial` is used. If its value is an iterable,
+            only missing fields listed in that iterable will be ignored.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
@@ -544,8 +547,8 @@ class BaseSchema(base.SchemaABC):
         :param str json_data: A JSON string of the data to deserialize.
         :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool partial: Whether to ignore missing fields. If `None`, the
-            value for `self.partial` is used.
+        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
+            the value for `self.partial` is used. If its value is an iterable,
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
@@ -583,13 +586,16 @@ class BaseSchema(base.SchemaABC):
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool partial: Whether to ignore missing fields. If `None`, the
-            value for `self.partial` is used.
+        :param bool|tuple partial: Whether to validate required fields. If its value is an iterable,
+            only fields listed in that iterable will be ignored will be allowed missing.
+            If `True`, all fields will be allowed missing.
+            If `None`, the value for `self.partial` is used.
         :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
         many = self.many if many is None else bool(many)
-        partial = self.partial if partial is None else bool(partial)
+        if partial is None:
+            partial = self.partial
 
         processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
 
