@@ -6,6 +6,7 @@ Changelog
 
 Features:
 
+- Allow a tuple of field names to be passed as the ``partial`` argument to ``Schema.load`` (:issue:`369`). Thanks :user:`tdevelioglu` for the PR.
 - Add ``schemes`` argument to ``validate.URL`` (:issue:`356`).
 
 2.4.2 (2015-12-08)
