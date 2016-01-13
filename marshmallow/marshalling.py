@@ -267,8 +267,10 @@ class Unmarshaller(ErrorStore):
                     raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
-                    if partial is True or\
-                            partial_is_collection and attr_name in partial:
+                    if (
+                        partial is True or
+                        (partial_is_collection and attr_name in partial)
+                    ):
                         continue
                     _miss = field_obj.missing
                     raw_value = _miss() if callable(_miss) else _miss
