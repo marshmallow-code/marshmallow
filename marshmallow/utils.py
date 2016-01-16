@@ -50,8 +50,7 @@ def is_generator(obj):
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
-        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip"))
-        or is_generator(obj)
+        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
     )
 
 
