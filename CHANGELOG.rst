@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.6.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add ``partial`` argument to ``Schema.validate`` (:issue:`379`). Thanks :user:`tdevelioglu` for the PR.
+
 2.5.0 (2016-01-16)
 ++++++++++++++++++
 
