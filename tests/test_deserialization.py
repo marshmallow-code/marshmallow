@@ -1090,7 +1090,21 @@ class TestSchemaDeserialization:
         assert 'baz' not in data
         assert not errors
 
+    def test_partial_fields_validation(self):
+        class MySchema(Schema):
+            foo = fields.Field(required=True)
+            bar = fields.Field(required=True)
+            baz = fields.Field(required=True)
 
+        errors = MySchema().validate({'foo': 3}, partial=tuple())
+        assert 'bar' in errors
+        assert 'baz' in errors
+
+        errors = MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
+        assert not errors
+
+        errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
+        assert not errors
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
