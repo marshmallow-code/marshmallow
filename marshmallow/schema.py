@@ -562,7 +562,7 @@ class BaseSchema(base.SchemaABC):
         data = self.opts.json_module.loads(json_data, *args, **kwargs)
         return self.load(data, many=many, partial=partial)
 
-    def validate(self, data, many=None):
+    def validate(self, data, many=None, partial=None):
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
 
@@ -574,7 +574,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.1.0
         """
-        _, errors = self._do_load(data, many, postprocess=False)
+        _, errors = self._do_load(data, many, partial=partial, postprocess=False)
         return errors
 
     ##### Private Helpers #####
