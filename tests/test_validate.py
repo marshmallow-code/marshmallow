@@ -267,31 +267,20 @@ def test_length_max():
 def test_length_equal():
     assert validate.Length(equal=3)('foo') == 'foo'
     assert validate.Length(equal=3)([1, 2, 3]) == [1, 2, 3]
-    assert validate.Length(None, 1, equal=2)('ab') == 'ab'
-    assert validate.Length(None, 1, equal=2)([1, 2]) == [1, 2]
-    assert validate.Length(3, None, equal=2)('ab') == 'ab'
-    assert validate.Length(3, None, equal=2)([1, 2]) == [1, 2]
     assert validate.Length(equal=None)('') == ''
     assert validate.Length(equal=None)([]) == []
-    assert validate.Length(2, 2, equal=3)('foo') == 'foo'
-    assert validate.Length(2, 2, equal=3)([1, 2, 3]) == [1, 2, 3]
 
     with pytest.raises(ValidationError):
         validate.Length(equal=2)('foo')
     with pytest.raises(ValidationError):
         validate.Length(equal=2)([1, 2, 3])
-    with pytest.raises(ValidationError):
-        validate.Length(None, 3, equal=5)('foo')
-    with pytest.raises(ValidationError):
-        validate.Length(None, 3, equal=5)([1, 2, 3])
-    with pytest.raises(ValidationError):
-        validate.Length(3, None, equal=5)('foo')
-    with pytest.raises(ValidationError):
-        validate.Length(3, None, equal=5)([1, 2, 3])
-    with pytest.raises(ValidationError):
-        validate.Length(1, 3, equal=5)('foo')
-    with pytest.raises(ValidationError):
-        validate.Length(1, 3, equal=5)([1, 2, 3])
+
+    with pytest.raises(ValueError):
+        validate.Length(1, None, equal=3)('foo')
+    with pytest.raises(ValueError):
+        validate.Length(None, 5, equal=3)('foo')
+    with pytest.raises(ValueError):
+        validate.Length(1, 5, equal=3)('foo')
 
 def test_length_custom_message():
     v = validate.Length(5, 6, error='{input} is not between {min} and {max}')
@@ -320,8 +309,13 @@ def test_length_repr():
         '<Length(min=None, max=None, equal=None, error=None)>'
     )
     assert (
-        repr(validate.Length(min=1, max=3, error='foo', equal=5)) ==
-        '<Length(min=1, max=3, equal=5, error={0!r})>'
+        repr(validate.Length(min=1, max=3, error='foo', equal=None)) ==
+        '<Length(min=1, max=3, equal=None, error={0!r})>'
+        .format('foo')
+    )
+    assert (
+        repr(validate.Length(min=None, max=None, error='foo', equal=5)) ==
+        '<Length(min=None, max=None, equal=5, error={0!r})>'
         .format('foo')
     )
 

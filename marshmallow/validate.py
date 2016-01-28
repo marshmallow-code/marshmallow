@@ -219,6 +219,12 @@ class Length(Range):
     message_equal = 'Length must be {equal}.'
 
     def __init__(self, min=None, max=None, error=None, equal=None):
+        if equal is not None and any([min, max]):
+            raise ValueError(
+                'The `equal` parameter was provided, maximum or '
+                'minimum parameter must not be provided.'
+            )
+
         super(Length, self).__init__(min, max, error)
         self.equal = equal
 
