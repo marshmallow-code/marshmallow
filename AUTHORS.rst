@@ -59,3 +59,4 @@ Contributors (chronological)
 - Jeff Widman `@jeffwidman <https://github.com/jeffwidman>`_
 - Simeon Visser `@svisser <https://github.com/svisser>`_
 - Taylan Develioglu `@tdevelioglu <https://github.com/tdevelioglu>`_
+- Danilo Akamine `@daniloakamine <https://github.com/daniloakamine>`_

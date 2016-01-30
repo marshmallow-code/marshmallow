@@ -207,6 +207,8 @@ class Length(Range):
         will not be checked.
     :param int max: The maximum length. If not provided, maximum length
         will not be checked.
+    :param int equal: The exact length. If provided, maximum and minimum
+        length will not be checked.
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
@@ -214,9 +216,32 @@ class Length(Range):
     message_min = 'Shorter than minimum length {min}.'
     message_max = 'Longer than maximum length {max}.'
     message_all = 'Length must be between {min} and {max}.'
+    message_equal = 'Length must be {equal}.'
+
+    def __init__(self, min=None, max=None, error=None, equal=None):
+        if equal is not None and any([min, max]):
+            raise ValueError(
+                'The `equal` parameter was provided, maximum or '
+                'minimum parameter must not be provided.'
+            )
+
+        super(Length, self).__init__(min, max, error)
+        self.equal = equal
+
+    def _repr_args(self):
+        return 'min={0!r}, max={1!r}, equal={2!r}'.format(self.min, self.max, self.equal)
+
+    def _format_error(self, value, message):
+        return (self.error or message).format(input=value, min=self.min, max=self.max,
+                                              equal=self.equal)
 
     def __call__(self, value):
         length = len(value)
+
+        if self.equal is not None:
+            if length != self.equal:
+                raise ValidationError(self._format_error(value, self.message_equal))
+            return value
 
         if self.min is not None and length < self.min:
             message = self.message_min if self.max is None else self.message_all
