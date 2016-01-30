@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Add ``partial`` argument to ``Schema.validate`` (:issue:`379`). Thanks :user:`tdevelioglu` for the PR.
+- Add ``equal`` argument to ``validate.Length``. Thanks :user:`daniloakamine`.
 
 2.5.0 (2016-01-16)
 ++++++++++++++++++
