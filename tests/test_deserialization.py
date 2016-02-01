@@ -582,12 +582,24 @@ class TestFieldDeserialization:
         field = fields.List(fields.DateTime)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(['badvalue'])
-        assert excinfo.value.args[0] == 'Not a valid datetime.'
+        assert excinfo.value.args[0] == {0: ['Not a valid datetime.']}
 
         field = fields.List(fields.Str())
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(['good', 42])
-        assert excinfo.value.args[0] == 'Not a valid string.'
+        assert excinfo.value.args[0] == {1: ['Not a valid string.']}
+
+    def test_list_field_deserialize_multiple_invalid_items(self):
+        field = fields.List(
+            fields.Int(
+                validate=validate.Range(10, 20, error='Value {input} not in range')
+            )
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize([10, 5, 25])
+        assert len(excinfo.value.args[0]) == 2
+        assert excinfo.value.args[0][1] == ['Value 5 not in range']
+        assert excinfo.value.args[0][2] == ['Value 25 not in range']
 
     @pytest.mark.parametrize('value',
     [

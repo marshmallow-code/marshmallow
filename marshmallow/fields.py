@@ -531,11 +531,22 @@ class List(Field):
         return [self.container._serialize(value, attr, obj)]
 
     def _deserialize(self, value, attr, data):
-        if utils.is_collection(value):
-            # Convert all instances in typed list to container type
-            return [self.container.deserialize(each) for each in value]
-        else:
+        if not utils.is_collection(value):
             self.fail('invalid')
+
+        result = []
+        errors = {}
+        for idx, each in enumerate(value):
+            try:
+                result.append(self.container.deserialize(each))
+            except ValidationError as e:
+                result.append(e.data)
+                errors.update({idx: e.messages})
+
+        if errors:
+            raise ValidationError(errors, data=result)
+
+        return result
 
 class String(Field):
     """A string field.
