@@ -80,7 +80,7 @@ class URL(Validator):
         return 'relative={0!r}'.format(self.relative)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value)
         if 'message' in self.error:
             message = self.error.get('message').format(input=value)
@@ -136,7 +136,7 @@ class Email(Validator):
         self.error = error or self.default_message
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value)
         if 'message' in self.error:
             message = self.error.get('message').format(input=value)
@@ -198,7 +198,7 @@ class Range(Validator):
         return 'min={0!r}, max={1!r}'.format(self.min, self.max)
 
     def _format_error(self, value, message):
-        if isinstance(self.error, str) or self.error is None:
+        if not isinstance(self.error, dict):or self.error is None:
             return (self.error or message).format(
                 input=value, min=self.min, max=self.max)
         if 'message' in self.error:
@@ -255,7 +255,7 @@ class Length(Range):
         return 'min={0!r}, max={1!r}, equal={2!r}'.format(self.min, self.max, self.equal)
 
     def _format_error(self, value, message):
-        if isinstance(self.error, str) or self.error is None:
+        if not isinstance(self.error, dict):or self.error is None:
             return (self.error or message).format(
                 input=value, min=self.min, max=self.max, equal=self.equal)
         if 'message' in self.error:
@@ -303,7 +303,7 @@ class Equal(Validator):
         return 'comparable={0!r}'.format(self.comparable)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value, other=self.comparable)
         if 'message' in self.error:
             message = self.error.get('message').format(
@@ -339,7 +339,7 @@ class Regexp(Validator):
         return 'regex={0!r}'.format(self.regex)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value, regex=self.regex.pattern)
         if 'message' in self.error:
             message = self.error.get('message').format(
@@ -378,7 +378,7 @@ class Predicate(Validator):
         return 'method={0!r}, kwargs={1!r}'.format(self.method, self.kwargs)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value, method=self.method)
         if 'message' in self.error:
             message = self.error.get('message').format(
@@ -415,7 +415,7 @@ class NoneOf(Validator):
         return 'iterable={0!r}'.format(self.iterable)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(input=value, values=self.values_text)
         if 'message' in self.error:
             message = self.error.get('message').format(
@@ -457,7 +457,7 @@ class OneOf(Validator):
         return 'choices={0!r}, labels={1!r}'.format(self.choices, self.labels)
 
     def _format_error(self, value):
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return self.error.format(
                 input=value, choices=self.choices_text, labels=self.labels_text)
         if 'message' in self.error:
@@ -506,7 +506,7 @@ class ContainsOnly(OneOf):
 
     def _format_error(self, value):
         value_text = ', '.join(text_type(val) for val in value)
-        if isinstance(self.error, str):
+        if not isinstance(self.error, dict):
             return super(ContainsOnly, self)._format_error(value_text)
         if 'message' in self.error:
             self.error.update({'message': value_text})
