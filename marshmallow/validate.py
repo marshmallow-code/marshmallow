@@ -38,8 +38,9 @@ class URL(Validator):
     """Validate a URL.
 
     :param bool relative: Whether to allow relative URLs.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
+        Case dict, the content of key `message` can be interpolated with `{input}`.
     :param set schemes: Valid schemes. By default, ``http``, ``https``,
         ``ftp``, and ``ftps`` are allowed.
     """
@@ -79,7 +80,12 @@ class URL(Validator):
         return 'relative={0!r}'.format(self.relative)
 
     def _format_error(self, value):
-        return self.error.format(input=value)
+        if isinstance(self.error, str):
+            return self.error.format(input=value)
+        if 'message' in self.error:
+            message = self.error.get('message').format(input=value)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         message = self._format_error(value)
@@ -103,8 +109,9 @@ class URL(Validator):
 class Email(Validator):
     """Validate an email address.
 
-    :param str error: Error message to raise in case of a validation error. Can be
-        interpolated with `{input}`.
+    :param str/dict error: Error message to raise in case of a validation error. Can be
+        Can be interpolated with `{input}`.
+        Case dict, the content of key `message` can be interpolated with `{input}`.
     """
 
     USER_REGEX = re.compile(
@@ -129,7 +136,12 @@ class Email(Validator):
         self.error = error or self.default_message
 
     def _format_error(self, value):
-        return self.error.format(input=value)
+        if isinstance(self.error, str):
+            return self.error.format(input=value)
+        if 'message' in self.error:
+            message = self.error.get('message').format(input=value)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         message = self._format_error(value)
@@ -167,8 +179,10 @@ class Range(Validator):
         value will not be checked.
     :param max: The maximum value (upper bound). If not provided, maximum
         value will not be checked.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
+        Case dict, the content of key `message`
+            can be interpolated with `{input}`, `{min}` and `{max}`.
     """
 
     message_min = 'Must be at least {min}.'
@@ -184,7 +198,14 @@ class Range(Validator):
         return 'min={0!r}, max={1!r}'.format(self.min, self.max)
 
     def _format_error(self, value, message):
-        return (self.error or message).format(input=value, min=self.min, max=self.max)
+        if isinstance(self.error, str) or self.error is None:
+            return (self.error or message).format(
+                input=value, min=self.min, max=self.max)
+        if 'message' in self.error:
+            m = (self.error.get('message') or message).format(
+                input=value, min=self.min, max=self.max)
+            self.error.update({'message': m})
+        return self.error
 
     def __call__(self, value):
         if self.min is not None and value < self.min:
@@ -209,8 +230,10 @@ class Length(Range):
         will not be checked.
     :param int equal: The exact length. If provided, maximum and minimum
         length will not be checked.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
+        Case dict, the content of key `message`
+            can be interpolated with `{input}`, `{min}` and `{max}`.
     """
 
     message_min = 'Shorter than minimum length {min}.'
@@ -232,8 +255,14 @@ class Length(Range):
         return 'min={0!r}, max={1!r}, equal={2!r}'.format(self.min, self.max, self.equal)
 
     def _format_error(self, value, message):
-        return (self.error or message).format(input=value, min=self.min, max=self.max,
-                                              equal=self.equal)
+        if isinstance(self.error, str) or self.error is None:
+            return (self.error or message).format(
+                input=value, min=self.min, max=self.max, equal=self.equal)
+        if 'message' in self.error:
+            m = self.error.get('message').format(
+                input=value, min=self.min, max=self.max, equal=self.equal)
+            self.error.update({'message': m})
+        return self.error
 
     def __call__(self, value):
         length = len(value)
@@ -259,8 +288,9 @@ class Equal(Validator):
     equal to ``comparable``.
 
     :param comparable: The object to compare to.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{other}`.
+        Case dict, the content of key `message` can be interpolated with `{input}` and `{other}`.
     """
 
     default_message = 'Must be equal to {other}.'
@@ -273,7 +303,13 @@ class Equal(Validator):
         return 'comparable={0!r}'.format(self.comparable)
 
     def _format_error(self, value):
-        return self.error.format(input=value, other=self.comparable)
+        if isinstance(self.error, str):
+            return self.error.format(input=value, other=self.comparable)
+        if 'message' in self.error:
+            message = self.error.get('message').format(
+                input=value, other=self.comparable)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         if value != self.comparable:
@@ -288,8 +324,9 @@ class Regexp(Validator):
         regular expression pattern.
     :param flags: The regexp flags to use, for example re.IGNORECASE. Ignored
         if ``regex`` is not a string.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{regex}`.
+        Case dict, the content of key `message` can be interpolated with `{input}` and `{regex}`.
     """
 
     default_message = 'String does not match expected pattern.'
@@ -302,7 +339,13 @@ class Regexp(Validator):
         return 'regex={0!r}'.format(self.regex)
 
     def _format_error(self, value):
-        return self.error.format(input=value, regex=self.regex.pattern)
+        if isinstance(self.error, str):
+            return self.error.format(input=value, regex=self.regex.pattern)
+        if 'message' in self.error:
+            message = self.error.get('message').format(
+                input=value, regex=self.regex.pattern)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         if self.regex.match(value) is None:
@@ -318,8 +361,9 @@ class Predicate(Validator):
     argument will be passed to the method.
 
     :param str method: The name of the method to invoke.
-    :param str error: Error message to raise in case of a validation error.
+    :param str/dict error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{method}`.
+        Case dict, the content of key `message` can be interpolated with `{input}` and `{method}`.
     :param kwargs: Additional keyword arguments to pass to the method.
     """
 
@@ -334,7 +378,13 @@ class Predicate(Validator):
         return 'method={0!r}, kwargs={1!r}'.format(self.method, self.kwargs)
 
     def _format_error(self, value):
-        return self.error.format(input=value, method=self.method)
+        if isinstance(self.error, str):
+            return self.error.format(input=value, method=self.method)
+        if 'message' in self.error:
+            message = self.error.get('message').format(
+                input=value, method=self.method)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         method = getattr(value, self.method)
@@ -349,8 +399,9 @@ class NoneOf(Validator):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
     :param iterable iterable: A sequence of invalid values.
-    :param str error: Error message to raise in case of a validation error. Can be
+    :param str/dict error: Error message to raise in case of a validation error. Can be
         interpolated using `{input}` and `{values}`.
+        Case dict, the content of key `message` can be interpolated with `{input}` and `{values}`.
     """
 
     default_message = 'Invalid input.'
@@ -364,10 +415,13 @@ class NoneOf(Validator):
         return 'iterable={0!r}'.format(self.iterable)
 
     def _format_error(self, value):
-        return self.error.format(
-            input=value,
-            values=self.values_text,
-        )
+        if isinstance(self.error, str):
+            return self.error.format(input=value, values=self.values_text)
+        if 'message' in self.error:
+            message = self.error.get('message').format(
+                input=value, values=self.values_text)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         try:
@@ -384,8 +438,10 @@ class OneOf(Validator):
 
     :param iterable choices: A sequence of valid values.
     :param iterable labels: Optional sequence of labels to pair with the choices.
-    :param str error: Error message to raise in case of a validation error. Can be
-        interpolated with `{input}`, `{choices}` and `{labels}`.
+    :param str error: Error message to raise in case of a validation error.
+        Can be interpolated with `{input}`, `{choices}` and `{labels}`.
+        Case dict, the content of key `message`
+            can be interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
     default_message = 'Not a valid choice.'
@@ -401,11 +457,15 @@ class OneOf(Validator):
         return 'choices={0!r}, labels={1!r}'.format(self.choices, self.labels)
 
     def _format_error(self, value):
-        return self.error.format(
-            input=value,
-            choices=self.choices_text,
-            labels=self.labels_text,
-        )
+        if isinstance(self.error, str):
+            return self.error.format(
+                input=value, choices=self.choices_text, labels=self.labels_text)
+        if 'message' in self.error:
+            message = self.error.get('message').format(
+                input=value, choices=self.choices_text,
+                labels=self.labels_text)
+            self.error.update({'message': message})
+        return self.error
 
     def __call__(self, value):
         try:
@@ -439,14 +499,18 @@ class ContainsOnly(OneOf):
 
     :param iterable choices: Same as :class:`OneOf`.
     :param iterable labels: Same as :class:`OneOf`.
-    :param str error: Same as :class:`OneOf`.
+    :param str/dict error: Same as :class:`OneOf`.
     """
 
     default_message = 'One or more of the choices you made was not acceptable.'
 
     def _format_error(self, value):
         value_text = ', '.join(text_type(val) for val in value)
-        return super(ContainsOnly, self)._format_error(value_text)
+        if isinstance(self.error, str):
+            return super(ContainsOnly, self)._format_error(value_text)
+        if 'message' in self.error:
+            self.error.update({'message': value_text})
+        return super(ContainsOnly, self)._format_error(self.error)
 
     def __call__(self, value):
         choices = list(self.choices)

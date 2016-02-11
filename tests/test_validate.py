@@ -107,6 +107,15 @@ def test_url_custom_message():
         validator('invalid')
     assert "invalid ain't an URL" in str(excinfo)
 
+def test_url_custom_message_dict():
+    error = {'message': "{input} ain't an URL",
+             'code': 200}
+    validator = validate.URL(error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        validator('invalid')
+    error = excinfo.value.messages
+    assert error.get('code') == 200
+
 def test_url_repr():
     assert (
         repr(validate.URL(relative=False, error=None)) ==
@@ -163,6 +172,15 @@ def test_email_custom_message():
         validator('invalid')
     assert 'invalid is not an email addy.' in str(excinfo)
 
+def test_email_custom_message_dict():
+    error = {'message': "{input} is not an email addy.",
+             'code': 200}
+    validator = validate.URL(error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        validator('invalid')
+    error = excinfo.value.messages
+    assert error.get('code') == 200
+
 def test_email_repr():
     assert (
         repr(validate.Email(error=None)) ==
@@ -213,6 +231,16 @@ def test_range_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v(4)
     assert '4 is greater than 3' in str(excinfo)
+
+def test_range_custom_message_dict():
+    error = {'message': "{input} is not between {min} and {max}",
+             'code': 200}
+    v = validate.Range(2, 3, error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        v(1)
+
+    error = excinfo.value.messages
+    assert error.get('code') == 200
 
 def test_range_repr():
     assert (
@@ -303,6 +331,15 @@ def test_length_custom_message():
         v('foo')
     assert 'foo does not have 4' in str(excinfo)
 
+def test_length_custom_message_dict():
+    error = {'message': "{input} is not between {min} and {max}",
+             'code': 200}
+    v = validate.Length(5, 6, error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        v('foo')
+    error = excinfo.value.messages
+    assert error.get('code') == 200
+
 def test_length_repr():
     assert (
         repr(validate.Length(min=None, max=None, error=None, equal=None)) ==
@@ -337,6 +374,15 @@ def test_equal_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v('b')
     assert 'b is not equal to a.' in str(excinfo)
+
+def test_equal_custom_message_dict():
+    error = {'message': "{input} is not equal to {other}.",
+             'code': 200}
+    v = validate.Equal('a', error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        v('b')
+    error = excinfo.value.messages
+    assert error.get('code') == 200
 
 def test_equal_repr():
     assert (
@@ -390,6 +436,16 @@ def test_regexp_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         v('a')
     assert 'a does not match [0-9]+' in str(excinfo)
+
+def test_regexp_custom_message_dict():
+    error = {'message': "{input} does not match {regex}.",
+             'code': 200}
+    rex = r'[0-9]+'
+    v = validate.Regexp(rex, error=error)
+    with pytest.raises(ValidationError) as excinfo:
+        v('a')
+    error = excinfo.value.messages
+    assert error.get('code') == 200
 
 def test_regexp_repr():
     assert (
@@ -453,6 +509,21 @@ def test_predicate_custom_message():
         validate.Predicate('_false', error='{input}.{method} is invalid!')(d)
     assert 'Dummy._false is invalid!' in str(excinfo)
 
+def test_predicate_custom_message_dict():
+    class Dummy(object):
+        def _false(self):
+            return False
+
+        def __str__(self):
+            return 'Dummy'
+    d = Dummy()
+    error = {'message': "{input}.{method} is invalid!",
+             'code': 200}
+    with pytest.raises(ValidationError) as excinfo:
+        validate.Predicate('_false', error=error)(d)
+    error = excinfo.value.messages
+    assert error.get('code') == 200
+
 def test_predicate_repr():
     assert (
         repr(validate.Predicate(method='foo', error=None)) ==
@@ -496,6 +567,12 @@ def test_noneof_custom_message():
     with pytest.raises(ValidationError) as excinfo:
         none_of(1)
     assert '1 cannot be one of 1, 2' in str(excinfo)
+
+def test_noneof_custom_message_dict():
+    error = {'message': 'error', 'code': 200}
+    with pytest.raises(ValidationError) as excinfo:
+        validate.NoneOf([1, 2], error=error)(1)
+    assert excinfo.value.messages.get('code') == 200
 
 def test_noneof_repr():
     assert (
