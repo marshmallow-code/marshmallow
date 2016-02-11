@@ -198,7 +198,7 @@ class Range(Validator):
         return 'min={0!r}, max={1!r}'.format(self.min, self.max)
 
     def _format_error(self, value, message):
-        if not isinstance(self.error, dict):or self.error is None:
+        if not isinstance(self.error, dict) or self.error is None:
             return (self.error or message).format(
                 input=value, min=self.min, max=self.max)
         if 'message' in self.error:
@@ -255,7 +255,7 @@ class Length(Range):
         return 'min={0!r}, max={1!r}, equal={2!r}'.format(self.min, self.max, self.equal)
 
     def _format_error(self, value, message):
-        if not isinstance(self.error, dict):or self.error is None:
+        if not isinstance(self.error, dict) or self.error is None:
             return (self.error or message).format(
                 input=value, min=self.min, max=self.max, equal=self.equal)
         if 'message' in self.error:
