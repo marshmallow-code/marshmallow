@@ -259,7 +259,7 @@ class Length(Range):
             return (self.error or message).format(
                 input=value, min=self.min, max=self.max, equal=self.equal)
         if 'message' in self.error:
-            m = (message or self.error.get('message')).format(
+            m = (self.error.get('message') or message).format(
                 input=value, min=self.min, max=self.max, equal=self.equal)
             self.error.update({'message': m})
         return self.error
