@@ -14,7 +14,7 @@ from operator import attrgetter
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import text_type, basestring, OrderedDict
 from marshmallow.exceptions import ValidationError
 
 __all__ = [
@@ -143,7 +143,7 @@ class Field(FieldABC):
         else:
             raise ValueError("The 'validate' parameter must be a callable "
                              "or a collection of callables.")
-        self._method_validators = []
+        self._method_validators = OrderedDict()
 
         self.required = required
         # If missing=None, None should be considered valid by default
@@ -283,7 +283,7 @@ class Field(FieldABC):
         """
         # Func is an unbound method. We partial it when the field gets bound
         # to the schema in `_add_to_schema`
-        self._method_validators.append(func)
+        self._method_validators[func.__name__] = func
         return func
 
     # Methods for concrete classes to override.
@@ -299,7 +299,7 @@ class Field(FieldABC):
         self.name = self.name or field_name
         # Bind registered method validators so that the `self` argument
         # is the Schema
-        for validator in self._method_validators:
+        for validator in self._method_validators.values():
             self.validators.append(functools.partial(validator, schema))
 
     def _serialize(self, value, attr, obj):
