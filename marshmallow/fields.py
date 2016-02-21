@@ -4,7 +4,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
-import functools
 import datetime as dt
 import uuid
 import warnings
@@ -297,10 +296,11 @@ class Field(FieldABC):
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
-        # Bind registered method validators so that the `self` argument
-        # is the Schema
-        for validator in self._method_validators.values():
-            self.validators.append(functools.partial(validator, schema))
+        for validator in self._method_validators:
+            try:
+                self.validators.append(getattr(schema, validator))
+            except AttributeError:
+                pass
 
     def _serialize(self, value, attr, obj):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
