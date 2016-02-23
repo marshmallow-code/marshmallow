@@ -410,7 +410,6 @@ class TestFieldValidatorDecorator:
                 assert value == 42
                 raise ValidationError('from MySchema')
 
-            @BaseSchema.bar.validator
             def validate_bar(self, value):
                 assert value == 24
                 raise ValidationError('overridden')
