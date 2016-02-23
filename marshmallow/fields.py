@@ -575,14 +575,15 @@ class String(Field):
 class UUID(String):
     """A UUID field."""
     default_error_messages = {
-        'invalid_guid': 'Not a valid UUID.'
+        'invalid_uuid': 'Not a valid UUID.',
+        'invalid_guid': 'Not a valid UUID.'  # TODO: Remove this in marshmallow 3.0
     }
 
     def _deserialize(self, value, attr, data):
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
-            self.fail('invalid_guid')
+            self.fail('invalid_uuid')
 
 
 class Number(Field):
