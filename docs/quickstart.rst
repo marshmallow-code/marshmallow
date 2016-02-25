@@ -285,16 +285,20 @@ Required Fields
 
 You can make a field required by passing ``required=True``. An error will be stored if the the value is missing from the input to :meth:`Schema.load`.
 
-Alternatively, you can provide a custom error message by passing ``required='My custom message'``.
-Dictionaries or lists are also accepted as the custom error message, in case you want to provide more information with the error.
+To customize the error message for required fields, pass a `dict` with a ``required`` key as the ``error_messages`` argument for the field.
 
 .. code-block:: python
-    :emphasize-lines: 2,3,4
 
     class UserSchema(Schema):
         name = fields.String(required=True)
-        age = fields.Integer(required='Age is required.')
-        city = fields.String(required={'message': 'City required', 'code': 400})
+        age = fields.Integer(
+            required=True,
+            error_messages={'required': 'Age is required.'}
+        )
+        city = fields.String(
+            required=True,
+            error_messages={'required': {'message': 'City required', 'code': 400}}
+        )
         email = fields.Email()
 
     data, errors = UserSchema().load({'email': 'foo@bar.com'})
