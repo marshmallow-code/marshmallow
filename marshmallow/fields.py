@@ -382,28 +382,30 @@ class Nested(Field):
             only = (self.only, )
         else:
             only = self.only
+
+        # Inherit context from parent.
+        context = getattr(self.parent, 'context', {})
         if not self.__schema:
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
+                self.__schema.context.update(context)
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
                 self.__schema = self.nested(many=self.many,
-                        only=only, exclude=self.exclude)
+                        only=only, exclude=self.exclude, context=context)
             elif isinstance(self.nested, basestring):
                 if self.nested == _RECURSIVE_NESTED:
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
-                            exclude=self.exclude)
+                            exclude=self.exclude, context=context)
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
-                            only=only, exclude=self.exclude)
+                            only=only, exclude=self.exclude, context=context)
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
         self.__schema.ordered = getattr(self.parent, 'ordered', False)
-        # Inherit context from parent
-        self.__schema.context.update(getattr(self.parent, 'context', {}))
         return self.__schema
 
     def _serialize(self, nested_obj, attr, obj):
