@@ -309,6 +309,24 @@ def test_on_bind_field_hook():
     assert schema.fields['foo'].metadata['fname'] == 'foo'
 
 
+def test_nested_on_bind_field_hook():
+    class MySchema(Schema):
+
+        class NestedSchema(Schema):
+            bar = fields.Str()
+
+            def on_bind_field(self, field_name, field_obj):
+                field_obj.metadata['fname'] = self.context['fname']
+
+        foo = fields.Nested(NestedSchema)
+
+    schema1 = MySchema(context={'fname': 'foobar'})
+    schema2 = MySchema(context={'fname': 'quxquux'})
+
+    assert schema1.fields['foo'].schema.fields['bar'].metadata['fname'] == 'foobar'
+    assert schema2.fields['foo'].schema.fields['bar'].metadata['fname'] == 'quxquux'
+
+
 class TestValidate:
 
     def test_validate_returns_errors_dict(self):
