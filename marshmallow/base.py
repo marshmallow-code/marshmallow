@@ -32,10 +32,6 @@ class FieldABC(object):
 class SchemaABC(object):
     """Abstract base class from which all Schemas inherit."""
 
-    root = None
-    parent = None
-    name = None
-
     def dump(self, obj):
         raise NotImplementedError
 
