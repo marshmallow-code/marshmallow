@@ -360,12 +360,11 @@ class Nested(Field):
         'type': 'Invalid type.',
     }
 
-    def __init__(self, nested, default=missing_, exclude=tuple(), only=None,
-                many=False, **kwargs):
+    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
         self.nested = nested
         self.only = only
         self.exclude = exclude
-        self.many = many
+        self.many = kwargs.get('many', False)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
