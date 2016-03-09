@@ -158,7 +158,6 @@ class Field(FieldABC):
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
-        self.parent = FieldABC.parent
 
         # Collect default error message from self and parent classes
         messages = {}
@@ -318,9 +317,9 @@ class Field(FieldABC):
 
     @property
     def root(self):
-        """Reference to the top-level `Schema` that this field belongs to."""
+        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`."""
         ret = self
-        while ret.parent:
+        while hasattr(ret, 'parent') and ret.parent:
             ret = ret.parent
         return ret
 
