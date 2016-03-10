@@ -454,17 +454,18 @@ class Nested(Field):
             for field_name, field in self.schema.fields.items():
                 if not field.required:
                     continue
+                error_field_name = field.load_from or field_name
                 if (
                     isinstance(field, Nested) and
                     self.nested != _RECURSIVE_NESTED and
                     field.nested != _RECURSIVE_NESTED
                 ):
-                    errors[field_name] = field._check_required()
+                    errors[error_field_name] = field._check_required()
                 else:
                     try:
                         field._validate_missing(field.missing)
                     except ValidationError as ve:
-                        errors[field_name] = ve.messages
+                        errors[error_field_name] = ve.messages
             if self.many and errors:
                 errors = {0: errors}
             # No inner errors; just raise required error like normal
