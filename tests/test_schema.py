@@ -1102,6 +1102,23 @@ class TestNestedSchema:
         _, errs = BlogRequiredSchema().dump(b)
         assert 'user' not in errs
 
+    def test_nested_required_errors_with_load_from(self):
+        class DatesInfoSchema(Schema):
+            created = fields.DateTime(required=True)
+            updated = fields.DateTime(required=True)
+
+        class UserSimpleSchema(Schema):
+            name = fields.String(required=True)
+            time_registered = fields.Time(load_from='timeRegistered', required=True)
+            dates_info = fields.Nested(DatesInfoSchema, load_from='datesInfo', required=True)
+
+        class BlogRequiredSchema(Schema):
+            user = fields.Nested(UserSimpleSchema, required=True)
+
+        _, errs = BlogRequiredSchema().load({})
+        assert 'timeRegistered' in errs['user']
+        assert 'datesInfo' in errs['user']
+
     def test_nested_none(self):
         class BlogDefaultSchema(Schema):
             user = fields.Nested(UserSchema, default=0)
