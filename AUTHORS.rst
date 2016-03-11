@@ -62,3 +62,4 @@ Contributors (chronological)
 - Danilo Akamine `@daniloakamine <https://github.com/daniloakamine>`_
 - Maxim Kulkin `@maximkulkin <https://github.com/maximkulkin>`_
 - `@immerrr <https://github.com/immerrr>`_
+- Mike Yumatov `@yumike <https://github.com/yumike>`_

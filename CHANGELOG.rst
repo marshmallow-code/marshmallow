@@ -8,6 +8,13 @@ Features:
 
 - Make context available to ``Nested`` field's ``on_bind_field`` method (:issue:`408`). Thanks :user:`immerrr` for the PR.
 
+2.6.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Respect `load_from` when reporting errors for nested required fields (:issue:`414`). Thanks :user:`yumike`.
+
 2.6.0 (2016-02-01)
 ++++++++++++++++++
 
