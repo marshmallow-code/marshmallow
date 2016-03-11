@@ -208,6 +208,7 @@ def test_from_iso_with_tz():
         # Note a naive datetime
         assert result.tzinfo is not None
 
+
 # Test with and without dateutil
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso_time_with_microseconds(use_dateutil):
