@@ -31,10 +31,12 @@ def test_to_marshallable_type():
     assert u_dict['attribute'] == obj.attribute
     assert u_dict['prop'] == obj.prop
 
+
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
 
 PointNT = namedtuple('Point', ['x', 'y'])
+
 
 def test_to_marshallable_type_with_namedtuple():
     p = PointNT(24, 42)
@@ -42,10 +44,12 @@ def test_to_marshallable_type_with_namedtuple():
     assert result['x'] == p.x
     assert result['y'] == p.y
 
+
 class PointClass(object):
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
 
 @pytest.mark.parametrize('obj', [
     PointNT(24, 42),
@@ -58,12 +62,14 @@ def test_get_value(obj):
     result2 = utils.get_value('y', obj)
     assert result2 == 42
 
+
 def test_get_value_from_namedtuple_with_default():
     p = PointNT(x=42, y=None)
     # Default is only returned if key is not found
     assert utils.get_value('z', p, default=123) == 123
     # since 'y' is an attribute, None is returned instead of the default
     assert utils.get_value('y', p, default=123) is None
+
 
 class Triangle(object):
     def __init__(self, p1, p2, p3):
@@ -72,17 +78,20 @@ class Triangle(object):
         self.p3 = p3
         self.points = [p1, p2, p3]
 
+
 def test_get_value_for_nested_object():
     tri = Triangle(p1=PointClass(1, 2), p2=PointNT(3, 4), p3={'x': 5, 'y': 6})
     assert utils.get_value('p1.x', tri) == 1
     assert utils.get_value('p2.x', tri) == 3
     assert utils.get_value('p3.x', tri) == 5
 
+
 # regression test for https://github.com/marshmallow-code/marshmallow/issues/62
 def test_get_value_from_dict():
     d = dict(items=['foo', 'bar'], keys=['baz', 'quux'])
     assert utils.get_value('items', d) == ['foo', 'bar']
     assert utils.get_value('keys', d) == ['baz', 'quux']
+
 
 def test_get_value():
     l = [1,2,3]
@@ -92,6 +101,7 @@ def test_get_value():
         pass
 
     assert utils.get_value(MyInt(1), l) == 2
+
 
 def test_is_keyed_tuple():
     Point = namedtuple('Point', ['x', 'y'])
@@ -106,12 +116,15 @@ def test_is_keyed_tuple():
     l = [24, 42]
     assert utils.is_keyed_tuple(l) is False
 
+
 def test_to_marshallable_type_list():
     assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']
+
 
 def test_to_marshallable_type_generator():
     gen = (e for e in ['foo', 'bar'])
     assert utils.to_marshallable_type(gen) == ['foo', 'bar']
+
 
 def test_marshallable():
     class ObjContainer(object):
@@ -123,34 +136,42 @@ def test_marshallable():
     obj = ObjContainer()
     assert utils.to_marshallable_type(obj) == {"foo": 1}
 
+
 def test_is_collection():
     assert utils.is_collection([1, 'foo', {}]) is True
     assert utils.is_collection(('foo', 2.3)) is True
     assert utils.is_collection({'foo': 'bar'}) is False
 
+
 def test_rfcformat_gmt_naive():
     d = dt.datetime(2013, 11, 10, 1, 23, 45)
     assert utils.rfcformat(d) == "Sun, 10 Nov 2013 01:23:45 -0000"
+
 
 def test_rfcformat_central():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
     assert utils.rfcformat(d) == 'Sun, 10 Nov 2013 07:23:45 -0000'
 
+
 def test_rfcformat_central_localized():
     d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
     assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 08:23:45 -0600"
+
 
 def test_isoformat():
     d = dt.datetime(2013, 11, 10, 1, 23, 45)
     assert utils.isoformat(d) == '2013-11-10T01:23:45+00:00'
 
+
 def test_isoformat_tzaware():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
     assert utils.isoformat(d) == "2013-11-10T07:23:45+00:00"
 
+
 def test_isoformat_localtime():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
     assert utils.isoformat(d, localtime=True) == "2013-11-10T01:23:45-06:00"
+
 
 def test_from_datestring():
     d = dt.datetime.now()
@@ -158,6 +179,7 @@ def test_from_datestring():
     iso = d.isoformat()
     assert_date_equal(utils.from_datestring(rfc), d)
     assert_date_equal(utils.from_datestring(iso), d)
+
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_rfc(use_dateutil):
@@ -167,6 +189,7 @@ def test_from_rfc(use_dateutil):
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
+
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso(use_dateutil):
     d = dt.datetime.now()
@@ -174,6 +197,7 @@ def test_from_iso(use_dateutil):
     result = utils.from_iso(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
+
 
 def test_from_iso_with_tz():
     d = central.localize(dt.datetime.now())
@@ -193,6 +217,7 @@ def test_from_iso_time_with_microseconds(use_dateutil):
     assert type(result) == dt.time
     assert_time_equal(result, t, microseconds=True)
 
+
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso_time_without_microseconds(use_dateutil):
     t = dt.time(1, 23, 45)
@@ -201,6 +226,7 @@ def test_from_iso_time_without_microseconds(use_dateutil):
     assert type(result) == dt.time
     assert_time_equal(result, t, microseconds=True)
 
+
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso_date(use_dateutil):
     d = dt.date(2014, 8, 21)
@@ -208,6 +234,7 @@ def test_from_iso_date(use_dateutil):
     result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
     assert type(result) == dt.date
     assert_date_equal(result, d)
+
 
 def test_get_func_args():
     def f1(foo, bar):
