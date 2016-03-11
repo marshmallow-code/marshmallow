@@ -339,11 +339,11 @@ def get_func_args(func):
     `functools.partial` objects and class-based callables.
     """
     if isinstance(func, functools.partial):
-        return inspect.getargspec(func.func).args
+        return inspect.signature(func.func).args
     if inspect.isfunction(func) or inspect.ismethod(func):
-        return inspect.getargspec(func).args
+        return inspect.signature(func).args
     # Callable class
-    return inspect.getargspec(func.__call__).args
+    return inspect.signature(func.__call__).args
 
 
 def if_none(value, default):
