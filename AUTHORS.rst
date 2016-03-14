@@ -63,3 +63,4 @@ Contributors (chronological)
 - Maxim Kulkin `@maximkulkin <https://github.com/maximkulkin>`_
 - `@immerrr <https://github.com/immerrr>`_
 - Mike Yumatov `@yumike <https://github.com/yumike>`_
+- Tim Erwin `@Tim-Erwin <https://github.com/Tim-Erwin>`_

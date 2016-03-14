@@ -8,6 +8,10 @@ Features:
 
 - Make context available to ``Nested`` field's ``on_bind_field`` method (:issue:`408`). Thanks :user:`immerrr` for the PR.
 
+Other changes:
+
+- Remove unused attributes ``root``, ``parent``, and ``name`` from ``SchemaABC`` (:issue:`410`). Thanks :user:`Tim-Erwin` for the PR.
+
 2.6.1 (unreleased)
 ++++++++++++++++++
 
