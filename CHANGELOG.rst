@@ -12,7 +12,7 @@ Other changes:
 
 - Remove unused attributes ``root``, ``parent``, and ``name`` from ``SchemaABC`` (:issue:`410`). Thanks :user:`Tim-Erwin` for the PR.
 
-2.6.1 (unreleased)
+2.6.1 (2016-03-17)
 ++++++++++++++++++
 
 Bug fixes:
