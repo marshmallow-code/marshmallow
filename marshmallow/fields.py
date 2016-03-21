@@ -256,6 +256,9 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         self._validate_missing(value)
+        if hasattr(self.root, 'opts'):
+            if self.parent.opts.empty_as_none and value == '':
+                value = None
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
         output = self._deserialize(value, attr, data)
