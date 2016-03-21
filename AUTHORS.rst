@@ -64,3 +64,4 @@ Contributors (chronological)
 - `@immerrr <https://github.com/immerrr>`_
 - Mike Yumatov `@yumike <https://github.com/yumike>`_
 - Tim Mundt `@Tim-Erwin <https://github.com/Tim-Erwin>`_
+- Colton Allen `@cmanallen <https://github.com/cmanallen>`_
