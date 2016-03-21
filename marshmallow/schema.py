@@ -203,6 +203,7 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.empty_as_none = getattr(meta, 'empty_as_none', False)
 
 
 class BaseSchema(base.SchemaABC):
@@ -318,6 +319,7 @@ class BaseSchema(base.SchemaABC):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``empty_as_none``: If `True`, empty strings will be intrepreted as `None`.
         """
         pass
 
