@@ -122,13 +122,16 @@ class Field(FieldABC):
         'validator_failed': 'Invalid value.'
     }
 
-    def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
-                 error=None, validate=None, required=False, allow_none=None, load_only=False,
-                 dump_only=False, missing=missing_, error_messages=None, **metadata):
+    def __init__(self, default=missing_, attribute=None, load_from=None,
+                 dump_to=None, error=None, validate=None, required=False,
+                 allow_none=None, load_only=False, dump_only=False,
+                 missing=missing_, error_messages=None, empty_as_none=False,
+                 **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
         self.dump_to = dump_to  # this flag is used by Marshaller
+        self.empty_as_none = empty_as_none
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
@@ -256,8 +259,10 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         self._validate_missing(value)
-        if hasattr(self.root, 'opts'):
-            if self.parent.opts.empty_as_none and value == '':
+        if value == '':
+            if self.empty_as_none:
+                value = None
+            elif hasattr(self.root, 'opts') and self.root.opts.empty_as_none:
                 value = None
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
