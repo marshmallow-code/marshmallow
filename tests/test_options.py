@@ -224,3 +224,25 @@ class TestIncludeOption:
         assert 'email' in s._declared_fields.keys()
         assert 'from' in s._declared_fields.keys()
         assert isinstance(s._declared_fields['from'], fields.Str)
+
+
+class TestEmptyAsNoneOption(object):
+    """Verify that empty values are transformed to `None` types."""
+
+    class EmptyFieldsSchema(Schema):
+        nullable = fields.String(allow_none=True)
+        not_nullable = fields.String(allow_none=False)
+
+        class Meta:
+            empty_as_none = True
+            strict = False
+
+    def test_empty_nullable_field(self):
+        data = {'nullable': '', 'not_nullable': 'x'}
+        result, errors = self.EmptyFieldsSchema().load(data)
+        assert result['nullable'] is None
+
+    def test_empty_not_nullable_field(self):
+        data = {'not_nullable': '', 'nullable': 'x'}
+        result, errors = self.EmptyFieldsSchema().load(data)
+        assert 'not_nullable' in errors
