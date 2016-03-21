@@ -697,6 +697,16 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
+    def test_field_deserialization_empty_as_none(self):
+        field = fields.String(empty_as_none=True, allow_none=True)
+        assert field.deserialize('') is None
+
+    def test_field_deserialization_empty_as_none_raises_error(self):
+        field = fields.String(empty_as_none=True)
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize('')
+        assert excinfo
+
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):
     name = fields.String()
