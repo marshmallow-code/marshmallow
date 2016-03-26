@@ -944,7 +944,6 @@ class Time(Field):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         if not value:   # falsy values are invalid
             self.fail('invalid')
-            raise err
         try:
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
