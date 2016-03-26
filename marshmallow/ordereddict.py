@@ -27,6 +27,8 @@ from UserDict import DictMixin
 
 class OrderedDict(dict, DictMixin):
 
+    __slots__ = ("__end")
+
     def __init__(self, *args, **kwds):
         if len(args) > 1:
             raise TypeError('expected at most 1 arguments, got %d' % len(args))

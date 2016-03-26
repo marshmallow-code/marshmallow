@@ -17,6 +17,7 @@ class Validator(object):
         This class does not provide any behavior. It is only used to
         add a useful `__repr__` implementation for validators.
     """
+    __slots__ = ()
 
     def __repr__(self):
         args = self._repr_args()
@@ -44,6 +45,7 @@ class URL(Validator):
         ``ftp``, and ``ftps`` are allowed.
     """
 
+    __slots__ = ('relative', 'error', 'schemes')
     URL_REGEX = re.compile(
         r'^(?:[a-z0-9\.\-\+]*)://'  # scheme is validated separately
         r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
@@ -107,6 +109,7 @@ class Email(Validator):
         interpolated with `{input}`.
     """
 
+    __slots__ = ('error')
     USER_REGEX = re.compile(
         r"(^[-!#$%&'*+/=?^`{}|~\w]+(\.[-!#$%&'*+/=?^`{}|~\w]+)*$"  # dot-atom
         # quoted-string
@@ -171,6 +174,7 @@ class Range(Validator):
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
 
+    __slots__ = ('min', 'max', 'error')
     message_min = 'Must be at least {min}.'
     message_max = 'Must be at most {max}.'
     message_all = 'Must be between {min} and {max}.'
@@ -213,6 +217,7 @@ class Length(Range):
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
 
+    __slots__ = ('equal')
     message_min = 'Shorter than minimum length {min}.'
     message_max = 'Longer than maximum length {max}.'
     message_all = 'Length must be between {min} and {max}.'
@@ -263,6 +268,7 @@ class Equal(Validator):
         Can be interpolated with `{input}` and `{other}`.
     """
 
+    __slots__ = ('comparable', 'error')
     default_message = 'Must be equal to {other}.'
 
     def __init__(self, comparable, error=None):
@@ -292,6 +298,7 @@ class Regexp(Validator):
         Can be interpolated with `{input}` and `{regex}`.
     """
 
+    __slots__ = ('regex', 'error')
     default_message = 'String does not match expected pattern.'
 
     def __init__(self, regex, flags=0, error=None):
@@ -323,6 +330,7 @@ class Predicate(Validator):
     :param kwargs: Additional keyword arguments to pass to the method.
     """
 
+    __slots__ = ('method', 'error', 'kwargs')
     default_message = 'Invalid input.'
 
     def __init__(self, method, error=None, **kwargs):
@@ -353,6 +361,7 @@ class NoneOf(Validator):
         interpolated using `{input}` and `{values}`.
     """
 
+    __slots__ = ('iterable', 'values_text', 'error')
     default_message = 'Invalid input.'
 
     def __init__(self, iterable, error=None):
@@ -388,6 +397,7 @@ class OneOf(Validator):
         interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
+    __slots__ = ('choices', 'choices_text', 'labels', 'labels_text', 'error')
     default_message = 'Not a valid choice.'
 
     def __init__(self, choices, labels=None, error=None):
@@ -442,6 +452,7 @@ class ContainsOnly(OneOf):
     :param str error: Same as :class:`OneOf`.
     """
 
+    __slots__ = ()
     default_message = 'One or more of the choices you made was not acceptable.'
 
     def _format_error(self, value):

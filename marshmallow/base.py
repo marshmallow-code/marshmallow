@@ -11,6 +11,7 @@ class FieldABC(object):
     """
     parent = None
     name = None
+    __slots__ = ()
 
     def serialize(self, attr, obj, accessor=None):
         raise NotImplementedError
@@ -31,6 +32,8 @@ class FieldABC(object):
 
 class SchemaABC(object):
     """Abstract base class from which all Schemas inherit."""
+
+    __slots__ = ()
 
     def dump(self, obj):
         raise NotImplementedError

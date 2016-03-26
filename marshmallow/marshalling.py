@@ -26,6 +26,8 @@ FIELD = '_field'
 
 class ErrorStore(object):
 
+    __slots__ = ('errors', 'error_fields', 'error_field_names', '_pending')
+
     def __init__(self):
         #: Dictionary of errors stored during serialization
         self.errors = {}
@@ -85,6 +87,9 @@ class Marshaller(ErrorStore):
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     """
+
+    __slots__ = ('prefix')
+
     def __init__(self, prefix=''):
         self.prefix = prefix
         ErrorStore.__init__(self)
@@ -167,6 +172,7 @@ class Unmarshaller(ErrorStore):
     .. versionadded:: 1.0.0
     """
 
+    __slots__ = ()
     default_schema_validation_error = 'Invalid data.'
 
     def run_validator(self, validator_func, output,
