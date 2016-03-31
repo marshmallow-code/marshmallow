@@ -10,6 +10,9 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
+import inspect
+import functools
+
 from marshmallow.utils import is_collection, missing
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -204,6 +207,18 @@ class Unmarshaller(ErrorStore):
                     errors.setdefault(field_name, []).append(err.messages)
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
+        except Exception as err:
+            func_name = None
+            if isinstance(validator_func, functools.partial):
+                func_name = validator_func.func.__name__
+            elif inspect.isfunction(validator_func) or \
+                    inspect.ismethod(validator_func):
+                func_name = validator_func.__name__
+
+            if func_name:
+                raise Exception(
+                    'Function {} contains an error: {}'.format(func_name, err))
+            raise err
 
     def deserialize(self, data, fields_dict, many=False, partial=False,
             dict_class=dict, index_errors=True, index=None):
