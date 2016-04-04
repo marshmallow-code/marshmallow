@@ -36,7 +36,7 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
 Method Fields
 -------------
 
-A :class:`Method <marshmallow.fields.Method>` field will take the value returned by a method of the Schema. The method must take an ``obj`` parameter which is the object to be serialized.
+A :class:`Method <marshmallow.fields.Method>` field will serialize to the value returned by a method of the Schema. The method must take an ``obj`` parameter which is the object to be serialized.
 
 .. code-block:: python
 
@@ -52,7 +52,7 @@ A :class:`Method <marshmallow.fields.Method>` field will take the value returned
 Function Fields
 ---------------
 
-A :class:`Function <marshmallow.fields.Function>` field will take the value of a function that is passed directly to it. Like a :class:`Method <marshmallow.fields.Method>` field, the function must take a single argument ``obj``.
+A :class:`Function <marshmallow.fields.Function>` field will serialize the value of a function that is passed directly to it. Like a :class:`Method <marshmallow.fields.Method>` field, the function must take a single argument ``obj``.
 
 
 .. code-block:: python
@@ -63,6 +63,27 @@ A :class:`Function <marshmallow.fields.Function>` field will take the value of a
         created_at = fields.DateTime()
         uppername = fields.Function(lambda obj: obj.name.upper())
 
+`Method` and `Function` field deserialization
+---------------------------------------------
+
+Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` receive an optional ``deserialize`` argument which defines how the field should be deserialized. The method or function passed to ``deserialize`` receives the input value for the field.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        # `Method` takes a method name (str), Function takes a callable
+        balance = fields.Method('get_balance', deserialize='load_balance')
+
+        def get_balance(self, obj):
+            return obj.income - obj.debt
+
+        def load_balance(self, value):
+            return float(value)
+
+
+    schema = UserSchema()
+    result = schema.load({'balance': '100.00'})
+    result.data['balance']  # => 100.0
 
 .. _adding-context:
 
