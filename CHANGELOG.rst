@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Make context available to ``Nested`` field's ``on_bind_field`` method (:issue:`408`). Thanks :user:`immerrr` for the PR.
+- Pass through user ``ValidationError`` kwargs (:issue:`418`). Thanks :user:`russelldavies` for helping implement this.
 
 Other changes:
 

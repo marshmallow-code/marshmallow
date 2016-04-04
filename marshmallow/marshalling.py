@@ -35,6 +35,8 @@ class ErrorStore(object):
         self.error_field_names = []
         #: True while (de)serializing a collection
         self._pending = False
+        #: Dictionary of extra kwargs from user raised exception
+        self.error_kwargs = {}
 
     def reset_errors(self):
         self.errors = {}
@@ -64,6 +66,7 @@ class ErrorStore(object):
         try:
             value = getter_func(data)
         except ValidationError as err:  # Store validation errors
+            self.error_kwargs.update(err.kwargs)
             self.error_fields.append(field_obj)
             self.error_field_names.append(field_name)
             errors = self.get_errors(index=index)
@@ -181,6 +184,7 @@ class Unmarshaller(ErrorStore):
                 raise ValidationError(self.default_schema_validation_error)
         except ValidationError as err:
             errors = self.get_errors(index=index)
+            self.error_kwargs.update(err.kwargs)
             # Store or reraise errors
             if err.field_names:
                 field_names = err.field_names

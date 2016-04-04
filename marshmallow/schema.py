@@ -634,7 +634,8 @@ class BaseSchema(base.SchemaABC):
                 errors,
                 field_names=self._unmarshal.error_field_names,
                 fields=self._unmarshal.error_fields,
-                data=data
+                data=data,
+                **self._unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
             if self.strict:
