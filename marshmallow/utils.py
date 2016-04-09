@@ -26,6 +26,8 @@ except ImportError:
 
 class _Missing(object):
 
+    __slots__ = ()
+
     def __bool__(self):
         return False
 
@@ -147,6 +149,7 @@ class UTC(datetime.tzinfo):
     _utcoffset = ZERO
     _dst = ZERO
     _tzname = zone
+    __slots__ = ()
 
     def fromutc(self, dt):
         if dt.tzinfo is None:

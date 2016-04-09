@@ -1,7 +1,45 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import glob
+import os
 import re
-from setuptools import setup, find_packages
+import sys
+from os import path
+from setuptools import setup, find_packages, Extension
+
+LIBRARY_DIR = path.abspath(os.path.dirname(__file__))
+
+CYTHON = False
+JYTHON = 'java' in sys.platform
+try:
+    sys.pypy_version_info
+    PYPY = True
+except AttributeError:
+    PYPY = False
+
+if not PYPY and not JYTHON:
+    try:
+        from Cython.Distutils import build_ext
+        CYTHON = True
+    except ImportError:
+        CYTHON = False
+
+ext_modules = []
+cmdclass = {}
+if CYTHON:
+    def list_modules(dirname):
+        filenames = glob.glob(path.join(dirname, '*.py'))
+        module_names = []
+        for name in filenames:
+            module, ext = path.splitext(path.basename(name))
+            if module != '__init__':
+                module_names.append(module)
+        return module_names
+    ext_modules = [
+        Extension('marshmallow.' + ext, [path.join('marshmallow', ext + '.py')])
+        for ext in list_modules(path.join(LIBRARY_DIR, 'marshmallow'))]
+    cmdclass['build_ext'] = build_ext
+
 
 EXTRA_REQUIREMENTS = ['python-dateutil', 'simplejson']
 
@@ -42,6 +80,8 @@ setup(
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
     extras_require={'reco': EXTRA_REQUIREMENTS},
+    cmdclass=cmdclass,
+    ext_modules=ext_modules,
     license=read('LICENSE'),
     zip_safe=False,
     keywords=('serialization', 'rest', 'json', 'api', 'marshal',

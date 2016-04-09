@@ -43,7 +43,7 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     if ordered:
         return sorted(
             fields,
-            key=lambda pair: pair[1]._creation_index,
+            key=lambda pair: pair[1].creation_index,
         )
     else:
         return fields
@@ -867,4 +867,5 @@ class BaseSchema(base.SchemaABC):
 
 
 class Schema(with_metaclass(SchemaMeta, BaseSchema)):
+    __slots__ = ()
     __doc__ = BaseSchema.__doc__

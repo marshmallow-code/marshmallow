@@ -25,6 +25,8 @@ import collections
 
 class OrderedSet(collections.MutableSet):
 
+    __slots__ = ('end', 'map')
+
     def __init__(self, iterable=None):
         self.end = end = []
         end += [None, end, end]         # sentinel node for doubly linked list
