@@ -134,7 +134,8 @@ class SchemaMeta(type):
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
         super(SchemaMeta, self).__init__(name, bases, attrs)
-        class_registry.register(name, self)
+        if name:
+            class_registry.register(name, self)
         self._resolve_processors()
 
     def _resolve_processors(self):
