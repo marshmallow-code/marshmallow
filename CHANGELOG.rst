@@ -1,13 +1,13 @@
 Changelog
 ---------
 
-2.7.1 (unreleased)
+2.7.1 (2016-04-08)
 ++++++++++++++++++
 
 Bug fixes:
 
 - Only add Schemas to class registry if a class name is provided. This allows Schemas to be
-  constructed dynamically using the ``type`` constructor without getting added to the class registry.
+  constructed dynamically using the ``type`` constructor without getting added to the class registry (which is useful for saving memory).
 
 2.7.0 (2016-04-04)
 ++++++++++++++++++
