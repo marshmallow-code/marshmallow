@@ -690,7 +690,7 @@ class Decimal(Number):
         if value is None:
             return None
 
-        num = decimal.Decimal(value)
+        num = decimal.Decimal(str(value))
 
         if self.allow_nan:
             if num.is_nan():
