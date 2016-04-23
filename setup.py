@@ -42,7 +42,7 @@ setup(
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
     extras_require={'reco': EXTRA_REQUIREMENTS},
-    license=read('LICENSE'),
+    license='MIT',
     zip_safe=False,
     keywords=('serialization', 'rest', 'json', 'api', 'marshal',
         'marshalling', 'deserialization', 'validation', 'schema'),
