@@ -10,7 +10,7 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow.utils import SCHEMA, is_collection, missing
+from marshmallow.utils import SCHEMA, is_collection, merge_errors, missing
 from marshmallow.compat import iteritems
 from marshmallow.exceptions import (
     ValidationError,
@@ -182,29 +182,24 @@ class Unmarshaller(ErrorStore):
         except ValidationError as err:
             errors = self.get_errors(index=index)
             self.error_kwargs.update(err.kwargs)
+
             # Store or reraise errors
             if err.field_names:
-                field_names = err.field_names
-                field_objs = [fields_dict[each] if each in fields_dict else None
-                              for each in field_names]
+                all_errors = {}
+                for field_name in err.field_names:
+                    all_errors[field_name] = err.messages
+
+                self.error_field_names = err.field_names
+                self.error_fields = \
+                    [fields_dict[each] if each in fields_dict else None
+                     for each in err.field_names]
             else:
-                field_names = [SCHEMA]
-                field_objs = []
-            self.error_field_names = field_names
-            self.error_fields = field_objs
-            for field_name in field_names:
-                if isinstance(err.messages, (list, tuple)):
-                    # self.errors[field_name] may be a dict if schemas are nested
-                    if isinstance(errors.get(field_name), dict):
-                        errors[field_name].setdefault(
-                            SCHEMA, []
-                        ).extend(err.messages)
-                    else:
-                        errors.setdefault(field_name, []).extend(err.messages)
-                elif isinstance(err.messages, dict):
-                    errors.setdefault(field_name, []).append(err.messages)
-                else:
-                    errors.setdefault(field_name, []).append(text_type(err))
+                all_errors = err.messages
+
+                self.error_field_names = [SCHEMA]
+                self.error_fields = []
+
+            errors.update(merge_errors(errors, all_errors))
 
     def deserialize(self, data, fields_dict, many=False, partial=False,
             dict_class=dict, index_errors=True, index=None):
