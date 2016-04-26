@@ -10,8 +10,8 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow.utils import is_collection, missing
-from marshmallow.compat import text_type, iteritems
+from marshmallow.utils import SCHEMA, is_collection, missing
+from marshmallow.compat import iteritems
 from marshmallow.exceptions import (
     ValidationError,
 )
@@ -160,9 +160,6 @@ class Marshaller(ErrorStore):
 
     # Make an instance callable
     __call__ = serialize
-
-# Key used for schema-level validation errors
-SCHEMA = '_schema'
 
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
