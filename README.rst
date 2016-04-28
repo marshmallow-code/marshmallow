@@ -2,7 +2,7 @@
 marshmallow: simplified object serialization
 ********************************************
 
-|pypi-package| |build-status|
+|pypi-package| |build-status| |docs|
 
 Homepage: http://marshmallow.readthedocs.org/
 
@@ -86,3 +86,6 @@ MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/mars
 .. |build-status| image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=pypi
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
+.. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
+   :target: http://marshmallow.readthedocs.io/
+   :alt: Documentation
