@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.7.2 (2016-04-27)
+++++++++++++++++++
+
+No code changes in this release. This is a reupload in order to distribute an sdist for the last hotfix release. See :issue:`443`.
+
+Support:
+
+- Update license entry in setup.py to fix RPM distributions (:issue:`433`). Thanks :user:`rrajaravi` for reporting.
+
 2.7.1 (2016-04-08)
 ++++++++++++++++++
 
