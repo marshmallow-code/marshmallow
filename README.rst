@@ -2,13 +2,7 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badge.fury.io/py/marshmallow.png
-    :target: http://badge.fury.io/py/marshmallow
-    :alt: Latest version
-
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=pypi
-    :target: https://travis-ci.org/marshmallow-code/marshmallow
-    :alt: Travis-CI
+|pypi-package| |build-status| |docs|
 
 Homepage: http://marshmallow.readthedocs.org/
 
@@ -84,3 +78,14 @@ License
 =======
 
 MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/pypi/LICENSE>`_ file for more details.
+
+
+.. |pypi-package| image:: https://badge.fury.io/py/marshmallow.svg
+    :target: http://badge.fury.io/py/marshmallow
+    :alt: Latest version
+.. |build-status| image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
+    :target: https://travis-ci.org/marshmallow-code/marshmallow
+    :alt: Travis-CI
+.. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
+   :target: http://marshmallow.readthedocs.io/
+   :alt: Documentation
