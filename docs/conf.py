@@ -41,7 +41,7 @@ primary_domain = 'py'
 default_role = 'py:obj'
 
 intersphinx_mapping = {
-    'python': ('http://python.readthedocs.org/en/latest/', None),
+    'python': ('http://python.readthedocs.io/en/latest/', None),
 }
 
 issues_github_path = 'marshmallow-code/marshmallow'

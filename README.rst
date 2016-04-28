@@ -2,15 +2,17 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badge.fury.io/py/marshmallow.png
+.. image:: https://badge.fury.io/py/marshmallow.svg
     :target: http://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=pypi
+.. image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
-Homepage: http://marshmallow.readthedocs.org/
+.. image:: https://readthedocs.org/projects/flask-marshmallow/badge/
+   :target: http://marshmallow.readthedocs.io/
+   :alt: Documentation
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
@@ -55,7 +57,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at http://marshmallow.readthedocs.org/ .
+Full documentation is available at http://marshmallow.readthedocs.io/ .
 
 Requirements
 ============
@@ -75,8 +77,8 @@ https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem
 Project Links
 =============
 
-- Docs: http://marshmallow.readthedocs.org/
-- Changelog: http://marshmallow.readthedocs.org/en/latest/changelog.html
+- Docs: http://marshmallow.readthedocs.io/
+- Changelog: http://marshmallow.readthedocs.io/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 

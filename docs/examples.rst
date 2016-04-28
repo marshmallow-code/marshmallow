@@ -10,7 +10,7 @@ The examples below will use `httpie <http://github.com/jkbr/httpie>`_ (a curl-li
 Text Analysis API (Bottle + TextBlob)
 =====================================
 
-Here is a very simple text analysis API using `Bottle <http://bottlepy.org>`_ and `TextBlob <http://textblob.readthedocs.org/>`_ that demonstrates how to declare an object serializer.
+Here is a very simple text analysis API using `Bottle <http://bottlepy.org>`_ and `TextBlob <http://textblob.readthedocs.io/>`_ that demonstrates how to declare an object serializer.
 
 Assume that ``TextBlob`` objects have ``polarity``, ``subjectivity``, ``noun_phrase``, ``tags``, and ``words`` properties.
 
@@ -154,7 +154,7 @@ We can also GET the quotes for a single author.
 ToDo API (Flask + Peewee)
 =========================
 
-This example uses Flask and the `Peewee <http://peewee.readthedocs.org/en/latest/index.html>`_ ORM to create a basic Todo application.
+This example uses Flask and the `Peewee <http://peewee.readthedocs.io/en/latest/index.html>`_ ORM to create a basic Todo application.
 
 Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize input data to model data. Also notice how `pre_load <marshmallow.decorators.pre_load>` is used to clean input data and `post_load <marshmallow.decorators.post_load>` is used to add an envelope to response data.
 

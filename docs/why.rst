@@ -53,7 +53,7 @@ As an example, you might have a JSON endpoint for retrieving all information abo
 In this example, a single schema produced three different outputs! The dynamic nature of a :class:`Schema` leads to **less code** and **more consistent formatting**.
 
 .. _Django REST Framework: http://www.django-rest-framework.org/
-.. _Flask-RESTful: http://flask-restful.readthedocs.org/
+.. _Flask-RESTful: http://flask-restful.readthedocs.io/
 
 
 Context-aware serialization.
