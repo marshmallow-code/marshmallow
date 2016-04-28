@@ -80,10 +80,10 @@ License
 MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/pypi/LICENSE>`_ file for more details.
 
 
-.. |pypi-package| image:: https://badge.fury.io/py/marshmallow.png
+.. |pypi-package| image:: https://badge.fury.io/py/marshmallow.svg
     :target: http://badge.fury.io/py/marshmallow
     :alt: Latest version
-.. |build-status| image:: https://travis-ci.org/marshmallow-code/marshmallow.png?branch=pypi
+.. |build-status| image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 .. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
