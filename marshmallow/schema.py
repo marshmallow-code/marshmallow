@@ -692,8 +692,8 @@ class BaseSchema(base.SchemaABC):
                     field_obj.load_only = True
                 if field_name in self.dump_only:
                     field_obj.dump_only = True
-                self.on_bind_field(field_name, field_obj)
                 field_obj._add_to_schema(field_name, self)
+                self.on_bind_field(field_name, field_obj)
             except TypeError:
                 # field declared as a class, not an instance
                 if (isinstance(field_obj, type) and
