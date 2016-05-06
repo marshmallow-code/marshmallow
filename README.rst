@@ -27,7 +27,7 @@ marshmallow: simplified object serialization
     class AlbumSchema(Schema):
         title = fields.Str()
         release_date = fields.Date()
-        artist = fields.Nested(ArtistSchema)
+        artist = fields.Nested(ArtistSchema())
 
     bowie = dict(name='David Bowie')
     album = dict(artist=bowie, title='Hunky Dory', release_date=date(1971, 12, 17))
