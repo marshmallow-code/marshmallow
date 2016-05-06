@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+2.7.3 (unreleased)
+++++++++++++++++++
+
+- Make ``field.parent`` and ``field.name`` accessible to ``on_bind_field`` (:issue:`449`). Thanks :user:`immerrr`.
+
 2.7.2 (2016-04-27)
 ++++++++++++++++++
 
