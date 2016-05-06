@@ -303,6 +303,7 @@ def test_on_bind_field_hook():
         foo = fields.Str()
 
         def on_bind_field(self, field_name, field_obj):
+            assert field_obj.parent is self
             field_obj.metadata['fname'] = field_name
 
     schema = MySchema()
