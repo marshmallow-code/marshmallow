@@ -198,7 +198,7 @@ class Range(Validator):
         return value
 
 
-class Length(Range):
+class Length(Validator):
     """Validator which succeeds if the value passed to it has a
     length between a minimum and maximum. Uses len(), so it
     can work for strings, lists, or anything with length.
@@ -225,7 +225,9 @@ class Length(Range):
                 'minimum parameter must not be provided.'
             )
 
-        super(Length, self).__init__(min, max, error)
+        self.min = min
+        self.max = max
+        self.error = error
         self.equal = equal
 
     def _repr_args(self):
