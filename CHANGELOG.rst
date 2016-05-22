@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+3.0.0a1 (unreleased)
+++++++++++++++++++++
+
+- *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
+
 2.7.3 (2016-05-05)
 ++++++++++++++++++
 

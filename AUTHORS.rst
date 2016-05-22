@@ -65,3 +65,4 @@ Contributors (chronological)
 - Mike Yumatov `@yumike <https://github.com/yumike>`_
 - Tim Mundt `@Tim-Erwin <https://github.com/Tim-Erwin>`_
 - Russell Davies `@russelldavies <https://github.com/russelldavies>`_
+- Jared Deckard `@deckar01 <https://github.com/deckar01>`_
