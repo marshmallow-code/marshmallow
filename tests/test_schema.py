@@ -386,8 +386,8 @@ class TestValidate:
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
 def test_fields_are_not_copies(SchemaClass):
-    s = SchemaClass(User('Monty', age=42))
-    s2 = SchemaClass(User('Monty', age=43))
+    s = SchemaClass()
+    s2 = SchemaClass()
     assert s.fields is not s2.fields
 
 
@@ -485,16 +485,6 @@ def test_as_string():
     serialized = UserFloatStringSchema().dump(u)
     assert type(serialized.data['age']) == str
     assert_almost_equal(float(serialized.data['age']), 42.3)
-
-def test_extra():
-    user = User("Joe", email="joe@foo.com")
-    data, errors = UserSchema(extra={"fav_color": "blue"}).dump(user)
-    assert data['fav_color'] == "blue"
-
-def test_extra_many():
-    users = [User('Fred'), User('Brian')]
-    data, errs = UserSchema(many=True, extra={'band': 'Queen'}).dump(users)
-    assert data[0]['band'] == 'Queen'
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
@@ -878,19 +868,7 @@ class MySchema(Schema):
         raise CustomError('Something bad happened')
 
 
-class TestErrorHandler:
-
-    def test_error_handler_decorator_is_deprecated(self):
-
-        def deprecated():
-            class MySchema(Schema):
-                pass
-
-            @MySchema.error_handler
-            def f(*args, **kwargs):
-                pass
-
-        pytest.deprecated_call(deprecated)
+class TestHandleError:
 
     def test_dump_with_custom_error_handler(self, user):
         user.age = 'notavalidage'
@@ -1641,21 +1619,9 @@ class TestFieldInheritance:
 def get_from_dict(schema, key, obj, default=None):
     return obj.get('_' + key, default)
 
-class TestAccessor:
+class TestGetAttribute:
 
-    def test_accessor_decorator_is_deprecated(self):
-
-        def deprecated():
-            class MySchema(Schema):
-                pass
-
-            @MySchema.accessor
-            def f(*args, **kwargs):
-                pass
-
-        pytest.deprecated_call(deprecated)
-
-    def test_accessor_is_used(self):
+    def test_get_attribute_is_used(self):
         class UserDictSchema(Schema):
             name = fields.Str()
             email = fields.Email()
@@ -1674,7 +1640,7 @@ class TestAccessor:
         with pytest.raises(AttributeError):
             schema.dump(user)
 
-    def test_accessor_with_many(self):
+    def test_get_attribute_with_many(self):
         class UserDictSchema(Schema):
             name = fields.Str()
             email = fields.Email()

@@ -534,8 +534,7 @@ class TestFieldDeserialization:
 
             def uppercase_name(self, obj):
                 return obj.upper()
-        user = User(name='steve')
-        s = MiniUserSchema(user)
+        s = MiniUserSchema()
         assert s.fields['uppername'].deserialize('steve') == 'steve'
 
     def test_deserialization_method(self):

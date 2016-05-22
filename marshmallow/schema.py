@@ -235,7 +235,6 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
         fields will be serialized.
     :param tuple exclude: A list or tuple of fields to exclude from the
@@ -281,11 +280,6 @@ class BaseSchema(base.SchemaABC):
 
     OPTIONS_CLASS = SchemaOpts
 
-    #: DEPRECATED: Custom error handler function. May be `None`.
-    __error_handler__ = None
-    #: DEPRECATED: Function used to get values of an object.
-    __accessor__ = None
-
     class Meta(object):
         """Options object for a Schema.
 
@@ -322,7 +316,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
+    def __init__(self, only=(), exclude=(), prefix='', strict=False,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -344,13 +338,6 @@ class BaseSchema(base.SchemaABC):
         )
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
-        if extra:
-            warnings.warn(
-                'The `extra` argument is deprecated. Use a post_dump '
-                'method to add additional data instead.',
-                DeprecationWarning
-            )
-        self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)
 
@@ -360,17 +347,9 @@ class BaseSchema(base.SchemaABC):
         )
 
     def _postprocess(self, data, many, obj):
-        if self.extra:
-            if many:
-                for each in data:
-                    each.update(self.extra)
-            else:
-                data.update(self.extra)
         if self._marshal.errors:
-            # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self.handle_error or self.__error_handler__
-            if callable(error_handler):
-                error_handler(self._marshal.errors, obj)
+            # User-defined error handler
+            self.handle_error(self._marshal.errors, obj)
 
         return data
 
@@ -401,56 +380,6 @@ class BaseSchema(base.SchemaABC):
         """
         return utils.get_value(attr, obj, default)
 
-    ##### Handler decorators (deprecated) #####
-
-    @classmethod
-    def error_handler(cls, func):
-        """Decorator that registers an error handler function for the schema.
-        The function receives the :class:`Schema` instance, a dictionary of errors,
-        and the serialized object (if serializing data) or data dictionary (if
-        deserializing data) as arguments.
-
-        Example: ::
-
-            class UserSchema(Schema):
-                email = fields.Email()
-
-            @UserSchema.error_handler
-            def handle_errors(schema, errors, obj):
-                raise ValueError('An error occurred while marshalling {}'.format(obj))
-
-            user = User(email='invalid')
-            UserSchema().dump(user)  # => raises ValueError
-            UserSchema().load({'email': 'bademail'})  # raises ValueError
-
-        .. versionadded:: 0.7.0
-        .. deprecated:: 2.0.0
-            Set the ``error_handler`` class Meta option instead.
-        """
-        warnings.warn(
-            'Schema.error_handler is deprecated. Set the error_handler class Meta option '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__error_handler__ = func
-        return func
-
-    @classmethod
-    def accessor(cls, func):
-        """Decorator that registers a function for pulling values from an object
-        to serialize. The function receives the :class:`Schema` instance, the
-        ``key`` of the value to get, the ``obj`` to serialize, and an optional
-        ``default`` value.
-
-        .. deprecated:: 2.0.0
-            Set the ``error_handler`` class Meta option instead.
-        """
-        warnings.warn(
-            'Schema.accessor is deprecated. Set the accessor class Meta option '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__accessor__ = func
-        return func
-
     ##### Serialization/Deserialization API #####
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
@@ -469,11 +398,6 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 1.0.0
         """
         many = self.many if many is None else bool(many)
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
-            warnings.warn('Implicit collection handling is deprecated. Set '
-                            'many=True to serialize a collection.',
-                            category=DeprecationWarning)
-
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
@@ -487,8 +411,7 @@ class BaseSchema(base.SchemaABC):
                 processed_obj,
                 self.fields,
                 many=many,
-                # TODO: Remove self.__accessor__ in a later release
-                accessor=self.get_attribute or self.__accessor__,
+                accessor=self.get_attribute,
                 dict_class=self.dict_class,
                 index_errors=self.opts.index_errors,
                 **kwargs
@@ -628,9 +551,6 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as err:
             errors.update(err.messages)
         if errors:
-            # TODO: Remove self.__error_handler__ in a later release
-            if self.__error_handler__ and callable(self.__error_handler__):
-                self.__error_handler__(errors, data)
             exc = ValidationError(
                 errors,
                 field_names=self._unmarshal.error_field_names,
