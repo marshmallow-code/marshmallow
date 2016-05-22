@@ -235,7 +235,6 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
         fields will be serialized.
     :param tuple exclude: A list or tuple of fields to exclude from the
@@ -317,7 +316,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
+    def __init__(self, only=(), exclude=(), prefix='', strict=False,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -339,13 +338,6 @@ class BaseSchema(base.SchemaABC):
         )
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
-        if extra:
-            warnings.warn(
-                'The `extra` argument is deprecated. Use a post_dump '
-                'method to add additional data instead.',
-                DeprecationWarning
-            )
-        self.extra = extra
         self.context = context or {}
         self._update_fields(many=many)
 
@@ -355,12 +347,6 @@ class BaseSchema(base.SchemaABC):
         )
 
     def _postprocess(self, data, many, obj):
-        if self.extra:
-            if many:
-                for each in data:
-                    each.update(self.extra)
-            else:
-                data.update(self.extra)
         if self._marshal.errors:
             # User-defined error handler
             self.handle_error(self._marshal.errors, obj)

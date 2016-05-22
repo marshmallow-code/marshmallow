@@ -386,8 +386,8 @@ class TestValidate:
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
 def test_fields_are_not_copies(SchemaClass):
-    s = SchemaClass(User('Monty', age=42))
-    s2 = SchemaClass(User('Monty', age=43))
+    s = SchemaClass()
+    s2 = SchemaClass()
     assert s.fields is not s2.fields
 
 
@@ -485,16 +485,6 @@ def test_as_string():
     serialized = UserFloatStringSchema().dump(u)
     assert type(serialized.data['age']) == str
     assert_almost_equal(float(serialized.data['age']), 42.3)
-
-def test_extra():
-    user = User("Joe", email="joe@foo.com")
-    data, errors = UserSchema(extra={"fav_color": "blue"}).dump(user)
-    assert data['fav_color'] == "blue"
-
-def test_extra_many():
-    users = [User('Fred'), User('Brian')]
-    data, errs = UserSchema(many=True, extra={'band': 'Queen'}).dump(users)
-    assert data[0]['band'] == 'Queen'
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
