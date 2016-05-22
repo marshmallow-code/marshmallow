@@ -4,6 +4,12 @@ Changelog
 3.0.0a1 (unreleased)
 ++++++++++++++++++++
 
+Features:
+
+- ``dump_only`` and ``load_only`` for ``Function`` and ``Method`` are set based on ``serialize`` and ``deserialize`` arguments (:issue:`328`).
+
+Other changes:
+
 - *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
 
 Deprecation/Removals:

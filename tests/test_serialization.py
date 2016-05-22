@@ -344,6 +344,16 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
 
+    def test_method_field_passed_serialize_only_is_dump_only(self, user):
+        field = fields.Method(serialize='method')
+        assert field.dump_only is True
+        assert field.load_only is False
+
+    def test_method_field_passed_deserialize_only_is_load_only(self):
+        field = fields.Method(deserialize='somemethod')
+        assert field.load_only is True
+        assert field.dump_only is False
+
     def test_method_field_with_uncallable_attribute(self):
         class BadSerializer(Schema):
             foo = 'not callable'

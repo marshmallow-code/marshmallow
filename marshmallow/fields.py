@@ -1124,9 +1124,12 @@ class Method(Field):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, serialize=None, deserialize=None, **kwargs):
+        # Set dump_only and load_only based on arguments
+        kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
+        kwargs['load_only'] = bool(deserialize) and not bool(serialize)
+        super(Method, self).__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
-        super(Method, self).__init__(**kwargs)
 
     def _serialize(self, value, attr, obj):
         if not self.serialize_method_name:
