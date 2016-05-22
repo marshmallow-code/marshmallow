@@ -9,6 +9,7 @@ Changelog
 Deprecation/Removals:
 
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
+- Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`).
 
 2.7.3 (2016-05-05)
 ++++++++++++++++++

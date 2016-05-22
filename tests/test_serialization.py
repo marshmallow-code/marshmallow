@@ -65,9 +65,6 @@ class TestFieldSerialization:
         field = fields.Function(serialize=lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
 
-    def test_function_field_passed_func_is_deprecated(self):
-        pytest.deprecated_call(lambda: fields.Function(func=lambda obj: obj.name.upper()))
-
     def test_function_field_passed_serialize_with_context(self, user, monkeypatch):
         class Parent(Schema):
             pass
@@ -339,10 +336,6 @@ class TestFieldSerialization:
         u = User('Foo')
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
-
-    def test_method_prefers_serialize_over_method_name(self):
-        m = fields.Method(serialize='serialize', method_name='method')
-        assert m.serialize_method_name == 'serialize'
 
     def test_method_with_no_serialize_is_missing(self):
         m = fields.Method()
