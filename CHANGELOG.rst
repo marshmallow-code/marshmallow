@@ -6,6 +6,10 @@ Changelog
 
 - *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
 
+Deprecation/Removals:
+
+- Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
+
 2.7.3 (2016-05-05)
 ++++++++++++++++++
 

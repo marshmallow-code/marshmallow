@@ -878,19 +878,7 @@ class MySchema(Schema):
         raise CustomError('Something bad happened')
 
 
-class TestErrorHandler:
-
-    def test_error_handler_decorator_is_deprecated(self):
-
-        def deprecated():
-            class MySchema(Schema):
-                pass
-
-            @MySchema.error_handler
-            def f(*args, **kwargs):
-                pass
-
-        pytest.deprecated_call(deprecated)
+class TestHandleError:
 
     def test_dump_with_custom_error_handler(self, user):
         user.age = 'notavalidage'
@@ -1641,21 +1629,9 @@ class TestFieldInheritance:
 def get_from_dict(schema, key, obj, default=None):
     return obj.get('_' + key, default)
 
-class TestAccessor:
+class TestGetAttribute:
 
-    def test_accessor_decorator_is_deprecated(self):
-
-        def deprecated():
-            class MySchema(Schema):
-                pass
-
-            @MySchema.accessor
-            def f(*args, **kwargs):
-                pass
-
-        pytest.deprecated_call(deprecated)
-
-    def test_accessor_is_used(self):
+    def test_get_attribute_is_used(self):
         class UserDictSchema(Schema):
             name = fields.Str()
             email = fields.Email()
@@ -1674,7 +1650,7 @@ class TestAccessor:
         with pytest.raises(AttributeError):
             schema.dump(user)
 
-    def test_accessor_with_many(self):
+    def test_get_attribute_with_many(self):
         class UserDictSchema(Schema):
             name = fields.Str()
             email = fields.Email()
