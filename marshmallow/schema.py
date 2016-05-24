@@ -650,11 +650,13 @@ class BaseSchema(base.SchemaABC):
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
         if self.only:
+            # Include fields and the parents of nested fields.
+            only = self.set_class([field.split('.')[0] for field in self.only])
             # Return only fields specified in only option
             if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
+                field_names = self.set_class(self.opts.fields) & self.set_class(only)
             else:
-                field_names = self.set_class(self.only)
+                field_names = self.set_class(only)
         elif self.opts.fields:
             # Return fields specified in fields option
             field_names = self.set_class(self.opts.fields)
@@ -668,12 +670,28 @@ class BaseSchema(base.SchemaABC):
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
-            field_names = field_names - excludes
+            # Exclude field names, but not the parents of nested fields.
+            nested_fields = set([field for field in excludes if '.' in field])
+            field_names = field_names - (excludes - nested_fields)
         ret = self.__filter_fields(field_names, obj, many=many)
+        self.__update_nested_fields('only', self.only or (), ret, obj)
+        self.__update_nested_fields('exclude', excludes, ret, obj)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
         return self.fields
+
+    def __update_nested_fields(self, schema_option, field_names, fields, obj):
+        """Update the schema options of nested fields"""
+        # Split nested field names on the first dot.
+        nested_fields = [name.split('.', 1) for name in field_names if '.' in name]
+        # Partition the nested filed names by parent field.
+        nested_options = defaultdict(list)
+        for parent, nested_names in nested_fields:
+            nested_options[parent].append(nested_names)
+        # Add the nested field options.
+        for key, options in iter(nested_options.items()):
+            setattr(fields[key], schema_option, self.set_class(options))
 
     def on_bind_field(self, field_name, field_obj):
         """Hook to modify a field when it is bound to the `Schema`. No-op by default."""
