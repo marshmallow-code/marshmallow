@@ -1527,6 +1527,22 @@ class TestContext:
         msg = 'No context available for Function field {0!r}'.format('is_collab')
         assert msg in str(excinfo)
 
+    def test_function_field_handles_bound_serializer(self):
+        class SerializeA(object):
+            def __call__(self, value):
+                return 'value'
+        serialize = SerializeA()
+        # only has a function field
+        class UserFunctionContextSchema(Schema):
+            is_collab = fields.Function(serialize)
+
+        owner = User('Joe')
+        serializer = UserFunctionContextSchema(strict=True)
+        # no context
+        serializer.context = None
+        data = serializer.dump(owner)[0]
+        assert data['is_collab'] is 'value'
+
     def test_fields_context(self):
         class CSchema(Schema):
             name = fields.String()
