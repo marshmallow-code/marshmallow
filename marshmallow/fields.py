@@ -364,6 +364,7 @@ class Nested(Field):
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
         self.nested = nested
         self.only = only
+        self.only_explicit = None
         self.exclude = exclude
         self.many = kwargs.get('many', False)
         self.__schema = None  # Cached Schema instance
@@ -382,10 +383,11 @@ class Nested(Field):
             only = (self.only, )
         else:
             only = self.only
+        only = self.only_explicit or only
 
         # Inherit context from parent.
         context = getattr(self.parent, 'context', {})
-        if not self.__schema:
+        if not self.__schema or self.__schema.only != only:
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
