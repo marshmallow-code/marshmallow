@@ -5,6 +5,7 @@ Changelog
 ++++++++++++++++++++
 
 - *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
+- Drop support for Python<=2.6.
 
 Deprecation/Removals:
 

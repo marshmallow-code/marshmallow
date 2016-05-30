@@ -4,7 +4,7 @@
 import simplejson as json
 import decimal
 import random
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 import pytest
 
@@ -13,7 +13,6 @@ from marshmallow import (
     validates, validates_schema
 )
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import OrderedDict
 
 from tests.base import *  # noqa
 

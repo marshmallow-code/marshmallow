@@ -10,12 +10,11 @@ import inspect
 import json
 import uuid
 import warnings
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict)
+from marshmallow.compat import with_metaclass, iteritems, text_type, binary_type
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,

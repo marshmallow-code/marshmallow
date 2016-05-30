@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
+
 import pytest
 
 from marshmallow import fields, Schema
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import OrderedDict
 
 from tests.base import *  # noqa
 

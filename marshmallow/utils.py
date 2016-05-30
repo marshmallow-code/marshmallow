@@ -14,7 +14,7 @@ from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
-from marshmallow.compat import OrderedDict, binary_type, text_type
+from marshmallow.compat import binary_type, text_type
 
 
 dateutil_available = False
@@ -126,7 +126,7 @@ def pprint(obj, *args, **kwargs):
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
     """
-    if isinstance(obj, OrderedDict):
+    if isinstance(obj, collections.OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
