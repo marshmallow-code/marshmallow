@@ -10,7 +10,7 @@ marshmallow: simplified object serialization
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
-.. image:: https://readthedocs.org/projects/flask-marshmallow/badge/
+.. image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: http://marshmallow.readthedocs.io/
    :alt: Documentation
 
