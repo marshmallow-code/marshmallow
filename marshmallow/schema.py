@@ -237,9 +237,9 @@ class BaseSchema(base.SchemaABC):
 
     :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
-        fields will be serialized.
+        fields will be serialized. Nested fields can be represented with dot delimiters.
     :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result.
+        serialized result. Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If `True`, raise errors if invalid data are passed in
@@ -306,6 +306,7 @@ class BaseSchema(base.SchemaABC):
             use this option, e.g., if your fields are Python keywords. May be an
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
+            Nested fields can be represented with dot delimiters.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
