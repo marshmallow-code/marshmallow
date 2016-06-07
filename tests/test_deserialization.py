@@ -88,8 +88,9 @@ class TestFieldDeserialization:
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = 'abc'
-        m5 = [1, 2]
+        m4 = 3.14
+        m5 = 'abc'
+        m6 = [1, 2]
 
         field = fields.Decimal()
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -98,11 +99,13 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.355')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        with pytest.raises(ValidationError) as excinfo:
-            field.deserialize(m4)
-        assert excinfo.value.args[0] == 'Not a valid number.'
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4).as_tuple() == (0, (3, 1, 4), -2)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Not a valid number.'
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(m6)
         assert excinfo.value.args[0] == 'Not a valid number.'
 
     def test_decimal_field_with_places(self):
