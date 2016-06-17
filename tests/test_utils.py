@@ -5,6 +5,7 @@ from functools import partial
 
 import pytest
 
+from marshmallow.exceptions import ValidationError
 from marshmallow import utils
 from tests.base import (
     assert_datetime_equal,
@@ -341,3 +342,62 @@ class TestMergeErrors:
         assert {'field1': {'field2': ['error1', 'error2']}} == \
             utils.merge_errors({'field1': {'field2': 'error1'}},
                                {'field1': {'field2': 'error2'}})
+
+
+class TestValidationErrorBuilder:
+
+    def test_empty_errors(self):
+        builder = utils.ValidationErrorBuilder()
+        assert {} == builder.errors
+
+    def test_adding_field_error(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error('foo', 'error 1')
+        assert {'foo': 'error 1'} == builder.errors
+
+    def test_adding_multiple_errors(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error('foo', 'error 1')
+        builder.add_error('bar', 'error 2')
+        builder.add_error('bam', 'error 3')
+        assert {'foo': 'error 1', 'bar': 'error 2', 'bam': 'error 3'} == \
+            builder.errors
+
+    def test_adding_nested_errors(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error('foo.bar', 'error 1')
+        assert {'foo': {'bar': 'error 1'}} == builder.errors
+
+    def test_adding_multiple_nested_errors_described_with_string_path(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error('foo.bar', 'error 1')
+        builder.add_error('foo.baz.bam', 'error 2')
+        builder.add_error('quux', 'error 3')
+        assert {'foo': {'bar': 'error 1', 'baz': {'bam': 'error 2'}},
+                'quux': 'error 3'} == builder.errors
+
+    def test_adding_multiple_nested_errors_described_with_list(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error(['foo', 'bar'], 'error 1')
+        builder.add_error(['foo', 'baz', 'bam'], 'error 2')
+        builder.add_error('quux', 'error 3')
+        assert {'foo': {'bar': 'error 1', 'baz': {'bam': 'error 2'}},
+                'quux': 'error 3'} == builder.errors
+
+    def test_adding_merging_errors(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.merge_errors({'foo': {'bar': 'error 1'}})
+        builder.merge_errors({'foo': {'baz': 'error 2'}})
+        assert {'foo': {'bar': 'error 1', 'baz': 'error 2'}} == builder.errors
+
+    def test_raise_errors_on_empty_builder_does_nothing(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.raise_errors()
+
+    def test_raise_errors_on_non_empty_builder_raises_ValidationError(self):
+        builder = utils.ValidationErrorBuilder()
+        builder.add_error('foo', 'error 1')
+        with pytest.raises(ValidationError) as excinfo:
+            builder.raise_errors()
+
+        assert excinfo.value.messages == builder.errors
