@@ -318,7 +318,7 @@ class BaseSchema(base.SchemaABC):
         - ``index_errors``: If `True`, errors dictionaries will include the index
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
-        - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``dump_only``: Tuple or list of fields to exclude from deserialization.
         """
         pass
 
@@ -471,8 +471,8 @@ class BaseSchema(base.SchemaABC):
         many = self.many if many is None else bool(many)
         if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
-                            'many=True to serialize a collection.',
-                            category=DeprecationWarning)
+                          'many=True to serialize a collection.',
+                          category=DeprecationWarning)
 
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
@@ -647,21 +647,37 @@ class BaseSchema(base.SchemaABC):
 
         return result, errors
 
+    def _get_only_fields(self):
+        """Get the fields that should only be serialized."""
+        if not self.only:
+            return None, {}
+        direct_fields = []
+        nested_fields = {}
+        for field in self.only:
+            if isinstance(field, (tuple, list)):
+                direct_fields.append(field[0])
+                nested_fields[field[0]] = field[1]
+            else:
+                direct_fields.append(field)
+        return direct_fields, nested_fields
+
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        if self.only:
+        only_direct, only_nested = self._get_only_fields()
+        if only_direct:
             # Return only fields specified in only option
             if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
+                field_names = (self.set_class(self.opts.fields) &
+                               self.set_class(only_direct))
             else:
-                field_names = self.set_class(self.only)
+                field_names = self.set_class(only_direct)
         elif self.opts.fields:
             # Return fields specified in fields option
             field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
             # Return declared fields + additional fields
             field_names = (self.set_class(self.declared_fields.keys()) |
-                            self.set_class(self.opts.additional))
+                           self.set_class(self.opts.additional))
         else:
             field_names = self.set_class(self.declared_fields.keys())
 
@@ -670,6 +686,11 @@ class BaseSchema(base.SchemaABC):
         if excludes:
             field_names = field_names - excludes
         ret = self.__filter_fields(field_names, obj, many=many)
+        # Set nested only parameters overriding the only parameters declared on the fields
+        for field_name, field in [(fn, f) for fn, f in ret.items() if hasattr(f, 'only')]:
+            field.only_explicit = None
+            if field_name in only_nested:
+                field.only_explicit = only_nested[field_name]
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
