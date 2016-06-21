@@ -1,5 +1,5 @@
 # Task execution
-invoke
+invoke>=0.13.0
 
 # Soft dependencies
 python-dateutil
