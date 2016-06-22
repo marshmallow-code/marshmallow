@@ -237,9 +237,9 @@ class BaseSchema(base.SchemaABC):
 
     :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
-        fields will be serialized.
+        fields will be serialized. Nested fields can be represented with dot delimiters.
     :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result.
+        serialized result. Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If `True`, raise errors if invalid data are passed in
@@ -306,6 +306,7 @@ class BaseSchema(base.SchemaABC):
             use this option, e.g., if your fields are Python keywords. May be an
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
+            Nested fields can be represented with dot delimiters.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
@@ -352,6 +353,7 @@ class BaseSchema(base.SchemaABC):
             )
         self.extra = extra
         self.context = context or {}
+        self._normalize_nested_options()
         self._update_fields(many=many)
 
     def __repr__(self):
@@ -646,6 +648,39 @@ class BaseSchema(base.SchemaABC):
             result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
 
         return result, errors
+
+    def _normalize_nested_options(self):
+        """Apply then flatten nested schema options"""
+        if self.only:
+            # Apply the only option to nested fields.
+            self.__apply_nested_option('only', self.only)
+            # Remove the child field names from the only option.
+            self.only = self.set_class(
+                [field.split('.', 1)[0] for field in self.only])
+        excludes = set(self.opts.exclude) | set(self.exclude)
+        if excludes:
+            # Apply the exclude option to nested fields.
+            self.__apply_nested_option('exclude', excludes)
+        if self.exclude:
+            # Remove the parent field names from the exclude option.
+            self.exclude = self.set_class(
+                [field for field in self.exclude if '.' not in field])
+        if self.opts.exclude:
+            # Remove the parent field names from the meta exclude option.
+            self.opts.exclude = self.set_class(
+                [field for field in self.opts.exclude if '.' not in field])
+
+    def __apply_nested_option(self, option_name, field_names):
+        """Apply nested options to nested fields"""
+        # Split nested field names on the first dot.
+        nested_fields = [name.split('.', 1) for name in field_names if '.' in name]
+        # Partition the nested field names by parent field.
+        nested_options = defaultdict(list)
+        for parent, nested_names in nested_fields:
+            nested_options[parent].append(nested_names)
+        # Apply the nested field options.
+        for key, options in iter(nested_options.items()):
+            setattr(self.declared_fields[key], option_name, self.set_class(options))
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
