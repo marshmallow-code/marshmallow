@@ -11,6 +11,7 @@ Features:
 Other changes:
 
 - *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
+- *Backwards-incompatible*: ``utils.get_func_args`` no longer returns bound arguments. This is consistent with the behavior of ``inspect.signature``. This change prevents a DeprecationWarning on Python 3.5 (:issue:`415`, :issue:`479`). Thanks :user:`deckar01` for the PR.
 - Drop support for Python<=2.6.
 
 Deprecation/Removals:
