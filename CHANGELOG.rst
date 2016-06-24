@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+2.8.0 (2016-06-23)
+++++++++++++++++++
+
+Features:
+
+- Allow ``only`` and ``exclude`` parameters to take nested fields, using dot-delimited syntax (e.g. ``only=['blog.author.email']``) (:issue:`402`). Thanks :user:`Tim-Erwin` and :user:`deckar01` for the discussion and implementation.
+
+Support:
+
+- Update tasks.py for compatibility with invoke>=0.13.0. Thanks :user:`deckar01`.
+
 2.7.3 (2016-05-05)
 ++++++++++++++++++
 
