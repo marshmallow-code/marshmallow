@@ -1631,7 +1631,7 @@ class TestFieldInheritance:
             field_d = expected['field_d']
         assert SerializerD._declared_fields == expected
 
-def get_from_dict(schema, key, obj, default=None):
+def get_from_dict(schema, obj, key, default=None):
     return obj.get('_' + key, default)
 
 class TestGetAttribute:
@@ -1641,8 +1641,8 @@ class TestGetAttribute:
             name = fields.Str()
             email = fields.Email()
 
-            def get_attribute(self, attr, obj, default):
-                return get_from_dict(self, attr, obj, default)
+            def get_attribute(self, obj, attr, default):
+                return get_from_dict(self, obj, attr, default)
 
         user_dict = {'_name': 'joe', '_email': 'joe@shmoe.com'}
         schema = UserDictSchema()
@@ -1660,8 +1660,8 @@ class TestGetAttribute:
             name = fields.Str()
             email = fields.Email()
 
-            def get_attribute(self, attr, obj, default):
-                return get_from_dict(self, attr, obj, default)
+            def get_attribute(self, obj, attr, default):
+                return get_from_dict(self, obj, attr, default)
 
         user_dicts = [{'_name': 'joe', '_email': 'joe@shmoe.com'},
                       {'_name': 'jane', '_email': 'jane@shmane.com'}]
