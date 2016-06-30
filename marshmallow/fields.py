@@ -659,6 +659,16 @@ class Decimal(Number):
         a JSON library that can handle decimals, such as `simplejson`, or serialize
         to a string by passing ``as_string=True``.
 
+    .. warning::
+
+        If a JSON `float` value is passed to this field for deserialization it will
+        first be cast to its corresponding `string` value before being deserialized
+        to a `decimal.Decimal` object. The default `__str__` implementation of the
+        built-in Python `float` type may apply a destructive transformation upon
+        its input data and therefore cannot be relied upon to preserve precision.
+        To avoid this, you can instead pass a JSON `string` to be deserialized
+        directly.
+
     :param int places: How many decimal places to quantize the value. If `None`, does
         not quantize the value.
     :param rounding: How to round the value during quantize, for example
