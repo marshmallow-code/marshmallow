@@ -298,23 +298,23 @@ def pluck(dictlist, key):
 
 # Various utilities for pulling keyed values from objects
 
-def get_value(key, obj, default=missing):
+def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
     if isinstance(key, int):
-        return _get_value_for_key(key, obj, default)
+        return _get_value_for_key(obj, key, default)
     else:
-        return _get_value_for_keys(key.split('.'), obj, default)
+        return _get_value_for_keys(obj, key.split('.'), default)
 
 
-def _get_value_for_keys(keys, obj, default):
+def _get_value_for_keys(obj, keys, default):
     if len(keys) == 1:
-        return _get_value_for_key(keys[0], obj, default)
+        return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            keys[1:], _get_value_for_key(keys[0], obj, default), default)
+            _get_value_for_key(obj, keys[0], default), keys[1:], default)
 
 
-def _get_value_for_key(key, obj, default):
+def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
     except (KeyError, AttributeError, IndexError, TypeError):

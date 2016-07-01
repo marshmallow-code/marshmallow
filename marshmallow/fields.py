@@ -175,14 +175,14 @@ class Field(FieldABC):
                 'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
-    def get_value(self, attr, obj, accessor=None, default=missing_):
+    def get_value(self, obj, attr, accessor=None, default=missing_):
         """Return the value for a given key from an object."""
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
         accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
-        return accessor_func(check_key, obj, default)
+        return accessor_func(obj, check_key, default)
 
     def _validate(self, value):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -238,7 +238,7 @@ class Field(FieldABC):
         :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
-            value = self.get_value(attr, obj, accessor=accessor)
+            value = self.get_value(obj, attr, accessor=accessor)
             if value is missing_:
                 if hasattr(self, 'default'):
                     if callable(self.default):
@@ -509,16 +509,16 @@ class List(Field):
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
-    def get_value(self, attr, obj, accessor=None):
+    def get_value(self, obj, attr, accessor=None):
         """Return the value for a given key from an object."""
-        value = super(List, self).get_value(attr, obj, accessor=accessor)
+        value = super(List, self).get_value(obj, attr, accessor=accessor)
         if self.container.attribute:
             if utils.is_collection(value):
                 return [
-                    self.container.get_value(self.container.attribute, each)
+                    self.container.get_value(each, self.container.attribute)
                     for each in value
                 ]
-            return self.container.get_value(self.container.attribute, value)
+            return self.container.get_value(value, self.container.attribute)
         return value
 
     def _add_to_schema(self, field_name, schema):

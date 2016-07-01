@@ -372,12 +372,12 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def get_attribute(self, attr, obj, default):
+    def get_attribute(self, obj, attr, default):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
         """
-        return utils.get_value(attr, obj, default)
+        return utils.get_value(obj, attr, default)
 
     ##### Serialization/Deserialization API #####
 
