@@ -192,7 +192,7 @@ class Field(FieldABC):
         kwargs = {}
         for validator in self.validators:
             try:
-                if validator(value) is False:
+                if validator(value) is False and value is not False:
                     self.fail('validator_failed')
             except ValidationError as err:
                 kwargs.update(err.kwargs)
