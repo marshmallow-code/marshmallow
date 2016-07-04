@@ -630,6 +630,12 @@ class BaseSchema(base.SchemaABC):
                                     field_errors=field_errors)
         except ValidationError as err:
             errors.update(err.messages)
+        # Run post processors
+        if not errors and postprocess:
+            try:
+                result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
+            except ValidationError as err:
+                errors.update(err.messages)
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             if self.__error_handler__ and callable(self.__error_handler__):
@@ -644,9 +650,6 @@ class BaseSchema(base.SchemaABC):
             self.handle_error(exc, data)
             if self.strict:
                 raise exc
-
-        if not errors and postprocess:
-            result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
 
         return result, errors
 

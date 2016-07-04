@@ -530,3 +530,23 @@ class TestValidatesSchemaDecorator:
         errors = schema.validate([{'foo': 3, 'bar': 'not an int'}], many=True)
         assert 'bar' in errors[0]
         assert '_schema' not in errors
+
+def test_load_error_handling():
+    class ExampleSchema(Schema):
+        @post_load()
+        def post_load_error1(self, item):
+            errors = {
+              'foo' : ['msg1',],
+              'bar' : ['msg2', 'msg3'],
+            }
+            raise ValidationError(errors)
+
+    schema = ExampleSchema()
+    data, errors = schema.load({})
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'msg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'msg2' in errors['bar']
+    assert 'msg3' in errors['bar']

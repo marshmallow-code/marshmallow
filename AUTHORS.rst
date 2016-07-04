@@ -67,3 +67,4 @@ Contributors (chronological)
 - Russell Davies `@russelldavies <https://github.com/russelldavies>`_
 - David Thornton `@davidthornton <https://github.com/davidthornton>`_
 - Vuong Hoang `@vuonghv <https://github.com/vuonghv>`_
+- David Bertouille `@dbertouille <https://github.com/dbertouille>`_
