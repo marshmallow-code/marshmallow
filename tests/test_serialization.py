@@ -388,6 +388,17 @@ class TestFieldSerialization:
         assert field.serialize('various_data', user) == \
             OrderedDict([("foo", "bar"), ("bar", "baz")])
 
+    def test_structured_dict_value_serialize(self, user):
+        user.various_data = {"foo": decimal.Decimal('1')}
+        field = fields.Dict(values=fields.Decimal)
+        assert field.serialize('various_data', user) == {"foo": 1}
+
+    def test_structured_dict_validates(self, user):
+        user.various_data = {"foo": "bar"}
+        field = fields.Dict(values=fields.Decimal)
+        with pytest.raises(ValidationError):
+            field.serialize('various_data', user)
+
     def test_url_field_serialize_none(self, user):
         user.homepage = None
         field = fields.Url()

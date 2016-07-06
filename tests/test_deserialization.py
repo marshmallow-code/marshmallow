@@ -542,6 +542,13 @@ class TestFieldDeserialization:
             field.deserialize('baddict')
         assert excinfo.value.args[0] == 'Not a valid mapping type.'
 
+    def test_structured_dict_value_deserialization(self):
+        field = fields.Dict(values=fields.Str)
+        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo": 1})
+        assert excinfo.value.args[0] == {'foo': ['Invalid value: Not a valid string.']}
+
     def test_url_field_deserialization(self):
         field = fields.Url()
         assert field.deserialize('https://duckduckgo.com') == 'https://duckduckgo.com'

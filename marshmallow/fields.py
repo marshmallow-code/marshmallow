@@ -1125,12 +1125,19 @@ class TimeDelta(Field):
 
 
 class Dict(Field):
-    """A dict field. Supports dicts and dict-like objects.
+    """A dict field. Supports dicts and dict-like objects. Optionally composed
+    with another `Field` class or instance.
+
+    Example: ::
+
+        numbers = fields.Dict(values=fields.Float())
+
+    :param Field values: A field class or instance for dict values.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. note::
-        This field is only appropriate when the structure of
-        nested data is not known. For structured data, use
-        `Nested`.
+        When the structure of nested data is not known, you may omit the
+        schema argument to prevent content validation.
 
     .. versionadded:: 2.1.0
     """
@@ -1139,11 +1146,54 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.'
     }
 
-    def _deserialize(self, value, attr, data):
-        if isinstance(value, collections.Mapping):
-            return value
+    def __init__(self, values=None, **kwargs):
+        super(Dict, self).__init__(**kwargs)
+        if values is None:
+            self.value_container = None
+        elif isinstance(values, type):
+            if not issubclass(values, FieldABC):
+                raise ValueError('The type of the dict elements '
+                                 'must be a subclass of '
+                                 'marshmallow.base.FieldABC')
+            self.value_container = values()
         else:
+            if not isinstance(values, FieldABC):
+                raise ValueError('The instances of the dict '
+                                 'elements must be of type '
+                                 'marshmallow.base.FieldABC')
+            self.value_container = values
+
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
+        if not self.value_container and not self.key_container:
+            return value
+        if isinstance(value, collections.Mapping):
+            return {
+                key: self.container._serialize(item, attr, obj)
+                for key, item in value.items()
+            }
+        self.fail('invalid')
+
+    def _deserialize(self, value, attr, data):
+        if not isinstance(value, collections.Mapping):
             self.fail('invalid')
+        if not self.value_container and not self.key_container:
+            return value
+
+        result = {}
+        errors = {}
+        for key, item in value.items():
+            try:
+                result.update({key: self.container.deserialize(item)})
+            except ValidationError as e:
+                result.update({key: e.messages})
+                errors.update({key: e.messages})
+
+        if errors:
+            raise ValidationError(errors, data=result)
+
+        return result
 
 
 class ValidatedField(Field):
