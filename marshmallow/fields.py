@@ -192,7 +192,7 @@ class Field(FieldABC):
         kwargs = {}
         for validator in self.validators:
             try:
-                if validator(value) is False and value is not False:
+                if validator(value) is False:
                     self.fail('validator_failed')
             except ValidationError as err:
                 kwargs.update(err.kwargs)
@@ -1085,10 +1085,12 @@ class Url(ValidatedField, String):
     def _validated(self, value):
         if value is None:
             return None
-        return validate.URL(
+        if validate.URL(
             relative=self.relative,
             error=self.error_messages['invalid']
-        )(value)
+        )(value) is True:
+            return value
+        return None
 
 
 class Email(ValidatedField, String):
@@ -1108,9 +1110,11 @@ class Email(ValidatedField, String):
     def _validated(self, value):
         if value is None:
             return None
-        return validate.Email(
+        if validate.Email(
             error=self.error_messages['invalid']
-        )(value)
+        )(value) is True:
+            return value
+        return None
 
 
 class Method(Field):

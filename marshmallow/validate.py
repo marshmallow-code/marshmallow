@@ -97,7 +97,7 @@ class URL(Validator):
         if not regex.search(value):
             raise ValidationError(message)
 
-        return value
+        return True
 
 
 class Email(Validator):
@@ -150,10 +150,10 @@ class Email(Validator):
                     pass
                 else:
                     if self.DOMAIN_REGEX.match(domain_part):
-                        return value
+                        return True
                 raise ValidationError(message)
 
-        return value
+        return True
 
 
 class Range(Validator):
@@ -195,7 +195,7 @@ class Range(Validator):
             message = self.message_max if self.min is None else self.message_all
             raise ValidationError(self._format_error(value, message))
 
-        return value
+        return True
 
 
 class Length(Range):
@@ -241,7 +241,7 @@ class Length(Range):
         if self.equal is not None:
             if length != self.equal:
                 raise ValidationError(self._format_error(value, self.message_equal))
-            return value
+            return True
 
         if self.min is not None and length < self.min:
             message = self.message_min if self.max is None else self.message_all
@@ -251,7 +251,7 @@ class Length(Range):
             message = self.message_max if self.min is None else self.message_all
             raise ValidationError(self._format_error(value, message))
 
-        return value
+        return True
 
 
 class Equal(Validator):
@@ -278,7 +278,7 @@ class Equal(Validator):
     def __call__(self, value):
         if value != self.comparable:
             raise ValidationError(self._format_error(value))
-        return value
+        return True
 
 
 class Regexp(Validator):
@@ -308,7 +308,7 @@ class Regexp(Validator):
         if self.regex.match(value) is None:
             raise ValidationError(self._format_error(value))
 
-        return value
+        return True
 
 
 class Predicate(Validator):
@@ -342,7 +342,7 @@ class Predicate(Validator):
         if not method(**self.kwargs):
             raise ValidationError(self._format_error(value))
 
-        return value
+        return True
 
 
 class NoneOf(Validator):
@@ -376,7 +376,7 @@ class NoneOf(Validator):
         except TypeError:
             pass
 
-        return value
+        return True
 
 
 class OneOf(Validator):
@@ -414,7 +414,7 @@ class OneOf(Validator):
         except TypeError:
             raise ValidationError(self._format_error(value))
 
-        return value
+        return True
 
     def options(self, valuegetter=text_type):
         """Return a generator over the (value, label) pairs, where value
@@ -464,4 +464,4 @@ class ContainsOnly(OneOf):
             else:
                 del choices[index]
 
-        return value
+        return True
