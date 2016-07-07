@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.9.0 (unreleased)
+2.9.0 (2016-07-06)
 ++++++++++++++++++
 
 - ``Decimal`` field coerces input values to a string before deserializing to a `decimal.Decimal` object in order to avoid transformation of float values under 12 significant digits (:issue:`434`, :issue:`435`). Thanks :user:`davidthornton` for the PR.
