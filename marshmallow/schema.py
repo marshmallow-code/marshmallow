@@ -600,40 +600,53 @@ class BaseSchema(base.SchemaABC):
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
-
-        processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
-
         try:
-            result = self._unmarshal(
-                processed_data,
-                self.fields,
-                many=many,
-                partial=partial,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-            )
-        except ValidationError as error:
-            result = error.data
+            processed_data = self._invoke_load_processors(
+                PRE_LOAD,
+                data,
+                many,
+                original_data=data)
+        except ValidationError as err:
+            errors = err.messages
+            result = None
         else:
             errors = {}
-        self._invoke_field_validators(data=result, many=many)
-        errors = self._unmarshal.errors
-        field_errors = bool(errors)
-        # Run schema-level migration
-        try:
-            self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
-        except ValidationError as err:
-            errors.update(err.messages)
-        try:
-            self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
-        except ValidationError as err:
-            errors.update(err.messages)
+        if not errors:
+            try:
+                result = self._unmarshal(
+                    processed_data,
+                    self.fields,
+                    many=many,
+                    partial=partial,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                )
+            except ValidationError as error:
+                result = error.data
+            else:
+                errors = {}
+            self._invoke_field_validators(data=result, many=many)
+            errors = self._unmarshal.errors
+            field_errors = bool(errors)
+            # Run schema-level migration
+            try:
+                self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
+            try:
+                self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
         # Run post processors
         if not errors and postprocess:
             try:
-                result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
+                result = self._invoke_load_processors(
+                    POST_LOAD,
+                    result,
+                    many,
+                    original_data=data)
             except ValidationError as err:
                 errors.update(err.messages)
         if errors:

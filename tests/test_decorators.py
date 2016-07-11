@@ -533,20 +533,43 @@ class TestValidatesSchemaDecorator:
 
 def test_load_error_handling():
     class ExampleSchema(Schema):
+        foo = fields.Int()
+        bar = fields.Int()
+
+        @pre_load()
+        def pre_load_error1(self, item):
+            if item['foo'] != 0:
+                return
+            errors = {
+              'foo' : ['premsg1',],
+              'bar' : ['premsg2', 'premsg3'],
+            }
+            raise ValidationError(errors)
+
         @post_load()
         def post_load_error1(self, item):
+            if item['foo'] != 1:
+                return item
             errors = {
-              'foo' : ['msg1',],
-              'bar' : ['msg2', 'msg3'],
+              'foo' : ['postmsg1',],
+              'bar' : ['postmsg2', 'postmsg3'],
             }
             raise ValidationError(errors)
 
     schema = ExampleSchema()
-    data, errors = schema.load({})
+    data, errors = schema.load({'foo' : 0, 'bar' : 1})
     assert 'foo' in errors
     assert len(errors['foo']) == 1
-    assert errors['foo'][0] == 'msg1'
+    assert errors['foo'][0] == 'premsg1'
     assert 'bar' in errors
     assert len(errors['bar']) == 2
-    assert 'msg2' in errors['bar']
-    assert 'msg3' in errors['bar']
+    assert 'premsg2' in errors['bar']
+    assert 'premsg3' in errors['bar']
+    data, errors = schema.load({'foo' : 1, 'bar' : 1})
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postmsg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'postmsg2' in errors['bar']
+    assert 'postmsg3' in errors['bar']
