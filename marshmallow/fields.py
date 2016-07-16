@@ -908,7 +908,7 @@ class Time(Field):
         except AttributeError:
             self.fail('format', input=value)
         if value.microsecond:
-            return ret[:12]
+            return ret[:15]
         return ret
 
     def _deserialize(self, value, attr, data):

@@ -454,7 +454,7 @@ class TestFieldSerialization:
 
     def test_time_field(self, user):
         field = fields.Time()
-        expected = user.time_registered.isoformat()[:12]
+        expected = user.time_registered.isoformat()[:15]
         assert field.serialize('time_registered', user) == expected
 
         user.time_registered = None

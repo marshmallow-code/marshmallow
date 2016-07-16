@@ -579,7 +579,7 @@ def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user.data['uid'] == str(user.uid)
 
 def test_can_serialize_time(user, serialized_user):
-    expected = user.time_registered.isoformat()[:12]
+    expected = user.time_registered.isoformat()[:15]
     assert serialized_user.data['time_registered'] == expected
 
 def test_invalid_time():
