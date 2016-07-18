@@ -20,6 +20,7 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
+from marshmallow.utils import missing
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -822,25 +823,29 @@ class BaseSchema(base.SchemaABC):
                     except KeyError:
                         pass
                     else:
-                        self._unmarshal.call_and_store(
+                        validated_value = self._unmarshal.call_and_store(
                             getter_func=validator,
                             data=value,
                             field_name=field_name,
                             field_obj=field_obj,
                             index=(idx if self.opts.index_errors else None)
                         )
+                        if validated_value is missing:
+                            data[idx].pop(field_name, None)
             else:
                 try:
                     value = data[field_obj.attribute or field_name]
                 except KeyError:
                     pass
                 else:
-                    self._unmarshal.call_and_store(
+                    validated_value = self._unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
                         field_name=field_name,
                         field_obj=field_obj
                     )
+                    if validated_value is missing:
+                        data.pop(field_name, None)
 
     def _invoke_validators(self, pass_many, data, original_data, many, field_errors=False):
         errors = {}
