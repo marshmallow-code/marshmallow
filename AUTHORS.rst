@@ -66,3 +66,4 @@ Contributors (chronological)
 - Tim Mundt `@Tim-Erwin <https://github.com/Tim-Erwin>`_
 - Russell Davies `@russelldavies <https://github.com/russelldavies>`_
 - David Thornton `@davidthornton <https://github.com/davidthornton>`_
+- Vuong Hoang `@vuonghv <https://github.com/vuonghv>`_
