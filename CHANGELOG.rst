@@ -1,13 +1,20 @@
 Changelog
 ---------
 
+2.10.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Errors raised by pre/post-load/dump methods will be added to a schema's errors dictionary (:issue:`472`). Thanks :user:`dbertouille` for the suggestion and for the PR.
+
 2.9.1 (2016-07-21)
 ++++++++++++++++++
 
 Bug fixes:
 
 - Fix serialization of ``datetime.time`` objects with microseconds (:issue:`464`). Thanks :user:`Tim-Erwin` for reporting and thanks :user:`vuonghv` for the fix.
-- Make ``@validates`` consistent with field validator behavior: if validation fails, the field will not be included in the deserialized output (:issue:`391`). Thanks :user:`martinstein` for reporting and thanks :user:`@vuonghv` for the fix.
+- Make ``@validates`` consistent with field validator behavior: if validation fails, the field will not be included in the deserialized output (:issue:`391`). Thanks :user:`martinstein` for reporting and thanks :user:`vuonghv` for the fix.
 
 2.9.0 (2016-07-06)
 ++++++++++++++++++
