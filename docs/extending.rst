@@ -136,7 +136,7 @@ The pipeline for serialization is similar, except that the "pass_many" processor
             @pre_load
             def preprocess(self, data):
                 step1_data = self.step1(data)
-                step2_data = self.step2(data)
+                step2_data = self.step2(step1_data)
                 return step2_data
 
             def step1(self, data):
