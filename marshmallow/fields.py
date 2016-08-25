@@ -561,9 +561,6 @@ class String(Field):
         'invalid': 'Not a valid string.'
     }
 
-    def __init__(self, *args, **kwargs):
-        return super(String, self).__init__(*args, **kwargs)
-
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
