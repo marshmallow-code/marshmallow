@@ -465,3 +465,48 @@ class ContainsOnly(OneOf):
                 del choices[index]
 
         return value
+
+
+class Or(Validator):
+    """Validator which succeeds if ``value`` is validated by at least one of
+    ``validator_list`` elements
+
+    :param validator_list:
+    :param str error: Error message to raise in case of a validation error. Can be
+        interpolated with `{input}`.
+    """
+
+    default_message = "{input!r} can't be validated by any of the validators"
+
+    def __init__(self, *validator_list, error=None, **kwargs):
+        if any(not isinstance(validator, Validator) for validator in
+                validator_list):
+            raise ValueError("This validator accepts only validators as "
+                             "parameters")
+        self.validator_list = validator_list
+        self.error = error or self.default_message
+        super(Or, self).__init__(**kwargs)
+
+    def __call__(self, value):
+        for validator in self.validator_list:
+            try:
+                validator(value)
+            except ValidationError:
+                pass
+            else:
+                return value
+
+        # All validators raised an error
+        raise ValidationError(self._format_error(value))
+
+    def _repr_args(self):
+        return "validator_list={!r}".format(self.validator_list)
+
+    def _format_error(self, value):
+        return self.error.format(input=value)
+
+    def add_validator(self, validator):
+        if not isinstance(validator, Validator):
+            raise ValueError("This validator accepts only validators as "
+                             "parameters")
+        self.validator_list.append(validator)
