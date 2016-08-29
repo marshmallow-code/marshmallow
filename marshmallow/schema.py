@@ -481,7 +481,7 @@ class BaseSchema(base.SchemaABC):
                 many,
                 original_data=obj)
         except ValidationError as error:
-            errors = error.messages
+            errors = error.normalized_messages()
             result = None
         else:
             errors = {}
@@ -519,7 +519,7 @@ class BaseSchema(base.SchemaABC):
                     many,
                     original_data=obj)
             except ValidationError as error:
-                errors.update(error.messages)
+                errors.update(error.normalized_messages())
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             error_handler = self.handle_error or self.__error_handler__
@@ -626,7 +626,7 @@ class BaseSchema(base.SchemaABC):
                 many,
                 original_data=data)
         except ValidationError as err:
-            errors = err.messages
+            errors = err.normalized_messages()
             result = None
         else:
             errors = {}
@@ -667,7 +667,7 @@ class BaseSchema(base.SchemaABC):
                     many,
                     original_data=data)
             except ValidationError as err:
-                errors.update(err.messages)
+                errors.update(err.normalized_messages())
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             if self.__error_handler__ and callable(self.__error_handler__):

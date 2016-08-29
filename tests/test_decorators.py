@@ -546,6 +546,18 @@ def test_decorator_error_handling():
             }
             raise ValidationError(errors)
 
+        @pre_load()
+        def pre_load_error2(self, item):
+            if item['foo'] != 4:
+                return
+            raise ValidationError('preloadmsg1', 'foo')
+
+        @pre_load()
+        def pre_load_error3(self, item):
+            if item['foo'] != 8:
+                return
+            raise ValidationError('preloadmsg1')
+
         @post_load()
         def post_load_error1(self, item):
             if item['foo'] != 1:
@@ -555,6 +567,12 @@ def test_decorator_error_handling():
               'bar' : ['postloadmsg2', 'postloadmsg3'],
             }
             raise ValidationError(errors)
+
+        @post_load()
+        def post_load_error2(self, item):
+            if item['foo'] != 5:
+                return item
+            raise ValidationError('postloadmsg1', 'foo')
 
         @pre_dump()
         def pre_dump_error1(self, item):
@@ -566,6 +584,12 @@ def test_decorator_error_handling():
             }
             raise ValidationError(errors)
 
+        @pre_dump()
+        def pre_dump_error2(self, item):
+            if item['foo'] != 6:
+                return
+            raise ValidationError('predumpmsg1', 'foo')
+
         @post_dump()
         def post_dump_error1(self, item):
             if item['foo'] != 3:
@@ -575,6 +599,12 @@ def test_decorator_error_handling():
               'bar' : ['postdumpmsg2', 'postdumpmsg3'],
             }
             raise ValidationError(errors)
+
+        @post_dump()
+        def post_dump_error2(self, item):
+            if item['foo'] != 7:
+                return
+            raise ValidationError('postdumpmsg1', 'foo')
 
     def make_item(foo, bar):
         data, errors = schema.load({'foo' : foo, 'bar' : bar})
@@ -615,3 +645,26 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'postdumpmsg2' in errors['bar']
     assert 'postdumpmsg3' in errors['bar']
+    data, errors = schema.load({'foo' : 4, 'bar' : 1})
+    assert len(errors) == 1
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'preloadmsg1'
+    data, errors = schema.load({'foo' : 5, 'bar' : 1})
+    assert len(errors) == 1
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postloadmsg1'
+    data, errors = schema.dump(make_item(6, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'predumpmsg1'
+    data, errors = schema.dump(make_item(7, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postdumpmsg1'
+    data, errors = schema.load({'foo' : 8, 'bar' : 1})
+    assert len(errors) == 1
+    assert '_schema' in errors
+    assert len(errors['_schema']) == 1
+    assert errors['_schema'][0] == 'preloadmsg1'
