@@ -210,7 +210,7 @@ def test_from_iso_date(use_dateutil):
     assert_date_equal(result, d)
 
 def test_get_func_args():
-    def f1(self, foo, bar):
+    def f1(foo, bar):
         pass
 
     f2 = partial(f1, 'baz')
@@ -221,4 +221,4 @@ def test_get_func_args():
     f3 = F3()
 
     for func in [f1, f2, f3]:
-        assert utils.get_func_args(func) == ['self', 'foo', 'bar']
+        assert utils.get_func_args(func) == ['foo', 'bar']

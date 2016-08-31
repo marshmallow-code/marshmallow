@@ -334,16 +334,26 @@ def callable_or_raise(obj):
     return obj
 
 
+def _signature(func):
+    if hasattr(inspect, 'signature'):
+        return list(inspect.signature(func).parameters.keys())
+    if hasattr(func, '__self__'):
+        # Remove bound arg to match inspect.signature()
+        return inspect.getargspec(func).args[1:]
+    # All args are unbound
+    return inspect.getargspec(func).args
+
+
 def get_func_args(func):
     """Given a callable, return a tuple of argument names. Handles
     `functools.partial` objects and class-based callables.
     """
     if isinstance(func, functools.partial):
-        return inspect.getargspec(func.func).args
+        return _signature(func.func)
     if inspect.isfunction(func) or inspect.ismethod(func):
-        return inspect.getargspec(func).args
+        return _signature(func)
     # Callable class
-    return inspect.getargspec(func.__call__).args
+    return _signature(func.__call__)
 
 
 def if_none(value, default):
