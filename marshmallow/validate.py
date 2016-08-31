@@ -451,7 +451,7 @@ class ContainsOnly(OneOf):
     def __call__(self, value):
         choices = list(self.choices)
 
-        if not value and choices:
+        if value is None and choices:
             raise ValidationError(self._format_error(value))
 
         # We check list.index instead of using set.issubset so that
