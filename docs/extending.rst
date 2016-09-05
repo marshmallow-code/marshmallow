@@ -100,6 +100,49 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
 
 
+Raising Errors in Pre-/Post-processor Methods
++++++++++++++++++++++++++++++++++++++++++++++
+
+Pre- and post-processing methods may raise a `ValidationError <marshmallow.exceptions.ValidationError>`. By default, errors will be stored on the ``"_schema"`` key in the errors dictionary.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError, pre_load
+
+    class BandSchema(Schema):
+        name = fields.Str()
+
+        @pre_load
+        def unwrap_envelope(self, data):
+            if 'data' not in data:
+                raise ValidationError('Input data must have a "data" key.')
+            return data['data']
+
+    sch = BandSchema()
+    sch.load({'name': 'The Band'}).errors
+    # {'_schema': ['Input data must have a "data" key.']}
+
+If you want to store and error on a different key, pass the key name as the second argument to `ValidationError <marshmallow.exceptions.ValidationError>`.
+
+.. code-block:: python
+    :emphasize-lines: 9
+
+    from marshmallow import Schema, fields, ValidationError, pre_load
+
+    class BandSchema(Schema):
+        name = fields.Str()
+
+        @pre_load
+        def unwrap_envelope(self, data):
+            if 'data' not in data:
+                raise ValidationError('Input data must have a "data" key.', '_preprocessing')
+            return data['data']
+
+    sch = BandSchema()
+    sch.load({'name': 'The Band'}).errors
+    # {'_preprocessing': ['Input data must have a "data" key.']}
+
+
 Pre-/Post-processor Invocation Order
 ++++++++++++++++++++++++++++++++++++
 
