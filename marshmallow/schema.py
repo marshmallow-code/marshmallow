@@ -369,12 +369,6 @@ class BaseSchema(base.SchemaABC):
                     each.update(self.extra)
             else:
                 data.update(self.extra)
-        if self._marshal.errors:
-            # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self.handle_error or self.__error_handler__
-            if callable(error_handler):
-                error_handler(self._marshal.errors, obj)
-
         return data
 
     @property
@@ -480,32 +474,57 @@ class BaseSchema(base.SchemaABC):
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
-        processed_obj = self._invoke_dump_processors(PRE_DUMP, obj, many, original_data=obj)
-
-        if update_fields:
-            self._update_fields(processed_obj, many=many)
-
         try:
-            preresult = self._marshal(
-                processed_obj,
-                self.fields,
-                many=many,
-                # TODO: Remove self.__accessor__ in a later release
-                accessor=self.get_attribute or self.__accessor__,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-                **kwargs
-            )
+            processed_obj = self._invoke_dump_processors(
+                PRE_DUMP,
+                obj,
+                many,
+                original_data=obj)
         except ValidationError as error:
-            errors = self._marshal.errors
-            preresult = error.data
-            if self.strict:
-                raise error
+            errors = error.normalized_messages()
+            result = None
         else:
             errors = {}
-        result = self._postprocess(preresult, many, obj=obj)
 
-        result = self._invoke_dump_processors(POST_DUMP, result, many, original_data=obj)
+        if not errors:
+            if update_fields:
+                self._update_fields(processed_obj, many=many)
+
+            try:
+                preresult = self._marshal(
+                    processed_obj,
+                    self.fields,
+                    many=many,
+                    # TODO: Remove self.__accessor__ in a later release
+                    accessor=self.get_attribute or self.__accessor__,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                    **kwargs
+                )
+            except ValidationError as error:
+                errors = self._marshal.errors
+                preresult = error.data
+                if self.strict:
+                    raise error
+            else:
+                errors = {}
+
+            result = self._postprocess(preresult, many, obj=obj)
+
+        if not errors:
+            try:
+                result = self._invoke_dump_processors(
+                    POST_DUMP,
+                    result,
+                    many,
+                    original_data=obj)
+            except ValidationError as error:
+                errors.update(error.normalized_messages())
+        if errors:
+            # TODO: Remove self.__error_handler__ in a later release
+            error_handler = self.handle_error or self.__error_handler__
+            if callable(error_handler):
+                error_handler(errors, obj)
 
         return MarshalResult(result, errors)
 
@@ -600,36 +619,55 @@ class BaseSchema(base.SchemaABC):
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
-
-        processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
-
         try:
-            result = self._unmarshal(
-                processed_data,
-                self.fields,
-                many=many,
-                partial=partial,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-            )
-        except ValidationError as error:
-            result = error.data
+            processed_data = self._invoke_load_processors(
+                PRE_LOAD,
+                data,
+                many,
+                original_data=data)
+        except ValidationError as err:
+            errors = err.normalized_messages()
+            result = None
         else:
             errors = {}
-        self._invoke_field_validators(data=result, many=many)
-        errors = self._unmarshal.errors
-        field_errors = bool(errors)
-        # Run schema-level migration
-        try:
-            self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
-        except ValidationError as err:
-            errors.update(err.messages)
-        try:
-            self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
-        except ValidationError as err:
-            errors.update(err.messages)
+        if not errors:
+            try:
+                result = self._unmarshal(
+                    processed_data,
+                    self.fields,
+                    many=many,
+                    partial=partial,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                )
+            except ValidationError as error:
+                result = error.data
+            else:
+                errors = {}
+            self._invoke_field_validators(data=result, many=many)
+            errors = self._unmarshal.errors
+            field_errors = bool(errors)
+            # Run schema-level migration
+            try:
+                self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
+            try:
+                self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
+        # Run post processors
+        if not errors and postprocess:
+            try:
+                result = self._invoke_load_processors(
+                    POST_LOAD,
+                    result,
+                    many,
+                    original_data=data)
+            except ValidationError as err:
+                errors.update(err.normalized_messages())
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             if self.__error_handler__ and callable(self.__error_handler__):
@@ -644,9 +682,6 @@ class BaseSchema(base.SchemaABC):
             self.handle_error(exc, data)
             if self.strict:
                 raise exc
-
-        if not errors and postprocess:
-            result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
 
         return result, errors
 
