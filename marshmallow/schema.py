@@ -483,6 +483,8 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as error:
             errors = error.normalized_messages()
             result = None
+            if self.strict:
+                raise error
         else:
             errors = {}
 
@@ -520,6 +522,8 @@ class BaseSchema(base.SchemaABC):
                     original_data=obj)
             except ValidationError as error:
                 errors.update(error.normalized_messages())
+                if self.strict:
+                    raise error
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             error_handler = self.handle_error or self.__error_handler__
