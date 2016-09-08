@@ -407,7 +407,7 @@ If you want to marshal a field to a different key than the field name you can us
 
     data = {
         'name': 'Mike',
-        'CamelCasedEmail': 'foo@bar.com'
+        'email': 'foo@bar.com'
     }
     s = UserSchema()
     result, errors = s.dump(data)
