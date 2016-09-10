@@ -227,7 +227,6 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
             logging.error(exc.messages)
             raise AppError('An error occurred with input: {0}'.format(data))
 
-    invalid = User('Foo Bar', email='invalid-email')
     schema = UserSchema()
     schema.load({'email': 'invalid-email'})  # raises AppError
 
