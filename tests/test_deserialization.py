@@ -8,6 +8,7 @@ import pytest
 from marshmallow import fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring
+from marshmallow.validate import Equal
 
 from tests.base import (
     assert_almost_equal,
@@ -1218,6 +1219,19 @@ class TestValidation:
         data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
         assert 'y' in errors['n']
         assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
+
+    def test_false_value_validation(self):
+        class Sch(Schema):
+            lamb = fields.Raw(validate=lambda x: x is False)
+            equal = fields.Raw(validate=Equal(False))
+
+        errors = Sch().validate({'lamb': False, 'equal': False})
+        assert not errors
+        errors = Sch().validate({'lamb': True, 'equal': True})
+        assert 'lamb' in errors
+        assert errors['lamb'] == ['Invalid value.']
+        assert 'equal' in errors
+        assert errors['equal'] == ['Must be equal to False.']
 
 
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
