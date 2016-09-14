@@ -465,6 +465,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
+        errors = {}
         many = self.many if many is None else bool(many)
         if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
             warnings.warn('Implicit collection handling is deprecated. Set '
@@ -485,8 +486,6 @@ class BaseSchema(base.SchemaABC):
             result = None
             if self.strict:
                 raise error
-        else:
-            errors = {}
 
         if not errors:
             if update_fields:
@@ -508,8 +507,6 @@ class BaseSchema(base.SchemaABC):
                 preresult = error.data
                 if self.strict:
                     raise error
-            else:
-                errors = {}
 
             result = self._postprocess(preresult, many, obj=obj)
 
@@ -521,7 +518,7 @@ class BaseSchema(base.SchemaABC):
                     many,
                     original_data=obj)
             except ValidationError as error:
-                errors.update(error.normalized_messages())
+                errors = error.normalized_messages()
                 if self.strict:
                     raise error
         if errors:
@@ -620,6 +617,7 @@ class BaseSchema(base.SchemaABC):
         :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
+        errors = {}
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
@@ -632,8 +630,6 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as err:
             errors = err.normalized_messages()
             result = None
-        else:
-            errors = {}
         if not errors:
             try:
                 result = self._unmarshal(
@@ -646,8 +642,6 @@ class BaseSchema(base.SchemaABC):
                 )
             except ValidationError as error:
                 result = error.data
-            else:
-                errors = {}
             self._invoke_field_validators(data=result, many=many)
             errors = self._unmarshal.errors
             field_errors = bool(errors)
@@ -671,7 +665,7 @@ class BaseSchema(base.SchemaABC):
                     many,
                     original_data=data)
             except ValidationError as err:
-                errors.update(err.normalized_messages())
+                errors = err.normalized_messages()
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
             if self.__error_handler__ and callable(self.__error_handler__):
