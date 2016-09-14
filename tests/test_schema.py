@@ -1048,6 +1048,11 @@ class TestErrorHandler:
         with pytest.raises(CustomError):
             MySchema().dump(user)
 
+    def test_dump_with_custom_error_handler_and_strict(self, user):
+        user.age = 'notavalidage'
+        with pytest.raises(CustomError):
+            MySchema(strict=True).dump(user)
+
     def test_load_with_custom_error_handler(self):
         in_data = {'email': 'invalid'}
 

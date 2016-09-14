@@ -484,8 +484,6 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as error:
             errors = error.normalized_messages()
             result = None
-            if self.strict:
-                raise error
 
         if not errors:
             if update_fields:
@@ -505,8 +503,6 @@ class BaseSchema(base.SchemaABC):
             except ValidationError as error:
                 errors = self._marshal.errors
                 preresult = error.data
-                if self.strict:
-                    raise error
 
             result = self._postprocess(preresult, many, obj=obj)
 
@@ -519,13 +515,20 @@ class BaseSchema(base.SchemaABC):
                     original_data=obj)
             except ValidationError as error:
                 errors = error.normalized_messages()
-                if self.strict:
-                    raise error
         if errors:
             # TODO: Remove self.__error_handler__ in a later release
-            error_handler = self.handle_error or self.__error_handler__
-            if callable(error_handler):
-                error_handler(errors, obj)
+            if self.__error_handler__ and callable(self.__error_handler__):
+                self.__error_handler__(errors, obj)
+            exc = ValidationError(
+                errors,
+                field_names=self._marshal.error_field_names,
+                fields=self._marshal.error_fields,
+                data=obj,
+                **self._marshal.error_kwargs
+            )
+            self.handle_error(exc, obj)
+            if self.strict:
+                raise exc
 
         return MarshalResult(result, errors)
 
