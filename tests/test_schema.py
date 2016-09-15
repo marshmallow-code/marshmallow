@@ -1358,6 +1358,21 @@ class TestNestedSchema:
             )
         assert 'email' in str(excinfo)
 
+    def test_nested_dump_errors(self, blog):
+        blog.user.email = "foo"
+        _, errors = BlogSchema().dump(blog)
+        assert "email" in errors['user']
+        assert len(errors['user']['email']) == 1
+        assert 'Not a valid email address.' in errors['user']['email'][0]
+        # No problems with collaborators
+        assert "collaborators" not in errors
+
+    def test_nested_dump_strict(self, blog):
+        blog.user.email = "foo"
+        with pytest.raises(ValidationError) as excinfo:
+            _, errors = BlogSchema(strict=True).dump(blog)
+        assert 'email' in str(excinfo)
+
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)[0]
         assert data['user']['is_old']
