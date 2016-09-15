@@ -69,3 +69,4 @@ Contributors (chronological)
 - Vuong Hoang `@vuonghv <https://github.com/vuonghv>`_
 - David Bertouille `@dbertouille <https://github.com/dbertouille>`_
 - Alexandre Bonnetain `@Shir0kamii <https://github.com/Shir0kamii>`_
+- Tuukka Mustonen`@tuukkamustonen <https://github.com/tuukkamustonen>`_

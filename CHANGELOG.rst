@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.10.1 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when using ``validate.Equal(False)`` (:issue:`484`). Thanks :user:`pktangyue` for reporting and thanks :user:`tuukkamustonen` for the fix.
+
 2.10.0 (2016-09-05)
 +++++++++++++++++++
 
