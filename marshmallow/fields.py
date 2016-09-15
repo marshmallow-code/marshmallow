@@ -15,6 +15,7 @@ from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
+from marshmallow.validate import Validator
 
 __all__ = [
     'Field',
@@ -192,7 +193,8 @@ class Field(FieldABC):
         kwargs = {}
         for validator in self.validators:
             try:
-                if validator(value) is False:
+                r = validator(value)
+                if not isinstance(validator, Validator) and r is False:
                     self.fail('validator_failed')
             except ValidationError as err:
                 kwargs.update(err.kwargs)
