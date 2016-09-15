@@ -668,3 +668,41 @@ def test_decorator_error_handling():
     assert '_schema' in errors
     assert len(errors['_schema']) == 1
     assert errors['_schema'][0] == 'preloadmsg1'
+
+@pytest.mark.parametrize(
+    'decorator',
+    [
+        pre_load,
+        post_load,
+    ]
+)
+def test_decorator_strict_error_handling_with_load(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'})
+
+    schema = ExampleSchema(strict=True)
+    with pytest.raises(ValidationError) as exc:
+        schema.load({})
+    assert exc.value.messages == {'foo': 'error'}
+    schema.dump(object())
+
+@pytest.mark.parametrize(
+    'decorator',
+    [
+        pre_dump,
+        post_dump,
+    ]
+)
+def test_decorator_strict_error_handling_with_dump(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'})
+
+    schema = ExampleSchema(strict=True)
+    with pytest.raises(ValidationError) as exc:
+        schema.dump(object())
+    assert exc.value.messages == {'foo': 'error'}
+    schema.load({})
