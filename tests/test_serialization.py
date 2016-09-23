@@ -288,16 +288,19 @@ class TestFieldSerialization:
         user.m1 = '0.00000000100000000'
 
         field = fields.Decimal()
-        assert isinstance(field.serialize('m1', user), decimal.Decimal)
-        assert field.serialize('m1', user) == decimal.Decimal('1.00000000E-9')
+        s = field.serialize('m1', user)
+        assert isinstance(s, decimal.Decimal)
+        assert s == decimal.Decimal('1.00000000E-9')
 
         field = fields.Decimal(as_string=True)
-        assert isinstance(field.serialize('m1', user), basestring)
-        assert field.serialize('m1', user) == user.m1
+        s = field.serialize('m1', user)
+        assert isinstance(s, basestring)
+        assert s == user.m1
 
         field = fields.Decimal(as_string=True, places=2)
-        assert isinstance(field.serialize('m1', user), basestring)
-        assert field.serialize('m1', user) == '0.00'
+        s = field.serialize('m1', user)
+        assert isinstance(s, basestring)
+        assert s == '0.00'
 
     def test_boolean_field_serialization(self, user):
         field = fields.Boolean()
