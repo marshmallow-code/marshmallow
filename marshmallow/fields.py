@@ -626,7 +626,10 @@ class Number(Field):
         as `Field`.
         """
         ret = Field.serialize(self, attr, obj, accessor=accessor)
-        return str(ret) if (self.as_string and ret is not None) else ret
+        return self._to_string(ret) if (self.as_string and ret is not None) else ret
+
+    def _to_string(self, value):
+        return str(value)
 
     def _serialize(self, value, attr, obj):
         return self._validated(value)
@@ -721,6 +724,10 @@ class Decimal(Number):
             return super(Decimal, self)._validated(value)
         except decimal.InvalidOperation:
             self.fail('invalid')
+
+    # override Number
+    def _to_string(self, value):
+        return format(value, 'f')
 
 
 class Boolean(Field):
