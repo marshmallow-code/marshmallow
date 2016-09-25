@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.10.2 (2016-09-25)
++++++++++++++++++++
+
+Bug fixes:
+
+- Use fixed-point notation rather than engineering notation when serializing with ``Decimal`` (:issue:`534`). Thanks :user:`gdub`.
+- Fix UUID validation on serialization and deserialization of ``uuid.UUID`` objects (:issue:`532`). Thanks :user:`pauljz`.
+
 2.10.1 (2016-09-14)
 +++++++++++++++++++
 
