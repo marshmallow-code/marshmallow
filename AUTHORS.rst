@@ -71,3 +71,4 @@ Contributors (chronological)
 - Alexandre Bonnetain `@Shir0kamii <https://github.com/Shir0kamii>`_
 - Tuukka Mustonen `@tuukkamustonen <https://github.com/tuukkamustonen>`_
 - Tero Vuotila `@tvuotila <https://github.com/tvuotila>`_
+- Gary Wilson Jr. `@gdub <https://github.com/gdub>`_

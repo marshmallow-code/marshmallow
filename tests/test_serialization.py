@@ -238,6 +238,20 @@ class TestFieldSerialization:
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero() and m7s.is_signed()
 
+        field = fields.Decimal(as_string=True, allow_nan=True)
+
+        m2s = field.serialize('m2', user)
+        assert isinstance(m2s, basestring)
+        assert m2s == user.m2
+
+        m5s = field.serialize('m5', user)
+        assert isinstance(m5s, basestring)
+        assert m5s == user.m5
+
+        m6s = field.serialize('m6', user)
+        assert isinstance(m6s, basestring)
+        assert m6s == user.m6
+
     def test_decimal_field_special_values_not_permitted(self, user):
         user.m1 = '-NaN'
         user.m2 = 'NaN'
@@ -265,6 +279,28 @@ class TestFieldSerialization:
         m7s = field.serialize('m7', user)
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero() and m7s.is_signed()
+
+    def test_decimal_field_fixed_point_representation(self, user):
+        """
+        Test we get fixed-point string representation for a Decimal number that would normally
+        output in engineering notation.
+        """
+        user.m1 = '0.00000000100000000'
+
+        field = fields.Decimal()
+        s = field.serialize('m1', user)
+        assert isinstance(s, decimal.Decimal)
+        assert s == decimal.Decimal('1.00000000E-9')
+
+        field = fields.Decimal(as_string=True)
+        s = field.serialize('m1', user)
+        assert isinstance(s, basestring)
+        assert s == user.m1
+
+        field = fields.Decimal(as_string=True, places=2)
+        s = field.serialize('m1', user)
+        assert isinstance(s, basestring)
+        assert s == '0.00'
 
     def test_boolean_field_serialization(self, user):
         field = fields.Boolean()
