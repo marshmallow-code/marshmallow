@@ -583,11 +583,23 @@ class UUID(String):
         'invalid_guid': 'Not a valid UUID.'  # TODO: Remove this in marshmallow 3.0
     }
 
-    def _deserialize(self, value, attr, data):
+    def _validated(self, value):
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
+        if isinstance(value, uuid.UUID):
+            return value
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
             self.fail('invalid_uuid')
+
+    def _serialize(self, value, attr, obj):
+        validated = str(self._validated(value)) if value is not None else None
+        return super(String, self)._serialize(validated, attr, obj)
+
+    def _deserialize(self, value, attr, data):
+        return self._validated(value)
 
 
 class Number(Field):

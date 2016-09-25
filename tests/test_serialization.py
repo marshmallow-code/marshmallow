@@ -4,6 +4,7 @@ from collections import namedtuple
 import datetime as dt
 import itertools
 import decimal
+import uuid
 
 import pytest
 
@@ -104,6 +105,27 @@ class TestFieldSerialization:
     def test_callable_field(self, user):
        field = fields.String()
        assert field.serialize('call_me', user) == 'This was called.'
+
+    def test_uuid_field(self, user):
+        user.uuid1 = '{12345678-1234-5678-1234-567812345678}'
+        user.uuid2 = uuid.UUID('12345678123456781234567812345678')
+        user.uuid3 = None
+        user.uuid4 = 'this is not a UUID'
+        user.uuid5 = 42
+        user.uuid6 = {}
+
+        field = fields.UUID()
+        assert isinstance(field.serialize('uuid1', user), str)
+        assert field.serialize('uuid1', user) == '12345678-1234-5678-1234-567812345678'
+        assert isinstance(field.serialize('uuid2', user), str)
+        assert field.serialize('uuid2', user) == '12345678-1234-5678-1234-567812345678'
+        assert field.serialize('uuid3', user) is None
+        with pytest.raises(ValidationError):
+            field.serialize('uuid4', user)
+        with pytest.raises(ValidationError):
+            field.serialize('uuid5', user)
+        with pytest.raises(ValidationError):
+            field.serialize('uuid6', user)
 
     def test_decimal_field(self, user):
         user.m1 = 12

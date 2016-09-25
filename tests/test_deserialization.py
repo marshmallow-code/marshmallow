@@ -18,7 +18,6 @@ from tests.base import (
     central,
     ALL_FIELDS,
     User,
-    DummyModel,
 )
 
 class TestDeserializingNone:
@@ -513,6 +512,11 @@ class TestFieldDeserialization:
         result = field.deserialize(uuid_str)
         assert isinstance(result, uuid.UUID)
         assert str(result) == uuid_str
+
+        uuid4 = uuid.uuid4()
+        result = field.deserialize(uuid4)
+        assert isinstance(result, uuid.UUID)
+        assert result == uuid4
 
     @pytest.mark.parametrize('in_value',
     [
