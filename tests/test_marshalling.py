@@ -46,6 +46,14 @@ class TestMarshaller:
         assert result['name'] == 'Foo'
         assert 'email' not in result
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/538
+    def test_missing_data_are_skipped(self, marshal):
+        assert marshal({}, {'foo': fields.Field()}) == {}
+        assert marshal({}, {'foo': fields.Str()}) == {}
+        assert marshal({}, {'foo': fields.Int()}) == {}
+        assert marshal({}, {'foo': fields.Int(as_string=True)}) == {}
+        assert marshal({}, {'foo': fields.Decimal(as_string=True)}) == {}
+
     def test_serialize_with_load_only_doesnt_validate(self, marshal):
         fields_dict = {
             'email': fields.Email(load_only=True)
@@ -69,7 +77,8 @@ class TestMarshaller:
     def test_serialize_fields_with_dump_to_and_prefix_params(self):
         u = User("Foo", email="foo@bar.com")
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(dump_to='EmAiL'), 'name': fields.String(dump_to='NaMe')})
+        result = marshal(u, {"email": fields.Email(dump_to='EmAiL'),
+                             'name': fields.String(dump_to='NaMe')})
         assert result['usr_NaMe'] == u.name
         assert result['usr_EmAiL'] == u.email
 

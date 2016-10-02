@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.10.3 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior for serializing missing data with ``Number`` fields when ``as_string=True`` is passed (:issue:`538`). Thanks :user:`jessemyers` for reporting.
+
 2.10.2 (2016-09-25)
 +++++++++++++++++++
 

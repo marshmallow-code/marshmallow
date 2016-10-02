@@ -638,7 +638,7 @@ class Number(Field):
         as `Field`.
         """
         ret = Field.serialize(self, attr, obj, accessor=accessor)
-        return self._to_string(ret) if (self.as_string and ret is not None) else ret
+        return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
 
     def _to_string(self, value):
         return str(value)
