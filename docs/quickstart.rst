@@ -245,7 +245,7 @@ It is often convenient to write validators as methods. Use the `validates <marsh
 
 .. code-block:: python
 
-    from marshmallow import fields, Schema, validates
+    from marshmallow import fields, Schema, validates, ValidationError
 
     class ItemSchema(Schema):
         quantity = fields.Integer()
