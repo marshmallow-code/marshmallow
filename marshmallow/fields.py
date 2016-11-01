@@ -342,6 +342,20 @@ class Nested(Field):
         collaborators = fields.Nested(UserSchema, many=True, only='id')
         parent = fields.Nested('self')
 
+    When passing a `Schema <marshmallow.Schema>` instance as the first argument,
+    the instance's ``exclude``, ``only``, and ``many`` attributes will be respected.
+
+    Therefore, when passing the ``exclude``, ``only``, or ``many`` arguments to `fields.Nested`,
+    you should pass a `Schema <marshmallow.Schema>` class (not an instance) as the first argument.
+
+    ::
+
+        # Yes
+        author = fields.Nested(UserSchema, only=('id', 'name'))
+
+        # No
+        author = fields.Nested(UserSchema(), only=('id', 'name'))
+
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param default: Default value to if attribute is missing or None
