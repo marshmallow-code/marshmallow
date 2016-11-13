@@ -21,6 +21,8 @@ def test(ctx, watch=False, last_failing=False):
         args.append('-f')
     if last_failing:
         args.append('--lf')
+    if int(sys.version_info[0]) < 3:
+        args.append('--ignore={0}'.format(os.path.join('tests', 'test_py3')))
     retcode = pytest.main(args)
     sys.exit(retcode)
 

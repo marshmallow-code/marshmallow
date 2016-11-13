@@ -4,7 +4,6 @@ from __future__ import absolute_import, unicode_literals
 
 import collections
 import datetime
-import functools
 import inspect
 import json
 import time
@@ -15,6 +14,7 @@ from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
 from marshmallow.compat import OrderedDict, binary_type, text_type
+from marshmallow.compat import get_func_args as compat_get_func_args
 
 
 dateutil_available = False
@@ -334,16 +334,10 @@ def callable_or_raise(obj):
     return obj
 
 
-def get_func_args(func):
-    """Given a callable, return a tuple of argument names. Handles
-    `functools.partial` objects and class-based callables.
-    """
-    if isinstance(func, functools.partial):
-        return inspect.getargspec(func.func).args
-    if inspect.isfunction(func) or inspect.ismethod(func):
-        return inspect.getargspec(func).args
-    # Callable class
-    return inspect.getargspec(func.__call__).args
+get_func_args = compat_get_func_args
+"""Given a callable, return a list of argument names.
+Handles `functools.partial` objects and callable objects.
+"""
 
 
 def if_none(value, default):
