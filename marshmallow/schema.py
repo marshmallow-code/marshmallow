@@ -576,6 +576,7 @@ class BaseSchema(base.SchemaABC):
             value for `self.many` is used.
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
+            only missing fields listed in that iterable will be ignored.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
