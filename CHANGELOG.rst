@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.10.4 (2016-11-18)
++++++++++++++++++++
+
+Bug fixes:
+
+- `Function` field works with callables that use Python 3 type annotations (:issue:`540`). Thanks :user:`martinstein` for reporting and thanks :user:`sabinem`, :user:`lafrech`, and :user:`maximkulkin` for the work on the PR.
+
 2.10.3 (2016-10-02)
 +++++++++++++++++++
 
