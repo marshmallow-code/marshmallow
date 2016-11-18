@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import itertools
+import functools
+import inspect
 
 PY2 = int(sys.version_info[0]) == 2
 PY26 = PY2 and int(sys.version_info[1]) < 7
@@ -22,6 +24,13 @@ if PY2:
     else:
         from collections import OrderedDict
     OrderedDict = OrderedDict
+    def get_func_args(func):
+        if isinstance(func, functools.partial):
+            return list(inspect.getargspec(func.func).args)
+        if inspect.isfunction(func) or inspect.ismethod(func):
+            return list(inspect.getargspec(func).args)
+        if callable(func):
+            return list(inspect.getargspec(func.__call__).args)
 else:
     import urllib.parse
     urlparse = urllib.parse
@@ -36,6 +45,13 @@ else:
     zip_longest = itertools.zip_longest
     from collections import OrderedDict
     OrderedDict = OrderedDict
+    def get_func_args(func):
+        if isinstance(func, functools.partial):
+            return list(inspect.signature(func.func).parameters)
+        if inspect.isfunction(func):
+            return list(inspect.signature(func).parameters)
+        if callable(func) or inspect.ismethod(func):
+            return ['self'] + list(inspect.signature(func.__call__).parameters)
 
 
 # From six
