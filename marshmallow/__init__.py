@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from marshmallow.schema import (
     Schema,
     SchemaOpts,
+    OneOfSchema,
     MarshalResult,
     UnmarshalResult,
 )
@@ -19,6 +20,7 @@ __author__ = 'Steven Loria'
 __all__ = [
     'Schema',
     'SchemaOpts',
+    'OneOfSchema',
     'validates',
     'validates_schema',
     'pre_dump',
