@@ -24,7 +24,7 @@ Example: ::
             namespace = 'results' if many else 'result'
             return data[namespace]
 
-        @post_dump(pass_many=True):
+        @post_dump(pass_many=True)
         def add_envelope(self, data, many):
             namespace = 'results' if many else 'result'
             return {namespace: data}
