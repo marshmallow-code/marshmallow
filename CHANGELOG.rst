@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.11.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Import ``marshmallow.fields`` in ``marshmallow/__init__.py`` to save an import when importing the ``marshmallow`` module (:issue:`557`). Thanks :user:`mindojo-victor`.
+
 2.10.4 (2016-11-18)
 +++++++++++++++++++
 
