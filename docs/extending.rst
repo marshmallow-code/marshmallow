@@ -270,13 +270,14 @@ Normally, unspecified field names are ignored by the validator. If you would lik
 
         @validates_schema(pass_original=True)
         def check_unknown_fields(self, data, original_data):
-            for key in original_data:
-                if key not in self.fields:
-                    raise ValidationError('Unknown field name {}'.format(key))
+            unknown = set(original_data) - set(self.fields)
+            if unknown:
+                errors = list(map("Unknown field '{}'".format, unknown))
+                raise marshmallow.ValidationError(errors)
 
     schema = MySchema()
-    result, errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3})
-    errors['_schema']  # => ['Unknown field name baz']
+    result, errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4})
+    errors['_schema']  # => ["Unknown field 'baz'", "Unknown field 'bu'"]
 
 
 Storing Errors on Specific Fields
