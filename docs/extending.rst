@@ -264,6 +264,8 @@ Normally, unspecified field names are ignored by the validator. If you would lik
 .. code-block:: python
     :emphasize-lines: 5
 
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
     class MySchema(Schema):
         foo = fields.Int()
         bar = fields.Int()
@@ -272,7 +274,7 @@ Normally, unspecified field names are ignored by the validator. If you would lik
         def check_unknown_fields(self, data, original_data):
             unknown = set(original_data) - set(self.fields)
             if unknown:
-                raise marshmallow.ValidationError('Unknown field', unknown)
+                raise ValidationError('Unknown field', unknown)
 
     schema = MySchema()
     errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4}).errors
