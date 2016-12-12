@@ -262,7 +262,7 @@ Validating Original Input Data
 Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
-    :emphasize-lines: 5
+    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
 
