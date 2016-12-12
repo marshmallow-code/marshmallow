@@ -761,6 +761,40 @@ class TestFieldDeserialization:
         assert 'Bad value.' in str(excinfo)
 
 # No custom deserialization behavior, so a dict is returned
+
+    def test_pre_deserialize(self):
+        field = fields.List(fields.Str(), pre_deserialize=lambda s: s.split(','))
+        assert field.deserialize('one,two') == ['one', 'two']
+
+    def test_pre_deserialize_method(self):
+        class PreDeserialize(Schema):
+            data = fields.List(fields.Str(), pre_deserialize='listify')
+            def listify(self, value):
+                return value.split(',')
+        s = PreDeserialize(strict=True)
+        assert s.fields['data'].deserialize('one,two') == ['one', 'two']
+
+    def test_pre_deserialize_not_callable(self):
+        with pytest.raises(ValueError):
+            fields.Field(pre_deserialize=12)
+
+    def test_post_deserialize(self):
+        field = fields.Field(post_deserialize=dt.timedelta)
+        assert field.deserialize(2) == dt.timedelta(2)
+
+    def test_post_deserialize_method(self):
+        class PostDeserialize(Schema):
+            days = fields.Int(post_deserialize='to_days')
+            def to_days(self, value):
+                return dt.timedelta(value + 1)
+        s = PostDeserialize(strict=True)
+        assert s.fields['days'].deserialize('2') == dt.timedelta(3)
+
+    def test_post_deserialize_not_callable(self):
+        with pytest.raises(ValueError):
+            fields.Field(post_deserialize=12)
+
+
 class SimpleUserSchema(Schema):
     name = fields.String()
     age = fields.Float()
