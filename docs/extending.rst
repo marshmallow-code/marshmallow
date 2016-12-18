@@ -262,7 +262,9 @@ Validating Original Input Data
 Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
-    :emphasize-lines: 5
+    :emphasize-lines: 7
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
 
     class MySchema(Schema):
         foo = fields.Int()
@@ -270,13 +272,13 @@ Normally, unspecified field names are ignored by the validator. If you would lik
 
         @validates_schema(pass_original=True)
         def check_unknown_fields(self, data, original_data):
-            for key in original_data:
-                if key not in self.fields:
-                    raise ValidationError('Unknown field name {}'.format(key))
+            unknown = set(original_data) - set(self.fields)
+            if unknown:
+                raise ValidationError('Unknown field', unknown)
 
     schema = MySchema()
-    result, errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3})
-    errors['_schema']  # => ['Unknown field name baz']
+    errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4}).errors
+    # {'baz': 'Unknown field', 'bu': 'Unknown field'}
 
 
 Storing Errors on Specific Fields
