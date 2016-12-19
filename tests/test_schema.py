@@ -121,6 +121,30 @@ def test_load_resets_error_fields():
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
+def test_load_resets_error_kwargs():
+    class MySchema(Schema):
+        name = fields.String()
+
+        @validates_schema
+        def validate_all(self, data):
+            if data:
+                raise ValidationError('oops', custom_error_kwarg=data)
+            else:
+                raise ValidationError('oops')
+
+    schema = MySchema(strict=True)
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'name': 'Joe'})
+
+    exc = excinfo.value
+    assert exc.kwargs['custom_error_kwarg'] == {'name': 'Joe'}
+
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({})
+
+    exc = excinfo.value
+    assert 'custom_error_kwarg' not in exc.kwargs
+
 def test_errored_fields_do_not_appear_in_output():
 
     class MyField(fields.Field):
