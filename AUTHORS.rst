@@ -74,3 +74,4 @@ Contributors (chronological)
 - Paul Zumbrun `@pauljz <https://github.com/pauljz>`_
 - Gary Wilson Jr. `@gdub <https://github.com/gdub>`_
 - Sabine Maennel `@sabinem <https://github.com/sabinem>`_
+- Jāzeps Baško `@jbasko <https://github.com/jbasko>`_
