@@ -42,6 +42,7 @@ class ErrorStore(object):
         self.errors = {}
         self.error_field_names = []
         self.error_fields = []
+        self.error_kwargs = {}
 
     def get_errors(self, index=None):
         if index is not None:

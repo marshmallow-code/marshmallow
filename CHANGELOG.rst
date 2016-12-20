@@ -11,6 +11,16 @@ Features:
 Support:
 
 - Documentation: Improve example in "Validating Original Input Data" (:issue:`558`). Thanks :user:`altaurog`.
+
+2.10.5 (2016-12-19)
++++++++++++++++++++
+
+Bug fixes:
+
+- Reset user-defined kwargs passed to ``ValidationError`` on each ``Schema.load`` call (:issue:`565`). Thanks :user:`jbasko` for the catch and patch.
+
+Support:
+
 - Tests: Fix redefinition of ``test_utils.test_get_value()`` (:issue:`562`). Thanks :user:`nelfin`.
 
 2.10.4 (2016-11-18)
