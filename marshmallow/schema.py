@@ -324,7 +324,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=False,
+    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -333,7 +333,7 @@ class BaseSchema(base.SchemaABC):
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
-        self.strict = strict or self.opts.strict
+        self.strict = strict if strict is not None else self.opts.strict
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
