@@ -76,3 +76,4 @@ Contributors (chronological)
 - Sabine Maennel `@sabinem <https://github.com/sabinem>`_
 - Victor Varvaryuk `@mindojo-victor <https://github.com/mindojo-victor>`_
 - Jāzeps Baško `@jbasko <https://github.com/jbasko>`_
+- `@podhmo <https://github.com/podhmo>`_
