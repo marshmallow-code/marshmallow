@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.11.1 (2017-01-08)
++++++++++++++++++++
+
+Bug fixes:
+
+- Allow ``strict`` class Meta option to be overriden by constructor (:issue:`550`). Thanks :user:`douglas-treadwell` for reporting and thanks :user:`podhmo` for the PR.
+
 2.11.0 (2017-01-08)
 +++++++++++++++++++
 
