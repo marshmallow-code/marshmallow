@@ -2,7 +2,7 @@ Changelog
 ---------
 
 2.11.0 (unreleased)
-++++++++++++++++++
++++++++++++++++++++
 
 Features:
 
@@ -11,6 +11,7 @@ Features:
 Support:
 
 - Documentation: Improve example in "Validating Original Input Data" (:issue:`558`). Thanks :user:`altaurog`.
+- Test against Python 3.6.
 
 2.10.5 (2016-12-19)
 +++++++++++++++++++
