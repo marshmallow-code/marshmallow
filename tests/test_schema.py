@@ -2048,3 +2048,44 @@ class TestLoadOnly:
         assert 'str_dump_only' not in result.data
         assert 'str_load_only' in result.data
         assert 'str_regular' in result.data
+
+
+class TestStrictDefault:
+
+    class SchemaTrueByMeta(Schema):
+        class Meta:
+            strict = True
+
+    class SchemaFalseByMeta(Schema):
+        class Meta:
+            strict = False
+
+    class SchemaWithoutMeta(Schema):
+        pass
+
+    def test_default(self):
+        assert self.SchemaWithoutMeta().strict is False
+
+    def test_meta_true(self):
+        assert self.SchemaTrueByMeta().strict is True
+
+    def test_meta_false(self):
+        assert self.SchemaFalseByMeta().strict is False
+
+    def test_default_init_true(self):
+        assert self.SchemaWithoutMeta(strict=True).strict is True
+
+    def test_default_init_false(self):
+        assert self.SchemaWithoutMeta(strict=False).strict is False
+
+    def test_meta_true_init_true(self):
+        assert self.SchemaTrueByMeta(strict=True).strict is True
+
+    def test_meta_true_init_false(self):
+        assert self.SchemaTrueByMeta(strict=False).strict is False
+
+    def test_meta_false_init_true(self):
+        assert self.SchemaFalseByMeta(strict=True).strict is True
+
+    def test_meta_false_init_false(self):
+        assert self.SchemaFalseByMeta(strict=False).strict is False
