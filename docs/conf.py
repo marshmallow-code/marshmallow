@@ -19,7 +19,7 @@ import alabaster
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-import marshmallow
+import marshmallow  # flake8: noqa
 from marshmallow.compat import OrderedDict
 
 # -- General configuration -----------------------------------------------------
@@ -80,7 +80,7 @@ html_theme_options = {
     'github_repo': 'marshmallow',
     'github_banner': True,
     'github_type': 'star',
-    'gratipay_user': 'sloria',
+    'donate_url': 'https://www.paypal.me/StevenLoria',
     'code_font_size': '0.8em',
     'warn_bg': '#FFC',
     'warn_border': '#EEE',
@@ -94,8 +94,8 @@ html_theme_options = {
 
 html_sidebars = {
     'index': [
-        'about.html', 'useful-links.html', 'searchbox.html', 'donate.html',
+        'about.html', 'useful-links.html', 'searchbox.html',
     ],
     '**': ['about.html', 'useful-links.html',
-           'localtoc.html', 'relations.html', 'searchbox.html', 'donate.html']
+           'localtoc.html', 'relations.html', 'searchbox.html']
 }
