@@ -408,21 +408,33 @@ class Nested(Field):
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
                 self.__schema = self.nested(many=self.many,
-                        only=only, exclude=self.exclude, context=context)
+                        only=only, exclude=self.exclude, context=context,
+                        load_only=self._nested_normalized_option('load_only'),
+                        dump_only=self._nested_normalized_option('dump_only'))
             elif isinstance(self.nested, basestring):
                 if self.nested == _RECURSIVE_NESTED:
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
-                            exclude=self.exclude, context=context)
+                            exclude=self.exclude, context=context,
+                            load_only=self._nested_normalized_option('load_only'),
+                            dump_only=self._nested_normalized_option('dump_only'))
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
-                            only=only, exclude=self.exclude, context=context)
+                            only=only, exclude=self.exclude, context=context,
+                            load_only=self._nested_normalized_option('load_only'),
+                            dump_only=self._nested_normalized_option('dump_only'))
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
         self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
+
+    def _nested_normalized_option(self, option_name):
+        nested_field = '%s.' % self.name
+        return [field.split(nested_field, 1)[1]
+                for field in getattr(self.parent, option_name, set())
+                if field.startswith(nested_field)]
 
     def _serialize(self, nested_obj, attr, obj):
         # Load up the schema first. This allows a RegistryError to be raised

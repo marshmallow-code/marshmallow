@@ -812,6 +812,81 @@ def test_deeply_nested_only_and_exclude():
     assert 'bah' not in grand_child
 
 
+class TestDeeplyNestedLoadOnly:
+
+    @pytest.fixture()
+    def schema(self):
+        class GrandChildSchema(Schema):
+            str_dump_only = fields.String()
+            str_load_only = fields.String()
+            str_regular = fields.String()
+
+        class ChildSchema(Schema):
+            str_dump_only = fields.String()
+            str_load_only = fields.String()
+            str_regular = fields.String()
+            grand_child = fields.Nested(GrandChildSchema)
+
+        class ParentSchema(Schema):
+            str_dump_only = fields.String()
+            str_load_only = fields.String()
+            str_regular = fields.String()
+            child = fields.Nested(ChildSchema)
+
+        return ParentSchema(
+            dump_only=('str_dump_only', 'child.str_dump_only', 'child.grand_child.str_dump_only'),
+            load_only=('str_load_only', 'child.str_load_only', 'child.grand_child.str_load_only'),
+        )
+
+    @pytest.fixture()
+    def data(self):
+        return dict(
+            str_dump_only='Dump Only',
+            str_load_only='Load Only',
+            str_regular='Regular String',
+            child=dict(
+                str_dump_only='Dump Only',
+                str_load_only='Load Only',
+                str_regular='Regular String',
+                grand_child=dict(
+                    str_dump_only='Dump Only',
+                    str_load_only='Load Only',
+                    str_regular='Regular String',
+                )
+            )
+        )
+
+    def test_load_only(self, schema, data):
+        result = schema.dump(data)
+        assert not result.errors
+        assert 'str_load_only' not in result.data
+        assert 'str_dump_only' in result.data
+        assert 'str_regular' in result.data
+        child = result.data['child']
+        assert 'str_load_only' not in child
+        assert 'str_dump_only' in child
+        assert 'str_regular' in child
+        grand_child = child['grand_child']
+        assert 'str_load_only' not in grand_child
+        assert 'str_dump_only' in grand_child
+        assert 'str_regular' in grand_child
+
+    def test_dump_only(self, schema, data):
+        result = schema.load(data)
+        assert not result.errors
+        assert 'str_dump_only' not in result.data
+        assert 'str_load_only' in result.data
+        assert 'str_regular' in result.data
+        child = result.data['child']
+        assert 'str_dump_only' not in child
+        assert 'str_load_only' in child
+        assert 'str_regular' in child
+        grand_child = child['grand_child']
+        assert 'str_dump_only' not in grand_child
+        assert 'str_load_only' in grand_child
+        assert 'str_regular' in grand_child
+
+
 def test_nested_constructor_only_and_exclude():
     class GrandChildSchema(Schema):
         goo = fields.Field()
