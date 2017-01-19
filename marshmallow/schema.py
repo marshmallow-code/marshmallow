@@ -2,6 +2,9 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
+import base64
+import keyword
+import os
 from collections import defaultdict, Mapping
 import copy
 import datetime as dt
@@ -13,20 +16,27 @@ import warnings
 from collections import namedtuple
 import functools
 
+import re
+
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict)
+                                binary_type, OrderedDict, exec_,
+                                is_overridden)
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
-from marshmallow.utils import missing
-
+from marshmallow.utils import missing, IndentedSting
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
 MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
 #: Return type of :meth:`Schema.load`, including deserialized data and errors
 UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
+
+
+#: Regular Expression for identifying a valid Python identifier name.
+_VALID_IDENTIFIER = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*')
+
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
@@ -146,6 +156,7 @@ class SchemaMeta(type):
         do all the hard work.
         """
         mro = inspect.getmro(self)
+        self._has_processors = False
         self.__processors__ = defaultdict(list)
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
@@ -169,6 +180,7 @@ class SchemaMeta(type):
             except AttributeError:
                 continue
 
+            self._has_processors = bool(processor_tags)
             for tag in processor_tags:
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
@@ -205,6 +217,9 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.expect_object = getattr(meta, 'expect_object', False)
+        self.expect_dict = getattr(meta, 'expect_dict', False)
+        self.no_callable_fields = getattr(meta, 'no_callable_fields', False)
 
 
 class BaseSchema(base.SchemaABC):
@@ -320,19 +335,26 @@ class BaseSchema(base.SchemaABC):
         - ``index_errors``: If `True`, errors dictionaries will include the index
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
-        - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``dump_only``: Tuple or list of fields to exclude from deserialization.
+        - ``optimize``: If 'True', compile a method for dumping this schema as a
+            performance optimization.  Defaults to False, but can be enabled by
+            setting the environment variable ``MARSHMALLOW_OPTIMIZE_SCHEMA``
         """
         pass
 
     def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
-                 partial=False):
+                 partial=False, optimize=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
+        if optimize is None:
+            self.optimize = bool(os.getenv('MARSHMALLOW_OPTIMIZE_SCHEMA'))
+        else:
+            self.optimize = optimize
         self.strict = strict if strict is not None else self.opts.strict
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
@@ -355,6 +377,9 @@ class BaseSchema(base.SchemaABC):
         self.extra = extra
         self.context = context or {}
         self._normalize_nested_options()
+        self._generated_serialize_method = None
+        self._types_seen = set()
+        self._last_name_to_type = None
         self._update_fields(many=many)
 
     def __repr__(self):
@@ -448,7 +473,141 @@ class BaseSchema(base.SchemaABC):
         cls.__accessor__ = func
         return func
 
+    @staticmethod
+    def __field_symbol_name(field_name):
+        if not _VALID_IDENTIFIER.match(field_name):
+            field_name = base64.b64encode(field_name.encode('utf-8')).decode('utf-8').strip('=')
+        return '_field_{field_name}'.format(field_name=field_name)
+
     ##### Serialization/Deserialization API #####
+    def _generate_marshall_method(self):
+        if is_overridden(self.get_attribute, Schema.get_attribute):
+            # Bail if get_attribute is overridden
+            self._generated_serialize_method = None
+            return
+
+        result = self._generate_marshall_method_bodies()
+
+        ns = {
+            'dict_class': lambda: self.dict_class()
+        }
+        for key, value in iteritems(self.fields):
+            ns[self.__field_symbol_name(key) + '__serialize'] = value._serialize
+            if value.default is not missing:
+                ns[self.__field_symbol_name(key) + '__default'] = value.default
+
+        exec_(result, ns)
+
+        if self.opts.expect_object:
+            self._generated_serialize_method = ns[self.__serialize_instance.__name__]
+            return
+        elif self.opts.expect_dict:
+            self._generated_serialize_method = ns[self.__serialize_dict.__name__]
+            return
+
+        def generated_serialize(obj):
+            if isinstance(obj, Mapping):
+                return ns[self.__serialize_dict.__name__](obj)
+            elif hasattr(obj, '__getitem__'):
+                return ns[self.__serialize_hybrid_object.__name__](obj)
+            else:
+                return ns[self.__serialize_instance.__name__](obj)
+        self._generated_serialize_method = generated_serialize
+
+    @staticmethod
+    def __attr_str(attr_name):
+        if keyword.iskeyword(attr_name):
+            return 'getattr(obj, "{0}")'.format(attr_name)
+        else:
+            return 'obj.{0}'.format(attr_name)
+
+    def __generate_marshall_method_body(self, on_field):
+        body = IndentedSting()
+        body += 'def {method_name}(obj):'.format(method_name=on_field.__name__)
+        with body.indent():
+            body += 'res = dict_class()'
+            for field_name, field_obj in iteritems(self.fields):
+                if getattr(field_obj, 'load_only', False):
+                    continue
+                key = ''.join([self.prefix or '', field_obj.dump_to or field_name])
+                attr_name = field_name
+                if field_obj.attribute:
+                    attr_name = field_obj.attribute
+                field_symbol = self.__field_symbol_name(field_name)
+                assignment_template = ''
+                value_key = '{0}'
+                if not self.opts.no_callable_fields:
+                    assignment_template = ('value = {0}; '
+                                           'value = value() '
+                                           'if callable(value) else value; ')
+                    value_key = 'value'
+
+                if field_obj.inline_template:
+                    if not self.opts.no_callable_fields:
+                        assignment_template = assignment_template.format(field_obj.inline_template)
+                    else:
+                        value_key = field_obj.inline_template
+                    assignment_template += 'res["{key}"] = {value_key}'.format(
+                        key=key, value_key=value_key)
+
+                else:
+                    assignment_template += (
+                        'res["{key}"] = {field_symbol}__serialize('
+                        '{value_key}, "{field_name}", obj)'.format(key=key,
+                                                                   field_symbol=field_symbol,
+                                                                   field_name=field_name,
+                                                                   value_key=value_key))
+                if not field_obj._CHECK_ATTRIBUTE:
+                    body += assignment_template.format('None')
+                elif _VALID_IDENTIFIER.match(attr_name):
+                    body += on_field(attr_name, field_symbol,
+                                     assignment_template, field_obj)
+                else:
+                    body += self.__serialize_dict(attr_name, field_symbol,
+                                                  assignment_template, field_obj)
+            body += 'return res'
+        return body
+
+    def __serialize_instance(self, attr_name, field_symbol,
+                             assignment_template, field_obj):
+        return assignment_template.format(self.__attr_str(attr_name))
+
+    def __serialize_dict(self, attr_name, field_symbol,
+                         assignment_template, field_obj):
+        body = IndentedSting()
+        if field_obj.default == missing:
+            body += 'if "{attr_name}" in obj:'.format(attr_name=attr_name)
+            with body.indent():
+                body += assignment_template.format('obj["{attr_name}"]'.format(
+                    attr_name=attr_name))
+        else:
+            default_str = 'default'
+            if callable(field_obj.default):
+                default_str = 'default()'
+            body += assignment_template.format(
+                'obj.get("{attr_name}", {field_symbol}__{default_str})'.format(
+                    attr_name=attr_name, field_symbol=field_symbol, default_str=default_str))
+        return body
+
+    def __serialize_hybrid_object(self, attr_name, field_symbol,
+                                  assignment_template, field_obj):
+        body = IndentedSting()
+        body += 'try:'
+        with body.indent():
+            body += 'value = obj["{attr_name}"]'.format(attr_name=attr_name)
+        body += 'except (KeyError, AttributeError, IndexError, TypeError):'
+        with body.indent():
+            body += 'value = {attr_str}'.format(attr_str=self.__attr_str(attr_name))
+        body += assignment_template.format('value')
+        return body
+
+    def _generate_marshall_method_bodies(self):
+        result = IndentedSting()
+
+        result += self.__generate_marshall_method_body(self.__serialize_instance)
+        result += self.__generate_marshall_method_body(self.__serialize_dict)
+        result += self.__generate_marshall_method_body(self.__serialize_hybrid_object)
+        return str(result)
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
         """Serialize an object to native Python data types according to this
@@ -467,7 +626,8 @@ class BaseSchema(base.SchemaABC):
         """
         errors = {}
         many = self.many if many is None else bool(many)
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
+        if (not many and not self.optimize and
+                utils.is_collection(obj) and not utils.is_keyed_tuple(obj)):
             warnings.warn('Implicit collection handling is deprecated. Set '
                             'many=True to serialize a collection.',
                             category=DeprecationWarning)
@@ -475,38 +635,60 @@ class BaseSchema(base.SchemaABC):
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
-        try:
-            processed_obj = self._invoke_dump_processors(
-                PRE_DUMP,
-                obj,
-                many,
-                original_data=obj)
-        except ValidationError as error:
-            errors = error.normalized_messages()
-            result = None
+        run_dump_processors = not self.optimize or self._has_processors
+        if run_dump_processors:
+            try:
+                processed_obj = self._invoke_dump_processors(
+                    PRE_DUMP,
+                    obj,
+                    many,
+                    original_data=obj)
+            except ValidationError as error:
+                errors = error.normalized_messages()
+                result = None
+        else:
+            processed_obj = obj
 
         if not errors:
             if update_fields:
-                self._update_fields(processed_obj, many=many)
+                obj_type = type(processed_obj)
+                if not self.optimize or obj_type not in self._types_seen:
+                    self._update_fields(processed_obj, many=many)
+                    if not isinstance(processed_obj, Mapping):
+                        self._types_seen.add(obj_type)
 
+            preresult = None
+            if self._generated_serialize_method:
+                try:
+                    if many:
+                        preresult = [self._generated_serialize_method(x) for x in obj]
+                    else:
+                        preresult = self._generated_serialize_method(obj)
+                except (ValidationError, KeyError, AttributeError, ValueError):
+                    # Fall through to slow path
+                    pass
             try:
-                preresult = self._marshal(
-                    processed_obj,
-                    self.fields,
-                    many=many,
-                    # TODO: Remove self.__accessor__ in a later release
-                    accessor=self.get_attribute or self.__accessor__,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                    **kwargs
-                )
+                if not preresult:
+                    preresult = self._marshal(
+                        processed_obj,
+                        self.fields,
+                        many=many,
+                        # TODO: Remove self.__accessor__ in a later release
+                        accessor=self.get_attribute or self.__accessor__,
+                        dict_class=self.dict_class,
+                        index_errors=self.opts.index_errors,
+                        **kwargs
+                    )
             except ValidationError as error:
                 errors = self._marshal.errors
                 preresult = error.data
 
-            result = self._postprocess(preresult, many, obj=obj)
+            if not self.optimize or self.extra:
+                result = self._postprocess(preresult, many, obj=obj)
+            else:
+                result = preresult
 
-        if not errors:
+        if not errors and run_dump_processors:
             try:
                 result = self._invoke_dump_processors(
                     POST_DUMP,
@@ -745,10 +927,14 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj, many=many)
+        ret, name_to_type = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
+
+        if self.optimize and self._last_name_to_type != name_to_type:
+            self._generate_marshall_method()
+        self._last_name_to_type = name_to_type
         return self.fields
 
     def on_bind_field(self, field_name, field_obj):
@@ -789,8 +975,10 @@ class BaseSchema(base.SchemaABC):
             return dictionary.
         :returns: An dict of field_name:field_obj pairs.
         """
+        name_to_type = {}
         if obj and many:
-            try:  # Homogeneous collection
+            try:
+                # Homogeneous collection
                 # Prefer getitem over iter to prevent breaking serialization
                 # of objects for which iter will modify position in the collection
                 # e.g. Pymongo cursors
@@ -818,11 +1006,13 @@ class BaseSchema(base.SchemaABC):
                         raise err_type(
                             '"{0}" is not a valid field for {1}.'.format(key, obj))
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
+                    name_to_type[key] = attribute_type
                 else:  # Object is None
                     field_obj = fields.Field()
+                    name_to_type[key] = None
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
-        return ret
+        return ret, name_to_type
 
     def _invoke_dump_processors(self, tag_name, data, many, original_data=None):
         # The pass_many post-dump processors may do things like add an envelope, so

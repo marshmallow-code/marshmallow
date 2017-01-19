@@ -6,9 +6,11 @@ import collections
 import datetime
 import inspect
 import json
+import os
 import time
 import types
 from calendar import timegm
+from contextlib import contextmanager
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
@@ -342,3 +344,29 @@ Handles `functools.partial` objects and callable objects.
 
 def if_none(value, default):
     return value if value is not None else default
+
+
+class IndentedSting(object):
+    def __init__(self, indent=4):
+        self.result = []
+        self._indent = indent
+        self.__indents = ['']
+
+    @contextmanager
+    def indent(self):
+        self.__indents.append(self.__indents[-1] + (self._indent * ' '))
+        try:
+            yield
+        finally:
+            self.__indents.pop()
+
+    def __iadd__(self, other):
+        if isinstance(other, IndentedSting):
+            for line in other.result:
+                self.result.append(self.__indents[-1] + line)
+        else:
+            self.result.append(self.__indents[-1] + other)
+        return self
+
+    def __str__(self):
+        return os.linesep.join(self.result)

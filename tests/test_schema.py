@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import textwrap
 
 import simplejson as json
 import decimal
@@ -13,7 +14,7 @@ from marshmallow import (
     validates, validates_schema
 )
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import OrderedDict
+from marshmallow.compat import OrderedDict, text_type
 
 from tests.base import *  # noqa
 
@@ -2089,3 +2090,162 @@ class TestStrictDefault:
 
     def test_meta_false_init_false(self):
         assert self.SchemaFalseByMeta(strict=False).strict is False
+
+
+class TestMethodGeneration:
+
+    def test_method_generation_with_child(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["name"] = _field_name__serialize(obj.name, "name", obj)
+            res["email"] = _field_email__serialize(obj.email, "email", obj)
+            return res
+        def __serialize_dict(obj):
+            res = dict_class()
+            if "name" in obj:
+                res["name"] = _field_name__serialize(obj["name"], "name", obj)
+            if "email" in obj:
+                res["email"] = _field_email__serialize(obj["email"], "email", obj)
+            return res
+        def __serialize_hybrid_object(obj):
+            res = dict_class()
+            try:
+                value = obj["name"]
+            except (KeyError, AttributeError, IndexError, TypeError):
+                value = obj.name
+            res["name"] = _field_name__serialize(value, "name", obj)
+            try:
+                value = obj["email"]
+            except (KeyError, AttributeError, IndexError, TypeError):
+                value = obj.email
+            res["email"] = _field_email__serialize(value, "email", obj)
+            return res""")
+
+        class Parent(Schema):
+            class Meta:
+                strict = True
+                ordered = True
+                no_callable_fields = True
+                fields = ('name', 'email')
+
+        class Child(Schema):
+            class Meta(Parent.Meta):
+                strict = False
+                ordered = True
+                no_callable_fields = True
+
+        assert Child()._generate_marshall_method_bodies() == expected_body
+
+    def test_inline_validation(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["count"] = int(obj.count) if obj.count is not None else None
+            res["percent"] = float(obj.percent) if obj.percent is not None else None
+            res["money"] = _field_money__serialize(obj.money, "money", obj)
+            res["email"] = {0}(obj.email) if obj.email is not None else None
+            return res""".format(text_type.__name__))
+
+        class Person(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+            count = fields.Integer()
+            percent = fields.Float()
+            money = fields.Decimal()
+            email = fields.String()
+
+        assert Person()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_load_only_fields_omitted(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["count"] = int(obj.count) if obj.count is not None else None
+            return res""".format(text_type.__name__))
+
+        class Person(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+            count = fields.Integer()
+            email = fields.String(load_only=True)
+
+        assert Person()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_load_keyword_field_uses_getattr(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["yield"] = _field_yield__serialize(getattr(obj, "yield"), "yield", obj)
+            return res""".format(text_type.__name__))
+
+        class Bond(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+                fields = ('yield', )
+
+        assert Bond()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_load_field_symbol_with_invalid_identifier(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            if "@at" in obj:
+                res["@at"] = _field_QGF0__serialize(obj["@at"], "@at", obj)
+            return res""".format(text_type.__name__))
+
+        class LogRecord(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+                fields = ('@at', )
+
+        assert LogRecord()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_function_method(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["full_name"] = _field_full_name__serialize(None, "full_name", obj)
+            return res""".format(text_type.__name__))
+
+        class Person(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+            full_name = fields.Function()
+
+        assert Person()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_field_with_attribute(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            res["fullname"] = {0}(obj.fname) if obj.fname is not None else None
+            return res""".format(text_type.__name__))
+
+        class Person(Schema):
+            class Meta:
+                ordered = True
+                no_callable_fields = True
+            full_name = fields.String(attribute='fname', dump_to='fullname')
+
+        assert Person()._generate_marshall_method_bodies().startswith(expected_body)
+
+    def test_possibly_callable_fields(self):
+        expected_body = textwrap.dedent("""\
+        def __serialize_instance(obj):
+            res = dict_class()
+            value = {0}(obj.fname) if obj.fname is not None else None; \
+value = value() if callable(value) else value; res["fullname"] = value
+            return res""".format(text_type.__name__))
+
+        class Person(Schema):
+            class Meta:
+                ordered = True
+            full_name = fields.String(attribute='fname', dump_to='fullname')
+
+        assert Person()._generate_marshall_method_bodies().startswith(expected_body)
