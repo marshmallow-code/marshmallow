@@ -13,7 +13,7 @@ from operator import attrgetter
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import text_type, basestring, is_overridden
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Validator
 
@@ -327,6 +327,11 @@ class Field(FieldABC):
             ret = ret.parent
         return ret
 
+    @property
+    def inline_template(self):
+        """A template to be used to inline parsing of this field in generated parsing functions."""
+        return None
+
 class Raw(Field):
     """Field that applies no formatting or validation."""
     pass
@@ -402,22 +407,23 @@ class Nested(Field):
         # Inherit context from parent.
         context = getattr(self.parent, 'context', {})
         if not self.__schema:
+            optimize = getattr(self.parent, 'optimize', False)
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
                 self.__schema = self.nested(many=self.many,
-                        only=only, exclude=self.exclude, context=context)
+                        only=only, exclude=self.exclude, context=context, optimize=optimize)
             elif isinstance(self.nested, basestring):
                 if self.nested == _RECURSIVE_NESTED:
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
-                            exclude=self.exclude, context=context)
+                            exclude=self.exclude, context=context, optimize=optimize)
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
-                            only=only, exclude=self.exclude, context=context)
+                            only=only, exclude=self.exclude, context=context, optimize=optimize)
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
@@ -427,7 +433,7 @@ class Nested(Field):
     def _serialize(self, nested_obj, attr, obj):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
-        schema = self.schema
+        schema = self.__schema or self.schema
         if nested_obj is None:
             return None
         if not self.__updated_fields:
@@ -435,7 +441,7 @@ class Nested(Field):
             self.__updated_fields = True
         ret, errors = schema.dump(nested_obj, many=self.many,
                 update_fields=not self.__updated_fields)
-        if isinstance(self.only, basestring):  # self.only is a field name
+        if self.only and isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
             else:
@@ -589,6 +595,13 @@ class String(Field):
             self.fail('invalid')
         return utils.ensure_text_type(value)
 
+    @property
+    def inline_template(self):
+        if is_overridden(self._serialize, String._serialize):
+            return None
+        result = text_type.__name__ + '({0})'
+        return result + ' if {0} is not None else None'
+
 
 class UUID(String):
     """A UUID field."""
@@ -659,6 +672,16 @@ class Number(Field):
 
     def _serialize(self, value, attr, obj):
         return self._validated(value)
+
+    @property
+    def inline_template(self):
+        if (is_overridden(self._validated, Number._validated) or
+                    is_overridden(self._serialize, Number._serialize)):
+            return None
+        result = self.num_type.__name__ + '({0})'
+        if self.as_string:
+            result = 'str({0})'.format(result)
+        return result + ' if {0} is not None else None'
 
     def _deserialize(self, value, attr, data):
         return self._validated(value)

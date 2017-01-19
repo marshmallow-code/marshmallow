@@ -4,8 +4,11 @@ import itertools
 import functools
 import inspect
 
+import operator
+
 PY2 = int(sys.version_info[0]) == 2
 PY26 = PY2 and int(sys.version_info[1]) < 7
+PY34 = sys.version_info[0:2] >= (3, 4)
 
 if PY2:
     import urlparse
@@ -19,6 +22,9 @@ if PY2:
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
     zip_longest = itertools.izip_longest
+    def is_overridden(instance_func, class_func):
+        return instance_func.__func__ is not class_func.__func__
+    reload = reload
     if PY26:
         from .ordereddict import OrderedDict
     else:
@@ -31,6 +37,17 @@ if PY2:
             return list(inspect.getargspec(func).args)
         if callable(func):
             return list(inspect.getargspec(func.__call__).args)
+    def exec_(_code_, _globs_=None, _locs_=None):
+        """Execute code in a namespace."""
+        if _globs_ is None:
+            frame = sys._getframe(1)
+            _globs_ = frame.f_globals
+            if _locs_ is None:
+                _locs_ = frame.f_locals
+            del frame
+        elif _locs_ is None:
+            _locs_ = _globs_
+        exec ("""exec _code_ in _globs_, _locs_""")
 else:
     import urllib.parse
     urlparse = urllib.parse
@@ -45,6 +62,16 @@ else:
     zip_longest = itertools.zip_longest
     from collections import OrderedDict
     OrderedDict = OrderedDict
+    if PY34:
+        import importlib
+        reload = importlib.reload
+    else:
+        import imp
+        reload = imp.reload
+    def is_overridden(instance_func, class_func):
+        return instance_func.__func__ is not class_func
+    import builtins
+    exec_ = getattr(builtins, 'exec')
     def get_func_args(func):
         if isinstance(func, functools.partial):
             return list(inspect.signature(func.func).parameters)
@@ -52,7 +79,6 @@ else:
             return list(inspect.signature(func).parameters)
         if callable(func) or inspect.ismethod(func):
             return ['self'] + list(inspect.signature(func.__call__).parameters)
-
 
 # From six
 def with_metaclass(meta, *bases):

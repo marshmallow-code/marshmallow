@@ -1,9 +1,58 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+from copy import deepcopy
+
+import tests.foo_serializer
 
 from marshmallow import Schema, fields, class_registry
+from marshmallow.compat import reload
 from marshmallow.exceptions import RegistryError
+
+
+original_registry = {}
+
+
+def unregister_schema(schema):
+    if schema in class_registry._registry:
+        del class_registry._registry[schema]
+
+
+def setup_module(module):
+    global original_registry
+    original_registry = deepcopy(class_registry._registry)
+    unregister_schema('ASchema')
+    unregister_schema('BSchema')
+    unregister_schema('CSchema')
+    unregister_schema('FooSerializer')
+    unregister_schema('tests.test_registry.FooSerializer')
+    unregister_schema('tests.foo_serializer.FooSerializer')
+
+    reload(tests.foo_serializer)
+
+    class ASchema(Schema):
+        id = fields.Integer()
+        b = fields.Nested('BSchema', exclude=('a',))
+
+    class BSchema(Schema):
+        id = fields.Integer()
+        a = fields.Nested('ASchema')
+
+    class CSchema(Schema):
+        id = fields.Integer()
+        bs = fields.Nested('BSchema', many=True)
+
+    class FooSerializer(Schema):
+        _id = fields.Integer()
+
+    setattr(module, 'ASchema', ASchema)
+    setattr(module, 'BSchema', BSchema)
+    setattr(module, 'CSchema', CSchema)
+    setattr(module, 'FooSerializer', FooSerializer)
+
+
+def teardown_module(module):
+    class_registry._registry = original_registry
 
 
 def test_serializer_has_class_registry():
@@ -36,18 +85,6 @@ class C:
         self.id = _id
         self.bs = bs or []
 
-class ASchema(Schema):
-    id = fields.Integer()
-    b = fields.Nested('BSchema', exclude=('a', ))
-
-class BSchema(Schema):
-    id = fields.Integer()
-    a = fields.Nested('ASchema')
-
-class CSchema(Schema):
-    id = fields.Integer()
-    bs = fields.Nested('BSchema', many=True)
-
 def test_two_way_nesting():
     a_obj = A(1)
     b_obj = B(2, a=a_obj)
@@ -74,10 +111,6 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
     with pytest.raises(RegistryError) as excinfo:
         sch.dump({'nf': None})
     assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
-
-class FooSerializer(Schema):
-    _id = fields.Integer()
-
 
 def test_multiple_classes_with_same_name_raises_error():
     # Import a class with the same name
