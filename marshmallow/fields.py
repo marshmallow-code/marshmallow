@@ -1106,13 +1106,15 @@ class Url(ValidatedField, String):
     """
     default_error_messages = {'invalid': 'Not a valid URL.'}
 
-    def __init__(self, relative=False, **kwargs):
+    def __init__(self, relative=False, schemes=None, **kwargs):
         String.__init__(self, **kwargs)
+
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.URL(
             relative=self.relative,
+            schemes=schemes,
             error=self.error_messages['invalid']
         ))
 
