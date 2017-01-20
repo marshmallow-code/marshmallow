@@ -24,12 +24,21 @@ def test(ctx, watch=False, last_failing=False):
     if int(sys.version_info[0]) < 3:
         args.append('--ignore={0}'.format(os.path.join('tests', 'test_py3')))
     retcode = pytest.main(args)
+    if retcode == 0:
+        os.environ['MARSHMALLOW_OPTIMIZE_SCHEMA'] = 'True'
+        retcode = pytest.main(args)
+    benchmark(ctx)
     sys.exit(retcode)
 
 @task
 def flake(ctx):
     """Run flake8 on codebase."""
     ctx.run('flake8 .', echo=True)
+
+@task
+def benchmark(ctx):
+    """Run benchmarks on codebase."""
+    ctx.run('python performance/benchmark.py', echo=True)
 
 @task
 def clean(ctx):
