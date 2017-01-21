@@ -78,3 +78,4 @@ Contributors (chronological)
 - Jāzeps Baško `@jbasko <https://github.com/jbasko>`_
 - `@podhmo <https://github.com/podhmo>`_
 - Dmitry Orlov `@mosquito <https://github.com/mosquito>`_
+- Yuri Heupa `@YuriHeupa <https://github.com/YuriHeupa>`_
