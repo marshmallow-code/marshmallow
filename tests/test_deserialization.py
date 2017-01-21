@@ -478,6 +478,14 @@ class TestFieldDeserialization:
         field = fields.Url(relative=True)
         assert field.deserialize('/foo/bar') == '/foo/bar'
 
+    def test_url_field_schemes_argument(self):
+        field = fields.URL()
+        url = 'ws://test.test'
+        with pytest.raises(ValidationError):
+            field.deserialize(url)
+        field2 = fields.URL(schemes=set(['http', 'https', 'ws']))
+        assert field2.deserialize(url) == url
+
     def test_email_field_deserialization(self):
         field = fields.Email()
         assert field.deserialize('foo@bar.com') == 'foo@bar.com'

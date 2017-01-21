@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Allow passing nested attributes (e.g. ``'child.field'``) to the ``dump_only`` and ``load_only`` parameters of ``Schema`` (:issue:`572`). Thanks :user:`YuriHeupa` for the PR.
+- Add ``schemes`` parameter to ``fields.URL`` (:issue:`574`). Thanks :user:`mosquito` for the PR.
 
 2.11.1 (2017-01-08)
 +++++++++++++++++++
