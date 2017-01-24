@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.12.1 (2017-01-23)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when a ``Nested`` field is composed within a ``List`` field (:issue:`572`). Thanks :user:`avish` for reporting and :user:`YuriHeupa` for the PR.
+
 2.12.0 (2017-01-22)
 +++++++++++++++++++
 
