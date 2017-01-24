@@ -433,7 +433,7 @@ class Nested(Field):
     def _nested_normalized_option(self, option_name):
         nested_field = '%s.' % self.name
         return [field.split(nested_field, 1)[1]
-                for field in getattr(self.parent, option_name, set())
+                for field in getattr(self.root, option_name, set())
                 if field.startswith(nested_field)]
 
     def _serialize(self, nested_obj, attr, obj):
