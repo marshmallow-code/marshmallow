@@ -65,4 +65,5 @@ venv
 
 # Other
 .directory
+*.pprof
 
