@@ -325,7 +325,7 @@ class Field(FieldABC):
         ret = self
         while hasattr(ret, 'parent') and ret.parent:
             ret = ret.parent
-        return ret
+        return ret if isinstance(ret, SchemaABC) else None
 
 class Raw(Field):
     """Field that applies no formatting or validation."""
