@@ -93,6 +93,17 @@ class TestParentAndName:
         assert schema.fields['bar'].parent == schema
         assert schema.fields['bar'].name == 'bar'
 
+    # https://github.com/marshmallow-code/marshmallow/pull/572#issuecomment-275800288
+    def test_unbound_field_root_returns_none(self):
+        field = fields.Str()
+        assert field.root is None
+
+        inner_field = fields.Nested(self.MySchema())
+        outer_field = fields.List(inner_field)
+
+        assert outer_field.root is None
+        assert inner_field.root is None
+
     def test_list_field_inner_parent_and_name(self, schema):
         assert schema.fields['bar'].container.parent == schema.fields['bar']
         assert schema.fields['bar'].container.name == 'bar'
