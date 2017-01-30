@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.12.2 (2017-01-30)
++++++++++++++++++++
+
+Bug fixes:
+
+- Unbound fields return `None` rather returning the field itself. This fixes a corner case introduced in :issue:`572`. Thanks :user:`touilleMan` for reporting and :user:`YuriHeupa` for the fix.
+
 2.12.1 (2017-01-23)
 +++++++++++++++++++
 

@@ -321,7 +321,9 @@ class Field(FieldABC):
 
     @property
     def root(self):
-        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`."""
+        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`.
+        Return `None` for unbound fields.
+        """
         ret = self
         while hasattr(ret, 'parent') and ret.parent:
             ret = ret.parent
