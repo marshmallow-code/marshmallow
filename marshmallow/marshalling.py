@@ -206,7 +206,10 @@ class Unmarshaller(ErrorStore):
                     else:
                         errors.setdefault(field_name, []).extend(err.messages)
                 elif isinstance(err.messages, dict):
-                    errors.setdefault(field_name, []).append(err.messages)
+                    if field_name in err.messages:
+                        errors.setdefault(field_name, []).extend(err.messages.get(field_name))
+                    else:
+                        errors.setdefault(field_name, []).append(err.messages)
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
 

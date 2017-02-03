@@ -79,3 +79,4 @@ Contributors (chronological)
 - `@podhmo <https://github.com/podhmo>`_
 - Dmitry Orlov `@mosquito <https://github.com/mosquito>`_
 - Yuri Heupa `@YuriHeupa <https://github.com/YuriHeupa>`_
+- WeAreSpindle `<https://github.com/wearespindle>`_
