@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.13.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Minor optimizations (:issue:`577`). Thanks :user:`rowillia` for the PR.
+
 2.12.2 (2017-01-30)
 +++++++++++++++++++
 
