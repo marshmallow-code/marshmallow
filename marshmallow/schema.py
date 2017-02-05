@@ -146,6 +146,7 @@ class SchemaMeta(type):
         do all the hard work.
         """
         mro = inspect.getmro(self)
+        self._has_processors = False
         self.__processors__ = defaultdict(list)
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
@@ -169,6 +170,7 @@ class SchemaMeta(type):
             except AttributeError:
                 continue
 
+            self._has_processors = bool(processor_tags)
             for tag in processor_tags:
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
@@ -355,6 +357,7 @@ class BaseSchema(base.SchemaABC):
         self.extra = extra
         self.context = context or {}
         self._normalize_nested_options()
+        self._types_seen = set()
         self._update_fields(many=many)
 
     def __repr__(self):
@@ -475,19 +478,26 @@ class BaseSchema(base.SchemaABC):
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
-        try:
-            processed_obj = self._invoke_dump_processors(
-                PRE_DUMP,
-                obj,
-                many,
-                original_data=obj)
-        except ValidationError as error:
-            errors = error.normalized_messages()
-            result = None
+        if self._has_processors:
+            try:
+                processed_obj = self._invoke_dump_processors(
+                    PRE_DUMP,
+                    obj,
+                    many,
+                    original_data=obj)
+            except ValidationError as error:
+                errors = error.normalized_messages()
+                result = None
+        else:
+            processed_obj = obj
 
         if not errors:
             if update_fields:
-                self._update_fields(processed_obj, many=many)
+                obj_type = type(processed_obj)
+                if obj_type not in self._types_seen:
+                    self._update_fields(processed_obj, many=many)
+                    if not isinstance(processed_obj, Mapping):
+                        self._types_seen.add(obj_type)
 
             try:
                 preresult = self._marshal(
@@ -506,7 +516,7 @@ class BaseSchema(base.SchemaABC):
 
             result = self._postprocess(preresult, many, obj=obj)
 
-        if not errors:
+        if not errors and self._has_processors:
             try:
                 result = self._invoke_dump_processors(
                     POST_DUMP,

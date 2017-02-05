@@ -395,15 +395,15 @@ class Nested(Field):
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
         """
-        # Ensure that only parameter is a tuple
-        if isinstance(self.only, basestring):
-            only = (self.only, )
-        else:
-            only = self.only
-
-        # Inherit context from parent.
-        context = getattr(self.parent, 'context', {})
         if not self.__schema:
+            # Ensure that only parameter is a tuple
+            if isinstance(self.only, basestring):
+                only = (self.only,)
+            else:
+                only = self.only
+
+            # Inherit context from parent.
+            context = getattr(self.parent, 'context', {})
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
@@ -429,7 +429,7 @@ class Nested(Field):
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
-        self.__schema.ordered = getattr(self.parent, 'ordered', False)
+            self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
 
     def _nested_normalized_option(self, option_name):
