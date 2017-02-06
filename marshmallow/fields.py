@@ -1172,22 +1172,29 @@ class Method(Field):
     :param str deserialize: Optional name of the Schema method for deserializing
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
+    :param bool strict: If `True` and catch AttributeError will reraise it during
+        serialization, otherwise AttributeError will be ignored.
 
     .. versionchanged:: 2.0.0
         Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
     .. versionchanged:: 2.3.0
         Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
         ``serialize`` to not be passed at all.
+    .. versionchanged:: 2.13.0
+        Add `strict` parameter. which allow reraise AttributeError during
+        the (de)serialization process.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize=None, deserialize=None, method_name=None, **kwargs):
+    def __init__(self, serialize=None, deserialize=None, method_name=None,
+                 strict=True, **kwargs):
         if method_name is not None:
             warnings.warn('"method_name" argument of fields.Method is deprecated. '
                           'Use the "serialize" argument instead.', DeprecationWarning)
 
         self.serialize_method_name = self.method_name = serialize or method_name
         self.deserialize_method_name = deserialize
+        self.strict = strict
         super(Method, self).__init__(**kwargs)
 
     def _serialize(self, value, attr, obj):
@@ -1199,8 +1206,9 @@ class Method(Field):
         )
         try:
             return method(obj)
-        except AttributeError:
-            pass
+        except AttributeError as err:
+            if self.strict:
+                raise err
         return missing_
 
     def _deserialize(self, value, attr, data):
@@ -1210,8 +1218,9 @@ class Method(Field):
                     getattr(self.parent, self.deserialize_method_name, None)
                 )
                 return method(value)
-            except AttributeError:
-                pass
+            except AttributeError as err:
+                if self.strict:
+                    raise err
         return value
 
 
