@@ -585,6 +585,21 @@ class TestFieldDeserialization:
 
         assert m.deserialize('ALEC') == 'alec'
 
+    def test_method_field_deserialization_with_strict_param(self):
+        class Serializer(Schema):
+            m = fields.Method(deserialize='foo')
+            def foo(self, value):
+                raise AttributeError()
+        result, _ = Serializer().load({'m': 0})
+        assert result == {'m': 0}
+
+        class Serializer(Schema):
+            m = fields.Method(deserialize='foo', strict=True)
+            def foo(self, value):
+                raise AttributeError()
+        with pytest.raises(AttributeError):
+            Serializer().load({'m': 0})
+
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
         dstrings = [each.isoformat() for each in dtimes]

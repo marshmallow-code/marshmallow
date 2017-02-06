@@ -1187,7 +1187,7 @@ class Method(Field):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, serialize=None, deserialize=None, method_name=None,
-                 strict=True, **kwargs):
+                 strict=False, **kwargs):
         if method_name is not None:
             warnings.warn('"method_name" argument of fields.Method is deprecated. '
                           'Use the "serialize" argument instead.', DeprecationWarning)
