@@ -21,6 +21,127 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.13.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Minor optimizations (:issue:`577`). Thanks :user:`rowillia` for the PR.
+
+2.12.2 (2017-01-30)
++++++++++++++++++++
+
+Bug fixes:
+
+- Unbound fields return `None` rather returning the field itself. This fixes a corner case introduced in :issue:`572`. Thanks :user:`touilleMan` for reporting and :user:`YuriHeupa` for the fix.
+
+2.12.1 (2017-01-23)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when a ``Nested`` field is composed within a ``List`` field (:issue:`572`). Thanks :user:`avish` for reporting and :user:`YuriHeupa` for the PR.
+
+2.12.0 (2017-01-22)
++++++++++++++++++++
+
+Features:
+
+- Allow passing nested attributes (e.g. ``'child.field'``) to the ``dump_only`` and ``load_only`` parameters of ``Schema`` (:issue:`572`). Thanks :user:`YuriHeupa` for the PR.
+- Add ``schemes`` parameter to ``fields.URL`` (:issue:`574`). Thanks :user:`mosquito` for the PR.
+
+2.11.1 (2017-01-08)
++++++++++++++++++++
+
+Bug fixes:
+
+- Allow ``strict`` class Meta option to be overriden by constructor (:issue:`550`). Thanks :user:`douglas-treadwell` for reporting and thanks :user:`podhmo` for the PR.
+
+2.11.0 (2017-01-08)
++++++++++++++++++++
+
+Features:
+
+- Import ``marshmallow.fields`` in ``marshmallow/__init__.py`` to save an import when importing the ``marshmallow`` module (:issue:`557`). Thanks :user:`mindojo-victor`.
+
+Support:
+
+- Documentation: Improve example in "Validating Original Input Data" (:issue:`558`). Thanks :user:`altaurog`.
+- Test against Python 3.6.
+
+2.10.5 (2016-12-19)
++++++++++++++++++++
+
+Bug fixes:
+
+- Reset user-defined kwargs passed to ``ValidationError`` on each ``Schema.load`` call (:issue:`565`). Thanks :user:`jbasko` for the catch and patch.
+
+Support:
+
+- Tests: Fix redefinition of ``test_utils.test_get_value()`` (:issue:`562`). Thanks :user:`nelfin`.
+
+2.10.4 (2016-11-18)
++++++++++++++++++++
+
+Bug fixes:
+
+- `Function` field works with callables that use Python 3 type annotations (:issue:`540`). Thanks :user:`martinstein` for reporting and thanks :user:`sabinem`, :user:`lafrech`, and :user:`maximkulkin` for the work on the PR.
+
+2.10.3 (2016-10-02)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior for serializing missing data with ``Number`` fields when ``as_string=True`` is passed (:issue:`538`). Thanks :user:`jessemyers` for reporting.
+
+2.10.2 (2016-09-25)
++++++++++++++++++++
+
+Bug fixes:
+
+- Use fixed-point notation rather than engineering notation when serializing with ``Decimal`` (:issue:`534`). Thanks :user:`gdub`.
+- Fix UUID validation on serialization and deserialization of ``uuid.UUID`` objects (:issue:`532`). Thanks :user:`pauljz`.
+
+2.10.1 (2016-09-14)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when using ``validate.Equal(False)`` (:issue:`484`). Thanks :user:`pktangyue` for reporting and thanks :user:`tuukkamustonen` for the fix.
+- Fix ``strict`` behavior when errors are raised in ``pre_dump``/``post_dump`` processors (:issue:`521`). Thanks :user:`tvuotila` for the catch and patch.
+- Fix validation of nested fields on dumping (:issue:`528`). Thanks again :user:`tvuotila`.
+
+2.10.0 (2016-09-05)
++++++++++++++++++++
+
+Features:
+
+- Errors raised by pre/post-load/dump methods will be added to a schema's errors dictionary (:issue:`472`). Thanks :user:`dbertouille` for the suggestion and for the PR.
+
+2.9.1 (2016-07-21)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix serialization of ``datetime.time`` objects with microseconds (:issue:`464`). Thanks :user:`Tim-Erwin` for reporting and thanks :user:`vuonghv` for the fix.
+- Make ``@validates`` consistent with field validator behavior: if validation fails, the field will not be included in the deserialized output (:issue:`391`). Thanks :user:`martinstein` for reporting and thanks :user:`vuonghv` for the fix.
+
+2.9.0 (2016-07-06)
+++++++++++++++++++
+
+- ``Decimal`` field coerces input values to a string before deserializing to a `decimal.Decimal` object in order to avoid transformation of float values under 12 significant digits (:issue:`434`, :issue:`435`). Thanks :user:`davidthornton` for the PR.
+
+2.8.0 (2016-06-23)
+++++++++++++++++++
+
+Features:
+
+- Allow ``only`` and ``exclude`` parameters to take nested fields, using dot-delimited syntax (e.g. ``only=['blog.author.email']``) (:issue:`402`). Thanks :user:`Tim-Erwin` and :user:`deckar01` for the discussion and implementation.
+
+Support:
+
+- Update tasks.py for compatibility with invoke>=0.13.0. Thanks :user:`deckar01`.
+
 2.7.3 (2016-05-05)
 ++++++++++++++++++
 

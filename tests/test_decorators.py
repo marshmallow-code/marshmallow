@@ -285,6 +285,18 @@ class TestValidatesDecorator:
         errors = schema.validate({})
         assert errors == {}
 
+        result, errors = schema.load({'foo': 41})
+        assert errors
+        assert result == {}
+
+        result, errors = schema.load([{'foo': 42}, {'foo': 43}], many=True)
+        assert len(result) == 2
+        assert result[0] == {'foo': 42}
+        assert result[1] == {}
+        assert 1 in errors
+        assert 'foo' in errors[1]
+        assert errors[1]['foo'] == ['The answer to life the universe and everything.']
+
     def test_field_not_present(self):
         class BadSchema(ValidatesSchema):
             @validates('bar')
@@ -518,3 +530,179 @@ class TestValidatesSchemaDecorator:
         errors = schema.validate([{'foo': 3, 'bar': 'not an int'}], many=True)
         assert 'bar' in errors[0]
         assert '_schema' not in errors
+
+def test_decorator_error_handling():
+    class ExampleSchema(Schema):
+        foo = fields.Int()
+        bar = fields.Int()
+
+        @pre_load()
+        def pre_load_error1(self, item):
+            if item['foo'] != 0:
+                return
+            errors = {
+              'foo' : ['preloadmsg1',],
+              'bar' : ['preloadmsg2', 'preloadmsg3'],
+            }
+            raise ValidationError(errors)
+
+        @pre_load()
+        def pre_load_error2(self, item):
+            if item['foo'] != 4:
+                return
+            raise ValidationError('preloadmsg1', 'foo')
+
+        @pre_load()
+        def pre_load_error3(self, item):
+            if item['foo'] != 8:
+                return
+            raise ValidationError('preloadmsg1')
+
+        @post_load()
+        def post_load_error1(self, item):
+            if item['foo'] != 1:
+                return item
+            errors = {
+              'foo' : ['postloadmsg1',],
+              'bar' : ['postloadmsg2', 'postloadmsg3'],
+            }
+            raise ValidationError(errors)
+
+        @post_load()
+        def post_load_error2(self, item):
+            if item['foo'] != 5:
+                return item
+            raise ValidationError('postloadmsg1', 'foo')
+
+        @pre_dump()
+        def pre_dump_error1(self, item):
+            if item['foo'] != 2:
+                return
+            errors = {
+              'foo' : ['predumpmsg1',],
+              'bar' : ['predumpmsg2', 'predumpmsg3'],
+            }
+            raise ValidationError(errors)
+
+        @pre_dump()
+        def pre_dump_error2(self, item):
+            if item['foo'] != 6:
+                return
+            raise ValidationError('predumpmsg1', 'foo')
+
+        @post_dump()
+        def post_dump_error1(self, item):
+            if item['foo'] != 3:
+                return item
+            errors = {
+              'foo' : ['postdumpmsg1',],
+              'bar' : ['postdumpmsg2', 'postdumpmsg3'],
+            }
+            raise ValidationError(errors)
+
+        @post_dump()
+        def post_dump_error2(self, item):
+            if item['foo'] != 7:
+                return
+            raise ValidationError('postdumpmsg1', 'foo')
+
+    def make_item(foo, bar):
+        data, errors = schema.load({'foo' : foo, 'bar' : bar})
+        assert data is not None
+        assert not errors
+        return data
+
+    schema = ExampleSchema()
+    data, errors = schema.load({'foo' : 0, 'bar' : 1})
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'preloadmsg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'preloadmsg2' in errors['bar']
+    assert 'preloadmsg3' in errors['bar']
+    data, errors = schema.load({'foo' : 1, 'bar' : 1})
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postloadmsg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'postloadmsg2' in errors['bar']
+    assert 'postloadmsg3' in errors['bar']
+    data, errors = schema.dump(make_item(2, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'predumpmsg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'predumpmsg2' in errors['bar']
+    assert 'predumpmsg3' in errors['bar']
+    data, errors = schema.dump(make_item(3, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postdumpmsg1'
+    assert 'bar' in errors
+    assert len(errors['bar']) == 2
+    assert 'postdumpmsg2' in errors['bar']
+    assert 'postdumpmsg3' in errors['bar']
+    data, errors = schema.load({'foo' : 4, 'bar' : 1})
+    assert len(errors) == 1
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'preloadmsg1'
+    data, errors = schema.load({'foo' : 5, 'bar' : 1})
+    assert len(errors) == 1
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postloadmsg1'
+    data, errors = schema.dump(make_item(6, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'predumpmsg1'
+    data, errors = schema.dump(make_item(7, 1))
+    assert 'foo' in errors
+    assert len(errors['foo']) == 1
+    assert errors['foo'][0] == 'postdumpmsg1'
+    data, errors = schema.load({'foo' : 8, 'bar' : 1})
+    assert len(errors) == 1
+    assert '_schema' in errors
+    assert len(errors['_schema']) == 1
+    assert errors['_schema'][0] == 'preloadmsg1'
+
+@pytest.mark.parametrize(
+    'decorator',
+    [
+        pre_load,
+        post_load,
+    ]
+)
+def test_decorator_strict_error_handling_with_load(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'})
+
+    schema = ExampleSchema(strict=True)
+    with pytest.raises(ValidationError) as exc:
+        schema.load({})
+    assert exc.value.messages == {'foo': 'error'}
+    schema.dump(object())
+
+@pytest.mark.parametrize(
+    'decorator',
+    [
+        pre_dump,
+        post_dump,
+    ]
+)
+def test_decorator_strict_error_handling_with_dump(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'})
+
+    schema = ExampleSchema(strict=True)
+    with pytest.raises(ValidationError) as exc:
+        schema.dump(object())
+    assert exc.value.messages == {'foo': 'error'}
+    schema.load({})

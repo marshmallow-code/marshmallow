@@ -82,6 +82,23 @@ You can explicitly specify which attributes of the nested objects you want to se
     #     'author': {'email': u'monty@python.org'}
     # }
 
+You can represent the attributes of deeply nested objects using dot delimiters.
+
+.. code-block:: python
+    :emphasize-lines: 5
+
+    class SiteSchema(Schema):
+        blog = fields.Nested(BlogSchema2)
+
+    schema = SiteSchema(only=['blog.author.email'])
+    result, errors = schema.dump(site)
+    pprint(result)
+    # {
+    #     'blog': {
+    #         'author': {'email': u'monty@python.org'}
+    #     }
+    # }
+
 .. note::
 
     If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
@@ -103,7 +120,7 @@ You can explicitly specify which attributes of the nested objects you want to se
         # }
 
 
-You can also exclude fields by passing in an ``exclude`` list.
+You can also exclude fields by passing in an ``exclude`` list. This argument also allows representing the attributes of deeply nested objects using dot delimiters.
 
 .. _two-way-nesting:
 

@@ -7,6 +7,7 @@ from marshmallow.schema import (
     MarshalResult,
     UnmarshalResult,
 )
+from . import fields
 from marshmallow.decorators import (
     pre_dump, post_dump, pre_load, post_load, validates, validates_schema
 )
@@ -19,6 +20,7 @@ __author__ = 'Steven Loria'
 __all__ = [
     'Schema',
     'SchemaOpts',
+    'fields',
     'validates',
     'validates_schema',
     'pre_dump',

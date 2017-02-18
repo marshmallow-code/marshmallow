@@ -52,7 +52,7 @@ class PointClass(object):
     PointClass(24, 42),
     {'x': 24, 'y': 42}
 ])
-def test_get_value(obj):
+def test_get_value_from_object(obj):
     result = utils.get_value(obj, 'x')
     assert result == 24
     result2 = utils.get_value(obj, 'y')
@@ -85,7 +85,7 @@ def test_get_value_from_dict():
     assert utils.get_value(d, 'keys') == ['baz', 'quux']
 
 def test_get_value():
-    l = [1,2,3]
+    l = [1, 2, 3]
     assert utils.get_value(l, 1) == 2
 
     class MyInt(int):

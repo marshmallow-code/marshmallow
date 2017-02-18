@@ -19,6 +19,7 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
+from marshmallow.utils import missing
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -144,6 +145,7 @@ class SchemaMeta(type):
         do all the hard work.
         """
         mro = inspect.getmro(self)
+        self._has_processors = False
         self.__processors__ = defaultdict(list)
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
@@ -167,6 +169,7 @@ class SchemaMeta(type):
             except AttributeError:
                 continue
 
+            self._has_processors = bool(processor_tags)
             for tag in processor_tags:
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
@@ -235,9 +238,9 @@ class BaseSchema(base.SchemaABC):
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
-        fields will be serialized.
+        fields will be serialized. Nested fields can be represented with dot delimiters.
     :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result.
+        serialized result. Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If `True`, raise errors if invalid data are passed in
@@ -299,6 +302,7 @@ class BaseSchema(base.SchemaABC):
             use this option, e.g., if your fields are Python keywords. May be an
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
+            Nested fields can be represented with dot delimiters.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
@@ -315,7 +319,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, only=(), exclude=(), prefix='', strict=False,
+    def __init__(self, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -324,7 +328,7 @@ class BaseSchema(base.SchemaABC):
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
-        self.strict = strict or self.opts.strict
+        self.strict = strict if strict is not None else self.opts.strict
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -338,6 +342,8 @@ class BaseSchema(base.SchemaABC):
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
         self.context = context or {}
+        self._normalize_nested_options()
+        self._types_seen = set()
         self._update_fields(many=many)
 
     def __repr__(self):
@@ -349,7 +355,6 @@ class BaseSchema(base.SchemaABC):
         if self._marshal.errors:
             # User-defined error handler
             self.handle_error(self._marshal.errors, obj)
-
         return data
 
     @property
@@ -396,35 +401,68 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
+        errors = {}
         many = self.many if many is None else bool(many)
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
-        processed_obj = self._invoke_dump_processors(PRE_DUMP, obj, many, original_data=obj)
-
-        if update_fields:
-            self._update_fields(processed_obj, many=many)
-
-        try:
-            preresult = self._marshal(
-                processed_obj,
-                self.fields,
-                many=many,
-                accessor=self.get_attribute,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-                **kwargs
-            )
-        except ValidationError as error:
-            errors = self._marshal.errors
-            preresult = error.data
-            if self.strict:
-                raise error
+        if self._has_processors:
+            try:
+                processed_obj = self._invoke_dump_processors(
+                    PRE_DUMP,
+                    obj,
+                    many,
+                    original_data=obj)
+            except ValidationError as error:
+                errors = error.normalized_messages()
+                result = None
         else:
-            errors = {}
-        result = self._postprocess(preresult, many, obj=obj)
+            processed_obj = obj
 
-        result = self._invoke_dump_processors(POST_DUMP, result, many, original_data=obj)
+        if not errors:
+            if update_fields:
+                obj_type = type(processed_obj)
+                if obj_type not in self._types_seen:
+                    self._update_fields(processed_obj, many=many)
+                    if not isinstance(processed_obj, Mapping):
+                        self._types_seen.add(obj_type)
+
+            try:
+                preresult = self._marshal(
+                    processed_obj,
+                    self.fields,
+                    many=many,
+                    accessor=self.get_attribute,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                    **kwargs
+                )
+            except ValidationError as error:
+                errors = self._marshal.errors
+                preresult = error.data
+
+            result = self._postprocess(preresult, many, obj=obj)
+
+        if not errors and self._has_processors:
+            try:
+                result = self._invoke_dump_processors(
+                    POST_DUMP,
+                    result,
+                    many,
+                    original_data=obj)
+            except ValidationError as error:
+                errors = error.normalized_messages()
+        if errors:
+            exc = ValidationError(
+                errors,
+                field_names=self._marshal.error_field_names,
+                fields=self._marshal.error_fields,
+                data=obj,
+                **self._marshal.error_kwargs
+            )
+            self.handle_error(exc, obj)
+            if self.strict:
+                raise exc
 
         return MarshalResult(result, errors)
 
@@ -472,6 +510,7 @@ class BaseSchema(base.SchemaABC):
             value for `self.many` is used.
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
+            only missing fields listed in that iterable will be ignored.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
@@ -492,6 +531,9 @@ class BaseSchema(base.SchemaABC):
         :param dict data: The data to validate.
         :param bool many: Whether to validate `data` as a collection. If `None`, the
             value for `self.many` is used.
+        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
+            the value for `self.partial` is used. If its value is an iterable,
+            only missing fields listed in that iterable will be ignored.
         :return: A dictionary of validation errors.
         :rtype: dict
 
@@ -516,39 +558,55 @@ class BaseSchema(base.SchemaABC):
         :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
+        errors = {}
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
-
-        processed_data = self._invoke_load_processors(PRE_LOAD, data, many, original_data=data)
-
         try:
-            result = self._unmarshal(
-                processed_data,
-                self.fields,
-                many=many,
-                partial=partial,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-            )
-        except ValidationError as error:
-            result = error.data
-        else:
-            errors = {}
-        self._invoke_field_validators(data=result, many=many)
-        errors = self._unmarshal.errors
-        field_errors = bool(errors)
-        # Run schema-level migration
-        try:
-            self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
+            processed_data = self._invoke_load_processors(
+                PRE_LOAD,
+                data,
+                many,
+                original_data=data)
         except ValidationError as err:
-            errors.update(err.messages)
-        try:
-            self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
-                                    field_errors=field_errors)
-        except ValidationError as err:
-            errors.update(err.messages)
+            errors = err.normalized_messages()
+            result = None
+        if not errors:
+            try:
+                result = self._unmarshal(
+                    processed_data,
+                    self.fields,
+                    many=many,
+                    partial=partial,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                )
+            except ValidationError as error:
+                result = error.data
+            self._invoke_field_validators(data=result, many=many)
+            errors = self._unmarshal.errors
+            field_errors = bool(errors)
+            # Run schema-level migration
+            try:
+                self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
+            try:
+                self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
+                                        field_errors=field_errors)
+            except ValidationError as err:
+                errors.update(err.messages)
+        # Run post processors
+        if not errors and postprocess:
+            try:
+                result = self._invoke_load_processors(
+                    POST_LOAD,
+                    result,
+                    many,
+                    original_data=data)
+            except ValidationError as err:
+                errors = err.normalized_messages()
         if errors:
             exc = ValidationError(
                 errors,
@@ -561,10 +619,40 @@ class BaseSchema(base.SchemaABC):
             if self.strict:
                 raise exc
 
-        if not errors and postprocess:
-            result = self._invoke_load_processors(POST_LOAD, result, many, original_data=data)
-
         return result, errors
+
+    def _normalize_nested_options(self):
+        """Apply then flatten nested schema options"""
+        if self.only:
+            # Apply the only option to nested fields.
+            self.__apply_nested_option('only', self.only)
+            # Remove the child field names from the only option.
+            self.only = self.set_class(
+                [field.split('.', 1)[0] for field in self.only])
+        excludes = set(self.opts.exclude) | set(self.exclude)
+        if excludes:
+            # Apply the exclude option to nested fields.
+            self.__apply_nested_option('exclude', excludes)
+        if self.exclude:
+            # Remove the parent field names from the exclude option.
+            self.exclude = self.set_class(
+                [field for field in self.exclude if '.' not in field])
+        if self.opts.exclude:
+            # Remove the parent field names from the meta exclude option.
+            self.opts.exclude = self.set_class(
+                [field for field in self.opts.exclude if '.' not in field])
+
+    def __apply_nested_option(self, option_name, field_names):
+        """Apply nested options to nested fields"""
+        # Split nested field names on the first dot.
+        nested_fields = [name.split('.', 1) for name in field_names if '.' in name]
+        # Partition the nested field names by parent field.
+        nested_options = defaultdict(list)
+        for parent, nested_names in nested_fields:
+            nested_options[parent].append(nested_names)
+        # Apply the nested field options.
+        for key, options in iter(nested_options.items()):
+            setattr(self.declared_fields[key], option_name, self.set_class(options))
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
@@ -706,25 +794,29 @@ class BaseSchema(base.SchemaABC):
                     except KeyError:
                         pass
                     else:
-                        self._unmarshal.call_and_store(
+                        validated_value = self._unmarshal.call_and_store(
                             getter_func=validator,
                             data=value,
                             field_name=field_name,
                             field_obj=field_obj,
                             index=(idx if self.opts.index_errors else None)
                         )
+                        if validated_value is missing:
+                            data[idx].pop(field_name, None)
             else:
                 try:
                     value = data[field_obj.attribute or field_name]
                 except KeyError:
                     pass
                 else:
-                    self._unmarshal.call_and_store(
+                    validated_value = self._unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
                         field_name=field_name,
                         field_obj=field_obj
                     )
+                    if validated_value is missing:
+                        data.pop(field_name, None)
 
     def _invoke_validators(self, pass_many, data, original_data, many, field_errors=False):
         errors = {}

@@ -8,6 +8,7 @@ import pytest
 from marshmallow import fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring
+from marshmallow.validate import Equal
 
 from tests.base import (
     assert_almost_equal,
@@ -17,7 +18,6 @@ from tests.base import (
     central,
     ALL_FIELDS,
     User,
-    DummyModel,
 )
 
 class TestDeserializingNone:
@@ -88,8 +88,9 @@ class TestFieldDeserialization:
         m1 = 12
         m2 = '12.355'
         m3 = decimal.Decimal(1)
-        m4 = 'abc'
-        m5 = [1, 2]
+        m4 = 3.14
+        m5 = 'abc'
+        m6 = [1, 2]
 
         field = fields.Decimal()
         assert isinstance(field.deserialize(m1), decimal.Decimal)
@@ -98,11 +99,13 @@ class TestFieldDeserialization:
         assert field.deserialize(m2) == decimal.Decimal('12.355')
         assert isinstance(field.deserialize(m3), decimal.Decimal)
         assert field.deserialize(m3) == decimal.Decimal(1)
-        with pytest.raises(ValidationError) as excinfo:
-            field.deserialize(m4)
-        assert excinfo.value.args[0] == 'Not a valid number.'
+        assert isinstance(field.deserialize(m4), decimal.Decimal)
+        assert field.deserialize(m4).as_tuple() == (0, (3, 1, 4), -2)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m5)
+        assert excinfo.value.args[0] == 'Not a valid number.'
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(m6)
         assert excinfo.value.args[0] == 'Not a valid number.'
 
     def test_decimal_field_with_places(self):
@@ -475,6 +478,14 @@ class TestFieldDeserialization:
         field = fields.Url(relative=True)
         assert field.deserialize('/foo/bar') == '/foo/bar'
 
+    def test_url_field_schemes_argument(self):
+        field = fields.URL()
+        url = 'ws://test.test'
+        with pytest.raises(ValidationError):
+            field.deserialize(url)
+        field2 = fields.URL(schemes=set(['http', 'https', 'ws']))
+        assert field2.deserialize(url) == url
+
     def test_email_field_deserialization(self):
         field = fields.Email()
         assert field.deserialize('foo@bar.com') == 'foo@bar.com'
@@ -520,6 +531,11 @@ class TestFieldDeserialization:
         result = field.deserialize(uuid_str)
         assert isinstance(result, uuid.UUID)
         assert str(result) == uuid_str
+
+        uuid4 = uuid.uuid4()
+        result = field.deserialize(uuid4)
+        assert isinstance(result, uuid.UUID)
+        assert result == uuid4
 
     @pytest.mark.parametrize('in_value',
     [
@@ -1225,6 +1241,19 @@ class TestValidation:
         data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
         assert 'y' in errors['n']
         assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
+
+    def test_false_value_validation(self):
+        class Sch(Schema):
+            lamb = fields.Raw(validate=lambda x: x is False)
+            equal = fields.Raw(validate=Equal(False))
+
+        errors = Sch().validate({'lamb': False, 'equal': False})
+        assert not errors
+        errors = Sch().validate({'lamb': True, 'equal': True})
+        assert 'lamb' in errors
+        assert errors['lamb'] == ['Invalid value.']
+        assert 'equal' in errors
+        assert errors['equal'] == ['Must be equal to False.']
 
 
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]

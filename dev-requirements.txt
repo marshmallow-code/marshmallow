@@ -10,7 +10,7 @@ wheel
 twine
 
 # Testing
-pytest==2.8.0
+pytest==3.0.2
 tox>=1.5.0
 simplejson
 

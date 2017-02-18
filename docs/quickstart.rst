@@ -245,7 +245,7 @@ It is often convenient to write validators as methods. Use the `validates <marsh
 
 .. code-block:: python
 
-    from marshmallow import fields, Schema, validates
+    from marshmallow import fields, Schema, validates, ValidationError
 
     class ItemSchema(Schema):
         quantity = fields.Integer()
@@ -407,7 +407,7 @@ If you want to marshal a field to a different key than the field name you can us
 
     data = {
         'name': 'Mike',
-        'CamelCasedEmail': 'foo@bar.com'
+        'email': 'foo@bar.com'
     }
     s = UserSchema()
     result, errors = s.dump(data)

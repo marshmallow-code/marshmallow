@@ -15,6 +15,7 @@ from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
+from marshmallow.validate import Validator
 
 __all__ = [
     'Field',
@@ -192,7 +193,8 @@ class Field(FieldABC):
         kwargs = {}
         for validator in self.validators:
             try:
-                if validator(value) is False:
+                r = validator(value)
+                if not isinstance(validator, Validator) and r is False:
                     self.fail('validator_failed')
             except ValidationError as err:
                 kwargs.update(err.kwargs)
@@ -319,11 +321,13 @@ class Field(FieldABC):
 
     @property
     def root(self):
-        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`."""
+        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`.
+        Return `None` for unbound fields.
+        """
         ret = self
         while hasattr(ret, 'parent') and ret.parent:
             ret = ret.parent
-        return ret
+        return ret if isinstance(ret, SchemaABC) else None
 
 class Raw(Field):
     """Field that applies no formatting or validation."""
@@ -339,6 +343,20 @@ class Nested(Field):
         user2 = fields.Nested('UserSchema')  # Equivalent to above
         collaborators = fields.Nested(UserSchema, many=True, only='id')
         parent = fields.Nested('self')
+
+    When passing a `Schema <marshmallow.Schema>` instance as the first argument,
+    the instance's ``exclude``, ``only``, and ``many`` attributes will be respected.
+
+    Therefore, when passing the ``exclude``, ``only``, or ``many`` arguments to `fields.Nested`,
+    you should pass a `Schema <marshmallow.Schema>` class (not an instance) as the first argument.
+
+    ::
+
+        # Yes
+        author = fields.Nested(UserSchema, only=('id', 'name'))
+
+        # No
+        author = fields.Nested(UserSchema(), only=('id', 'name'))
 
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
@@ -377,36 +395,48 @@ class Nested(Field):
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
         """
-        # Ensure that only parameter is a tuple
-        if isinstance(self.only, basestring):
-            only = (self.only, )
-        else:
-            only = self.only
-
-        # Inherit context from parent.
-        context = getattr(self.parent, 'context', {})
         if not self.__schema:
+            # Ensure that only parameter is a tuple
+            if isinstance(self.only, basestring):
+                only = (self.only,)
+            else:
+                only = self.only
+
+            # Inherit context from parent.
+            context = getattr(self.parent, 'context', {})
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
                 self.__schema = self.nested(many=self.many,
-                        only=only, exclude=self.exclude, context=context)
+                        only=only, exclude=self.exclude, context=context,
+                        load_only=self._nested_normalized_option('load_only'),
+                        dump_only=self._nested_normalized_option('dump_only'))
             elif isinstance(self.nested, basestring):
                 if self.nested == _RECURSIVE_NESTED:
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
-                            exclude=self.exclude, context=context)
+                            exclude=self.exclude, context=context,
+                            load_only=self._nested_normalized_option('load_only'),
+                            dump_only=self._nested_normalized_option('dump_only'))
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(many=self.many,
-                            only=only, exclude=self.exclude, context=context)
+                            only=only, exclude=self.exclude, context=context,
+                            load_only=self._nested_normalized_option('load_only'),
+                            dump_only=self._nested_normalized_option('dump_only'))
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
-        self.__schema.ordered = getattr(self.parent, 'ordered', False)
+            self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
+
+    def _nested_normalized_option(self, option_name):
+        nested_field = '%s.' % self.name
+        return [field.split(nested_field, 1)[1]
+                for field in getattr(self.root, option_name, set())
+                if field.startswith(nested_field)]
 
     def _serialize(self, nested_obj, attr, obj):
         # Load up the schema first. This allows a RegistryError to be raised
@@ -417,13 +447,15 @@ class Nested(Field):
         if not self.__updated_fields:
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
-        ret = schema.dump(nested_obj, many=self.many,
-                update_fields=not self.__updated_fields).data
+        ret, errors = schema.dump(nested_obj, many=self.many,
+                update_fields=not self.__updated_fields)
         if isinstance(self.only, basestring):  # self.only is a field name
             if self.many:
                 return utils.pluck(ret, key=self.only)
             else:
                 return ret[self.only]
+        if errors:
+            raise ValidationError(errors, data=ret)
         return ret
 
     def _deserialize(self, value, attr, data):
@@ -561,9 +593,6 @@ class String(Field):
         'invalid': 'Not a valid string.'
     }
 
-    def __init__(self, *args, **kwargs):
-        return super(String, self).__init__(*args, **kwargs)
-
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
@@ -582,11 +611,23 @@ class UUID(String):
         'invalid_guid': 'Not a valid UUID.'  # TODO: Remove this in marshmallow 3.0
     }
 
-    def _deserialize(self, value, attr, data):
+    def _validated(self, value):
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
+        if isinstance(value, uuid.UUID):
+            return value
         try:
             return uuid.UUID(value)
         except (ValueError, AttributeError):
             self.fail('invalid_uuid')
+
+    def _serialize(self, value, attr, obj):
+        validated = str(self._validated(value)) if value is not None else None
+        return super(String, self)._serialize(validated, attr, obj)
+
+    def _deserialize(self, value, attr, data):
+        return self._validated(value)
 
 
 class Number(Field):
@@ -625,7 +666,10 @@ class Number(Field):
         as `Field`.
         """
         ret = Field.serialize(self, attr, obj, accessor=accessor)
-        return str(ret) if (self.as_string and ret is not None) else ret
+        return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
+
+    def _to_string(self, value):
+        return str(value)
 
     def _serialize(self, value, attr, obj):
         return self._validated(value)
@@ -659,6 +703,16 @@ class Decimal(Number):
         a JSON library that can handle decimals, such as `simplejson`, or serialize
         to a string by passing ``as_string=True``.
 
+    .. warning::
+
+        If a JSON `float` value is passed to this field for deserialization it will
+        first be cast to its corresponding `string` value before being deserialized
+        to a `decimal.Decimal` object. The default `__str__` implementation of the
+        built-in Python `float` type may apply a destructive transformation upon
+        its input data and therefore cannot be relied upon to preserve precision.
+        To avoid this, you can instead pass a JSON `string` to be deserialized
+        directly.
+
     :param int places: How many decimal places to quantize the value. If `None`, does
         not quantize the value.
     :param rounding: How to round the value during quantize, for example
@@ -690,7 +744,7 @@ class Decimal(Number):
         if value is None:
             return None
 
-        num = decimal.Decimal(value)
+        num = decimal.Decimal(str(value))
 
         if self.allow_nan:
             if num.is_nan():
@@ -710,6 +764,10 @@ class Decimal(Number):
             return super(Decimal, self)._validated(value)
         except decimal.InvalidOperation:
             self.fail('invalid')
+
+    # override Number
+    def _to_string(self, value):
+        return format(value, 'f')
 
 
 class Boolean(Field):
@@ -908,7 +966,7 @@ class Time(Field):
         except AttributeError:
             self.fail('format', input=value)
         if value.microsecond:
-            return ret[:12]
+            return ret[:15]
         return ret
 
     def _deserialize(self, value, attr, data):
@@ -1062,13 +1120,15 @@ class Url(ValidatedField, String):
     """
     default_error_messages = {'invalid': 'Not a valid URL.'}
 
-    def __init__(self, relative=False, **kwargs):
+    def __init__(self, relative=False, schemes=None, **kwargs):
         String.__init__(self, **kwargs)
+
         self.relative = relative
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.URL(
             relative=self.relative,
+            schemes=schemes,
             error=self.error_messages['invalid']
         ))
 

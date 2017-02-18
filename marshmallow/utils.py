@@ -3,8 +3,8 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
-import datetime
 import functools
+import datetime
 import inspect
 import json
 import time

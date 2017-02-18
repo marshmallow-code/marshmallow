@@ -100,6 +100,49 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
 
 
+Raising Errors in Pre-/Post-processor Methods
++++++++++++++++++++++++++++++++++++++++++++++
+
+Pre- and post-processing methods may raise a `ValidationError <marshmallow.exceptions.ValidationError>`. By default, errors will be stored on the ``"_schema"`` key in the errors dictionary.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError, pre_load
+
+    class BandSchema(Schema):
+        name = fields.Str()
+
+        @pre_load
+        def unwrap_envelope(self, data):
+            if 'data' not in data:
+                raise ValidationError('Input data must have a "data" key.')
+            return data['data']
+
+    sch = BandSchema()
+    sch.load({'name': 'The Band'}).errors
+    # {'_schema': ['Input data must have a "data" key.']}
+
+If you want to store and error on a different key, pass the key name as the second argument to `ValidationError <marshmallow.exceptions.ValidationError>`.
+
+.. code-block:: python
+    :emphasize-lines: 9
+
+    from marshmallow import Schema, fields, ValidationError, pre_load
+
+    class BandSchema(Schema):
+        name = fields.Str()
+
+        @pre_load
+        def unwrap_envelope(self, data):
+            if 'data' not in data:
+                raise ValidationError('Input data must have a "data" key.', '_preprocessing')
+            return data['data']
+
+    sch = BandSchema()
+    sch.load({'name': 'The Band'}).errors
+    # {'_preprocessing': ['Input data must have a "data" key.']}
+
+
 Pre-/Post-processor Invocation Order
 ++++++++++++++++++++++++++++++++++++
 
@@ -136,7 +179,7 @@ The pipeline for serialization is similar, except that the "pass_many" processor
             @pre_load
             def preprocess(self, data):
                 step1_data = self.step1(data)
-                step2_data = self.step2(data)
+                step2_data = self.step2(step1_data)
                 return step2_data
 
             def step1(self, data):
@@ -184,7 +227,6 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
             logging.error(exc.messages)
             raise AppError('An error occurred with input: {0}'.format(data))
 
-    invalid = User('Foo Bar', email='invalid-email')
     schema = UserSchema()
     schema.load({'email': 'invalid-email'})  # raises AppError
 
@@ -220,7 +262,9 @@ Validating Original Input Data
 Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
-    :emphasize-lines: 5
+    :emphasize-lines: 7
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
 
     class MySchema(Schema):
         foo = fields.Int()
@@ -228,13 +272,13 @@ Normally, unspecified field names are ignored by the validator. If you would lik
 
         @validates_schema(pass_original=True)
         def check_unknown_fields(self, data, original_data):
-            for key in original_data:
-                if key not in self.fields:
-                    raise ValidationError('Unknown field name {}'.format(key))
+            unknown = set(original_data) - set(self.fields)
+            if unknown:
+                raise ValidationError('Unknown field', unknown)
 
     schema = MySchema()
-    result, errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3})
-    errors['_schema']  # => ['Unknown field name baz']
+    errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4}).errors
+    # {'baz': 'Unknown field', 'bu': 'Unknown field'}
 
 
 Storing Errors on Specific Fields
@@ -280,8 +324,6 @@ However, if you want to specify how values are accessed from an object, you can 
         def get_attribute(self, obj, key, default):
             return obj.get(key, default)
 
-        class Meta:
-            accessor = get_from_dict
 
 
 Custom "class Meta" Options

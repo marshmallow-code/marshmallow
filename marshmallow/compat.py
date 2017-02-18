@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 import itertools
+import functools
+import inspect
 
 PY2 = int(sys.version_info[0]) == 2
 
@@ -28,7 +30,6 @@ else:
     itervalues = lambda d: d.values()
     iteritems = lambda d: d.items()
     zip_longest = itertools.zip_longest
-
 
 # From six
 def with_metaclass(meta, *bases):
