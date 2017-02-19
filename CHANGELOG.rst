@@ -22,7 +22,7 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
-2.13.0 (unreleased)
+2.13.0 (2017-02-18)
 +++++++++++++++++++
 
 Features:
