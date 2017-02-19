@@ -122,10 +122,6 @@ class TestFieldSerialization:
         field = fields.Integer(default=None)
         assert field.serialize('age', user) is None
 
-    def test_callable_field(self, user):
-        field = fields.String()
-        assert field.serialize('call_me', user) == 'This was called.'
-
     def test_uuid_field(self, user):
         user.uuid1 = '{12345678-1234-5678-1234-567812345678}'
         user.uuid2 = uuid.UUID('12345678123456781234567812345678')
