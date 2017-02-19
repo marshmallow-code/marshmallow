@@ -77,6 +77,14 @@ class TestFieldSerialization:
         field = fields.Function(serialize=lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)
 
+    # https://github.com/marshmallow-code/marshmallow/issues/395
+    def test_function_field_does_not_swallow_attribute_error(self, user):
+        def raise_error(obj):
+            raise AttributeError()
+        field = fields.Function(serialize=raise_error)
+        with pytest.raises(AttributeError):
+            field.serialize('key', user)
+
     def test_function_field_load_only(self):
         field = fields.Function(deserialize=lambda obj: None)
         assert field.load_only
@@ -115,8 +123,8 @@ class TestFieldSerialization:
         assert field.serialize('age', user) is None
 
     def test_callable_field(self, user):
-       field = fields.String()
-       assert field.serialize('call_me', user) == 'This was called.'
+        field = fields.String()
+        assert field.serialize('call_me', user) == 'This was called.'
 
     def test_uuid_field(self, user):
         user.uuid1 = '{12345678-1234-5678-1234-567812345678}'
@@ -343,9 +351,9 @@ class TestFieldSerialization:
         user.falsy = 'false'
         user.none = None
 
-        assert field.serialize('truthy', user) == True
-        assert field.serialize('falsy', user) == False
-        assert field.serialize('none', user) == None
+        assert field.serialize('truthy', user) is True
+        assert field.serialize('falsy', user) is False
+        assert field.serialize('none', user) is None
 
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
@@ -419,6 +427,17 @@ class TestFieldSerialization:
         u = User('Foo')
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
+
+    # https://github.com/marshmallow-code/marshmallow/issues/395
+    def test_method_field_does_not_swallow_attribute_error(self):
+        class MySchema(Schema):
+            mfield = fields.Method('raise_error')
+
+            def raise_error(self, obj):
+                raise AttributeError()
+
+        with pytest.raises(AttributeError):
+            MySchema().dump({})
 
     def test_method_with_no_serialize_is_missing(self):
         m = fields.Method()
@@ -680,9 +699,9 @@ class TestFieldSerialization:
         with pytest.raises(ValidationError):
             field.serialize('dtimes', obj)
 
-    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(self):
+    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(self):  # noqa
         def custom_generator():
-            a = yield
+            yield
             yield
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime, allow_none=True)
