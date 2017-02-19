@@ -10,6 +10,7 @@ Features:
 
 Other changes:
 
+- *Backwards-incompatible*: ``fields.Method`` and ``fields.Function`` no longer swallow ``AttributeErrors`` (:issue:`395`). Thanks :user:`bereal` for the suggestion.
 - *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
 - *Backwards-incompatible*: ``utils.get_func_args`` no longer returns bound arguments. This is consistent with the behavior of ``inspect.signature``. This change prevents a DeprecationWarning on Python 3.5 (:issue:`415`, :issue:`479`). Thanks :user:`deckar01` for the PR.
 - *Backwards-incompatible*: Change the signature of ``utils.get_value`` and ``Schema.get_attribute`` for consistency with Python builtins (e.g. ``getattr``) (:issue:`341`). Thanks :user:`stas` for reporting and thanks :user:`deckar01` for the PR.

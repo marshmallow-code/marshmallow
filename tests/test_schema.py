@@ -240,9 +240,8 @@ def test_dumps_returns_a_marshalresult(user):
     assert type(result.data) == str
     assert type(result.errors) == dict
 
-def test_dumping_single_object_with_collection_schema():
+def test_dumping_single_object_with_collection_schema(user):
     s = UserSchema(many=True)
-    user = UserSchema('Mick')
     result = s.dump(user, many=False)
     assert type(result.data) == dict
     assert result.data == UserSchema().dump(user).data

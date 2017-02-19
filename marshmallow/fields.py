@@ -1198,21 +1198,14 @@ class Method(Field):
         method = utils.callable_or_raise(
             getattr(self.parent, self.serialize_method_name, None)
         )
-        try:
-            return method(obj)
-        except AttributeError:
-            pass
-        return missing_
+        return method(obj)
 
     def _deserialize(self, value, attr, data):
         if self.deserialize_method_name:
-            try:
-                method = utils.callable_or_raise(
-                    getattr(self.parent, self.deserialize_method_name, None)
-                )
-                return method(value)
-            except AttributeError:
-                pass
+            method = utils.callable_or_raise(
+                getattr(self.parent, self.deserialize_method_name, None)
+            )
+            return method(value)
         return value
 
 
@@ -1248,11 +1241,7 @@ class Function(Field):
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj):
-        try:
-            return self._call_or_raise(self.serialize_func, obj, attr)
-        except AttributeError:  # the object is not expected to have the attribute
-            pass
-        return missing_
+        return self._call_or_raise(self.serialize_func, obj, attr)
 
     def _deserialize(self, value, attr, data):
         if self.deserialize_func:
