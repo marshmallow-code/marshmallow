@@ -123,7 +123,7 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
 Customizing Error Messages
 --------------------------
 
-Validation error messages for fields can be configured a the class or instance level.
+Validation error messages for fields can be configured at the class or instance level.
 
 At the class level, default error messages are defined as a mapping from error codes to error messages.
 
