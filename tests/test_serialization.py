@@ -398,6 +398,21 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             BadSerializer().dump(u)
 
+    def test_method_field_with_strict_param(self):
+        class Serializer(Schema):
+            m = fields.Method('foo')
+            def foo(self, obj):
+                raise AttributeError()
+        result, _ = Serializer().dump({})
+        assert result == {}
+
+        class Serializer(Schema):
+            m = fields.Method('foo', strict=True)
+            def foo(self, obj):
+                raise AttributeError()
+        with pytest.raises(AttributeError):
+            Serializer().dump({})
+
     def test_method_prefers_serialize_over_method_name(self):
         m = fields.Method(serialize='serialize', method_name='method')
         assert m.serialize_method_name == 'serialize'
