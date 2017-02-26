@@ -381,6 +381,9 @@ class BaseSchema(base.SchemaABC):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
+
+        .. versionchanged:: 3.0.0a1
+            Changed position of ``obj`` and ``attr``.
         """
         return utils.get_value(obj, attr, default)
 

@@ -346,6 +346,9 @@ def _signature(func):
 def get_func_args(func):
     """Given a callable, return a tuple of argument names. Handles
     `functools.partial` objects and class-based callables.
+
+    .. versionchanged:: 3.0.0a1
+        Do not return bound arguments, eg. ``self``.
     """
     if isinstance(func, functools.partial):
         return _signature(func.func)

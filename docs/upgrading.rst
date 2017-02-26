@@ -98,7 +98,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
     result.data  # => {}
 
 Adding additional data to serialized output
-+++++++++++++++++++++++++++++++++++++++++++
+*******************************************
 
 Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on serialization. The ``extra`` argument on `Schema <marshmallow.Schema>` was removed.
 
