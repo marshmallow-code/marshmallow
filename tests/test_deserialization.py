@@ -514,6 +514,17 @@ class TestFieldDeserialization:
         field.parent = Parent(context={'key': 'BAR'})
         assert field.deserialize('foo') == 'FOOBAR'
 
+    def test_function_field_passed_deserialize_only_is_load_only(self):
+        field = fields.Function(deserialize=lambda val: val.upper())
+        assert field.load_only is True
+
+    def test_function_field_passed_deserialize_and_serialize_is_not_load_only(self):
+        field = fields.Function(
+            serialize=lambda val: val.lower(),
+            deserialize=lambda val: val.upper()
+        )
+        assert field.load_only is False
+
     def test_uuid_field_deserialization(self):
         field = fields.UUID()
         uuid_str = str(uuid.uuid4())
@@ -550,8 +561,7 @@ class TestFieldDeserialization:
 
             def uppercase_name(self, obj):
                 return obj.upper()
-        user = User(name='steve')
-        s = MiniUserSchema(user)
+        s = MiniUserSchema()
         assert s.fields['uppername'].deserialize('steve') == 'steve'
 
     def test_deserialization_method(self):

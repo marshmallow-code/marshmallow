@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import functools
 import datetime
 import inspect
 import json
@@ -13,8 +14,7 @@ from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
-from marshmallow.compat import OrderedDict, binary_type, text_type
-from marshmallow.compat import get_func_args as compat_get_func_args
+from marshmallow.compat import binary_type, text_type
 
 
 dateutil_available = False
@@ -126,7 +126,7 @@ def pprint(obj, *args, **kwargs):
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
     """
-    if isinstance(obj, OrderedDict):
+    if isinstance(obj, collections.OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
@@ -298,29 +298,28 @@ def pluck(dictlist, key):
 
 # Various utilities for pulling keyed values from objects
 
-def get_value(key, obj, default=missing):
+def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
     if isinstance(key, int):
-        return _get_value_for_key(key, obj, default)
+        return _get_value_for_key(obj, key, default)
     else:
-        return _get_value_for_keys(key.split('.'), obj, default)
+        return _get_value_for_keys(obj, key.split('.'), default)
 
 
-def _get_value_for_keys(keys, obj, default):
+def _get_value_for_keys(obj, keys, default):
     if len(keys) == 1:
-        return _get_value_for_key(keys[0], obj, default)
+        return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            keys[1:], _get_value_for_key(keys[0], obj, default), default)
+            _get_value_for_key(obj, keys[0], default), keys[1:], default)
 
 
-def _get_value_for_key(key, obj, default):
+def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
     except (KeyError, AttributeError, IndexError, TypeError):
         try:
-            attr = getattr(obj, key)
-            return attr() if callable(attr) else attr
+            return getattr(obj, key)
         except AttributeError:
             return default
     return default
@@ -334,10 +333,26 @@ def callable_or_raise(obj):
     return obj
 
 
-get_func_args = compat_get_func_args
-"""Given a callable, return a list of argument names.
-Handles `functools.partial` objects and callable objects.
-"""
+def _signature(func):
+    if hasattr(inspect, 'signature'):
+        return list(inspect.signature(func).parameters.keys())
+    if hasattr(func, '__self__'):
+        # Remove bound arg to match inspect.signature()
+        return inspect.getargspec(func).args[1:]
+    # All args are unbound
+    return inspect.getargspec(func).args
+
+
+def get_func_args(func):
+    """Given a callable, return a tuple of argument names. Handles
+    `functools.partial` objects and class-based callables.
+    """
+    if isinstance(func, functools.partial):
+        return _signature(func.func)
+    if inspect.isfunction(func) or inspect.ismethod(func):
+        return _signature(func)
+    # Callable class
+    return _signature(func.__call__)
 
 
 def if_none(value, default):

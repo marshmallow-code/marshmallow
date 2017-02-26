@@ -321,7 +321,7 @@ However, if you want to specify how values are accessed from an object, you can 
 
         # If we know we're only serializing dictionaries, we can
         # use dict.get for all input objects
-        def get_attribute(self, key, obj, default):
+        def get_attribute(self, obj, key, default):
             return obj.get(key, default)
 
 

@@ -1,6 +1,28 @@
 Changelog
 ---------
 
+3.0.0a1 (2017-02-26)
+++++++++++++++++++++
+
+Features:
+
+- ``dump_only`` and ``load_only`` for ``Function`` and ``Method`` are set based on ``serialize`` and ``deserialize`` arguments (:issue:`328`).
+
+Other changes:
+
+- *Backwards-incompatible*: ``fields.Method`` and ``fields.Function`` no longer swallow ``AttributeErrors`` (:issue:`395`). Thanks :user:`bereal` for the suggestion.
+- *Backwards-incompatible*: ``validators.Length`` is no longer a subclass of ``validators.Range`` (:issue:`458`). Thanks :user:`deckar01` for the catch and patch.
+- *Backwards-incompatible*: ``utils.get_func_args`` no longer returns bound arguments. This is consistent with the behavior of ``inspect.signature``. This change prevents a DeprecationWarning on Python 3.5 (:issue:`415`, :issue:`479`). Thanks :user:`deckar01` for the PR.
+- *Backwards-incompatible*: Change the signature of ``utils.get_value`` and ``Schema.get_attribute`` for consistency with Python builtins (e.g. ``getattr``) (:issue:`341`). Thanks :user:`stas` for reporting and thanks :user:`deckar01` for the PR.
+- *Backwards-incompatible*: Don't unconditionally call callable attributes (:issue:`430`, reverts :issue:`242`). Thanks :user:`mirko` for the suggestion.
+- Drop support for Python 2.6 and 3.3.
+
+Deprecation/Removals:
+
+- Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
+- Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
+- Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
 2.13.0 (2017-02-18)
 +++++++++++++++++++
 

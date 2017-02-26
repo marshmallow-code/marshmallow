@@ -7,7 +7,7 @@ import simplejson
 
 import pytz
 
-from marshmallow import Schema, fields, post_load, validate
+from marshmallow import Schema, fields, post_load, validate, missing
 from marshmallow.compat import text_type
 from marshmallow.exceptions import ValidationError
 
@@ -98,9 +98,6 @@ class User(object):
     def since_created(self):
         return dt.datetime(2013, 11, 24) - self.created
 
-    def call_me(self):
-        return "This was called."
-
     def __repr__(self):
         return "<User {0}>".format(self.name)
 
@@ -137,6 +134,15 @@ class Uppercased(fields.Field):
             return value.upper()
 
 
+def get_lowername(obj):
+    if obj is None:
+        return missing
+    if isinstance(obj, dict):
+        return obj.get('name').lower()
+    else:
+        return obj.name.lower()
+
+
 class UserSchema(Schema):
     name = fields.String()
     age = fields.Float()
@@ -152,7 +158,7 @@ class UserSchema(Schema):
     email = fields.Email()
     balance = fields.Decimal()
     is_old = fields.Method("get_is_old")
-    lowername = fields.Function(lambda obj: obj.name.lower())
+    lowername = fields.Function(get_lowername)
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)
     sex_choices = fields.List(fields.Raw)
@@ -168,8 +174,14 @@ class UserSchema(Schema):
         json_module = simplejson
 
     def get_is_old(self, obj):
+        if obj is None:
+            return missing
+        if isinstance(obj, dict):
+            age = obj.get('age')
+        else:
+            age = obj.age
         try:
-            return obj.age > 80
+            return age > 80
         except TypeError as te:
             raise ValidationError(text_type(te))
 
@@ -177,13 +189,12 @@ class UserSchema(Schema):
     def make_user(self, data):
         return User(**data)
 
-
 class UserMetaSchema(Schema):
     """The equivalent of the UserSchema, using the ``fields`` option."""
     uppername = Uppercased(attribute='name')
     balance = fields.Decimal()
     is_old = fields.Method("get_is_old")
-    lowername = fields.Function(lambda obj: obj.name.lower())
+    lowername = fields.Function(get_lowername)
     updated_local = fields.LocalDateTime(attribute="updated")
     species = fields.String(attribute="SPECIES")
     homepage = fields.Url()
@@ -191,10 +202,16 @@ class UserMetaSchema(Schema):
     various_data = fields.Dict()
 
     def get_is_old(self, obj):
+        if obj is None:
+            return missing
+        if isinstance(obj, dict):
+            age = obj.get('age')
+        else:
+            age = obj.age
         try:
-            return obj.age > 80
+            return age > 80
         except TypeError as te:
-            raise ValidationError(te)
+            raise ValidationError(text_type(te))
 
     class Meta:
         fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
