@@ -4,6 +4,10 @@ Changelog
 3.0.0b1 (unreleased)
 ++++++++++++++++++++
 
+Features:
+
+- ``fields.Nested`` respects ``only='field'`` when deserializing (:issue:`307`). Thanks :user:`erlingbo` for the suggestion and the PR.
+
 
 3.0.0a1 (2017-02-26)
 ++++++++++++++++++++
