@@ -97,7 +97,7 @@ class SchemaMeta(type):
                 ordered = False
         cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
-        inherited_fields = _get_fields_by_mro(klass, base.FieldABC)
+        inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
         # Use getattr rather than attrs['Meta'] so that we get inheritance for free
         meta = getattr(klass, 'Meta')
