@@ -80,3 +80,4 @@ Contributors (chronological)
 - Dmitry Orlov `@mosquito <https://github.com/mosquito>`_
 - Yuri Heupa `@YuriHeupa <https://github.com/YuriHeupa>`_
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
+- Vlad Frolov `@frol <https://github.com/frol>`_

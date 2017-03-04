@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.13.1 (2017-03-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix sorting on Schema subclasses when ``ordered=True`` (:issue:`592`). Thanks :user:`frol`.
+
 2.13.0 (2017-02-18)
 +++++++++++++++++++
 
