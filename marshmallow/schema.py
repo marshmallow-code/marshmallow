@@ -34,19 +34,17 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     :param type field_class: Base field class
     :param bool pop: Remove matching fields
     """
-    getter = getattr(attrs, 'pop' if pop else 'get')
     fields = [
-        (field_name, getter(field_name))
-        for field_name, field_value in list(iteritems(attrs))
+        (field_name, field_value)
+        for field_name, field_value in iteritems(attrs)
         if utils.is_instance_or_subclass(field_value, field_class)
     ]
+    if pop:
+        for field_name, _ in fields:
+            del attrs[field_name]
     if ordered:
-        return sorted(
-            fields,
-            key=lambda pair: pair[1]._creation_index,
-        )
-    else:
-        return fields
+        fields.sort(key=lambda pair: pair[1]._creation_index)
+    return fields
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
