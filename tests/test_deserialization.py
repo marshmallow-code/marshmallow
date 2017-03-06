@@ -272,10 +272,9 @@ class TestFieldDeserialization:
             field.deserialize('invalid-string')
 
     def test_boolean_field_deserialization_with_custom_truthy_values(self):
-        class MyBoolean(fields.Boolean):
-            truthy = set(['yep'])
-        field = MyBoolean()
+        field = fields.Boolean(truthy=('yep',))
         assert field.deserialize('yep') is True
+        assert field.deserialize(False) is False
 
     @pytest.mark.parametrize('in_val',
     [
@@ -284,17 +283,28 @@ class TestFieldDeserialization:
     ])
     def test_boolean_field_deserialization_with_custom_truthy_values_invalid(
             self, in_val):
-        class MyBoolean(fields.Boolean):
-            truthy = set(['yep'])
-        field = MyBoolean()
+        field = fields.Boolean(truthy=('yep',))
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
         expected_msg = 'Not a valid boolean.'
         assert str(excinfo.value.args[0]) == expected_msg
-        field2 = MyBoolean(error_messages={'invalid': 'bad input'})
+
+        field2 = fields.Boolean(truthy=('yep',),
+                                error_messages={'invalid': 'bad input'})
         with pytest.raises(ValidationError) as excinfo:
             field2.deserialize(in_val)
         assert str(excinfo.value.args[0]) == 'bad input'
+
+    def test_boolean_field_deserialization_with_empty_truthy(self):
+        field = fields.Boolean(truthy=())
+        assert field.deserialize('yep') is True
+        assert field.deserialize(True) is True
+        assert field.deserialize(False) is False
+
+    def test_boolean_field_deserialization_with_custom_falsy_values(self):
+        field = fields.Boolean(falsy=('nope',))
+        assert field.deserialize('nope') is False
+        assert field.deserialize(True) is True
 
     @pytest.mark.parametrize('in_value',
     [
