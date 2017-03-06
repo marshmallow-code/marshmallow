@@ -773,14 +773,13 @@ class Decimal(Number):
 class Boolean(Field):
     """A boolean field.
 
-    :param set truthy: see below
-    :param set falsy: see below
+    :param set truthy: Values that will (de)serialize to `True`. If an empty
+        set, any non-falsy value will deserialize to `True`.
+    :param set falsy: Values that will (de)serialize to `False`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
-    #  value will deserialize to `True`.
+    # Default values for constructor arguments
     truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
-    #: Values that will (de)serialize to `False`.
     falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
 
     default_error_messages = {
@@ -791,9 +790,9 @@ class Boolean(Field):
         super(Boolean, self).__init__(**kwargs)
 
         if truthy is not None:
-            self.truthy = truthy
+            self.truthy = set(truthy)
         if falsy is not None:
-            self.falsy = falsy
+            self.falsy = set(falsy)
 
     def _serialize(self, value, attr, obj):
         if value is None:
