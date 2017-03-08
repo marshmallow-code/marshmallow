@@ -5,7 +5,7 @@ import decimal
 
 import pytest
 
-from marshmallow import fields, utils, Schema, validate
+from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring
 from marshmallow.validate import Equal
@@ -1314,6 +1314,96 @@ class TestSchemaDeserialization:
 
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
         assert errors == {}
+
+    def test_unknown_fields_deserialization(self):
+        class MySchema(Schema):
+            foo = fields.Integer()
+
+        data = MySchema().load({'foo': 3, 'bar': 5})
+        assert data['foo'] == 3
+        assert 'bar' not in data
+
+        data = MySchema(unknown=INCLUDE).load({'foo': 3, 'bar': 5}, unknown=EXCLUDE)
+        assert data['foo'] == 3
+        assert 'bar' not in data
+
+        data = MySchema().load({'foo': 3, 'bar': 5}, unknown=INCLUDE)
+        assert data['foo'] == 3
+        assert data['bar']
+
+        data = MySchema(unknown=INCLUDE).load({'foo': 3, 'bar': 5})
+        assert data['foo'] == 3
+        assert data['bar']
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema(unknown=INCLUDE).load({'foo': 'asd', 'bar': 5})
+        assert 'foo' in str(excinfo)
+
+        data = MySchema(unknown=INCLUDE, many=True).load([
+            {'foo': 1},
+            {'foo': 3, 'bar': 5}
+        ])
+        assert 'foo' in data[1]
+        assert 'bar' in data[1]
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema(unknown=RAISE).load({'foo': 3, 'bar': 5})
+        err = excinfo.value
+        assert 'bar' in err.messages
+        assert err.messages['bar'] == ['Unknown field.']
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema(unknown=RAISE, many=True).load([
+                {'foo': 'abc'},
+                {'foo': 3, 'bar': 5},
+            ])
+        err = excinfo.value
+        assert 0 in err.messages
+        assert 'foo' in err.messages[0]
+        assert err.messages[0]['foo'] == ['Not a valid integer.']
+        assert 1 in err.messages
+        assert 'bar' in err.messages[1]
+        assert err.messages[1]['bar'] == ['Unknown field.']
+
+    def test_unknown_fields_deserialization_precedence(self):
+        class MySchema(Schema):
+            class Meta:
+                unknown = INCLUDE
+            foo = fields.Integer()
+
+        data = MySchema().load({'foo': 3, 'bar': 5})
+        assert data['foo'] == 3
+        assert data['bar'] == 5
+
+        data = MySchema(unknown=EXCLUDE).load({'foo': 3, 'bar': 5})
+        assert data['foo'] == 3
+        assert 'bar' not in data
+
+        data = MySchema().load({'foo': 3, 'bar': 5}, unknown=EXCLUDE)
+        assert data['foo'] == 3
+        assert 'bar' not in data
+
+        with pytest.raises(ValidationError):
+            MySchema(unknown=EXCLUDE).load({'foo': 3, 'bar': 5}, unknown=RAISE)
+
+    def test_unknown_fields_deserialization_with_data_key(self):
+        class MySchema(Schema):
+            foo = fields.Integer(data_key="Foo")
+
+        data = MySchema().load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
+        data = MySchema(unknown=RAISE).load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
+        with pytest.raises(ValidationError):
+            MySchema(unknown=RAISE).load({"foo": 1})
+
+        data = MySchema(unknown=INCLUDE).load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])

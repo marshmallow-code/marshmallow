@@ -10,7 +10,9 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-from marshmallow.utils import is_collection, missing, set_value
+from marshmallow.utils import (
+    EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
+)
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
@@ -81,6 +83,7 @@ class ErrorStore(object):
             return self.store_error(field_name, error, field_obj, index)
         return value
 
+
 class Marshaller(ErrorStore):
     """Callable class responsible for serializing data and storing errors.
 
@@ -92,7 +95,8 @@ class Marshaller(ErrorStore):
         ErrorStore.__init__(self)
 
     def serialize(self, obj, fields_dict, many=False,
-                  accessor=None, dict_class=dict, index_errors=True, index=None):
+                  accessor=None, dict_class=dict, index_errors=True,
+                  index=None):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -161,6 +165,7 @@ class Marshaller(ErrorStore):
 # Key used for schema-level validation errors
 SCHEMA = '_schema'
 
+
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
 
@@ -207,7 +212,7 @@ class Unmarshaller(ErrorStore):
                     errors.setdefault(field_name, []).append(text_type(err))
 
     def deserialize(self, data, fields_dict, many=False, partial=False,
-            dict_class=dict, index_errors=True, index=None):
+            unknown=EXCLUDE, dict_class=dict, index_errors=True, index=None):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -217,6 +222,8 @@ class Unmarshaller(ErrorStore):
         :param bool|tuple partial: Whether to ignore missing fields. If its
             value is an iterable, only missing fields listed in that iterable
             will be ignored.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
             ``self.errors`` when ``many=True``.
@@ -227,8 +234,9 @@ class Unmarshaller(ErrorStore):
         if many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
-                        partial=partial, dict_class=dict_class,
-                        index=idx, index_errors=index_errors)
+                        partial=partial, unknown=unknown,
+                        dict_class=dict_class, index=idx,
+                        index_errors=index_errors)
                     for idx, d in enumerate(data)]
 
             self._pending = False
@@ -279,6 +287,21 @@ class Unmarshaller(ErrorStore):
             if value is not missing:
                 key = fields_dict[attr_name].attribute or attr_name
                 set_value(ret, key, value)
+
+        if unknown != EXCLUDE:
+            fields = {field_obj.data_key or field_name
+                      for field_name, field_obj in fields_dict.items()}
+            for key in set(data) - fields:
+                value = data[key]
+                if unknown == INCLUDE:
+                    set_value(ret, key, value)
+                elif unknown == RAISE:
+                    self.store_error(
+                        field_name=key,
+                        error=ValidationError('Unknown field.'),
+                        index=index
+                    )
+
         if self.errors and not self._pending:
             raise ValidationError(
                 self.errors,
