@@ -80,7 +80,8 @@ class OrderedNestedOnly(Schema):
 
 class TestFieldOrdering:
 
-    def test_ordered_option_is_inherited(self, user):
+    @pytest.mark.parametrize('with_meta', (False, True))
+    def test_ordered_option_is_inherited(self, user, with_meta):
         class ParentUnordered(Schema):
             class Meta:
                 ordered = False
@@ -88,7 +89,9 @@ class TestFieldOrdering:
         # KeepOrder is before ParentUnordered in MRO,
         # so ChildOrderedSchema will be ordered
         class ChildOrderedSchema(KeepOrder, ParentUnordered):
-            pass
+            if with_meta:
+                class Meta:
+                    pass
 
         schema = ChildOrderedSchema()
         assert schema.opts.ordered is True
