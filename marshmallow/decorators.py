@@ -69,7 +69,7 @@ def validates(field_name):
     return tag_processor(VALIDATES, None, False, field_name=field_name)
 
 
-def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_field_errors=False):
+def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True):
     """Register a schema-level validator.
 
     By default, receives a single object at a time, regardless of whether ``many=True``
@@ -81,6 +81,9 @@ def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_fiel
 
     If ``skip_on_field_errors=True``, this validation method will be skipped whenever
     validation errors have been detected when validating fields.
+
+    .. versionchanged:: 3.0.0b1
+        ``skip_on_field_errors`` defaults to `True`.
     """
     return tag_processor(VALIDATES_SCHEMA, fn, pass_many, pass_original=pass_original,
                          skip_on_field_errors=skip_on_field_errors)

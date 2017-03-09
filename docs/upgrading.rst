@@ -131,6 +131,62 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
     # => {'z': 123, 'y': 2, 'x': 1}
 
 
+Schema-level validators are skipped when field validation fails
+***************************************************************
+
+By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation). 
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
+    class MySchema(Schema):
+        x = fields.Int(required=True)
+        y = fields.Int(required=True)
+
+        @validates_schema
+        def validate_schema(self, data):
+            if data['x'] <= data['y']:
+                raise ValidationError('x must be greater than y')
+
+
+    schema = MySchema(strict=True)
+
+    # 2.x
+    # A KeyError is raised in validate_schema
+    schema.load({'x': 2})
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
+    # validate_schema is not run
+    schema.load({'x': 2})
+
+If you want a schema validator to run even if a field validator fails, pass ``skip_on_field_errors=False``. Make sure your code handles cases where fields are missing from the deserialized data (due to validation errors).
+
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
+    class MySchema(Schema):
+        x = fields.Int(required=True)
+        y = fields.Int(required=True)
+
+        @validates_schema(skip_on_field_errors=False)
+        def validate_schema(self, data):
+            if 'x' in data and 'y' in data:
+                if data['x'] <= data['y']:
+                    raise ValidationError('x must be greater than y')
+
+
+    schema = MySchema(strict=True)
+    schema.load({'x': 2})
+    # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
+
+
+
+
+
 Upgrading to 2.3
 ++++++++++++++++
 

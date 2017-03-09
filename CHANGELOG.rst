@@ -8,6 +8,10 @@ Features:
 
 - ``fields.Nested`` respects ``only='field'`` when deserializing (:issue:`307`). Thanks :user:`erlingbo` for the suggestion and the PR.
 
+Other changes:
+
+- *Backwards-incompatible*: ``skip_on_field_errors`` defaults to ``True`` for ``validates_schema`` (:issue:`352`).
+
 
 3.0.0a1 (2017-02-26)
 ++++++++++++++++++++
