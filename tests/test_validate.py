@@ -26,7 +26,7 @@ from marshmallow import validate, ValidationError
 ])
 def test_url_absolute_valid(valid_url):
     validator = validate.URL(relative=False)
-    assert validator(valid_url) == valid_url
+    assert validator(valid_url) is True
 
 @pytest.mark.parametrize('invalid_url', [
     'http:///example.com/',
@@ -62,7 +62,7 @@ def test_url_absolute_invalid(invalid_url):
 ])
 def test_url_relative_valid(valid_url):
     validator = validate.URL(relative=True)
-    assert validator(valid_url) == valid_url
+    assert validator(valid_url) is True
 
 @pytest.mark.parametrize('invalid_url', [
     'http//example.org',
@@ -89,7 +89,7 @@ def test_url_custom_scheme():
         validator(url)
 
     validator = validate.URL(schemes=set(['http', 'https', 'ws']))
-    assert validator(url) == url
+    assert validator(url) is True
 
 def test_url_relative_and_custom_schemes():
     validator = validate.URL(relative=True)
@@ -99,7 +99,7 @@ def test_url_relative_and_custom_schemes():
         validator(url)
 
     validator = validate.URL(relative=True, schemes=set(['http', 'https', 'ws']))
-    assert validator(url) == url
+    assert validator(url) is True
 
 def test_url_custom_message():
     validator = validate.URL(error="{input} ain't an URL")
@@ -135,7 +135,7 @@ def test_url_repr():
 ])
 def test_email_valid(valid_email):
     validator = validate.Email()
-    assert validator(valid_email) == valid_email
+    assert validator(valid_email) is True
 
 @pytest.mark.parametrize('invalid_email', [
     'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
@@ -177,10 +177,10 @@ def test_email_repr():
 
 
 def test_range_min():
-    assert validate.Range(1, 2)(1) == 1
-    assert validate.Range(0)(1) == 1
-    assert validate.Range()(1) == 1
-    assert validate.Range(1, 1)(1) == 1
+    assert validate.Range(1, 2)(1) is True
+    assert validate.Range(0)(1) is True
+    assert validate.Range()(1) is True
+    assert validate.Range(1, 1)(1) is True
 
     with pytest.raises(ValidationError):
         validate.Range(2, 3)(1)
@@ -188,10 +188,10 @@ def test_range_min():
         validate.Range(2)(1)
 
 def test_range_max():
-    assert validate.Range(1, 2)(2) == 2
-    assert validate.Range(None, 2)(2) == 2
-    assert validate.Range()(2) == 2
-    assert validate.Range(2, 2)(2) == 2
+    assert validate.Range(1, 2)(2) is True
+    assert validate.Range(None, 2)(2) is True
+    assert validate.Range()(2) is True
+    assert validate.Range(2, 2)(2) is True
 
     with pytest.raises(ValidationError):
         validate.Range(0, 1)(2)
@@ -227,14 +227,14 @@ def test_range_repr():
 
 
 def test_length_min():
-    assert validate.Length(3, 5)('foo') == 'foo'
-    assert validate.Length(3, 5)([1, 2, 3]) == [1, 2, 3]
-    assert validate.Length(0)('a') == 'a'
-    assert validate.Length(0)([1]) == [1]
-    assert validate.Length()('') == ''
-    assert validate.Length()([]) == []
-    assert validate.Length(1, 1)('a') == 'a'
-    assert validate.Length(1, 1)([1]) == [1]
+    assert validate.Length(3, 5)('foo') is True
+    assert validate.Length(3, 5)([1, 2, 3]) is True
+    assert validate.Length(0)('a') is True
+    assert validate.Length(0)([1]) is True
+    assert validate.Length()('') is True
+    assert validate.Length()([]) is True
+    assert validate.Length(1, 1)('a') is True
+    assert validate.Length(1, 1)([1]) is True
 
     with pytest.raises(ValidationError):
         validate.Length(4, 5)('foo')
@@ -246,14 +246,14 @@ def test_length_min():
         validate.Length(5)([1, 2, 3])
 
 def test_length_max():
-    assert validate.Length(1, 3)('foo') == 'foo'
-    assert validate.Length(1, 3)([1, 2, 3]) == [1, 2, 3]
-    assert validate.Length(None, 1)('a') == 'a'
-    assert validate.Length(None, 1)([1]) == [1]
-    assert validate.Length()('') == ''
-    assert validate.Length()([]) == []
-    assert validate.Length(2, 2)('ab') == 'ab'
-    assert validate.Length(2, 2)([1, 2]) == [1, 2]
+    assert validate.Length(1, 3)('foo') is True
+    assert validate.Length(1, 3)([1, 2, 3]) is True
+    assert validate.Length(None, 1)('a') is True
+    assert validate.Length(None, 1)([1]) is True
+    assert validate.Length()('') is True
+    assert validate.Length()([]) is True
+    assert validate.Length(2, 2)('ab') is True
+    assert validate.Length(2, 2)([1, 2]) is True
 
     with pytest.raises(ValidationError):
         validate.Length(1, 2)('foo')
@@ -265,10 +265,10 @@ def test_length_max():
         validate.Length(None, 2)([1, 2, 3])
 
 def test_length_equal():
-    assert validate.Length(equal=3)('foo') == 'foo'
-    assert validate.Length(equal=3)([1, 2, 3]) == [1, 2, 3]
-    assert validate.Length(equal=None)('') == ''
-    assert validate.Length(equal=None)([]) == []
+    assert validate.Length(equal=3)('foo') is True
+    assert validate.Length(equal=3)([1, 2, 3]) is True
+    assert validate.Length(equal=None)('') is True
+    assert validate.Length(equal=None)([]) is True
 
     with pytest.raises(ValidationError):
         validate.Length(equal=2)('foo')
@@ -321,9 +321,9 @@ def test_length_repr():
 
 
 def test_equal():
-    assert validate.Equal('a')('a') == 'a'
-    assert validate.Equal(1)(1) == 1
-    assert validate.Equal([1])([1]) == [1]
+    assert validate.Equal('a')('a') is True
+    assert validate.Equal(1)(1) is True
+    assert validate.Equal([1])([1]) is True
 
     with pytest.raises(ValidationError):
         validate.Equal('b')('a')
@@ -352,12 +352,12 @@ def test_equal_repr():
 
 
 def test_regexp_str():
-    assert validate.Regexp(r'a')('a') == 'a'
-    assert validate.Regexp(r'\w')('_') == '_'
-    assert validate.Regexp(r'\s')(' ') == ' '
-    assert validate.Regexp(r'1')('1') == '1'
-    assert validate.Regexp(r'[0-9]+')('1') == '1'
-    assert validate.Regexp(r'a', re.IGNORECASE)('A') == 'A'
+    assert validate.Regexp(r'a')('a') is True
+    assert validate.Regexp(r'\w')('_') is True
+    assert validate.Regexp(r'\s')(' ') is True
+    assert validate.Regexp(r'1')('1') is True
+    assert validate.Regexp(r'[0-9]+')('1') is True
+    assert validate.Regexp(r'a', re.IGNORECASE)('A') is True
 
     with pytest.raises(ValidationError):
         validate.Regexp(r'[0-9]+')('a')
@@ -367,13 +367,13 @@ def test_regexp_str():
         validate.Regexp(r'a')('A')
 
 def test_regexp_compile():
-    assert validate.Regexp(re.compile(r'a'))('a') == 'a'
-    assert validate.Regexp(re.compile(r'\w'))('_') == '_'
-    assert validate.Regexp(re.compile(r'\s'))(' ') == ' '
-    assert validate.Regexp(re.compile(r'1'))('1') == '1'
-    assert validate.Regexp(re.compile(r'[0-9]+'))('1') == '1'
-    assert validate.Regexp(re.compile(r'a', re.IGNORECASE))('A') == 'A'
-    assert validate.Regexp(re.compile(r'a', re.IGNORECASE), re.IGNORECASE)('A') == 'A'
+    assert validate.Regexp(re.compile(r'a'))('a') is True
+    assert validate.Regexp(re.compile(r'\w'))('_') is True
+    assert validate.Regexp(re.compile(r'\s'))(' ') is True
+    assert validate.Regexp(re.compile(r'1'))('1') is True
+    assert validate.Regexp(re.compile(r'[0-9]+'))('1') is True
+    assert validate.Regexp(re.compile(r'a', re.IGNORECASE))('A') is True
+    assert validate.Regexp(re.compile(r'a', re.IGNORECASE), re.IGNORECASE)('A') is True
 
     with pytest.raises(ValidationError):
         validate.Regexp(re.compile(r'[0-9]+'))('a')
@@ -423,11 +423,11 @@ def test_predicate():
 
     d = Dummy()
 
-    assert validate.Predicate('_true')(d) == d
-    assert validate.Predicate('_list')(d) == d
-    assert validate.Predicate('_identity', arg=True)(d) == d
-    assert validate.Predicate('_identity', arg=1)(d) == d
-    assert validate.Predicate('_identity', arg='abc')(d) == d
+    assert validate.Predicate('_true')(d) is True
+    assert validate.Predicate('_list')(d) is True
+    assert validate.Predicate('_identity', arg=True)(d) is True
+    assert validate.Predicate('_identity', arg=1)(d) is True
+    assert validate.Predicate('_identity', arg='abc')(d) is True
 
     with pytest.raises(ValidationError) as excinfo:
         validate.Predicate('_false')(d)
@@ -467,12 +467,12 @@ def test_predicate_repr():
 
 
 def test_noneof():
-    assert validate.NoneOf([1, 2, 3])(4) == 4
-    assert validate.NoneOf('abc')('d') == 'd'
-    assert validate.NoneOf('')([]) == []
-    assert validate.NoneOf([])('') == ''
-    assert validate.NoneOf([])([]) == []
-    assert validate.NoneOf([1, 2, 3])(None) is None
+    assert validate.NoneOf([1, 2, 3])(4) is True
+    assert validate.NoneOf('abc')('d') is True
+    assert validate.NoneOf('')([]) is True
+    assert validate.NoneOf([])('') is True
+    assert validate.NoneOf([])([]) is True
+    assert validate.NoneOf([1, 2, 3])(None) is True
 
     with pytest.raises(ValidationError) as excinfo:
         validate.NoneOf([1, 2, 3])(3)
@@ -511,11 +511,11 @@ def test_noneof_repr():
 
 
 def test_oneof():
-    assert validate.OneOf([1, 2, 3])(2) == 2
-    assert validate.OneOf('abc')('b') == 'b'
-    assert validate.OneOf('')('') == ''
-    assert validate.OneOf(dict(a=0, b=1))('a') == 'a'
-    assert validate.OneOf((1, 2, None))(None) is None
+    assert validate.OneOf([1, 2, 3])(2) is True
+    assert validate.OneOf('abc')('b') is True
+    assert validate.OneOf('')('') is True
+    assert validate.OneOf(dict(a=0, b=1))('a') is True
+    assert validate.OneOf((1, 2, None))(None) is True
 
     with pytest.raises(ValidationError) as excinfo:
         validate.OneOf([1, 2, 3])(4)
@@ -593,14 +593,14 @@ def test_oneof_repr():
 
 
 def test_containsonly_in_list():
-    assert validate.ContainsOnly([])([]) == []
-    assert validate.ContainsOnly([1, 2, 3])([1]) == [1]
-    assert validate.ContainsOnly([1, 1, 2])([1, 1]) == [1, 1]
-    assert validate.ContainsOnly([1, 2, 3])([1, 2]) == [1, 2]
-    assert validate.ContainsOnly([1, 2, 3])([2, 1]) == [2, 1]
-    assert validate.ContainsOnly([1, 2, 3])([1, 2, 3]) == [1, 2, 3]
-    assert validate.ContainsOnly([1, 2, 3])([3, 1, 2]) == [3, 1, 2]
-    assert validate.ContainsOnly([1, 2, 3])([2, 3, 1]) == [2, 3, 1]
+    assert validate.ContainsOnly([])([]) is True
+    assert validate.ContainsOnly([1, 2, 3])([1]) is True
+    assert validate.ContainsOnly([1, 1, 2])([1, 1]) is True
+    assert validate.ContainsOnly([1, 2, 3])([1, 2]) is True
+    assert validate.ContainsOnly([1, 2, 3])([2, 1]) is True
+    assert validate.ContainsOnly([1, 2, 3])([1, 2, 3]) is True
+    assert validate.ContainsOnly([1, 2, 3])([3, 1, 2]) is True
+    assert validate.ContainsOnly([1, 2, 3])([2, 3, 1]) is True
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly([1, 2, 3])([4])
@@ -610,13 +610,13 @@ def test_containsonly_in_list():
         validate.ContainsOnly([])([1])
 
 def test_contains_only_unhashable_types():
-    assert validate.ContainsOnly([[1], [2], [3]])([[1]]) == [[1]]
-    assert validate.ContainsOnly([[1], [1], [2]])([[1], [1]]) == [[1], [1]]
-    assert validate.ContainsOnly([[1], [2], [3]])([[1], [2]]) == [[1], [2]]
-    assert validate.ContainsOnly([[1], [2], [3]])([[2], [1]]) == [[2], [1]]
-    assert validate.ContainsOnly([[1], [2], [3]])([[1], [2], [3]]) == [[1], [2], [3]]
-    assert validate.ContainsOnly([[1], [2], [3]])([[3], [1], [2]]) == [[3], [1], [2]]
-    assert validate.ContainsOnly([[1], [2], [3]])([[2], [3], [1]]) == [[2], [3], [1]]
+    assert validate.ContainsOnly([[1], [2], [3]])([[1]]) is True
+    assert validate.ContainsOnly([[1], [1], [2]])([[1], [1]]) is True
+    assert validate.ContainsOnly([[1], [2], [3]])([[1], [2]]) is True
+    assert validate.ContainsOnly([[1], [2], [3]])([[2], [1]]) is True
+    assert validate.ContainsOnly([[1], [2], [3]])([[1], [2], [3]]) is True
+    assert validate.ContainsOnly([[1], [2], [3]])([[3], [1], [2]]) is True
+    assert validate.ContainsOnly([[1], [2], [3]])([[2], [3], [1]]) is True
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly([[1], [2], [3]])([[4]])
@@ -626,14 +626,14 @@ def test_contains_only_unhashable_types():
         validate.ContainsOnly([])([1])
 
 def test_containsonly_in_tuple():
-    assert validate.ContainsOnly(())(()) == ()
-    assert validate.ContainsOnly((1, 2, 3))((1,)) == (1,)
-    assert validate.ContainsOnly((1, 1, 2))((1, 1)) == (1, 1)
-    assert validate.ContainsOnly((1, 2, 3))((1, 2)) == (1, 2)
-    assert validate.ContainsOnly((1, 2, 3))((2, 1)) == (2, 1)
-    assert validate.ContainsOnly((1, 2, 3))((1, 2, 3)) == (1, 2, 3)
-    assert validate.ContainsOnly((1, 2, 3))((3, 1, 2)) == (3, 1, 2)
-    assert validate.ContainsOnly((1, 2, 3))((2, 3, 1)) == (2, 3, 1)
+    assert validate.ContainsOnly(())(()) is True
+    assert validate.ContainsOnly((1, 2, 3))((1,)) is True
+    assert validate.ContainsOnly((1, 1, 2))((1, 1)) is True
+    assert validate.ContainsOnly((1, 2, 3))((1, 2)) is True
+    assert validate.ContainsOnly((1, 2, 3))((2, 1)) is True
+    assert validate.ContainsOnly((1, 2, 3))((1, 2, 3)) is True
+    assert validate.ContainsOnly((1, 2, 3))((3, 1, 2)) is True
+    assert validate.ContainsOnly((1, 2, 3))((2, 3, 1)) is True
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly((1, 2, 3))((4,))
@@ -644,14 +644,14 @@ def test_containsonly_in_tuple():
 
 
 def test_contains_only_in_string():
-    assert validate.ContainsOnly('')('') == ''
-    assert validate.ContainsOnly('abc')('a') == 'a'
-    assert validate.ContainsOnly('aab')('aa') == 'aa'
-    assert validate.ContainsOnly('abc')('ab') == 'ab'
-    assert validate.ContainsOnly('abc')('ba') == 'ba'
-    assert validate.ContainsOnly('abc')('abc') == 'abc'
-    assert validate.ContainsOnly('abc')('cab') == 'cab'
-    assert validate.ContainsOnly('abc')('bca') == 'bca'
+    assert validate.ContainsOnly('')('') is True
+    assert validate.ContainsOnly('abc')('a') is True
+    assert validate.ContainsOnly('aab')('aa') is True
+    assert validate.ContainsOnly('abc')('ab') is True
+    assert validate.ContainsOnly('abc')('ba') is True
+    assert validate.ContainsOnly('abc')('abc') is True
+    assert validate.ContainsOnly('abc')('cab') is True
+    assert validate.ContainsOnly('abc')('bca') is True
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly('abc')('d')
