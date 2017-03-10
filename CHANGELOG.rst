@@ -8,6 +8,10 @@ Bug fixes:
 
 - Fix inheritance of ``ordered`` option when ``Schema`` subclasses define ``class Meta`` (:issue:`593`). Thanks :user:`frol`.
 
+Support:
+
+- Update contributing docs.
+
 2.13.1 (2017-03-04)
 +++++++++++++++++++
 
