@@ -17,7 +17,6 @@ from tests.base import (
     assert_time_equal,
     central,
     ALL_FIELDS,
-    User,
 )
 
 class TestDeserializingNone:
@@ -258,6 +257,12 @@ class TestFieldDeserialization:
         assert field.deserialize('false') is False
         assert field.deserialize('1') is True
         assert field.deserialize('0') is False
+        assert field.deserialize('on') is True
+        assert field.deserialize('ON') is True
+        assert field.deserialize('On') is True
+        assert field.deserialize('off') is False
+        assert field.deserialize('OFF') is False
+        assert field.deserialize('Off') is False
         assert field.deserialize(1) is True
         assert field.deserialize(0) is False
 

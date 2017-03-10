@@ -7,9 +7,12 @@ Changelog
 Features:
 
 - ``fields.Nested`` respects ``only='field'`` when deserializing (:issue:`307`). Thanks :user:`erlingbo` for the suggestion and the PR.
+- ``fields.Boolean`` parses ``"on"``/``"off"`` (:issue:`580`). Thanks :user:`marcellarius` for the suggestion.
+
 
 Other changes:
 
+- Includes changes from release 2.13.2.
 - *Backwards-incompatible*: ``skip_on_field_errors`` defaults to ``True`` for ``validates_schema`` (:issue:`352`).
 
 

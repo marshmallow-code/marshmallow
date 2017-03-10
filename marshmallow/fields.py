@@ -782,9 +782,21 @@ class Boolean(Field):
     """
     #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
     #  value will deserialize to `True`.
-    truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
+    truthy = {
+        't', 'T',
+        'true', 'True', 'TRUE',
+        'on', 'On', 'ON',
+        '1', 1,
+        True
+    }
     #: Values that will (de)serialize to `False`.
-    falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
+    falsy = {
+        'f', 'F',
+        'false', 'False', 'FALSE',
+        'off', 'Off', 'OFF',
+        '0', 0, 0.0,
+        False
+    }
 
     default_error_messages = {
         'invalid': 'Not a valid boolean.'
