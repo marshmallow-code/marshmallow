@@ -462,6 +462,11 @@ class Nested(Field):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
+        if isinstance(self.only, basestring):  # self.only is a field name
+            if self.many:
+                value = [{self.only: v} for v in value]
+            else:
+                value = {self.only: value}
         data, errors = self.schema.load(value)
         if errors:
             raise ValidationError(errors, data=data)
@@ -779,8 +784,20 @@ class Boolean(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     # Default values for constructor arguments
-    truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
-    falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
+    truthy = {
+        't', 'T',
+        'true', 'True', 'TRUE',
+        'on', 'On', 'ON',
+        '1', 1,
+        True
+    }
+    falsy = {
+        'f', 'F',
+        'false', 'False', 'FALSE',
+        'off', 'Off', 'OFF',
+        '0', 0, 0.0,
+        False
+    }
 
     default_error_messages = {
         'invalid': 'Not a valid boolean.'

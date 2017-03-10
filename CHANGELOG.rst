@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+3.0.0b1 (2017-03-10)
+++++++++++++++++++++
+
+Features:
+
+- ``fields.Nested`` respects ``only='field'`` when deserializing (:issue:`307`). Thanks :user:`erlingbo` for the suggestion and the PR.
+- ``fields.Boolean`` parses ``"on"``/``"off"`` (:issue:`580`). Thanks :user:`marcellarius` for the suggestion.
+
+
+Other changes:
+
+- Includes changes from release 2.13.2.
+- *Backwards-incompatible*: ``skip_on_field_errors`` defaults to ``True`` for ``validates_schema`` (:issue:`352`).
+
+
 3.0.0a1 (2017-02-26)
 ++++++++++++++++++++
 
@@ -22,6 +37,24 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.13.2 (2017-03-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix inheritance of ``ordered`` option when ``Schema`` subclasses define ``class Meta`` (:issue:`593`). Thanks :user:`frol`.
+
+Support:
+
+- Update contributing docs.
+
+2.13.1 (2017-03-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix sorting on Schema subclasses when ``ordered=True`` (:issue:`592`). Thanks :user:`frol`.
 
 2.13.0 (2017-02-18)
 +++++++++++++++++++

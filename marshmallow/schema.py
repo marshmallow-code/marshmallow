@@ -34,19 +34,17 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     :param type field_class: Base field class
     :param bool pop: Remove matching fields
     """
-    getter = getattr(attrs, 'pop' if pop else 'get')
     fields = [
-        (field_name, getter(field_name))
-        for field_name, field_value in list(iteritems(attrs))
+        (field_name, field_value)
+        for field_name, field_value in iteritems(attrs)
         if utils.is_instance_or_subclass(field_value, field_class)
     ]
+    if pop:
+        for field_name, _ in fields:
+            del attrs[field_name]
     if ordered:
-        return sorted(
-            fields,
-            key=lambda pair: pair[1]._creation_index,
-        )
-    else:
-        return fields
+        fields.sort(key=lambda pair: pair[1]._creation_index)
+    return fields
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
@@ -96,13 +94,13 @@ class SchemaMeta(type):
                 ordered = False
         cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
         klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
-        inherited_fields = _get_fields_by_mro(klass, base.FieldABC)
+        inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
         # Use getattr rather than attrs['Meta'] so that we get inheritance for free
         meta = getattr(klass, 'Meta')
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta)
+        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
         # Add fields specifid in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
@@ -179,7 +177,7 @@ class SchemaMeta(type):
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
-    def __init__(self, meta):
+    def __init__(self, meta, ordered=False):
         self.fields = getattr(meta, 'fields', ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -201,7 +199,7 @@ class SchemaOpts(object):
                 'Schema.dump will be excluded from the serialized output by default.',
                 UserWarning
             )
-        self.ordered = getattr(meta, 'ordered', False)
+        self.ordered = getattr(meta, 'ordered', ordered)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
@@ -381,6 +379,9 @@ class BaseSchema(base.SchemaABC):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
+
+        .. versionchanged:: 3.0.0a1
+            Changed position of ``obj`` and ``attr``.
         """
         return utils.get_value(obj, attr, default)
 
