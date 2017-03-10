@@ -35,6 +35,24 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.13.2 (2017-03-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix inheritance of ``ordered`` option when ``Schema`` subclasses define ``class Meta`` (:issue:`593`). Thanks :user:`frol`.
+
+Support:
+
+- Update contributing docs.
+
+2.13.1 (2017-03-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix sorting on Schema subclasses when ``ordered=True`` (:issue:`592`). Thanks :user:`frol`.
+
 2.13.0 (2017-02-18)
 +++++++++++++++++++
 
