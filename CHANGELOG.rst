@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.13.3 (2017-03-11)
++++++++++++++++++++
+
+Bug fixes:
+
+- Restore backwards-compatibility of ``SchemaOpts`` constructor (:issue:`597`). Thanks :user:`Wesmania` for reporting and thanks :user:`frol` for the fix.
+
 2.13.2 (2017-03-10)
 +++++++++++++++++++
 
