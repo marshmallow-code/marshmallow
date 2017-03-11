@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, SchemaOpts
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import OrderedDict
 
@@ -227,3 +227,18 @@ class TestIncludeOption:
         assert 'email' in s._declared_fields.keys()
         assert 'from' in s._declared_fields.keys()
         assert isinstance(s._declared_fields['from'], fields.Str)
+
+
+class CustomSchemaOpts(SchemaOpts):
+    def __init__(self, meta):
+        super(CustomSchemaOpts, self).__init__(meta)
+        self.custom_option = True
+
+class SchemaWithCustomSchemaOpts(Schema):
+    OPTIONS_CLASS = CustomSchemaOpts
+
+class TestSchemaOptsClass:
+
+    def test_schema_with_custom_schema_opts(self):
+        s = SchemaWithCustomSchemaOpts()
+        assert s.opts.custom_option
