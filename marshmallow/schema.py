@@ -100,7 +100,9 @@ class SchemaMeta(type):
         meta = getattr(klass, 'Meta')
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+        klass.opts = klass.OPTIONS_CLASS(meta)
+        # Pass the inherited `ordered` into opts
+        klass.opts.ordered = ordered
         # Add fields specifid in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
@@ -177,7 +179,7 @@ class SchemaMeta(type):
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
-    def __init__(self, meta, ordered=False):
+    def __init__(self, meta):
         self.fields = getattr(meta, 'fields', ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -199,7 +201,7 @@ class SchemaOpts(object):
                 'Schema.dump will be excluded from the serialized output by default.',
                 UserWarning
             )
-        self.ordered = getattr(meta, 'ordered', ordered)
+        self.ordered = getattr(meta, 'ordered', False)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
