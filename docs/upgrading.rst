@@ -134,7 +134,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
 Schema-level validators are skipped when field validation fails
 ***************************************************************
 
-By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation). 
+By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation).
 
 .. code-block:: python
 
@@ -183,8 +183,28 @@ If you want a schema validator to run even if a field validator fails, pass ``sk
     schema.load({'x': 2})
     # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
 
+`SchemaOpts` constructor receives ``ordered`` argument
+******************************************************
 
+Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argument, ``ordered``, which is `True` if the `ordered` option is set to `True` on a Schema or one of its parent classes.
 
+.. code-block:: python
+
+    from marshmallow import SchemaOpts
+
+    # 2.x
+    class CustomOpts(SchemaOpts):
+
+        def __init__(self, meta):
+            super().__init__(meta)
+            self.custom_option = getattr(meta, 'meta', False)
+
+    # 3.x
+    class CustomOpts(SchemaOpts):
+
+        def __init__(self, meta, ordered=False):
+            super().__init__(meta, ordered)
+            self.custom_option = getattr(meta, 'meta', False)
 
 
 Upgrading to 2.3
