@@ -779,11 +779,13 @@ class Boolean(Field):
     """A boolean field.
 
     :param set truthy: Values that will (de)serialize to `True`. If an empty
-        set, any non-falsy value will deserialize to `True`.
-    :param set falsy: Values that will (de)serialize to `False`.
+        set, any non-falsy value will deserialize to `True`. If `None`,
+        `marshmallow.fields.Boolean.truthy` will be used.
+    :param set falsy: Values that will (de)serialize to `False`. If `None`,
+        `marshmallow.fields.Boolean.falsy` will be used.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    # Default values for constructor arguments
+    #: Default truthy values.
     truthy = {
         't', 'T',
         'true', 'True', 'TRUE',
@@ -791,6 +793,7 @@ class Boolean(Field):
         '1', 1,
         True
     }
+    #: Default falsy values.
     falsy = {
         'f', 'F',
         'false', 'False', 'FALSE',

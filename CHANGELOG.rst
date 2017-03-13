@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0b2 (unreleased)
+++++++++++++++++++++
+
+Features:
+
+- Add ``truthy`` and ``falsy`` params to ``fields.Boolean`` (:issue:`580`). Thanks :user:`zwack` for the PR.
+
 3.0.0b1 (2017-03-10)
 ++++++++++++++++++++
 
