@@ -253,6 +253,7 @@ class BaseSchema(base.SchemaABC):
     :param bool|tuple partial: Whether to ignore missing fields. If its value
         is an iterable, only missing fields listed in that iterable will be
         ignored.
+    :param bool tolerant: Whether to include unknown fields in the loaded data.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -319,7 +320,7 @@ class BaseSchema(base.SchemaABC):
 
     def __init__(self, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
-                 partial=False):
+                 partial=False, tolerant=False):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -331,6 +332,7 @@ class BaseSchema(base.SchemaABC):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
+        self.tolerant = tolerant
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -485,7 +487,7 @@ class BaseSchema(base.SchemaABC):
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
-    def load(self, data, many=None, partial=None):
+    def load(self, data, many=None, partial=None, tolerant=None):
         """Deserialize a data structure to an object defined by this Schema's
         fields and :meth:`make_object`.
 
@@ -495,12 +497,15 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+        :param bool tolerant: Whether to include unknown fields in the result.
+            If `None`, the value for `self.tolerant` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
         .. versionadded:: 1.0.0
         """
-        result, errors = self._do_load(data, many, partial=partial, postprocess=True)
+        result, errors = self._do_load(data, many, partial=partial,
+                                       tolerant=tolerant, postprocess=True)
         return UnmarshalResult(data=result, errors=errors)
 
     def loads(self, json_data, many=None, *args, **kwargs):
@@ -512,6 +517,8 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+        :param bool tolerant: Whether to include unknown fields in the result.
+            If `None`, the value for `self.tolerant` is used.
         :return: A tuple of the form (``data``, ``errors``)
         :rtype: `UnmarshalResult`, a `collections.namedtuple`
 
@@ -521,9 +528,10 @@ class BaseSchema(base.SchemaABC):
         # passing in positional args after `many` for use by `json.loads`, but
         # ideally we shouldn't have to do this.
         partial = kwargs.pop('partial', None)
+        tolerant = kwargs.pop('tolerant', None)
 
         data = self.opts.json_module.loads(json_data, *args, **kwargs)
-        return self.load(data, many=many, partial=partial)
+        return self.load(data, many=many, partial=partial, tolerant=tolerant)
 
     def validate(self, data, many=None, partial=None):
         """Validate `data` against the schema, returning a dictionary of
@@ -545,7 +553,8 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _do_load(self, data, many=None, partial=None, postprocess=True):
+    def _do_load(self, data, many=None, partial=None, tolerant=None,
+                 postprocess=True):
         """Deserialize `data`, returning the deserialized result and a dictonary of
         validation errors.
 
@@ -556,11 +565,14 @@ class BaseSchema(base.SchemaABC):
             only fields listed in that iterable will be ignored will be allowed missing.
             If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
+        :param bool tolerant: Whether to include unknown fields in the result.
+            If `None`, the value for `self.tolerant` is used.
         :param bool postprocess: Whether to run post_load methods..
         :return: A tuple of the form (`data`, `errors`)
         """
         errors = {}
         many = self.many if many is None else bool(many)
+        tolerant = self.tolerant if tolerant is None else bool(tolerant)
         if partial is None:
             partial = self.partial
         try:
@@ -579,6 +591,7 @@ class BaseSchema(base.SchemaABC):
                     self.fields,
                     many=many,
                     partial=partial,
+                    tolerant=tolerant,
                     dict_class=self.dict_class,
                     index_errors=self.opts.index_errors,
                 )
