@@ -83,3 +83,4 @@ Contributors (chronological)
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
 - Vlad Frolov `@frol <https://github.com/frol>`_
 - Erling Børresen `@erlingbo <https://github.com/erlingbo>`_
+- Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
