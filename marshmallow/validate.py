@@ -451,14 +451,12 @@ class ContainsOnly(OneOf):
         return super(ContainsOnly, self)._format_error(value_text)
 
     def __call__(self, value):
-        choices = list(self.choices)
-
-        if not value and choices:
+        if not value and self.choices:
             raise ValidationError(self._format_error(value))
 
         # We can't use set.issubset as it does not handle unhashable types.
         for val in value:
-            if val not in choices:
+            if val not in self.choices:
                 raise ValidationError(self._format_error(value))
 
         return value
