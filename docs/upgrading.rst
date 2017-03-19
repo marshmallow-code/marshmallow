@@ -206,8 +206,8 @@ Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argume
             super().__init__(meta, ordered)
             self.custom_option = getattr(meta, 'meta', False)
 
-`ContainsOnly` accepts duplicate values
-***************************************
+`ContainsOnly` accepts empty and duplicate values
+*************************************************
 
 `validate.ContainsOnly <marshmallow.validate.ContainsOnly>` now accepts duplicate values in the input value.
 
@@ -242,6 +242,20 @@ If you do not want to accept duplicates, use a custom validator, like the follow
 
     If you need to handle unhashable types, you can use the  `implementation of
     ContainsOnly from marshmallow 2.x <https://github.com/marshmallow-code/marshmallow/blob/2888e6978bc8c409a5fed35da6ece8bdb23384f2/marshmallow/validate.py#L436-L467>`_.
+
+`validate.ContainsOnly <marshmallow.validate.ContainsOnly>` also accepts empty values as valid input.
+
+.. code-block:: python
+
+    from marshmallow import validate
+
+    validator = validate.ContainsOnly(['red', 'blue'])
+
+    # in 2.x the following raises a ValidationError
+    # in 3.x, no error is raised
+    validator([])
+
+To validate against empty inputs, use `validate.Length(min=1) <marshmallow.validate.Length>`.
 
 
 Upgrading to 2.3

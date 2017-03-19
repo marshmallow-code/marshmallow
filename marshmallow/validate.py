@@ -437,11 +437,18 @@ class OneOf(Validator):
 
 class ContainsOnly(OneOf):
     """Validator which succeeds if ``value`` is a sequence and each element
-    in the sequence is also in the sequence passed as ``choices``.
+    in the sequence is also in the sequence passed as ``choices``. Empty input
+    is considered valid.
 
     :param iterable choices: Same as :class:`OneOf`.
     :param iterable labels: Same as :class:`OneOf`.
     :param str error: Same as :class:`OneOf`.
+
+    .. versionchanged:: 3.0.0b2
+        Duplicate values are considered valid.
+    .. versionchanged:: 3.0.0b2
+        Empty input is considered valid. Use `validate.Length(min=1) <marshmallow.validate.Length>`
+        to validate against empty inputs.
     """
 
     default_message = 'One or more of the choices you made was not acceptable.'
@@ -451,12 +458,8 @@ class ContainsOnly(OneOf):
         return super(ContainsOnly, self)._format_error(value_text)
 
     def __call__(self, value):
-        if not value and self.choices:
-            raise ValidationError(self._format_error(value))
-
-        # We can't use set.issubset as it does not handle unhashable types.
+        # We can't use set.issubset because does not handle unhashable types
         for val in value:
             if val not in self.choices:
                 raise ValidationError(self._format_error(value))
-
         return value

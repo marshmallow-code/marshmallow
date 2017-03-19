@@ -10,7 +10,7 @@ Features:
 
 Other changes:
 
-- *Backwards-incompatible*: ``validate.ContainsOnly`` allows duplicate values (:issue:`603`). Thanks :user:`maximkulkin` for the suggestion and thanks :user:`lafrech` for the PR.
+- *Backwards-incompatible*: ``validate.ContainsOnly`` allows empty and duplicate values (:issue:`516`, :issue:`603`). Thanks :user:`maximkulkin` for the suggestion and thanks :user:`lafrech` for the PR.
 
 3.0.0b1 (2017-03-10)
 ++++++++++++++++++++

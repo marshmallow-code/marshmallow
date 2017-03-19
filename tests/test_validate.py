@@ -602,11 +602,10 @@ def test_containsonly_in_list():
     assert validate.ContainsOnly([1, 2, 3])([3, 1, 2]) == [3, 1, 2]
     assert validate.ContainsOnly([1, 2, 3])([2, 3, 1]) == [2, 3, 1]
     assert validate.ContainsOnly([1, 2, 3])([1, 2, 3, 1]) == [1, 2, 3, 1]
+    assert validate.ContainsOnly([1, 2, 3])([]) == []
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly([1, 2, 3])([4])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([1, 2, 3])([])
     with pytest.raises(ValidationError):
         validate.ContainsOnly([])([1])
 
@@ -618,11 +617,10 @@ def test_contains_only_unhashable_types():
     assert validate.ContainsOnly([[1], [2], [3]])([[1], [2], [3]]) == [[1], [2], [3]]
     assert validate.ContainsOnly([[1], [2], [3]])([[3], [1], [2]]) == [[3], [1], [2]]
     assert validate.ContainsOnly([[1], [2], [3]])([[2], [3], [1]]) == [[2], [3], [1]]
+    assert validate.ContainsOnly([[1], [2], [3]])([]) == []
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly([[1], [2], [3]])([[4]])
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly([[1], [2], [3]])([])
     with pytest.raises(ValidationError):
         validate.ContainsOnly([])([1])
 
@@ -635,11 +633,9 @@ def test_containsonly_in_tuple():
     assert validate.ContainsOnly((1, 2, 3))((1, 2, 3)) == (1, 2, 3)
     assert validate.ContainsOnly((1, 2, 3))((3, 1, 2)) == (3, 1, 2)
     assert validate.ContainsOnly((1, 2, 3))((2, 3, 1)) == (2, 3, 1)
-
+    assert validate.ContainsOnly((1, 2, 3))(()) == tuple()
     with pytest.raises(ValidationError):
         validate.ContainsOnly((1, 2, 3))((4,))
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly((1, 2, 3))(())
     with pytest.raises(ValidationError):
         validate.ContainsOnly(())((1,))
 
@@ -653,11 +649,10 @@ def test_contains_only_in_string():
     assert validate.ContainsOnly('abc')('abc') == 'abc'
     assert validate.ContainsOnly('abc')('cab') == 'cab'
     assert validate.ContainsOnly('abc')('bca') == 'bca'
+    assert validate.ContainsOnly('abc')('') == ''
 
     with pytest.raises(ValidationError):
         validate.ContainsOnly('abc')('d')
-    with pytest.raises(ValidationError):
-        validate.ContainsOnly('abc')('')
     with pytest.raises(ValidationError):
         validate.ContainsOnly('')('a')
 
