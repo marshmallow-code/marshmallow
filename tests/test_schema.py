@@ -687,6 +687,7 @@ def test_nested_only():
         foo = fields.Field()
         bar = fields.Field()
         baz = fields.Field()
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
@@ -708,6 +709,7 @@ def test_nested_exclude():
         foo = fields.Field()
         bar = fields.Field()
         baz = fields.Field()
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
@@ -724,11 +726,12 @@ def test_nested_exclude():
     assert 'baz' not in child
 
 
-def test_nested_only_and_exclude():
+def test_nested_only_and_exclude_with_dot_notation():
     class ChildSchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
         baz = fields.Field()
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
@@ -750,10 +753,12 @@ def test_meta_nested_exclude():
         foo = fields.Field()
         bar = fields.Field()
         baz = fields.Field()
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
         blubb = fields.Nested(ChildSchema)
+
         class Meta:
             exclude = ('blubb.foo',)
     sch = ParentSchema()
@@ -773,10 +778,12 @@ def test_deeply_nested_only_and_exclude():
         goo = fields.Field()
         gah = fields.Field()
         bah = fields.Field()
+
     class ChildSchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
         flubb = fields.Nested(GrandChildSchema)
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
@@ -936,10 +943,12 @@ def test_nested_constructor_only_and_exclude():
         goo = fields.Field()
         gah = fields.Field()
         bah = fields.Field()
+
     class ChildSchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
         flubb = fields.Nested(GrandChildSchema)
+
     class ParentSchema(Schema):
         bla = fields.Field()
         bli = fields.Field()
@@ -1697,7 +1706,7 @@ class TestSelfReference:
 
         assert errors == {
             'basic': {
-                'sub_basics':  [u'Missing data for required field.'] ,
+                'sub_basics': [u'Missing data for required field.'],
                 'simple_field': [u'Missing data for required field.'],
             }
         }
@@ -1857,6 +1866,7 @@ class TestContext:
             def __call__(self, value):
                 return 'value'
         serialize = SerializeA()
+
         # only has a function field
         class UserFunctionContextSchema(Schema):
             is_collab = fields.Function(serialize)

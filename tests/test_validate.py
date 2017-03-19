@@ -566,7 +566,7 @@ def test_oneof_text():
 def test_oneof_custom_message():
     oneof = validate.OneOf([1, 2, 3], error='{input} is not one of {choices}')
     expected = '4 is not one of 1, 2, 3'
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError):
         oneof(4)
     assert expected in str(expected)
 
@@ -575,7 +575,7 @@ def test_oneof_custom_message():
         error='{input} is not one of {labels}'
     )
     expected = '4 is not one of one, two, three'
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError):
         oneof(4)
     assert expected in str(expected)
 
@@ -668,7 +668,7 @@ def test_containsonly_custom_message():
         error='{input} is not one of {choices}'
     )
     expected = '4, 5 is not one of 1, 2, 3'
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError):
         containsonly([4, 5])
     assert expected in str(expected)
 
@@ -677,7 +677,7 @@ def test_containsonly_custom_message():
         error='{input} is not one of {labels}'
     )
     expected = '4, 5 is not one of one, two, three'
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError):
         containsonly([4, 5])
     assert expected in str(expected)
 
