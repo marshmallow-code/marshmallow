@@ -93,6 +93,25 @@ def test_get_value():
 
     assert utils.get_value(l, MyInt(1)) == 2
 
+
+def test_set_value():
+    d = {}
+    utils.set_value(d, 'foo', 42)
+    assert d == {'foo': 42}
+
+    d = {}
+    utils.set_value(d, 'foo.bar', 42)
+    assert d == {'foo': {'bar': 42}}
+
+    d = {'foo': {}}
+    utils.set_value(d, 'foo.bar', 42)
+    assert d == {'foo': {'bar': 42}}
+
+    d = {'foo': 42}
+    with pytest.raises(ValueError):
+        utils.set_value(d, 'foo.bar', 42)
+
+
 def test_is_keyed_tuple():
     Point = namedtuple('Point', ['x', 'y'])
     p = Point(24, 42)

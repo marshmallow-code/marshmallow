@@ -12,6 +12,10 @@ Other changes:
 
 - *Backwards-incompatible*: ``validate.ContainsOnly`` allows empty and duplicate values (:issue:`516`, :issue:`603`). Thanks :user:`maximkulkin` for the suggestion and thanks :user:`lafrech` for the PR.
 
+Bug fixes:
+
+- Includes bug fixes from release 2.13.4.
+
 3.0.0b1 (2017-03-10)
 ++++++++++++++++++++
 
@@ -48,6 +52,13 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.13.4 (2017-03-19)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix symmetry of serialization and deserialization behavior when passing a dot-delimited path to the ``attribute`` parameter of fields (:issue:`450`). Thanks :user:`itajaja` for reporting.
 
 2.13.3 (2017-03-11)
 +++++++++++++++++++

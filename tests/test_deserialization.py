@@ -936,6 +936,18 @@ class TestSchemaDeserialization:
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
 
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/450
+    def test_deserialize_with_attribute_param_symmetry(self):
+        class MySchema(Schema):
+            foo = fields.Field(attribute='bar.baz')
+
+        schema = MySchema()
+        dump_data, errors = schema.dump({'bar': {'baz': 42}})
+        assert dump_data == {'foo': 42}
+
+        load_data, errors = schema.load({'foo': 42})
+        assert load_data == {'bar': {'baz': 42}}
+
     def test_deserialize_with_attribute_param_error_returns_field_name_not_attribute_name(self):
         class AliasingUserSerializer(Schema):
             username = fields.Email(attribute='email')
