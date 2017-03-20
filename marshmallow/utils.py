@@ -326,6 +326,29 @@ def _get_value_for_key(key, obj, default):
     return default
 
 
+def set_value(dct, key, value):
+    """Set a value in a dict. If `key` contains a '.', it is assumed
+    be a path (i.e. dot-delimited string) to the value's location.
+
+    ::
+
+        >>> d = {}
+        >>> set_value(d, 'foo.bar', 42)
+        >>> d
+        {'foo': {'bar': 42}}
+    """
+    if '.' in key:
+        head, rest = key.split('.', 1)
+        target = dct.setdefault(head, {})
+        if not isinstance(target, dict):
+            raise ValueError(
+                'Cannot set {key} in {head} '
+                'due to existing value: {target}'.format(key=key, head=head, target=target)
+            )
+        set_value(target, rest, value)
+    else:
+        dct[key] = value
+
 def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`.
     """

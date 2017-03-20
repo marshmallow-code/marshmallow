@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.13.4 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix symmetry of serialization and deserialization behavior when passing a dot-delimited path to the ``attribute`` parameter of fields (:issue:`450`). Thanks :user:`itajaja` for reporting.
+
 2.13.3 (2017-03-11)
 +++++++++++++++++++
 
