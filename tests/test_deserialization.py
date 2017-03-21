@@ -310,6 +310,11 @@ class TestFieldDeserialization:
         msg = 'Not a valid datetime.'.format(in_value)
         assert msg in str(excinfo)
 
+    def test_datetime_passed_year_is_invalid(self):
+        field = fields.DateTime()
+        with pytest.raises(ValidationError):
+            field.deserialize('1916')
+
     def test_custom_date_format_datetime_field_deserialization(self):
 
         dtime = dt.datetime.now()
@@ -325,10 +330,7 @@ class TestFieldDeserialization:
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
         field = fields.DateTime()
-        if utils.dateutil_available:
-            assert_datetime_equal(field.deserialize(datestring), dtime)
-        else:
-            assert msg in str(excinfo)
+        assert msg in str(excinfo)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
