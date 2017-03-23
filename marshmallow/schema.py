@@ -459,6 +459,7 @@ class BaseSchema(base.SchemaABC):
                 field_names=self._marshal.error_field_names,
                 fields=self._marshal.error_fields,
                 data=obj,
+                valid_data=result,
                 **self._marshal.error_kwargs
             )
             self.handle_error(exc, obj)
@@ -614,6 +615,7 @@ class BaseSchema(base.SchemaABC):
                 field_names=self._unmarshal.error_field_names,
                 fields=self._unmarshal.error_fields,
                 data=data,
+                valid_data=result,
                 **self._unmarshal.error_kwargs
             )
             self.handle_error(exc, data)

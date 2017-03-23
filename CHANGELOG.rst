@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0b3 (unreleaased)
++++++++++++++++++++++
+
+Features:
+
+- Add ``valid_data`` attribute to ``ValidationError``.
+
 3.0.0b2 (2017-03-19)
 ++++++++++++++++++++
 

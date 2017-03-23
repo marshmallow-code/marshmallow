@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Tests for marshmallow.validate"""
 from __future__ import unicode_literals
 
 import re

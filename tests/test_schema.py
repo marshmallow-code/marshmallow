@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime as dt
 import simplejson as json
 import decimal
 import random
@@ -85,6 +86,57 @@ def test_load_resets_errors():
     result = schema.load({'name': 'Joe', 'email': '__invalid'})
     assert len(result.errors['email']) == 1
     assert 'Not a valid email address.' in result.errors['email'][0]
+
+def test_strict_load_validation_error_stores_input_data_and_valid_data():
+    class MySchema(Schema):
+        always_valid = fields.DateTime()
+        always_invalid = fields.Field(validate=[lambda v: False])
+
+        class Meta:
+            strict = True
+
+    schema = MySchema()
+    input_data = {'always_valid': dt.datetime.utcnow().isoformat(), 'always_invalid': 24}
+    try:
+        schema.load(input_data)
+    except ValidationError as err:
+        # err.data is the raw input data
+        assert err.data == input_data
+        assert 'always_valid' in err.valid_data
+        # err.valid_data contains valid, deserialized data
+        assert isinstance(err.valid_data['always_valid'], dt.datetime)
+        # excludes invalid data
+        assert 'always_invalid' not in err.valid_data
+    else:
+        pytest.fail('Data is invalid. Expected a ValidationError to be raised.')
+
+def test_strict_dump_validation_error_stores_partially_valid_data():
+    class FailOnDump(fields.Field):
+        def _serialize(self, *args, **kwargs):
+            raise ValidationError('fail')
+
+    class MySchema(Schema):
+        always_valid = fields.DateTime()
+        always_invalid = FailOnDump()
+
+        class Meta:
+            strict = True
+
+    schema = MySchema()
+    input_data = {'always_valid': dt.datetime.utcnow(), 'always_invalid': 24}
+    try:
+        schema.dump(input_data)
+    except ValidationError as err:
+        # err.data is the raw input data
+        assert err.data == input_data
+        assert 'always_valid' in err.valid_data
+        # err.valid_data contains valid, serialized data
+        assert isinstance(err.valid_data['always_valid'], str)
+        # excludes invalid data
+        assert 'always_invalid' not in err.valid_data
+    else:
+        pytest.fail('Data is invalid. Expected a ValidationError to be raised.')
+
 
 def test_dump_resets_error_fields():
     class MySchema(Schema):
