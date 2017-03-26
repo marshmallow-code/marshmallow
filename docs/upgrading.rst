@@ -258,6 +258,26 @@ If you do not want to accept duplicates, use a custom validator, like the follow
 To validate against empty inputs, use `validate.Length(min=1) <marshmallow.validate.Length>`.
 
 
+``json_module`` option is renamed to ``render_module``
+******************************************************
+
+The ``json_module`` class Meta option is deprecated in favor of ``render_module``.
+
+.. code-block:: python
+
+    import ujson
+
+    # 2.x
+    class MySchema(Schema):
+        class Meta:
+            json_module = ujson
+
+    # 3.x
+    class MySchema(Schema):
+        class Meta:
+            render_module = ujson
+
+
 Upgrading to 2.3
 ++++++++++++++++
 

@@ -171,7 +171,7 @@ class UserSchema(Schema):
     various_data = fields.Dict()
 
     class Meta:
-        json_module = simplejson
+        render_module = simplejson
 
     def get_is_old(self, obj):
         if obj is None:

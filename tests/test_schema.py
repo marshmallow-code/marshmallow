@@ -673,18 +673,30 @@ def test_invalid_dict_but_okay():
     s = UserSchema().dump(u)
     assert 'various_data' not in s.errors
 
-def test_custom_json():
-    class UserJSONSchema(Schema):
-        name = fields.String()
+def test_json_module_is_deprecated():
+    with pytest.warns(DeprecationWarning):
+        class UserJSONSchema(Schema):
+            name = fields.String()
 
-        class Meta:
-            json_module = mockjson
+            class Meta:
+                json_module = mockjson
 
     user = User('Joe')
     s = UserJSONSchema()
     result, errors = s.dumps(user)
     assert result == mockjson.dumps('val')
 
+def test_render_module():
+    class UserJSONSchema(Schema):
+        name = fields.String()
+
+        class Meta:
+            render_module = mockjson
+
+    user = User('Joe')
+    s = UserJSONSchema()
+    result, errors = s.dumps(user)
+    assert result == mockjson.dumps('val')
 
 def test_custom_error_message():
     class ErrorSchema(Schema):

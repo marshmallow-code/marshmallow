@@ -192,7 +192,15 @@ class SchemaOpts(object):
             raise ValueError("`exclude` must be a list or tuple.")
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
-        self.json_module = getattr(meta, 'json_module', json)
+        if hasattr(meta, 'json_module'):
+            warnings.warn(
+                'The json_module class Meta option is deprecated. Use render_module instead.',
+                DeprecationWarning
+            )
+            render_module = getattr(meta, 'json_module', json)
+        else:
+            render_module = json
+        self.render_module = getattr(meta, 'render_module', render_module)
         if hasattr(meta, 'skip_missing'):
             warnings.warn(
                 'The skip_missing option is no longer necessary. Missing inputs passed to '
@@ -305,7 +313,8 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
             storing them.
-        - ``json_module``: JSON module to use for `loads` and `dumps`.
+        - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
+            `json` from the standard library.
             Defaults to the ``json`` module in the stdlib.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
@@ -476,7 +485,7 @@ class BaseSchema(base.SchemaABC):
         .. versionadded:: 1.0.0
         """
         serialized, errors = self.dump(obj, many=many, update_fields=update_fields)
-        ret = self.opts.json_module.dumps(serialized, *args, **kwargs)
+        ret = self.opts.render_module.dumps(serialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
     def load(self, data, many=None, partial=None):
@@ -516,7 +525,7 @@ class BaseSchema(base.SchemaABC):
         # ideally we shouldn't have to do this.
         partial = kwargs.pop('partial', None)
 
-        data = self.opts.json_module.loads(json_data, *args, **kwargs)
+        data = self.opts.render_module.loads(json_data, *args, **kwargs)
         return self.load(data, many=many, partial=partial)
 
     def validate(self, data, many=None, partial=None):
