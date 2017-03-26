@@ -349,12 +349,6 @@ class BaseSchema(base.SchemaABC):
             ClassName=self.__class__.__name__, self=self
         )
 
-    def _postprocess(self, data, many, obj):
-        if self._marshal.errors:
-            # User-defined error handler
-            self.handle_error(self._marshal.errors, obj)
-        return data
-
     @property
     def dict_class(self):
         return OrderedDict if self.ordered else dict
@@ -429,7 +423,7 @@ class BaseSchema(base.SchemaABC):
                         self._types_seen.add(obj_type)
 
             try:
-                preresult = self._marshal(
+                result = self._marshal(
                     processed_obj,
                     self.fields,
                     many=many,
@@ -440,9 +434,7 @@ class BaseSchema(base.SchemaABC):
                 )
             except ValidationError as error:
                 errors = self._marshal.errors
-                preresult = error.data
-
-            result = self._postprocess(preresult, many, obj=obj)
+                result = error.data
 
         if not errors and self._has_processors:
             try:
@@ -462,6 +454,7 @@ class BaseSchema(base.SchemaABC):
                 valid_data=result,
                 **self._marshal.error_kwargs
             )
+            # User-defined error handler
             self.handle_error(exc, obj)
             if self.strict:
                 raise exc
@@ -482,8 +475,8 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
-        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
+        serialized, errors = self.dump(obj, many=many, update_fields=update_fields)
+        ret = self.opts.json_module.dumps(serialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
     def load(self, data, many=None, partial=None):
