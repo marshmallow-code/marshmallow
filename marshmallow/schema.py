@@ -201,12 +201,6 @@ class SchemaOpts(object):
         else:
             render_module = json
         self.render_module = getattr(meta, 'render_module', render_module)
-        if hasattr(meta, 'skip_missing'):
-            warnings.warn(
-                'The skip_missing option is no longer necessary. Missing inputs passed to '
-                'Schema.dump will be excluded from the serialized output by default.',
-                UserWarning
-            )
         self.ordered = getattr(meta, 'ordered', ordered)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})

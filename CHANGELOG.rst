@@ -8,6 +8,10 @@ Features:
 
 - Add ``valid_data`` attribute to ``ValidationError``.
 
+Deprecations/Removals:
+
+- Deprecate ``json_module`` option in favor of ``render_module`` (:issue:`364`, :issue:`130`). Thanks :user:`justanr` for the suggestion.
+
 3.0.0b2 (2017-03-19)
 ++++++++++++++++++++
 
