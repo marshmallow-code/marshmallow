@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.13.5 (2017-04-12)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix validation of iso8601-formatted dates (:issue:`556`). Thanks :user:`lafrech` for reporting.
+
 2.13.4 (2017-03-19)
 +++++++++++++++++++
 
