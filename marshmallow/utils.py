@@ -6,6 +6,7 @@ import collections
 import datetime
 import inspect
 import json
+import re
 import time
 import types
 from calendar import timegm
@@ -210,6 +211,14 @@ def rfcformat(dt, localtime=False):
     else:
         return local_rfcformat(dt)
 
+# From Django
+_iso8601_re = re.compile(
+    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
+    r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
+    r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
+    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$'
+)
+
 
 def isoformat(dt, localtime=False, *args, **kwargs):
     """Return the ISO8601-formatted UTC representation of a datetime object.
@@ -254,6 +263,8 @@ def from_iso(datestring, use_dateutil=True):
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
+    if not _iso8601_re.match(datestring):
+        raise ValueError('Not a valid ISO8601-formatted string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
         return parser.parse(datestring)
