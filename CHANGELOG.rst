@@ -12,6 +12,11 @@ Deprecations/Removals:
 
 - Deprecate ``json_module`` option in favor of ``render_module`` (:issue:`364`, :issue:`130`). Thanks :user:`justanr` for the suggestion.
 
+
+Bug fixes:
+
+- Includes bug fixes from release 2.13.5.
+
 3.0.0b2 (2017-03-19)
 ++++++++++++++++++++
 
@@ -63,6 +68,13 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.13.5 (2017-04-12)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix validation of iso8601-formatted dates (:issue:`556`). Thanks :user:`lafrech` for reporting.
 
 2.13.4 (2017-03-19)
 +++++++++++++++++++
