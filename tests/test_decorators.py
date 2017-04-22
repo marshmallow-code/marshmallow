@@ -170,6 +170,19 @@ class TestPassOriginal:
         item_dumped = schema.dump(datum, many=False).data
         assert item_dumped == {'foo': 42, '_post_dump': 24}
 
+    def test_invoke_validators_with_many(self):
+        class MySchema(Schema):
+            email = fields.Email()
+
+            @validates_schema(pass_original=True)
+            def validate_schema_with_original(self, data, original_data):
+                assert not isinstance(original_data, list)
+
+        myschema = MySchema()
+        myschema.load([{'name': 'Joe', 'email': 'joe@null.null'},
+            {'name': 'Jill', 'email': 'jill@null.null'}], many=True)
+
+
 def test_decorated_processor_inheritance():
     class ParentSchema(Schema):
 
