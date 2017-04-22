@@ -72,7 +72,8 @@ def test_invoke_validators_with_many():
             assert not isinstance(original_data, list)
 
     myschema = MySchema()
-    myschema.load([ { 'name': 'Joe', 'email': 'joe@null.null' }, { 'name': 'Jill', 'email': 'jill@null.null'} ], many=True)
+    myschema.load([{'name': 'Joe', 'email': 'joe@null.null'},
+        {'name': 'Jill', 'email': 'jill@null.null'}], many=True)
 
 
 def test_dump_resets_errors():
