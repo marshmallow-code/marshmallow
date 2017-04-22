@@ -63,6 +63,18 @@ def test_dump_with_strict_mode_raises_error(SchemaClass):
     assert type(exc.messages) == dict
     assert exc.messages == {'email': ['Not a valid email address.']}
 
+def test_invoke_validators_with_many():
+    class MySchema(Schema):
+        email = fields.Email()
+
+        @validates_schema(pass_original=True)
+        def validate_schema_with_original(self, data, original_data):
+            assert not isinstance(original_data, list)
+
+    myschema = MySchema()
+    myschema.load([ { 'name': 'Joe', 'email': 'joe@null.null' }, { 'name': 'Jill', 'email': 'jill@null.null'} ], many=True)
+
+
 def test_dump_resets_errors():
     class MySchema(Schema):
         email = fields.Email()
