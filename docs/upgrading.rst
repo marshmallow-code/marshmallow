@@ -277,6 +277,20 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
         class Meta:
             render_module = ujson
 
+Pass ``default`` as a keyword argument
+**************************************
+
+`fields.Boolean <marshmallow.fields.Boolean>` now receives additional ``truthy`` and ``falsy`` parameters. Consequently, the ``default`` parameter should always be passed as a keyword argument.
+
+
+.. code-block:: python
+
+    # 2.x
+    fields.Boolean(True)
+
+    # 3.x
+    fields.Boolean(default=True)
+
 
 Upgrading to 2.3
 ++++++++++++++++

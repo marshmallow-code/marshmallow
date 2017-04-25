@@ -22,7 +22,7 @@ Bug fixes:
 
 Features:
 
-- Add ``truthy`` and ``falsy`` params to ``fields.Boolean`` (:issue:`580`). Thanks :user:`zwack` for the PR.
+- Add ``truthy`` and ``falsy`` params to ``fields.Boolean`` (:issue:`580`). Thanks :user:`zwack` for the PR. Note: This is potentially a breaking change if your code passes the `default` parameter positionally. Pass `default` as a keyword argument instead, e.g. ``fields.Boolean(default=True)``.
 
 Other changes:
 
