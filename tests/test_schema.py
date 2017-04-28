@@ -746,6 +746,36 @@ def test_error_raised_if_additional_option_is_not_list():
                 additional = 'email'
 
 
+def test_nested_custom_set_in_exclude_reusing_schema():
+
+    class CustomSet(object):
+        # This custom set is to allow the obj check in BaseSchema.__filter_fields
+        # to pass, since it'll be a valid instance, and this class overrides
+        # getitem method to allow the hasattr check to pass too, which will try
+        # to access the first obj index and will simulate a IndexError throwing.
+        # e.g. SqlAlchemy.Query is a valid use case for this "obj".
+
+        def __getitem__(self, item):
+            return [][item]
+
+    class ChildSchema(Schema):
+        foo = fields.Field(required=True)
+        bar = fields.Field()
+
+        class Meta:
+            only = ('bar', )
+
+    class ParentSchema(Schema):
+        child = fields.Nested(ChildSchema, many=True, exclude=('foo',))
+
+    sch = ParentSchema(strict=True)
+    obj = dict(child=CustomSet())
+    sch.dumps(obj)
+    data = dict(child=[{'bar': 1}])
+    result = sch.load(data, partial=True)
+    assert not result.errors
+
+
 def test_nested_only():
     class ChildSchema(Schema):
         foo = fields.Field()
