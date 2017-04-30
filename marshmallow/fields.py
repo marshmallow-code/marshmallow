@@ -944,23 +944,32 @@ class DateTime(Field):
     def _deserialize(self, value, attr, data):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid')
-        dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
-        if func:
-            try:
-                return func(value)
-            except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
-        elif dateformat:
-            try:
-                return dt.datetime.strptime(value, dateformat)
-            except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
-        elif utils.dateutil_available:
+
+        def deserialize_with_format(dateformat):
+            func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
+            if func:
+                try:
+                    return func(value)
+                except (TypeError, AttributeError, ValueError):
+                    raise self.fail('invalid')
+            elif dateformat:
+                try:
+                    return dt.datetime.strptime(value, dateformat)
+                except (TypeError, AttributeError, ValueError):
+                    raise self.fail('invalid')
+
+        def deserialize_with_dateutil():
             try:
                 return utils.from_datestring(value)
             except TypeError:
                 raise self.fail('invalid')
+
+        if self.dateformat:
+            return deserialize_with_format(self.dateformat)
+        elif utils.dateutil_available:
+            return deserialize_with_dateutil()
+        elif self.DEFAULT_FORMAT:
+            return deserialize_with_format(self.DEFAULT_FORMAT)
         else:
             warnings.warn('It is recommended that you install python-dateutil '
                           'for improved datetime deserialization.')
