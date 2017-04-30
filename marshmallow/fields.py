@@ -954,17 +954,11 @@ class DateTime(Field):
             raise self.fail('invalid')
 
         def deserialize_with_format(dateformat):
-            func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
-            if func:
-                try:
-                    return func(value)
-                except (TypeError, AttributeError, ValueError):
-                    raise self.fail('invalid')
-            elif dateformat:
-                try:
-                    return dt.datetime.strptime(value, dateformat)
-                except (TypeError, AttributeError, ValueError):
-                    raise self.fail('invalid')
+            try:
+                func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
+                return func(value) if func else dt.datetime.strptime(value, dateformat)
+            except (TypeError, AttributeError, ValueError):
+                raise self.fail('invalid')
 
         def deserialize_with_dateutil():
             try:
