@@ -891,6 +891,9 @@ class DateTime(Field):
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
+    :param bool auto_deserialize_format: If `True`, automatically infer format
+        of DateTime strings upon deserialization. Requires the python-dateutil
+        package.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
