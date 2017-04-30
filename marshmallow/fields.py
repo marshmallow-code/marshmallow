@@ -917,12 +917,17 @@ class DateTime(Field):
         'format': '"{input}" cannot be formatted as a datetime.',
     }
 
-    def __init__(self, format=None, **kwargs):
+    def __init__(self, format=None, auto_deserialize_format=False, **kwargs):
         super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_desrialize`` methods This allows a Schema to dynamically set the
         # dateformat, e.g. from a Meta option
         self.dateformat = format
+
+        if auto_deserialize_format and not utils.dateutil_available:
+            raise RuntimeError('auto_deserialize_format option requires the python-dateutil library')
+
+        self.auto_deserialize_format = auto_deserialize_format
 
     def _add_to_schema(self, field_name, schema):
         super(DateTime, self)._add_to_schema(field_name, schema)
@@ -964,17 +969,10 @@ class DateTime(Field):
             except (TypeError, ValueError):
                 raise self.fail('invalid')
 
-        if self.dateformat:
-            return deserialize_with_format(self.dateformat)
-        elif utils.dateutil_available:
+        if self.auto_deserialize_format:
             return deserialize_with_dateutil()
-        elif self.DEFAULT_FORMAT:
-            return deserialize_with_format(self.DEFAULT_FORMAT)
         else:
-            warnings.warn('It is recommended that you install python-dateutil '
-                          'for improved datetime deserialization.')
-            raise self.fail('invalid')
-
+            return deserialize_with_format(self.dateformat or self.DEFAULT_FORMAT)
 
 class LocalDateTime(DateTime):
     """A formatted datetime string in localized time, relative to UTC.

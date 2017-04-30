@@ -376,11 +376,11 @@ class TestFieldDeserialization:
         field = fields.DateTime(format=fmt)
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
-    def test_dateutil_fallback(self):
+    def test_auto_deserialize_format(self):
         if not utils.dateutil_available:
             return
 
-        field = fields.DateTime()
+        field = fields.DateTime(auto_deserialize_format=True)
         expected = dt.datetime(2017, 4, 29, 19, 30)
         noncompliant_string = '7:30PM on April 29, 2017'
 
