@@ -961,7 +961,7 @@ class DateTime(Field):
         def deserialize_with_dateutil():
             try:
                 return utils.from_datestring(value)
-            except TypeError:
+            except (TypeError, ValueError):
                 raise self.fail('invalid')
 
         if self.dateformat:
