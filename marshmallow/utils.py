@@ -264,7 +264,7 @@ def from_iso(datestring, use_dateutil=True):
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
     if not _iso8601_re.match(datestring):
-        raise ValueError('Not a valid ISO8601-formatted string')
+        raise ValueError('Not a valid ISO8601-formatted datetime string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
         return parser.parse(datestring)

@@ -345,6 +345,11 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError):
             field.deserialize('1916')
 
+    def test_datetime_passed_date_is_invalid(self):
+        field = fields.DateTime()
+        with pytest.raises(ValidationError):
+            field.deserialize('2017-04-13')
+
     def test_custom_date_format_datetime_field_deserialization(self):
 
         dtime = dt.datetime.now()
