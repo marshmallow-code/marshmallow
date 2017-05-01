@@ -769,6 +769,7 @@ class TestFieldDeserialization:
     def test_pre_deserialize_method(self):
         class PreDeserialize(Schema):
             data = fields.List(fields.Str(), pre_deserialize='listify')
+
             def listify(self, value):
                 return value.split(',')
         s = PreDeserialize(strict=True)
@@ -785,6 +786,7 @@ class TestFieldDeserialization:
     def test_post_deserialize_method(self):
         class PostDeserialize(Schema):
             days = fields.Int(post_deserialize='to_days')
+
             def to_days(self, value):
                 return dt.timedelta(value + 1)
         s = PostDeserialize(strict=True)

@@ -789,6 +789,7 @@ class TestFieldSerialization:
     def test_pre_serialize_method(self):
         class PreSerialize(Schema):
             days = fields.Int(pre_serialize='from_days')
+
             def from_days(self, td):
                 return td.days
         s = PreSerialize(strict=True)
@@ -806,6 +807,7 @@ class TestFieldSerialization:
     def test_post_serialize_method(self):
         class PostSerialize(Schema):
             ages = fields.List(fields.Int(), post_serialize='commasep')
+
             def commasep(self, a):
                 return ','.join(map(str, a))
         s = PostSerialize(strict=True)
