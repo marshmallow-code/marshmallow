@@ -14,6 +14,7 @@ from marshmallow import (
     validates, validates_schema
 )
 from marshmallow.exceptions import ValidationError
+from marshmallow.fields import Field
 
 from tests.base import *  # noqa
 
@@ -328,6 +329,50 @@ def test_load_many():
     assert type(result.data) == list
     assert type(result.data[0]) == User
     assert result.data[0].name == 'Mick'
+
+def test_load_many_input_types():
+    class Sch(Schema):
+        name = fields.String(required=True)
+    s = Sch(many=True)
+
+    result = s.load(None)
+    assert not result.errors
+
+    result = s.load([])
+    assert not result.errors
+
+    result = s.load(set())
+    assert not result.errors
+
+    result = s.load([{}])
+    assert result.errors == {0: {'name': [Field.default_error_messages['required']]}}
+
+    result = s.load(123)
+    assert result.errors == {'_schema': [Field.default_error_messages['type']]}
+
+    result = s.load('abc')
+    assert result.errors == {'_schema': [Field.default_error_messages['type']]}
+
+    result = s.load({'name': 2})
+    assert result.errors == {'_schema': [Field.default_error_messages['type']]}
+
+    result = s.load({})
+    assert result.errors == {'_schema': [Field.default_error_messages['type']]}
+
+def test_load_many_in_nested_input_types():
+    class Sch(Schema):
+        name = fields.String(required=True)
+
+    class Outer(Schema):
+        list = fields.List(fields.Nested(Sch))
+    s = Outer(many=True)
+
+    result = s.load([{'list': [{'name': 'Jacob'}]}])
+    assert not result.errors
+
+    result = s.load([{'list': [{}]}])
+    assert result.errors[0] == \
+           {'list': {0: {'name': [Field.default_error_messages['required']]}}}
 
 def test_loads_returns_an_unmarshalresult(user):
     s = UserSchema()
