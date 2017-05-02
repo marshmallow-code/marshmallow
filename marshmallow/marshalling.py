@@ -256,14 +256,19 @@ class Unmarshaller(ErrorStore):
                 try:
                     raw_value = data.get(attr_name, missing)
                 except AttributeError:  # Input data is not a dict
-                    errors = self.get_errors(index=index)
                     msg = field_obj.error_messages['type'].format(
                         input=data, input_type=data.__class__.__name__
                     )
-                    self.error_field_names = [SCHEMA]
-                    self.error_fields = []
-                    errors = self.get_errors()
-                    errors.setdefault(SCHEMA, []).append(msg)
+                    if index is None or not index_errors:
+                        errors = self.get_errors()
+                        errors.setdefault(SCHEMA, []).append(msg)
+                        self.error_field_names = [SCHEMA]
+                        self.error_fields = []
+                    else:
+                        errors = self.get_errors(index=index)
+                        errors.setdefault(SCHEMA, []).append(msg)
+                        self.error_field_names = []
+                        self.error_fields = []
                     # Input data type is incorrect, so we can bail out early
                     break
                 field_name = attr_name

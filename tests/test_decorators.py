@@ -356,7 +356,8 @@ class TestValidatesSchemaDecorator:
         assert errors
         assert 'nested' in errors
         assert 0 in errors['nested']
-        assert '_schema' in errors['nested']
+        assert '_schema' in errors['nested'][0]
+        assert '_schema' not in errors['nested']
         assert 'foo' not in errors['nested']
 
     def test_decorated_validators(self):
