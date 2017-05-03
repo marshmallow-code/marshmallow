@@ -198,7 +198,7 @@ class Range(Validator):
         return value
 
 
-class Length(Range):
+class Length(Validator):
     """Validator which succeeds if the value passed to it has a
     length between a minimum and maximum. Uses len(), so it
     can work for strings, lists, or anything with length.
@@ -225,7 +225,9 @@ class Length(Range):
                 'minimum parameter must not be provided.'
             )
 
-        super(Length, self).__init__(min, max, error)
+        self.min = min
+        self.max = max
+        self.error = error
         self.equal = equal
 
     def _repr_args(self):
@@ -435,11 +437,18 @@ class OneOf(Validator):
 
 class ContainsOnly(OneOf):
     """Validator which succeeds if ``value`` is a sequence and each element
-    in the sequence is also in the sequence passed as ``choices``.
+    in the sequence is also in the sequence passed as ``choices``. Empty input
+    is considered valid.
 
     :param iterable choices: Same as :class:`OneOf`.
     :param iterable labels: Same as :class:`OneOf`.
     :param str error: Same as :class:`OneOf`.
+
+    .. versionchanged:: 3.0.0b2
+        Duplicate values are considered valid.
+    .. versionchanged:: 3.0.0b2
+        Empty input is considered valid. Use `validate.Length(min=1) <marshmallow.validate.Length>`
+        to validate against empty inputs.
     """
 
     default_message = 'One or more of the choices you made was not acceptable.'
@@ -449,19 +458,8 @@ class ContainsOnly(OneOf):
         return super(ContainsOnly, self)._format_error(value_text)
 
     def __call__(self, value):
-        choices = list(self.choices)
-
-        if not value and choices:
-            raise ValidationError(self._format_error(value))
-
-        # We check list.index instead of using set.issubset so that
-        # unhashable types are handled.
+        # We can't use set.issubset because does not handle unhashable types
         for val in value:
-            try:
-                index = choices.index(val)
-            except ValueError:
+            if val not in self.choices:
                 raise ValidationError(self._format_error(value))
-            else:
-                del choices[index]
-
         return value

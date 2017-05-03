@@ -65,6 +65,7 @@ Contributors (chronological)
 - Mike Yumatov `@yumike <https://github.com/yumike>`_
 - Tim Mundt `@Tim-Erwin <https://github.com/Tim-Erwin>`_
 - Russell Davies `@russelldavies <https://github.com/russelldavies>`_
+- Jared Deckard `@deckar01 <https://github.com/deckar01>`_
 - David Thornton `@davidthornton <https://github.com/davidthornton>`_
 - Vuong Hoang `@vuonghv <https://github.com/vuonghv>`_
 - David Bertouille `@dbertouille <https://github.com/dbertouille>`_
@@ -81,3 +82,5 @@ Contributors (chronological)
 - Yuri Heupa `@YuriHeupa <https://github.com/YuriHeupa>`_
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
 - Vlad Frolov `@frol <https://github.com/frol>`_
+- Erling Børresen `@erlingbo <https://github.com/erlingbo>`_
+- Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_

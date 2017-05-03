@@ -541,8 +541,8 @@ def test_decorator_error_handling():
             if item['foo'] != 0:
                 return
             errors = {
-              'foo' : ['preloadmsg1',],
-              'bar' : ['preloadmsg2', 'preloadmsg3'],
+                'foo': ['preloadmsg1'],
+                'bar': ['preloadmsg2', 'preloadmsg3'],
             }
             raise ValidationError(errors)
 
@@ -563,8 +563,8 @@ def test_decorator_error_handling():
             if item['foo'] != 1:
                 return item
             errors = {
-              'foo' : ['postloadmsg1',],
-              'bar' : ['postloadmsg2', 'postloadmsg3'],
+                'foo': ['postloadmsg1'],
+                'bar': ['postloadmsg2', 'postloadmsg3'],
             }
             raise ValidationError(errors)
 
@@ -579,8 +579,8 @@ def test_decorator_error_handling():
             if item['foo'] != 2:
                 return
             errors = {
-              'foo' : ['predumpmsg1',],
-              'bar' : ['predumpmsg2', 'predumpmsg3'],
+                'foo': ['predumpmsg1'],
+                'bar': ['predumpmsg2', 'predumpmsg3'],
             }
             raise ValidationError(errors)
 
@@ -595,8 +595,8 @@ def test_decorator_error_handling():
             if item['foo'] != 3:
                 return item
             errors = {
-              'foo' : ['postdumpmsg1',],
-              'bar' : ['postdumpmsg2', 'postdumpmsg3'],
+                'foo': ['postdumpmsg1'],
+                'bar': ['postdumpmsg2', 'postdumpmsg3'],
             }
             raise ValidationError(errors)
 
@@ -607,13 +607,13 @@ def test_decorator_error_handling():
             raise ValidationError('postdumpmsg1', 'foo')
 
     def make_item(foo, bar):
-        data, errors = schema.load({'foo' : foo, 'bar' : bar})
+        data, errors = schema.load({'foo': foo, 'bar': bar})
         assert data is not None
         assert not errors
         return data
 
     schema = ExampleSchema()
-    data, errors = schema.load({'foo' : 0, 'bar' : 1})
+    data, errors = schema.load({'foo': 0, 'bar': 1})
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'preloadmsg1'
@@ -621,7 +621,7 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'preloadmsg2' in errors['bar']
     assert 'preloadmsg3' in errors['bar']
-    data, errors = schema.load({'foo' : 1, 'bar' : 1})
+    data, errors = schema.load({'foo': 1, 'bar': 1})
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postloadmsg1'
@@ -645,12 +645,12 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'postdumpmsg2' in errors['bar']
     assert 'postdumpmsg3' in errors['bar']
-    data, errors = schema.load({'foo' : 4, 'bar' : 1})
+    data, errors = schema.load({'foo': 4, 'bar': 1})
     assert len(errors) == 1
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'preloadmsg1'
-    data, errors = schema.load({'foo' : 5, 'bar' : 1})
+    data, errors = schema.load({'foo': 5, 'bar': 1})
     assert len(errors) == 1
     assert 'foo' in errors
     assert len(errors['foo']) == 1
@@ -663,7 +663,7 @@ def test_decorator_error_handling():
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postdumpmsg1'
-    data, errors = schema.load({'foo' : 8, 'bar' : 1})
+    data, errors = schema.load({'foo': 8, 'bar': 1})
     assert len(errors) == 1
     assert '_schema' in errors
     assert len(errors['_schema']) == 1

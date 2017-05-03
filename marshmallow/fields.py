@@ -176,14 +176,14 @@ class Field(FieldABC):
                 'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
-    def get_value(self, attr, obj, accessor=None, default=missing_):
+    def get_value(self, obj, attr, accessor=None, default=missing_):
         """Return the value for a given key from an object."""
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
         accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
-        return accessor_func(check_key, obj, default)
+        return accessor_func(obj, check_key, default)
 
     def _validate(self, value):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -240,7 +240,7 @@ class Field(FieldABC):
         :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
-            value = self.get_value(attr, obj, accessor=accessor)
+            value = self.get_value(obj, attr, accessor=accessor)
             if value is missing_:
                 if hasattr(self, 'default'):
                     if callable(self.default):
@@ -462,6 +462,11 @@ class Nested(Field):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
+        if isinstance(self.only, basestring):  # self.only is a field name
+            if self.many:
+                value = [{self.only: v} for v in value]
+            else:
+                value = {self.only: value}
         data, errors = self.schema.load(value)
         if errors:
             raise ValidationError(errors, data=data)
@@ -541,16 +546,16 @@ class List(Field):
                                            'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
-    def get_value(self, attr, obj, accessor=None):
+    def get_value(self, obj, attr, accessor=None):
         """Return the value for a given key from an object."""
-        value = super(List, self).get_value(attr, obj, accessor=accessor)
+        value = super(List, self).get_value(obj, attr, accessor=accessor)
         if self.container.attribute:
             if utils.is_collection(value):
                 return [
-                    self.container.get_value(self.container.attribute, each)
+                    self.container.get_value(each, self.container.attribute)
                     for each in value
                 ]
-            return self.container.get_value(self.container.attribute, value)
+            return self.container.get_value(value, self.container.attribute)
         return value
 
     def _add_to_schema(self, field_name, schema):
@@ -773,17 +778,41 @@ class Decimal(Number):
 class Boolean(Field):
     """A boolean field.
 
+    :param set truthy: Values that will (de)serialize to `True`. If an empty
+        set, any non-falsy value will deserialize to `True`. If `None`,
+        `marshmallow.fields.Boolean.truthy` will be used.
+    :param set falsy: Values that will (de)serialize to `False`. If `None`,
+        `marshmallow.fields.Boolean.falsy` will be used.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-    #: Values that will (de)serialize to `True`. If an empty set, any non-falsy
-    #  value will deserialize to `True`.
-    truthy = set(('t', 'T', 'true', 'True', 'TRUE', '1', 1, True))
-    #: Values that will (de)serialize to `False`.
-    falsy = set(('f', 'F', 'false', 'False', 'FALSE', '0', 0, 0.0, False))
+    #: Default truthy values.
+    truthy = {
+        't', 'T',
+        'true', 'True', 'TRUE',
+        'on', 'On', 'ON',
+        '1', 1,
+        True
+    }
+    #: Default falsy values.
+    falsy = {
+        'f', 'F',
+        'false', 'False', 'FALSE',
+        'off', 'Off', 'OFF',
+        '0', 0, 0.0,
+        False
+    }
 
     default_error_messages = {
         'invalid': 'Not a valid boolean.'
     }
+
+    def __init__(self, truthy=None, falsy=None, **kwargs):
+        super(Boolean, self).__init__(**kwargs)
+
+        if truthy is not None:
+            self.truthy = set(truthy)
+        if falsy is not None:
+            self.falsy = set(falsy)
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -1166,7 +1195,7 @@ class Email(ValidatedField, String):
 class Method(Field):
     """A field that takes the value returned by a `Schema` method.
 
-    :param str method_name: The name of the Schema method from which
+    :param str serialize: The name of the Schema method from which
         to retrieve the value. The method must take an argument ``obj``
         (in addition to self) that is the object to be serialized.
     :param str deserialize: Optional name of the Schema method for deserializing
@@ -1178,17 +1207,18 @@ class Method(Field):
     .. versionchanged:: 2.3.0
         Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
         ``serialize`` to not be passed at all.
+    .. versionchanged:: 3.0.0
+        Removed ``method_name`` parameter.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize=None, deserialize=None, method_name=None, **kwargs):
-        if method_name is not None:
-            warnings.warn('"method_name" argument of fields.Method is deprecated. '
-                          'Use the "serialize" argument instead.', DeprecationWarning)
-
-        self.serialize_method_name = self.method_name = serialize or method_name
-        self.deserialize_method_name = deserialize
+    def __init__(self, serialize=None, deserialize=None, **kwargs):
+        # Set dump_only and load_only based on arguments
+        kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
+        kwargs['load_only'] = bool(deserialize) and not bool(serialize)
         super(Method, self).__init__(**kwargs)
+        self.serialize_method_name = serialize
+        self.deserialize_method_name = deserialize
 
     def _serialize(self, value, attr, obj):
         if not self.serialize_method_name:
@@ -1197,21 +1227,14 @@ class Method(Field):
         method = utils.callable_or_raise(
             getattr(self.parent, self.serialize_method_name, None)
         )
-        try:
-            return method(obj)
-        except AttributeError:
-            pass
-        return missing_
+        return method(obj)
 
     def _deserialize(self, value, attr, data):
         if self.deserialize_method_name:
-            try:
-                method = utils.callable_or_raise(
-                    getattr(self.parent, self.deserialize_method_name, None)
-                )
-                return method(value)
-            except AttributeError:
-                pass
+            method = utils.callable_or_raise(
+                getattr(self.parent, self.deserialize_method_name, None)
+            )
+            return method(value)
         return value
 
 
@@ -1230,29 +1253,24 @@ class Function(Field):
         which is a dictionary of context variables passed to the deserializer.
         If no callable is provided then ```value``` will be passed through
         unchanged.
-    :param callable func: This argument is to be deprecated. It exists for
-        backwards compatiblity. Use serialize instead.
 
     .. versionchanged:: 2.3.0
         Deprecated ``func`` parameter in favor of ``serialize``.
+    .. versionchanged:: 3.0.0
+        Removed ``func`` parameter.
     """
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, serialize=None, deserialize=None, func=None, **kwargs):
-        if func:
-            warnings.warn('"func" argument of fields.Function is deprecated. '
-                          'Use the "serialize" argument instead.', DeprecationWarning)
-            serialize = func
+        # Set dump_only and load_only based on arguments
+        kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
+        kwargs['load_only'] = bool(deserialize) and not bool(serialize)
         super(Function, self).__init__(**kwargs)
-        self.serialize_func = self.func = serialize and utils.callable_or_raise(serialize)
+        self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj):
-        try:
-            return self._call_or_raise(self.serialize_func, obj, attr)
-        except AttributeError:  # the object is not expected to have the attribute
-            pass
-        return missing_
+        return self._call_or_raise(self.serialize_func, obj, attr)
 
     def _deserialize(self, value, attr, data):
         if self.deserialize_func:

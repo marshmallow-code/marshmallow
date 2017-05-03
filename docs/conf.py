@@ -10,6 +10,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from collections import OrderedDict
 import sys
 import os
 import datetime as dt
@@ -20,7 +21,6 @@ import alabaster
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 import marshmallow  # flake8: noqa
-from marshmallow.compat import OrderedDict
 
 # -- General configuration -----------------------------------------------------
 

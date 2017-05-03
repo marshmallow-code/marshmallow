@@ -321,10 +321,8 @@ However, if you want to specify how values are accessed from an object, you can 
 
         # If we know we're only serializing dictionaries, we can
         # use dict.get for all input objects
-        def get_attribute(self, key, obj, default):
+        def get_attribute(self, obj, key, default):
             return obj.get(key, default)
-
-
 
 Custom "class Meta" Options
 ---------------------------
@@ -364,8 +362,8 @@ First, we'll add our namespace configuration to a custom options class.
         """Same as the default class Meta options, but adds "name" and
         "plural_name" options for enveloping.
         """
-        def __init__(self, meta):
-            SchemaOpts.__init__(self, meta)
+        def __init__(self, meta, **kwargs):
+            SchemaOpts.__init__(self, meta, **kwargs)
             self.name = getattr(meta, 'name', None)
             self.plural_name = getattr(meta, 'plural_name', self.name)
 
