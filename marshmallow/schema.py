@@ -206,6 +206,7 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.writable = getattr(meta, 'writable', None)
 
 
 class BaseSchema(base.SchemaABC):
@@ -255,6 +256,8 @@ class BaseSchema(base.SchemaABC):
     :param bool|tuple partial: Whether to ignore missing fields. If its value
         is an iterable, only missing fields listed in that iterable will be
         ignored.
+    :param tuple writable: A list or tuple of fields that are writable. If this
+        parameter is specified, all fields not specified are marked as read only.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -317,12 +320,14 @@ class BaseSchema(base.SchemaABC):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``writable``: A list or tuple of fields that are writable. If this
+            parameter is specified, all fields not specified are marked as read only.
         """
         pass
 
     def __init__(self, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
-                 partial=False):
+                 partial=False, writable=None):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -334,6 +339,14 @@ class BaseSchema(base.SchemaABC):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
+
+        if writable is not None:
+            self.writable = set(writable)
+        elif self.opts.writable is not None:
+            self.writable = set(self.opts.writable)
+        else:
+            self.writable = None
+
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         #: Callable marshalling object
@@ -698,6 +711,12 @@ class BaseSchema(base.SchemaABC):
                     field_obj.load_only = True
                 if field_name in self.dump_only:
                     field_obj.dump_only = True
+
+                if self.writable is not None:
+                    if field_name not in self.writable:
+                        # Field wasn't named as writeable. It can only be dumped
+                        field_obj.dump_only = True
+
                 field_obj._add_to_schema(field_name, self)
                 self.on_bind_field(field_name, field_obj)
             except TypeError:
