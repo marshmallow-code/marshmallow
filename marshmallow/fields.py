@@ -627,7 +627,7 @@ class UUID(String):
                 return uuid.UUID(bytes=value)
             else:
                 return uuid.UUID(value)
-        except (TypeError, ValueError, AttributeError):
+        except (ValueError, AttributeError):
             self.fail('invalid_uuid')
 
     def _serialize(self, value, attr, obj):
