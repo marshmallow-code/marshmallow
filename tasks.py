@@ -24,12 +24,20 @@ def test(ctx, watch=False, last_failing=False):
     if int(sys.version_info[0]) < 3:
         args.append('--ignore={0}'.format(os.path.join('tests', 'test_py3')))
     retcode = pytest.main(args)
+    benchmark(ctx)
     sys.exit(retcode)
 
 @task
 def flake(ctx):
     """Run flake8 on codebase."""
     ctx.run('flake8 .', echo=True)
+
+@task
+def benchmark(ctx):
+    """Run fast benchmark on codebase."""
+    # Explicitly shell out to get more consistent results by creating a new process
+    # every time, for example running out of process ensures a pristine class_registry.
+    ctx.run('python performance/benchmark.py --iterations=100 --repeat=3', echo=True)
 
 @task
 def clean(ctx):
