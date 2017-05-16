@@ -430,6 +430,7 @@ class Nested(Field):
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
             self.__schema.ordered = getattr(self.parent, 'ordered', False)
+            self.__schema.jit = getattr(self.parent, 'jit', None)
         return self.__schema
 
     def _nested_normalized_option(self, option_name):
