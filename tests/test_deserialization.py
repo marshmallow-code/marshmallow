@@ -3,6 +3,12 @@ import datetime as dt
 import uuid
 import decimal
 
+try:
+    from enum import Enum
+    enum_import_error = None
+except ImportError:
+    enum_import_error = "Cannot import Enum"
+
 import pytest
 
 from marshmallow import fields, utils, Schema, validate
@@ -759,6 +765,20 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
+
+    @pytest.mark.skipif(enum_import_error is not None, reason=enum_import_error)
+    def test_enum_field_deserialization(self):
+
+        class MyEnum(Enum):
+            val_1 = 1
+            val_2 = 2
+
+        field = fields.Enum(MyEnum)
+        assert field.deserialize('val_1') is MyEnum.val_1
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize('invalid')
+        assert 'Not a valid choice' in str(excinfo)
+
 
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):

@@ -1312,6 +1312,24 @@ class Constant(Field):
         return self.constant
 
 
+class Enum(Field):
+
+    default_error_messages = {'invalid': 'Not a valid choice.'}
+
+    def __init__(self, enum, *args, **kwargs):
+        super(Enum, self).__init__(*args, **kwargs)
+        self._enum = enum
+
+    def _serialize(self, value, *args, **kwargs):
+        return value.name
+
+    def _deserialize(self, value, *args, **kwargs):
+        try:
+            return self._enum[value]
+        except KeyError:
+            self.fail('invalid')
+
+
 # Aliases
 URL = Url
 Str = String

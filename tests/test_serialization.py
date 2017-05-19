@@ -6,6 +6,12 @@ import itertools
 import decimal
 import uuid
 
+try:
+    from enum import Enum
+    enum_import_error = None
+except ImportError:
+    enum_import_error = "Cannot import Enum"
+
 import pytest
 
 from marshmallow import Schema, fields, utils
@@ -781,6 +787,16 @@ class TestFieldSerialization:
             assert res == 'None'
         else:
             assert res is None
+
+    @pytest.mark.skipif(enum_import_error is not None, reason=enum_import_error)
+    def test_enum_field_serialization(self):
+
+        class MyEnum(Enum):
+            val_1 = 1
+            val_2 = 2
+
+        field = fields.Enum(MyEnum)
+        assert field.serialize('foo', {'foo': MyEnum.val_1}) == 'val_1'
 
 
 def test_serializing_named_tuple():
