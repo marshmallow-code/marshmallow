@@ -17,6 +17,10 @@ Bug fixes:
 
 - Includes bug fixes from release 2.13.5.
 
+Support:
+
+- Add benchmark script. Thanks :user:`rowillia`.
+
 3.0.0b2 (2017-03-19)
 ++++++++++++++++++++
 
