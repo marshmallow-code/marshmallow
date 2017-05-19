@@ -774,9 +774,16 @@ class TestFieldDeserialization:
             val_2 = 2
 
         field = fields.Enum(MyEnum)
-        assert field.deserialize('val_1') is MyEnum.val_1
+        field_as_str = fields.Enum(MyEnum, as_string=True)
+
+        assert field.deserialize(MyEnum.val_1) is MyEnum.val_1
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
+        assert 'Not a valid choice' in str(excinfo)
+
+        assert field_as_str.deserialize('val_1') is MyEnum.val_1
+        with pytest.raises(ValidationError) as excinfo:
+            field_as_str.deserialize('invalid')
         assert 'Not a valid choice' in str(excinfo)
 
 

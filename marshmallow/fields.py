@@ -1313,21 +1313,43 @@ class Constant(Field):
 
 
 class Enum(Field):
+    """A field that (de)serialize an Enum value.
+
+    :param Enum enum: The Enum the value should belong to
+    :param bool as_string: If True, format the serialized value as a string.
+
+    Note: Enum was introduced in Python 3.4 and backported to former versions
+    as an external library called enum34.
+    """
 
     default_error_messages = {'invalid': 'Not a valid choice.'}
 
-    def __init__(self, enum, *args, **kwargs):
+    def __init__(self, enum, as_string=False, *args, **kwargs):
         super(Enum, self).__init__(*args, **kwargs)
         self._enum = enum
+        self.as_string = as_string
+        self.validators.insert(0, validate.OneOf(enum))
 
-    def _serialize(self, value, *args, **kwargs):
+    def serialize(self, attr, obj, accessor=None):
+        """Pulls the value for the given key from the object and returns the
+        serialized number representation. Return a string if `self.as_string=True`,
+        othewise return this field's `num_type`. Receives the same `args` and `kwargs`
+        as `Field`.
+        """
+        ret = Field.serialize(self, attr, obj, accessor=accessor)
+        return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
+
+    def _to_string(self, value):
         return value.name
 
     def _deserialize(self, value, *args, **kwargs):
-        try:
-            return self._enum[value]
-        except KeyError:
-            self.fail('invalid')
+        if not self.as_string:
+            return value
+        else:
+            try:
+                return self._enum[value]
+            except KeyError:
+                self.fail('invalid')
 
 
 # Aliases

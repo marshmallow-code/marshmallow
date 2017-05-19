@@ -796,7 +796,10 @@ class TestFieldSerialization:
             val_2 = 2
 
         field = fields.Enum(MyEnum)
-        assert field.serialize('foo', {'foo': MyEnum.val_1}) == 'val_1'
+        field_as_str = fields.Enum(MyEnum, as_string=True)
+
+        assert field.serialize('foo', {'foo': MyEnum.val_1}) is MyEnum.val_1
+        assert field_as_str.serialize('foo', {'foo': MyEnum.val_1}) == 'val_1'
 
 
 def test_serializing_named_tuple():
