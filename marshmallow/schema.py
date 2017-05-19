@@ -34,20 +34,18 @@ def get_default_jit():
     every schema in a process.
     """
     global DEFAULT_JIT
-    if DEFAULT_JIT != missing:
-        return DEFAULT_JIT
+    if DEFAULT_JIT == missing:
+        DEFAULT_JIT = None
+        with suppress(Exception):
+            default_jit_path = os.getenv(DEFAULT_JIT_ENVIRONMENT_VARIABLE)
 
-    DEFAULT_JIT = None
-
-    with suppress(Exception):
-        default_jit_path = os.getenv(DEFAULT_JIT_ENVIRONMENT_VARIABLE)
-
-        if default_jit_path:
-            parts = default_jit_path.split('.')
-            module_name = '.'.join(parts[0:-1])
-            class_name = parts[-1]
-            module = importlib.import_module(module_name)
-            DEFAULT_JIT = getattr(module, class_name, None)
+            if default_jit_path:
+                parts = default_jit_path.split('.')
+                module_name = '.'.join(parts[0:-1])
+                class_name = parts[-1]
+                module = importlib.import_module(module_name)
+                DEFAULT_JIT = getattr(module, class_name, None)
+    return DEFAULT_JIT
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -265,6 +263,7 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.jit = getattr(meta, 'jit', missing)
         self.jit_options = getattr(meta, 'jit_options', {})
 
 
@@ -406,6 +405,8 @@ class BaseSchema(base.SchemaABC):
         self._normalize_nested_options()
         self._types_seen = set()
         self._jit_class = get_default_jit()
+        if self.opts.jit is not missing:
+            self._jit_class = self.opts.jit
         self._jit_instance = None
         self._current_name_to_type = None
         self._update_fields(many=many)
@@ -498,34 +499,13 @@ class BaseSchema(base.SchemaABC):
                     self._update_fields(processed_obj, many=many)
                     if not isinstance(processed_obj, Mapping):
                         self._types_seen.add(obj_type)
-            result = None
-            jit_instance = self._jit_instance
-            if jit_instance:
-                jitted_marshal_method = jit_instance.jitted_marshal_method
-                if jitted_marshal_method:
-                    try:
-                        if many:
-                            result = [jitted_marshal_method(x)
-                                      for x in obj]
-                        else:
-                            result = jitted_marshal_method(obj)
-                    except (ValidationError, KeyError, AttributeError, ValueError):
-                        # Fall through to slow path
-                        pass
-            if not result:
-                try:
-                    result = self._marshal(
-                        processed_obj,
-                        self.fields,
-                        many=many,
-                        accessor=self.get_attribute,
-                        dict_class=self.dict_class,
-                        index_errors=self.opts.index_errors,
-                        **kwargs
-                    )
-                except ValidationError as error:
-                    errors = self._marshal.errors
-                    result = error.data
+            jitted_method = (self._jit_instance.jitted_marshal_method
+                             if self._jit_instance else None)
+            errors, result = self._transform(jitted_method,
+                                             self._marshal,
+                                             many, obj,
+                                             accessor=self.get_attribute,
+                                             **kwargs)
 
         if not errors and self._has_processors:
             try:
@@ -551,6 +531,52 @@ class BaseSchema(base.SchemaABC):
                 raise exc
 
         return MarshalResult(result, errors)
+
+    def _transform(self, jitted_method, marshalling_method,
+                   many, obj, **kwargs):
+        """Transforms an object by serializing or deserializing it, returning
+        any errors that occurred as well as the result.
+
+        This method allows for a single place for the jitted
+        serialize/deserialize methods to be invoked.  First it willa attempt to
+        use the `jitted_method` if available and, should that fail, will fall
+        back to the normal `marshmallow.marshalling`-based methods.
+
+        :param jitted_method: The jitted method to first attempt to invoke when
+            serializing or deserializng `obj`
+        :param marshalling_method: The marshalling method to call should the
+            jitted_method be absent or fail.  Should be either `self._marshal`
+            or `self._unmarshal`.
+        :param bool many: Whether to serialize `obj` as a collection.
+        :param obj:  The object to serialize or deserialize.
+        :return tuple: A tuple of errors:result.
+        """
+        result = None
+        errors = {}
+        if jitted_method:
+            try:
+                if many:
+                    result = [jitted_method(x)
+                              for x in obj]
+                else:
+                    result = jitted_method(obj)
+            except (ValidationError, KeyError, AttributeError, ValueError):
+                # Fall through to slow path
+                    pass
+        if not result:
+            try:
+                result = marshalling_method(
+                    obj,
+                    self.fields,
+                    many=many,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                    **kwargs
+                )
+            except ValidationError as error:
+                errors = marshalling_method.errors
+                result = error.data
+        return errors, result
 
     def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
@@ -657,33 +683,13 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as err:
             errors = err.normalized_messages()
             result = None
-        if not errors:
-            result = None
-            jit_instance = self._jit_instance
-            if jit_instance:
-                jitted_unmarshal_method = jit_instance.jitted_unmarshal_method
-                if jitted_unmarshal_method:
-                    try:
-                        if many:
-                            result = [jitted_unmarshal_method(x)
-                                      for x in processed_data]
-                        else:
-                            result = jitted_unmarshal_method(processed_data)
-                    except (ValidationError, KeyError, AttributeError, ValueError):
-                        # Fall through to slow path
-                        pass
-            if not result:
-                try:
-                    result = self._unmarshal(
-                        processed_data,
-                        self.fields,
-                        many=many,
-                        partial=partial,
-                        dict_class=self.dict_class,
-                        index_errors=self.opts.index_errors,
-                    )
-                except ValidationError as error:
-                    result = error.data
+        else:
+            jitted_method = (self._jit_instance.jitted_unmarshal_method
+                             if self._jit_instance else None)
+            _, result = self._transform(jitted_method,
+                                        self._unmarshal,
+                                        many, processed_data,
+                                        partial=partial)
             self._invoke_field_validators(data=result, many=many)
             errors = self._unmarshal.errors
             field_errors = bool(errors)
@@ -782,6 +788,9 @@ class BaseSchema(base.SchemaABC):
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
+        # If this schema has a JIT attached and we've changed the types of
+        # the current set of fields we need to create a new JIT instance to
+        # recompile the backing code.
         if self._jit_class and (not self._jit_instance or
                                 self._current_name_to_type != name_to_type):
             self._jit_instance = self._jit_class(self)
