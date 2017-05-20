@@ -2,6 +2,7 @@
 import datetime as dt
 import uuid
 import decimal
+import enum
 
 import pytest
 
@@ -759,6 +760,26 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
+
+    def test_enum_field_deserialization(self):
+
+        class MyEnum(enum.Enum):
+            val_1 = 1
+            val_2 = 2
+
+        field = fields.Enum(MyEnum)
+        field_as_str = fields.Enum(MyEnum, as_string=True)
+
+        assert field.deserialize(MyEnum.val_1) is MyEnum.val_1
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize('invalid')
+        assert 'Not a valid choice' in str(excinfo)
+
+        assert field_as_str.deserialize('val_1') is MyEnum.val_1
+        with pytest.raises(ValidationError) as excinfo:
+            field_as_str.deserialize('invalid')
+        assert 'Not a valid choice' in str(excinfo)
+
 
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):

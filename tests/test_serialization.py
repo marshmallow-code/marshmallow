@@ -5,6 +5,7 @@ import datetime as dt
 import itertools
 import decimal
 import uuid
+import enum
 
 import pytest
 
@@ -781,6 +782,18 @@ class TestFieldSerialization:
             assert res == 'None'
         else:
             assert res is None
+
+    def test_enum_field_serialization(self):
+
+        class MyEnum(enum.Enum):
+            val_1 = 1
+            val_2 = 2
+
+        field = fields.Enum(MyEnum)
+        field_as_str = fields.Enum(MyEnum, as_string=True)
+
+        assert field.serialize('foo', {'foo': MyEnum.val_1}) is MyEnum.val_1
+        assert field_as_str.serialize('foo', {'foo': MyEnum.val_1}) == 'val_1'
 
 
 def test_serializing_named_tuple():
