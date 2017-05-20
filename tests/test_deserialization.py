@@ -2,12 +2,7 @@
 import datetime as dt
 import uuid
 import decimal
-
-try:
-    from enum import Enum
-    enum_import_error = None
-except ImportError:
-    enum_import_error = "Cannot import Enum"
+import enum
 
 import pytest
 
@@ -766,10 +761,9 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
-    @pytest.mark.skipif(enum_import_error is not None, reason=enum_import_error)
     def test_enum_field_deserialization(self):
 
-        class MyEnum(Enum):
+        class MyEnum(enum.Enum):
             val_1 = 1
             val_2 = 2
 

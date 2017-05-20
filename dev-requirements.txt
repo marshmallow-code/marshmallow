@@ -4,6 +4,7 @@ invoke>=0.13.0
 # Soft dependencies
 python-dateutil
 pytz
+enum34 ; python_version < '3.4'
 
 # Distribution
 wheel

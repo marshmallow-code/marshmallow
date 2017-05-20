@@ -5,12 +5,7 @@ import datetime as dt
 import itertools
 import decimal
 import uuid
-
-try:
-    from enum import Enum
-    enum_import_error = None
-except ImportError:
-    enum_import_error = "Cannot import Enum"
+import enum
 
 import pytest
 
@@ -788,10 +783,9 @@ class TestFieldSerialization:
         else:
             assert res is None
 
-    @pytest.mark.skipif(enum_import_error is not None, reason=enum_import_error)
     def test_enum_field_serialization(self):
 
-        class MyEnum(Enum):
+        class MyEnum(enum.Enum):
             val_1 = 1
             val_2 = 2
 
