@@ -2299,13 +2299,13 @@ class TestSchemaWithJit:
 
         @property
         def jitted_marshal_method(self):
-            def marshal(obj):
+            def marshal(obj, many=False):
                 return 'The Jit Marshaled'
             return marshal
 
         @property
         def jitted_unmarshal_method(self):
-            def unmarshal(obj):
+            def unmarshal(obj, many=False):
                 return 'The Jit Unmarshaled'
             return unmarshal
 
@@ -2315,13 +2315,13 @@ class TestSchemaWithJit:
 
         @property
         def jitted_marshal_method(self):
-            def marshal(obj):
+            def marshal(obj, many=False):
                 raise ValueError()
             return marshal
 
         @property
         def jitted_unmarshal_method(self):
-            def unmarshal(obj):
+            def unmarshal(obj, many=False):
                 raise ValueError()
             return unmarshal
 
@@ -2397,23 +2397,11 @@ class TestSchemaWithJit:
         assert not result.errors
         assert result.data == 'The Jit Marshaled'
 
-    def test_hello_world_jit_dump_many(self, schema):
-        schema.jit = self.HelloWorldJit
-        result = schema.dump([{'name': 'foo'}], many=True)
-        assert not result.errors
-        assert result.data == ['The Jit Marshaled']
-
     def test_hello_world_jit_load(self, schema):
         schema.jit = self.HelloWorldJit
         result = schema.load({'name': 'foo'})
         assert not result.errors
         assert result.data == 'The Jit Unmarshaled'
-
-    def test_hello_world_jit_load_many(self, schema):
-        schema.jit = self.HelloWorldJit
-        result = schema.load([{'name': 'foo'}], many=True)
-        assert not result.errors
-        assert result.data == ['The Jit Unmarshaled']
 
     def test_bad_jit_dump_fallback(self, schema):
         schema.jit = self.BadJit

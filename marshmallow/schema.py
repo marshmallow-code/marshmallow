@@ -27,6 +27,7 @@ from marshmallow.utils import missing, suppress
 DEFAULT_JIT_ENVIRONMENT_VARIABLE = 'MARSHMALLOW_SCHEMA_DEFAULT_JIT'
 DEFAULT_JIT = missing
 
+
 def get_default_jit():
     """Allows overriding the default JIT to use from the environment.
 
@@ -43,8 +44,8 @@ def get_default_jit():
                 parts = default_jit_path.split('.')
                 module_name = '.'.join(parts[0:-1])
                 class_name = parts[-1]
-                module = importlib.import_module(module_name)
-                DEFAULT_JIT = getattr(module, class_name, None)
+                jit_module = importlib.import_module(module_name)
+                DEFAULT_JIT = getattr(jit_module, class_name, None)
     return DEFAULT_JIT
 
 
@@ -555,11 +556,7 @@ class BaseSchema(base.SchemaABC):
         errors = {}
         if jitted_method:
             try:
-                if many:
-                    result = [jitted_method(x)
-                              for x in obj]
-                else:
-                    result = jitted_method(obj)
+                result = jitted_method(obj, many=many)
             except (ValidationError, KeyError, AttributeError, ValueError):
                 # Fall through to slow path
                     pass
