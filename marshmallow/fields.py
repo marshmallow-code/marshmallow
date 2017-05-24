@@ -639,6 +639,8 @@ class Number(Field):
     """Base class for number fields.
 
     :param bool as_string: If True, format the serialized value as a string.
+    :param bool prohibit_boolean: If True, attempting to serialize a boolean
+        will result in a ValueError instead of coercing the value to a number.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -647,14 +649,20 @@ class Number(Field):
         'invalid': 'Not a valid number.'
     }
 
-    def __init__(self, as_string=False, **kwargs):
+    def __init__(self, as_string=False, prohibit_boolean=False, **kwargs):
         self.as_string = as_string
+        self.prohibit_boolean = prohibit_boolean
         super(Number, self).__init__(**kwargs)
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
         if value is None:
             return None
+        # (value is True or value is False) is ~5x faster than isinstance(value, bool)
+        if self.prohibit_boolean and (value is True or value is False):
+            raise TypeError(
+                'value must not be a boolean when prohibit_boolean is set.  value is '
+                '{}'.format(value))
         return self.num_type(value)
 
     def _validated(self, value):
