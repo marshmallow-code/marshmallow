@@ -78,11 +78,8 @@ class TestField:
         result = MySchema().dump({'name': 'Monty', 'foo': 42})
         assert result.data == {'_NaMe': 'Monty'}
 
-    def test_number_fields_prohbit_boolean(self):
-        permissive_field = fields.Float()
-        assert 0.0 == permissive_field.serialize('value', {'value': False})
-
-        strict_field = fields.Float(prohibit_boolean=True)
+    def test_number_fields_prohbits_boolean(self):
+        strict_field = fields.Float()
         with pytest.raises(ValidationError) as excinfo:
             strict_field.serialize('value', {'value': False})
         assert excinfo.value.args[0] == 'Not a valid number.'
