@@ -655,6 +655,11 @@ class Number(Field):
         """Return the number value for value, given this field's `num_type`."""
         if value is None:
             return None
+        # (value is True or value is False) is ~5x faster than isinstance(value, bool)
+        if value is True or value is False:
+            raise TypeError(
+                'value must be a Number, not a boolean.  value is '
+                '{}'.format(value))
         return self.num_type(value)
 
     def _validated(self, value):

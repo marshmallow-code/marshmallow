@@ -78,6 +78,15 @@ class TestField:
         result = MySchema().dump({'name': 'Monty', 'foo': 42})
         assert result.data == {'_NaMe': 'Monty'}
 
+    def test_number_fields_prohbits_boolean(self):
+        strict_field = fields.Float()
+        with pytest.raises(ValidationError) as excinfo:
+            strict_field.serialize('value', {'value': False})
+        assert excinfo.value.args[0] == 'Not a valid number.'
+        with pytest.raises(ValidationError) as excinfo:
+            strict_field.serialize('value', {'value': True})
+        assert excinfo.value.args[0] == 'Not a valid number.'
+
 class TestParentAndName:
     class MySchema(Schema):
         foo = fields.Field()
