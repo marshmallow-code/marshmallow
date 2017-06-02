@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-3.0.0b3 (unreleaased)
-+++++++++++++++++++++
+3.0.0b3 (unreleased)
+++++++++++++++++++++
 
 Features:
 
@@ -12,10 +12,10 @@ Deprecations/Removals:
 
 - Deprecate ``json_module`` option in favor of ``render_module`` (:issue:`364`, :issue:`130`). Thanks :user:`justanr` for the suggestion.
 
-
 Bug fixes:
 
 - Includes bug fixes from release 2.13.5.
+- *Backwards-incompatible* : ``Number`` fields don't accept booleans as valid input (:issue:`623`). Thanks :user:`tuukkamustonen` for the suggestion and thanks :user:`rowillia` for the PR.
 
 Support:
 
