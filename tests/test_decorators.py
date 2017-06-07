@@ -337,6 +337,100 @@ class TestValidatesDecorator:
         assert errors['bar'][0] == 'Must be 2'
 
 
+class TestFieldValidatorDecorator:
+
+    def test_basic(self):
+        class MySchema(Schema):
+            foo = fields.Int()
+
+            @foo.validator
+            def validate_foo(self, value):
+                assert type(self) is MySchema
+                assert value == 42
+                raise ValidationError('something went wrong')
+
+        schema = MySchema()
+        assert schema.validate({'foo': 42}) == {'foo': ['something went wrong']}
+
+    def test_multiple_validators(self):
+
+        class MySchema(Schema):
+            foo = fields.Int()
+
+            @foo.validator
+            def validate_foo1(self, value):
+                raise ValidationError('error1')
+
+            @foo.validator
+            def validate_foo2(self, value):
+                raise ValidationError('error2')
+
+        schema = MySchema()
+        expected = {'foo': ['error1', 'error2']}
+        assert schema.validate({'foo': 42}) == expected
+
+    def test_field_and_method_validators(self):
+
+        def validate_foo1(value):
+            raise ValidationError('error1')
+
+        class MySchema(Schema):
+            foo = fields.Int(validate=[validate_foo1])
+
+            @foo.validator
+            def validate_foo2(self, value):
+                raise ValidationError('error2')
+
+        schema = MySchema()
+        expected = {'foo': ['error1', 'error2']}
+        assert schema.validate({'foo': 42}) == expected
+
+    def test_method_validator_inheritance(self):
+        class BaseSchema(Schema):
+            foo = fields.Int()
+
+            @foo.validator
+            def validate_foo(self, value):
+                assert type(self) is MySchema
+                raise ValidationError('oops')
+
+        class MySchema(BaseSchema):
+            pass
+
+        schema = MySchema()
+        expected = {'foo': ['oops']}
+        assert schema.validate({'foo': 42}) == expected
+
+    def test_method_validator_override(self):
+        class BaseSchema(Schema):
+            foo = fields.Int()
+            bar = fields.Field()
+
+            @foo.validator
+            def validate_foo(self, value):
+                assert type(self) is MySchema
+                raise ValidationError('from BaseSchema')
+
+            @bar.validator
+            def validate_bar(self, value):
+                raise ValidationError('override me')
+
+        class MySchema(BaseSchema):
+
+            @BaseSchema.foo.validator
+            def strict_validate_foo(self, value):
+                assert value == 42
+                raise ValidationError('from MySchema')
+
+            def validate_bar(self, value):
+                assert value == 24
+                raise ValidationError('overridden')
+
+        schema = MySchema()
+        expected = {'foo': ['from BaseSchema', 'from MySchema'], 'bar': ['overridden']}
+        assert schema.validate({'foo': 42, 'bar': 24}) == expected
+
+
 class TestValidatesSchemaDecorator:
 
     def test_validator_nested_many(self):

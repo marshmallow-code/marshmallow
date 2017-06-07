@@ -16,3 +16,4 @@ simplejson
 
 # Syntax checking
 flake8==2.4.1
+pep8==1.6.1  # http://stackoverflow.com/a/28531781/1222326

@@ -13,7 +13,7 @@ from operator import attrgetter
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import text_type, basestring, OrderedDict
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Validator
 
@@ -143,6 +143,7 @@ class Field(FieldABC):
         else:
             raise ValueError("The 'validate' parameter must be a callable "
                              "or a collection of callables.")
+        self._method_validators = OrderedDict()
 
         self.required = required
         # If missing=None, None should be considered valid by default
@@ -266,6 +267,27 @@ class Field(FieldABC):
         self._validate(output)
         return output
 
+    def validator(self, func):
+        """Decorator to register an instance method of a `Schema` as a
+        validator. ::
+
+            from marshmallow import Schema, fields
+
+            class ItemSchema(Schema):
+                quantity = fields.Int()
+
+                @quantity.validator
+                def validate_quantity(self, value):
+                    if quantity > 30:
+                        raise ValidationError('Must not be less than 30.')
+
+        :versionadded: 2.5.0
+        """
+        # Func is an unbound method. We partial it when the field gets bound
+        # to the schema in `_add_to_schema`
+        self._method_validators[func.__name__] = func
+        return func
+
     # Methods for concrete classes to override.
 
     def _add_to_schema(self, field_name, schema):
@@ -277,6 +299,11 @@ class Field(FieldABC):
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
+        for validator in self._method_validators:
+            try:
+                self.validators.append(getattr(schema, validator))
+            except AttributeError:
+                pass
 
     def _serialize(self, value, attr, obj):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
