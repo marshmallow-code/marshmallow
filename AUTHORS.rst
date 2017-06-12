@@ -85,3 +85,4 @@ Contributors (chronological)
 - Erling Børresen `@erlingbo <https://github.com/erlingbo>`_
 - Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
+- `@dradetsky <https://github.com/dradetsky>`_
