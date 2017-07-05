@@ -164,14 +164,19 @@ class SchemaMeta(type):
 
             try:
                 processor_tags = attr.__marshmallow_tags__
+                processor_kwargs = attr.__marshmallow_kwargs__
             except AttributeError:
                 continue
 
             self._has_processors = bool(processor_tags)
             for tag in processor_tags:
+                order = processor_kwargs.get('order')
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
-                self.__processors__[tag].append(attr_name)
+                self.__processors__[tag].append((order, attr_name))
+
+        for tag, processors in iteritems(self.__processors__):
+            self.__processors__[tag] = [attr_name for _, attr_name in sorted(processors)]
 
 
 class SchemaOpts(object):
