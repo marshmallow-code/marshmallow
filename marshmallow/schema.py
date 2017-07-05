@@ -170,7 +170,7 @@ class SchemaMeta(type):
 
             self._has_processors = bool(processor_tags)
             for tag in processor_tags:
-                order = processor_kwargs.get('order')
+                order = processor_kwargs[tag].get('order')
                 # Use name here so we can get the bound method later, in case
                 # the processor was a descriptor or something.
                 self.__processors__[tag].append((order, attr_name))
