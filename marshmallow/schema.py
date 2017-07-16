@@ -729,7 +729,7 @@ class BaseSchema(base.SchemaABC):
                 else:
                     obj_prototype = next(iter(obj))
             except (StopIteration, IndexError):  # Nothing to serialize
-                return self.declared_fields
+                return {k: v for k, v in self.declared_fields.items() if k in field_names}
             obj = obj_prototype
         ret = self.dict_class()
         for key in field_names:
