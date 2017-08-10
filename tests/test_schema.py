@@ -780,6 +780,57 @@ def test_meta_nested_exclude():
     assert 'baz' in child
 
 
+def test_nested_custom_set_not_implementing_getitem():
+    """
+    This test checks that Marshmallow can serialize implementations of
+    :mod:`collections.abc.MutableSequence`, with ``__getitem__`` arguments
+    that are not integers.
+    """
+    class ListLikeParent(object):
+        """
+        Implements a list-like object that can get children using a
+        non-integer key
+        """
+        def __init__(self, required_key, child):
+            """
+            :param required_key: The key to use in ``__getitem__`` in order
+                to successfully get the ``child``
+            :param child: The return value of the ``child`` if
+            ``__getitem__`` succeeds
+            """
+            self.children = {required_key: child}
+
+    class Child(object):
+        """
+        Implements an object with some attribute
+        """
+        def __init__(self, attribute):
+            """
+            :param str attribute: The attribute to initialize
+            """
+            self.attribute = attribute
+
+    class ChildSchema(Schema):
+        """
+        The marshmallow schema for the child
+        """
+        attribute = fields.Str()
+
+    class ParentSchema(Schema):
+        """
+        The schema for the parent
+        """
+        children = fields.Nested(ChildSchema, many=True)
+
+    attribute = 'Foo'
+    required_key = 'key'
+    child = Child(attribute)
+
+    parent = ListLikeParent(required_key, child)
+
+    assert not ParentSchema().dump(parent).errors
+
+
 def test_deeply_nested_only_and_exclude():
     class GrandChildSchema(Schema):
         goo = fields.Field()
