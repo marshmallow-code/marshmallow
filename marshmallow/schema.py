@@ -725,7 +725,10 @@ class BaseSchema(base.SchemaABC):
                 # of objects for which iter will modify position in the collection
                 # e.g. Pymongo cursors
                 if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    obj_prototype = obj[0]
+                    try:
+                        obj_prototype = obj[0]
+                    except KeyError:
+                        obj_prototype = next(iter(obj))
                 else:
                     obj_prototype = next(iter(obj))
             except (StopIteration, IndexError):  # Nothing to serialize
