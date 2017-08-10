@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 
 import collections
 import datetime as dt
+import numbers
 import uuid
 import warnings
 import decimal
@@ -698,6 +699,18 @@ class Integer(Number):
     default_error_messages = {
         'invalid': 'Not a valid integer.'
     }
+
+    # override Number
+    def __init__(self, strict=False, **kwargs):
+        self.strict = strict
+        super(Integer, self).__init__(**kwargs)
+
+    # override Number
+    def _format_num(self, value):
+        if self.strict and isinstance(value, numbers.Number):
+            if not isinstance(value, numbers.Integral):
+                self.fail('invalid')
+        return super(Integer, self)._format_num(value)
 
 
 class Decimal(Number):
