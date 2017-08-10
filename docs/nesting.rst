@@ -101,22 +101,29 @@ You can represent the attributes of deeply nested objects using dot delimiters.
 
 .. note::
 
-    If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be returned.
+    If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be (de)serialized.
 
     .. code-block:: python
-        :emphasize-lines: 4, 11
+        :emphasize-lines: 4, 11, 18
 
         class UserSchema(Schema):
             name = fields.String()
             email = fields.Email()
             friends = fields.Nested('self', only='name', many=True)
         # ... create ``user`` ...
-        result, errors = UserSchema().dump(user)
-        pprint(result)
+        serialized_data, errors = UserSchema().dump(user)
+        pprint(serialized_data)
         # {
         #     "name": "Steve",
         #     "email": "steve@example.com",
         #     "friends": ["Mike", "Joe"]
+        # }
+        deserialized_data, errors = UserSchema().load(result)
+        pprint(deserialized_data)
+        # {
+        #     "name": "Steve",
+        #     "email": "steve@example.com",
+        #     "friends": [{"name": "Mike"}, {"name": "Joe"}]
         # }
 
 

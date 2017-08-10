@@ -10,12 +10,11 @@ import inspect
 import json
 import uuid
 import warnings
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict)
+from marshmallow.compat import with_metaclass, iteritems, text_type, binary_type
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
@@ -35,19 +34,17 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     :param type field_class: Base field class
     :param bool pop: Remove matching fields
     """
-    getter = getattr(attrs, 'pop' if pop else 'get')
     fields = [
-        (field_name, getter(field_name))
-        for field_name, field_value in list(iteritems(attrs))
+        (field_name, field_value)
+        for field_name, field_value in iteritems(attrs)
         if utils.is_instance_or_subclass(field_value, field_class)
     ]
+    if pop:
+        for field_name, _ in fields:
+            del attrs[field_name]
     if ordered:
-        return sorted(
-            fields,
-            key=lambda pair: pair[1]._creation_index,
-        )
-    else:
-        return fields
+        fields.sort(key=lambda pair: pair[1]._creation_index)
+    return fields
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
@@ -103,9 +100,7 @@ class SchemaMeta(type):
         meta = getattr(klass, 'Meta')
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta)
-        # Pass the inherited `ordered` into opts
-        klass.opts.ordered = ordered
+        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
         # Add fields specifid in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
@@ -182,7 +177,7 @@ class SchemaMeta(type):
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
-    def __init__(self, meta):
+    def __init__(self, meta, ordered=False):
         self.fields = getattr(meta, 'fields', ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -197,14 +192,16 @@ class SchemaOpts(object):
             raise ValueError("`exclude` must be a list or tuple.")
         self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
-        self.json_module = getattr(meta, 'json_module', json)
-        if hasattr(meta, 'skip_missing'):
+        if hasattr(meta, 'json_module'):
             warnings.warn(
-                'The skip_missing option is no longer necessary. Missing inputs passed to '
-                'Schema.dump will be excluded from the serialized output by default.',
-                UserWarning
+                'The json_module class Meta option is deprecated. Use render_module instead.',
+                DeprecationWarning
             )
-        self.ordered = getattr(meta, 'ordered', False)
+            render_module = getattr(meta, 'json_module', json)
+        else:
+            render_module = json
+        self.render_module = getattr(meta, 'render_module', render_module)
+        self.ordered = getattr(meta, 'ordered', ordered)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
@@ -240,7 +237,6 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param dict extra: A dict of extra attributes to bind to the serialized result.
     :param tuple only: A list or tuple of fields to serialize. If `None`, all
         fields will be serialized. Nested fields can be represented with dot delimiters.
     :param tuple exclude: A list or tuple of fields to exclude from the
@@ -286,11 +282,6 @@ class BaseSchema(base.SchemaABC):
 
     OPTIONS_CLASS = SchemaOpts
 
-    #: DEPRECATED: Custom error handler function. May be `None`.
-    __error_handler__ = None
-    #: DEPRECATED: Function used to get values of an object.
-    __accessor__ = None
-
     class Meta(object):
         """Options object for a Schema.
 
@@ -316,7 +307,8 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
             storing them.
-        - ``json_module``: JSON module to use for `loads` and `dumps`.
+        - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
+            `json` from the standard library.
             Defaults to the ``json`` module in the stdlib.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
@@ -328,7 +320,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=None,
+    def __init__(self, only=(), exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -350,13 +342,6 @@ class BaseSchema(base.SchemaABC):
         )
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
-        if extra:
-            warnings.warn(
-                'The `extra` argument is deprecated. Use a post_dump '
-                'method to add additional data instead.',
-                DeprecationWarning
-            )
-        self.extra = extra
         self.context = context or {}
         self._normalize_nested_options()
         self._types_seen = set()
@@ -366,15 +351,6 @@ class BaseSchema(base.SchemaABC):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
-
-    def _postprocess(self, data, many, obj):
-        if self.extra:
-            if many:
-                for each in data:
-                    each.update(self.extra)
-            else:
-                data.update(self.extra)
-        return data
 
     @property
     def dict_class(self):
@@ -396,62 +372,15 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def get_attribute(self, attr, obj, default):
+    def get_attribute(self, obj, attr, default):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
+
+        .. versionchanged:: 3.0.0a1
+            Changed position of ``obj`` and ``attr``.
         """
-        return utils.get_value(attr, obj, default)
-
-    ##### Handler decorators (deprecated) #####
-
-    @classmethod
-    def error_handler(cls, func):
-        """Decorator that registers an error handler function for the schema.
-        The function receives the :class:`Schema` instance, a dictionary of errors,
-        and the serialized object (if serializing data) or data dictionary (if
-        deserializing data) as arguments.
-
-        Example: ::
-
-            class UserSchema(Schema):
-                email = fields.Email()
-
-            @UserSchema.error_handler
-            def handle_errors(schema, errors, obj):
-                raise ValueError('An error occurred while marshalling {}'.format(obj))
-
-            user = User(email='invalid')
-            UserSchema().dump(user)  # => raises ValueError
-            UserSchema().load({'email': 'bademail'})  # raises ValueError
-
-        .. versionadded:: 0.7.0
-        .. deprecated:: 2.0.0
-            Set the ``error_handler`` class Meta option instead.
-        """
-        warnings.warn(
-            'Schema.error_handler is deprecated. Set the error_handler class Meta option '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__error_handler__ = func
-        return func
-
-    @classmethod
-    def accessor(cls, func):
-        """Decorator that registers a function for pulling values from an object
-        to serialize. The function receives the :class:`Schema` instance, the
-        ``key`` of the value to get, the ``obj`` to serialize, and an optional
-        ``default`` value.
-
-        .. deprecated:: 2.0.0
-            Set the ``error_handler`` class Meta option instead.
-        """
-        warnings.warn(
-            'Schema.accessor is deprecated. Set the accessor class Meta option '
-            'instead.', category=DeprecationWarning
-        )
-        cls.__accessor__ = func
-        return func
+        return utils.get_value(obj, attr, default)
 
     ##### Serialization/Deserialization API #####
 
@@ -472,11 +401,6 @@ class BaseSchema(base.SchemaABC):
         """
         errors = {}
         many = self.many if many is None else bool(many)
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
-            warnings.warn('Implicit collection handling is deprecated. Set '
-                            'many=True to serialize a collection.',
-                            category=DeprecationWarning)
-
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
@@ -502,21 +426,18 @@ class BaseSchema(base.SchemaABC):
                         self._types_seen.add(obj_type)
 
             try:
-                preresult = self._marshal(
+                result = self._marshal(
                     processed_obj,
                     self.fields,
                     many=many,
-                    # TODO: Remove self.__accessor__ in a later release
-                    accessor=self.get_attribute or self.__accessor__,
+                    accessor=self.get_attribute,
                     dict_class=self.dict_class,
                     index_errors=self.opts.index_errors,
                     **kwargs
                 )
             except ValidationError as error:
                 errors = self._marshal.errors
-                preresult = error.data
-
-            result = self._postprocess(preresult, many, obj=obj)
+                result = error.data
 
         if not errors and self._has_processors:
             try:
@@ -528,16 +449,15 @@ class BaseSchema(base.SchemaABC):
             except ValidationError as error:
                 errors = error.normalized_messages()
         if errors:
-            # TODO: Remove self.__error_handler__ in a later release
-            if self.__error_handler__ and callable(self.__error_handler__):
-                self.__error_handler__(errors, obj)
             exc = ValidationError(
                 errors,
                 field_names=self._marshal.error_field_names,
                 fields=self._marshal.error_fields,
                 data=obj,
+                valid_data=result,
                 **self._marshal.error_kwargs
             )
+            # User-defined error handler
             self.handle_error(exc, obj)
             if self.strict:
                 raise exc
@@ -558,8 +478,8 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
-        ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
+        serialized, errors = self.dump(obj, many=many, update_fields=update_fields)
+        ret = self.opts.render_module.dumps(serialized, *args, **kwargs)
         return MarshalResult(ret, errors)
 
     def load(self, data, many=None, partial=None):
@@ -599,7 +519,7 @@ class BaseSchema(base.SchemaABC):
         # ideally we shouldn't have to do this.
         partial = kwargs.pop('partial', None)
 
-        data = self.opts.json_module.loads(json_data, *args, **kwargs)
+        data = self.opts.render_module.loads(json_data, *args, **kwargs)
         return self.load(data, many=many, partial=partial)
 
     def validate(self, data, many=None, partial=None):
@@ -686,14 +606,12 @@ class BaseSchema(base.SchemaABC):
             except ValidationError as err:
                 errors = err.normalized_messages()
         if errors:
-            # TODO: Remove self.__error_handler__ in a later release
-            if self.__error_handler__ and callable(self.__error_handler__):
-                self.__error_handler__(errors, data)
             exc = ValidationError(
                 errors,
                 field_names=self._unmarshal.error_field_names,
                 fields=self._unmarshal.error_fields,
                 data=data,
+                valid_data=result,
                 **self._unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
@@ -807,11 +725,14 @@ class BaseSchema(base.SchemaABC):
                 # of objects for which iter will modify position in the collection
                 # e.g. Pymongo cursors
                 if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    obj_prototype = obj[0]
+                    try:
+                        obj_prototype = obj[0]
+                    except KeyError:
+                        obj_prototype = next(iter(obj))
                 else:
                     obj_prototype = next(iter(obj))
             except (StopIteration, IndexError):  # Nothing to serialize
-                return self.declared_fields
+                return {k: v for k, v in self.declared_fields.items() if k in field_names}
             obj = obj_prototype
         ret = self.dict_class()
         for key in field_names:

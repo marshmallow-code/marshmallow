@@ -1,0 +1,22 @@
+{
+    "name": "Marshmallow",
+    "package": "marshmallow",
+    "index": "_build/index.html",
+    "selectors": {
+        "dl.class dt": {
+            "type": "Class",
+            "attr": "id"
+        },
+        "dl.exception dt": {
+            "type": "Exception",
+            "attr": "id"
+        },
+        "dl.function dt": {
+            "type": "Function",
+            "attr": "id"
+        }
+    },
+    "icon32x32": "",
+    "allowJS": false,
+    "ExternalURL": ""
+}

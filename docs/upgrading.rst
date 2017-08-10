@@ -7,6 +7,291 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
+Upgrading to 3.0
+++++++++++++++++
+
+Python compatibility
+********************
+
+The marshmallow 3.x series supports Python 2.7, 3.4, 3.5, and 3.6.
+
+Python 2.6 and 3.3 are no longer supported.
+
+Overriding ``get_attribute``
+****************************
+
+If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Schema.get_attribute>`, you will need to update the method's signature. The positions of the ``attr`` and ``obj`` arguments were switched for consistency with Python builtins, e.g. `getattr`.
+
+.. code-block:: python
+
+    from marshmallow import Schema
+
+    # 2.x
+    class MySchema(Schema):
+        def get_attribute(self, attr, obj, default):
+            # ...
+
+    # 3.x
+    class MySchema(Schema):
+        def get_attribute(self, obj, attr, default):
+            # ...
+
+
+``utils.get_func_args`` no longer returns bound arguments
+*********************************************************
+
+The `utils.get_func_args <marshmallow.utils.get_func_args>` function will no longer return bound arguments, e.g. `'self'`.
+
+.. code-block:: python
+
+    from marshmallow.utils import get_func_args
+
+    class MyCallable:
+
+        def __call__(self, foo, bar):
+            return 42
+
+    callable_obj = MyCallable()
+
+    # 2.x
+    get_func_args(callable_obj)  # => ['self', 'foo', 'bar']
+
+    # 3.x
+    get_func_args(callable_obj)  # => ['foo', 'bar']
+
+
+Handling ``AttributeError`` in ``Method`` and ``Function`` fields
+*****************************************************************
+
+The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Function>` fields no longer swallow ``AttributeErrors``. Therefore, your methods and functions are responsible for handling inputs such as `None`.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, missing
+
+    # 2.x
+    class ShapeSchema(Schema):
+        area = fields.Method('get_area')
+
+        def get_area(self, obj):
+            return obj.height * obj.length
+
+    schema = ShapeSchema()
+    # In 2.x, the following would pass without errors
+    # In 3.x, and AttributeError would be raised
+    result = schema.dump(None)
+    result.data  # => {}
+
+
+    # 3.x
+    class ShapeSchema(Schema):
+        area = fields.Method('get_area')
+
+        def get_area(self, obj):
+            if obj is None:
+                # 'area' will not appear in serialized output
+                return missing
+            return obj.height * obj.length
+
+    schema = ShapeSchema()
+    result = schema.dump(None)
+    result.data  # => {}
+
+Adding additional data to serialized output
+*******************************************
+
+Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on serialization. The ``extra`` argument on `Schema <marshmallow.Schema>` was removed.
+
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, post_dump
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.Int()
+        y = fields.Int()
+
+    schema = MySchema(extra={'z': 123})
+    schema.dump({'x': 1, 'y': 2}).data
+    # => {'z': 123, 'y': 2, 'x': 1}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.Int()
+        y = fields.Int()
+
+        @post_dump
+        def add_z(self, output):
+            output['z'] = 123
+            return output
+
+    schema = MySchema()
+    schema.dump({'x': 1, 'y': 2}).data
+    # => {'z': 123, 'y': 2, 'x': 1}
+
+
+Schema-level validators are skipped when field validation fails
+***************************************************************
+
+By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation).
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
+    class MySchema(Schema):
+        x = fields.Int(required=True)
+        y = fields.Int(required=True)
+
+        @validates_schema
+        def validate_schema(self, data):
+            if data['x'] <= data['y']:
+                raise ValidationError('x must be greater than y')
+
+
+    schema = MySchema(strict=True)
+
+    # 2.x
+    # A KeyError is raised in validate_schema
+    schema.load({'x': 2})
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
+    # validate_schema is not run
+    schema.load({'x': 2})
+
+If you want a schema validator to run even if a field validator fails, pass ``skip_on_field_errors=False``. Make sure your code handles cases where fields are missing from the deserialized data (due to validation errors).
+
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, validates_schema, ValidationError
+
+    class MySchema(Schema):
+        x = fields.Int(required=True)
+        y = fields.Int(required=True)
+
+        @validates_schema(skip_on_field_errors=False)
+        def validate_schema(self, data):
+            if 'x' in data and 'y' in data:
+                if data['x'] <= data['y']:
+                    raise ValidationError('x must be greater than y')
+
+
+    schema = MySchema(strict=True)
+    schema.load({'x': 2})
+    # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
+
+`SchemaOpts` constructor receives ``ordered`` argument
+******************************************************
+
+Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argument, ``ordered``, which is `True` if the `ordered` option is set to `True` on a Schema or one of its parent classes.
+
+.. code-block:: python
+
+    from marshmallow import SchemaOpts
+
+    # 2.x
+    class CustomOpts(SchemaOpts):
+
+        def __init__(self, meta):
+            super().__init__(meta)
+            self.custom_option = getattr(meta, 'meta', False)
+
+    # 3.x
+    class CustomOpts(SchemaOpts):
+
+        def __init__(self, meta, ordered=False):
+            super().__init__(meta, ordered)
+            self.custom_option = getattr(meta, 'meta', False)
+
+`ContainsOnly` accepts empty and duplicate values
+*************************************************
+
+`validate.ContainsOnly <marshmallow.validate.ContainsOnly>` now accepts duplicate values in the input value.
+
+
+.. code-block:: python
+
+    from marshmallow import validate
+
+    validator = validate.ContainsOnly(['red', 'blue'])
+
+    # in 2.x the following raises a ValidationError
+    # in 3.x, no error is raised
+    validator(['red', 'red', 'blue'])
+
+
+If you do not want to accept duplicates, use a custom validator, like the following.
+
+.. code-block:: python
+
+    from marshmallow import ValidationError
+    from marshmallow.validate import ContainsOnly
+
+    class ContainsOnlyNoDuplicates(ContainsOnly):
+
+        def __call__(self, value):
+            ret = super(ContainsOnlyNoDuplicates, self).__call__(value)
+            if len(set(value)) != len(value):
+                raise ValidationError('Duplicate values not allowed')
+            return ret
+
+.. note::
+
+    If you need to handle unhashable types, you can use the  `implementation of
+    ContainsOnly from marshmallow 2.x <https://github.com/marshmallow-code/marshmallow/blob/2888e6978bc8c409a5fed35da6ece8bdb23384f2/marshmallow/validate.py#L436-L467>`_.
+
+`validate.ContainsOnly <marshmallow.validate.ContainsOnly>` also accepts empty values as valid input.
+
+.. code-block:: python
+
+    from marshmallow import validate
+
+    validator = validate.ContainsOnly(['red', 'blue'])
+
+    # in 2.x the following raises a ValidationError
+    # in 3.x, no error is raised
+    validator([])
+
+To validate against empty inputs, use `validate.Length(min=1) <marshmallow.validate.Length>`.
+
+
+``json_module`` option is renamed to ``render_module``
+******************************************************
+
+The ``json_module`` class Meta option is deprecated in favor of ``render_module``.
+
+.. code-block:: python
+
+    import ujson
+
+    # 2.x
+    class MySchema(Schema):
+        class Meta:
+            json_module = ujson
+
+    # 3.x
+    class MySchema(Schema):
+        class Meta:
+            render_module = ujson
+
+Pass ``default`` as a keyword argument
+**************************************
+
+`fields.Boolean <marshmallow.fields.Boolean>` now receives additional ``truthy`` and ``falsy`` parameters. Consequently, the ``default`` parameter should always be passed as a keyword argument.
+
+
+.. code-block:: python
+
+    # 2.x
+    fields.Boolean(True)
+
+    # 3.x
+    fields.Boolean(default=True)
+
+
 Upgrading to 2.3
 ++++++++++++++++
 

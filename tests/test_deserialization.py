@@ -17,7 +17,6 @@ from tests.base import (
     assert_time_equal,
     central,
     ALL_FIELDS,
-    User,
 )
 
 class TestDeserializingNone:
@@ -258,6 +257,12 @@ class TestFieldDeserialization:
         assert field.deserialize('false') is False
         assert field.deserialize('1') is True
         assert field.deserialize('0') is False
+        assert field.deserialize('on') is True
+        assert field.deserialize('ON') is True
+        assert field.deserialize('On') is True
+        assert field.deserialize('off') is False
+        assert field.deserialize('OFF') is False
+        assert field.deserialize('Off') is False
         assert field.deserialize(1) is True
         assert field.deserialize(0) is False
 
@@ -277,6 +282,10 @@ class TestFieldDeserialization:
         field = MyBoolean()
         assert field.deserialize('yep') is True
 
+        field = fields.Boolean(truthy=('yep',))
+        assert field.deserialize('yep') is True
+        assert field.deserialize(False) is False
+
     @pytest.mark.parametrize('in_val',
     [
         'notvalid',
@@ -291,10 +300,31 @@ class TestFieldDeserialization:
             field.deserialize(in_val)
         expected_msg = 'Not a valid boolean.'
         assert str(excinfo.value.args[0]) == expected_msg
+
+        field = fields.Boolean(truthy=('yep',))
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(in_val)
+        expected_msg = 'Not a valid boolean.'
+        assert str(excinfo.value.args[0]) == expected_msg
+
         field2 = MyBoolean(error_messages={'invalid': 'bad input'})
         with pytest.raises(ValidationError) as excinfo:
             field2.deserialize(in_val)
         assert str(excinfo.value.args[0]) == 'bad input'
+
+        field2 = fields.Boolean(truthy=('yep',),
+                                error_messages={'invalid': 'bad input'})
+
+    def test_boolean_field_deserialization_with_empty_truthy(self):
+        field = fields.Boolean(truthy=())
+        assert field.deserialize('yep') is True
+        assert field.deserialize(True) is True
+        assert field.deserialize(False) is False
+
+    def test_boolean_field_deserialization_with_custom_falsy_values(self):
+        field = fields.Boolean(falsy=('nope',))
+        assert field.deserialize('nope') is False
+        assert field.deserialize(True) is True
 
     @pytest.mark.parametrize('in_value',
     [
@@ -314,6 +344,11 @@ class TestFieldDeserialization:
         field = fields.DateTime()
         with pytest.raises(ValidationError):
             field.deserialize('1916')
+
+    def test_datetime_passed_date_is_invalid(self):
+        field = fields.DateTime()
+        with pytest.raises(ValidationError):
+            field.deserialize('2017-04-13')
 
     def test_custom_date_format_datetime_field_deserialization(self):
 
@@ -516,6 +551,17 @@ class TestFieldDeserialization:
         field.parent = Parent(context={'key': 'BAR'})
         assert field.deserialize('foo') == 'FOOBAR'
 
+    def test_function_field_passed_deserialize_only_is_load_only(self):
+        field = fields.Function(deserialize=lambda val: val.upper())
+        assert field.load_only is True
+
+    def test_function_field_passed_deserialize_and_serialize_is_not_load_only(self):
+        field = fields.Function(
+            serialize=lambda val: val.lower(),
+            deserialize=lambda val: val.upper()
+        )
+        assert field.load_only is False
+
     def test_uuid_field_deserialization(self):
         field = fields.UUID()
         uuid_str = str(uuid.uuid4())
@@ -552,8 +598,7 @@ class TestFieldDeserialization:
 
             def uppercase_name(self, obj):
                 return obj.upper()
-        user = User(name='steve')
-        s = MiniUserSchema(user)
+        s = MiniUserSchema()
         assert s.fields['uppername'].deserialize('steve') == 'steve'
 
     def test_deserialization_method(self):
@@ -840,6 +885,33 @@ class TestSchemaDeserialization:
         errors = sch.validate({})
         assert 'pets' in errors
         assert errors['pets'] == ['Missing data for required field.']
+
+    def test_nested_only_basestring(self):
+        class ANestedSchema(Schema):
+            pk = fields.Str()
+
+        class MainSchema(Schema):
+            pk = fields.Str()
+            child = fields.Nested(ANestedSchema, only='pk')
+
+        sch = MainSchema()
+        result = sch.load({'pk': '123', 'child': '456'})
+        assert len(result.errors) == 0
+        assert result.data['child']['pk'] == '456'
+
+    def test_nested_only_basestring_with_list_data(self):
+        class ANestedSchema(Schema):
+            pk = fields.Str()
+
+        class MainSchema(Schema):
+            pk = fields.Str()
+            children = fields.Nested(ANestedSchema, only='pk', many=True)
+
+        sch = MainSchema()
+        result = sch.load({'pk': '123', 'children': ['456', '789']})
+        assert len(result.errors) == 0
+        assert result.data['children'][0]['pk'] == '456'
+        assert result.data['children'][1]['pk'] == '789'
 
     def test_none_deserialization(self):
         result, errors = SimpleUserSchema().load(None)
