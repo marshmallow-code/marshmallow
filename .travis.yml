@@ -20,3 +20,12 @@ install:
   - pip install -U -r dev-requirements.txt
 
 script: invoke test
+
+deploy:
+  provider: pypi
+  user: sloria
+  on:
+    tags: true
+  distributions: sdist bdist_wheel
+  password:
+    secure: ESoVNuEqjuNGCCGMbjHwIJS3LfPL2BKPQG5RuDiW8qo4+BN25yobiD+Bo7kozUtUHVKa6oTdi4Gqb1i5IUKNcaP0qBItdkk3LPOAUyOhdFZF+dL22JhajJ6LNO7i1cyUTzjYaS2cOTG8kSSYd7W9Okfp5bY6HtUNgCqhI1mZfMU=
