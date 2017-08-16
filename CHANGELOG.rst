@@ -73,6 +73,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.13.6 (2017-08-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix serialization of types that implement `__getitem__`
+  (:issue:`669`). Thanks :user:`MichalKononenko`.
+
 2.13.5 (2017-04-12)
 +++++++++++++++++++
 
