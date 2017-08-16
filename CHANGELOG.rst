@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.13.6 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix serialization of types that implement `__getitem__`
+  (:issue:`669`). Thanks :user:`MichalKononenko`.
+
 2.13.5 (2017-04-12)
 +++++++++++++++++++
 

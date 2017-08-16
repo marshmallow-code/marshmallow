@@ -81,3 +81,4 @@ Contributors (chronological)
 - Yuri Heupa `@YuriHeupa <https://github.com/YuriHeupa>`_
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
 - Vlad Frolov `@frol <https://github.com/frol>`_
+- Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
