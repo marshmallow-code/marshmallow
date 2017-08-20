@@ -1,12 +1,14 @@
 Changelog
 ---------
 
-3.0.0b3 (unreleased)
+3.0.0b3 (2017-08-20)
 ++++++++++++++++++++
 
 Features:
 
 - Add ``valid_data`` attribute to ``ValidationError``.
+- Add ``strict`` parameter to ``Integer`` (:issue:`667`). Thanks
+  :user:`yoichi`.
 
 Deprecations/Removals:
 
