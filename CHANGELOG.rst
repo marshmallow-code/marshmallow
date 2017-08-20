@@ -16,7 +16,7 @@ Deprecations/Removals:
 
 Bug fixes:
 
-- Includes bug fixes from release 2.13.5.
+- Includes bug fixes from releases 2.13.5 and 2.13.6.
 - *Backwards-incompatible* : ``Number`` fields don't accept booleans as valid input (:issue:`623`). Thanks :user:`tuukkamustonen` for the suggestion and thanks :user:`rowillia` for the PR.
 
 Support:
