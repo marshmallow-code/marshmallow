@@ -83,6 +83,15 @@ class TestFieldDeserialization:
             field.deserialize({})
         assert excinfo.value.args[0] == 'Not a valid integer.'
 
+    def test_strict_integer_field_deserialization(self):
+        field = fields.Integer(strict=True)
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42.0)
+        assert excinfo.value.args[0] == 'Not a valid integer.'
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(decimal.Decimal('42.0'))
+        assert excinfo.value.args[0] == 'Not a valid integer.'
+
     def test_decimal_field_deserialization(self):
         m1 = 12
         m2 = '12.355'

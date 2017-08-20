@@ -87,3 +87,4 @@ Contributors (chronological)
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
 - `@dradetsky <https://github.com/dradetsky>`_
 - Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
+- Yoichi NAKAYAMA `@yoichi <https://github.com/yoichi>`_
