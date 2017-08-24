@@ -44,27 +44,21 @@ class URL(Validator):
         ``ftp``, and ``ftps`` are allowed.
     """
 
-    URL_REGEX = re.compile(
-        r'^(?:[a-z0-9\.\-\+]*)://'  # scheme is validated separately
-        r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
-        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-
-    RELATIVE_URL_REGEX = re.compile(
-        r'^((?:[a-z0-9\.\-\+]*)://'  # scheme is validated separately
-        r'(?:[^:@]+?:[^:@]*?@|)'  # basic auth
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|'  # ...or ipv4
-        r'\[?[A-F0-9]*:[A-F0-9:]+\]?)'  # ...or ipv6
-        r'(?::\d+)?)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)  # host is optional, allow for relative URLs
+    def _regex(self, relative):
+        return re.compile(r''.join((
+            r'^',
+            (r'(' if relative else r''),
+            r'(?:[a-z0-9\.\-\+]*)://',  # scheme is validated separately
+            r'(?:[^:@]+?:[^:@]*?@|)',  # basic auth
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+',
+            r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|',  # domain...
+            r'localhost|',  # localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|',  # ...or ipv4
+            r'\[?[A-F0-9]*:[A-F0-9:]+\]?)',  # ...or ipv6
+            r'(?::\d+)?',  # optional port
+            (r')?' if relative else r''),  # host is optional, allow for relative URLs
+            r'(?:/?|[/?]\S+)$',
+        )), re.IGNORECASE)
 
     default_message = 'Not a valid URL.'
     default_schemes = set(['http', 'https', 'ftp', 'ftps'])
@@ -92,7 +86,7 @@ class URL(Validator):
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
-        regex = self.RELATIVE_URL_REGEX if self.relative else self.URL_REGEX
+        regex = self._regex(self.relative)
 
         if not regex.search(value):
             raise ValidationError(message)
