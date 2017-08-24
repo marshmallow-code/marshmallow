@@ -44,21 +44,34 @@ class URL(Validator):
         ``ftp``, and ``ftps`` are allowed.
     """
 
-    def _regex(self, relative):
-        return re.compile(r''.join((
-            r'^',
-            (r'(' if relative else r''),
-            r'(?:[a-z0-9\.\-\+]*)://',  # scheme is validated separately
-            r'(?:[^:@]+?:[^:@]*?@|)',  # basic auth
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+',
-            r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|',  # domain...
-            r'localhost|',  # localhost...
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|',  # ...or ipv4
-            r'\[?[A-F0-9]*:[A-F0-9:]+\]?)',  # ...or ipv6
-            r'(?::\d+)?',  # optional port
-            (r')?' if relative else r''),  # host is optional, allow for relative URLs
-            r'(?:/?|[/?]\S+)$',
-        )), re.IGNORECASE)
+    class RegexMemoizer(object):
+
+        def __init__(self):
+            self._memoized = {}
+
+        def _regex_generator(self, relative):
+            return re.compile(r''.join((
+                r'^',
+                r'(' if relative else r'',
+                r'(?:[a-z0-9\.\-\+]*)://',  # scheme is validated separately
+                r'(?:[^:@]+?:[^:@]*?@|)',  # basic auth
+                r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+',
+                r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|',  # domain...
+                r'localhost|',  # localhost...
+                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|',  # ...or ipv4
+                r'\[?[A-F0-9]*:[A-F0-9:]+\]?)',  # ...or ipv6
+                r'(?::\d+)?',  # optional port
+                r')?' if relative else r'',  # host is optional, allow for relative URLs
+                r'(?:/?|[/?]\S+)$',
+            )), re.IGNORECASE)
+
+        def __call__(self, relative):
+            if relative not in self._memoized:
+                self._memoized[relative] = self._regex_generator(relative)
+
+            return self._memoized[relative]
+
+    _regex = RegexMemoizer()
 
     default_message = 'Not a valid URL.'
     default_schemes = set(['http', 'https', 'ftp', 'ftps'])
