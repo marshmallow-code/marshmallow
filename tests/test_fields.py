@@ -26,7 +26,7 @@ class TestField:
         default = u'œ∑´'
         field = fields.Field(default=default, attribute=None)
         assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
-                                'validate=None, required=False, '
+                                'inspect=None, validate=None, required=False, '
                                 'load_only=False, dump_only=False, '
                                 'missing={missing}, allow_none=False, '
                                 'error_messages={error_messages})>'
@@ -38,6 +38,43 @@ class TestField:
     def test_error_raised_if_uncallable_validator_passed(self):
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
+
+    def test_error_raised_if_uncallable_inspector_passed(self):
+        with pytest.raises(ValueError):
+            fields.Field(inspect='notcallable')
+
+    def test_error_raised_if_validator_fails(self):
+        def true_is_valid(value):
+            if value is not True:
+                raise ValidationError('Validation failed')
+        field = fields.Field(validate=true_is_valid)
+        field.deserialize(True)
+        with pytest.raises(ValidationError):
+            field.deserialize(False)
+
+    def test_error_raised_if_inspector_fails(self):
+        def true_is_valid(value):
+            if value is not True:
+                raise ValidationError('Validation failed')
+        field = fields.Field(inspect=true_is_valid)
+        field.deserialize(True)
+        with pytest.raises(ValidationError):
+            field.deserialize(False)
+
+    def test_inspector_only_affects_raw_value(self):
+        def limit_2_digits(value):
+            if len(str(value)) > 2:
+                raise ValidationError('Too many digits')
+        field_with_inspect = fields.Integer(inspect=limit_2_digits)
+        field_with_inspect.deserialize(42)
+        field_with_inspect.deserialize('42')
+        with pytest.raises(ValidationError):
+            field_with_inspect.deserialize(423)
+        with pytest.raises(ValidationError) as exc:
+            field_with_inspect.deserialize('423')
+        field_with_validate = fields.Integer(validate=limit_2_digits)
+        field_with_validate.deserialize('00')
+        field_with_validate.deserialize('000')  # should pass
 
     def test_custom_field_receives_attr_and_obj(self, user):
         class MyField(fields.Field):
