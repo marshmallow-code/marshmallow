@@ -12,6 +12,7 @@ python:
 
 before_install:
   - pip install -U pip
+  - pip install -U six
 
 install:
   - pip install -U .[reco]
