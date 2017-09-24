@@ -57,7 +57,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'marshmallow'
 copyright = ' {0:%Y} <a href="http://stevenloria.com">Steven Loria</a>'.format(
-    dt.datetime.utcnow()
+    dt.datetime.utcfromtimestamp(os.path.getmtime('../CHANGELOG.rst'))
 )
 
 version = release = marshmallow.__version__
