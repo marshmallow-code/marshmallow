@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0b4 (unreleased)
+++++++++++++++++++++
+
+Support:
+
+- Copyright year in docs uses CHANGELOG.rst's modified date for
+  reproducible builds (:issue:`679`). Thanks :user:`bmwiedemann`.
+
 3.0.0b3 (2017-08-20)
 ++++++++++++++++++++
 
