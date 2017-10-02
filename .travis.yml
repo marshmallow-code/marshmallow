@@ -14,6 +14,8 @@ python:
 
 before_install:
   - pip install -U pip
+  # Workaround for travis issue: https://github.com/marshmallow-code/marshmallow/issues/681
+  - pip install -U six
 
 install:
   - pip install -U .[reco]
