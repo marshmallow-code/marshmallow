@@ -1148,7 +1148,7 @@ class ValidatedField(Field):
     """A field that validates input on serialization."""
 
     def _validated(self, value):
-        raise NotImplementedError('Must implement _validate method')
+        raise NotImplementedError('Must implement _validated method')
 
     def _serialize(self, value, *args, **kwargs):
         ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
