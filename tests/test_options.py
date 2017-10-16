@@ -154,7 +154,7 @@ class TestFieldOrdering:
         keys = list(user_data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
-    def test_nested_field_order_with_exlude_arg_is_maintained(self, user):
+    def test_nested_field_order_with_exclude_arg_is_maintained(self, user):
         class HasNestedExclude(Schema):
             class Meta:
                 ordered = True
