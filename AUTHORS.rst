@@ -88,3 +88,4 @@ Contributors (chronological)
 - `@dradetsky <https://github.com/dradetsky>`_
 - Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
 - Yoichi NAKAYAMA `@yoichi <https://github.com/yoichi>`_
+- Bernhard M. Wiedemann `@bmwiedemann <https://github.com/bmwiedemann>`_
