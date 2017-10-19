@@ -468,6 +468,34 @@ class TestFieldDeserialization:
         assert result.seconds == 12
         assert result.microseconds == 0
 
+        field = fields.TimeDelta(fields.TimeDelta.WEEKS)
+        result = field.deserialize(1)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 7
+        assert result.seconds == 0
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.HOURS)
+        result = field.deserialize(25)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 1
+        assert result.seconds == 3600
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.MINUTES)
+        result = field.deserialize(1441)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 1
+        assert result.seconds == 60
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
+        result = field.deserialize(123456)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 0
+        assert result.seconds == 123
+        assert result.microseconds == 456000
+
     @pytest.mark.parametrize('in_value',
     [
         '',

@@ -1063,7 +1063,8 @@ class TimeDelta(Field):
     seconds or microseconds.
 
     :param str precision: Influences how the integer is interpreted during
-        (de)serialization. Must be 'days', 'seconds' or 'microseconds'.
+        (de)serialization. Must be 'days', 'seconds', 'microseconds',
+        'milliseconds', 'minutes', 'hours' or 'weeks'.
     :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
@@ -1075,6 +1076,10 @@ class TimeDelta(Field):
     DAYS = 'days'
     SECONDS = 'seconds'
     MICROSECONDS = 'microseconds'
+    MILLISECONDS = 'milliseconds'
+    MINUTES = 'minutes'
+    HOURS = 'hours'
+    WEEKS = 'weeks'
 
     default_error_messages = {
         'invalid': 'Not a valid period of time.',
@@ -1083,10 +1088,12 @@ class TimeDelta(Field):
 
     def __init__(self, precision='seconds', error=None, **kwargs):
         precision = precision.lower()
-        units = (self.DAYS, self.SECONDS, self.MICROSECONDS)
+        units = (self.DAYS, self.SECONDS, self.MICROSECONDS, self.MILLISECONDS,
+                 self.MINUTES, self.HOURS, self.WEEKS)
 
         if precision not in units:
-            msg = 'The precision must be "{0}", "{1}" or "{2}".'.format(*units)
+            msg = 'The precision must be "{0}" or "{1}".'.format(
+                ', '.join(units[:-1]), units[-1])
             raise ValueError(msg)
 
         self.precision = precision
@@ -1096,15 +1103,8 @@ class TimeDelta(Field):
         if value is None:
             return None
         try:
-            days = value.days
-            if self.precision == self.DAYS:
-                return days
-            else:
-                seconds = days * 86400 + value.seconds
-                if self.precision == self.SECONDS:
-                    return seconds
-                else:  # microseconds
-                    return seconds * 10**6 + value.microseconds  # flake8: noqa
+            base_unit = dt.timedelta(**{self.precision: 1})
+            return int(value.total_seconds() / base_unit.total_seconds())
         except AttributeError:
             self.fail('format', input=value)
 
