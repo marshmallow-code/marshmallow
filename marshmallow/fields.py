@@ -9,7 +9,6 @@ import numbers
 import uuid
 import warnings
 import decimal
-from operator import attrgetter
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -119,7 +118,7 @@ class Field(FieldABC):
     #: :exc:`marshmallow.ValidationError`.
     default_error_messages = {
         'required': 'Missing data for required field.',
-        'type': 'Invalid input type.', # used by Unmarshaller
+        'type': 'Invalid input type.',  # used by Unmarshaller
         'null': 'Field may not be null.',
         'validator_failed': 'Invalid value.'
     }
@@ -667,7 +666,7 @@ class Number(Field):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         try:
             return self._format_num(value)
-        except (TypeError, ValueError) as err:
+        except (TypeError, ValueError):
             self.fail('invalid')
 
     def serialize(self, attr, obj, accessor=None):
@@ -882,7 +881,7 @@ class FormattedString(Field):
         try:
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
-        except (TypeError, IndexError) as error:
+        except (TypeError, IndexError):
             self.fail('format')
 
 
@@ -954,7 +953,7 @@ class DateTime(Field):
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
-            except (AttributeError, ValueError) as err:
+            except (AttributeError, ValueError):
                 self.fail('format', input=value)
         else:
             return value.strftime(self.dateformat)
@@ -1020,7 +1019,6 @@ class Time(Field):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         if not value:   # falsy values are invalid
             self.fail('invalid')
-            raise err
         try:
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
@@ -1196,6 +1194,7 @@ class Email(ValidatedField, String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
     default_error_messages = {'invalid': 'Not a valid email address.'}
+
     def __init__(self, *args, **kwargs):
         String.__init__(self, *args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
@@ -1303,7 +1302,6 @@ class Function(Field):
             return func(value, self.parent.context)
         else:
             return func(value)
-
 
 
 class Constant(Field):
