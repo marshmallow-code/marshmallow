@@ -90,3 +90,4 @@ Contributors (chronological)
 - Yoichi NAKAYAMA `@yoichi <https://github.com/yoichi>`_
 - Bernhard M. Wiedemann `@bmwiedemann <https://github.com/bmwiedemann>`_
 - Scott Werner `@scottwernervt <https://github.com/scottwernervt>`_
+- Leonardo Fedalto `@Fedalto <https://github.com/Fedalto>`_
