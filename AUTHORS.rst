@@ -91,3 +91,4 @@ Contributors (chronological)
 - Bernhard M. Wiedemann `@bmwiedemann <https://github.com/bmwiedemann>`_
 - Scott Werner `@scottwernervt <https://github.com/scottwernervt>`_
 - Leonardo Fedalto `@Fedalto <https://github.com/Fedalto>`_
+- `@sduthil <https://github.com/sduthil>`_

@@ -83,6 +83,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.14.0 (2017-10-23)
++++++++++++++++++++
+
+Features:
+
+- Add ``require_tld`` parameter to ``validate.URL`` (:issue:`664`).
+  Thanks :user:`sduthil` for the suggestion and the PR.
+
 2.13.6 (2017-08-16)
 +++++++++++++++++++
 
