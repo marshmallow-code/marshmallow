@@ -162,8 +162,10 @@ class Marshaller(ErrorStore):
     # Make an instance callable
     __call__ = serialize
 
+
 # Key used for schema-level validation errors
 SCHEMA = '_schema'
+
 
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.

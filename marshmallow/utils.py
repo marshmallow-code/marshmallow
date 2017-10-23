@@ -94,6 +94,7 @@ def float_to_decimal(f):
 
 ZERO_DECIMAL = Decimal()
 
+
 def decimal_to_fixed(value, precision):
     """Convert a `Decimal` to a fixed-precision number as a string."""
     return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
@@ -131,6 +132,7 @@ def pprint(obj, *args, **kwargs):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
+
 
 # From pytz: http://pytz.sourceforge.net/
 ZERO = datetime.timedelta(0)
@@ -210,6 +212,7 @@ def rfcformat(dt, localtime=False):
         return formatdate(timegm(dt.utctimetuple()))
     else:
         return local_rfcformat(dt)
+
 
 # From Django
 _iso8601_re = re.compile(
