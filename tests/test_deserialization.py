@@ -426,6 +426,11 @@ class TestFieldDeserialization:
             field.deserialize(in_data)
         assert excinfo.value.args[0] == 'Not a valid time.'
 
+    def test_invalid_timedelta_precision(self):
+        with pytest.raises(ValueError) as excinfo:
+            fields.TimeDelta('invalid')
+        assert 'The precision must be "days",' in str(excinfo)
+
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
         result = field.deserialize('42')

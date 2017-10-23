@@ -1090,8 +1090,8 @@ class TimeDelta(Field):
                  self.MINUTES, self.HOURS, self.WEEKS)
 
         if precision not in units:
-            msg = 'The precision must be "{0}" or "{1}".'.format(
-                ', '.join(units[:-1]), units[-1])
+            msg = 'The precision must be {0} or "{1}".'.format(
+                ', '.join(['"{}"'.format(each) for each in units[:-1]]), units[-1])
             raise ValueError(msg)
 
         self.precision = precision
