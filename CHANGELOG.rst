@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.14.0 (2017-10-23)
++++++++++++++++++++
+
+Features:
+
+- Add ``require_tld`` parameter to ``validate.URL`` (:issue:`664`).
+  Thanks :user:`sduthil` for the suggestion and the PR.
+
 2.13.6 (2017-08-16)
 +++++++++++++++++++
 

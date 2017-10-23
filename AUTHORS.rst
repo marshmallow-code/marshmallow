@@ -82,3 +82,4 @@ Contributors (chronological)
 - Roy Williams `@rowillia <https://github.com/rowillia>`_
 - Vlad Frolov `@frol <https://github.com/frol>`_
 - Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
+- `@sduthil <https://github.com/sduthil>`_
