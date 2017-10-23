@@ -1,13 +1,24 @@
 Changelog
 ---------
 
-3.0.0b4 (unreleased)
+3.0.0b4 (2017-10-23)
 ++++++++++++++++++++
+
+Features:
+
+- Add support for millisecond, minute, hour, and week precisions to
+  ``fields.TimeDelta`` (:issue:`537`). Thanks :user:`Fedalto` for the
+  suggestion and the PR.
+- Includes features from release 2.14.0.
+
 
 Support:
 
 - Copyright year in docs uses CHANGELOG.rst's modified date for
   reproducible builds (:issue:`679`). Thanks :user:`bmwiedemann`.
+- Test against Python 3.6 in tox. Thanks :user:`Fedalto`.
+- Fix typo in exception message (:issue:`659`). Thanks :user:`wonderbeyond`
+  for reporting and thanks :user:`yoichi` for the PR.
 
 3.0.0b3 (2017-08-20)
 ++++++++++++++++++++
