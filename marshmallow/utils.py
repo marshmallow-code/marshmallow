@@ -258,7 +258,7 @@ def from_rfc(datestring, use_dateutil=True):
         return datetime.datetime.fromtimestamp(timestamp)
 
 
-def from_iso(datestring, use_dateutil=True):
+def from_iso_datetime(datestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.

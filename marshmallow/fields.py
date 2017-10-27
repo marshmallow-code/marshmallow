@@ -920,8 +920,8 @@ class DateTime(Field):
     }
 
     DATEFORMAT_DESERIALIZATION_FUNCS = {
-        'iso': utils.from_iso,
-        'iso8601': utils.from_iso,
+        'iso': utils.from_iso_datetime,
+        'iso8601': utils.from_iso_datetime,
         'rfc': utils.from_rfc,
         'rfc822': utils.from_rfc,
     }

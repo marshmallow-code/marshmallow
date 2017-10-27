@@ -187,17 +187,17 @@ def test_from_rfc(use_dateutil):
     assert_datetime_equal(result, d)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_iso(use_dateutil):
+def test_from_iso_datetime(use_dateutil):
     d = dt.datetime.now()
     formatted = d.isoformat()
-    result = utils.from_iso(formatted, use_dateutil=use_dateutil)
+    result = utils.from_iso_datetime(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
 def test_from_iso_with_tz():
     d = central.localize(dt.datetime.now())
     formatted = d.isoformat()
-    result = utils.from_iso(formatted)
+    result = utils.from_iso_datetime(formatted)
     assert_datetime_equal(result, d)
     if utils.dateutil_available:
         # Note a naive datetime
