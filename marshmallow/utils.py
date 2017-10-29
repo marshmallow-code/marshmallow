@@ -10,6 +10,7 @@ import json
 import re
 import time
 import types
+import warnings
 from calendar import timegm
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
@@ -259,6 +260,11 @@ def from_rfc(datestring, use_dateutil=True):
 
 
 def from_iso(datestring, use_dateutil=True):
+    warnings.warn('from_iso is deprecated. Use from_iso_datetime instead.', UserWarning)
+    return from_iso_datetime(datestring, use_dateutil)
+
+
+def from_iso_datetime(datestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
