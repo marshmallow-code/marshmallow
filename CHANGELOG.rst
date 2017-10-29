@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0b5 (unreleased)
+++++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: ``utils.from_iso`` is deprecated in favor of
+  ``utils.from_iso_datetime`` (:issue:`694`). Thanks :user:`sklarsa`.
+
 3.0.0b4 (2017-10-23)
 ++++++++++++++++++++
 
