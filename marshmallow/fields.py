@@ -371,6 +371,9 @@ class Nested(Field):
         will be marshalled. If a field name (string) is given, only a single
         value will be returned as output instead of a dictionary.
         This parameter takes precedence over ``exclude``.
+    :param withcache: A boolean to allow the cache of the nested schema with the parent
+        context [default]. If the value is False, then the context will be propagated
+        at each call.
     :param bool many: Whether the field is a collection of objects.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
@@ -379,10 +382,12 @@ class Nested(Field):
         'type': 'Invalid type.',
     }
 
-    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
+    def __init__(self, nested, default=missing_, exclude=tuple(), only=None,
+                 withcache=True, **kwargs):
         self.nested = nested
         self.only = only
         self.exclude = exclude
+        self.withcache = withcache
         self.many = kwargs.get('many', False)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
@@ -395,7 +400,7 @@ class Nested(Field):
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
         """
-        if not self.__schema:
+        if not (self.__schema and self.withcache):
             # Ensure that only parameter is a tuple
             if isinstance(self.only, basestring):
                 only = (self.only,)
