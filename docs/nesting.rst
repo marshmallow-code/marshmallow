@@ -238,6 +238,30 @@ If the object to be marshalled has a relationship to an object of the same type,
     #     }
     # }
 
+.. _nesting-deactivated-cache:
+
+Nesting deactivated cache
+=========================
+
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema class, without cache in the nested field.
+
+The goal is to recompute the (de)serialization or validation in function of the context. If the context need to be changed then it will be propagated.
+
+.. code-block:: python
+    :emphasize-lines: 10
+
+    from marshmallow import Schema, fields, pprint
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+        created_at = fields.DateTime()
+
+    class BlogSchema(Schema):
+        title = fields.String()
+        author = fields.Nested(UserSchema, withcache=False)
+
+
 Next Steps
 ----------
 
