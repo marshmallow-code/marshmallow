@@ -185,3 +185,39 @@ class TestErrorMessages:
 
         assert 'doesntexist' in excinfo.value.args[0]
         assert 'MyField' in excinfo.value.args[0]
+
+
+class MySubSchemaForNested(Schema):
+    name = fields.String()
+
+class MyNestedSchema1(Schema):
+    name = fields.String()
+    subs = fields.Nested(MySubSchemaForNested())
+
+class MyNestedSchema2(Schema):
+    name = fields.String()
+    subs = fields.Nested(MySubSchemaForNested(), withcache=False)
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/634
+class TestNestedFieldWithAndWithoutCache:
+
+    def test_with_cache(self):
+        schema = MyNestedSchema1()
+        schema.context['test'] = 1
+        schema.validate({'name': 'foo', 'subs': [{'name': 'bar'}]})
+        first_schema_context = schema.fields['subs'].nested.context['test']
+        schema.context['test'] = 2
+        schema.validate({'name': 'foo', 'subs': [{'name': 'bar'}]})
+        last_schema_context = schema.fields['subs'].nested.context['test']
+        assert first_schema_context == last_schema_context
+
+    def test_without_cache(self):
+        schema = MyNestedSchema2()
+        schema.context['test'] = 1
+        schema.validate({'name': 'foo', 'subs': [{'name': 'bar'}]})
+        first_schema_context = schema.fields['subs'].nested.context['test']
+        schema.context['test'] = 2
+        schema.validate({'name': 'foo', 'subs': [{'name': 'bar'}]})
+        last_schema_context = schema.fields['subs'].nested.context['test']
+        assert first_schema_context != last_schema_context
