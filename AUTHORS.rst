@@ -83,3 +83,4 @@ Contributors (chronological)
 - Vlad Frolov `@frol <https://github.com/frol>`_
 - Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
 - `@sduthil <https://github.com/sduthil>`_
+- Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
