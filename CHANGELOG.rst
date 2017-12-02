@@ -102,6 +102,15 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.15.0 (2017-12-02)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle ``UnicodeDecodeError`` when deserializing ``bytes`` with a
+  ``String`` field (:issue:`650`). Thanks :user:`dan-blanchard` for the
+  suggestion and thanks :user:`4lissonsilveira` for the PR.
+
 2.14.0 (2017-10-23)
 +++++++++++++++++++
 

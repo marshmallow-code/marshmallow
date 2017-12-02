@@ -93,3 +93,4 @@ Contributors (chronological)
 - Leonardo Fedalto `@Fedalto <https://github.com/Fedalto>`_
 - `@sduthil <https://github.com/sduthil>`_
 - Steven Sklar `@sklarsa <https://github.com/sklarsa>`_
+- Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_

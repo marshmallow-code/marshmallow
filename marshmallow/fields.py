@@ -595,7 +595,8 @@ class String(Field):
     """
 
     default_error_messages = {
-        'invalid': 'Not a valid string.'
+        'invalid': 'Not a valid string.',
+        'invalid_utf8': 'Not a valid utf-8 string.'
     }
 
     def _serialize(self, value, attr, obj):
@@ -606,7 +607,10 @@ class String(Field):
     def _deserialize(self, value, attr, data):
         if not isinstance(value, basestring):
             self.fail('invalid')
-        return utils.ensure_text_type(value)
+        try:
+            return utils.ensure_text_type(value)
+        except UnicodeDecodeError:
+            self.fail('invalid_utf8')
 
 
 class UUID(String):
