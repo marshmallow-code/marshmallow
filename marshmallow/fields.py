@@ -1130,14 +1130,15 @@ class Dict(Field):
 
     Example: ::
 
-        numbers = fields.Dict(values=fields.Float())
+        numbers = fields.Dict(values=fields.Float(), keys=fields.Str())
 
     :param Field values: A field class or instance for dict values.
+    :param Field keys: A field class or instance for dict keys.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. note::
         When the structure of nested data is not known, you may omit the
-        schema argument to prevent content validation.
+        `values` and `keys` arguments to prevent content validation.
 
     .. versionadded:: 2.1.0
     """
@@ -1146,22 +1147,32 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.'
     }
 
-    def __init__(self, values=None, **kwargs):
+    def __init__(self, values=None, keys=None, **kwargs):
         super(Dict, self).__init__(**kwargs)
         if values is None:
             self.value_container = None
         elif isinstance(values, type):
             if not issubclass(values, FieldABC):
-                raise ValueError('The type of the dict elements '
-                                 'must be a subclass of '
+                raise ValueError('"values" must be a subclass of '
                                  'marshmallow.base.FieldABC')
             self.value_container = values()
         else:
             if not isinstance(values, FieldABC):
-                raise ValueError('The instances of the dict '
-                                 'elements must be of type '
+                raise ValueError('"values" must be of type '
                                  'marshmallow.base.FieldABC')
             self.value_container = values
+        if keys is None:
+            self.key_container = None
+        elif isinstance(keys, type):
+            if not issubclass(keys, FieldABC):
+                raise ValueError('"keys" must be a subclass of '
+                                 'marshmallow.base.FieldABC')
+            self.key_container = keys()
+        else:
+            if not isinstance(keys, FieldABC):
+                raise ValueError('"keys" must be of type '
+                                 'marshmallow.base.FieldABC')
+            self.key_container = keys
 
     def _serialize(self, value, attr, obj):
         if value is None:
@@ -1169,10 +1180,13 @@ class Dict(Field):
         if not self.value_container and not self.key_container:
             return value
         if isinstance(value, collections.Mapping):
-            return {
-                key: self.container._serialize(item, attr, obj)
-                for key, item in value.items()
-            }
+            values = value.values()
+            if self.value_container:
+                values = [self.value_container._serialize(item, attr, obj) for item in values]
+            keys = value.keys()
+            if self.key_container:
+                keys = [self.key_container._serialize(key, attr, obj) for key in keys]
+            return dict(zip(keys, values))
         self.fail('invalid')
 
     def _deserialize(self, value, attr, data):
@@ -1181,14 +1195,32 @@ class Dict(Field):
         if not self.value_container and not self.key_container:
             return value
 
-        result = {}
         errors = {}
-        for key, item in value.items():
-            try:
-                result.update({key: self.container.deserialize(item)})
-            except ValidationError as e:
-                result.update({key: e.messages})
-                errors.update({key: e.messages})
+        values = list(value.values())
+        keys = list(value.keys())
+        if self.key_container:
+            for idx, key in enumerate(keys):
+                try:
+                    keys[idx] = self.key_container.deserialize(key)
+                except ValidationError as e:
+                    errors[key] = [
+                        'Invalid key: {}'.format(message)
+                        for message in e.messages
+                    ]
+        if self.value_container:
+            for idx, item in enumerate(values):
+                try:
+                    values[idx] = self.value_container.deserialize(item)
+                except ValidationError as e:
+                    values[idx] = e.data
+                    key = keys[idx]
+                    if key not in errors:
+                        errors[key] = []
+                    errors[key].extend([
+                        'Invalid value: {}'.format(message)
+                        for message in e.messages
+                    ])
+        result = dict(zip(keys, values))
 
         if errors:
             raise ValidationError(errors, data=result)

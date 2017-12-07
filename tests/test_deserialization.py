@@ -546,8 +546,46 @@ class TestFieldDeserialization:
         field = fields.Dict(values=fields.Str)
         assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({"foo": 1})
+            field.deserialize({"foo": 1, "bar": "baz"})
         assert excinfo.value.args[0] == {'foo': ['Invalid value: Not a valid string.']}
+        assert excinfo.value.data == {'bar': 'baz', 'foo': None}
+
+    def test_structured_dict_key_deserialization(self):
+        field = fields.Dict(keys=fields.Str)
+        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: "bar", "foo": "baz"})
+        assert excinfo.value.args[0] == {1: ['Invalid key: Not a valid string.']}
+        assert excinfo.value.data == {'foo': 'baz', 1: "bar"}
+
+    def test_structured_dict_key_value_deserialization(self):
+        field = fields.Dict(
+            keys=fields.Str(validate=[validate.Email(), validate.Regexp(r'.*@test\.com$')]),
+            values=fields.Decimal,
+        )
+        assert field.deserialize({"foo@test.com": 1}) == {"foo@test.com": decimal.Decimal(1)}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: "bar"})
+        assert excinfo.value.args[0] == {1: [
+            'Invalid key: Not a valid string.',
+            'Invalid value: Not a valid number.',
+        ]}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo@test.com": "bar"})
+        assert excinfo.value.args[0] == {"foo@test.com": ['Invalid value: Not a valid number.']}
+        assert excinfo.value.data == {'foo@test.com': None}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: 1})
+        assert excinfo.value.args[0] == {1: ['Invalid key: Not a valid string.']}
+        assert excinfo.value.data == {1: 1}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo": "bar"})
+        assert excinfo.value.args[0] == {"foo": [
+            'Invalid key: Not a valid email address.',
+            'Invalid key: String does not match expected pattern.',
+            'Invalid value: Not a valid number.',
+        ]}
+        assert excinfo.value.data == {'foo': None}
 
     def test_url_field_deserialization(self):
         field = fields.Url()
