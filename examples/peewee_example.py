@@ -3,7 +3,7 @@ from functools import wraps
 
 from flask import Flask, request, g, jsonify
 import peewee as pw
-from marshmallow import Schema, fields, validate, pre_load, post_dump
+from marshmallow import Schema, fields, validate, pre_load, post_dump, post_load
 
 app = Flask(__name__)
 db = pw.SqliteDatabase('/tmp/todo.db')
@@ -76,6 +76,7 @@ class TodoSchema(Schema):
         }
 
     # We use make_object to create a new Todo from validated data
+    @post_load
     def make_object(self, data):
         if not data:
             return None
