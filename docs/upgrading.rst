@@ -308,7 +308,7 @@ The ``func`` parameter of `fields.Function <marshmallow.fields.Function>` was re
     # NO
     lowername = fields.Function(func=lambda obj: obj.name.lower())
 
-Similiarly, the ``method_name`` of `fields.Method <marshmallow.fields.Method>` was also renamed to ``serialize``.
+Similarly, the ``method_name`` of `fields.Method <marshmallow.fields.Method>` was also renamed to ``serialize``.
 
 .. code-block:: python
 
