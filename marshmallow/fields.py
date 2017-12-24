@@ -386,6 +386,22 @@ class Nested(Field):
         self.many = kwargs.get('many', False)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
+
+        if not isinstance(self.many, bool):
+            raise ValueError('Many parameter must be boolean')
+
+        if only:
+            if isinstance(only, basestring):
+                only = [only]
+
+            # Catch fields used at the same time
+            # into only and exclude parameters
+            fields = [item for item in only if item in list(exclude)]
+            if fields:
+                raise ValueError(
+                    'Fields {0} cannot be at exclude and only at the same time'.format(
+                        fields))
+
         super(Nested, self).__init__(default=default, **kwargs)
 
     @property
