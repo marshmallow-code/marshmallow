@@ -3,6 +3,7 @@ import pytest
 
 from marshmallow import fields, Schema, ValidationError
 from marshmallow.marshalling import missing
+from marshmallow.validate import Validator
 
 from tests.base import ALL_FIELDS, User
 
@@ -185,3 +186,41 @@ class TestErrorMessages:
 
         assert 'doesntexist' in excinfo.value.args[0]
         assert 'MyField' in excinfo.value.args[0]
+
+
+class TestFieldValidationPassingFieldToValidators:
+
+    def test_validator_receives_field_instance(self, user):
+
+        class ValidatorWithoutFieldPassingSupport(Validator):
+            error = 'No Error'
+
+            def __call__(self, value):
+                if value not in ('male', 'female'):
+                    raise ValidationError("Gender '{0}' is not valid".format(value))
+
+        class ValidatorWithFieldPassingSupport(Validator):
+            def __init__(self):
+                self.error = 'Validation failed'
+
+            def __call__(self, value, field=None):
+                if field is None:
+                    raise ValidationError('No field instance was passed')
+                if value not in field.context['allowed_names']:
+                    raise ValidationError(
+                        "Name '{0}' was not found in: {1}".format(
+                            value, ', '.join(field.context['allowed_names']))
+                    )
+
+        class MySchema(Schema):
+            name = fields.String(validate=ValidatorWithFieldPassingSupport())
+            gender = fields.String(validate=ValidatorWithoutFieldPassingSupport())
+
+        schema = MySchema()
+        schema.context['allowed_names'] = ('Python',)
+        result, errors = schema.load({'name': 'Monty', 'gender': 'unknown'})
+        assert result == {}
+        assert 'name' in errors
+        assert 'gender' in errors
+        assert errors['name'] == ["Name 'Monty' was not found in: Python"]
+        assert errors['gender'] == ["Gender 'unknown' is not valid"]

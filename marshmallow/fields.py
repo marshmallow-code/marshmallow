@@ -193,7 +193,11 @@ class Field(FieldABC):
         kwargs = {}
         for validator in self.validators:
             try:
-                r = validator(value)
+                try:
+                    r = validator(value, field=self)
+                except TypeError:
+                    # This validator does not accept the field instance
+                    r = validator(value)
                 if not isinstance(validator, Validator) and r is False:
                     self.fail('validator_failed')
             except ValidationError as err:
