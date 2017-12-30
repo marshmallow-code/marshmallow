@@ -4,6 +4,12 @@ Changelog
 3.0.0b5 (unreleased)
 ++++++++++++++++++++
 
+Features:
+
+- Add support for structured dictionaries by providing values and keys arguments to the
+  ``Dict`` field's constructor. This mirrors the ``List``
+  field's ability to validate its items (:issue:`483`). Thanks :user:`deckar01`.
+
 Other changes:
 
 - *Backwards-incompatible*: ``utils.from_iso`` is deprecated in favor of
