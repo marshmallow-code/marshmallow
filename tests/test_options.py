@@ -5,32 +5,8 @@ import datetime as dt
 import pytest
 
 from marshmallow import fields, Schema
-from marshmallow.exceptions import ValidationError
 
-from tests.base import (
-    User,
-    UserSchema,
-)
-
-class TestStrict:
-
-    class StrictUserSchema(UserSchema):
-        class Meta:
-            strict = True
-
-    def test_strict_meta_option(self):
-        with pytest.raises(ValidationError):
-            self.StrictUserSchema().load({'email': 'foo.com'})
-
-    def test_strict_meta_option_is_inherited(self):
-        class StrictUserSchema(UserSchema):
-            class Meta:
-                strict = True
-
-        class ChildStrictSchema(self.StrictUserSchema):
-            pass
-        with pytest.raises(ValidationError):
-            ChildStrictSchema().load({'email': 'foo.com'})
+from tests.base import User
 
 
 class TestUnordered:

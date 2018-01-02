@@ -190,7 +190,11 @@ class SchemaOpts(object):
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
-        self.strict = getattr(meta, 'strict', False)
+        if hasattr(meta, 'strict'):
+            warnings.warn(
+                'The strict class Meta option is deprecated.',
+                DeprecationWarning
+            )
         self.dateformat = getattr(meta, 'dateformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(
@@ -243,8 +247,6 @@ class BaseSchema(base.SchemaABC):
         serialized result. Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
-    :param bool strict: If `True`, raise errors if invalid data are passed in
-        instead of failing silently and storing the errors.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
@@ -305,8 +307,6 @@ class BaseSchema(base.SchemaABC):
             Nested fields can be represented with dot delimiters.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
-        - ``strict``: If `True`, raise errors during marshalling rather than
-            storing them.
         - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
             `json` from the standard library.
             Defaults to the ``json`` module in the stdlib.
@@ -329,7 +329,6 @@ class BaseSchema(base.SchemaABC):
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
-        self.strict = strict if strict is not None else self.opts.strict
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -347,8 +346,14 @@ class BaseSchema(base.SchemaABC):
         self._types_seen = set()
         self._update_fields(many=many)
 
+        if strict is not None:
+            warnings.warn(
+                'The strict parameter is deprecated.',
+                DeprecationWarning
+            )
+
     def __repr__(self):
-        return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
+        return '<{ClassName}(many={self.many})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
 
@@ -459,8 +464,7 @@ class BaseSchema(base.SchemaABC):
             )
             # User-defined error handler
             self.handle_error(exc, obj)
-            if self.strict:
-                raise exc
+            raise exc
 
         return MarshalResult(result, errors)
 
@@ -615,8 +619,7 @@ class BaseSchema(base.SchemaABC):
                 **self._unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
-            if self.strict:
-                raise exc
+            raise exc
 
         return result, errors
 

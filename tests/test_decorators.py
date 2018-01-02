@@ -236,7 +236,7 @@ class ValidatesSchema(Schema):
 
 class TestValidatesDecorator:
 
-    def test_validates_and_strict(self):
+    def test_validates(self):
         class VSchema(Schema):
             s = fields.String()
 
@@ -245,12 +245,12 @@ class TestValidatesDecorator:
                 raise ValidationError('nope')
 
         with pytest.raises(ValidationError) as excinfo:
-            VSchema(strict=True).load({'s': 'bar'})
+            VSchema().load({'s': 'bar'})
 
         assert excinfo.value.messages == {'s': ['nope']}
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/350
-    def test_validates_with_attribute_and_strict(self):
+    def test_validates_with_attribute(self):
         class S1(Schema):
             s = fields.String(attribute='string_name')
 
@@ -258,38 +258,45 @@ class TestValidatesDecorator:
             def validate_string(self, data):
                 raise ValidationError('nope')
         with pytest.raises(ValidationError) as excinfo:
-            S1(strict=True).load({'s': 'foo'})
+            S1().load({'s': 'foo'})
         assert excinfo.value.messages == {'s': ['nope']}
 
         with pytest.raises(ValidationError):
-            S1(strict=True, many=True).load([{'s': 'foo'}])
+            S1(many=True).load([{'s': 'foo'}])
 
     def test_validates_decorator(self):
         schema = ValidatesSchema()
 
-        errors = schema.validate({'foo': 41})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 41})
+        errors = excinfo.value.messages
         assert 'foo' in errors
         assert errors['foo'][0] == 'The answer to life the universe and everything.'
 
-        errors = schema.validate({'foo': 42})
-        assert errors == {}
+        schema.validate({'foo': 42})
 
-        errors = schema.validate([{'foo': 42}, {'foo': 43}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 42}, {'foo': 43}], many=True)
+        errors = excinfo.value.messages
         assert 'foo' in errors[1]
         assert len(errors[1]['foo']) == 1
         assert errors[1]['foo'][0] == 'The answer to life the universe and everything.'
 
-        errors = schema.validate([{'foo': 42}, {'foo': 42}], many=True)
-        assert errors == {}
+        schema.validate([{'foo': 42}, {'foo': 42}], many=True)
 
-        errors = schema.validate({})
-        assert errors == {}
+        schema.validate({})
 
-        result, errors = schema.load({'foo': 41})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({'foo': 41})
+        errors = excinfo.value.messages
+        result = excinfo.value.valid_data
         assert errors
         assert result == {}
 
-        result, errors = schema.load([{'foo': 42}, {'foo': 43}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load([{'foo': 42}, {'foo': 43}], many=True)
+        errors = excinfo.value.messages
+        result = excinfo.value.valid_data
         assert len(result) == 2
         assert result[0] == {'foo': 42}
         assert result[1] == {}
@@ -321,17 +328,23 @@ class TestValidatesDecorator:
 
         schema = Schema2()
 
-        errors = schema.validate({'foo': 42})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 42})
+        errors = excinfo.value.messages
         assert 'foo' in errors
         assert len(errors['foo']) == 1
         assert 'Invalid value.' in errors['foo'][0]
 
-        errors = schema.validate({'bar': 3})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'bar': 3})
+        errors = excinfo.value.messages
         assert 'bar' in errors
         assert len(errors['bar']) == 1
         assert 'Invalid value.' in errors['bar'][0]
 
-        errors = schema.validate({'bar': 1})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'bar': 1})
+        errors = excinfo.value.messages
         assert 'bar' in errors
         assert len(errors['bar']) == 1
         assert errors['bar'][0] == 'Must be 2'
@@ -352,7 +365,9 @@ class TestValidatesSchemaDecorator:
             nested = fields.Nested(NestedSchema, required=True, many=True)
 
         schema = MySchema()
-        errors = schema.validate({'nested': [1]})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'nested': [1]})
+        errors = excinfo.value.messages
         assert errors
         assert 'nested' in errors
         assert 0 in errors['nested']
@@ -383,16 +398,22 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('bar must not be negative', 'bar')
 
         schema = MySchema()
-        errors = schema.validate({'foo': 3})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 3})
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert errors['_schema'][0] == 'Must be greater than 3'
 
-        errors = schema.validate([{'foo': 4}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 4}], many=True)
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
         assert errors['_schema'][0] == 'Must provide at least 2 items'
 
-        errors = schema.validate({'foo': 4, 'bar': -1})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 4, 'bar': -1})
+        errors = excinfo.value.messages
         assert 'bar' in errors
         assert len(errors['bar']) == 1
         assert errors['bar'][0] == 'bar must not be negative'
@@ -414,14 +435,18 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('bar must not be negative')
 
         schema = MySchema()
-        errors = schema.validate({'foo': 3, 'bar': -1})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 3, 'bar': -1})
+        errors = excinfo.value.messages
         assert type(errors) is dict
         assert '_schema' in errors
         assert len(errors['_schema']) == 2
         assert 'Must be greater than 3' in errors['_schema']
         assert 'bar must not be negative' in errors['_schema']
 
-        errors = schema.validate([{'foo': 3, 'bar': -1}, {'foo': 3}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 3, 'bar': -1}, {'foo': 3}], many=True)
+        errors = excinfo.value.messages
         assert type(errors) is dict
         assert '_schema' in errors[0]
         assert len(errors[0]['_schema']) == 2
@@ -455,18 +480,24 @@ class TestValidatesSchemaDecorator:
                     check(original_data)
 
         schema = MySchema()
-        errors = schema.validate({'foo': 4, 'baz': 42})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 4, 'baz': 42})
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
         assert errors['_schema'][0] == {'code': 'invalid_field'}
 
-        errors = schema.validate({'foo': '4'})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': '4'})
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
         assert errors['_schema'][0] == 'foo cannot be a string'
 
         schema = MySchema()
-        errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 4, 'baz': 42}], many=True)
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
         assert errors['_schema'][0] == {'code': 'invalid_field'}
@@ -485,7 +516,9 @@ class TestValidatesSchemaDecorator:
                         raise ValidationError('Unknown field name', key)
 
         schema = MySchema()
-        errors = schema.validate({'foo': 2, 'baz': 42})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 2, 'baz': 42})
+        errors = excinfo.value.messages
         assert 'baz' in errors
         assert len(errors['baz']) == 1
         assert errors['baz'][0] == 'Unknown field name'
@@ -510,24 +543,34 @@ class TestValidatesSchemaDecorator:
 
         schema = MySchema()
         # check that schema errors still occur with no field errors
-        errors = schema.validate({'foo': 3, 'bar': 4})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 3, 'bar': 4})
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert errors['_schema'][0] == 'Foo and bar must be equal.'
 
-        errors = schema.validate([{'foo': 3, 'bar': 3}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 3, 'bar': 3}], many=True)
+        errors = excinfo.value.messages
         assert '_schema' in errors
         assert errors['_schema'][0] == 'Must provide at least 2 items'
 
         # check that schema errors don't occur when field errors do
-        errors = schema.validate({'foo': 3, 'bar': 'not an int'})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 3, 'bar': 'not an int'})
+        errors = excinfo.value.messages
         assert 'bar' in errors
         assert '_schema' not in errors
 
-        errors = schema.validate({'foo': 2, 'bar': 2})
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate({'foo': 2, 'bar': 2})
+        errors = excinfo.value.messages
         assert 'foo' in errors
         assert '_schema' not in errors
 
-        errors = schema.validate([{'foo': 3, 'bar': 'not an int'}], many=True)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.validate([{'foo': 3, 'bar': 'not an int'}], many=True)
+        errors = excinfo.value.messages
         assert 'bar' in errors[0]
         assert '_schema' not in errors
 
@@ -613,7 +656,9 @@ def test_decorator_error_handling():
         return data
 
     schema = ExampleSchema()
-    data, errors = schema.load({'foo': 0, 'bar': 1})
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'foo': 0, 'bar': 1})
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'preloadmsg1'
@@ -621,7 +666,9 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'preloadmsg2' in errors['bar']
     assert 'preloadmsg3' in errors['bar']
-    data, errors = schema.load({'foo': 1, 'bar': 1})
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'foo': 1, 'bar': 1})
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postloadmsg1'
@@ -629,7 +676,9 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'postloadmsg2' in errors['bar']
     assert 'postloadmsg3' in errors['bar']
-    data, errors = schema.dump(make_item(2, 1))
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(make_item(2, 1))
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'predumpmsg1'
@@ -637,7 +686,9 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'predumpmsg2' in errors['bar']
     assert 'predumpmsg3' in errors['bar']
-    data, errors = schema.dump(make_item(3, 1))
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(make_item(3, 1))
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postdumpmsg1'
@@ -645,25 +696,35 @@ def test_decorator_error_handling():
     assert len(errors['bar']) == 2
     assert 'postdumpmsg2' in errors['bar']
     assert 'postdumpmsg3' in errors['bar']
-    data, errors = schema.load({'foo': 4, 'bar': 1})
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'foo': 4, 'bar': 1})
+    errors = excinfo.value.messages
     assert len(errors) == 1
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'preloadmsg1'
-    data, errors = schema.load({'foo': 5, 'bar': 1})
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'foo': 5, 'bar': 1})
+    errors = excinfo.value.messages
     assert len(errors) == 1
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postloadmsg1'
-    data, errors = schema.dump(make_item(6, 1))
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(make_item(6, 1))
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'predumpmsg1'
-    data, errors = schema.dump(make_item(7, 1))
+    with pytest.raises(ValidationError) as excinfo:
+        schema.dump(make_item(7, 1))
+    errors = excinfo.value.messages
     assert 'foo' in errors
     assert len(errors['foo']) == 1
     assert errors['foo'][0] == 'postdumpmsg1'
-    data, errors = schema.load({'foo': 8, 'bar': 1})
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'foo': 8, 'bar': 1})
+    errors = excinfo.value.messages
     assert len(errors) == 1
     assert '_schema' in errors
     assert len(errors['_schema']) == 1
@@ -676,13 +737,13 @@ def test_decorator_error_handling():
         post_load,
     ]
 )
-def test_decorator_strict_error_handling_with_load(decorator):
+def test_decorator_error_handling_with_load(decorator):
     class ExampleSchema(Schema):
         @decorator
         def raise_value_error(self, item):
             raise ValidationError({'foo': 'error'})
 
-    schema = ExampleSchema(strict=True)
+    schema = ExampleSchema()
     with pytest.raises(ValidationError) as exc:
         schema.load({})
     assert exc.value.messages == {'foo': 'error'}
@@ -695,13 +756,13 @@ def test_decorator_strict_error_handling_with_load(decorator):
         post_dump,
     ]
 )
-def test_decorator_strict_error_handling_with_dump(decorator):
+def test_decorator_error_handling_with_dump(decorator):
     class ExampleSchema(Schema):
         @decorator
         def raise_value_error(self, item):
             raise ValidationError({'foo': 'error'})
 
-    schema = ExampleSchema(strict=True)
+    schema = ExampleSchema()
     with pytest.raises(ValidationError) as exc:
         schema.dump(object())
     assert exc.value.messages == {'foo': 'error'}
