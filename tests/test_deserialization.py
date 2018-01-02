@@ -1071,17 +1071,17 @@ class TestSchemaDeserialization:
         data = {
             'Name': 'Mick',
             'UserName': 'foobar.com',
-            'years': 'abc'
+            'Years': 'abc'
         }
         result, errors = AliasingUserSerializer().load(data)
         assert errors['UserName'] == [u'Not a valid email address.']
-        assert errors['years'] == [u'Not a valid integer.']
+        assert errors['Years'] == [u'Not a valid integer.']
 
     def test_deserialize_with_load_from_param(self):
         class AliasingUserSerializer(Schema):
             name = fields.String(load_from='Name')
             username = fields.Email(attribute='email', load_from='UserName')
-            years = fields.Integer(attribute='age', load_from='Years')
+            years = fields.Integer(load_from='Years')
         data = {
             'Name': 'Mick',
             'UserName': 'foo@bar.com',
@@ -1090,7 +1090,7 @@ class TestSchemaDeserialization:
         result, errors = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
-        assert result['age'] == 42
+        assert 'years' not in result
 
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
