@@ -1414,6 +1414,38 @@ class TestValidation:
         assert 'y' in errors['n']
         assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
 
+    def test_nested_data_is_stored_when_validation_fails_strict(self):
+        class SchemaA(Schema):
+            x = fields.Integer()
+            y = fields.Integer(validate=lambda n: n > 0)
+            z = fields.Integer()
+
+            class Meta:
+                strict = True
+
+        class SchemaB(Schema):
+            w = fields.Integer()
+            n = fields.Nested(SchemaA)
+
+            class Meta:
+                strict = True
+
+        sch = SchemaB()
+
+        with pytest.raises(ValidationError) as excinfo:
+            sch.load({'w': 90, 'n': {'x': 90, 'y': 89, 'z': None}})
+        data = excinfo.value.valid_data
+        errors = excinfo.value.messages
+        assert 'z' in errors['n']
+        assert data == {'w': 90, 'n': {'x': 90, 'y': 89}}
+
+        with pytest.raises(ValidationError) as excinfo:
+            sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
+        data = excinfo.value.valid_data
+        errors = excinfo.value.messages
+        assert 'y' in errors['n']
+        assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
+
     def test_false_value_validation(self):
         class Sch(Schema):
             lamb = fields.Raw(validate=lambda x: x is False)

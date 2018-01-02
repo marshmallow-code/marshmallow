@@ -455,7 +455,7 @@ class Nested(Field):
             else:
                 return ret[self.only]
         if errors:
-            raise ValidationError(errors, data=ret)
+            raise ValidationError(errors, data=obj, valid_data=ret)
         return ret
 
     def _deserialize(self, value, attr, data):
@@ -467,10 +467,10 @@ class Nested(Field):
                 value = [{self.only: v} for v in value]
             else:
                 value = {self.only: value}
-        data, errors = self.schema.load(value)
+        valid_data, errors = self.schema.load(value)
         if errors:
-            raise ValidationError(errors, data=data)
-        return data
+            raise ValidationError(errors, data=data, valid_data=valid_data)
+        return valid_data
 
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if

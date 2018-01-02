@@ -1781,6 +1781,68 @@ class TestNestedSchema:
         data, errors = outer.load({})
         assert errors == expected
 
+    def test_dump_validation_error(self):
+        class Child(object):
+            def __init__(self, foo, bar):
+                self.foo = foo
+                self.bar = bar
+
+        class Parent(object):
+            def __init__(self, foo, bar):
+                self.foo = foo
+                self.bar = bar
+
+        class ChildSchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
+
+        class ParentSchema(Schema):
+            foo = fields.Nested(ChildSchema)
+            bar = fields.Int()
+
+        child = Child(foo='dummy', bar=42)
+        parent = Parent(foo=child, bar=42)
+
+        data, errors = ParentSchema().dump(parent)
+        assert data == {'foo': {'bar': 42}, 'bar': 42}
+        assert errors == {'foo': {'foo': ['Not a valid integer.']}}
+
+    def test_dump_validation_error_strict(self):
+        class Child(object):
+            def __init__(self, foo, bar):
+                self.foo = foo
+                self.bar = bar
+
+        class Parent(object):
+            def __init__(self, foo, bar):
+                self.foo = foo
+                self.bar = bar
+
+        class ChildSchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
+
+            class Meta:
+                strict = True
+
+        class ParentSchema(Schema):
+            foo = fields.Nested(ChildSchema)
+            bar = fields.Int()
+
+            class Meta:
+                strict = True
+
+        child = Child(foo='dummy', bar=42)
+        parent = Parent(foo=child, bar=42)
+
+        with pytest.raises(ValidationError) as excinfo:
+            ParentSchema().dump(parent)
+        errors = excinfo.value.messages
+        data = excinfo.value.valid_data
+        assert data == {'foo': {'bar': 42}, 'bar': 42}
+        assert errors == {'foo': {'foo': ['Not a valid integer.']}}
+
+
 class TestSelfReference:
 
     @pytest.fixture
