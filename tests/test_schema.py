@@ -53,27 +53,27 @@ def test_dump_returns_dict_of_errors():
 ])
 def test_dump_with_strict_mode_raises_error(SchemaClass):
     s = SchemaClass(strict=True)
-    bad_user = User(name='Monty', homepage='http://www.foo.bar', email='invalid-email')
+    bad_user = User(name='Monty', homepage='http://www.foo.bar', balance='dummy')
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
-    assert type(exc.fields[0]) == fields.Email
-    assert exc.field_names[0] == 'email'
+    assert type(exc.fields[0]) == fields.Decimal
+    assert exc.field_names[0] == 'balance'
 
     assert type(exc.messages) == dict
-    assert exc.messages == {'email': ['Not a valid email address.']}
+    assert exc.messages == {'balance': ['Not a valid number.']}
 
 def test_dump_resets_errors():
     class MySchema(Schema):
-        email = fields.Email()
+        age = fields.Int()
 
     schema = MySchema()
-    result = schema.dump(User('Joe', email='notvalid'))
-    assert len(result.errors['email']) == 1
-    assert 'Not a valid email address.' in result.errors['email'][0]
-    result = schema.dump(User('Steve', email='__invalid'))
-    assert len(result.errors['email']) == 1
-    assert 'Not a valid email address.' in result.errors['email'][0]
+    result = schema.dump(User('Joe', age='dummy'))
+    assert len(result.errors['age']) == 1
+    assert 'Not a valid integer.' in result.errors['age'][0]
+    result = schema.dump(User('Steve', age='__dummy'))
+    assert len(result.errors['age']) == 1
+    assert 'Not a valid integer.' in result.errors['age'][0]
 
 def test_load_resets_errors():
     class MySchema(Schema):
@@ -140,17 +140,17 @@ def test_strict_dump_validation_error_stores_partially_valid_data():
 
 def test_dump_resets_error_fields():
     class MySchema(Schema):
-        email = fields.Email()
+        age = fields.Int()
 
     schema = MySchema(strict=True)
     with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User('Joe', email='notvalid'))
+        schema.dump(User('Joe', age='dummy'))
     exc = excinfo.value
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User('Joe', email='__invalid'))
+        schema.dump(User('Joe', age='__dummy'))
 
     assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
@@ -254,27 +254,27 @@ def test_multiple_errors_can_be_stored_for_a_given_index():
 
 def test_dump_many_stores_error_indices():
     s = UserSchema()
-    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+    u1, u2 = User('Mick', balance=42), User('Keith', balance='dummy')
 
     _, errors = s.dump([u1, u2], many=True)
     assert 1 in errors
     assert len(errors[1]) == 1
 
-    assert 'email' in errors[1]
+    assert 'balance' in errors[1]
 
 def test_dump_many_doesnt_stores_error_indices_when_index_errors_is_false():
     class NoIndex(Schema):
-        email = fields.Email()
+        age = fields.Int()
 
         class Meta:
             index_errors = False
 
     s = NoIndex()
-    u1, u2 = User('Mick', email='mick@stones.com'), User('Keith', email='invalid')
+    u1, u2 = User('Mick', age=42), User('Keith', age='dummy')
 
     _, errors = s.dump([u1, u2], many=True)
     assert 1 not in errors
-    assert 'email' in errors
+    assert 'age' in errors
 
 def test_dump_returns_a_marshalresult(user):
     s = UserSchema()
@@ -655,18 +655,6 @@ def test_invalid_date():
     u = User("Joe", birthdate='foo')
     s = UserSchema().dump(u)
     assert '"foo" cannot be formatted as a date.' in s.errors['birthdate']
-
-def test_invalid_email():
-    u = User('Joe', email='bademail')
-    s = UserSchema().dump(u)
-    assert 'email' in s.errors
-    assert 'Not a valid email address.' in s.errors['email'][0]
-
-def test_invalid_url():
-    u = User('Joe', homepage='badurl')
-    s = UserSchema().dump(u)
-    assert 'homepage' in s.errors
-    assert 'Not a valid URL.' in s.errors['homepage'][0]
 
 def test_invalid_dict_but_okay():
     u = User('Joe', various_data='baddict')
@@ -1649,19 +1637,19 @@ class TestNestedSchema:
         assert 'email' in str(excinfo)
 
     def test_nested_dump_errors(self, blog):
-        blog.user.email = "foo"
+        blog.user.age = "foo"
         _, errors = BlogSchema().dump(blog)
-        assert "email" in errors['user']
-        assert len(errors['user']['email']) == 1
-        assert 'Not a valid email address.' in errors['user']['email'][0]
+        assert "age" in errors['user']
+        assert len(errors['user']['age']) == 1
+        assert 'Not a valid number.' in errors['user']['age'][0]
         # No problems with collaborators
         assert "collaborators" not in errors
 
     def test_nested_dump_strict(self, blog):
-        blog.user.email = "foo"
+        blog.user.age = "foo"
         with pytest.raises(ValidationError) as excinfo:
             _, errors = BlogSchema(strict=True).dump(blog)
-        assert 'email' in str(excinfo)
+        assert 'age' in str(excinfo)
 
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)[0]

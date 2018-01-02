@@ -1228,18 +1228,7 @@ class Dict(Field):
         return result
 
 
-class ValidatedField(Field):
-    """A field that validates input on serialization."""
-
-    def _validated(self, value):
-        raise NotImplementedError('Must implement _validated method')
-
-    def _serialize(self, value, *args, **kwargs):
-        ret = super(ValidatedField, self)._serialize(value, *args, **kwargs)
-        return self._validated(ret)
-
-
-class Url(ValidatedField, String):
+class Url(String):
     """A validated URL field. Validation occurs during both serialization and
     deserialization.
 
@@ -1272,7 +1261,7 @@ class Url(ValidatedField, String):
         )(value)
 
 
-class Email(ValidatedField, String):
+class Email(String):
     """A validated email field. Validation occurs during both serialization and
     deserialization.
 

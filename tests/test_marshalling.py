@@ -84,32 +84,32 @@ class TestMarshaller:
 
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
-            {'email': 'bar@example.com'},
-            {'email': 'foobar'},
-            {'email': 'invalid'},
+            {'age': 42},
+            {'age': 'dummy'},
+            {'age': '__dummy'},
         ]
         try:
-            marshal(users, {'email': fields.Email()}, many=True)
+            marshal(users, {'age': fields.Int()}, many=True, index_errors=True)
         except ValidationError:
             pass
         # 2nd and 3rd elements have an error
         assert 1 in marshal.errors
         assert 2 in marshal.errors
-        assert 'email' in marshal.errors[1]
-        assert 'email' in marshal.errors[2]
+        assert 'age' in marshal.errors[1]
+        assert 'age' in marshal.errors[2]
 
     def test_doesnt_store_errors_when_index_errors_equals_false(self, marshal):
         users = [
-            {'email': 'bar@example.com'},
-            {'email': 'foobar'},
-            {'email': 'invalid'},
+            {'age': 42},
+            {'age': 'dummy'},
+            {'age': '__dummy'},
         ]
         try:
-            marshal(users, {'email': fields.Email()}, many=True, index_errors=False)
+            marshal(users, {'age': fields.Int()}, many=True, index_errors=False)
         except ValidationError:
             pass
         assert 1 not in marshal.errors
-        assert 'email' in marshal.errors
+        assert 'age' in marshal.errors
 
 class TestUnmarshaller:
 
