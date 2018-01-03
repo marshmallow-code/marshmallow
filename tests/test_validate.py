@@ -22,7 +22,9 @@ from marshmallow import validate, ValidationError
     'http://www.example.com/?array%5Bkey%5D=value',
     'http://xn--rsum-bpad.example.org/',
     'http://123.45.67.8/',
-    'http://2001:db8::ff00:42:8329',
+    'http://123.45.67.8:8329/',
+    'http://[2001:db8::ff00:42]:8329',
+    'http://[2001::1]:8329',
     'http://www.example.com:8000/foo',
 ])
 def test_url_absolute_valid(valid_url):
@@ -40,6 +42,8 @@ def test_url_absolute_valid(valid_url):
     'http:/example.org',
     'foo://example.org',
     '../icons/logo.gif',
+    'http://2001:db8::ff00:42:8329',
+    'http://[192.168.1.1]:8329',
     'abc',
     '..',
     '/',

@@ -62,7 +62,7 @@ class URL(Validator):
                 (r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)|'
                  if not require_tld else r''),  # allow dotless hostnames
                 r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|',  # ...or ipv4
-                r'\[?[A-F0-9]*:[A-F0-9:]+\]?)',  # ...or ipv6
+                r'\[[A-F0-9]*:[A-F0-9:]+\])',  # ...or ipv6
                 r'(?::\d+)?',  # optional port
                 r')?' if relative else r'',  # host is optional, allow for relative URLs
                 r'(?:/?|[/?]\S+)$',
