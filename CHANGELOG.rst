@@ -15,6 +15,7 @@ Other changes:
 - *Backwards-incompatible*: ``Email`` and ``URL`` fields don't validate
   on serialization (:issue:`608`). This makes them more consistent with the other
   fields and improves serialization performance. Thanks again :user:`lafrech`.
+- ``validate.URL`` requires square brackets around IPv6 URLs (:issue:`707`). Thanks :user:`harlov`.
 
 3.0.0b5 (2017-12-30)
 ++++++++++++++++++++

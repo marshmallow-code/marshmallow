@@ -94,3 +94,4 @@ Contributors (chronological)
 - `@sduthil <https://github.com/sduthil>`_
 - Steven Sklar `@sklarsa <https://github.com/sklarsa>`_
 - Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
+- Harlov Nikita `@harlov <https://github.com/harlov>`_
