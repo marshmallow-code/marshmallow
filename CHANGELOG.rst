@@ -4,11 +4,17 @@ Changelog
 3.0.0b6 (unreleased)
 ++++++++++++++++++++
 
+Bug fixes:
+
+- Fixes `ValidationError.valid_data` when a nested field contains errors
+  (:issue:`710`). This bug was introduced in 3.0.0b3. Thanks
+  :user:`lafrech`.
+
 Other changes:
 
 - *Backwards-incompatible*: ``Email`` and ``URL`` fields don't validate
-  on serialization. This makes them more consistent with the other
-  fields and improves serialization performance.
+  on serialization (:issue:`608`). This makes them more consistent with the other
+  fields and improves serialization performance. Thanks again :user:`lafrech`.
 
 3.0.0b5 (2017-12-30)
 ++++++++++++++++++++
