@@ -355,12 +355,6 @@ class TestFieldSerialization:
         with pytest.raises(ValueError):
             fields.Function("uncallable")
 
-    def test_email_field_validates(self, user):
-        user.email = 'bademail'
-        field = fields.Email()
-        with pytest.raises(ValidationError):
-            field.serialize('email', user)
-
     def test_email_field_serialize_none(self, user):
         user.email = None
         field = fields.Email()
@@ -413,12 +407,6 @@ class TestFieldSerialization:
         user.homepage = None
         field = fields.Url()
         assert field.serialize('homepage', user) is None
-
-    def test_url_field_validates(self, user):
-        user.homepage = 'badhomepage'
-        field = fields.URL()
-        with pytest.raises(ValidationError):
-            field.serialize('homepage', user)
 
     def test_method_field_with_method_missing(self):
         class BadSerializer(Schema):
