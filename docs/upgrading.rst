@@ -292,6 +292,14 @@ Pass ``default`` as a keyword argument
     fields.Boolean(default=True)
 
 
+``Email`` and ``URL`` fields do not validate on serialization
+*************************************************************
+
+`fields.Email <marshmallow.fields.Email>` and `fields.URL <marshmallow.fields.URL>` only validate input upon
+deserialization. They do not validate on serialization. This makes them
+more consistent with the other fields and improves serialization
+performance.
+
 Upgrading to 2.3
 ++++++++++++++++
 
