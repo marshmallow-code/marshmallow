@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import
 
-from marshmallow.schema import (
-    Schema,
-    SchemaOpts,
-    MarshalResult,
-    UnmarshalResult,
-)
+from marshmallow.schema import Schema, SchemaOpts
+
 from . import fields
 from marshmallow.decorators import (
     pre_dump, post_dump, pre_load, post_load, validates, validates_schema
@@ -28,8 +24,6 @@ __all__ = [
     'pre_load',
     'post_load',
     'pprint',
-    'MarshalResult',
-    'UnmarshalResult',
     'ValidationError',
     'missing',
 ]

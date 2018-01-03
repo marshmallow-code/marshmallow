@@ -773,8 +773,8 @@ class TestFieldDeserialization:
             foo = fields.Constant(42)
 
         sch = MySchema()
-        assert sch.load({'bar': 24}).data['foo'] == 42
-        assert sch.load({'foo': 24}).data['foo'] == 42
+        assert sch.load({'bar': 24})['foo'] == 42
+        assert sch.load({'foo': 24})['foo'] == 42
 
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
@@ -877,13 +877,13 @@ class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result, errors = SimpleUserSchema().load(user_dict)
+        result = SimpleUserSchema().load(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
 
     def test_deserialize_with_missing_values(self):
         user_dict = {'name': 'Monty'}
-        result, errs = SimpleUserSchema().load(user_dict)
+        result = SimpleUserSchema().load(user_dict)
         # 'age' is not included in result
         assert result == {'name': 'Monty'}
 
@@ -892,7 +892,7 @@ class TestSchemaDeserialization:
             {'name': 'Mick', 'age': '914'},
             {'name': 'Keith', 'age': '8442'}
         ]
-        result, errors = SimpleUserSchema(many=True).load(users_data)
+        result = SimpleUserSchema(many=True).load(users_data)
         assert isinstance(result, list)
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
@@ -900,8 +900,8 @@ class TestSchemaDeserialization:
     def test_exclude(self):
         schema = SimpleUserSchema(exclude=('age', ))
         result = schema.load({'name': 'Monty', 'age': 42})
-        assert 'name' in result.data
-        assert 'age' not in result.data
+        assert 'name' in result
+        assert 'age' not in result
 
     def test_nested_single_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
@@ -912,7 +912,7 @@ class TestSchemaDeserialization:
             'title': 'Gimme Shelter',
             'author': {'name': 'Mick', 'age': '914', 'email': 'mick@stones.com'}
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         author = result['author']
         assert author['name'] == 'Mick'
         assert author['age'] == 914
@@ -930,7 +930,7 @@ class TestSchemaDeserialization:
                 {'name': 'Keith', 'age': '8442'}
             ]
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         assert isinstance(result['authors'], list)
         author = result['authors'][0]
         assert author['name'] == 'Mick'
@@ -1002,8 +1002,7 @@ class TestSchemaDeserialization:
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'child': '456'})
-        assert len(result.errors) == 0
-        assert result.data['child']['pk'] == '456'
+        assert result['child']['pk'] == '456'
 
     def test_nested_only_basestring_with_list_data(self):
         class ANestedSchema(Schema):
@@ -1015,12 +1014,11 @@ class TestSchemaDeserialization:
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'children': ['456', '789']})
-        assert len(result.errors) == 0
-        assert result.data['children'][0]['pk'] == '456'
-        assert result.data['children'][1]['pk'] == '789'
+        assert result['children'][0]['pk'] == '456'
+        assert result['children'][1]['pk'] == '789'
 
     def test_none_deserialization(self):
-        result, errors = SimpleUserSchema().load(None)
+        result = SimpleUserSchema().load(None)
         assert result is None
 
     def test_nested_none_deserialization(self):
@@ -1032,8 +1030,7 @@ class TestSchemaDeserialization:
             'title': 'Gimme Shelter',
             'author': None
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
-        assert not errors
+        result = SimpleBlogSerializer().load(blog_dict)
         assert result['author'] is None
         assert result['title'] == blog_dict['title']
 
@@ -1045,7 +1042,7 @@ class TestSchemaDeserialization:
             'username': 'foo@bar.com',
             'years': '42'
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
 
@@ -1055,10 +1052,10 @@ class TestSchemaDeserialization:
             foo = fields.Field(attribute='bar.baz')
 
         schema = MySchema()
-        dump_data, errors = schema.dump({'bar': {'baz': 42}})
+        dump_data = schema.dump({'bar': {'baz': 42}})
         assert dump_data == {'foo': 42}
 
-        load_data, errors = schema.load({'foo': 42})
+        load_data = schema.load({'foo': 42})
         assert load_data == {'bar': {'baz': 42}}
 
     def test_deserialize_with_attribute_param_error_returns_field_name_not_attribute_name(self):
@@ -1101,7 +1098,7 @@ class TestSchemaDeserialization:
             'UserName': 'foo@bar.com',
             'years': '42'
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
         assert 'years' not in result
@@ -1116,7 +1113,7 @@ class TestSchemaDeserialization:
             'years': '42',
             'nicknames': ['Your Majesty', 'Brenda']
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert 'years' not in result
         assert 'nicknames' not in result
@@ -1128,7 +1125,7 @@ class TestSchemaDeserialization:
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['years'] == 10
 
@@ -1139,7 +1136,7 @@ class TestSchemaDeserialization:
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['years'] == 20
 
@@ -1150,8 +1147,7 @@ class TestSchemaDeserialization:
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
-        assert not errors
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['years'] is None
 
@@ -1279,11 +1275,10 @@ class TestSchemaDeserialization:
             schema_args['partial'] = True
         else:
             load_args['partial'] = True
-        data, errors = MySchema(**schema_args).load({'foo': 3}, **load_args)
+        data = MySchema(**schema_args).load({'foo': 3}, **load_args)
 
         assert data['foo'] == 3
         assert 'bar' not in data
-        assert not errors
 
     def test_partial_fields_deserialization(self):
         class MySchema(Schema):
@@ -1298,17 +1293,15 @@ class TestSchemaDeserialization:
         assert 'bar' in errors
         assert 'baz' in errors
 
-        data, errors = MySchema().load({'foo': 3}, partial=('bar', 'baz'))
+        data = MySchema().load({'foo': 3}, partial=('bar', 'baz'))
         assert data['foo'] == 3
         assert 'bar' not in data
         assert 'baz' not in data
-        assert not errors
 
-        data, errors = MySchema(partial=True).load({'foo': 3}, partial=('bar', 'baz'))
+        data = MySchema(partial=True).load({'foo': 3}, partial=('bar', 'baz'))
         assert data['foo'] == 3
         assert 'bar' not in data
         assert 'baz' not in data
-        assert not errors
 
     def test_partial_fields_validation(self):
         class MySchema(Schema):
@@ -1322,11 +1315,9 @@ class TestSchemaDeserialization:
         assert 'bar' in errors
         assert 'baz' in errors
 
-        errors = MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
-        assert not errors
+        MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
 
-        errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
-        assert not errors
+        MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])

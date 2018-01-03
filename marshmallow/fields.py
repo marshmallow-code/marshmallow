@@ -445,15 +445,17 @@ class Nested(Field):
         if not self.__updated_fields:
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
-        ret, errors = schema.dump(nested_obj, many=self.many,
+        try:
+            ret = schema.dump(nested_obj, many=self.many,
                 update_fields=not self.__updated_fields)
-        if isinstance(self.only, basestring):  # self.only is a field name
-            if self.many:
-                return utils.pluck(ret, key=self.only)
-            else:
-                return ret[self.only]
-        if errors:
-            raise ValidationError(errors, data=obj, valid_data=ret)
+        except ValidationError as exc:
+            raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
+        finally:
+            if isinstance(self.only, basestring):  # self.only is a field name
+                if self.many:
+                    return utils.pluck(ret, key=self.only)
+                else:
+                    return ret[self.only]
         return ret
 
     def _deserialize(self, value, attr, data):
@@ -465,9 +467,10 @@ class Nested(Field):
                 value = [{self.only: v} for v in value]
             else:
                 value = {self.only: value}
-        valid_data, errors = self.schema.load(value)
-        if errors:
-            raise ValidationError(errors, data=data, valid_data=valid_data)
+        try:
+            valid_data = self.schema.load(value)
+        except ValidationError as exc:
+            raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
 
     def _validate_missing(self, value):

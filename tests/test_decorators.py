@@ -65,14 +65,14 @@ def test_decorated_processors():
     make_item = lambda: {'value': 3}
     make_items = lambda: [make_item(), {'value': 5}]
 
-    item_dumped = schema.dump(make_item()).data
+    item_dumped = schema.dump(make_item())
     assert item_dumped == {'datum': {'value': 'TAG4'}}
-    item_loaded = schema.load(item_dumped).data
+    item_loaded = schema.load(item_dumped)
     assert item_loaded == make_item()
 
-    items_dumped = schema.dump(make_items(), many=True).data
+    items_dumped = schema.dump(make_items(), many=True)
     assert items_dumped == {'data': [{'value': 'TAG4'}, {'value': 'TAG6'}]}
-    items_loaded = schema.load(items_dumped, many=True).data
+    items_loaded = schema.load(items_dumped, many=True)
     assert items_loaded == make_items()
 
 class TestPassOriginal:
@@ -95,11 +95,11 @@ class TestPassOriginal:
 
         schema = MySchema()
         datum = {'foo': 42, 'sentinel': 24}
-        item_loaded = schema.load(datum).data
+        item_loaded = schema.load(datum)
         assert item_loaded['foo'] == 42
         assert item_loaded['_post_load'] == 24
 
-        item_dumped = schema.dump(datum).data
+        item_dumped = schema.dump(datum)
 
         assert item_dumped['foo'] == 42
         assert item_dumped['_post_dump'] == 24
@@ -113,7 +113,7 @@ class TestPassOriginal:
                 data['_post_load'] = input_data['post_load']
 
         schema = MySchema()
-        item_loaded = schema.load({'foo': 42, 'post_load': 24}).data
+        item_loaded = schema.load({'foo': 42, 'post_load': 24})
         assert item_loaded['foo'] == 42
         assert item_loaded['_post_load'] == 24
 
@@ -147,7 +147,7 @@ class TestPassOriginal:
 
         schema = MySchema()
         data = [{'foo': 42, 'sentinel': 24}, {'foo': 424, 'sentinel': 242}]
-        items_loaded = schema.load(data, many=True).data
+        items_loaded = schema.load(data, many=True)
         assert items_loaded == [
             {'foo': 42, '_post_load': 24},
             {'foo': 424, '_post_load': 242},
@@ -155,7 +155,7 @@ class TestPassOriginal:
         test_values = [e['_post_load'] for e in items_loaded]
         assert test_values == [24, 242]
 
-        items_dumped = schema.dump(data, many=True).data
+        items_dumped = schema.dump(data, many=True)
         assert items_dumped == [
             {'foo': 42, '_post_dump': 24},
             {'foo': 424, '_post_dump': 242},
@@ -164,10 +164,10 @@ class TestPassOriginal:
         # Also check load/dump of single item
 
         datum = {'foo': 42, 'sentinel': 24}
-        item_loaded = schema.load(datum, many=False).data
+        item_loaded = schema.load(datum, many=False)
         assert item_loaded == {'foo': 42, '_post_load': 24}
 
-        item_dumped = schema.dump(datum, many=False).data
+        item_dumped = schema.dump(datum, many=False)
         assert item_dumped == {'foo': 42, '_post_dump': 24}
 
 def test_decorated_processor_inheritance():
@@ -197,14 +197,14 @@ def test_decorated_processor_inheritance():
 
         deleted = None
 
-    parent_dumped = ParentSchema().dump({}).data
+    parent_dumped = ParentSchema().dump({})
     assert parent_dumped == {
         'inherited': 'inherited',
         'overridden': 'base',
         'deleted': 'retained'
     }
 
-    child_dumped = ChildSchema().dump({}).data
+    child_dumped = ChildSchema().dump({})
     assert child_dumped == {
         'inherited': 'inherited',
         'overridden': 'overridden'
@@ -223,7 +223,7 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
             # Removing generated_field from here drops it from the output
             fields = ('field', 'generated_field')
 
-    assert Foo().dump({"field": 5}).data == {'field': 5, 'generated_field': 7}
+    assert Foo().dump({"field": 5}) == {'field': 5, 'generated_field': 7}
 
 
 class ValidatesSchema(Schema):
@@ -650,9 +650,8 @@ def test_decorator_error_handling():
             raise ValidationError('postdumpmsg1', 'foo')
 
     def make_item(foo, bar):
-        data, errors = schema.load({'foo': foo, 'bar': bar})
+        data = schema.load({'foo': foo, 'bar': bar})
         assert data is not None
-        assert not errors
         return data
 
     schema = ExampleSchema()
