@@ -13,7 +13,7 @@ twine==1.9.1
 # Testing
 pytest==3.3.1
 tox>=1.5.0
-simplejson
+simplejson==3.13.2
 
 # Syntax checking
 flake8==2.4.1
