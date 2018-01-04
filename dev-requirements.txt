@@ -6,10 +6,6 @@ invoke==0.21.0
 python-dateutil
 pytz
 
-# Distribution
-wheel
-twine
-
 # Testing
 pytest==3.0.2
 tox>=1.5.0
