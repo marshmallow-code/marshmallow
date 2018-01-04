@@ -4,7 +4,7 @@ invoke==0.22.0
 
 # Soft dependencies
 python-dateutil==2.6.1
-pytz
+pytz==2017.3
 
 # Distribution
 wheel
