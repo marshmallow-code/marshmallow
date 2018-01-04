@@ -520,8 +520,8 @@ class BaseSchema(base.SchemaABC):
         return self.load(data, many=many, partial=partial)
 
     def validate(self, data, many=None, partial=None):
-        """Validate `data` against the schema, raising a `ValidationError` if
-        errors are detected.
+        """Validate `data` against the schema, returning a dictionary of
+        validation errors.
 
         :param dict data: The data to validate.
         :param bool many: Whether to validate `data` as a collection. If `None`, the
@@ -529,10 +529,16 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+        :return: A dictionary of validation errors.
+        :rtype: dict
 
         .. versionadded:: 1.1.0
         """
-        self._do_load(data, many, partial=partial, postprocess=False)
+        try:
+            self._do_load(data, many, partial=partial, postprocess=False)
+        except ValidationError as exc:
+            return exc.messages
+        return {}
 
     ##### Private Helpers #####
 

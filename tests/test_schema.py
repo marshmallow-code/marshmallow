@@ -269,9 +269,7 @@ def test_multiple_errors_can_be_stored_for_a_given_index():
     sch = MySchema()
     valid = {'foo': 'loll', 'bar': 42}
     invalid = {'foo': 'lol', 'bar': 3}
-    with pytest.raises(ValidationError) as excinfo:
-        sch.validate([valid, invalid], many=True)
-    errors = excinfo.value.messages
+    errors = sch.validate([valid, invalid], many=True)
 
     assert 1 in errors
     assert len(errors[1]) == 2
@@ -425,15 +423,14 @@ class TestValidate:
 
     def test_validate_raises_with_errors_dict(self):
         s = UserSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'email': 'bad-email', 'name': 'Valid Name'})
-        errors = excinfo.value.messages
+        errors = s.validate({'email': 'bad-email', 'name': 'Valid Name'})
         assert type(errors) is dict
         assert 'email' in errors
         assert 'name' not in errors
 
         valid_data = {'name': 'Valid Name', 'email': 'valid@email.com'}
-        s.validate(valid_data)
+        errors = s.validate(valid_data)
+        assert errors == {}
 
     def test_validate_many(self):
         s = UserSchema(many=True)
@@ -441,9 +438,7 @@ class TestValidate:
             {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
             {'name': 'Valid Name2', 'email': 'invalid'}
         ]
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate(in_data, many=True)
-        errors = excinfo.value.messages
+        errors = s.validate(in_data, many=True)
         assert 1 in errors
         assert 'email' in errors[1]
 
@@ -458,28 +453,21 @@ class TestValidate:
             {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
             {'name': 'Valid Name2', 'email': 'invalid'}
         ]
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate(in_data, many=True)
-        errors = excinfo.value.messages
+        errors = s.validate(in_data, many=True)
         assert 1 not in errors
         assert 'email' in errors
 
     def test_validate(self):
         s = UserSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'email': 'bad-email'})
-        exc = excinfo.value
-        assert exc.messages == {'email': ['Not a valid email address.']}
-        assert type(exc.fields[0]) == fields.Email
+        errors = s.validate({'email': 'bad-email'})
+        assert errors == {'email': ['Not a valid email address.']}
 
     def test_validate_required(self):
         class MySchema(Schema):
             foo = fields.Field(required=True)
 
         s = MySchema()
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'bar': 42})
-        errors = excinfo.value.messages
+        errors = s.validate({'bar': 42})
         assert 'foo' in errors
         assert 'required' in errors['foo'][0]
 
@@ -1476,9 +1464,7 @@ class TestFieldValidation:
             foo = fields.Field(validate=validator)
 
         s = MySchema()
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'foo': 42})
-        errors = excinfo.value.messages
+        errors = s.validate({'foo': 42})
         assert errors['foo'] == ['err1', 'err2']
 
     # https://github.com/marshmallow-code/marshmallow/issues/110
@@ -1490,9 +1476,7 @@ class TestFieldValidation:
             foo = fields.Field(validate=validator)
 
         s = MySchema()
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'foo': 42})
-        errors = excinfo.value.messages
+        errors = s.validate({'foo': 42})
         assert errors['foo'] == [{'code': 'invalid_foo'}]
 
     def test_ignored_if_not_in_only(self):
@@ -1509,9 +1493,7 @@ class TestFieldValidation:
                 raise ValidationError({'code': 'invalid_b'})
 
         s = MySchema(only=('b',))
-        with pytest.raises(ValidationError) as excinfo:
-            s.validate({'b': 'data'})
-        errors = excinfo.value.messages
+        errors = s.validate({'b': 'data'})
         assert errors == {'b': {'code': 'invalid_b'}}
 
 
@@ -2260,29 +2242,24 @@ class TestRequiredFields:
 
     def test_required_string_field_missing(self, string_schema, data):
         del data['required_field']
-        with pytest.raises(ValidationError) as excinfo:
-            string_schema.validate(data)
-        errors = excinfo.value.messages
+        errors = string_schema.validate(data)
         assert errors['required_field'] == ['Missing data for required field.']
 
     def test_required_string_field_failure(self, string_schema, data):
         data['required_field'] = None
-        with pytest.raises(ValidationError) as excinfo:
-            string_schema.validate(data)
-        errors = excinfo.value.messages
+        errors = string_schema.validate(data)
         assert errors['required_field'] == ['Field may not be null.']
 
     def test_allow_none_param(self, string_schema, data):
         data['allow_none_field'] = None
-        string_schema.validate(data)
+        errors = string_schema.validate(data)
+        assert errors == {}
 
         data['allow_none_required_field'] = None
         string_schema.validate(data)
 
         del data['allow_none_required_field']
-        with pytest.raises(ValidationError) as excinfo:
-            string_schema.validate(data)
-        errors = excinfo.value.messages
+        errors = string_schema.validate(data)
         assert 'allow_none_required_field' in errors
 
     def test_allow_none_custom_message(self, data):
@@ -2291,9 +2268,7 @@ class TestRequiredFields:
                 error_messages={'null': '<custom>'})
 
         schema = MySchema()
-        with pytest.raises(ValidationError) as excinfo:
-            schema.validate({'allow_none_field': None})
-        errors = excinfo.value.messages
+        errors = schema.validate({'allow_none_field': None})
         assert errors['allow_none_field'][0] == '<custom>'
 
 
@@ -2335,7 +2310,8 @@ class TestDefaults:
             assert all(k in result for k in d.keys())
 
     def test_none_is_serialized_to_none(self, schema, data):
-        schema.validate(data)
+        errors = schema.validate(data)
+        assert errors == {}
         result = schema.dump(data)
         for key in data.keys():
             msg = 'result[{0!r}] should be None'.format(key)

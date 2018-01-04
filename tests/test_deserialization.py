@@ -804,9 +804,7 @@ class TestFieldDeserialization:
         class MySchema(Schema):
             foo = fields.Field(validate=validator)
 
-        with pytest.raises(ValidationError) as excinfo:
-            MySchema().validate({'foo': 42})
-        errors = excinfo.value.messages
+        errors = MySchema().validate({'foo': 42})
         assert errors['foo'] == ['err1', 'err2']
 
     def test_validator_must_return_false_to_raise_error(self):
@@ -944,9 +942,7 @@ class TestSchemaDeserialization:
             pet = fields.Nested(PetSchema(), allow_none=False)
 
         sch = OwnerSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            sch.validate({'pet': None})
-        errors = excinfo.value.messages
+        errors = sch.validate({'pet': None})
         assert 'pet' in errors
         assert errors['pet'] == ['Field may not be null.']
 
@@ -958,9 +954,7 @@ class TestSchemaDeserialization:
             pets = fields.Nested(PetSchema(), allow_none=False, many=True)
 
         sch = StoreSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            sch.validate({'pets': None})
-        errors = excinfo.value.messages
+        errors = sch.validate({'pets': None})
         assert 'pets' in errors
         assert errors['pets'] == ['Field may not be null.']
 
@@ -972,9 +966,7 @@ class TestSchemaDeserialization:
             pet = fields.Nested(PetSchema(), required=True)
 
         sch = OwnerSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            sch.validate({})
-        errors = excinfo.value.messages
+        errors = sch.validate({})
         assert 'pet' in errors
         assert errors['pet'] == ['Missing data for required field.']
 
@@ -986,9 +978,7 @@ class TestSchemaDeserialization:
             pets = fields.Nested(PetSchema(), required=True, many=True)
 
         sch = StoreSchema()
-        with pytest.raises(ValidationError) as excinfo:
-            sch.validate({})
-        errors = excinfo.value.messages
+        errors = sch.validate({})
         assert 'pets' in errors
         assert errors['pets'] == ['Missing data for required field.']
 
@@ -1309,15 +1299,15 @@ class TestSchemaDeserialization:
             bar = fields.Field(required=True)
             baz = fields.Field(required=True)
 
-        with pytest.raises(ValidationError) as excinfo:
-            MySchema().validate({'foo': 3}, partial=tuple())
-        errors = excinfo.value.messages
+        errors = MySchema().validate({'foo': 3}, partial=tuple())
         assert 'bar' in errors
         assert 'baz' in errors
 
-        MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
+        errors = MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
+        assert errors == {}
 
-        MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
+        errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
+        assert errors == {}
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
@@ -1429,9 +1419,7 @@ class TestValidation:
 
         errors = Sch().validate({'lamb': False, 'equal': False})
         assert not errors
-        with pytest.raises(ValidationError) as excinfo:
-            Sch().validate({'lamb': True, 'equal': True})
-        errors = excinfo.value.messages
+        errors = Sch().validate({'lamb': True, 'equal': True})
         assert 'lamb' in errors
         assert errors['lamb'] == ['Invalid value.']
         assert 'equal' in errors
