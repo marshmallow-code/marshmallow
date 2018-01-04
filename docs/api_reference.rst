@@ -15,9 +15,6 @@ Schema
 
 .. autoclass:: marshmallow.SchemaOpts
 
-.. autoclass:: marshmallow.MarshalResult
-.. autoclass:: marshmallow.UnmarshalResult
-
 .. autofunction:: marshmallow.pprint
 
 .. _api_fields:

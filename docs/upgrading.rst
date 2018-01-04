@@ -17,6 +17,35 @@ The marshmallow 3.x series supports Python 2.7, 3.4, 3.5, and 3.6.
 
 Python 2.6 and 3.3 are no longer supported.
 
+
+``strict`` in Schema is deprecated
+**********************************
+
+`Schema().load` and `Schema().dump` don't return a (data, errors) duple anymore.
+
+Only data is returned. If invalid data are passed in, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised. The dictionary of validation errors is accessible from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute, along with the valid data (values deserialized without error).
+
+.. code-block:: python
+
+    from marshmallow import Schema, ValidationError
+
+    # 2.x
+    user = User(name="Monty", email="monty@python.org")
+    schema = UserSchema()
+    data, errors = schema.dump(user)
+
+    # 3.x
+    user = User(name="Monty", email="monty@python.org")
+    schema = UserSchema()
+    try:
+        data = schema.dump(user)
+    except ValidationError as err:
+        errors = err.messages
+        valid_data = err.valid_data
+
+:meth:`Schema.validate` now always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+
+
 Overriding ``get_attribute``
 ****************************
 
@@ -80,7 +109,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
     # In 2.x, the following would pass without errors
     # In 3.x, and AttributeError would be raised
     result = schema.dump(None)
-    result.data  # => {}
+    result  # => {}
 
 
     # 3.x
@@ -95,7 +124,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
 
     schema = ShapeSchema()
     result = schema.dump(None)
-    result.data  # => {}
+    result  # => {}
 
 Adding additional data to serialized output
 *******************************************
@@ -113,7 +142,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
         y = fields.Int()
 
     schema = MySchema(extra={'z': 123})
-    schema.dump({'x': 1, 'y': 2}).data
+    schema.dump({'x': 1, 'y': 2})
     # => {'z': 123, 'y': 2, 'x': 1}
 
     # 3.x
@@ -127,7 +156,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
             return output
 
     schema = MySchema()
-    schema.dump({'x': 1, 'y': 2}).data
+    schema.dump({'x': 1, 'y': 2})
     # => {'z': 123, 'y': 2, 'x': 1}
 
 
@@ -150,7 +179,7 @@ By default, schema validator methods decorated by `validates_schema <marshmallow
                 raise ValidationError('x must be greater than y')
 
 
-    schema = MySchema(strict=True)
+    schema = MySchema()
 
     # 2.x
     # A KeyError is raised in validate_schema
@@ -179,7 +208,7 @@ If you want a schema validator to run even if a field validator fails, pass ``sk
                     raise ValidationError('x must be greater than y')
 
 
-    schema = MySchema(strict=True)
+    schema = MySchema()
     schema.load({'x': 2})
     # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
 
