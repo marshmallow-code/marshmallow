@@ -695,7 +695,7 @@ def test_invalid_dict_but_okay():
     UserSchema().dump(u)
 
 def test_strict_is_deprecated():
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         class StrictUserSchema(Schema):
             name = fields.String()
 
@@ -705,11 +705,11 @@ def test_strict_is_deprecated():
     class UserSchema(Schema):
         name = fields.String()
 
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         UserSchema(strict=True)
 
 def test_json_module_is_deprecated():
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         class UserJSONSchema(Schema):
             name = fields.String()
 
