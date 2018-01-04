@@ -15,7 +15,26 @@ from marshmallow import (
 )
 from marshmallow.exceptions import ValidationError
 
-from tests.base import *  # noqa
+from tests.base import (
+    assert_almost_equal,
+    UserSchema,
+    UserMetaSchema,
+    UserRelativeUrlSchema,
+    ExtendedUserSchema,
+    UserIntSchema,
+    UserFloatStringSchema,
+    BlogSchema,
+    BlogUserMetaSchema,
+    BlogOnlySchema,
+    UserExcludeSchema,
+    UserAdditionalSchema,
+    BlogSchemaExclude,
+    BlogSchemaPrefixedUser,
+    BlogSchemaMeta,
+    User,
+    mockjson,
+    Blog,
+)
 
 
 random.seed(1)

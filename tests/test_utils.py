@@ -34,6 +34,7 @@ def test_to_marshallable_type():
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
 
+
 PointNT = namedtuple('Point', ['x', 'y'])
 
 def test_to_marshallable_type_with_namedtuple():
@@ -85,13 +86,13 @@ def test_get_value_from_dict():
     assert utils.get_value(d, 'keys') == ['baz', 'quux']
 
 def test_get_value():
-    l = [1, 2, 3]
-    assert utils.get_value(l, 1) == 2
+    lst = [1, 2, 3]
+    assert utils.get_value(lst, 1) == 2
 
     class MyInt(int):
         pass
 
-    assert utils.get_value(l, MyInt(1)) == 2
+    assert utils.get_value(lst, MyInt(1)) == 2
 
 
 def test_set_value():
@@ -122,8 +123,8 @@ def test_is_keyed_tuple():
     assert utils.is_keyed_tuple(d) is False
     s = 'xy'
     assert utils.is_keyed_tuple(s) is False
-    l = [24, 42]
-    assert utils.is_keyed_tuple(l) is False
+    lst = [24, 42]
+    assert utils.is_keyed_tuple(lst) is False
 
 def test_to_marshallable_type_list():
     assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']

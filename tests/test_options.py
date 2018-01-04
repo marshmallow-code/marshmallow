@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
+import datetime as dt
 
 import pytest
 
 from marshmallow import fields, Schema
 from marshmallow.exceptions import ValidationError
 
-from tests.base import *  # noqa
+from tests.base import (
+    User,
+    UserSchema,
+)
 
 class TestStrict:
 
