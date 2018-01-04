@@ -1316,6 +1316,7 @@ class TestSchemaDeserialization:
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
         assert not errors
 
+
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
 validators_gen_float = (func for func in

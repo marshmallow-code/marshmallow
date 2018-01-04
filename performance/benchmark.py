@@ -126,5 +126,6 @@ def main():
     print('Benchmark Result: {0:.2f} usec/dump'.format(
         run_timeit(quotes, args.iterations, args.repeat, profile=args.profile)))
 
+
 if __name__ == '__main__':
     main()

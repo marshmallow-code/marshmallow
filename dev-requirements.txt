@@ -1,19 +1,19 @@
 # Task execution
 # Need to pin to 0.21.x if supporting Py26
-invoke==0.21.0
+invoke==0.22.0
 
 # Soft dependencies
-python-dateutil
-pytz
+python-dateutil==2.6.1
+pytz==2017.3
 
 # Distribution
-wheel
-twine
+wheel==0.30.0
+twine==1.9.1
 
 # Testing
-pytest==3.0.2
+pytest==3.3.1
 tox>=1.5.0
-simplejson
+simplejson==3.13.2
 
 # Syntax checking
-flake8==2.4.1
+flake8==3.5.0
