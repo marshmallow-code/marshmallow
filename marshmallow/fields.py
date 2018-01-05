@@ -65,9 +65,7 @@ class Field(FieldABC):
         input value is missing. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
-    :param str load_from: Additional key to look for when deserializing. Will only
-        be checked if the field's name is not found on the input dictionary. If checked,
-        it will return this parameter on error.
+    :param str load_from: Key to look for when deserializing.
     :param str dump_to: Field name to use as a key when serializing.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as

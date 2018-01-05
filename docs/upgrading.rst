@@ -300,6 +300,13 @@ deserialization. They do not validate on serialization. This makes them
 more consistent with the other fields and improves serialization
 performance.
 
+
+Field name is not looked for when ``load_from`` is specified
+************************************************************
+
+When ``load_from`` is specified on a field, only ``load_from`` is looked for in the input data, the field name is not looked for anymore.
+
+
 Upgrading to 2.3
 ++++++++++++++++
 
