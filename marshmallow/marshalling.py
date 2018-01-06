@@ -254,8 +254,11 @@ class Unmarshaller(ErrorStore):
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
                     continue
+                field_name = attr_name
+                if field_obj.load_from:
+                    field_name = field_obj.load_from
                 try:
-                    raw_value = data.get(attr_name, missing)
+                    raw_value = data.get(field_name, missing)
                 except AttributeError:  # Input data is not a dict
                     errors = self.get_errors(index=index)
                     msg = field_obj.error_messages['type'].format(
@@ -267,10 +270,6 @@ class Unmarshaller(ErrorStore):
                     errors.setdefault(SCHEMA, []).append(msg)
                     # Input data type is incorrect, so we can bail out early
                     break
-                field_name = attr_name
-                if raw_value is missing and field_obj.load_from:
-                    field_name = field_obj.load_from
-                    raw_value = data.get(field_obj.load_from, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if (
@@ -283,11 +282,7 @@ class Unmarshaller(ErrorStore):
                 if raw_value is missing and not field_obj.required:
                     continue
 
-                getter = lambda val: field_obj.deserialize(
-                    val,
-                    field_obj.load_from or attr_name,
-                    data
-                )
+                getter = lambda val: field_obj.deserialize(val, field_name, data)
                 value = self.call_and_store(
                     getter_func=getter,
                     data=raw_value,

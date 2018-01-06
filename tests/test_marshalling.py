@@ -247,12 +247,12 @@ class TestUnmarshaller:
         fields_dict = {
             'name': fields.String(load_from='Name'),
             'username': fields.Email(attribute='email', load_from='UserName'),
-            'years': fields.Integer(attribute='age', load_from='Years')
+            'years': fields.Integer(load_from='Years')
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
-        assert result['age'] == 42
+        assert 'years' not in result
 
     def test_deserialize_fields_with_dump_only_param(self, unmarshal):
         data = {
