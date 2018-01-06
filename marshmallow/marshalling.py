@@ -10,6 +10,7 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
+from marshmallow.fields import Field
 from marshmallow.utils import is_collection, missing, set_value
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -232,7 +233,11 @@ class Unmarshaller(ErrorStore):
         # Reset errors if not deserializing a collection
         if not self._pending:
             self.reset_errors()
-        if many and data is not None:
+        if many and data is not None and not isinstance(data, (list, set)):
+            self.error_field_names.append(SCHEMA)
+            self.errors.setdefault(SCHEMA, []).append(Field.default_error_messages['type'])
+            ret = data
+        elif many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,
                         partial=partial, dict_class=dict_class,
@@ -248,7 +253,7 @@ class Unmarshaller(ErrorStore):
                     data=ret,
                 )
             return ret
-        if data is not None:
+        elif data is not None:
             partial_is_collection = is_collection(partial)
             ret = dict_class()
             for attr_name, field_obj in iteritems(fields_dict):
