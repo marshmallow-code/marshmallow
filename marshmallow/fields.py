@@ -87,6 +87,19 @@ class Field(FieldABC):
         found in the input data. May be a value or a callable.
     :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra arguments to be stored as metadata.
+    :param pre_deserialize: A processor which will be applied to the field
+        data before deserialization.  Must be a callable function or the name
+        of a method on the Schema.
+    :param post_deserialize: A processor which will be applied to the field
+        data after deserialization.  Must be a callable function or the name
+        of a method on the Schema.
+    :param pre_serialize: A processor which will be applied to the field
+        data before serialization.  Must be a callable function or the name
+        of a method on the Schema.
+    :param post_serialize: A processor which will be applied to the field
+        data after serialization.  Must be a callable function or the name
+        of a method on the Schema.
+
 
     .. versionchanged:: 2.0.0
         Removed `error` parameter. Use ``error_messages`` instead.
@@ -106,6 +119,11 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         ``default`` value is only used if explicitly set. Otherwise, missing values
         inputs are excluded from serialized output.
+
+    .. versionchanged:: 3.0.0
+        Added `pre_deserialize`, `post_deserialize`, `pre_serialize`, and
+        `post_serialize` parameters, which provide easy field extension
+        facility for many use cases.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exists as attributes on the objects to serialize. Set this to False
@@ -125,7 +143,8 @@ class Field(FieldABC):
 
     def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
                  error=None, validate=None, required=False, allow_none=None, load_only=False,
-                 dump_only=False, missing=missing_, error_messages=None, **metadata):
+                 dump_only=False, missing=missing_, error_messages=None, pre_deserialize=None,
+                 post_deserialize=None, pre_serialize=None, post_serialize=None, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
@@ -166,6 +185,11 @@ class Field(FieldABC):
             messages.update(getattr(cls, 'default_error_messages', {}))
         messages.update(error_messages or {})
         self.error_messages = messages
+        self._processors = {}
+        self._set_processor('pre_deserialize', pre_deserialize)
+        self._set_processor('post_deserialize', post_deserialize)
+        self._set_processor('pre_serialize', pre_serialize)
+        self._set_processor('post_serialize', post_serialize)
 
     def __repr__(self):
         return ('<fields.{ClassName}(default={self.default!r}, '
@@ -249,7 +273,10 @@ class Field(FieldABC):
                         return self.default
         else:
             value = None
-        return self._serialize(value, attr, obj)
+        value = self._run_processor('pre_serialize', value)
+        output = self._serialize(value, attr, obj)
+        output = self._run_processor('post_serialize', output)
+        return output
 
     def deserialize(self, value, attr=None, data=None):
         """Deserialize ``value``.
@@ -262,8 +289,10 @@ class Field(FieldABC):
         self._validate_missing(value)
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
+        value = self._run_processor('pre_deserialize', value)
         output = self._deserialize(value, attr, data)
         self._validate(output)
+        output = self._run_processor('post_deserialize', output)
         return output
 
     # Methods for concrete classes to override.
@@ -311,6 +340,28 @@ class Field(FieldABC):
             Added ``attr`` and ``data`` parameters.
         """
         return value
+
+    def _set_processor(self, processor_name, proc):
+        if proc is None:
+            return
+        if not (callable(proc) or hasattr(proc, 'strip')):
+            msg = 'Processor {0!r} must be a callable or a method name.'
+            raise ValueError(msg.format(processor_name))
+        self._processors[processor_name] = proc
+
+
+    def _run_processor(self, processor_name, value):
+        """
+        Run pre- or post-processor if it's defined.
+        A string is assumed to be a schema method.
+        """
+        proc = self._processors.get(processor_name)
+        if proc and not callable(proc) and hasattr(proc, 'strip'):
+            proc = getattr(self.parent, proc, None)
+        if proc is None:
+            return value
+        utils.callable_or_raise(proc)
+        return proc(value)
 
     # Properties
 

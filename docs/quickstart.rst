@@ -494,6 +494,26 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
         created_at = fields.DateTime(dump_only=True)
 
 
+.. _field_pre_post:
+
+Field-Level Pre- and Post-Processing
+-------------------------------------
+
+Marshmallow comes with :ref:`field classes <api_fields>` for a wide range of datatypes.  Sometimes you might just want to adapt an existing field by extending its functionality in a minimal way.
+
+For example, say you want to silently limit a number to a certain range instead of raising an error when it is out-of-bounds.
+
+It's easy to add this kind of behavior to existing field classes by specifying field-level pre- and/or post-processing functions with the ``pre_deserialize``, ``post_deserialize``, ``pre_serialize`` and ``post_serialize`` parameters.
+
+.. code-block:: python
+    :emphasize-lines: 4
+
+    from marshmallow import fields, Schema
+
+    class ItemSchema(Schema):
+        quantity = fields.Integer(post_deserialize=lambda v: max(1, min(30, v)))
+
+
 Next Steps
 ----------
 

@@ -4,6 +4,8 @@
 Custom Fields
 =============
 
+A lot of functionality can be added to the existing field classes on Instantiation using :ref:`field-level pre- and post-processing <field_pre_post>` functions.  For more flexibility in creating new functionality, marshmallow supports custom field classes.
+
 There are three ways to create a custom-formatted field for a `Schema`:
 
 - Create a custom :class:`Field <marshmallow.fields.Field>` class

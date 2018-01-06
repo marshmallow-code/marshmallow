@@ -815,6 +815,42 @@ class TestFieldSerialization:
         else:
             assert res is None
 
+    def test_pre_serialize(self):
+        field = fields.Field(pre_serialize=lambda d: d.days)
+        assert field.serialize('days', {'days': dt.timedelta(2)}) == 2
+
+    def test_pre_serialize_method(self):
+        class PreSerialize(Schema):
+            days = fields.Int(pre_serialize='from_days')
+
+            def from_days(self, td):
+                return td.days
+        s = PreSerialize(strict=True)
+        obj = {'days': dt.timedelta(2)}
+        assert s.dump(obj).data == {'days': 2}
+
+    def test_pre_serialize_not_callable(self):
+        with pytest.raises(ValueError):
+            fields.Field(pre_serialize={})
+
+    def test_post_serialize(self):
+        field = fields.List(fields.Str(), post_serialize=','.join)
+        assert field.serialize('ages', {'ages': [28, 30, 22]}) == '28,30,22'
+
+    def test_post_serialize_method(self):
+        class PostSerialize(Schema):
+            ages = fields.List(fields.Int(), post_serialize='commasep')
+
+            def commasep(self, a):
+                return ','.join(map(str, a))
+        s = PostSerialize(strict=True)
+        obj = {'ages': [13, 34, 42]}
+        assert s.dump(obj).data == {'ages': '13,34,42'}
+
+    def test_post_serialize_not_callable(self):
+        with pytest.raises(ValueError):
+            fields.Field(post_serialize=False)
+
 
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])

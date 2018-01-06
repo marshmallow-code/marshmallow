@@ -7,7 +7,9 @@ Extending Schemas
 Pre-processing and Post-processing Methods
 ------------------------------------------
 
-Data pre-processing and post-processing methods can be registered using the `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` decorators.
+:ref:`Field-level pre-processing and post-processing <field_pre_post>` functions can cover many use cases in a very straightforward manner, but sometimes it may be necessary to apply pre- or post-processing to several fields or even the input collection as a whole.
+
+Schema-level pre-processing and post-processing methods can be registered using the `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` decorators.
 
 
 .. code-block:: python
@@ -21,11 +23,11 @@ Data pre-processing and post-processing methods can be registered using the `pre
 
         @pre_load
         def slugify_name(self, in_data):
-            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            in_data.setdefault('slug', in_data['name'].lower().strip().replace(' ', '-'))
             return in_data
 
     schema = UserSchema()
-    result, errors = schema.load({'name': 'Steve', 'slug': 'Steve Loria '})
+    result, errors = schema.load({'name': 'Steve Loria '})
     result['slug']  # => 'steve-loria'
 
 
