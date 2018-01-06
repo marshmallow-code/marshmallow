@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0b7 (unreleased)
+++++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: Field name is not checked when ``load_from``
+  is specified (:issue:`714`). Thanks :user:`lafrech`.
+
 3.0.0b6 (2018-01-02)
 ++++++++++++++++++++
 
