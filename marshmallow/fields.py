@@ -360,7 +360,6 @@ class Nested(Field):
 
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
-    :param default: Default value to if attribute is missing or None
     :param tuple exclude: A list or tuple of fields to exclude.
     :param required: Raise an :exc:`ValidationError` during deserialization
         if the field, *and* any required field values specified
