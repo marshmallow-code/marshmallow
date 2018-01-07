@@ -348,6 +348,38 @@ def test_load_many():
     assert type(result.data[0]) == User
     assert result.data[0].name == 'Mick'
 
+def test_load_many_records_errors_per_index():
+    class Sch(Schema):
+        name = fields.String()
+
+    s = Sch(many=True)
+    result = s.load([1, {'name': 'Jacob'}, 3])
+    assert len(result.errors) == 2
+    assert result.errors[0] == {'_schema': ['Invalid input type.']}
+    assert result.errors[2] == {'_schema': ['Invalid input type.']}
+
+    s = Sch(many=True)
+    result = s.load([1, {'name': 1111}, 3])
+    assert len(result.errors) == 3
+    assert result.errors[0] == {'_schema': ['Invalid input type.']}
+    assert result.errors[1] == {'name': ['Not a valid string.']}
+    assert result.errors[2] == {'_schema': ['Invalid input type.']}
+
+    class SchNoIndex(Sch):
+        class Meta:
+            index_errors = False
+
+    s = SchNoIndex(many=True)
+    result = s.load([1, {'name': 'Jacob'}, 3])
+    assert len(result.errors) == 1
+    assert result.errors == {'_schema': ['Invalid input type.', 'Invalid input type.']}
+
+    s = SchNoIndex(many=True)
+    result = s.load([1, {'name': 1111}, 3])
+    assert len(result.errors) == 2
+    assert result.errors['_schema'] == ['Invalid input type.', 'Invalid input type.']
+    assert result.errors['name'] == ['Not a valid string.']
+
 def test_loads_returns_an_unmarshalresult(user):
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))
