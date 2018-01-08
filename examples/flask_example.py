@@ -72,7 +72,7 @@ def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
     result = authors_schema.dump(authors)
-    return jsonify({'authors': result.data})
+    return jsonify({'authors': result})
 
 @app.route("/authors/<int:pk>")
 def get_author(pk):
@@ -82,13 +82,13 @@ def get_author(pk):
         return jsonify({"message": "Author could not be found."}), 400
     author_result = author_schema.dump(author)
     quotes_result = quotes_schema.dump(author.quotes.all())
-    return jsonify({'author': author_result.data, 'quotes': quotes_result.data})
+    return jsonify({'author': author_result, 'quotes': quotes_result})
 
 @app.route('/quotes/', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
     result = quotes_schema.dump(quotes)
-    return jsonify({"quotes": result.data})
+    return jsonify({"quotes": result})
 
 @app.route("/quotes/<int:pk>")
 def get_quote(pk):
@@ -97,7 +97,7 @@ def get_quote(pk):
     except IntegrityError:
         return jsonify({"message": "Quote could not be found."}), 400
     result = quote_schema.dump(quote)
-    return jsonify({"quote": result.data})
+    return jsonify({"quote": result})
 
 @app.route("/quotes/", methods=["POST"])
 def new_quote():
@@ -105,9 +105,10 @@ def new_quote():
     if not json_data:
         return jsonify({'message': 'No input data provided'}), 400
     # Validate and deserialize input
-    data, errors = quote_schema.load(json_data)
-    if errors:
-        return jsonify(errors), 422
+    try:
+        data = quote_schema.load(json_data)
+    except ValidationError as err:
+        return jsonify(err.messages), 422
     first, last = data['author']['first'], data['author']['last']
     author = Author.query.filter_by(first=first, last=last).first()
     if author is None:
@@ -124,7 +125,7 @@ def new_quote():
     db.session.commit()
     result = quote_schema.dump(Quote.query.get(quote.id))
     return jsonify({"message": "Created new quote.",
-                    "quote": result.data})
+                    "quote": result})
 
 if __name__ == '__main__':
     db.create_all()
