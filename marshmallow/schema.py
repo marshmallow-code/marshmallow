@@ -185,11 +185,6 @@ class SchemaOpts(object):
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
-        if hasattr(meta, 'strict'):
-            warnings.warn(
-                'The strict class Meta option is deprecated.',
-                DeprecationWarning
-            )
         self.dateformat = getattr(meta, 'dateformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(
@@ -315,9 +310,8 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, only=(), exclude=(), prefix='', strict=None,
-                 many=False, context=None, load_only=(), dump_only=(),
-                 partial=False):
+    def __init__(self, only=(), exclude=(), prefix='', many=False,
+                 context=None, load_only=(), dump_only=(), partial=False):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -340,12 +334,6 @@ class BaseSchema(base.SchemaABC):
         self._normalize_nested_options()
         self._types_seen = set()
         self._update_fields(many=many)
-
-        if strict is not None:
-            warnings.warn(
-                'The strict parameter is deprecated.',
-                DeprecationWarning
-            )
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
