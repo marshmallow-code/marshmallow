@@ -1381,9 +1381,9 @@ class TestValidation:
 
             def get_name(self, val):
                 return val.upper()
-        assert MethodSerializer(strict=True).load({'name': 'joe'})
+        assert MethodSerializer().load({'name': 'joe'})
         with pytest.raises(ValidationError) as excinfo:
-            MethodSerializer(strict=True).load({'name': 'joseph'})
+            MethodSerializer().load({'name': 'joseph'})
 
         assert 'Invalid value.' in str(excinfo)
 
@@ -1451,24 +1451,13 @@ def test_required_message_can_be_changed(message):
     expected = [message] if isinstance(message, basestring) else message
     assert expected == errors['age']
 
-# Regression test for https://github.com/marshmallow-code/marshmallow/issues/261
-def test_deserialize_doesnt_raise_exception_if_strict_is_false_and_input_type_is_incorrect():
+
+def test_deserialize_raises_exception_if_input_type_is_incorrect():
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
     with pytest.raises(ValidationError) as excinfo:
         MySchema().load([])
-    errors = excinfo.value.messages
-    assert '_schema' in errors
-    assert errors['_schema'] == ['Invalid input type.']
-
-
-def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorrect():
-    class MySchema(Schema):
-        foo = fields.Field()
-        bar = fields.Field()
-    with pytest.raises(ValidationError) as excinfo:
-        MySchema(strict=True).load([])
     assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']
