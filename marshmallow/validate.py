@@ -41,7 +41,7 @@ class URL(Validator):
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
     :param set schemes: Valid schemes. By default, ``http``, ``https``,
-        ``ftp``, and ``ftps`` are allowed.
+        ``ftp``, ``ftps`` and ``data`` are allowed.
     :param bool require_tld: Whether to reject non-FQDN hostnames
     """
 
@@ -54,7 +54,9 @@ class URL(Validator):
             return re.compile(r''.join((
                 r'^',
                 r'(' if relative else r'',
-                r'(?:[a-z0-9\.\-\+]*)://',  # scheme is validated separately
+                r'('  # if data or else
+                r'(?:data:.*?,.*$)|',  # data URI scheme
+                r'(?:[a-z0-9\.\-\+]*://)',  # other schemes are validated separately
                 r'(?:[^:@]+?:[^:@]*?@|)',  # basic auth
                 r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+',
                 r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|',  # domain...
@@ -66,6 +68,7 @@ class URL(Validator):
                 r'(?::\d+)?',  # optional port
                 r')?' if relative else r'',  # host is optional, allow for relative URLs
                 r'(?:/?|[/?]\S+)$',
+                r')',  # end of "if data or else"
             )), re.IGNORECASE)
 
         def __call__(self, relative, require_tld):
@@ -78,7 +81,7 @@ class URL(Validator):
     _regex = RegexMemoizer()
 
     default_message = 'Not a valid URL.'
-    default_schemes = set(['http', 'https', 'ftp', 'ftps'])
+    default_schemes = set(['http', 'https', 'ftp', 'ftps', 'data'])
 
     # TODO; Switch position of `error` and `schemes` in 3.0
     def __init__(self, relative=False, error=None, schemes=None, require_tld=True):
@@ -99,7 +102,7 @@ class URL(Validator):
             raise ValidationError(message)
 
         # Check first if the scheme is valid
-        if '://' in value:
+        if '://' in value and not value.startswith('data:'):
             scheme = value.split('://')[0].lower()
             if scheme not in self.schemes:
                 raise ValidationError(message)

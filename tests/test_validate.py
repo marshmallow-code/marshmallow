@@ -26,6 +26,10 @@ from marshmallow import validate, ValidationError
     'http://[2001:db8::ff00:42]:8329',
     'http://[2001::1]:8329',
     'http://www.example.com:8000/foo',
+    'data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh',
+    'data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678',
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElE'
+    'QVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==',
 ])
 def test_url_absolute_valid(valid_url):
     validator = validate.URL(relative=False)
