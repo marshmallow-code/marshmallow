@@ -9,7 +9,7 @@ docs_dir = 'docs'
 build_dir = os.path.join(docs_dir, '_build')
 
 @task
-def test(ctx, watch=False, last_failing=False):
+def test(ctx, watch=False, last_failing=False, ci=False):
     """Run the tests.
 
     Note: --watch requires pytest-xdist to be installed.
@@ -17,6 +17,10 @@ def test(ctx, watch=False, last_failing=False):
     import pytest
     flake(ctx)
     args = []
+    if ci:
+        args.append('--junit-xml=testresults.xml')
+        args.append('--cov=marshmallow')
+        args.append('--cov-report=xml')
     if watch:
         args.append('-f')
     if last_failing:

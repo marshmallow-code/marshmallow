@@ -14,12 +14,24 @@ before_install:
   - pip install -U pip
   # Workaround for travis issue: https://github.com/marshmallow-code/marshmallow/issues/681
   - pip install -U six
-
+  - mkdir -p $HOME/bin
+  - curl -fsSL https://testspace-client.s3.amazonaws.com/testspace-linux.tgz | tar -zxvf- -C $HOME/bin
+  - testspace config url $TS_ORG.testspace.com
+  
 install:
   - pip install -U .[reco]
   - pip install -U -r dev-requirements.txt
+  - pip install pytest-cov
 
-script: invoke test
+script: invoke test --ci
+
+after_script:
+  - if [[ "${TRAVIS_PYTHON_VERSION}" = "3.6" ]] ; then
+      testspace [Python-${TRAVIS_PYTHON_VERSION}]testresults.xml{tests} coverage.xml;
+    else
+      testspace [Python-${TRAVIS_PYTHON_VERSION}]testresults.xml{tests};
+    fi
+ 
 jobs:
   include:
   - stage: PyPI Release
