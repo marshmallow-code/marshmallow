@@ -27,6 +27,8 @@ htmlcov
 .tox
 nosetests.xml
 .cache
+testresults.xml
+coverage.xml
 
 # Translations
 *.mo
