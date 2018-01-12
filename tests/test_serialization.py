@@ -458,7 +458,7 @@ class TestFieldSerialization:
             'name': 'Richard',
             'years': 11
         }
-        result, errors = DumpToSchema().dump(data)
+        result = DumpToSchema().dump(data)
         assert result == {
             'NamE': 'Richard',
             'YearS': 11
@@ -474,7 +474,7 @@ class TestFieldSerialization:
             'uname': 'mick_the_awesome',
             'le_wild_age': 999
         }
-        result, errors = ConfusedDumpToAndAttributeSerializer().dump(data)
+        result = ConfusedDumpToAndAttributeSerializer().dump(data)
 
         assert result == {
             'FullName': 'Mick',
@@ -546,7 +546,7 @@ class TestFieldSerialization:
         class MySchema(Schema):
             greeting = fields.FormattedString('Hello {name}')
         user = User(name='Monty')
-        assert MySchema().dump(user).data['greeting'] == 'Hello Monty'
+        assert MySchema().dump(user)['greeting'] == 'Hello Monty'
 
     def test_string_field_default_to_empty_string(self, user):
         field = fields.String(default='')
@@ -792,15 +792,15 @@ class TestFieldSerialization:
             foo = fields.Constant(42)
 
         sch = MySchema()
-        assert sch.dump({'bar': 24}).data['foo'] == 42
-        assert sch.dump({'foo': 24}).data['foo'] == 42
+        assert sch.dump({'bar': 24})['foo'] == 42
+        assert sch.dump({'foo': 24})['foo'] == 42
 
     def test_constant_field_serialize_when_omitted(self):
         class MiniUserSchema(Schema):
             name = fields.Constant('bill')
 
         s = MiniUserSchema()
-        assert s.dump({}).data['name'] == 'bill'
+        assert s.dump({})['name'] == 'bill'
 
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_all_fields_serialize_none_to_none(self, FieldClass):
@@ -835,8 +835,8 @@ def test_serializing_named_tuple_with_meta():
             fields = ('x', 'y')
 
     serialized = PointSerializer().dump(p)
-    assert serialized.data['x'] == 4
-    assert serialized.data['y'] == 2
+    assert serialized['x'] == 4
+    assert serialized['y'] == 2
 
 
 def test_serializing_slice():
@@ -846,5 +846,5 @@ def test_serializing_slice():
     class ValueSchema(Schema):
         value = fields.Int()
 
-    serialized = ValueSchema(many=True).dump(slice).data
+    serialized = ValueSchema(many=True).dump(slice)
     assert serialized == values

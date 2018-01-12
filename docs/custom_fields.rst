@@ -83,7 +83,7 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
 
     schema = UserSchema()
     result = schema.load({'balance': '100.00'})
-    result.data['balance']  # => 100.0
+    result['balance']  # => 100.0
 
 .. _adding-context:
 
@@ -115,9 +115,9 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
     blog = Blog('Bicycle Blog', author=user)
 
     schema.context = {'blog': blog}
-    data, errors = schema.dump(user)
-    data['is_author']  # => True
-    data['likes_bikes']  # => True
+    result = schema.dump(user)
+    result['is_author']  # => True
+    result['likes_bikes']  # => True
 
 
 Customizing Error Messages

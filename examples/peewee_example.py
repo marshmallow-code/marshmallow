@@ -128,19 +128,20 @@ def after_request(response):
 @app.route("/register", methods=["POST"])
 def register():
     json_input = request.get_json()
-    data, errors = user_schema.load(json_input)
-    if errors:
-        return jsonify({'errors': errors}), 422
-    try:  # Use get to see if user already to exists
+    try:
+        data = user_schema.load(json_input)
+    except ValidationError as err:
+        return jsonify({'errors': err.messages}), 422
+    try:  # Use get to see if user already exists
         User.get(User.email == data['email'])
     except User.DoesNotExist:
         user = User.create(email=data['email'], joined_on=dt.datetime.now(),
-                            password=data['password'])
+                           password=data['password'])
         message = "Successfully created user: {0}".format(user.email)
     else:
         return jsonify({'errors': 'That email address is already in the database'}), 400
 
-    data, _ = user_schema.dump(user)
+    data = user_schema.dump(user)
     data['message'] = message
     return jsonify(data), 201
 
@@ -148,7 +149,7 @@ def register():
 def get_todos():
     todos = Todo.select().order_by(Todo.posted_on.asc())  # Get all todos
     result = todos_schema.dump(list(todos))
-    return jsonify(result.data)
+    return jsonify(result)
 
 @app.route("/todos/<int:pk>")
 def get_todo(pk):
@@ -156,7 +157,7 @@ def get_todo(pk):
     if not todo:
         return jsonify({'errors': 'Todo could not be find'}), 404
     result = todo_schema.dump(todo)
-    return jsonify(result.data)
+    return jsonify(result)
 
 @app.route("/todos/<int:pk>/toggle", methods=["POST", "PUT"])
 def toggledone(pk):
@@ -168,19 +169,20 @@ def toggledone(pk):
     update_query = todo.update(is_done=status)
     update_query.execute()
     result = todo_schema.dump(todo)
-    return jsonify(result.data)
+    return jsonify(result)
 
 @app.route('/todos/', methods=["POST"])
 @requires_auth
 def new_todo(user):
     json_input = request.get_json()
-    todo, errors = todo_schema.load(json_input)
-    if errors:
-        return jsonify({'errors': errors}), 422
+    try:
+        todo = todo_schema.load(json_input)
+    except ValidationError as err:
+        return jsonify({'errors': err.messages}), 422
     todo.user = user
     todo.save()
     result = todo_schema.dump(todo)
-    return jsonify(result.data)
+    return jsonify(result)
 
 if __name__ == '__main__':
     create_tables()
