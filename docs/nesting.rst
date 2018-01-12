@@ -49,7 +49,7 @@ The serialized blog will have the nested user representation.
     result, errors = BlogSchema().dump(blog)
     pprint(result)
     # {'title': u'Something Completely Different',
-    # {'author': {'name': u'Monty',
+    #  'author': {'name': u'Monty',
     #             'email': u'monty@python.org',
     #             'created_at': '2014-08-17T14:58:57.600623+00:00'}}
 
