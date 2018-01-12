@@ -97,7 +97,7 @@ In these cases, you can set the ``context`` attribute (a dictionary) of a `Schem
 As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether the a certain word appears in a ``Blog's`` title.
 
 .. code-block:: python
-    :emphasize-lines: 4,8,16
+    :emphasize-lines: 4,8,15
 
     class UserSchema(Schema):
         name = fields.String()
@@ -105,7 +105,6 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
         is_author = fields.Function(lambda user, context: user == context['blog'].author)
         likes_bikes = fields.Method('writes_about_bikes')
 
-        # Method fields also optionally receive context argument
         def writes_about_bikes(self, user):
             return 'bicycle' in self.context['blog'].title.lower()
 
