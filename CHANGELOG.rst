@@ -10,17 +10,23 @@ Features:
 - *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
   ``(data, errors)`` duple (:issue:`598`).
 
+See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
+for a guide on updating your code.
+
 Thanks :user:`lafrech` for implementing these changes.
 Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
 :user:`maximkulkin` for the discussions on these changes.
+
 
 Other changes:
 
 - *Backwards-incompatible*: Field name is not checked when ``load_from``
   is specified (:issue:`714`). Thanks :user:`lafrech`.
 
-See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
-for a guide on updating your code.
+Support:
+
+- Add `Code of Conduct <http://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
+
 
 3.0.0b6 (2018-01-02)
 ++++++++++++++++++++
