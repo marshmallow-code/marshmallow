@@ -18,32 +18,67 @@ The marshmallow 3.x series supports Python 2.7, 3.4, 3.5, and 3.6.
 Python 2.6 and 3.3 are no longer supported.
 
 
-``strict`` in Schema is deprecated
-**********************************
+Schemas are strict by default
+*****************************
 
-`Schema().load` and `Schema().dump` don't return a (data, errors) duple anymore.
+Two major changes were made to (de)serialization behavior:
 
-Only data is returned. If invalid data are passed in, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised. The dictionary of validation errors is accessible from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute, along with the valid data (values deserialized without error).
+- The ``strict`` parameter was removed. Schemas are now strict by default.
+- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` duple any more. Only ``data`` is returned.
+
+If invalid data are passed, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised.
+The dictionary of validation errors is accessible from the
+`ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute,
+along with the valid data from the `ValidationError.valid_data
+<marshmallow.exceptions.ValidationError.valid_data>` attribute.
 
 .. code-block:: python
 
-    from marshmallow import Schema, ValidationError
+    from marshmallow import ValidationError
 
     # 2.x
-    user = User(name="Monty", email="monty@python.org")
     schema = UserSchema()
-    data, errors = schema.dump(user)
-
-    # 3.x
-    user = User(name="Monty", email="monty@python.org")
-    schema = UserSchema()
+    data, errors = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
+    # OR
+    schema = UserSchema(strict=True)
     try:
-        data = schema.dump(user)
+        data, _ = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
     except ValidationError as err:
         errors = err.messages
         valid_data = err.valid_data
 
-:meth:`Schema.validate` now always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+    # 3.x
+    schema = UserSchema()
+    # There is only one right way
+    try:
+        data = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
+    except ValidationError as err:
+        errors = err.messages
+        valid_data = err.valid_data
+
+:meth:`Schema().validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+
+.. code-block:: python
+
+    schema.validate({'email': 'invalid'})
+    # {'email': ['Not a valid email address.']}
+
+Setting the ``strict`` option on ``class Meta`` has no effect on `Schema` behavior.
+Passing ``strict=True`` or ``strict=False`` to the `Schema` constructor
+will raise a :exc:`TypeError`.
+
+
+.. code-block:: python
+
+    # 3.x
+    UserSchema(strict=True)
+    # TypeError: __init__() got an unexpected keyword argument 'strict'
+
+
+.. seealso::
+
+    See GitHub issues :issue:`377` and :issue:`598` for the discussions on
+    this change.
 
 
 Overriding ``get_attribute``
@@ -163,7 +198,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
 Schema-level validators are skipped when field validation fails
 ***************************************************************
 
-By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation).
+By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` won't execute if any of the field validators fails (including ``required=True`` validation).
 
 .. code-block:: python
 
@@ -252,7 +287,7 @@ Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argume
     validator(['red', 'red', 'blue'])
 
 
-If you do not want to accept duplicates, use a custom validator, like the following.
+If you don't want to accept duplicates, use a custom validator, like the following.
 
 .. code-block:: python
 

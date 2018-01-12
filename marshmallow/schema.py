@@ -386,6 +386,10 @@ class BaseSchema(base.SchemaABC):
         :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
         """
         errors = {}
         many = self.many if many is None else bool(many)
@@ -464,6 +468,10 @@ class BaseSchema(base.SchemaABC):
         :rtype: str
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
         """
         serialized = self.dump(obj, many=many, update_fields=update_fields)
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
@@ -482,6 +490,10 @@ class BaseSchema(base.SchemaABC):
         :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
         """
         return self._do_load(data, many, partial=partial, postprocess=True)
 
@@ -498,6 +510,10 @@ class BaseSchema(base.SchemaABC):
         :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
         """
         # TODO: This avoids breaking backward compatibility if people were
         # passing in positional args after `many` for use by `json.loads`, but

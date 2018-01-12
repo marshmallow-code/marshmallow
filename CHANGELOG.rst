@@ -4,10 +4,23 @@ Changelog
 3.0.0b7 (unreleased)
 ++++++++++++++++++++
 
+Features:
+
+- *Backwards-incompatible*: Schemas are now strict by default (:issue:`377`).
+- *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
+  ``(data, errors)`` duple (:issue:`598`).
+
+Thanks :user:`lafrech` for implementing these changes.
+Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
+:user:`maximkulkin` for the discussions on these changes.
+
 Other changes:
 
 - *Backwards-incompatible*: Field name is not checked when ``load_from``
   is specified (:issue:`714`). Thanks :user:`lafrech`.
+
+See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
+for a guide on updating your code.
 
 3.0.0b6 (2018-01-02)
 ++++++++++++++++++++
