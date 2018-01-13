@@ -6,7 +6,8 @@ Changelog
 
 Features:
 
-- *Backwards-incompatible*: Schemas are now strict by default (:issue:`377`).
+- *Backwards-incompatible*: Schemas are always strict (:issue:`377`).
+  The ``strict`` parameter is removed.
 - *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
   ``(data, errors)`` duple (:issue:`598`).
 

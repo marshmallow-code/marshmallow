@@ -18,12 +18,12 @@ The marshmallow 3.x series supports Python 2.7, 3.4, 3.5, and 3.6.
 Python 2.6 and 3.3 are no longer supported.
 
 
-Schemas are strict by default
-*****************************
+Schemas are always strict
+*************************
 
 Two major changes were made to (de)serialization behavior:
 
-- The ``strict`` parameter was removed. Schemas are now strict by default.
+- The ``strict`` parameter was removed. Schemas are always strict.
 - `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` duple any more. Only ``data`` is returned.
 
 If invalid data are passed, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised.
