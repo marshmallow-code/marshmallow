@@ -52,7 +52,7 @@ class TestField:
         result = MySchema().load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
-    def test_custom_field_receives_load_from_if_set(self, user):
+    def test_custom_field_receives_data_key_if_set(self, user):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -60,12 +60,12 @@ class TestField:
                 return val
 
         class MySchema(Schema):
-            Name = MyField(load_from='name')
+            Name = MyField(data_key='name')
 
         result = MySchema().load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
-    def test_custom_field_follows_dump_to_if_set(self, user):
+    def test_custom_field_follows_data_key_if_set(self, user):
         class MyField(fields.Field):
             def _serialize(self, val, attr, data):
                 assert attr == 'name'
@@ -73,7 +73,7 @@ class TestField:
                 return val
 
         class MySchema(Schema):
-            name = MyField(dump_to='_NaMe')
+            name = MyField(data_key='_NaMe')
 
         result = MySchema().dump({'name': 'Monty', 'foo': 42})
         assert result == {'_NaMe': 'Monty'}

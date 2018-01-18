@@ -136,7 +136,7 @@ class Marshaller(ErrorStore):
             if getattr(field_obj, 'load_only', False):
                 continue
 
-            key = ''.join([self.prefix or '', field_obj.dump_to or attr_name])
+            key = ''.join([self.prefix or '', field_obj.data_key or attr_name])
 
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = self.call_and_store(
@@ -254,8 +254,8 @@ class Unmarshaller(ErrorStore):
             if field_obj.dump_only:
                 continue
             field_name = attr_name
-            if field_obj.load_from:
-                field_name = field_obj.load_from
+            if field_obj.data_key:
+                field_name = field_obj.data_key
             try:
                 raw_value = data.get(field_name, missing)
             except AttributeError:  # Input data is not a dict

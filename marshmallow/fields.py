@@ -62,10 +62,10 @@ class Field(FieldABC):
     :param default: If set, this value will be used during serialization if the input value
         is missing. If not set, the field will be excluded from the serialized output if the
         input value is missing. May be a value or a callable.
-    :param str attribute: The name of the attribute to get the value from. If
-        `None`, assumes the attribute has the same name as the field.
-    :param str load_from: Key to look for when deserializing.
-    :param str dump_to: Field name to use as a key when serializing.
+    :param str attribute: The name of the attribute to get the value from when serializing.
+        If `None`, assumes the attribute has the same name as the field.
+    :param str data_key: The name of the key to get the value from when deserializing.
+        If `None`, assumes the key has the same name as the field.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
@@ -120,13 +120,12 @@ class Field(FieldABC):
         'validator_failed': 'Invalid value.'
     }
 
-    def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
-                 error=None, validate=None, required=False, allow_none=None, load_only=False,
+    def __init__(self, default=missing_, attribute=None, data_key=None, error=None,
+                 validate=None, required=False, allow_none=None, load_only=False,
                  dump_only=False, missing=missing_, error_messages=None, **metadata):
         self.default = default
         self.attribute = attribute
-        self.load_from = load_from  # this flag is used by Unmarshaller
-        self.dump_to = dump_to  # this flag is used by Marshaller
+        self.data_key = data_key
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
