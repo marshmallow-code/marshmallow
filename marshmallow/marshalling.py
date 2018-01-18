@@ -248,54 +248,50 @@ class Unmarshaller(ErrorStore):
                     data=ret,
                 )
             return ret
-        if data is not None:
-            partial_is_collection = is_collection(partial)
-            ret = dict_class()
-            for attr_name, field_obj in iteritems(fields_dict):
-                if field_obj.dump_only:
-                    continue
-                field_name = attr_name
-                if field_obj.load_from:
-                    field_name = field_obj.load_from
-                try:
-                    raw_value = data.get(field_name, missing)
-                except AttributeError:  # Input data is not a dict
-                    errors = self.get_errors(index=index)
-                    msg = field_obj.error_messages['type'].format(
-                        input=data, input_type=data.__class__.__name__
-                    )
-                    self.error_field_names = [SCHEMA]
-                    self.error_fields = []
-                    errors = self.get_errors()
-                    errors.setdefault(SCHEMA, []).append(msg)
-                    # Input data type is incorrect, so we can bail out early
-                    break
-                if raw_value is missing:
-                    # Ignore missing field if we're allowed to.
-                    if (
-                        partial is True or
-                        (partial_is_collection and attr_name in partial)
-                    ):
-                        continue
-                    _miss = field_obj.missing
-                    raw_value = _miss() if callable(_miss) else _miss
-                if raw_value is missing and not field_obj.required:
-                    continue
-
-                getter = lambda val: field_obj.deserialize(val, field_name, data)
-                value = self.call_and_store(
-                    getter_func=getter,
-                    data=raw_value,
-                    field_name=field_name,
-                    field_obj=field_obj,
-                    index=(index if index_errors else None)
+        partial_is_collection = is_collection(partial)
+        ret = dict_class()
+        for attr_name, field_obj in iteritems(fields_dict):
+            if field_obj.dump_only:
+                continue
+            field_name = attr_name
+            if field_obj.load_from:
+                field_name = field_obj.load_from
+            try:
+                raw_value = data.get(field_name, missing)
+            except AttributeError:  # Input data is not a dict
+                errors = self.get_errors(index=index)
+                msg = field_obj.error_messages['type'].format(
+                    input=data, input_type=data.__class__.__name__
                 )
-                if value is not missing:
-                    key = fields_dict[attr_name].attribute or attr_name
-                    set_value(ret, key, value)
-        else:
-            ret = None
+                self.error_field_names = [SCHEMA]
+                self.error_fields = []
+                errors = self.get_errors()
+                errors.setdefault(SCHEMA, []).append(msg)
+                # Input data type is incorrect, so we can bail out early
+                break
+            if raw_value is missing:
+                # Ignore missing field if we're allowed to.
+                if (
+                    partial is True or
+                    (partial_is_collection and attr_name in partial)
+                ):
+                    continue
+                _miss = field_obj.missing
+                raw_value = _miss() if callable(_miss) else _miss
+            if raw_value is missing and not field_obj.required:
+                continue
 
+            getter = lambda val: field_obj.deserialize(val, field_name, data)
+            value = self.call_and_store(
+                getter_func=getter,
+                data=raw_value,
+                field_name=field_name,
+                field_obj=field_obj,
+                index=(index if index_errors else None)
+            )
+            if value is not missing:
+                key = fields_dict[attr_name].attribute or attr_name
+                set_value(ret, key, value)
         if self.errors and not self._pending:
             raise ValidationError(
                 self.errors,

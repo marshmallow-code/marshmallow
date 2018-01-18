@@ -1007,10 +1007,6 @@ class TestSchemaDeserialization:
         assert result['children'][0]['pk'] == '456'
         assert result['children'][1]['pk'] == '789'
 
-    def test_none_deserialization(self):
-        result = SimpleUserSchema().load(None)
-        assert result is None
-
     def test_nested_none_deserialization(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
@@ -1059,7 +1055,6 @@ class TestSchemaDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             AliasingUserSerializer().load(data)
         errors = excinfo.value.messages
-        assert errors
         assert errors['username'] == ['Not a valid email address.']
 
     def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
@@ -1452,12 +1447,13 @@ def test_required_message_can_be_changed(message):
     assert expected == errors['age']
 
 
-def test_deserialize_raises_exception_if_input_type_is_incorrect():
+@pytest.mark.parametrize('data', [True, False, 42, None, []])
+def test_deserialize_raises_exception_if_input_type_is_incorrect(data):
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
     with pytest.raises(ValidationError) as excinfo:
-        MySchema().load([])
+        MySchema().load(data)
     assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']
