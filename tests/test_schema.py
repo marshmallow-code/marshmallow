@@ -1008,7 +1008,7 @@ def test_nested_constructor_only_and_exclude():
         bli = fields.Field()
         blubb = fields.Nested(
             ChildSchema,
-            only=('foo', 'flubb.goo', 'flubb.gah'),
+            only=('foo', 'flubb.gah'),
             exclude=('flubb.goo',)
         )
     sch = ParentSchema(only=('bla', 'blubb'))
@@ -1066,22 +1066,37 @@ def test_only_bounded_by_fields():
     sch = MySchema(only=('baz', ))
     assert sch.dump({'foo': 42}).data == {}
 
-
-def test_nested_only_and_exclude():
+def test_only_and_exclude_with_same_fields_conflict():
     class Inner(Schema):
         foo = fields.Field()
         bar = fields.Field()
         baz = fields.Field()
 
-    class Outer(Schema):
-        inner = fields.Nested(Inner, only=('foo', 'bar'), exclude=('bar', ))
+    expected_msg = ('Fields [\'foo\'] cannot be at '
+                        'exclude and only at the same time')
 
-    sch = Outer()
-    data = dict(inner=dict(foo=42, bar=24, baz=242))
-    result = sch.dump(data)
-    assert 'foo' in result.data['inner']
-    assert 'bar' not in result.data['inner']
+    with pytest.raises(ValueError) as excinfo:
+        fields.Nested(Inner(), only='foo', exclude=('foo',))
+    assert expected_msg in str(excinfo)
 
+
+    expected_msg = ('Fields [\'foo\', \'bar\'] cannot be at '
+                        'exclude and only at the same time')
+
+    with pytest.raises(ValueError) as excinfo:
+        fields.Nested(Inner(), only=('foo', 'bar'),
+                      exclude=('foo', 'bar'))
+    assert expected_msg in str(excinfo)
+
+
+def test_nested_with_not_bool_many_option():
+    class Inner(Schema):
+        pass
+
+    with pytest.raises(ValueError) as excinfo:
+        fields.Nested(Inner, many='foo')
+    expected_msg = ('Many parameter must be boolean')
+    assert expected_msg in str(excinfo)
 
 def test_nested_with_sets():
     class Inner(Schema):

@@ -265,7 +265,7 @@ class BlogSchemaExclude(BlogSchema):
 
 
 class BlogSchemaOnlyExclude(BlogSchema):
-    user = fields.Nested(UserSchema, only=("name", ), exclude=("name", "species"))
+    user = fields.Nested(UserSchema, only=("name", ), exclude=("species"))
 
 
 class BlogSchemaPrefixedUser(BlogSchema):
