@@ -10,6 +10,8 @@ Features:
   The ``strict`` parameter is removed.
 - *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
   ``(data, errors)`` duple (:issue:`598`).
+- *Backwards-incomaptible*: `Schema().load(None)` raises a
+  `ValidationError` (:issue:`511`).
 
 See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
 for a guide on updating your code.

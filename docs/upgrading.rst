@@ -81,6 +81,22 @@ will raise a :exc:`TypeError`.
     this change.
 
 
+``Schema().load(None)`` raises a ``ValidationError``
+****************************************************
+
+`None` is considered invalid input to `Schema.load
+<marshmallow.Schema.load>`.
+
+.. code-block:: python
+
+    # 2.x
+    # Passes silently
+    schema.load(None)
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
+    schema.load(None)
+
 Overriding ``get_attribute``
 ****************************
 
