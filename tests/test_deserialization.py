@@ -547,7 +547,7 @@ class TestFieldDeserialization:
         assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({"foo": 1, "bar": "baz"})
-        assert excinfo.value.args[0] == {'foo': ['Invalid value: Not a valid string.']}
+        assert excinfo.value.args[0] == {'foo': {'value': ['Not a valid string.']}}
         assert excinfo.value.data == {'bar': 'baz', 'foo': None}
 
     def test_structured_dict_key_deserialization(self):
@@ -555,7 +555,7 @@ class TestFieldDeserialization:
         assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({1: "bar", "foo": "baz"})
-        assert excinfo.value.args[0] == {1: ['Invalid key: Not a valid string.']}
+        assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
         assert excinfo.value.data == {'foo': 'baz', 1: "bar"}
 
     def test_structured_dict_key_value_deserialization(self):
@@ -566,25 +566,24 @@ class TestFieldDeserialization:
         assert field.deserialize({"foo@test.com": 1}) == {"foo@test.com": decimal.Decimal(1)}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({1: "bar"})
-        assert excinfo.value.args[0] == {1: [
-            'Invalid key: Not a valid string.',
-            'Invalid value: Not a valid number.',
-        ]}
+        assert excinfo.value.args[0] == {1: {
+            'key': ['Not a valid string.'],
+            'value': ['Not a valid number.'],
+        }}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({"foo@test.com": "bar"})
-        assert excinfo.value.args[0] == {"foo@test.com": ['Invalid value: Not a valid number.']}
+        assert excinfo.value.args[0] == {"foo@test.com": {'value': ['Not a valid number.']}}
         assert excinfo.value.data == {'foo@test.com': None}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({1: 1})
-        assert excinfo.value.args[0] == {1: ['Invalid key: Not a valid string.']}
+        assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
         assert excinfo.value.data == {1: 1}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({"foo": "bar"})
-        assert excinfo.value.args[0] == {"foo": [
-            'Invalid key: Not a valid email address.',
-            'Invalid key: String does not match expected pattern.',
-            'Invalid value: Not a valid number.',
-        ]}
+        assert excinfo.value.args[0] == {"foo": {
+            'key': ['Not a valid email address.', 'String does not match expected pattern.'],
+            'value': ['Not a valid number.'],
+        }}
         assert excinfo.value.data == {'foo': None}
 
     def test_url_field_deserialization(self):
@@ -1303,6 +1302,60 @@ class TestSchemaDeserialization:
 
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
         assert errors == {}
+
+    def test_structured_dict_nested_value_deserialization(self):
+        class BlogUserSchema(Schema):
+            email = fields.Email()
+            birthdate = fields.DateTime()
+
+        class SimpleBlogSerializer(Schema):
+            title = fields.String()
+            authors = fields.Dict(
+                keys=fields.String(),
+                values=fields.Nested(BlogUserSchema)
+            )
+
+        result = SimpleBlogSerializer().load({
+            'title': 'Gimme Shelter',
+            'authors': {
+                'Mick': {
+                    'email': 'mick@stones.com',
+                    'birthdate': '1943-07-26T00:00:00+00:00'
+                },
+                'Keith': {
+                    'email': 'keith@stones.com',
+                    'birthdate': '1943-12-18T00:00:00+00:00'
+                },
+            }
+        })
+        assert result['authors']['Mick']['email'] == 'mick@stones.com'
+        assert_datetime_equal(result['authors']['Keith']['birthdate'],
+                              dt.datetime(1943, 12, 18))
+
+        with pytest.raises(ValidationError) as excinfo:
+            SimpleBlogSerializer().load({
+                'title': 'Gimme Shelter',
+                'authors': {
+                    'Mick': {
+                        'email': 'mick-stones-com',
+                        'birthdate': 'anytime'
+                    },
+                    ('whatever', ): {
+                        'email': 'keith@stones.com',
+                        'birthdate': 'a while ago'
+                    },
+                }
+            })
+
+        assert excinfo.value.args[0] == {
+            'authors': {
+                'Mick': {'value': {
+                    'email': ['Not a valid email address.'],
+                    'birthdate': ['Not a valid datetime.']}},
+                ('whatever', ): {
+                    'key': ['Not a valid string.'],
+                    'value': {'birthdate': ['Not a valid datetime.']}}
+            }}
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
