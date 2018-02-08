@@ -839,7 +839,7 @@ class BaseSchema(base.SchemaABC):
                 for idx, item in enumerate(data):
                     try:
                         self._unmarshal.run_validator(validator,
-                                                  item, original_data, self.fields, many=many,
+                                                  item, original_data[idx], self.fields, many=many,
                                                   index=idx, pass_original=pass_original)
                     except ValidationError as err:
                         errors.update(err.messages)

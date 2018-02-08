@@ -79,6 +79,7 @@ def test_dump_mode_raises_error(SchemaClass):
     assert type(exc.messages) == dict
     assert exc.messages == {'balance': ['Not a valid number.']}
 
+
 def test_dump_resets_errors():
     class MySchema(Schema):
         age = fields.Int()
