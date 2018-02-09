@@ -1312,8 +1312,7 @@ class TestSchemaDeserialization:
             title = fields.String()
             authors = fields.Dict(
                 keys=fields.String(),
-                values=fields.Nested(BlogUserSchema)
-            )
+                values=fields.Nested(BlogUserSchema))
 
         result = SimpleBlogSerializer().load({
             'title': 'Gimme Shelter',
@@ -1322,40 +1321,29 @@ class TestSchemaDeserialization:
                     'email': 'mick@stones.com',
                     'birthdate': '1943-07-26T00:00:00+00:00'
                 },
-                'Keith': {
-                    'email': 'keith@stones.com',
-                    'birthdate': '1943-12-18T00:00:00+00:00'
-                },
-            }
-        })
+            }})
         assert result['authors']['Mick']['email'] == 'mick@stones.com'
-        assert_datetime_equal(result['authors']['Keith']['birthdate'],
-                              dt.datetime(1943, 12, 18))
+        assert_datetime_equal(result['authors']['Mick']['birthdate'],
+                              dt.datetime(1943, 7, 26))
 
         with pytest.raises(ValidationError) as excinfo:
             SimpleBlogSerializer().load({
                 'title': 'Gimme Shelter',
                 'authors': {
-                    'Mick': {
+                    ('whatever', ): {
                         'email': 'mick-stones-com',
                         'birthdate': 'anytime'
                     },
-                    ('whatever', ): {
-                        'email': 'keith@stones.com',
-                        'birthdate': 'a while ago'
-                    },
-                }
-            })
-
+                }})
         assert excinfo.value.args[0] == {
             'authors': {
-                'Mick': {'value': {
-                    'email': ['Not a valid email address.'],
-                    'birthdate': ['Not a valid datetime.']}},
                 ('whatever', ): {
                     'key': ['Not a valid string.'],
-                    'value': {'birthdate': ['Not a valid datetime.']}}
-            }}
+                    'value': {
+                        'email': ['Not a valid email address.'],
+                        'birthdate': ['Not a valid datetime.']
+                    },
+                }}}
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
