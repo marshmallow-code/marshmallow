@@ -365,6 +365,24 @@ class TestValidatesSchemaDecorator:
         assert '_schema' in errors['nested']
         assert 'foo' not in errors['nested']
 
+    def test_validator_nested_many_pass_original(self):
+
+        class NestedSchema(Schema):
+            foo = fields.Int(required=True)
+
+            @validates_schema(pass_original=True)
+            def validate_schema(self, data, original_data):
+                unknown = set(original_data) - set(self.fields)
+                if unknown:
+                    raise ValidationError('Unknown field', unknown)
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, required=True, many=True)
+
+        schema = MySchema()
+        errors = schema.validate({"nested": [{"foo": 1, "bar": 2}]})
+        assert errors['nested'][0]['bar'][0] == 'Unknown field'
+
     def test_decorated_validators(self):
 
         class MySchema(Schema):
