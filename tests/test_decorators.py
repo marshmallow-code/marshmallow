@@ -365,23 +365,34 @@ class TestValidatesSchemaDecorator:
         assert '_schema' in errors['nested']
         assert 'foo' not in errors['nested']
 
-    def test_validator_nested_many_pass_original(self):
+    @pytest.mark.parametrize("data", ([{"foo": 1, "bar": 2}],))
+    @pytest.mark.parametrize(
+        "pass_many,expected_data,expected_original_data",
+        (
+            [True, [{"foo": 1}], [{"foo": 1, "bar": 2}]],
+            [False, {"foo": 1}, {"foo": 1, "bar": 2}],
+        ),
+    )
+    def test_validator_nested_many_pass_original_and_pass_many(
+            self, pass_many, data, expected_data, expected_original_data):
 
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
 
-            @validates_schema(pass_original=True)
-            def validate_schema(self, data, original_data):
-                unknown = set(original_data) - set(self.fields)
-                if unknown:
-                    raise ValidationError('Unknown field', unknown)
+            @validates_schema(pass_many=pass_many, pass_original=True)
+            def validate_schema(self, data, original_data, many=False):
+                assert data == expected_data
+                assert original_data == expected_original_data
+                assert many is pass_many
+                raise ValidationError("Method called")
 
         class MySchema(Schema):
             nested = fields.Nested(NestedSchema, required=True, many=True)
 
         schema = MySchema()
-        errors = schema.validate({"nested": [{"foo": 1, "bar": 2}]})
-        assert errors['nested'][0]['bar'][0] == 'Unknown field'
+        errors = schema.validate({"nested": data})
+        error = errors["nested"] if pass_many else errors["nested"][0]
+        assert error["_schema"][0] == "Method called"
 
     def test_decorated_validators(self):
 

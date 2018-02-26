@@ -836,11 +836,11 @@ class BaseSchema(base.SchemaABC):
             if pass_many:
                 validator = functools.partial(validator, many=many)
             if many and not pass_many:
-                for idx, item in enumerate(data):
+                for idx, (item, orig) in enumerate(zip(data, original_data)):
                     try:
                         self._unmarshal.run_validator(
-                            validator, item, original_data[idx], self.fields,
-                            many=many, index=idx, pass_original=pass_original)
+                            validator, item, orig, self.fields, many=many,
+                            index=idx, pass_original=pass_original)
                     except ValidationError as err:
                         errors.update(err.messages)
             else:
