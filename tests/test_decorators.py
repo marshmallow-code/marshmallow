@@ -758,3 +758,29 @@ def test_decorator_error_handling_with_dump(decorator):
         schema.dump(object())
     assert exc.value.messages == {'foo': 'error'}
     schema.load({})
+
+class TestProcessorPriorities:
+
+    def test_pass_ordered_processors(self):
+        class MySchema(Schema):
+            data = fields.Field()
+
+            @post_load(priority=1)
+            def first_post_load(self, ret):
+                ret['data'].append(1)
+                return ret
+
+            @post_load(priority=10)
+            def third_post_load(self, ret):
+                ret['data'].append(10)
+                return ret
+
+            @post_load(priority=5)
+            def second_post_load(self, ret):
+                ret['data'].append(5)
+                return ret
+
+        schema = MySchema()
+        datum = {'data': []}
+        item_loaded = schema.load(datum).data
+        assert item_loaded['data'] == [1, 5, 10]

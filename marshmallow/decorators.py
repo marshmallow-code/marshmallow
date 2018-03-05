@@ -61,15 +61,16 @@ VALIDATES = 'validates'
 VALIDATES_SCHEMA = 'validates_schema'
 
 
-def validates(field_name):
+def validates(field_name, priority=0):
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.
     """
-    return tag_processor(VALIDATES, None, False, field_name=field_name)
+    return tag_processor(VALIDATES, None, False, priority=priority, field_name=field_name)
 
 
-def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True):
+def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True,
+                     priority=0):
     """Register a schema-level validator.
 
     By default, receives a single object at a time, regardless of whether ``many=True``
@@ -85,11 +86,11 @@ def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_fiel
     .. versionchanged:: 3.0.0b1
         ``skip_on_field_errors`` defaults to `True`.
     """
-    return tag_processor(VALIDATES_SCHEMA, fn, pass_many, pass_original=pass_original,
-                         skip_on_field_errors=skip_on_field_errors)
+    return tag_processor(VALIDATES_SCHEMA, fn, pass_many, priority=priority,
+                         pass_original=pass_original, skip_on_field_errors=skip_on_field_errors)
 
 
-def pre_dump(fn=None, pass_many=False):
+def pre_dump(fn=None, pass_many=False, priority=0):
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
 
@@ -97,10 +98,10 @@ def pre_dump(fn=None, pass_many=False):
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
     and the value for ``many`` is passed.
     """
-    return tag_processor(PRE_DUMP, fn, pass_many)
+    return tag_processor(PRE_DUMP, fn, pass_many, priority=priority)
 
 
-def post_dump(fn=None, pass_many=False, pass_original=False):
+def post_dump(fn=None, pass_many=False, pass_original=False, priority=0):
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
@@ -108,10 +109,10 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return tag_processor(POST_DUMP, fn, pass_many, pass_original=pass_original)
+    return tag_processor(POST_DUMP, fn, pass_many, priority=priority, pass_original=pass_original)
 
 
-def pre_load(fn=None, pass_many=False):
+def pre_load(fn=None, pass_many=False, priority=0):
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
 
@@ -119,10 +120,10 @@ def pre_load(fn=None, pass_many=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return tag_processor(PRE_LOAD, fn, pass_many)
+    return tag_processor(PRE_LOAD, fn, pass_many, priority=priority)
 
 
-def post_load(fn=None, pass_many=False, pass_original=False):
+def post_load(fn=None, pass_many=False, pass_original=False, priority=0):
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
@@ -130,7 +131,7 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return tag_processor(POST_LOAD, fn, pass_many, pass_original=pass_original)
+    return tag_processor(POST_LOAD, fn, pass_many, priority=priority, pass_original=pass_original)
 
 
 def tag_processor(tag_name, fn, pass_many, **kwargs):

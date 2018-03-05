@@ -168,6 +168,16 @@ class SchemaMeta(type):
                 # the processor was a descriptor or something.
                 self.__processors__[tag].append(attr_name)
 
+        # Sort all processor tags by priority, descending
+        for tag, processors in self.__processors__.items():
+            sorted_processors = sorted(processors,
+                                       key=lambda proc: self._get_priority(proc, tag))
+            self.__processors__[tag] = sorted_processors
+
+    def _get_priority(self, attr_name, tag):
+        processor = getattr(self, attr_name)
+        return processor.__marshmallow_kwargs__[tag].get('priority', 0)
+
 
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
