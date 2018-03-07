@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+3.0.0b8 (unreleased)
+++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: When `pass_original=True` is passed to one
+  of the decorators and a collection is being (de)serialized, the
+  `original_data` argument will be a single object unless
+  `pass_many=True` is also passed to the decorator (:issue:`315`,
+  :issue:`743`). Thanks :user:`stj` for the PR.
+
 3.0.0b7 (2018-02-03)
 ++++++++++++++++++++
 

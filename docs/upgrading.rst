@@ -116,6 +116,42 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
         def get_attribute(self, obj, attr, default):
             # ...
 
+``pass_original=True`` passes individual items when ``many=True``
+*****************************************************************
+
+When ``pass_original=True`` is passed to 
+`validates_schema <marshmallow.decorators.validates_schema>`,
+`post_load <marshmallow.decorators.post_load>`, or
+`post_dump <marshmallow.decorators.post_dump>`, the `original_data`
+argument will be a single item corresponding to the (de)serialized
+datum.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, post_load
+
+
+    class ShoeSchema(Schema):
+        size = fields.Int()
+
+        @post_load(pass_original=True)
+        def post_load(self, data, original_data):
+            # original_data has 'width' but
+            # data does not because it's not
+            # in the schema
+            assert 'width' in original_data
+            assert 'width' not in data
+            return data
+
+
+    input_data = [
+        {'size': 10, 'width': 'M'},
+        {'size': 6, 'width': 'W'},
+    ]
+
+    print(ShoeSchema(many=True).load(input_data))
+    # [{'size': 10}, {'size': 6}]
+
 
 ``utils.get_func_args`` no longer returns bound arguments
 *********************************************************
