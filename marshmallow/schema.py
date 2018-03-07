@@ -869,8 +869,8 @@ class BaseSchema(base.SchemaABC):
                     data = utils.if_none(processor(data, many), data)
             elif many:
                 if pass_original:
-                    data = [utils.if_none(processor(item, original_data), item)
-                            for item in data]
+                    data = [utils.if_none(processor(item, original), item)
+                            for item, original in zip(data, original_data)]
                 else:
                     data = [utils.if_none(processor(item), item) for item in data]
             else:
