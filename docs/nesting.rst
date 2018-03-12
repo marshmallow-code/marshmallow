@@ -213,7 +213,7 @@ If the object to be marshalled has a relationship to an object of the same type,
     user.friends.append(User('Joe', 'joe@example.com'))
     user.employer = User('Dirk', 'dirk@example.com')
     result = UserSchema().dump(user)
-    pprint(result.data, indent=2)
+    pprint(result, indent=2)
     # {
     #     "name": "Steve",
     #     "email": "steve@example.com",
