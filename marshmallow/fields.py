@@ -7,7 +7,6 @@ import collections
 import datetime as dt
 import numbers
 import uuid
-import warnings
 import decimal
 
 from marshmallow import validate, utils, class_registry
@@ -949,7 +948,8 @@ class DateTime(Field):
         self.dateformat = format
 
         if auto_deserialize_format and not utils.dateutil_available:
-            raise RuntimeError('auto_deserialize_format option requires the python-dateutil library')
+            raise RuntimeError('auto_deserialize_format option requires the '
+                'python-dateutil library')
 
         self.auto_deserialize_format = auto_deserialize_format
 
