@@ -391,7 +391,6 @@ class TestFieldDeserialization:
             return
 
         field = fields.DateTime()
-        expected = dt.datetime(2017, 4, 29, 19, 30)
         noncompliant_string = '7:30PM on April 29, 2017'
 
         with pytest.raises(ValidationError):
