@@ -84,3 +84,16 @@ Contributors (chronological)
 - Vlad Frolov `@frol <https://github.com/frol>`_
 - Erling Børresen `@erlingbo <https://github.com/erlingbo>`_
 - Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
+- Roy Williams `@rowillia <https://github.com/rowillia>`_
+- `@dradetsky <https://github.com/dradetsky>`_
+- Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
+- Yoichi NAKAYAMA `@yoichi <https://github.com/yoichi>`_
+- Bernhard M. Wiedemann `@bmwiedemann <https://github.com/bmwiedemann>`_
+- Scott Werner `@scottwernervt <https://github.com/scottwernervt>`_
+- Leonardo Fedalto `@Fedalto <https://github.com/Fedalto>`_
+- `@sduthil <https://github.com/sduthil>`_
+- Steven Sklar `@sklarsa <https://github.com/sklarsa>`_
+- Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
+- Harlov Nikita `@harlov <https://github.com/harlov>`_
+- `@stj <https://github.com/stj>`_
+- Tomasz Magulski `@magul <https://github.com/magul>`_

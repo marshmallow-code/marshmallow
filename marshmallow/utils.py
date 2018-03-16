@@ -10,6 +10,7 @@ import json
 import re
 import time
 import types
+import warnings
 from calendar import timegm
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
@@ -92,6 +93,7 @@ def float_to_decimal(f):
         result = ctx.divide(numerator, denominator)
     return result
 
+
 ZERO_DECIMAL = Decimal()
 
 def decimal_to_fixed(value, precision):
@@ -131,6 +133,7 @@ def pprint(obj, *args, **kwargs):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
+
 
 # From pytz: http://pytz.sourceforge.net/
 ZERO = datetime.timedelta(0)
@@ -183,6 +186,7 @@ class UTC(datetime.tzinfo):
     def __str__(self):
         return "UTC"
 
+
 UTC = utc = UTC()  # UTC is a singleton
 
 
@@ -210,6 +214,7 @@ def rfcformat(dt, localtime=False):
         return formatdate(timegm(dt.utctimetuple()))
     else:
         return local_rfcformat(dt)
+
 
 # From Django
 _iso8601_re = re.compile(
@@ -259,12 +264,17 @@ def from_rfc(datestring, use_dateutil=True):
 
 
 def from_iso(datestring, use_dateutil=True):
+    warnings.warn('from_iso is deprecated. Use from_iso_datetime instead.', UserWarning)
+    return from_iso_datetime(datestring, use_dateutil)
+
+
+def from_iso_datetime(datestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
     if not _iso8601_re.match(datestring):
-        raise ValueError('Not a valid ISO8601-formatted string')
+        raise ValueError('Not a valid ISO8601-formatted datetime string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
         return parser.parse(datestring)

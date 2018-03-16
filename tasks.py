@@ -24,12 +24,20 @@ def test(ctx, watch=False, last_failing=False):
     if int(sys.version_info[0]) < 3:
         args.append('--ignore={0}'.format(os.path.join('tests', 'test_py3')))
     retcode = pytest.main(args)
+    benchmark(ctx)
     sys.exit(retcode)
 
 @task
 def flake(ctx):
     """Run flake8 on codebase."""
     ctx.run('flake8 .', echo=True)
+
+@task
+def benchmark(ctx):
+    """Run fast benchmark on codebase."""
+    # Explicitly shell out to get more consistent results by creating a new process
+    # every time, for example running out of process ensures a pristine class_registry.
+    ctx.run('python performance/benchmark.py --iterations=100 --repeat=3', echo=True)
 
 @task
 def clean(ctx):
@@ -81,14 +89,3 @@ def readme(ctx, browse=False):
     ctx.run("rst2html.py README.rst > README.html")
     if browse:
         webbrowser.open_new_tab('README.html')
-
-@task
-def publish(ctx, test=False):
-    """Publish to the cheeseshop."""
-    clean(ctx)
-    if test:
-        ctx.run('python setup.py register -r test sdist bdist_wheel', echo=True)
-        ctx.run('twine upload dist/* -r test', echo=True)
-    else:
-        ctx.run('python setup.py register sdist bdist_wheel', echo=True)
-        ctx.run('twine upload dist/*', echo=True)

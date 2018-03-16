@@ -11,4 +11,4 @@ def test_function_field_using_type_annotation():
 
     data = {'name': 'Bruce Wayne', 'friends': 'Clark;Alfred;Robin'}
     result = MySchema().load(data)
-    assert result.data == {'friends': ['Clark', 'Alfred', 'Robin']}
+    assert result == {'friends': ['Clark', 'Alfred', 'Robin']}

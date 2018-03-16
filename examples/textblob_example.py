@@ -24,7 +24,7 @@ blob_schema = BlobSchema()
 def analyze():
     blob = TextBlob(request.json['text'])
     result = blob_schema.dump(blob)
-    return result.data
+    return result
 
 
 run(reloader=True, port=5000)

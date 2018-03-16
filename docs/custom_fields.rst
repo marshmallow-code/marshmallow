@@ -21,7 +21,7 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
 
     from marshmallow import fields
 
-    class Titlecased(fields.Field):
+    class TitleCased(fields.Field):
         def _serialize(self, value, attr, obj):
             if value is None:
                 return ''
@@ -83,7 +83,7 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
 
     schema = UserSchema()
     result = schema.load({'balance': '100.00'})
-    result.data['balance']  # => 100.0
+    result['balance']  # => 100.0
 
 .. _adding-context:
 
@@ -97,7 +97,7 @@ In these cases, you can set the ``context`` attribute (a dictionary) of a `Schem
 As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether the a certain word appears in a ``Blog's`` title.
 
 .. code-block:: python
-    :emphasize-lines: 4,8,16
+    :emphasize-lines: 4,8,15
 
     class UserSchema(Schema):
         name = fields.String()
@@ -105,7 +105,6 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
         is_author = fields.Function(lambda user, context: user == context['blog'].author)
         likes_bikes = fields.Method('writes_about_bikes')
 
-        # Method fields also optionally receive context argument
         def writes_about_bikes(self, user):
             return 'bicycle' in self.context['blog'].title.lower()
 
@@ -115,9 +114,9 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
     blog = Blog('Bicycle Blog', author=user)
 
     schema.context = {'blog': blog}
-    data, errors = schema.dump(user)
-    data['is_author']  # => True
-    data['likes_bikes']  # => True
+    result = schema.dump(user)
+    result['is_author']  # => True
+    result['likes_bikes']  # => True
 
 
 Customizing Error Messages

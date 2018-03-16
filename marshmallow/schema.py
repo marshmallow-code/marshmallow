@@ -10,7 +10,7 @@ import inspect
 import json
 import uuid
 import warnings
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
@@ -21,11 +21,6 @@ from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
 from marshmallow.utils import missing
 
-
-#: Return type of :meth:`Schema.dump` including serialized data and errors
-MarshalResult = namedtuple('MarshalResult', ['data', 'errors'])
-#: Return type of :meth:`Schema.load`, including deserialized data and errors
-UnmarshalResult = namedtuple('UnmarshalResult', ['data', 'errors'])
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
@@ -190,7 +185,6 @@ class SchemaOpts(object):
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
-        self.strict = getattr(meta, 'strict', False)
         self.dateformat = getattr(meta, 'dateformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(
@@ -243,8 +237,6 @@ class BaseSchema(base.SchemaABC):
         serialized result. Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
-    :param bool strict: If `True`, raise errors if invalid data are passed in
-        instead of failing silently and storing the errors.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
@@ -305,8 +297,6 @@ class BaseSchema(base.SchemaABC):
             Nested fields can be represented with dot delimiters.
         - ``dateformat``: Date format for all DateTime fields that do not have their
             date format explicitly specified.
-        - ``strict``: If `True`, raise errors during marshalling rather than
-            storing them.
         - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
             `json` from the standard library.
             Defaults to the ``json`` module in the stdlib.
@@ -320,16 +310,14 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, only=(), exclude=(), prefix='', strict=None,
-                 many=False, context=None, load_only=(), dump_only=(),
-                 partial=False):
+    def __init__(self, only=(), exclude=(), prefix='', many=False,
+                 context=None, load_only=(), dump_only=(), partial=False):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
         self.exclude = exclude
         self.prefix = prefix
-        self.strict = strict if strict is not None else self.opts.strict
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -348,7 +336,7 @@ class BaseSchema(base.SchemaABC):
         self._update_fields(many=many)
 
     def __repr__(self):
-        return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
+        return '<{ClassName}(many={self.many})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
 
@@ -394,10 +382,14 @@ class BaseSchema(base.SchemaABC):
         :param bool update_fields: Whether to update the schema's field classes. Typically
             set to `True`, but may be `False` when serializing a homogenous collection.
             This parameter is used by `fields.Nested` to avoid multiple updates.
-        :return: A tuple of the form (``data``, ``errors``)
-        :rtype: `MarshalResult`, a `collections.namedtuple`
+        :return: A dict of serialized data
+        :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
         """
         errors = {}
         many = self.many if many is None else bool(many)
@@ -459,10 +451,9 @@ class BaseSchema(base.SchemaABC):
             )
             # User-defined error handler
             self.handle_error(exc, obj)
-            if self.strict:
-                raise exc
+            raise exc
 
-        return MarshalResult(result, errors)
+        return result
 
     def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
@@ -473,14 +464,17 @@ class BaseSchema(base.SchemaABC):
         :param bool update_fields: Whether to update the schema's field classes. Typically
             set to `True`, but may be `False` when serializing a homogenous collection.
             This parameter is used by `fields.Nested` to avoid multiple updates.
-        :return: A tuple of the form (``data``, ``errors``)
-        :rtype: `MarshalResult`, a `collections.namedtuple`
+        :return: A ``json`` string
+        :rtype: str
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if ``obj`` is invalid.
         """
-        serialized, errors = self.dump(obj, many=many, update_fields=update_fields)
-        ret = self.opts.render_module.dumps(serialized, *args, **kwargs)
-        return MarshalResult(ret, errors)
+        serialized = self.dump(obj, many=many, update_fields=update_fields)
+        return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def load(self, data, many=None, partial=None):
         """Deserialize a data structure to an object defined by this Schema's
@@ -492,13 +486,16 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
-        :return: A tuple of the form (``data``, ``errors``)
-        :rtype: `UnmarshalResult`, a `collections.namedtuple`
+        :return: A dict of deserialized data
+        :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
         """
-        result, errors = self._do_load(data, many, partial=partial, postprocess=True)
-        return UnmarshalResult(data=result, errors=errors)
+        return self._do_load(data, many, partial=partial, postprocess=True)
 
     def loads(self, json_data, many=None, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -509,10 +506,14 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
-        :return: A tuple of the form (``data``, ``errors``)
-        :rtype: `UnmarshalResult`, a `collections.namedtuple`
+        :return: A dict of deserialized data
+        :rtype: dict
 
         .. versionadded:: 1.0.0
+        .. versionchanged:: 3.0.0b7
+            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
+            if invalid data are passed.
         """
         # TODO: This avoids breaking backward compatibility if people were
         # passing in positional args after `many` for use by `json.loads`, but
@@ -537,14 +538,16 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.1.0
         """
-        _, errors = self._do_load(data, many, partial=partial, postprocess=False)
-        return errors
+        try:
+            self._do_load(data, many, partial=partial, postprocess=False)
+        except ValidationError as exc:
+            return exc.messages
+        return {}
 
     ##### Private Helpers #####
 
     def _do_load(self, data, many=None, partial=None, postprocess=True):
-        """Deserialize `data`, returning the deserialized result and a dictonary of
-        validation errors.
+        """Deserialize `data`, returning the deserialized result.
 
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
@@ -615,10 +618,9 @@ class BaseSchema(base.SchemaABC):
                 **self._unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
-            if self.strict:
-                raise exc
+            raise exc
 
-        return result, errors
+        return result
 
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
@@ -725,11 +727,14 @@ class BaseSchema(base.SchemaABC):
                 # of objects for which iter will modify position in the collection
                 # e.g. Pymongo cursors
                 if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    obj_prototype = obj[0]
+                    try:
+                        obj_prototype = obj[0]
+                    except KeyError:
+                        obj_prototype = next(iter(obj))
                 else:
                     obj_prototype = next(iter(obj))
             except (StopIteration, IndexError):  # Nothing to serialize
-                return self.declared_fields
+                return {k: v for k, v in self.declared_fields.items() if k in field_names}
             obj = obj_prototype
         ret = self.dict_class()
         for key in field_names:
@@ -831,11 +836,11 @@ class BaseSchema(base.SchemaABC):
             if pass_many:
                 validator = functools.partial(validator, many=many)
             if many and not pass_many:
-                for idx, item in enumerate(data):
+                for idx, (item, orig) in enumerate(zip(data, original_data)):
                     try:
-                        self._unmarshal.run_validator(validator,
-                                                  item, original_data, self.fields, many=many,
-                                                  index=idx, pass_original=pass_original)
+                        self._unmarshal.run_validator(
+                            validator, item, orig, self.fields, many=many,
+                            index=idx, pass_original=pass_original)
                     except ValidationError as err:
                         errors.update(err.messages)
             else:
@@ -864,8 +869,8 @@ class BaseSchema(base.SchemaABC):
                     data = utils.if_none(processor(data, many), data)
             elif many:
                 if pass_original:
-                    data = [utils.if_none(processor(item, original_data), item)
-                            for item in data]
+                    data = [utils.if_none(processor(item, original), item)
+                            for item, original in zip(data, original_data)]
                 else:
                     data = [utils.if_none(processor(item), item) for item in data]
             else:
