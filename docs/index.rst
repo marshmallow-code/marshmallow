@@ -54,4 +54,5 @@ Project Info
     license
     authors
     contributing
+    code_of_conduct
     kudos

@@ -84,32 +84,32 @@ class TestMarshaller:
 
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
-            {'email': 'bar@example.com'},
-            {'email': 'foobar'},
-            {'email': 'invalid'},
+            {'age': 42},
+            {'age': 'dummy'},
+            {'age': '__dummy'},
         ]
         try:
-            marshal(users, {'email': fields.Email()}, many=True)
+            marshal(users, {'age': fields.Int()}, many=True, index_errors=True)
         except ValidationError:
             pass
         # 2nd and 3rd elements have an error
         assert 1 in marshal.errors
         assert 2 in marshal.errors
-        assert 'email' in marshal.errors[1]
-        assert 'email' in marshal.errors[2]
+        assert 'age' in marshal.errors[1]
+        assert 'age' in marshal.errors[2]
 
     def test_doesnt_store_errors_when_index_errors_equals_false(self, marshal):
         users = [
-            {'email': 'bar@example.com'},
-            {'email': 'foobar'},
-            {'email': 'invalid'},
+            {'age': 42},
+            {'age': 'dummy'},
+            {'age': '__dummy'},
         ]
         try:
-            marshal(users, {'email': fields.Email()}, many=True, index_errors=False)
+            marshal(users, {'age': fields.Int()}, many=True, index_errors=False)
         except ValidationError:
             pass
         assert 1 not in marshal.errors
-        assert 'email' in marshal.errors
+        assert 'age' in marshal.errors
 
 class TestUnmarshaller:
 
@@ -247,12 +247,12 @@ class TestUnmarshaller:
         fields_dict = {
             'name': fields.String(load_from='Name'),
             'username': fields.Email(attribute='email', load_from='UserName'),
-            'years': fields.Integer(attribute='age', load_from='Years')
+            'years': fields.Integer(load_from='Years')
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
-        assert result['age'] == 42
+        assert 'years' not in result
 
     def test_deserialize_fields_with_dump_only_param(self, unmarshal):
         data = {

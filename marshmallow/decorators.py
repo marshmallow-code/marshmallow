@@ -107,6 +107,9 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     By default, receives a single object at a time, transparently handling the ``many``
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
+
+    If ``pass_original=True``, the original data (before serializing) will be passed as
+    an additional argument to the method.
     """
     return tag_processor(POST_DUMP, fn, pass_many, pass_original=pass_original)
 
@@ -129,6 +132,9 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     By default, receives a single datum at a time, transparently handling the ``many``
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
+
+    If ``pass_original=True``, the original data (before deserializing) will be passed as
+    an additional argument to the method.
     """
     return tag_processor(POST_LOAD, fn, pass_many, pass_original=pass_original)
 

@@ -34,7 +34,7 @@ marshmallow: simplified object serialization
 
     schema = AlbumSchema()
     result = schema.dump(album)
-    pprint(result.data, indent=2)
+    pprint(result, indent=2)
     # { 'artist': {'name': 'David Bowie'},
     #   'release_date': '1971-12-17',
     #   'title': 'Hunky Dory'}

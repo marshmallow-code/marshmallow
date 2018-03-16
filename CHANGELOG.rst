@@ -1,21 +1,117 @@
 Changelog
 ---------
 
-3.0.0b3 (unreleaased)
-+++++++++++++++++++++
+3.0.0b8 (unreleased)
+++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: When `pass_original=True` is passed to one
+  of the decorators and a collection is being (de)serialized, the
+  `original_data` argument will be a single object unless
+  `pass_many=True` is also passed to the decorator (:issue:`315`,
+  :issue:`743`). Thanks :user:`stj` for the PR.
+
+3.0.0b7 (2018-02-03)
+++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Schemas are always strict (:issue:`377`).
+  The ``strict`` parameter is removed.
+- *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
+  ``(data, errors)`` duple (:issue:`598`).
+- *Backwards-incomaptible*: `Schema().load(None)` raises a
+  `ValidationError` (:issue:`511`).
+
+See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
+for a guide on updating your code.
+
+Thanks :user:`lafrech` for implementing these changes.
+Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
+:user:`maximkulkin` for the discussions on these changes.
+
+
+Other changes:
+
+- *Backwards-incompatible*: Field name is not checked when ``load_from``
+  is specified (:issue:`714`). Thanks :user:`lafrech`.
+
+Support:
+
+- Add `Code of Conduct <http://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
+
+
+3.0.0b6 (2018-01-02)
+++++++++++++++++++++
+
+Bug fixes:
+
+- Fixes `ValidationError.valid_data` when a nested field contains errors
+  (:issue:`710`). This bug was introduced in 3.0.0b3. Thanks
+  :user:`lafrech`.
+
+Other changes:
+
+- *Backwards-incompatible*: ``Email`` and ``URL`` fields don't validate
+  on serialization (:issue:`608`). This makes them more consistent with the other
+  fields and improves serialization performance. Thanks again :user:`lafrech`.
+- ``validate.URL`` requires square brackets around IPv6 URLs (:issue:`707`). Thanks :user:`harlov`.
+
+3.0.0b5 (2017-12-30)
+++++++++++++++++++++
+
+Features:
+
+- Add support for structured dictionaries by providing values and keys arguments to the
+  ``Dict`` field's constructor. This mirrors the ``List``
+  field's ability to validate its items (:issue:`483`). Thanks :user:`deckar01`.
+
+Other changes:
+
+- *Backwards-incompatible*: ``utils.from_iso`` is deprecated in favor of
+  ``utils.from_iso_datetime`` (:issue:`694`). Thanks :user:`sklarsa`.
+
+3.0.0b4 (2017-10-23)
+++++++++++++++++++++
+
+Features:
+
+- Add support for millisecond, minute, hour, and week precisions to
+  ``fields.TimeDelta`` (:issue:`537`). Thanks :user:`Fedalto` for the
+  suggestion and the PR.
+- Includes features from release 2.14.0.
+
+
+Support:
+
+- Copyright year in docs uses CHANGELOG.rst's modified date for
+  reproducible builds (:issue:`679`). Thanks :user:`bmwiedemann`.
+- Test against Python 3.6 in tox. Thanks :user:`Fedalto`.
+- Fix typo in exception message (:issue:`659`). Thanks :user:`wonderbeyond`
+  for reporting and thanks :user:`yoichi` for the PR.
+
+3.0.0b3 (2017-08-20)
+++++++++++++++++++++
 
 Features:
 
 - Add ``valid_data`` attribute to ``ValidationError``.
+- Add ``strict`` parameter to ``Integer`` (:issue:`667`). Thanks
+  :user:`yoichi`.
 
 Deprecations/Removals:
 
 - Deprecate ``json_module`` option in favor of ``render_module`` (:issue:`364`, :issue:`130`). Thanks :user:`justanr` for the suggestion.
 
-
 Bug fixes:
 
-- Includes bug fixes from release 2.13.5.
+- Includes bug fixes from releases 2.13.5 and 2.13.6.
+- *Backwards-incompatible* : ``Number`` fields don't accept booleans as valid input (:issue:`623`). Thanks :user:`tuukkamustonen` for the suggestion and thanks :user:`rowillia` for the PR.
+
+Support:
+
+- Add benchmark script. Thanks :user:`rowillia`.
 
 3.0.0b2 (2017-03-19)
 ++++++++++++++++++++
@@ -68,6 +164,31 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.15.0 (2017-12-02)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle ``UnicodeDecodeError`` when deserializing ``bytes`` with a
+  ``String`` field (:issue:`650`). Thanks :user:`dan-blanchard` for the
+  suggestion and thanks :user:`4lissonsilveira` for the PR.
+
+2.14.0 (2017-10-23)
++++++++++++++++++++
+
+Features:
+
+- Add ``require_tld`` parameter to ``validate.URL`` (:issue:`664`).
+  Thanks :user:`sduthil` for the suggestion and the PR.
+
+2.13.6 (2017-08-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix serialization of types that implement `__getitem__`
+  (:issue:`669`). Thanks :user:`MichalKononenko`.
 
 2.13.5 (2017-04-12)
 +++++++++++++++++++

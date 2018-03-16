@@ -25,7 +25,7 @@ Data pre-processing and post-processing methods can be registered using the `pre
             return in_data
 
     schema = UserSchema()
-    result, errors = schema.load({'name': 'Steve', 'slug': 'Steve Loria '})
+    result = schema.load({'name': 'Steve', 'slug': 'Steve Loria '})
     result['slug']  # => 'steve-loria'
 
 
@@ -87,16 +87,16 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
     user_schema = UserSchema()
 
     user = User('Mick', email='mick@stones.org')
-    user_data = user_schema.dump(user).data
+    user_data = user_schema.dump(user)
     # {'user': {'email': 'mick@stones.org', 'name': 'Mick'}}
 
     users = [User('Keith', email='keith@stones.org'),
             User('Charlie', email='charlie@stones.org')]
-    users_data = user_schema.dump(users, many=True).data
+    users_data = user_schema.dump(users, many=True)
     # {'users': [{'email': 'keith@stones.org', 'name': 'Keith'},
     #            {'email': 'charlie@stones.org', 'name': 'Charlie'}]}
 
-    user_objs = user_schema.load(users_data, many=True).data
+    user_objs = user_schema.load(users_data, many=True)
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
 
 
@@ -119,7 +119,10 @@ Pre- and post-processing methods may raise a `ValidationError <marshmallow.excep
             return data['data']
 
     sch = BandSchema()
-    sch.load({'name': 'The Band'}).errors
+    try:
+        sch.load({'name': 'The Band'})
+    except ValidationError as err:
+        err.messages
     # {'_schema': ['Input data must have a "data" key.']}
 
 If you want to store and error on a different key, pass the key name as the second argument to `ValidationError <marshmallow.exceptions.ValidationError>`.
@@ -139,7 +142,10 @@ If you want to store and error on a different key, pass the key name as the seco
             return data['data']
 
     sch = BandSchema()
-    sch.load({'name': 'The Band'}).errors
+    try:
+        sch.load({'name': 'The Band'})
+    except ValidationError as err:
+        err.messages
     # {'_preprocessing': ['Input data must have a "data" key.']}
 
 
@@ -206,9 +212,9 @@ The pipeline for serialization is similar, except that the "pass_many" processor
 Handling Errors
 ---------------
 
-By default, :meth:`Schema.dump` and :meth:`Schema.load` will return validation errors as a dictionary (unless ``strict`` mode is enabled).
+By default, :meth:`Schema.dump` and :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`.
 
-You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the `ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
+You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
 
 .. code-block:: python
     :emphasize-lines: 10-13
@@ -252,8 +258,11 @@ You can register schema-level validation functions for a :class:`Schema` using t
                 raise ValidationError('field_a must be greater than field_b')
 
     schema = NumberSchema()
-    result, errors = schema.load({'field_a': 2, 'field_b': 1})
-    errors['_schema'] # => ["field_a must be greater than field_b"]
+    try:
+        schema.load({'field_a': 2, 'field_b': 1})
+    except ValidationError as err:
+        err.messages['_schema']
+    # => ["field_a must be greater than field_b"]
 
 
 Validating Original Input Data
@@ -277,7 +286,10 @@ Normally, unspecified field names are ignored by the validator. If you would lik
                 raise ValidationError('Unknown field', unknown)
 
     schema = MySchema()
-    errors = schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4}).errors
+    try:
+        schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4})
+    except ValidationError as err:
+        err.messages
     # {'baz': 'Unknown field', 'bu': 'Unknown field'}
 
 
@@ -302,8 +314,11 @@ If you want to store schema-level validation errors on a specific field, you can
                 )
 
     schema = NumberSchema()
-    result, errors = schema.load({'field_a': 2, 'field_b': 1})
-    errors['field_a'] # => ["field_a must be greater than field_b"]
+    try:
+        schema.load({'field_a': 2, 'field_b': 1})
+    except ValidationError as err:
+        err.messages['field_a']
+    # => ["field_a must be greater than field_b"]
 
 Overriding how attributes are accessed
 --------------------------------------
@@ -403,7 +418,7 @@ Our application schemas can now inherit from our custom schema class.
     ser = UserSchema()
     user = User('Keith', email='keith@stones.com')
     result = ser.dump(user)
-    result.data  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
+    result  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
 
 Using Context
 -------------

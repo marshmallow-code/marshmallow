@@ -50,7 +50,7 @@ class TestField:
             name = MyField()
 
         result = MySchema().load({'name': 'Monty', 'foo': 42})
-        assert result.data == {'name': 'Monty'}
+        assert result == {'name': 'Monty'}
 
     def test_custom_field_receives_load_from_if_set(self, user):
         class MyField(fields.Field):
@@ -63,7 +63,7 @@ class TestField:
             Name = MyField(load_from='name')
 
         result = MySchema().load({'name': 'Monty', 'foo': 42})
-        assert result.data == {'Name': 'Monty'}
+        assert result == {'Name': 'Monty'}
 
     def test_custom_field_follows_dump_to_if_set(self, user):
         class MyField(fields.Field):
@@ -76,7 +76,16 @@ class TestField:
             name = MyField(dump_to='_NaMe')
 
         result = MySchema().dump({'name': 'Monty', 'foo': 42})
-        assert result.data == {'_NaMe': 'Monty'}
+        assert result == {'_NaMe': 'Monty'}
+
+    def test_number_fields_prohbits_boolean(self):
+        strict_field = fields.Float()
+        with pytest.raises(ValidationError) as excinfo:
+            strict_field.serialize('value', {'value': False})
+        assert excinfo.value.args[0] == 'Not a valid number.'
+        with pytest.raises(ValidationError) as excinfo:
+            strict_field.serialize('value', {'value': True})
+        assert excinfo.value.args[0] == 'Not a valid number.'
 
 class TestParentAndName:
     class MySchema(Schema):
