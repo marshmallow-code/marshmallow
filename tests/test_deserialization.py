@@ -543,12 +543,14 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == 'Not a valid mapping type.'
 
     def test_structured_dict_value_deserialization(self):
-        field = fields.Dict(values=fields.Str)
-        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        field = fields.Dict(values=fields.List(fields.Str))
+        assert field.deserialize({"foo": ["bar", "baz"]}) == {"foo": ["bar", "baz"]}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({"foo": 1, "bar": "baz"})
-        assert excinfo.value.args[0] == {'foo': {'value': ['Not a valid string.']}}
-        assert excinfo.value.data == {'bar': 'baz', 'foo': None}
+            field.deserialize({"foo": [1, 2], "bar": "baz", "ham": ["spam"]})
+        assert excinfo.value.args[0] == {
+            'foo': {'value': {0: ['Not a valid string.'], 1: ['Not a valid string.']}},
+            'bar': {'value': ['Not a valid list.']}, }
+        assert excinfo.value.data == {'foo': [None, None], 'bar': None, 'ham': ['spam']}
 
     def test_structured_dict_key_deserialization(self):
         field = fields.Dict(keys=fields.Str)
