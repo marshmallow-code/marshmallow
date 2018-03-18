@@ -1303,46 +1303,24 @@ class TestSchemaDeserialization:
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
         assert errors == {}
 
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/730
     def test_structured_dict_nested_value_deserialization(self):
-        class BlogUserSchema(Schema):
+        class Child(Schema):
             email = fields.Email()
-            birthdate = fields.DateTime()
 
-        class SimpleBlogSerializer(Schema):
-            title = fields.String()
-            authors = fields.Dict(
+        class Parent(Schema):
+            users = fields.Dict(
                 keys=fields.String(),
-                values=fields.Nested(BlogUserSchema))
-
-        result = SimpleBlogSerializer().load({
-            'title': 'Gimme Shelter',
-            'authors': {
-                'Mick': {
-                    'email': 'mick@stones.com',
-                    'birthdate': '1943-07-26T00:00:00+00:00'
-                },
-            }})
-        assert result['authors']['Mick']['email'] == 'mick@stones.com'
-        assert_datetime_equal(result['authors']['Mick']['birthdate'],
-                              dt.datetime(1943, 7, 26))
+                values=fields.Nested(Child))
 
         with pytest.raises(ValidationError) as excinfo:
-            SimpleBlogSerializer().load({
-                'title': 'Gimme Shelter',
-                'authors': {
-                    ('whatever', ): {
-                        'email': 'mick-stones-com',
-                        'birthdate': 'anytime'
-                    },
-                }})
+            Parent().load({
+                'users': {('whatever', ): {'email': 'mick-stones-com', }, }})
         assert excinfo.value.args[0] == {
-            'authors': {
+            'users': {
                 ('whatever', ): {
                     'key': ['Not a valid string.'],
-                    'value': {
-                        'email': ['Not a valid email address.'],
-                        'birthdate': ['Not a valid datetime.']
-                    },
+                    'value': {'email': ['Not a valid email address.'], },
                 }}}
 
 
