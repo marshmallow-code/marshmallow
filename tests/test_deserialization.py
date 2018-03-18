@@ -1305,26 +1305,6 @@ class TestSchemaDeserialization:
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
         assert errors == {}
 
-    # regression test for https://github.com/marshmallow-code/marshmallow/issues/730
-    def test_structured_dict_nested_value_deserialization(self):
-        class Child(Schema):
-            email = fields.Email()
-
-        class Parent(Schema):
-            users = fields.Dict(
-                keys=fields.String(),
-                values=fields.Nested(Child))
-
-        with pytest.raises(ValidationError) as excinfo:
-            Parent().load({
-                'users': {('whatever', ): {'email': 'mick-stones-com', }, }})
-        assert excinfo.value.args[0] == {
-            'users': {
-                ('whatever', ): {
-                    'key': ['Not a valid string.'],
-                    'value': {'email': ['Not a valid email address.'], },
-                }}}
-
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
