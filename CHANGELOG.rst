@@ -11,6 +11,10 @@ Features:
   `original_data` argument will be a single object unless
   `pass_many=True` is also passed to the decorator (:issue:`315`,
   :issue:`743`). Thanks :user:`stj` for the PR.
+- *Backwards-incompatible*: Don't recursively check nested required
+  fields when the Nested field's key is missing (:issue:`319`). This
+  reverts :issue:`235`. Thanks :user:`chekunkov` reporting and thanks
+  :user:`lafrech` for the PR.
 
 3.0.0b7 (2018-02-03)
 ++++++++++++++++++++
