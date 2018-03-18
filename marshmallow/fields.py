@@ -66,8 +66,12 @@ class Field(FieldABC):
         `None`, assumes the attribute has the same name as the field.
     :param str load_from: Key to look for when deserializing.
     :param str dump_to: Field name to use as a key when serializing.
+    :param callable inspect: Validator or collection of validators that are called
+        before deserialization. Validator takes a field's raw input value as
+        its only parameter and returns a boolean.
+        If it returns `False`, an :exc:`ValidationError` is raised.
     :param callable validate: Validator or collection of validators that are called
-        during deserialization. Validator takes a field's input value as
+        immediately after deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
         If it returns `False`, an :exc:`ValidationError` is raised.
     :param required: Raise a :exc:`ValidationError` if the field value
@@ -117,30 +121,38 @@ class Field(FieldABC):
         'required': 'Missing data for required field.',
         'type': 'Invalid input type.',  # used by Unmarshaller
         'null': 'Field may not be null.',
-        'validator_failed': 'Invalid value.'
+        'inspector_failed': 'Wrong input.',
+        'validator_failed': 'Invalid value.',
     }
 
     def __init__(self, default=missing_, attribute=None, load_from=None, dump_to=None,
-                 error=None, validate=None, required=False, allow_none=None, load_only=False,
-                 dump_only=False, missing=missing_, error_messages=None, **metadata):
+                 error=None, inspect=None, validate=None, required=False, allow_none=None,
+                 load_only=False, dump_only=False, missing=missing_, error_messages=None, **metadata):
         self.default = default
         self.attribute = attribute
         self.load_from = load_from  # this flag is used by Unmarshaller
         self.dump_to = dump_to  # this flag is used by Marshaller
         self.validate = validate
-        if utils.is_iterable_but_not_string(validate):
-            if not utils.is_generator(validate):
-                self.validators = validate
-            else:
-                self.validators = list(validate)
-        elif callable(validate):
-            self.validators = [validate]
-        elif validate is None:
-            self.validators = []
-        else:
-            raise ValueError("The 'validate' parameter must be a callable "
-                             "or a collection of callables.")
+        self.inspect = inspect
+        self.inspectors = []
+        self.validators = []
 
+        def build_validator_list(src):
+            if src is None:
+                return []
+            if utils.is_iterable_but_not_string(src):
+                if utils.is_generator(src):
+                    return list(src)
+                else:
+                    return src
+            elif callable(src):
+                return [src]
+            else:
+                raise ValueError("The 'validate' parameter must be a callable "
+                                 "or a collection of callables.")
+
+        self.inspectors = build_validator_list(inspect)
+        self.validators = build_validator_list(validate)
         self.required = required
         # If missing=None, None should be considered valid by default
         if allow_none is None:
@@ -166,7 +178,7 @@ class Field(FieldABC):
 
     def __repr__(self):
         return ('<fields.{ClassName}(default={self.default!r}, '
-                'attribute={self.attribute!r}, '
+                'attribute={self.attribute!r}, inspect={self.inspect}, '
                 'validate={self.validate}, required={self.required}, '
                 'load_only={self.load_only}, dump_only={self.dump_only}, '
                 'missing={self.missing}, allow_none={self.allow_none}, '
@@ -182,17 +194,22 @@ class Field(FieldABC):
         check_key = attr if attribute is None else attribute
         return accessor_func(obj, check_key, default)
 
-    def _validate(self, value):
-        """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
-        does not succeed.
+    def _run_validators(self, value, validators, fail_message_key):
+        """Run validators sequentially on ``value``.
+        
+        Raise a :exc:`ValidationError` if validation does not succeed.
+
+        :param object value: The value to be validated.
+        :param list validators: List of validators.
+        :param str fail_message_key: Key used for fail message.
         """
         errors = []
         kwargs = {}
-        for validator in self.validators:
+        for validator in validators:
             try:
                 r = validator(value)
                 if not isinstance(validator, Validator) and r is False:
-                    self.fail('validator_failed')
+                    self.fail(fail_message_key)
             except ValidationError as err:
                 kwargs.update(err.kwargs)
                 if isinstance(err.messages, dict):
@@ -259,8 +276,9 @@ class Field(FieldABC):
         self._validate_missing(value)
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
+        self._run_validators(value, self.inspectors, 'inspector_failed')
         output = self._deserialize(value, attr, data)
-        self._validate(output)
+        self._run_validators(output, self.validators, 'validator_failed')
         return output
 
     # Methods for concrete classes to override.
