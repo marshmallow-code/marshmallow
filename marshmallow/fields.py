@@ -51,7 +51,6 @@ MISSING_ERROR_MESSAGE = (
     'ValidationError raised by `{class_name}`, but error key `{key}` does '
     'not exist in the `error_messages` dictionary.'
 )
-_RECURSIVE_NESTED = 'self'
 
 
 class Field(FieldABC):
@@ -359,11 +358,6 @@ class Nested(Field):
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param tuple exclude: A list or tuple of fields to exclude.
-    :param required: Raise an :exc:`ValidationError` during deserialization
-        if the field, *and* any required field values specified
-        in the `nested` schema, are not found in the data. If not a `bool`
-        (e.g. a `str`), the provided value will be used as the message of the
-        :exc:`ValidationError` instead of the default message.
     :param only: A tuple or string of the field(s) to marshal. If `None`, all fields
         will be marshalled. If a field name (string) is given, only a single
         value will be returned as output instead of a dictionary.
@@ -411,7 +405,7 @@ class Nested(Field):
                         load_only=self._nested_normalized_option('load_only'),
                         dump_only=self._nested_normalized_option('dump_only'))
             elif isinstance(self.nested, basestring):
-                if self.nested == _RECURSIVE_NESTED:
+                if self.nested == 'self':
                     parent_class = self.parent.__class__
                     self.__schema = parent_class(many=self.many, only=only,
                             exclude=self.exclude, context=context,
@@ -471,44 +465,6 @@ class Nested(Field):
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
-
-    def _validate_missing(self, value):
-        """Validate missing values. Raise a :exc:`ValidationError` if
-        `value` should be considered missing.
-        """
-        if value is missing_ and hasattr(self, 'required'):
-            if self.nested == _RECURSIVE_NESTED:
-                self.fail('required')
-            errors = self._check_required()
-            if errors:
-                raise ValidationError(errors)
-        else:
-            super(Nested, self)._validate_missing(value)
-
-    def _check_required(self):
-        errors = {}
-        if self.required:
-            for field_name, field in self.schema.fields.items():
-                if not field.required:
-                    continue
-                error_field_name = field.load_from or field_name
-                if (
-                    isinstance(field, Nested) and
-                    self.nested != _RECURSIVE_NESTED and
-                    field.nested != _RECURSIVE_NESTED
-                ):
-                    errors[error_field_name] = field._check_required()
-                else:
-                    try:
-                        field._validate_missing(field.missing)
-                    except ValidationError as ve:
-                        errors[error_field_name] = ve.messages
-            if self.many and errors:
-                errors = {0: errors}
-            # No inner errors; just raise required error like normal
-            if not errors:
-                self.fail('required')
-        return errors
 
 
 class List(Field):

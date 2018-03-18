@@ -1562,25 +1562,6 @@ class TestNestedSchema:
         b = Blog('Authorless blog', user=None)
         BlogRequiredSchema().dump(b)
 
-    def test_nested_required_errors_with_load_from(self):
-        class DatesInfoSchema(Schema):
-            created = fields.DateTime(required=True)
-            updated = fields.DateTime(required=True)
-
-        class UserSimpleSchema(Schema):
-            name = fields.String(required=True)
-            time_registered = fields.Time(load_from='timeRegistered', required=True)
-            dates_info = fields.Nested(DatesInfoSchema, load_from='datesInfo', required=True)
-
-        class BlogRequiredSchema(Schema):
-            user = fields.Nested(UserSimpleSchema, required=True)
-
-        with pytest.raises(ValidationError) as excinfo:
-            BlogRequiredSchema().load({})
-        errors = excinfo.value.messages
-        assert 'timeRegistered' in errors['user']
-        assert 'datesInfo' in errors['user']
-
     def test_nested_none(self):
         class BlogDefaultSchema(Schema):
             user = fields.Nested(UserSchema, default=0)
@@ -1759,41 +1740,6 @@ class TestNestedSchema:
         assert 'inner' in errors
         assert '_field' in errors['inner']
 
-    def test_missing_required_nested_field(self):
-        class Inner(Schema):
-            inner_req = fields.Field(required=True, error_messages={'required': 'Oops'})
-            inner_not_req = fields.Field()
-            inner_bad = fields.Integer(required=True, error_messages={'required': 'Int plz'})
-
-        class Middle(Schema):
-            middle_many_req = fields.Nested(Inner, required=True, many=True)
-            middle_req_2 = fields.Nested(Inner, required=True)
-            middle_not_req = fields.Nested(Inner)
-            middle_field = fields.Field(required=True, error_messages={'required': 'middlin'})
-
-        class Outer(Schema):
-            outer_req = fields.Nested(Middle, required=True)
-            outer_many_req = fields.Nested(Middle, required=True, many=True)
-            outer_not_req = fields.Nested(Middle)
-            outer_many_not_req = fields.Nested(Middle, many=True)
-
-        outer = Outer()
-        expected = {
-            'outer_many_req': {0: {'middle_many_req': {0: {'inner_bad': ['Int plz'],
-                                                           'inner_req': ['Oops']}},
-                                   'middle_req_2': {'inner_bad': ['Int plz'],
-                                                    'inner_req': ['Oops']},
-                                   'middle_field': ['middlin']}},
-            'outer_req': {'middle_field': ['middlin'],
-                           'middle_many_req': {0: {'inner_bad': ['Int plz'],
-                                              'inner_req': ['Oops']}},
-                           'middle_req_2': {'inner_bad': ['Int plz'],
-                                            'inner_req': ['Oops']}}}
-        with pytest.raises(ValidationError) as excinfo:
-            outer.load({})
-        errors = excinfo.value.messages
-        assert errors == expected
-
     def test_dump_validation_error(self):
         class Child(object):
             def __init__(self, foo, bar):
@@ -1867,64 +1813,6 @@ class TestSelfReference:
         assert data['age'] == user.age
         assert data['employer']['name'] == employer.name
         assert data['employer']['age'] == employer.age
-
-    def test_recursive_missing_required_field(self):
-        class BasicSchema(Schema):
-            sub_basics = fields.Nested("self", required=True)
-
-        with pytest.raises(ValidationError) as excinfo:
-            BasicSchema().load({})
-        data, errors = excinfo.value.valid_data, excinfo.value.messages
-        assert data == {}
-        assert errors == {
-            'sub_basics': ['Missing data for required field.']
-        }
-
-    def test_recursive_missing_required_field_one_level_in(self):
-        class BasicSchema(Schema):
-            sub_basics = fields.Nested("self", required=True, exclude=('sub_basics', ))
-            simple_field = fields.Str(required=True)
-
-        class DeepSchema(Schema):
-            basic = fields.Nested(BasicSchema(), required=True)
-
-        with pytest.raises(ValidationError) as excinfo:
-            DeepSchema().load({})
-        data, errors = excinfo.value.valid_data, excinfo.value.messages
-        assert data == {}
-
-        assert errors == {
-            'basic': {
-                'sub_basics': [u'Missing data for required field.'],
-                'simple_field': [u'Missing data for required field.'],
-            }
-        }
-
-        partially_valid = {
-            'basic': {'sub_basics': {'simple_field': 'foo'}}
-        }
-        with pytest.raises(ValidationError) as excinfo:
-            DeepSchema().load(partially_valid)
-        data, errors = excinfo.value.valid_data, excinfo.value.messages
-        assert data == partially_valid
-        assert errors == {
-            'basic': {
-                'simple_field': [u'Missing data for required field.'],
-            }
-        }
-
-        partially_valid2 = {
-            'basic': {'simple_field': 'foo'}
-        }
-        with pytest.raises(ValidationError) as excinfo:
-            DeepSchema().load(partially_valid2)
-        data, errors = excinfo.value.valid_data, excinfo.value.messages
-        assert data == partially_valid2
-        assert errors == {
-            'basic': {
-                'sub_basics': ['Missing data for required field.'],
-            }
-        }
 
     def test_nested_self_with_only_param(self, user, employer):
         class SelfSchema(Schema):
