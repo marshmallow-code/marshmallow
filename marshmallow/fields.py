@@ -666,9 +666,10 @@ class Integer(Number):
 
     # override Number
     def _format_num(self, value):
-        if self.strict and isinstance(value, numbers.Number):
-            if not isinstance(value, numbers.Integral):
-                self.fail('invalid')
+        if self.strict:
+            if isinstance(value, numbers.Number) and isinstance(value, numbers.Integral):
+                return super(Integer, self)._format_num(value)
+            self.fail('invalid')
         return super(Integer, self)._format_num(value)
 
 

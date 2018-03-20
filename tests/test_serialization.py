@@ -110,6 +110,19 @@ class TestFieldSerialization:
         field = fields.Integer(as_string=True)
         assert field.serialize('age', user) == '42'
 
+    def test_integer_strict(self, user):
+        field = fields.Integer(strict=True)
+        assert field.serialize('age', user) == 42
+
+    def test_integer_strict_fail(self, user):
+        field = fields.Integer(strict=True)
+        user.age = '42'
+        with pytest.raises(ValidationError):
+            field.serialize('age', user)
+        user.age = 42.22
+        with pytest.raises(ValidationError):
+            field.serialize('age', user)
+
     def test_integer_field_default(self, user):
         user.age = None
         field = fields.Integer(default=0)

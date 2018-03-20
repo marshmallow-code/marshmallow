@@ -97,3 +97,4 @@ Contributors (chronological)
 - Harlov Nikita `@harlov <https://github.com/harlov>`_
 - `@stj <https://github.com/stj>`_
 - Tomasz Magulski `@magul <https://github.com/magul>`_
+- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`
