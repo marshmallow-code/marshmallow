@@ -276,11 +276,6 @@ class Unmarshaller(ErrorStore):
                     (partial_is_collection and attr_name in partial)
                 ):
                     continue
-                _miss = field_obj.missing
-                raw_value = _miss() if callable(_miss) else _miss
-            if raw_value is missing and not field_obj.required:
-                continue
-
             getter = lambda val: field_obj.deserialize(val, field_name, data)
             value = self.call_and_store(
                 getter_func=getter,

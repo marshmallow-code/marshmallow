@@ -1105,26 +1105,30 @@ class TestSchemaDeserialization:
         assert 'nicknames' not in result
 
     def test_deserialize_with_missing_param_value(self):
+        bdate = dt.datetime(2017, 9, 29)
+
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=10)
+            birthdate = fields.DateTime(missing=bdate)
         data = {
             'name': 'Mick',
         }
         result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
-        assert result['years'] == 10
+        assert result['birthdate'] == bdate
 
     def test_deserialize_with_missing_param_callable(self):
+        bdate = dt.datetime(2017, 9, 29)
+
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=lambda: 13 + 7)
+            birthdate = fields.DateTime(missing=lambda: bdate)
         data = {
             'name': 'Mick',
         }
         result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
-        assert result['years'] == 20
+        assert result['birthdate'] == bdate
 
     def test_deserialize_with_missing_param_none(self):
         class AliasingUserSerializer(Schema):

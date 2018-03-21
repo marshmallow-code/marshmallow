@@ -29,10 +29,6 @@ class TestFieldSerialization:
     def user(self):
         return User("Foo", email="foo@bar.com", age=42)
 
-    def test_default(self, user):
-        field = fields.Field(default='nan')
-        assert field.serialize('age', {}) == 'nan'
-
     @pytest.mark.parametrize(('value', 'expected'),
     [
         (42, float(42)),
@@ -53,10 +49,6 @@ class TestFieldSerialization:
         user.age = None
         field = fields.Number(as_string=True, allow_none=True)
         assert field.serialize('age', user) is None
-
-    def test_callable_default(self, user):
-        field = fields.Field(default=lambda: 'nan')
-        assert field.serialize('age', {}) == 'nan'
 
     def test_function_field_passed_func(self, user):
         field = fields.Function(lambda obj: obj.name.upper())
@@ -815,6 +807,29 @@ class TestFieldSerialization:
         else:
             assert res is None
 
+class TestSchemaSerialization:
+
+    def test_serialize_with_missing_param_value(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+        data = {
+            'name': 'Mick',
+        }
+        result = AliasingUserSerializer().dump(data)
+        assert result['name'] == 'Mick'
+        assert result['birthdate'] == '2017-09-29T00:00:00+00:00'
+
+    def test_serialize_with_missing_param_callable(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29))
+        data = {
+            'name': 'Mick',
+        }
+        result = AliasingUserSerializer().dump(data)
+        assert result['name'] == 'Mick'
+        assert result['birthdate'] == '2017-09-29T00:00:00+00:00'
 
 def test_serializing_named_tuple():
     Point = namedtuple('Point', ['x', 'y'])
