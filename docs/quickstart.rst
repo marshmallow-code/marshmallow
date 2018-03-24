@@ -371,7 +371,7 @@ By default, `Schemas` will marshal the object attributes that are identical to t
     #  'date_created': '2014-08-17T14:58:57.600623+00:00'}
 
 
-Specifying Serializarion/Deserialization Keys
+Specifying Serialization/Deserialization Keys
 ---------------------------------------------
 
 By default `Schemas` will marshal/unmarshal an input dictionary from/to an output dictionary whose keys are identical to the field names.  However, if you are producing/consuming data that does not exactly match your schema, you can specify additional keys to dump/load values by passing the `data_key` argument.
