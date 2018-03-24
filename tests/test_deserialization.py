@@ -1057,11 +1057,11 @@ class TestSchemaDeserialization:
         errors = excinfo.value.messages
         assert errors['username'] == ['Not a valid email address.']
 
-    def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
+    def test_deserialize_with_attribute_param_error_returns_data_key_not_attribute_name(self):
         class AliasingUserSerializer(Schema):
-            name = fields.String(load_from='Name')
-            username = fields.Email(attribute='email', load_from='UserName')
-            years = fields.Integer(attribute='age', load_from='Years')
+            name = fields.String(data_key='Name')
+            username = fields.Email(attribute='email', data_key='UserName')
+            years = fields.Integer(attribute='age', data_key='Years')
         data = {
             'Name': 'Mick',
             'UserName': 'foobar.com',
@@ -1073,11 +1073,11 @@ class TestSchemaDeserialization:
         assert errors['UserName'] == [u'Not a valid email address.']
         assert errors['Years'] == [u'Not a valid integer.']
 
-    def test_deserialize_with_load_from_param(self):
+    def test_deserialize_with_data_key_param(self):
         class AliasingUserSerializer(Schema):
-            name = fields.String(load_from='Name')
-            username = fields.Email(attribute='email', load_from='UserName')
-            years = fields.Integer(load_from='Years')
+            name = fields.String(data_key='Name')
+            username = fields.Email(attribute='email', data_key='UserName')
+            years = fields.Integer(data_key='Years')
         data = {
             'Name': 'Mick',
             'UserName': 'foo@bar.com',

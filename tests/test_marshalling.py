@@ -61,24 +61,24 @@ class TestMarshaller:
         marshal({'email': 'invalid'}, fields_dict)
         assert 'email' not in marshal.errors
 
-    def test_serialize_fields_with_dump_to_param(self, marshal):
+    def test_serialize_fields_with_data_key_param(self, marshal):
         data = {
             'name': 'Mike',
             'email': 'm@wazow.ski',
         }
         fields_dict = {
-            'name': fields.String(dump_to='NaMe'),
-            'email': fields.Email(attribute='email', dump_to='EmAiL'),
+            'name': fields.String(data_key='NaMe'),
+            'email': fields.Email(attribute='email', data_key='EmAiL'),
         }
         result = marshal.serialize(data, fields_dict)
         assert result['NaMe'] == 'Mike'
         assert result['EmAiL'] == 'm@wazow.ski'
 
-    def test_serialize_fields_with_dump_to_and_prefix_params(self):
+    def test_serialize_fields_with_data_key_and_prefix_params(self):
         u = User("Foo", email="foo@bar.com")
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(dump_to='EmAiL'),
-                             'name': fields.String(dump_to='NaMe')})
+        result = marshal(u, {"email": fields.Email(data_key='EmAiL'),
+                             'name': fields.String(data_key='NaMe')})
         assert result['usr_NaMe'] == u.name
         assert result['usr_EmAiL'] == u.email
 
@@ -238,16 +238,16 @@ class TestUnmarshaller:
         assert result['email'] == 'mick@stones.com'
         assert result['firstname'] == 'Mick'
 
-    def test_deserialize_fields_with_load_from_param(self, unmarshal):
+    def test_deserialize_fields_with_data_key_param(self, unmarshal):
         data = {
             'Name': 'Mick',
             'UserName': 'foo@bar.com',
             'years': '42'
         }
         fields_dict = {
-            'name': fields.String(load_from='Name'),
-            'username': fields.Email(attribute='email', load_from='UserName'),
-            'years': fields.Integer(load_from='Years')
+            'name': fields.String(data_key='Name'),
+            'username': fields.Email(attribute='email', data_key='UserName'),
+            'years': fields.Integer(data_key='Years')
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'

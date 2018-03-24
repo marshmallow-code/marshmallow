@@ -417,10 +417,24 @@ more consistent with the other fields and improves serialization
 performance.
 
 
-Field name is not checked when ``load_from`` is specified
-*********************************************************
+``load_from`` and ``dump_to`` are merged into ``data_key``
+**********************************************************
 
-When ``load_from`` is specified on a field, only ``load_from`` is checked in the input data. The field name is no longer checked.
+The same key is used for serialization and deserialization.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
+
+    # 3.x
+    class UserSchema(Schema):
+        email = fields.Email(data_key='CamelCasedEmail')
+
+It is not possible to specify a different key for serialization and deserialization. This use case can be covered by using two different `Schema`.
+
+Also, when ``data_key`` is specified on a field, only ``data_key`` is checked in the input data. In marshmallow 2.x the field name is checked if ``load_from`` is missing from the input data.
 
 
 Upgrading to 2.3

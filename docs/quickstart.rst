@@ -371,50 +371,35 @@ By default, `Schemas` will marshal the object attributes that are identical to t
     #  'date_created': '2014-08-17T14:58:57.600623+00:00'}
 
 
-Specifying Deserialization Keys
--------------------------------
+Specifying Serializarion/Deserialization Keys
+---------------------------------------------
 
-By default `Schemas` will unmarshal an input dictionary to an output dictionary whose keys are identical to the field names.  However, if you are consuming data that does not exactly match your schema, you can specify additional keys to load values by passing the `load_from` argument.
+By default `Schemas` will marshal/unmarshal an input dictionary from/to an output dictionary whose keys are identical to the field names.  However, if you are producing/consuming data that does not exactly match your schema, you can specify additional keys to dump/load values by passing the `data_key` argument.
 
 .. code-block:: python
-    :emphasize-lines: 2,3,11,12
+    :emphasize-lines: 3,9,13,17,21
 
     class UserSchema(Schema):
         name = fields.String()
-        email = fields.Email(load_from='emailAddress')
+        email = fields.Email(data_key='emailAddress')
 
-    data = {
-        'name': 'Mike',
-        'emailAddress': 'foo@bar.com'
-    }
     s = UserSchema()
-    result = s.load(data)
-    #{'name': u'Mike',
-    # 'email': 'foo@bar.com'}
-
-.. _meta_options:
-
-
-Specifying Serialization Keys
--------------------------------
-
-If you want to marshal a field to a different key than the field name you can use `dump_to`, which is analogous to `load_from`.
-
-.. code-block:: python
-    :emphasize-lines: 2,3,11,12
-
-    class UserSchema(Schema):
-        name = fields.String(dump_to='TheName')
-        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
 
     data = {
         'name': 'Mike',
         'email': 'foo@bar.com'
     }
-    s = UserSchema()
     result = s.dump(data)
-    #{'TheName': u'Mike',
-    # 'CamelCasedEmail': 'foo@bar.com'}
+    #{'name': u'Mike',
+    # 'emailAddress': 'foo@bar.com'}
+
+    data = {
+        'name': 'Mike',
+        'emailAddress': 'foo@bar.com'
+    }
+    result = s.load(data)
+    #{'name': u'Mike',
+    # 'email': 'foo@bar.com'}
 
 
 Refactoring: Implicit Field Creation

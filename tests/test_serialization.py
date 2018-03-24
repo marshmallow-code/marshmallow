@@ -450,10 +450,10 @@ class TestFieldSerialization:
 
         assert m.serialize('', '', '') is missing_
 
-    def test_serialize_with_dump_to_param(self):
+    def test_serialize_with_data_key_param(self):
         class DumpToSchema(Schema):
-            name = fields.String(dump_to='NamE')
-            years = fields.Integer(dump_to='YearS')
+            name = fields.String(data_key='NamE')
+            years = fields.Integer(data_key='YearS')
         data = {
             'name': 'Richard',
             'years': 11
@@ -464,11 +464,11 @@ class TestFieldSerialization:
             'YearS': 11
         }
 
-    def test_serialize_with_attribute_and_dump_to_uses_dump_to(self):
+    def test_serialize_with_attribute_and_data_key_uses_data_key(self):
         class ConfusedDumpToAndAttributeSerializer(Schema):
-            name = fields.String(dump_to="FullName")
-            username = fields.String(attribute='uname', dump_to='UserName')
-            years = fields.Integer(attribute='le_wild_age', dump_to='Years')
+            name = fields.String(data_key="FullName")
+            username = fields.String(attribute='uname', data_key='UserName')
+            years = fields.Integer(attribute='le_wild_age', data_key='Years')
         data = {
             'name': 'Mick',
             'uname': 'mick_the_awesome',
