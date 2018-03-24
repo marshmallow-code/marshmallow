@@ -1,11 +1,15 @@
 Changelog
 ---------
 
-3.0.0b8 (unreleased)
+3.0.0b8 (2018-03-24)
 ++++++++++++++++++++
 
 Features:
 
+- *Backwards-incompatible*: Add ``data_key`` parameter to fields for
+  specifying the key in the input and output data dict. This
+  parameter replaces both ``load_from`` and ``dump_to`` (:issue:`717`).
+  Thanks :user:`lafrech`.
 - *Backwards-incompatible*: When `pass_original=True` is passed to one
   of the decorators and a collection is being (de)serialized, the
   `original_data` argument will be a single object unless
@@ -15,6 +19,9 @@ Features:
   fields when the Nested field's key is missing (:issue:`319`). This
   reverts :issue:`235`. Thanks :user:`chekunkov` reporting and thanks
   :user:`lafrech` for the PR.
+- *Backwards-incompatible*: Change error message collection for `Dict` field (:issue:`730`). Note:
+  this is backwards-incompatible with previous 3.0.0bX versions.
+  Thanks :user:`shabble` for the report and thanks :user:`lafrech` for the PR.
 
 3.0.0b7 (2018-02-03)
 ++++++++++++++++++++
