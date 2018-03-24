@@ -143,7 +143,7 @@ def tag_processor(tag_name, fn, pass_many, **kwargs):
     """Tags decorated processor function to be picked up later.
 
     .. note::
-        Currently ony works with functions and instance methods. Class and
+        Currently only works with functions and instance methods. Class and
         static methods are not supported.
 
     :return: Decorated function if supplied, else this decorator with its args
