@@ -1150,7 +1150,7 @@ class Dict(Field):
         if not self.value_container and not self.key_container:
             return value
 
-        errors = {}
+        errors = collections.defaultdict(dict)
         values = list(value.values())
         keys = list(value.keys())
         if self.key_container:
@@ -1158,10 +1158,7 @@ class Dict(Field):
                 try:
                     keys[idx] = self.key_container.deserialize(key)
                 except ValidationError as e:
-                    errors[key] = [
-                        'Invalid key: {}'.format(message)
-                        for message in e.messages
-                    ]
+                    errors[key]['key'] = e.messages
         if self.value_container:
             for idx, item in enumerate(values):
                 try:
@@ -1169,12 +1166,7 @@ class Dict(Field):
                 except ValidationError as e:
                     values[idx] = e.data
                     key = keys[idx]
-                    if key not in errors:
-                        errors[key] = []
-                    errors[key].extend([
-                        'Invalid value: {}'.format(message)
-                        for message in e.messages
-                    ])
+                    errors[key]['value'] = e.messages
         result = dict(zip(keys, values))
 
         if errors:
