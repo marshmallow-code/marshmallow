@@ -557,7 +557,8 @@ class BaseSchema(base.SchemaABC):
             If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
         :param bool postprocess: Whether to run post_load methods..
-        :return: A tuple of the form (`data`, `errors`)
+        :return: A dict of deserialized data
+        :rtype: dict
         """
         errors = {}
         many = self.many if many is None else bool(many)
