@@ -6,6 +6,8 @@ Lead
 ====
 
 - Steven Loria `@sloria <https://github.com/sloria>`_
+- Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
+- Jared Deckard `@deckar01 <https://github.com/deckar01>`_
 
 Contributors (chronological)
 ============================
