@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.0.0b9 (unreleased)
+++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: ``missing`` and ``default`` values are
+  passed in deserialized form (:issue:`378`). Thanks :user:`chadrik` for
+  the suggestion and thanks :user:`lafrech` for the PR.
+
 3.0.0b8 (2018-03-24)
 ++++++++++++++++++++
 

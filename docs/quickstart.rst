@@ -481,7 +481,7 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
         created_at = fields.DateTime(dump_only=True)
 
 
-Specify default Serialization/Deserialization values
+Specify Default Serialization/Deserialization Values
 ----------------------------------------------------
 
 Default values can be provided to a :class:`Field <fields.Field>` for both serialization and deserialization.
