@@ -481,6 +481,25 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
         created_at = fields.DateTime(dump_only=True)
 
 
+Specify default Serialization/Deserialization values
+----------------------------------------------------
+
+Default values can be provided to a :class:`Field <fields.Field>` for both serialization and deserialization.
+
+`missing` is used for deserialization if the field is not found in the input data. Likewise, `default` is used for serialization if the input value is missing.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        id = fields.UUID(missing=uuid.uuid1)
+        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+
+    UserSchema().load({})
+    # {'id': UUID('337d946c-32cd-11e8-b475-0022192ed31b')}
+    UserSchema().dump({})
+    # {'birthdate': '2017-09-29T00:00:00+00:00'}
+
+
 Next Steps
 ----------
 

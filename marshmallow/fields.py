@@ -105,7 +105,7 @@ class Field(FieldABC):
         inputs are excluded from serialized output.
     """
     # Some fields, such as Method fields and Function fields, are not expected
-    #  to exists as attributes on the objects to serialize. Set this to False
+    #  to exist as attributes on the objects to serialize. Set this to False
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0  # Used for sorting
@@ -237,12 +237,11 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
+            if value is missing_ and hasattr(self, 'default'):
+                default = self.default
+                value = default() if callable(default) else default
             if value is missing_:
-                if hasattr(self, 'default'):
-                    if callable(self.default):
-                        return self.default()
-                    else:
-                        return self.default
+                return value
         else:
             value = None
         return self._serialize(value, attr, obj)
@@ -256,6 +255,9 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         self._validate_missing(value)
+        if value is missing_:
+            _miss = self.missing
+            return _miss() if callable(_miss) else _miss
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
         output = self._deserialize(value, attr, data)

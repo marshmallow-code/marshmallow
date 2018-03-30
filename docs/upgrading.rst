@@ -393,6 +393,23 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
         class Meta:
             render_module = ujson
 
+
+``missing`` and ``default`` ``Field`` parameters are passed in deserialized form
+********************************************************************************
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        id = fields.UUID(missing=lambda: str(uuid.uuid1()))
+        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29).isoformat())
+
+    # 3.x
+    class UserSchema(Schema):
+        id = fields.UUID(missing=uuid.uuid1)
+        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+
+
 Pass ``default`` as a keyword argument
 **************************************
 
