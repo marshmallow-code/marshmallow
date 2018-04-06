@@ -574,7 +574,6 @@ class UUID(String):
     """A UUID field."""
     default_error_messages = {
         'invalid_uuid': 'Not a valid UUID.',
-        'invalid_guid': 'Not a valid UUID.'  # TODO: Remove this in marshmallow 3.0
     }
 
     def _validated(self, value):
