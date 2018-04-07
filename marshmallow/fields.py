@@ -1188,15 +1188,17 @@ class Url(String):
     """
     default_error_messages = {'invalid': 'Not a valid URL.'}
 
-    def __init__(self, relative=False, schemes=None, **kwargs):
+    def __init__(self, relative=False, schemes=None, require_tld=True, **kwargs):
         String.__init__(self, **kwargs)
 
         self.relative = relative
+        self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.URL(
             relative=self.relative,
             schemes=schemes,
+            require_tld=self.require_tld,
             error=self.error_messages['invalid']
         ))
 
@@ -1205,6 +1207,7 @@ class Url(String):
             return None
         return validate.URL(
             relative=self.relative,
+            require_tld=self.require_tld,
             error=self.error_messages['invalid']
         )(value)
 
