@@ -327,9 +327,11 @@ class Field(FieldABC):
             ret = ret.parent
         return ret if isinstance(ret, SchemaABC) else None
 
+
 class Raw(Field):
     """Field that applies no formatting or validation."""
     pass
+
 
 class Nested(Field):
     """Allows you to nest a :class:`Schema <marshmallow.Schema>`
@@ -401,23 +403,26 @@ class Nested(Field):
                 self.__schema.context.update(context)
             elif isinstance(self.nested, type) and \
                     issubclass(self.nested, SchemaABC):
-                self.__schema = self.nested(many=self.many,
-                        only=only, exclude=self.exclude, context=context,
-                        load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'))
+                self.__schema = self.nested(
+                    many=self.many,
+                    only=only, exclude=self.exclude, context=context,
+                    load_only=self._nested_normalized_option('load_only'),
+                    dump_only=self._nested_normalized_option('dump_only'))
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
                     parent_class = self.parent.__class__
-                    self.__schema = parent_class(many=self.many, only=only,
-                            exclude=self.exclude, context=context,
-                            load_only=self._nested_normalized_option('load_only'),
-                            dump_only=self._nested_normalized_option('dump_only'))
+                    self.__schema = parent_class(
+                        many=self.many, only=only,
+                        exclude=self.exclude, context=context,
+                        load_only=self._nested_normalized_option('load_only'),
+                        dump_only=self._nested_normalized_option('dump_only'))
                 else:
                     schema_class = class_registry.get_class(self.nested)
-                    self.__schema = schema_class(many=self.many,
-                            only=only, exclude=self.exclude, context=context,
-                            load_only=self._nested_normalized_option('load_only'),
-                            dump_only=self._nested_normalized_option('dump_only'))
+                    self.__schema = schema_class(
+                        many=self.many,
+                        only=only, exclude=self.exclude, context=context,
+                        load_only=self._nested_normalized_option('load_only'),
+                        dump_only=self._nested_normalized_option('dump_only'))
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
@@ -441,7 +446,7 @@ class Nested(Field):
             self.__updated_fields = True
         try:
             ret = schema.dump(nested_obj, many=self.many,
-                update_fields=not self.__updated_fields)
+                              update_fields=not self.__updated_fields)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
         finally:
@@ -493,14 +498,14 @@ class List(Field):
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
                 raise ValueError('The type of the list elements '
-                                           'must be a subclass of '
-                                           'marshmallow.base.FieldABC')
+                                 'must be a subclass of '
+                                 'marshmallow.base.FieldABC')
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
                 raise ValueError('The instances of the list '
-                                           'elements must be of type '
-                                           'marshmallow.base.FieldABC')
+                                 'elements must be of type '
+                                 'marshmallow.base.FieldABC')
             self.container = cls_or_instance
 
     def get_value(self, obj, attr, accessor=None):
@@ -544,6 +549,7 @@ class List(Field):
             raise ValidationError(errors, data=result)
 
         return result
+
 
 class String(Field):
     """A string field.
@@ -814,6 +820,7 @@ class Boolean(Field):
                 pass
         self.fail('invalid')
 
+
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for
     the source string is the same as the string `str.format` method
@@ -983,6 +990,7 @@ class Time(Field):
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError):
             self.fail('invalid')
+
 
 class Date(Field):
     """ISO8601-formatted date string.
