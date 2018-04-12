@@ -372,7 +372,7 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=None, update_fields=True, **kwargs):
+    def dump(self, obj, many=None, update_fields=True):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -424,8 +424,7 @@ class BaseSchema(base.SchemaABC):
                     many=many,
                     accessor=self.get_attribute,
                     dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                    **kwargs
+                    index_errors=self.opts.index_errors
                 )
             except ValidationError as error:
                 errors = self._marshal.errors
