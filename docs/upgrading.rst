@@ -7,6 +7,8 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
+.. _upgrading_3_0:
+
 Upgrading to 3.0
 ++++++++++++++++
 

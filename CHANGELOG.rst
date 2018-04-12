@@ -44,8 +44,7 @@ Features:
 - *Backwards-incomaptible*: `Schema().load(None)` raises a
   `ValidationError` (:issue:`511`).
 
-See the `Upgrading Guide <http://localhost:8000/upgrading.html#upgrading-to-3-0>`_
-for a guide on updating your code.
+See :ref:`upgrading_3_0` for a guide on updating your code.
 
 Thanks :user:`lafrech` for implementing these changes.
 Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
