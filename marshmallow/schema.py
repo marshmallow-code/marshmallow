@@ -231,19 +231,20 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param tuple only: A list or tuple of fields to serialize. If `None`, all
-        fields will be serialized. Nested fields can be represented with dot delimiters.
-    :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result. Nested fields can be represented with dot delimiters.
+    :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
+        If empty, all fields are used.
+        Nested fields can be represented with dot delimiters.
+    :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
+        If a field appears in both `only` and `exclude`, it is not used.
+        Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
-    :param tuple load_only: A list or tuple of fields to skip during serialization
-    :param tuple dump_only: A list or tuple of fields to skip during
-        deserialization, read-only fields
+    :param tuple|list load_only: Fields to skip during serialization (write-only fields)
+    :param tuple|list dump_only: Fields to skip during deserialization (read-only fields)
     :param bool|tuple partial: Whether to ignore missing fields. If its value
         is an iterable, only missing fields listed in that iterable will be
         ignored.
