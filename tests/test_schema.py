@@ -736,6 +736,27 @@ def test_nested_only_inheritance():
     assert 'baz' not in child
 
 
+def test_nested_only_empty_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, only=('bar',))
+    sch = ParentSchema(only=('blubb.foo',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' not in result.data
+    assert 'blubb' in result.data
+    assert 'bli' not in result.data
+    child = result.data['blubb']
+    assert 'foo' not in child
+    assert 'bar' not in child
+    assert 'baz' not in child
+
+
 def test_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Field()
