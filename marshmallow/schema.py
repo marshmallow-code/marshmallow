@@ -328,7 +328,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=None,
+    def __init__(self, extra=None, only=None, exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -704,7 +704,7 @@ class BaseSchema(base.SchemaABC):
 
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
-        if self.only:
+        if self.only is not None:
             # Apply the only option to nested fields.
             self.__apply_nested_option('only', self.only)
             # Remove the child field names from the only option.
@@ -737,7 +737,7 @@ class BaseSchema(base.SchemaABC):
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        if self.only:
+        if self.only is not None:
             # Return only fields specified in only option
             if self.opts.fields:
                 field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
