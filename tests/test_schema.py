@@ -1165,6 +1165,12 @@ def test_only_bounded_by_fields():
     sch = MySchema(only=('baz', ))
     assert sch.dump({'foo': 42}) == {}
 
+def test_only_empty():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    sch = MySchema(only=())
+    assert 'foo' not in sch.dump({'foo': 'bar'})
 
 def test_nested_only_and_exclude():
     class Inner(Schema):
