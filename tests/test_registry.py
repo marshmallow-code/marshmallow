@@ -42,6 +42,15 @@ def test_serializer_class_registry_register_same_classname_different_module():
     #  storing for same classname (+0) and different module (+1)
     assert len(class_registry._registry) == reglen + 2 + 1
 
+    cls2 = type('MyTestRegSchema', (Schema,), {'__module__': 'modB'})
+
+    assert 'MyTestRegSchema' in class_registry._registry
+    #  only the class with matching module has been replaced
+    assert len(class_registry._registry.get('MyTestRegSchema')) == 2
+    assert 'modB.MyTestRegSchema' in class_registry._registry
+    #  only the class with matching module has been replaced (+0)
+    assert len(class_registry._registry) == reglen + 2 + 1
+
 
 def test_serializer_class_registry_override_if_same_classname_same_module():
 
