@@ -10,6 +10,10 @@ Features:
   passed in deserialized form (:issue:`378`). Thanks :user:`chadrik` for
   the suggestion and thanks :user:`lafrech` for the PR.
 
+Bug fixes:
+
+- Includes the bugfix from 2.15.1.
+
 3.0.0b8 (2018-03-24)
 ++++++++++++++++++++
 
@@ -183,6 +187,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.15.1 (2018-04-25)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when an empty list is passed as the ``only`` argument
+  (:issue:`772`). Thanks :user:`deckar01` for reporting and thanks
+  :user:`lafrech` for the fix.
 
 2.15.0 (2017-12-02)
 +++++++++++++++++++
