@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.15.1 (2018-04-25)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when an empty list is passed as the ``only`` argument
+  (:issue:`772`). Thanks :user:`deckar01` for reporting and thanks
+  :user:`lafrech` for the fix.
+
 2.15.0 (2017-12-02)
 +++++++++++++++++++
 
