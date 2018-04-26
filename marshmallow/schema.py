@@ -2,7 +2,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
-from collections import defaultdict, Mapping
+from collections import defaultdict, Mapping, namedtuple
 import copy
 import datetime as dt
 import decimal
@@ -10,7 +10,6 @@ import inspect
 import json
 import uuid
 import warnings
-from collections import namedtuple
 import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
@@ -241,10 +240,12 @@ class BaseSchema(base.SchemaABC):
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
     :param dict extra: A dict of extra attributes to bind to the serialized result.
-    :param tuple only: A list or tuple of fields to serialize. If `None`, all
-        fields will be serialized. Nested fields can be represented with dot delimiters.
-    :param tuple exclude: A list or tuple of fields to exclude from the
-        serialized result. Nested fields can be represented with dot delimiters.
+    :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
+        If None, all fields are used.
+        Nested fields can be represented with dot delimiters.
+    :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
+        If a field appears in both `only` and `exclude`, it is not used.
+        Nested fields can be represented with dot delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool strict: If `True`, raise errors if invalid data are passed in
@@ -253,9 +254,8 @@ class BaseSchema(base.SchemaABC):
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
-    :param tuple load_only: A list or tuple of fields to skip during serialization
-    :param tuple dump_only: A list or tuple of fields to skip during
-        deserialization, read-only fields
+    :param tuple|list load_only: Fields to skip during serialization (write-only fields)
+    :param tuple|list dump_only: Fields to skip during deserialization (read-only fields)
     :param bool|tuple partial: Whether to ignore missing fields. If its value
         is an iterable, only missing fields listed in that iterable will be
         ignored.
@@ -328,7 +328,7 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, extra=None, only=(), exclude=(), prefix='', strict=None,
+    def __init__(self, extra=None, only=None, exclude=(), prefix='', strict=None,
                  many=False, context=None, load_only=(), dump_only=(),
                  partial=False):
         # copy declared fields from metaclass
@@ -704,7 +704,7 @@ class BaseSchema(base.SchemaABC):
 
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
-        if self.only:
+        if self.only is not None:
             # Apply the only option to nested fields.
             self.__apply_nested_option('only', self.only)
             # Remove the child field names from the only option.
@@ -737,7 +737,7 @@ class BaseSchema(base.SchemaABC):
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        if self.only:
+        if self.only is not None:
             # Return only fields specified in only option
             if self.opts.fields:
                 field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
