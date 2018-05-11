@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+2.15.2 (2018-05-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix a race condition in validation when concurrent threads use the
+  same ``Schema`` instance (:issue:`783`). Thanks :user:`yupeng0921` and
+  :user:`lafrech` for the fix.
+- Fix serialization behavior of
+  ``fields.List(fields.Integer(as_string=True))`` (:issue:`788`). Thanks
+  :user:`cactus` for reporting and :user:`lafrech` for the fix.
+- Fix behavior of ``exclude`` parameter when passed from parent to
+  nested schemas (:issue:`728`). Thanks :user:`timc13` for reporting and
+  :user:`deckar01` for the fix.
+
 2.15.1 (2018-04-25)
 +++++++++++++++++++
 
