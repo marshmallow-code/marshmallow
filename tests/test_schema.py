@@ -810,6 +810,50 @@ def test_nested_only():
     assert 'baz' not in child
 
 
+def test_nested_only_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, only=('foo', 'bar'))
+    sch = ParentSchema(only=('blubb.foo', 'blubb.baz'))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' not in result
+    assert 'blubb' in result
+    assert 'bli' not in result
+    child = result['blubb']
+    assert 'foo' in child
+    assert 'bar' not in child
+    assert 'baz' not in child
+
+
+def test_nested_only_empty_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, only=('bar',))
+    sch = ParentSchema(only=('blubb.foo',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' not in result
+    assert 'blubb' in result
+    assert 'bli' not in result
+    child = result['blubb']
+    assert 'foo' not in child
+    assert 'bar' not in child
+    assert 'baz' not in child
+
+
 def test_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Field()
@@ -832,7 +876,29 @@ def test_nested_exclude():
     assert 'baz' not in child
 
 
-def test_nested_only_and_exclude_with_dot_notation():
+def test_nested_exclude_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, exclude=('baz',))
+    sch = ParentSchema(exclude=('blubb.foo',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' in result
+    assert 'blubb' in result
+    assert 'bli' in result
+    child = result['blubb']
+    assert 'foo' not in child
+    assert 'bar' in child
+    assert 'baz' not in child
+
+
+def test_nested_only_and_exclude():
     class ChildSchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
@@ -852,6 +918,76 @@ def test_nested_only_and_exclude_with_dot_notation():
     assert 'foo' not in child
     assert 'bar' in child
     assert 'baz' not in child
+
+
+def test_nested_only_then_exclude_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, only=('foo', 'bar'))
+    sch = ParentSchema(exclude=('blubb.foo',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' in result
+    assert 'blubb' in result
+    assert 'bli' in result
+    child = result['blubb']
+    assert 'foo' not in child
+    assert 'bar' in child
+    assert 'baz' not in child
+
+
+def test_nested_exclude_then_only_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, exclude=('foo',))
+    sch = ParentSchema(only=('blubb.bar',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' not in result
+    assert 'blubb' in result
+    assert 'bli' not in result
+    child = result['blubb']
+    assert 'foo' not in child
+    assert 'bar' in child
+    assert 'baz' not in child
+
+
+def test_nested_exclude_and_only_inheritance():
+    class ChildSchema(Schema):
+        foo = fields.Field()
+        bar = fields.Field()
+        baz = fields.Field()
+        ban = fields.Field()
+        fuu = fields.Field()
+
+    class ParentSchema(Schema):
+        bla = fields.Field()
+        bli = fields.Field()
+        blubb = fields.Nested(ChildSchema, only=('foo', 'bar', 'baz', 'ban'), exclude=('foo',))
+    sch = ParentSchema(only=('blubb.foo', 'blubb.bar', 'blubb.baz'), exclude=('blubb.baz',))
+    data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+    result = sch.dump(data)
+    assert 'bla' not in result
+    assert 'blubb' in result
+    assert 'bli' not in result
+    child = result['blubb']
+    assert 'foo' not in child
+    assert 'bar' in child
+    assert 'baz' not in child
+    assert 'ban' not in child
+    assert 'fuu' not in child
 
 
 def test_meta_nested_exclude():
@@ -1171,21 +1307,6 @@ def test_only_empty():
 
     sch = MySchema(only=())
     assert 'foo' not in sch.dump({'foo': 'bar'})
-
-def test_nested_only_and_exclude():
-    class Inner(Schema):
-        foo = fields.Field()
-        bar = fields.Field()
-        baz = fields.Field()
-
-    class Outer(Schema):
-        inner = fields.Nested(Inner, only=('foo', 'bar'), exclude=('bar', ))
-
-    sch = Outer()
-    data = dict(inner=dict(foo=42, bar=24, baz=242))
-    result = sch.dump(data)
-    assert 'foo' in result['inner']
-    assert 'bar' not in result['inner']
 
 
 def test_nested_with_sets():

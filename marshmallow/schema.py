@@ -324,12 +324,6 @@ class BaseSchema(base.SchemaABC):
         self.partial = partial
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
-        #: Callable marshalling object
-        self._marshal = marshalling.Marshaller(
-            prefix=self.prefix
-        )
-        #: Callable unmarshalling object
-        self._unmarshal = marshalling.Unmarshaller()
         self.context = context or {}
         self._normalize_nested_options()
         self._types_seen = set()
@@ -391,6 +385,8 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
+        # Callable marshalling object
+        marshal = marshalling.Marshaller(prefix=self.prefix)
         errors = {}
         many = self.many if many is None else bool(many)
         if many and utils.is_iterable_but_not_string(obj):
@@ -418,7 +414,7 @@ class BaseSchema(base.SchemaABC):
                         self._types_seen.add(obj_type)
 
             try:
-                result = self._marshal(
+                result = marshal(
                     processed_obj,
                     self.fields,
                     many=many,
@@ -427,7 +423,7 @@ class BaseSchema(base.SchemaABC):
                     index_errors=self.opts.index_errors
                 )
             except ValidationError as error:
-                errors = self._marshal.errors
+                errors = marshal.errors
                 result = error.data
 
         if not errors and self._has_processors:
@@ -442,11 +438,11 @@ class BaseSchema(base.SchemaABC):
         if errors:
             exc = ValidationError(
                 errors,
-                field_names=self._marshal.error_field_names,
-                fields=self._marshal.error_fields,
+                field_names=marshal.error_field_names,
+                fields=marshal.error_fields,
                 data=obj,
                 valid_data=result,
-                **self._marshal.error_kwargs
+                **marshal.error_kwargs
             )
             # User-defined error handler
             self.handle_error(exc, obj)
@@ -559,6 +555,8 @@ class BaseSchema(base.SchemaABC):
         :return: A dict of deserialized data
         :rtype: dict
         """
+        # Callable unmarshalling object
+        unmarshal = marshalling.Unmarshaller()
         errors = {}
         many = self.many if many is None else bool(many)
         if partial is None:
@@ -574,7 +572,7 @@ class BaseSchema(base.SchemaABC):
             result = None
         if not errors:
             try:
-                result = self._unmarshal(
+                result = unmarshal(
                     processed_data,
                     self.fields,
                     many=many,
@@ -584,18 +582,18 @@ class BaseSchema(base.SchemaABC):
                 )
             except ValidationError as error:
                 result = error.data
-            self._invoke_field_validators(data=result, many=many)
-            errors = self._unmarshal.errors
+            self._invoke_field_validators(unmarshal, data=result, many=many)
+            errors = unmarshal.errors
             field_errors = bool(errors)
             # Run schema-level migration
             try:
-                self._invoke_validators(pass_many=True, data=result, original_data=data, many=many,
-                                        field_errors=field_errors)
+                self._invoke_validators(unmarshal, pass_many=True, data=result, original_data=data,
+                                        many=many, field_errors=field_errors)
             except ValidationError as err:
                 errors.update(err.messages)
             try:
-                self._invoke_validators(pass_many=False, data=result, original_data=data, many=many,
-                                        field_errors=field_errors)
+                self._invoke_validators(unmarshal, pass_many=False, data=result, original_data=data,
+                                        many=many, field_errors=field_errors)
             except ValidationError as err:
                 errors.update(err.messages)
         # Run post processors
@@ -611,11 +609,11 @@ class BaseSchema(base.SchemaABC):
         if errors:
             exc = ValidationError(
                 errors,
-                field_names=self._unmarshal.error_field_names,
-                fields=self._unmarshal.error_fields,
+                field_names=unmarshal.error_field_names,
+                fields=unmarshal.error_fields,
                 data=data,
                 valid_data=result,
-                **self._unmarshal.error_kwargs
+                **unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
             raise exc
@@ -626,14 +624,14 @@ class BaseSchema(base.SchemaABC):
         """Apply then flatten nested schema options"""
         if self.only is not None:
             # Apply the only option to nested fields.
-            self.__apply_nested_option('only', self.only)
+            self.__apply_nested_option('only', self.only, 'intersection')
             # Remove the child field names from the only option.
             self.only = self.set_class(
                 [field.split('.', 1)[0] for field in self.only])
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             # Apply the exclude option to nested fields.
-            self.__apply_nested_option('exclude', excludes)
+            self.__apply_nested_option('exclude', excludes, 'union')
         if self.exclude:
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
@@ -643,7 +641,7 @@ class BaseSchema(base.SchemaABC):
             self.opts.exclude = self.set_class(
                 [field for field in self.opts.exclude if '.' not in field])
 
-    def __apply_nested_option(self, option_name, field_names):
+    def __apply_nested_option(self, option_name, field_names, set_operation):
         """Apply nested options to nested fields"""
         # Split nested field names on the first dot.
         nested_fields = [name.split('.', 1) for name in field_names if '.' in name]
@@ -653,7 +651,14 @@ class BaseSchema(base.SchemaABC):
             nested_options[parent].append(nested_names)
         # Apply the nested field options.
         for key, options in iter(nested_options.items()):
-            setattr(self.declared_fields[key], option_name, self.set_class(options))
+            new_options = self.set_class(options)
+            original_options = getattr(self.declared_fields[key], option_name, ())
+            if original_options:
+                if set_operation == 'union':
+                    new_options |= self.set_class(original_options)
+                if set_operation == 'intersection':
+                        new_options &= self.set_class(original_options)
+            setattr(self.declared_fields[key], option_name, new_options)
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
@@ -778,7 +783,7 @@ class BaseSchema(base.SchemaABC):
             data=data, many=many, original_data=original_data)
         return data
 
-    def _invoke_field_validators(self, data, many):
+    def _invoke_field_validators(self, unmarshal, data, many):
         for attr_name in self.__processors__[(VALIDATES, False)]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, False)]
@@ -798,7 +803,7 @@ class BaseSchema(base.SchemaABC):
                     except KeyError:
                         pass
                     else:
-                        validated_value = self._unmarshal.call_and_store(
+                        validated_value = unmarshal.call_and_store(
                             getter_func=validator,
                             data=value,
                             field_name=field_name,
@@ -813,7 +818,7 @@ class BaseSchema(base.SchemaABC):
                 except KeyError:
                     pass
                 else:
-                    validated_value = self._unmarshal.call_and_store(
+                    validated_value = unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
                         field_name=field_name,
@@ -822,7 +827,8 @@ class BaseSchema(base.SchemaABC):
                     if validated_value is missing:
                         data.pop(field_name, None)
 
-    def _invoke_validators(self, pass_many, data, original_data, many, field_errors=False):
+    def _invoke_validators(
+            self, unmarshal, pass_many, data, original_data, many, field_errors=False):
         errors = {}
         for attr_name in self.__processors__[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
@@ -838,16 +844,16 @@ class BaseSchema(base.SchemaABC):
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     try:
-                        self._unmarshal.run_validator(
+                        unmarshal.run_validator(
                             validator, item, orig, self.fields, many=many,
                             index=idx, pass_original=pass_original)
                     except ValidationError as err:
                         errors.update(err.messages)
             else:
                 try:
-                    self._unmarshal.run_validator(validator,
-                                              data, original_data, self.fields, many=many,
-                                              pass_original=pass_original)
+                    unmarshal.run_validator(validator,
+                                            data, original_data, self.fields, many=many,
+                                            pass_original=pass_original)
                 except ValidationError as err:
                     errors.update(err.messages)
         if errors:

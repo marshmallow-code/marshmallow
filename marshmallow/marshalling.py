@@ -38,12 +38,6 @@ class ErrorStore(object):
         #: Dictionary of extra kwargs from user raised exception
         self.error_kwargs = {}
 
-    def reset_errors(self):
-        self.errors = {}
-        self.error_field_names = []
-        self.error_fields = []
-        self.error_kwargs = {}
-
     def get_errors(self, index=None):
         if index is not None:
             errors = self.errors.get(index, {})
@@ -113,9 +107,6 @@ class Marshaller(ErrorStore):
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        # Reset errors dict if not serializing a collection
-        if not self._pending:
-            self.reset_errors()
         if many and obj is not None:
             self._pending = True
             ret = [self.serialize(d, fields_dict, many=False,
@@ -229,9 +220,6 @@ class Unmarshaller(ErrorStore):
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
-        # Reset errors if not deserializing a collection
-        if not self._pending:
-            self.reset_errors()
         if many and data is not None:
             self._pending = True
             ret = [self.deserialize(d, fields_dict, many=False,

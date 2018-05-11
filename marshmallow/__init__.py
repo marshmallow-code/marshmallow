@@ -12,7 +12,6 @@ from marshmallow.exceptions import ValidationError
 
 __version__ = '3.0.0b9'
 __author__ = 'Steven Loria'
-
 __all__ = [
     'Schema',
     'SchemaOpts',

@@ -629,20 +629,13 @@ class Number(Field):
         except (TypeError, ValueError):
             self.fail('invalid')
 
-    def serialize(self, attr, obj, accessor=None):
-        """Pulls the value for the given key from the object and returns the
-        serialized number representation. Return a string if `self.as_string=True`,
-        othewise return this field's `num_type`. Receives the same `args` and `kwargs`
-        as `Field`.
-        """
-        ret = Field.serialize(self, attr, obj, accessor=accessor)
-        return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
-
     def _to_string(self, value):
         return str(value)
 
     def _serialize(self, value, attr, obj):
-        return self._validated(value)
+        """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
+        ret = self._validated(value)
+        return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
 
     def _deserialize(self, value, attr, data):
         return self._validated(value)
