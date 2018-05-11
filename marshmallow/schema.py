@@ -704,14 +704,14 @@ class BaseSchema(base.SchemaABC):
         """Apply then flatten nested schema options"""
         if self.only is not None:
             # Apply the only option to nested fields.
-            self.__apply_nested_option('only', self.only)
+            self.__apply_nested_option('only', self.only, 'intersection')
             # Remove the child field names from the only option.
             self.only = self.set_class(
                 [field.split('.', 1)[0] for field in self.only])
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             # Apply the exclude option to nested fields.
-            self.__apply_nested_option('exclude', excludes)
+            self.__apply_nested_option('exclude', excludes, 'union')
         if self.exclude:
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
@@ -721,7 +721,7 @@ class BaseSchema(base.SchemaABC):
             self.opts.exclude = self.set_class(
                 [field for field in self.opts.exclude if '.' not in field])
 
-    def __apply_nested_option(self, option_name, field_names):
+    def __apply_nested_option(self, option_name, field_names, set_operation):
         """Apply nested options to nested fields"""
         # Split nested field names on the first dot.
         nested_fields = [name.split('.', 1) for name in field_names if '.' in name]
@@ -731,7 +731,14 @@ class BaseSchema(base.SchemaABC):
             nested_options[parent].append(nested_names)
         # Apply the nested field options.
         for key, options in iter(nested_options.items()):
-            setattr(self.declared_fields[key], option_name, self.set_class(options))
+            new_options = self.set_class(options)
+            original_options = getattr(self.declared_fields[key], option_name, ())
+            if original_options:
+                if set_operation == 'union':
+                    new_options |= self.set_class(original_options)
+                if set_operation == 'intersection':
+                        new_options &= self.set_class(original_options)
+            setattr(self.declared_fields[key], option_name, new_options)
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
