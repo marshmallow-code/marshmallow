@@ -243,7 +243,7 @@ something **will take priority**.
     appreciate it if you reworded your messages in this thread, since
     they made folks there uncomfortable. Let's try and be kind, yeah?"
 
-    Patt: "@keeperofbits Okay sorry. I'm just frustrated and I'm kinda
+    Patt: "@KeeperOfCommitBits Okay sorry. I'm just frustrated and I'm kinda
     burnt out and I guess I got carried away. I'll DM Alex a note
     apologizing and edit my messages. Sorry for the trouble."
 
@@ -258,7 +258,7 @@ The Nope Case
 
     Patt: "NOOOOPE. OH NOPE NOPE."
 
-    Alex: "JFC NO. NOPE. @keeperofbits NOPE NOPE LOOK HERE"
+    Alex: "JFC NO. NOPE. @KeeperOfCommitBits NOPE NOPE LOOK HERE"
 
     KeeperOfCommitBits: "👀 Nope. NOPE NOPE NOPE. 🔥"
 
