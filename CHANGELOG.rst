@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.0.0b11 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+* Clean up code for schema hooks (:issue:`814`).
+* Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`).
+
+Thanks :user:`taion` for these PRs.
+
 3.0.0b10 (2018-05-10)
 +++++++++++++++++++++
 
