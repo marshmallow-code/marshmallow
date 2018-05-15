@@ -161,13 +161,11 @@ class SchemaMeta(type):
         """
         mro = inspect.getmro(self)
 
-        self._processors = {
-            tag: {
-                pass_many: []
-                for pass_many in (True, False)
-            }
-            for tag in PROCESSOR_TAGS
-        }
+        self._processors = {}
+        for tag in PROCESSOR_TAGS:
+            self._processors[tag] = tag_processors = {}
+            for pass_many in (True, False):
+                tag_processors[pass_many] = []
 
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
