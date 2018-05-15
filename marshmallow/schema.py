@@ -674,16 +674,6 @@ class BaseSchema(base.SchemaABC):
             'exclude',
         )
         if exclude_field_names:
-            if not exclude_field_names <= available_field_names:
-                raise KeyError(
-                    'fields in "exclude" not found on schema: {0}'.format(
-                        ', '.join(
-                            '"{}"'.format(field_name)
-                            for field_name
-                            in exclude_field_names - available_field_names,
-                        ),
-                    ),
-                )
             # Note that this isn't available_field_names, since we want to
             # apply "only" for the actual calculation.
             field_names = field_names - exclude_field_names
@@ -704,9 +694,8 @@ class BaseSchema(base.SchemaABC):
         key,
     ):
         field_names = set_class(
-            field_name
+            field_name.split('.')[0]
             for field_name in field_names_raw
-            if '.' not in field_name,
         )
         if not field_names <= available_field_names:
             raise KeyError(
