@@ -603,30 +603,31 @@ class BaseSchema(base.SchemaABC):
                 result = error.data
             self._invoke_field_validators(unmarshal, data=result, many=many)
             errors = unmarshal.errors
-            field_errors = bool(errors)
             # Run schema-level validation.
-            try:
-                self._invoke_schema_validators(
-                    unmarshal,
-                    pass_many=True,
-                    data=result,
-                    original_data=data,
-                    many=many,
-                    field_errors=field_errors,
-                )
-            except ValidationError as err:
-                errors.update(err.messages)
-            try:
-                self._invoke_schema_validators(
-                    unmarshal,
-                    pass_many=False,
-                    data=result,
-                    original_data=data,
-                    many=many,
-                    field_errors=field_errors,
-                )
-            except ValidationError as err:
-                errors.update(err.messages)
+            if self._has_processors(VALIDATES_SCHEMA):
+                field_errors = bool(errors)
+                try:
+                    self._invoke_schema_validators(
+                        unmarshal,
+                        pass_many=True,
+                        data=result,
+                        original_data=data,
+                        many=many,
+                        field_errors=field_errors,
+                    )
+                except ValidationError as err:
+                    errors.update(err.messages)
+                try:
+                    self._invoke_schema_validators(
+                        unmarshal,
+                        pass_many=False,
+                        data=result,
+                        original_data=data,
+                        many=many,
+                        field_errors=field_errors,
+                    )
+                except ValidationError as err:
+                    errors.update(err.messages)
         # Run post processors
         if not errors and postprocess and self._has_processors(POST_LOAD):
             try:
@@ -863,7 +864,14 @@ class BaseSchema(base.SchemaABC):
                         data.pop(field_name, None)
 
     def _invoke_schema_validators(
-            self, unmarshal, pass_many, data, original_data, many, field_errors=False):
+        self,
+        unmarshal,
+        pass_many,
+        data,
+        original_data,
+        many,
+        field_errors=False,
+    ):
         errors = {}
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
@@ -880,22 +888,40 @@ class BaseSchema(base.SchemaABC):
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     try:
                         unmarshal.run_validator(
-                            validator, item, orig, self.fields, many=many,
-                            index=idx, pass_original=pass_original)
+                            validator,
+                            item,
+                            orig,
+                            self.fields,
+                            many=many,
+                            index=idx,
+                            pass_original=pass_original,
+                        )
                     except ValidationError as err:
                         errors.update(err.messages)
             else:
                 try:
-                    unmarshal.run_validator(validator,
-                                            data, original_data, self.fields, many=many,
-                                            pass_original=pass_original)
+                    unmarshal.run_validator(
+                        validator,
+                        data,
+                        original_data,
+                        self.fields,
+                        many=many,
+                        pass_original=pass_original,
+                    )
                 except ValidationError as err:
                     errors.update(err.messages)
         if errors:
             raise ValidationError(errors)
         return None
 
-    def _invoke_processors(self, tag, pass_many, data, many, original_data=None):
+    def _invoke_processors(
+        self,
+        tag,
+        pass_many,
+        data,
+        many,
+        original_data=None,
+    ):
         key = (tag, pass_many)
         for attr_name in self._hooks[key]:
             # This will be a bound method.
