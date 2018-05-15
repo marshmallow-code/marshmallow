@@ -6,6 +6,7 @@ from marshmallow.marshalling import missing
 
 from tests.base import ALL_FIELDS, User
 
+
 class TestFieldAliases:
 
     def test_int_is_integer(self):
@@ -20,18 +21,19 @@ class TestFieldAliases:
     def test_URL_is_Url(self):  # flake8: noqa
         assert fields.URL is fields.Url
 
+
 class TestField:
 
     def test_repr(self):
         default = u'œ∑´'
         field = fields.Field(default=default, attribute=None)
         assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
-                                'validate=None, required=False, '
-                                'load_only=False, dump_only=False, '
-                                'missing={missing}, allow_none=False, '
-                                'error_messages={error_messages})>'
-                                .format(default, missing=missing,
-                                        error_messages=field.error_messages))
+                               'validate=None, required=False, '
+                               'load_only=False, dump_only=False, '
+                               'missing={missing}, allow_none=False, '
+                               'error_messages={error_messages})>'
+                               .format(default, missing=missing,
+                                       error_messages=field.error_messages))
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 
@@ -137,7 +139,7 @@ class TestMetadata:
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
         field = FieldClass(required=True, default=None, validate=lambda v: True,
-                            description='foo', widget='select')
+                           description='foo', widget='select')
         assert field.metadata == {'description': 'foo', 'widget': 'select'}
 
     def test_metadata_may_be_added_to_formatted_string_field(self):
@@ -152,9 +154,9 @@ class TestErrorMessages:
             'custom': 'Custom error message.'
         }
 
-    def test_default_error_messages_get_merged_with_parent_error_messages(self):
+    def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(self):
         field = self.MyField()
-        assert field.error_messages['custom'] == 'Custom error message'
+        assert field.error_messages['custom'] == 'Custom error message.'
         assert 'required' in field.error_messages
 
     def test_default_error_messages_get_merged_with_parent_error_messages(self):
