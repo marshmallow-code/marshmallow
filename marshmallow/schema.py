@@ -140,7 +140,7 @@ class SchemaMeta(type):
         super(SchemaMeta, self).__init__(name, bases, attrs)
         if name:
             class_registry.register(name, self)
-        self.resolve_hooks()
+        self._hooks = self.resolve_hooks()
 
     def resolve_hooks(self):
         """Add in the decorated processors
@@ -150,7 +150,7 @@ class SchemaMeta(type):
         """
         mro = inspect.getmro(self)
 
-        self._hooks = defaultdict(list)
+        hooks = defaultdict(list)
 
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
@@ -177,7 +177,9 @@ class SchemaMeta(type):
                 for key in iterkeys(hook_config):
                     # Use name here so we can get the bound method later, in
                     # case the processor was a descriptor or something.
-                    self._hooks[key].append(attr_name)
+                    hooks[key].append(attr_name)
+
+        return hooks
 
 
 class SchemaOpts(object):
