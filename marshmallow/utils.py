@@ -16,7 +16,7 @@ from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
-from marshmallow.compat import basestring, binary_type, text_type
+from marshmallow.compat import binary_type, text_type
 
 
 dateutil_available = False
@@ -337,9 +337,11 @@ def _get_value_for_keys(obj, keys, default):
 
 def _get_value_for_key(obj, key, default):
     try:
-        return obj.get(key, default)
-    except (KeyError, AttributeError, IndexError, TypeError):
+        return obj[key]
+    except (TypeError, AttributeError):
         return getattr(obj, key, default)
+    except (KeyError, IndexError):
+        return default
 
 
 def set_value(dct, key, value):
