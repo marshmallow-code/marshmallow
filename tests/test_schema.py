@@ -1507,7 +1507,7 @@ class TestHandleError:
         class MySchema(Schema):
             num = fields.Int()
 
-            @validates('num')
+            @validates(num)
             def validate_num(self, value):
                 if value < 0:
                     raise ValidationError('Must be greater than 0.')
@@ -1597,11 +1597,11 @@ class TestFieldValidation:
             a = fields.Field()
             b = fields.Field()
 
-            @validates('a')
+            @validates(a)
             def validate_a(self, val):
                 raise ValidationError({'code': 'invalid_a'})
 
-            @validates('b')
+            @validates(b)
             def validate_b(self, val):
                 raise ValidationError({'code': 'invalid_b'})
 
@@ -1856,7 +1856,7 @@ class TestNestedSchema:
         class Outer(Schema):
             inner = fields.Nested(Inner, many=True)
 
-            @validates('inner')
+            @validates(inner)
             def validates_inner(self, data):
                 raise ValidationError('not a chance')
 

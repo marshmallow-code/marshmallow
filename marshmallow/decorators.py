@@ -61,12 +61,12 @@ VALIDATES = 'validates'
 VALIDATES_SCHEMA = 'validates_schema'
 
 
-def validates(field_name):
+def validates(field):
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.
     """
-    return set_hook(None, VALIDATES, field_name=field_name)
+    return set_hook(None, VALIDATES, field=field)
 
 
 def validates_schema(

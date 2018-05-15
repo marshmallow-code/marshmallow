@@ -14,6 +14,7 @@ import warnings
 
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (
+    basestring,
     binary_type,
     iteritems,
     iterkeys,
@@ -326,8 +327,6 @@ class BaseSchema(base.SchemaABC):
 
     def __init__(self, only=None, exclude=(), prefix='', many=False,
                  context=None, load_only=(), dump_only=(), partial=False):
-        # copy declared fields from metaclass
-        self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
         self.exclude = exclude
@@ -339,6 +338,10 @@ class BaseSchema(base.SchemaABC):
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self.dict_class()
         self.context = context or {}
+        # copy declared fields from metaclass
+        self.declared_fields, self.validated_declared_fields = (
+            self._copy_declared_fields(self._declared_fields)
+        )
         self._normalize_nested_options()
         self._types_seen = set()
         self._update_fields(many=many)
@@ -648,6 +651,28 @@ class BaseSchema(base.SchemaABC):
 
         return result
 
+    def _copy_declared_fields(self, cls_declared_fields):
+        # Keep track of any field objects given to a @validates decorator, so
+        # we can resolve the bound field object by name when running
+        # validation.
+        validated_field_objs = set()
+        for attr_name in self._hooks[VALIDATES]:
+            validator = getattr(self, attr_name)
+            field = validator.__marshmallow_hook__[VALIDATES]['field']
+            if not isinstance(field, basestring):
+                validated_field_objs.add(field)
+
+        declared_fields = self.dict_class()
+        validated_declared_fields = {}
+
+        for field_name, field_obj in iteritems(cls_declared_fields):
+            declared_field_obj = copy.deepcopy(field_obj)
+            declared_fields[field_name] = declared_field_obj
+            if field_obj in validated_field_objs:
+                validated_declared_fields[field_obj] = declared_field_obj
+
+        return declared_fields, validated_declared_fields
+
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
         if self.only is not None:
@@ -818,14 +843,24 @@ class BaseSchema(base.SchemaABC):
         for attr_name in self._hooks[VALIDATES]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_hook__[VALIDATES]
-            field_name = validator_kwargs['field_name']
+            field = validator_kwargs['field']
 
-            try:
-                field_obj = self.fields[field_name]
-            except KeyError:
-                if field_name in self.declared_fields:
-                    continue
-                raise ValueError('"{0}" field does not exist.'.format(field_name))
+            if isinstance(field, basestring):
+                field_name = field
+                try:
+                    field_obj = self.declared_fields[field_name]
+                except KeyError:
+                    raise ValueError('"{0}" field does not exist.'.format(field))
+            else:
+                try:
+                    field_obj = self.validated_declared_fields[field]
+                except KeyError:
+                    raise ValueError('field does not exist.')
+                field_name = field_obj.name
+
+            # We're not currently loading this field. Don't bother validating.
+            if field_name not in self.fields:
+                continue
 
             if many:
                 for idx, item in enumerate(data):

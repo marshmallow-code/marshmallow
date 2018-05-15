@@ -229,14 +229,26 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
 class ValidatesSchema(Schema):
     foo = fields.Int()
 
-    @validates('foo')
+    @validates(foo)
     def validate_foo(self, value):
         if value != 42:
             raise ValidationError('The answer to life the universe and everything.')
 
 class TestValidatesDecorator:
+    def test_validates_field_obj(self):
+        class VSchema(Schema):
+            s = fields.String()
 
-    def test_validates(self):
+            @validates(s)
+            def validate_string(self, data):
+                raise ValidationError('nope')
+
+        with pytest.raises(ValidationError) as excinfo:
+            VSchema().load({'s': 'bar'})
+
+        assert excinfo.value.messages == {'s': ['nope']}
+
+    def test_validates_field_name(self):
         class VSchema(Schema):
             s = fields.String()
 
@@ -254,7 +266,7 @@ class TestValidatesDecorator:
         class S1(Schema):
             s = fields.String(attribute='string_name')
 
-            @validates('s')
+            @validates(s)
             def validate_string(self, data):
                 raise ValidationError('nope')
         with pytest.raises(ValidationError) as excinfo:
@@ -303,7 +315,19 @@ class TestValidatesDecorator:
         assert 'foo' in errors[1]
         assert errors[1]['foo'] == ['The answer to life the universe and everything.']
 
-    def test_field_not_present(self):
+    def test_field_obj_not_present(self):
+        class BadSchema(ValidatesSchema):
+            @validates(fields.String())
+            def validate_bar(self, value):
+                raise ValidationError('Never raised.')
+
+        schema = BadSchema()
+
+        with pytest.raises(ValueError) as excinfo:
+            schema.validate({'foo': 42})
+        assert 'field does not exist.' in str(excinfo)
+
+    def test_field_name_not_present(self):
         class BadSchema(ValidatesSchema):
             @validates('bar')
             def validate_bar(self, value):
@@ -316,11 +340,21 @@ class TestValidatesDecorator:
         assert '"bar" field does not exist.' in str(excinfo)
 
     def test_precedence(self):
-        class Schema2(ValidatesSchema):
+        class Schema2Base(Schema):
+            foo = fields.Int()
+
+            @validates('foo')
+            def validate_foo(self, value):
+                if value != 42:
+                    raise ValidationError(
+                        'The answer to life the universe and everything.',
+                    )
+
+        class Schema2(Schema2Base):
             foo = fields.Int(validate=lambda n: n != 42)
             bar = fields.Int(validate=lambda n: n == 1)
 
-            @validates('bar')
+            @validates(bar)
             def validate_bar(self, value):
                 if value != 2:
                     raise ValidationError('Must be 2')
