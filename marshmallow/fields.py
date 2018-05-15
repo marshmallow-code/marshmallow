@@ -13,7 +13,7 @@ import decimal
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import basestring, binary_type, text_type
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Validator
 
@@ -266,9 +266,9 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _add_to_schema(self, field_name, schema):
+    def _bind_to_schema(self, field_name, schema):
         """Update field with values from its parent schema. Called by
-            :meth:`__set_field_attrs <marshmallow.Schema.__set_field_attrs>`.
+            :meth:`_bind_field<marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
         :param Schema schema: Parent schema.
@@ -377,7 +377,6 @@ class Nested(Field):
         self.exclude = exclude
         self.many = kwargs.get('many', False)
         self.__schema = None  # Cached Schema instance
-        self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
 
     @property
@@ -436,12 +435,8 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
-        if not self.__updated_fields:
-            schema._update_fields(obj=nested_obj, many=self.many)
-            self.__updated_fields = True
         try:
-            ret = schema.dump(nested_obj, many=self.many,
-                update_fields=not self.__updated_fields)
+            ret = schema.dump(nested_obj, many=self.many)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
         finally:
@@ -515,8 +510,8 @@ class List(Field):
             return self.container.get_value(value, self.container.attribute)
         return value
 
-    def _add_to_schema(self, field_name, schema):
-        super(List, self)._add_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, schema):
+        super(List, self)._bind_to_schema(field_name, schema)
         self.container.parent = self
         self.container.name = field_name
 
@@ -894,8 +889,8 @@ class DateTime(Field):
         # dateformat, e.g. from a Meta option
         self.dateformat = format
 
-    def _add_to_schema(self, field_name, schema):
-        super(DateTime, self)._add_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, schema):
+        super(DateTime, self)._bind_to_schema(field_name, schema)
         self.dateformat = self.dateformat or schema.opts.dateformat
 
     def _serialize(self, value, attr, obj):
@@ -1342,6 +1337,43 @@ class Constant(Field):
 
     def _deserialize(self, value, *args, **kwargs):
         return self.constant
+
+
+class Default(Field):
+    """A field that infers how to serialize, based on the value type."""
+
+    TYPE_MAPPING = {
+        text_type: String,
+        binary_type: String,
+        dt.datetime: DateTime,
+        float: Float,
+        bool: Boolean,
+        tuple: Raw,
+        list: Raw,
+        set: Raw,
+        int: Integer,
+        uuid.UUID: UUID,
+        dt.time: Time,
+        dt.date: Date,
+        dt.timedelta: TimeDelta,
+        decimal.Decimal: Decimal,
+    }
+
+    def __init__(self):
+        super(Default, self).__init__()
+
+        self._field = None
+
+    def _serialize(self, value, attr, obj):
+        field_type = self.TYPE_MAPPING.get(type(value), Field)
+        if field_type is Field:
+            return super(Default, self)._serialize(value, attr, obj)
+
+        if type(self._field) is not field_type:
+            self._field = field_type()
+            self._field._bind_to_schema(self.name, self.parent)
+
+        return self._field._serialize(value, attr, obj)
 
 
 # Aliases

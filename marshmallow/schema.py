@@ -2,18 +2,15 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
-from collections import defaultdict, Mapping, OrderedDict
+from collections import defaultdict, OrderedDict
 import functools
 import copy
-import datetime as dt
-import decimal
 import inspect
 import json
-import uuid
 import warnings
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import with_metaclass, iteritems, text_type, binary_type
+from marshmallow.compat import iteritems, with_metaclass
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
@@ -255,23 +252,6 @@ class BaseSchema(base.SchemaABC):
         `__accessor__` and `__error_handler__` are deprecated. Implement the
         `handle_error` and `get_attribute` methods instead.
         """
-    TYPE_MAPPING = {
-        text_type: fields.String,
-        binary_type: fields.String,
-        dt.datetime: fields.DateTime,
-        float: fields.Float,
-        bool: fields.Boolean,
-        tuple: fields.Raw,
-        list: fields.Raw,
-        set: fields.Raw,
-        int: fields.Integer,
-        uuid.UUID: fields.UUID,
-        dt.time: fields.Time,
-        dt.date: fields.Date,
-        dt.timedelta: fields.TimeDelta,
-        decimal.Decimal: fields.Decimal,
-    }
-
     OPTIONS_CLASS = SchemaOpts
 
     class Meta(object):
@@ -322,12 +302,10 @@ class BaseSchema(base.SchemaABC):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = self.dict_class()
         self.context = context or {}
         self._normalize_nested_options()
-        self._types_seen = set()
-        self._update_fields(many=many)
+        #: Dictionary mapping field_names -> :class:`Field` objects
+        self.fields = self._init_fields()
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
@@ -366,16 +344,13 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=None, update_fields=True):
+    def dump(self, obj, many=None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :param bool update_fields: Whether to update the schema's field classes. Typically
-            set to `True`, but may be `False` when serializing a homogenous collection.
-            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A dict of serialized data
         :rtype: dict
 
@@ -406,13 +381,6 @@ class BaseSchema(base.SchemaABC):
             processed_obj = obj
 
         if not errors:
-            if update_fields:
-                obj_type = type(processed_obj)
-                if obj_type not in self._types_seen:
-                    self._update_fields(processed_obj, many=many)
-                    if not isinstance(processed_obj, Mapping):
-                        self._types_seen.add(obj_type)
-
             try:
                 result = marshal(
                     processed_obj,
@@ -450,15 +418,12 @@ class BaseSchema(base.SchemaABC):
 
         return result
 
-    def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
+    def dumps(self, obj, many=None, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :param bool update_fields: Whether to update the schema's field classes. Typically
-            set to `True`, but may be `False` when serializing a homogenous collection.
-            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A ``json`` string
         :rtype: str
 
@@ -468,7 +433,7 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
-        serialized = self.dump(obj, many=many, update_fields=update_fields)
+        serialized = self.dump(obj, many=many)
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def load(self, data, many=None, partial=None):
@@ -660,8 +625,8 @@ class BaseSchema(base.SchemaABC):
                         new_options &= self.set_class(original_options)
             setattr(self.declared_fields[key], option_name, new_options)
 
-    def _update_fields(self, obj=None, many=False):
-        """Update fields based on the passed in object."""
+    def _init_fields(self):
+        """Update fields based on schema options."""
         if self.only is not None:
             # Return only fields specified in only option
             if self.opts.fields:
@@ -682,87 +647,45 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj, many=many)
-        # Set parents
-        self.__set_field_attrs(ret)
-        self.fields = ret
-        return self.fields
+
+        fields_dict = self.dict_class()
+        for field_name in field_names:
+            field_obj = self.declared_fields.get(field_name, fields.Default())
+            self._bind_field(field_name, field_obj)
+            fields_dict[field_name] = field_obj
+
+        return fields_dict
 
     def on_bind_field(self, field_name, field_obj):
-        """Hook to modify a field when it is bound to the `Schema`. No-op by default."""
+        """Hook to modify a field when it is bound to the `Schema`.
+
+        No-op by default.
+        """
         return None
 
-    def __set_field_attrs(self, fields_dict):
-        """Bind fields to the schema, setting any necessary attributes
-        on the fields (e.g. parent and name).
+    def _bind_field(self, field_name, field_obj):
+        """Bind field to the schema, setting any necessary attributes on the
+        field (e.g. parent and name).
 
         Also set field load_only and dump_only values if field_name was
         specified in ``class Meta``.
         """
-        for field_name, field_obj in iteritems(fields_dict):
-            try:
-                if field_name in self.load_only:
-                    field_obj.load_only = True
-                if field_name in self.dump_only:
-                    field_obj.dump_only = True
-                field_obj._add_to_schema(field_name, self)
-                self.on_bind_field(field_name, field_obj)
-            except TypeError:
-                # field declared as a class, not an instance
-                if (isinstance(field_obj, type) and
-                        issubclass(field_obj, base.FieldABC)):
-                    msg = ('Field for "{0}" must be declared as a '
-                           'Field instance, not a class. '
-                           'Did you mean "fields.{1}()"?'
-                           .format(field_name, field_obj.__name__))
-                    raise TypeError(msg)
-        return fields_dict
-
-    def __filter_fields(self, field_names, obj, many=False):
-        """Return only those field_name:field_obj pairs specified by
-        ``field_names``.
-
-        :param set field_names: Field names to include in the final
-            return dictionary.
-        :returns: An dict of field_name:field_obj pairs.
-        """
-        if obj and many:
-            try:  # Homogeneous collection
-                # Prefer getitem over iter to prevent breaking serialization
-                # of objects for which iter will modify position in the collection
-                # e.g. Pymongo cursors
-                if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    try:
-                        obj_prototype = obj[0]
-                    except KeyError:
-                        obj_prototype = next(iter(obj))
-                else:
-                    obj_prototype = next(iter(obj))
-            except (StopIteration, IndexError):  # Nothing to serialize
-                return {k: v for k, v in self.declared_fields.items() if k in field_names}
-            obj = obj_prototype
-        ret = self.dict_class()
-        for key in field_names:
-            if key in self.declared_fields:
-                ret[key] = self.declared_fields[key]
-            else:  # Implicit field creation (class Meta 'fields' or 'additional')
-                if obj:
-                    attribute_type = None
-                    try:
-                        if isinstance(obj, Mapping):
-                            attribute_type = type(obj[key])
-                        else:
-                            attribute_type = type(getattr(obj, key))
-                    except (AttributeError, KeyError) as err:
-                        err_type = type(err)
-                        raise err_type(
-                            '"{0}" is not a valid field for {1}.'.format(key, obj))
-                    field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
-                else:  # Object is None
-                    field_obj = fields.Field()
-                # map key -> field (default to Raw)
-                ret[key] = field_obj
-        return ret
+        try:
+            if field_name in self.load_only:
+                field_obj.load_only = True
+            if field_name in self.dump_only:
+                field_obj.dump_only = True
+            field_obj._bind_to_schema(field_name, self)
+            self.on_bind_field(field_name, field_obj)
+        except TypeError:
+            # field declared as a class, not an instance
+            if (isinstance(field_obj, type) and
+                    issubclass(field_obj, base.FieldABC)):
+                msg = ('Field for "{0}" must be declared as a '
+                       'Field instance, not a class. '
+                       'Did you mean "fields.{1}()"?'
+                       .format(field_name, field_obj.__name__))
+                raise TypeError(msg)
 
     def _invoke_dump_processors(self, tag_name, data, many, original_data=None):
         # The pass_many post-dump processors may do things like add an envelope, so

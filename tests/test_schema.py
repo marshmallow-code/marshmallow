@@ -654,8 +654,8 @@ def test_only_in_init(SchemaClass, user):
     assert 'age' in s
 
 def test_invalid_only_param(user):
-    with pytest.raises(AttributeError):
-        UserSchema(only=("_invalid", "name")).dump(user)
+    schema = UserSchema(only=("_invalid", "name"))
+    assert schema.dump(user) == {'name': 'Monty'}
 
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user['uid'] == str(user.uid)
@@ -1288,9 +1288,7 @@ def test_only_with_invalid_attribute():
         foo = fields.Field()
 
     sch = MySchema(only=('bar', ))
-    with pytest.raises(KeyError) as excinfo:
-        sch.dump(dict(foo=42))
-    assert '"bar" is not a valid field' in str(excinfo.value.args[0])
+    assert sch.dump(dict(foo=42)) == {}
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
@@ -1341,28 +1339,28 @@ def test_meta_serializer_fields():
 def test_meta_fields_mapping(user):
     s = UserMetaSchema()
     s.dump(user)  # need to call dump to update fields
-    assert type(s.fields['name']) == fields.String
-    assert type(s.fields['created']) == fields.DateTime
-    assert type(s.fields['updated']) == fields.DateTime
+    assert type(s.fields['name']._field) == fields.String
+    assert type(s.fields['created']._field) == fields.DateTime
+    assert type(s.fields['updated']._field) == fields.DateTime
     assert type(s.fields['updated_local']) == fields.LocalDateTime
-    assert type(s.fields['age']) == fields.Float
+    assert type(s.fields['age']._field) == fields.Float
     assert type(s.fields['balance']) == fields.Decimal
-    assert type(s.fields['registered']) == fields.Boolean
-    assert type(s.fields['sex_choices']) == fields.Raw
-    assert type(s.fields['hair_colors']) == fields.Raw
-    assert type(s.fields['finger_count']) == fields.Integer
-    assert type(s.fields['uid']) == fields.UUID
-    assert type(s.fields['time_registered']) == fields.Time
-    assert type(s.fields['birthdate']) == fields.Date
-    assert type(s.fields['since_created']) == fields.TimeDelta
+    assert type(s.fields['registered']._field) == fields.Boolean
+    assert type(s.fields['sex_choices']._field) == fields.Raw
+    assert type(s.fields['hair_colors']._field) == fields.Raw
+    assert type(s.fields['finger_count']._field) == fields.Integer
+    assert type(s.fields['uid']._field) == fields.UUID
+    assert type(s.fields['time_registered']._field) == fields.Time
+    assert type(s.fields['birthdate']._field) == fields.Date
+    assert type(s.fields['since_created']._field) == fields.TimeDelta
 
 
-def test_meta_field_not_on_obj_raises_attribute_error(user):
+def test_meta_field_not_on_obj(user):
     class BadUserSchema(Schema):
         class Meta:
             fields = ('name', 'notfound')
-    with pytest.raises(AttributeError):
-        BadUserSchema().dump(user)
+
+    assert BadUserSchema().dump(user) == {'name': 'Monty'}
 
 def test_exclude_fields(user):
     s = UserExcludeSchema().dump(user)
