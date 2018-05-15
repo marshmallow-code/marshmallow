@@ -60,25 +60,21 @@ POST_LOAD = 'post_load'
 VALIDATES = 'validates'
 VALIDATES_SCHEMA = 'validates_schema'
 
-PROCESSOR_TAGS = (
-    PRE_DUMP,
-    POST_DUMP,
-    PRE_LOAD,
-    POST_LOAD,
-    VALIDATES,
-    VALIDATES_SCHEMA,
-)
-
 
 def validates(field_name):
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.
     """
-    return mark_as_processor(None, VALIDATES, False, field_name=field_name)
+    return set_hook(None, VALIDATES, field_name=field_name)
 
 
-def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True):
+def validates_schema(
+    fn=None,
+    pass_many=False,
+    pass_original=False,
+    skip_on_field_errors=True,
+):
     """Register a schema-level validator.
 
     By default, receives a single object at a time, regardless of whether ``many=True``
@@ -94,8 +90,12 @@ def validates_schema(fn=None, pass_many=False, pass_original=False, skip_on_fiel
     .. versionchanged:: 3.0.0b1
         ``skip_on_field_errors`` defaults to `True`.
     """
-    return mark_as_processor(fn, VALIDATES_SCHEMA, pass_many,
-        pass_original=pass_original, skip_on_field_errors=skip_on_field_errors)
+    return set_hook(
+        fn,
+        (VALIDATES_SCHEMA, pass_many),
+        pass_original=pass_original,
+        skip_on_field_errors=skip_on_field_errors,
+    )
 
 
 def pre_dump(fn=None, pass_many=False):
@@ -106,7 +106,7 @@ def pre_dump(fn=None, pass_many=False):
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
     and the value for ``many`` is passed.
     """
-    return mark_as_processor(fn, PRE_DUMP, pass_many)
+    return set_hook(fn, (PRE_DUMP, pass_many))
 
 
 def post_dump(fn=None, pass_many=False, pass_original=False):
@@ -120,7 +120,7 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     If ``pass_original=True``, the original data (before serializing) will be passed as
     an additional argument to the method.
     """
-    return mark_as_processor(fn, POST_DUMP, pass_many, pass_original=pass_original)
+    return set_hook(fn, (POST_DUMP, pass_many), pass_original=pass_original)
 
 
 def pre_load(fn=None, pass_many=False):
@@ -131,7 +131,7 @@ def pre_load(fn=None, pass_many=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
     """
-    return mark_as_processor(fn, PRE_LOAD, pass_many)
+    return set_hook(fn, (PRE_LOAD, pass_many))
 
 
 def post_load(fn=None, pass_many=False, pass_original=False):
@@ -145,11 +145,11 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     If ``pass_original=True``, the original data (before deserializing) will be passed as
     an additional argument to the method.
     """
-    return mark_as_processor(fn, POST_LOAD, pass_many, pass_original=pass_original)
+    return set_hook(fn, (POST_LOAD, pass_many), pass_original=pass_original)
 
 
-def mark_as_processor(fn, tag, pass_many, **kwargs):
-    """Mark decorated function as a processor to be picked up later.
+def set_hook(fn, key, **kwargs):
+    """Mark decorated function as a hook to be picked up later.
 
     .. note::
         Currently only works with functions and instance methods. Class and
@@ -160,18 +160,16 @@ def mark_as_processor(fn, tag, pass_many, **kwargs):
     """
     # Allow using this as either a decorator or a decorator factory.
     if fn is None:
-        return functools.partial(
-            mark_as_processor, tag=tag, pass_many=pass_many, **kwargs
-        )
+        return functools.partial(set_hook, key=key, **kwargs)
 
     # Set a marshmallow_tags attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
     try:
-        processor_config = fn.__marshmallow_processor__
+        hook_config = fn.__marshmallow_hook__
     except AttributeError:
-        fn.__marshmallow_processor__ = processor_config = {}
+        fn.__marshmallow_hook__ = hook_config = {}
     # Also save the kwargs for the tagged function on
     # __marshmallow_tags__, keyed by (<tag>, <pass_many>)
-    processor_config[(tag, pass_many)] = kwargs
+    hook_config[key] = kwargs
 
     return fn
