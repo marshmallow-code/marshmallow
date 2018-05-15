@@ -657,23 +657,23 @@ class BaseSchema(base.SchemaABC):
                 available_field_names |= self.set_class(self.opts.additional)
 
         if self.only is not None:
-            field_names = self._get_field_names(
+            field_names = self.set_class(self.only)
+            self._check_field_names(
                 available_field_names,
-                self.only,
-                self.set_class,
+                field_names,
                 'only',
             )
         else:
             field_names = available_field_names
 
         # If "exclude" option or param is specified, remove those fields.
-        exclude_field_names = self._get_field_names(
-            available_field_names,
-            set(self.opts.exclude) | set(self.exclude),
-            set,
-            'exclude',
-        )
+        exclude_field_names = set(self.opts.exclude) | set(self.exclude)
         if exclude_field_names:
+            self._check_field_names(
+                available_field_names,
+                exclude_field_names,
+                'exclude',
+            )
             # Note that this isn't available_field_names, since we want to
             # apply "only" for the actual calculation.
             field_names = field_names - exclude_field_names
@@ -686,17 +686,7 @@ class BaseSchema(base.SchemaABC):
 
         return fields_dict
 
-    def _get_field_names(
-        self,
-        available_field_names,
-        field_names_raw,
-        set_class,
-        key,
-    ):
-        field_names = set_class(
-            field_name.split('.')[0]
-            for field_name in field_names_raw
-        )
+    def _check_field_names(self, available_field_names, field_names, key):
         if not field_names <= available_field_names:
             raise KeyError(
                 'fields in "{0}" not found on schema: {1}'.format(
@@ -708,8 +698,6 @@ class BaseSchema(base.SchemaABC):
                     ),
                 ),
             )
-
-        return field_names
 
     def on_bind_field(self, field_name, field_obj):
         """Hook to modify a field when it is bound to the `Schema`.
