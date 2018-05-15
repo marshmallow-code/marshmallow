@@ -2,8 +2,8 @@
 Authors
 *******
 
-Lead
-====
+Leads
+=====
 
 - Steven Loria `@sloria <https://github.com/sloria>`_
 - Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
