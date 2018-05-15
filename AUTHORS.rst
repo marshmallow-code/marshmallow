@@ -99,3 +99,4 @@ Contributors (chronological)
 - Harlov Nikita `@harlov <https://github.com/harlov>`_
 - `@stj <https://github.com/stj>`_
 - Tomasz Magulski `@magul <https://github.com/magul>`_
+- Suren Khorenyan `@surik00 <https://github.com/surik00>`_

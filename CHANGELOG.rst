@@ -6,10 +6,11 @@ Changelog
 
 Features:
 
-* Clean up code for schema hooks (:issue:`814`).
-* Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`).
+* Clean up code for schema hooks (:issue:`814`). Thanks :user:`taion`.
+* Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`). Thanks again :user:`taion`.
+* Add ``require_tld`` argument to ``fields.URL`` (:issue:`749`). Thanks
+  :user:`DenerKup` for reporting and thanks :user:`surik00` for the PR.
 
-Thanks :user:`taion` for these PRs.
 
 3.0.0b10 (2018-05-10)
 +++++++++++++++++++++
