@@ -1280,7 +1280,7 @@ def test_exclude_invalid_attribute():
         foo = fields.Field()
 
     with pytest.raises(KeyError, match='"bar"'):
-        sch = MySchema(exclude=('bar',))
+        MySchema(exclude=('bar',))
 
 
 def test_only_with_invalid_attribute():
@@ -1288,7 +1288,8 @@ def test_only_with_invalid_attribute():
         foo = fields.Field()
 
     with pytest.raises(KeyError, match='"bar"'):
-        sch = MySchema(only=('bar',))
+        MySchema(only=('bar',))
+
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
@@ -1296,7 +1297,8 @@ def test_only_bounded_by_fields():
             fields = ('foo', )
 
     with pytest.raises(KeyError, match='"baz"'):
-        sch = MySchema(only=('baz',))
+        MySchema(only=('baz',))
+
 
 def test_only_empty():
     class MySchema(Schema):
