@@ -492,7 +492,7 @@ class BaseSchema(base.SchemaABC):
         """
         return self._do_load(data, many, partial=partial, postprocess=True)
 
-    def loads(self, json_data, many=None, *args, **kwargs):
+    def loads(self, json_data, many=None, partial=None, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
@@ -510,12 +510,7 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         """
-        # TODO: This avoids breaking backward compatibility if people were
-        # passing in positional args after `many` for use by `json.loads`, but
-        # ideally we shouldn't have to do this.
-        partial = kwargs.pop('partial', None)
-
-        data = self.opts.render_module.loads(json_data, *args, **kwargs)
+        data = self.opts.render_module.loads(json_data, **kwargs)
         return self.load(data, many=many, partial=partial)
 
     def validate(self, data, many=None, partial=None):
