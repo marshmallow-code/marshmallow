@@ -589,7 +589,10 @@ class UUID(String):
         if isinstance(value, uuid.UUID):
             return value
         try:
-            return uuid.UUID(value)
+            if isinstance(value, bytes) and len(value) == 16:
+                return uuid.UUID(bytes=value)
+            else:
+                return uuid.UUID(value)
         except (ValueError, AttributeError):
             self.fail('invalid_uuid')
 
