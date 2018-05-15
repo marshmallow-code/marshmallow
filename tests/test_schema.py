@@ -2376,3 +2376,14 @@ class TestLoadOnly:
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result
+
+    # regression test for https://github.com/marshmallow-code/marshmallow/pull/765
+    def test_url_field_requre_tld_false(self):
+
+        class NoTldTestSchema(Schema):
+            url = fields.Url(require_tld=False, schemes=['marshmallow'])
+
+        schema = NoTldTestSchema()
+        data_with_no_top_level_domain = {'url': 'marshmallow://app/discounts'}
+        result = schema.load(data_with_no_top_level_domain)
+        assert result == data_with_no_top_level_domain
