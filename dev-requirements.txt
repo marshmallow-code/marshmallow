@@ -3,7 +3,7 @@
 invoke==1.0.0
 
 # Soft dependencies
-python-dateutil==2.6.1
+python-dateutil==2.7.3
 pytz==2017.3
 
 # Testing
