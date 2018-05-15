@@ -657,29 +657,21 @@ class BaseSchema(base.SchemaABC):
                 available_field_names |= self.set_class(self.opts.additional)
 
         if self.only is not None:
-            field_names = self.set_class(
-                field_name
-                for field_name in self.only
-                if '.' not in field_name,
+            field_names = self._get_field_names(
+                available_field_names,
+                self.only,
+                self.set_class,
+                'only',
             )
-            if not field_names <= available_field_names:
-                raise KeyError(
-                    'fields in "only" not found on schema: {0}'.format(
-                        ', '.join(
-                            '"{}"'.format(field_name)
-                            for field_name
-                            in field_names - available_field_names,
-                        ),
-                    ),
-                )
         else:
             field_names = available_field_names
 
         # If "exclude" option or param is specified, remove those fields.
-        exclude_field_names = set(
-            field_name
-            for field_name in set(self.opts.exclude) | set(self.exclude)
-            if '.' not in field_name,
+        exclude_field_names = self._get_field_names(
+            available_field_names,
+            set(self.opts.exclude) | set(self.exclude),
+            set,
+            'exclude',
         )
         if exclude_field_names:
             if not exclude_field_names <= available_field_names:
@@ -703,6 +695,32 @@ class BaseSchema(base.SchemaABC):
             fields_dict[field_name] = field_obj
 
         return fields_dict
+
+    def _get_field_names(
+        self,
+        available_field_names,
+        field_names_raw,
+        set_class,
+        key,
+    ):
+        field_names = set_class(
+            field_name
+            for field_name in field_names_raw
+            if '.' not in field_name,
+        )
+        if not field_names <= available_field_names:
+            raise KeyError(
+                'fields in "{0}" not found on schema: {1}'.format(
+                    key,
+                    ', '.join(
+                        '"{}"'.format(field_name)
+                        for field_name
+                        in field_names - available_field_names,
+                    ),
+                ),
+            )
+
+        return field_names
 
     def on_bind_field(self, field_name, field_obj):
         """Hook to modify a field when it is bound to the `Schema`.
