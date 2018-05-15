@@ -1369,11 +1369,13 @@ class Default(Field):
         if field_type is Field:
             return super(Default, self)._serialize(value, attr, obj)
 
-        if type(self._field) is not field_type:
-            self._field = field_type()
-            self._field._bind_to_schema(self.name, self.parent)
+        field = self._field
+        if type(field) is not field_type:
+            self._field = field = field_type()
+            field._bind_to_schema(self.name, self.parent)
 
-        return self._field._serialize(value, attr, obj)
+        # Use the local field rather than self._field for thread safety.
+        return field._serialize(value, attr, obj)
 
 
 # Aliases
