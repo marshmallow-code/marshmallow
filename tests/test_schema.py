@@ -654,8 +654,8 @@ def test_only_in_init(SchemaClass, user):
     assert 'age' in s
 
 def test_invalid_only_param(user):
-    schema = UserSchema(only=("_invalid", "name"))
-    assert schema.dump(user) == {'name': 'Monty'}
+    with pytest.raises(KeyError, match='"_invalid"'):
+        UserSchema(only=("_invalid", "name")).dump(user)
 
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user['uid'] == str(user.uid)
@@ -952,6 +952,7 @@ def test_nested_exclude_then_only_inheritance():
         bla = fields.Field()
         bli = fields.Field()
         blubb = fields.Nested(ChildSchema, exclude=('foo',))
+
     sch = ParentSchema(only=('blubb.bar',))
     data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
     result = sch.dump(data)
@@ -1275,29 +1276,27 @@ def test_only_and_exclude():
 
 
 def test_exclude_invalid_attribute():
-
     class MySchema(Schema):
         foo = fields.Field()
 
-    sch = MySchema(exclude=('bar', ))
-    assert sch.dump({'foo': 42}) == {'foo': 42}
+    with pytest.raises(KeyError, match='"bar"'):
+        sch = MySchema(exclude=('bar',))
 
 
 def test_only_with_invalid_attribute():
     class MySchema(Schema):
         foo = fields.Field()
 
-    sch = MySchema(only=('bar', ))
-    assert sch.dump(dict(foo=42)) == {}
+    with pytest.raises(KeyError, match='"bar"'):
+        sch = MySchema(only=('bar',))
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
-
         class Meta:
             fields = ('foo', )
 
-    sch = MySchema(only=('baz', ))
-    assert sch.dump({'foo': 42}) == {}
+    with pytest.raises(KeyError, match='"baz"'):
+        sch = MySchema(only=('baz',))
 
 def test_only_empty():
     class MySchema(Schema):
@@ -1355,12 +1354,14 @@ def test_meta_fields_mapping(user):
     assert type(s.fields['since_created']._field) == fields.TimeDelta
 
 
-def test_meta_field_not_on_obj(user):
+def test_meta_field_not_on_obj_raises_attribute_error(user):
     class BadUserSchema(Schema):
         class Meta:
-            fields = ('name', 'notfound')
+            fields = ('name',)
+            exclude = ('notfound',)
 
-    assert BadUserSchema().dump(user) == {'name': 'Monty'}
+    with pytest.raises(KeyError, match='"notfound"'):
+        BadUserSchema()
 
 def test_exclude_fields(user):
     s = UserExcludeSchema().dump(user)

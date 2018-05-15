@@ -627,26 +627,52 @@ class BaseSchema(base.SchemaABC):
 
     def _init_fields(self):
         """Update fields based on schema options."""
-        if self.only is not None:
-            # Return only fields specified in only option
-            if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
-            else:
-                field_names = self.set_class(self.only)
-        elif self.opts.fields:
-            # Return fields specified in fields option
-            field_names = self.set_class(self.opts.fields)
-        elif self.opts.additional:
-            # Return declared fields + additional fields
-            field_names = (self.set_class(self.declared_fields.keys()) |
-                            self.set_class(self.opts.additional))
+        if self.opts.fields:
+            available_field_names = self.set_class(self.opts.fields)
         else:
-            field_names = self.set_class(self.declared_fields.keys())
+            available_field_names = self.set_class(self.declared_fields.keys())
+            if self.opts.additional:
+                available_field_names |= self.set_class(self.opts.additional)
 
-        # If "exclude" option or param is specified, remove those fields
-        excludes = set(self.opts.exclude) | set(self.exclude)
-        if excludes:
-            field_names = field_names - excludes
+        if self.only is not None:
+            field_names = self.set_class(
+                field_name
+                for field_name in self.only
+                if '.' not in field_name,
+            )
+            if not field_names <= available_field_names:
+                raise KeyError(
+                    'fields in "only" not found on schema: {0}'.format(
+                        ', '.join(
+                            '"{}"'.format(field_name)
+                            for field_name
+                            in field_names - available_field_names,
+                        ),
+                    ),
+                )
+        else:
+            field_names = available_field_names
+
+        # If "exclude" option or param is specified, remove those fields.
+        exclude_field_names = set(
+            field_name
+            for field_name in set(self.opts.exclude) | set(self.exclude)
+            if '.' not in field_name,
+        )
+        if exclude_field_names:
+            if not exclude_field_names <= available_field_names:
+                raise KeyError(
+                    'fields in "exclude" not found on schema: {0}'.format(
+                        ', '.join(
+                            '"{}"'.format(field_name)
+                            for field_name
+                            in exclude_field_names - available_field_names,
+                        ),
+                    ),
+                )
+            # Note that this isn't available_field_names, since we want to
+            # apply "only" for the actual calculation.
+            field_names = field_names - exclude_field_names
 
         fields_dict = self.dict_class()
         for field_name in field_names:

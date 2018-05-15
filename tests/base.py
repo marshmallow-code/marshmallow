@@ -223,7 +223,7 @@ class UserMetaSchema(Schema):
 
 class UserExcludeSchema(UserSchema):
     class Meta:
-        exclude = ("created", "updated", "field_not_found_but_thats_ok")
+        exclude = ("created", "updated")
 
 
 class UserAdditionalSchema(Schema):
