@@ -13,12 +13,25 @@ import warnings
 import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict)
+from marshmallow.compat import (
+    binary_type,
+    iteritems,
+    iterkeys,
+    OrderedDict,
+    text_type,
+    with_metaclass,
+)
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
-from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
-                                    VALIDATES, VALIDATES_SCHEMA)
+from marshmallow.decorators import (
+    POST_DUMP,
+    POST_LOAD,
+    PRE_DUMP,
+    PRE_LOAD,
+    PROCESSOR_TAGS,
+    VALIDATES,
+    VALIDATES_SCHEMA,
+)
 from marshmallow.utils import missing
 
 
@@ -147,8 +160,13 @@ class SchemaMeta(type):
         do all the hard work.
         """
         mro = inspect.getmro(self)
-        self._has_processors = False
-        self.__processors__ = defaultdict(list)
+
+        self._processors = {}
+        for tag in PROCESSOR_TAGS:
+            self._processors[tag] = tag_processors = {}
+            for pass_many in (True, False):
+                tag_processors[pass_many] = []
+
         for attr_name in dir(self):
             # Need to look up the actual descriptor, not whatever might be
             # bound to the class. This needs to come from the __dict__ of the
@@ -167,15 +185,14 @@ class SchemaMeta(type):
                 continue
 
             try:
-                processor_tags = attr.__marshmallow_tags__
+                processor_config = attr.__marshmallow_processor__
             except AttributeError:
-                continue
-
-            self._has_processors = bool(processor_tags)
-            for tag in processor_tags:
-                # Use name here so we can get the bound method later, in case
-                # the processor was a descriptor or something.
-                self.__processors__[tag].append(attr_name)
+                pass
+            else:
+                for (tag, pass_many) in iterkeys(processor_config):
+                    # Use name here so we can get the bound method later, in
+                    # case the processor was a descriptor or something.
+                    self._processors[tag][pass_many].append(attr_name)
 
 
 class SchemaOpts(object):
@@ -476,7 +493,7 @@ class BaseSchema(base.SchemaABC):
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
-        if self._has_processors:
+        if self._processors[PRE_DUMP]:
             try:
                 processed_obj = self._invoke_dump_processors(
                     PRE_DUMP,
@@ -514,7 +531,7 @@ class BaseSchema(base.SchemaABC):
 
             result = self._postprocess(preresult, many, obj=obj)
 
-        if not errors and self._has_processors:
+        if not errors and self._processors[POST_DUMP]:
             try:
                 result = self._invoke_dump_processors(
                     POST_DUMP,
@@ -638,15 +655,16 @@ class BaseSchema(base.SchemaABC):
         many = self.many if many is None else bool(many)
         if partial is None:
             partial = self.partial
-        try:
-            processed_data = self._invoke_load_processors(
-                PRE_LOAD,
-                data,
-                many,
-                original_data=data)
-        except ValidationError as err:
-            errors = err.normalized_messages()
-            result = None
+        if self._processors[PRE_LOAD]:
+            try:
+                processed_data = self._invoke_load_processors(
+                    PRE_LOAD,
+                    data,
+                    many,
+                    original_data=data)
+            except ValidationError as err:
+                errors = err.normalized_messages()
+                result = None
         if not errors:
             try:
                 result = unmarshal(
@@ -674,7 +692,7 @@ class BaseSchema(base.SchemaABC):
             except ValidationError as err:
                 errors.update(err.messages)
         # Run post processors
-        if not errors and postprocess:
+        if not errors and postprocess and self._processors[POST_LOAD]:
             try:
                 result = self._invoke_load_processors(
                     POST_LOAD,
@@ -844,29 +862,29 @@ class BaseSchema(base.SchemaABC):
                 ret[key] = field_obj
         return ret
 
-    def _invoke_dump_processors(self, tag_name, data, many, original_data=None):
+    def _invoke_dump_processors(self, tag, data, many, original_data=None):
         # The pass_many post-dump processors may do things like add an envelope, so
         # invoke those after invoking the non-pass_many processors which will expect
         # to get a list of items.
-        data = self._invoke_processors(tag_name, pass_many=False,
+        data = self._invoke_processors(tag, pass_many=False,
             data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag_name, pass_many=True,
+        data = self._invoke_processors(tag, pass_many=True,
             data=data, many=many, original_data=original_data)
         return data
 
-    def _invoke_load_processors(self, tag_name, data, many, original_data=None):
+    def _invoke_load_processors(self, tag, data, many, original_data=None):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
-        data = self._invoke_processors(tag_name, pass_many=True,
+        data = self._invoke_processors(tag, pass_many=True,
             data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag_name, pass_many=False,
+        data = self._invoke_processors(tag, pass_many=False,
             data=data, many=many, original_data=original_data)
         return data
 
     def _invoke_field_validators(self, unmarshal, data, many):
-        for attr_name in self.__processors__[(VALIDATES, False)]:
+        for attr_name in self._processors[VALIDATES][False]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES, False)]
+            validator_kwargs = validator.__marshmallow_processor__[(VALIDATES, False)]
             field_name = validator_kwargs['field_name']
 
             try:
@@ -910,9 +928,9 @@ class BaseSchema(base.SchemaABC):
     def _invoke_validators(
             self, unmarshal, pass_many, data, original_data, many, field_errors=False):
         errors = {}
-        for attr_name in self.__processors__[(VALIDATES_SCHEMA, pass_many)]:
+        for attr_name in self._processors[VALIDATES_SCHEMA][pass_many]:
             validator = getattr(self, attr_name)
-            validator_kwargs = validator.__marshmallow_kwargs__[(VALIDATES_SCHEMA, pass_many)]
+            validator_kwargs = validator.__marshmallow_processor__[(VALIDATES_SCHEMA, pass_many)]
             pass_original = validator_kwargs.get('pass_original', False)
 
             skip_on_field_errors = validator_kwargs['skip_on_field_errors']
@@ -940,12 +958,12 @@ class BaseSchema(base.SchemaABC):
             raise ValidationError(errors)
         return None
 
-    def _invoke_processors(self, tag_name, pass_many, data, many, original_data=None):
-        for attr_name in self.__processors__[(tag_name, pass_many)]:
+    def _invoke_processors(self, tag, pass_many, data, many, original_data=None):
+        for attr_name in self._processors[tag][pass_many]:
             # This will be a bound method.
             processor = getattr(self, attr_name)
 
-            processor_kwargs = processor.__marshmallow_kwargs__[(tag_name, pass_many)]
+            processor_kwargs = processor.__marshmallow_processor__[(tag, pass_many)]
             pass_original = processor_kwargs.get('pass_original', False)
 
             if pass_many:
