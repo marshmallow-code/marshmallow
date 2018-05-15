@@ -321,10 +321,10 @@ def pluck(dictlist, key):
 
 def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
-    if isinstance(key, int):
-        return _get_value_for_key(obj, key, default)
-    else:
+    if not isinstance(key, int) and '.' in key:
         return _get_value_for_keys(obj, key.split('.'), default)
+    else:
+        return _get_value_for_key(obj, key, default)
 
 
 def _get_value_for_keys(obj, keys, default):
@@ -338,12 +338,10 @@ def _get_value_for_keys(obj, keys, default):
 def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
-    except (KeyError, AttributeError, IndexError, TypeError):
-        try:
-            return getattr(obj, key)
-        except AttributeError:
-            return default
-    return default
+    except (TypeError, AttributeError):
+        return getattr(obj, key, default)
+    except (KeyError, IndexError):
+        return default
 
 
 def set_value(dct, key, value):
