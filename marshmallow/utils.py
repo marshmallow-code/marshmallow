@@ -16,7 +16,7 @@ from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
-from marshmallow.compat import binary_type, text_type
+from marshmallow.compat import basestring, binary_type, text_type
 
 
 dateutil_available = False
@@ -321,10 +321,10 @@ def pluck(dictlist, key):
 
 def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
-    if isinstance(key, int):
-        return _get_value_for_key(obj, key, default)
-    else:
+    if not isinstance(key, int) and '.' in key:
         return _get_value_for_keys(obj, key.split('.'), default)
+    else:
+        return _get_value_for_key(obj, key, default)
 
 
 def _get_value_for_keys(obj, keys, default):
@@ -337,13 +337,9 @@ def _get_value_for_keys(obj, keys, default):
 
 def _get_value_for_key(obj, key, default):
     try:
-        return obj[key]
+        return obj.get(key, default)
     except (KeyError, AttributeError, IndexError, TypeError):
-        try:
-            return getattr(obj, key)
-        except AttributeError:
-            return default
-    return default
+        return getattr(obj, key, default)
 
 
 def set_value(dct, key, value):
