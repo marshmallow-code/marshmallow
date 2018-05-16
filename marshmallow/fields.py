@@ -623,11 +623,11 @@ class UUID(String):
         if isinstance(value, uuid.UUID):
             return value
         try:
-            if isinstance(value, bytes):
+            if isinstance(value, bytes) and len(value) == 16:
                 return uuid.UUID(bytes=value)
             else:
                 return uuid.UUID(value)
-        except (ValueError, AttributeError):
+        except (ValueError, AttributeError, TypeError):
             self.fail('invalid_uuid')
 
     def _serialize(self, value, attr, obj):
