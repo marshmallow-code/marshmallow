@@ -623,7 +623,7 @@ class UUID(String):
         if isinstance(value, uuid.UUID):
             return value
         try:
-            if isinstance(value, bytes) and len(value) == 16:
+            if isinstance(value, bytes):
                 return uuid.UUID(bytes=value)
             else:
                 return uuid.UUID(value)
