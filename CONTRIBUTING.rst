@@ -21,7 +21,7 @@ Ways to Contribute
 - Improve `the docs <https://marshmallow.readthedocs.io>`_. For straightforward edits, click the ReadTheDocs menu button in the bottom-right corner of the page and click "Edit".  See the :ref:`Documentation <contributing_documentation>` section of this page if you want to build the docs locally.
 - If you think you've found a bug, `open an issue <https://github.com/marshmallow-code/marshmallow/issues>`_.
 - Contribute an :ref:`example usage <contributing_examples>` of marshmallow.
-- Send a PR for an open issue (especially one `labeled "please help" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aissue+is%3Aopen+label%3A%22please+help%22>`_). The next section details how to contribute code.
+- Send a PR for an open issue (especially one `labeled "help wanted" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_). The next section details how to contribute code.
 
 
 Contributing Code
