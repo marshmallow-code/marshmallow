@@ -927,20 +927,20 @@ class BaseSchema(base.SchemaABC):
 
             if pass_many:
                 if pass_original:
-                    data = utils.if_none(processor(data, many, original_data), data)
+                    data = processor(data, many, original_data)
                 else:
-                    data = utils.if_none(processor(data, many), data)
+                    data = processor(data, many)
             elif many:
                 if pass_original:
-                    data = [utils.if_none(processor(item, original), item)
+                    data = [processor(item, original)
                             for item, original in zip(data, original_data)]
                 else:
-                    data = [utils.if_none(processor(item), item) for item in data]
+                    data = [processor(item) for item in data]
             else:
                 if pass_original:
-                    data = utils.if_none(processor(data, original_data), data)
+                    data = processor(data, original_data)
                 else:
-                    data = utils.if_none(processor(data), data)
+                    data = processor(data)
         return data
 
 

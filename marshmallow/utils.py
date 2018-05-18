@@ -398,7 +398,3 @@ def get_func_args(func):
         return _signature(func)
     # Callable class
     return _signature(func.__call__)
-
-
-def if_none(value, default):
-    return value if value is not None else default
