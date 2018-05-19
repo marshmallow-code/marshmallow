@@ -2126,11 +2126,11 @@ class TestContext:
         class OuterSchema(Schema):
             bars = fields.List(fields.Nested(InnerSchema()))
 
-        inner = InnerSchema(strict=True)
+        inner = InnerSchema()
         inner.context['foo_context'] = 'foo'
         assert inner.load({'foo': 42})
 
-        outer = OuterSchema(strict=True)
+        outer = OuterSchema()
         outer.context['foo_context'] = 'foo'
         assert outer.load({'bars': [{'foo': 42}]})
 
