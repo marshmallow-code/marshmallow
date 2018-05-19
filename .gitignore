@@ -27,6 +27,7 @@ htmlcov
 .tox
 nosetests.xml
 .cache
+.pytest_cache
 
 # Translations
 *.mo
