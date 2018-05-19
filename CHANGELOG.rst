@@ -10,7 +10,8 @@ Features:
 * Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`). Thanks again :user:`taion`.
 * Add ``require_tld`` argument to ``fields.URL`` (:issue:`749`). Thanks
   :user:`DenerKup` for reporting and thanks :user:`surik00` for the PR.
-
+* ``fields.UUID`` deserializes ``bytes`` strings using ``UUID(bytes=b'...')`` (:issue:`625`). 
+  Thanks :user:`JeffBerger` for the suggestion and the PR.
 
 3.0.0b10 (2018-05-10)
 +++++++++++++++++++++
