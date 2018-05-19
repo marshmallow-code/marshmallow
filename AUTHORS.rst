@@ -84,3 +84,4 @@ Contributors (chronological)
 - Vlad Frolov `@frol <https://github.com/frol>`_
 - Erling Børresen `@erlingbo <https://github.com/erlingbo>`_
 - Jérôme Lafréchoux  `@lafrech <https://github.com/lafrech>`_
+- Jeffrey Berger `@JeffBerger <https://github.com/JeffBerger>`_

@@ -1,12 +1,14 @@
 Changelog
 ---------
 
-3.0.0b3 (unreleaased)
-+++++++++++++++++++++
+3.0.0b3 (unreleased)
+++++++++++++++++++++
 
 Features:
 
 - Add ``valid_data`` attribute to ``ValidationError``.
+- ``fields.UUID`` deserializes ``bytes`` strings using ``UUID(bytes=b'...')`` (:issue:`625`). 
+  Thanks :user:`JeffBerger` for the suggestion and the PR.
 
 Deprecations/Removals:
 
