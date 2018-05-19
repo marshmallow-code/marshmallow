@@ -7,15 +7,97 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
+.. _upgrading_3_0:
+
 Upgrading to 3.0
 ++++++++++++++++
 
 Python compatibility
 ********************
 
-The marshmallow 3.x series supports Python 2.7, 3.4, 3.5, and 3.6.
+The marshmallow 3.x series supports Python 2.7, 3.5, and 3.6.
 
-Python 2.6 and 3.3 are no longer supported.
+Python 2.6, 3.3, and 3.4 are no longer supported.
+
+
+Schemas are always strict
+*************************
+
+Two major changes were made to (de)serialization behavior:
+
+- The ``strict`` parameter was removed. Schemas are always strict.
+- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` duple any more. Only ``data`` is returned.
+
+If invalid data are passed, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised.
+The dictionary of validation errors is accessible from the
+`ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute,
+along with the valid data from the `ValidationError.valid_data
+<marshmallow.exceptions.ValidationError.valid_data>` attribute.
+
+.. code-block:: python
+
+    from marshmallow import ValidationError
+
+    # 2.x
+    schema = UserSchema()
+    data, errors = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
+    # OR
+    schema = UserSchema(strict=True)
+    try:
+        data, _ = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
+    except ValidationError as err:
+        errors = err.messages
+        valid_data = err.valid_data
+
+    # 3.x
+    schema = UserSchema()
+    # There is only one right way
+    try:
+        data = schema.load({'name': 'Monty', 'email': 'monty@python.org'})
+    except ValidationError as err:
+        errors = err.messages
+        valid_data = err.valid_data
+
+:meth:`Schema().validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+
+.. code-block:: python
+
+    schema.validate({'email': 'invalid'})
+    # {'email': ['Not a valid email address.']}
+
+Setting the ``strict`` option on ``class Meta`` has no effect on `Schema` behavior.
+Passing ``strict=True`` or ``strict=False`` to the `Schema` constructor
+will raise a :exc:`TypeError`.
+
+
+.. code-block:: python
+
+    # 3.x
+    UserSchema(strict=True)
+    # TypeError: __init__() got an unexpected keyword argument 'strict'
+
+
+.. seealso::
+
+    See GitHub issues :issue:`377` and :issue:`598` for the discussions on
+    this change.
+
+
+``Schema().load(None)`` raises a ``ValidationError``
+****************************************************
+
+`None` is considered invalid input to `Schema.load
+<marshmallow.Schema.load>`.
+
+.. code-block:: python
+
+    # 2.x
+    # Passes silently
+    schema.load(None)
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
+    schema.load(None)
 
 Overriding ``get_attribute``
 ****************************
@@ -35,6 +117,42 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
     class MySchema(Schema):
         def get_attribute(self, obj, attr, default):
             # ...
+
+``pass_original=True`` passes individual items when ``many=True``
+*****************************************************************
+
+When ``pass_original=True`` is passed to 
+`validates_schema <marshmallow.decorators.validates_schema>`,
+`post_load <marshmallow.decorators.post_load>`, or
+`post_dump <marshmallow.decorators.post_dump>`, the `original_data`
+argument will be a single item corresponding to the (de)serialized
+datum.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, post_load
+
+
+    class ShoeSchema(Schema):
+        size = fields.Int()
+
+        @post_load(pass_original=True)
+        def post_load(self, data, original_data):
+            # original_data has 'width' but
+            # data does not because it's not
+            # in the schema
+            assert 'width' in original_data
+            assert 'width' not in data
+            return data
+
+
+    input_data = [
+        {'size': 10, 'width': 'M'},
+        {'size': 6, 'width': 'W'},
+    ]
+
+    print(ShoeSchema(many=True).load(input_data))
+    # [{'size': 10}, {'size': 6}]
 
 
 ``utils.get_func_args`` no longer returns bound arguments
@@ -80,7 +198,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
     # In 2.x, the following would pass without errors
     # In 3.x, and AttributeError would be raised
     result = schema.dump(None)
-    result.data  # => {}
+    result  # => {}
 
 
     # 3.x
@@ -95,7 +213,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
 
     schema = ShapeSchema()
     result = schema.dump(None)
-    result.data  # => {}
+    result  # => {}
 
 Adding additional data to serialized output
 *******************************************
@@ -113,7 +231,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
         y = fields.Int()
 
     schema = MySchema(extra={'z': 123})
-    schema.dump({'x': 1, 'y': 2}).data
+    schema.dump({'x': 1, 'y': 2})
     # => {'z': 123, 'y': 2, 'x': 1}
 
     # 3.x
@@ -127,14 +245,14 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
             return output
 
     schema = MySchema()
-    schema.dump({'x': 1, 'y': 2}).data
+    schema.dump({'x': 1, 'y': 2})
     # => {'z': 123, 'y': 2, 'x': 1}
 
 
 Schema-level validators are skipped when field validation fails
 ***************************************************************
 
-By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` will not be executed if any of the field validators fails (including ``required=True`` validation).
+By default, schema validator methods decorated by `validates_schema <marshmallow.decorators.validates_schema>` won't execute if any of the field validators fails (including ``required=True`` validation).
 
 .. code-block:: python
 
@@ -150,7 +268,7 @@ By default, schema validator methods decorated by `validates_schema <marshmallow
                 raise ValidationError('x must be greater than y')
 
 
-    schema = MySchema(strict=True)
+    schema = MySchema()
 
     # 2.x
     # A KeyError is raised in validate_schema
@@ -179,7 +297,7 @@ If you want a schema validator to run even if a field validator fails, pass ``sk
                     raise ValidationError('x must be greater than y')
 
 
-    schema = MySchema(strict=True)
+    schema = MySchema()
     schema.load({'x': 2})
     # marshmallow.exceptions.ValidationError: {'y': ['Missing data for required field.']}
 
@@ -223,7 +341,7 @@ Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argume
     validator(['red', 'red', 'blue'])
 
 
-If you do not want to accept duplicates, use a custom validator, like the following.
+If you don't want to accept duplicates, use a custom validator, like the following.
 
 .. code-block:: python
 
@@ -277,6 +395,23 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
         class Meta:
             render_module = ujson
 
+
+``missing`` and ``default`` ``Field`` parameters are passed in deserialized form
+********************************************************************************
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        id = fields.UUID(missing=lambda: str(uuid.uuid1()))
+        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29).isoformat())
+
+    # 3.x
+    class UserSchema(Schema):
+        id = fields.UUID(missing=uuid.uuid1)
+        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+
+
 Pass ``default`` as a keyword argument
 **************************************
 
@@ -290,6 +425,35 @@ Pass ``default`` as a keyword argument
 
     # 3.x
     fields.Boolean(default=True)
+
+
+``Email`` and ``URL`` fields do not validate on serialization
+*************************************************************
+
+`fields.Email <marshmallow.fields.Email>` and `fields.URL <marshmallow.fields.URL>` only validate input upon
+deserialization. They do not validate on serialization. This makes them
+more consistent with the other fields and improves serialization
+performance.
+
+
+``load_from`` and ``dump_to`` are merged into ``data_key``
+**********************************************************
+
+The same key is used for serialization and deserialization.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
+
+    # 3.x
+    class UserSchema(Schema):
+        email = fields.Email(data_key='CamelCasedEmail')
+
+It is not possible to specify a different key for serialization and deserialization. This use case can be covered by using two different `Schema`.
+
+Also, when ``data_key`` is specified on a field, only ``data_key`` is checked in the input data. In marshmallow 2.x the field name is checked if ``load_from`` is missing from the input data.
 
 
 Upgrading to 2.3
@@ -308,7 +472,7 @@ The ``func`` parameter of `fields.Function <marshmallow.fields.Function>` was re
     # NO
     lowername = fields.Function(func=lambda obj: obj.name.lower())
 
-Similiarly, the ``method_name`` of `fields.Method <marshmallow.fields.Method>` was also renamed to ``serialize``.
+Similarly, the ``method_name`` of `fields.Method <marshmallow.fields.Method>` was also renamed to ``serialize``.
 
 .. code-block:: python
 

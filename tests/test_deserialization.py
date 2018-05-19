@@ -83,6 +83,15 @@ class TestFieldDeserialization:
             field.deserialize({})
         assert excinfo.value.args[0] == 'Not a valid integer.'
 
+    def test_strict_integer_field_deserialization(self):
+        field = fields.Integer(strict=True)
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(42.0)
+        assert excinfo.value.args[0] == 'Not a valid integer.'
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(decimal.Decimal('42.0'))
+        assert excinfo.value.args[0] == 'Not a valid integer.'
+
     def test_decimal_field_deserialization(self):
         m1 = 12
         m2 = '12.355'
@@ -417,6 +426,11 @@ class TestFieldDeserialization:
             field.deserialize(in_data)
         assert excinfo.value.args[0] == 'Not a valid time.'
 
+    def test_invalid_timedelta_precision(self):
+        with pytest.raises(ValueError) as excinfo:
+            fields.TimeDelta('invalid')
+        assert 'The precision must be "days",' in str(excinfo)
+
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
         result = field.deserialize('42')
@@ -459,6 +473,34 @@ class TestFieldDeserialization:
         assert result.seconds == 12
         assert result.microseconds == 0
 
+        field = fields.TimeDelta(fields.TimeDelta.WEEKS)
+        result = field.deserialize(1)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 7
+        assert result.seconds == 0
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.HOURS)
+        result = field.deserialize(25)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 1
+        assert result.seconds == 3600
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.MINUTES)
+        result = field.deserialize(1441)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 1
+        assert result.seconds == 60
+        assert result.microseconds == 0
+
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
+        result = field.deserialize(123456)
+        assert isinstance(result, dt.timedelta)
+        assert result.days == 0
+        assert result.seconds == 123
+        assert result.microseconds == 456000
+
     @pytest.mark.parametrize('in_value',
     [
         '',
@@ -499,6 +541,52 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('baddict')
         assert excinfo.value.args[0] == 'Not a valid mapping type.'
+
+    def test_structured_dict_value_deserialization(self):
+        field = fields.Dict(values=fields.List(fields.Str))
+        assert field.deserialize({"foo": ["bar", "baz"]}) == {"foo": ["bar", "baz"]}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo": [1, 2], "bar": "baz", "ham": ["spam"]})
+        assert excinfo.value.args[0] == {
+            'foo': {'value': {0: ['Not a valid string.'], 1: ['Not a valid string.']}},
+            'bar': {'value': ['Not a valid list.']}, }
+        assert excinfo.value.data == {'foo': [None, None], 'bar': None, 'ham': ['spam']}
+
+    def test_structured_dict_key_deserialization(self):
+        field = fields.Dict(keys=fields.Str)
+        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: "bar", "foo": "baz"})
+        assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
+        assert excinfo.value.data == {'foo': 'baz', 1: "bar"}
+
+    def test_structured_dict_key_value_deserialization(self):
+        field = fields.Dict(
+            keys=fields.Str(validate=[validate.Email(), validate.Regexp(r'.*@test\.com$')]),
+            values=fields.Decimal,
+        )
+        assert field.deserialize({"foo@test.com": 1}) == {"foo@test.com": decimal.Decimal(1)}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: "bar"})
+        assert excinfo.value.args[0] == {1: {
+            'key': ['Not a valid string.'],
+            'value': ['Not a valid number.'],
+        }}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo@test.com": "bar"})
+        assert excinfo.value.args[0] == {"foo@test.com": {'value': ['Not a valid number.']}}
+        assert excinfo.value.data == {'foo@test.com': None}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({1: 1})
+        assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
+        assert excinfo.value.data == {1: 1}
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"foo": "bar"})
+        assert excinfo.value.args[0] == {"foo": {
+            'key': ['Not a valid email address.', 'String does not match expected pattern.'],
+            'value': ['Not a valid number.'],
+        }}
+        assert excinfo.value.data == {'foo': None}
 
     def test_url_field_deserialization(self):
         field = fields.Url()
@@ -692,8 +780,8 @@ class TestFieldDeserialization:
             foo = fields.Constant(42)
 
         sch = MySchema()
-        assert sch.load({'bar': 24}).data['foo'] == 42
-        assert sch.load({'foo': 24}).data['foo'] == 42
+        assert sch.load({'bar': 24})['foo'] == 42
+        assert sch.load({'foo': 24})['foo'] == 42
 
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid')
@@ -766,6 +854,15 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
+    def test_field_deserialization_with_non_utf8_value(self):
+        non_utf8_char = '\xc8'
+        field = fields.String()
+        # This exception only happens in Python version <= 2.7
+        if isinstance(non_utf8_char, bytes):
+            with pytest.raises(ValidationError) as excinfo:
+                field.deserialize(non_utf8_char)
+            assert excinfo.value.args[0] == 'Not a valid utf-8 string.'
+
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):
     name = fields.String()
@@ -785,13 +882,13 @@ class TestSchemaDeserialization:
 
     def test_deserialize_to_dict(self):
         user_dict = {'name': 'Monty', 'age': '42.3'}
-        result, errors = SimpleUserSchema().load(user_dict)
+        result = SimpleUserSchema().load(user_dict)
         assert result['name'] == 'Monty'
         assert_almost_equal(result['age'], 42.3)
 
     def test_deserialize_with_missing_values(self):
         user_dict = {'name': 'Monty'}
-        result, errs = SimpleUserSchema().load(user_dict)
+        result = SimpleUserSchema().load(user_dict)
         # 'age' is not included in result
         assert result == {'name': 'Monty'}
 
@@ -800,7 +897,7 @@ class TestSchemaDeserialization:
             {'name': 'Mick', 'age': '914'},
             {'name': 'Keith', 'age': '8442'}
         ]
-        result, errors = SimpleUserSchema(many=True).load(users_data)
+        result = SimpleUserSchema(many=True).load(users_data)
         assert isinstance(result, list)
         user = result[0]
         assert user['age'] == int(users_data[0]['age'])
@@ -808,8 +905,8 @@ class TestSchemaDeserialization:
     def test_exclude(self):
         schema = SimpleUserSchema(exclude=('age', ))
         result = schema.load({'name': 'Monty', 'age': 42})
-        assert 'name' in result.data
-        assert 'age' not in result.data
+        assert 'name' in result
+        assert 'age' not in result
 
     def test_nested_single_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
@@ -820,7 +917,7 @@ class TestSchemaDeserialization:
             'title': 'Gimme Shelter',
             'author': {'name': 'Mick', 'age': '914', 'email': 'mick@stones.com'}
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         author = result['author']
         assert author['name'] == 'Mick'
         assert author['age'] == 914
@@ -838,7 +935,7 @@ class TestSchemaDeserialization:
                 {'name': 'Keith', 'age': '8442'}
             ]
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
+        result = SimpleBlogSerializer().load(blog_dict)
         assert isinstance(result['authors'], list)
         author = result['authors'][0]
         assert author['name'] == 'Mick'
@@ -902,8 +999,7 @@ class TestSchemaDeserialization:
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'child': '456'})
-        assert len(result.errors) == 0
-        assert result.data['child']['pk'] == '456'
+        assert result['child']['pk'] == '456'
 
     def test_nested_only_basestring_with_list_data(self):
         class ANestedSchema(Schema):
@@ -915,13 +1011,8 @@ class TestSchemaDeserialization:
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'children': ['456', '789']})
-        assert len(result.errors) == 0
-        assert result.data['children'][0]['pk'] == '456'
-        assert result.data['children'][1]['pk'] == '789'
-
-    def test_none_deserialization(self):
-        result, errors = SimpleUserSchema().load(None)
-        assert result is None
+        assert result['children'][0]['pk'] == '456'
+        assert result['children'][1]['pk'] == '789'
 
     def test_nested_none_deserialization(self):
         class SimpleBlogSerializer(Schema):
@@ -932,8 +1023,7 @@ class TestSchemaDeserialization:
             'title': 'Gimme Shelter',
             'author': None
         }
-        result, errors = SimpleBlogSerializer().load(blog_dict)
-        assert not errors
+        result = SimpleBlogSerializer().load(blog_dict)
         assert result['author'] is None
         assert result['title'] == blog_dict['title']
 
@@ -945,7 +1035,7 @@ class TestSchemaDeserialization:
             'username': 'foo@bar.com',
             'years': '42'
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['email'] == 'foo@bar.com'
         assert result['age'] == 42
 
@@ -955,10 +1045,10 @@ class TestSchemaDeserialization:
             foo = fields.Field(attribute='bar.baz')
 
         schema = MySchema()
-        dump_data, errors = schema.dump({'bar': {'baz': 42}})
+        dump_data = schema.dump({'bar': {'baz': 42}})
         assert dump_data == {'foo': 42}
 
-        load_data, errors = schema.load({'foo': 42})
+        load_data = schema.load({'foo': 42})
         assert load_data == {'bar': {'baz': 42}}
 
     def test_deserialize_with_attribute_param_error_returns_field_name_not_attribute_name(self):
@@ -969,38 +1059,41 @@ class TestSchemaDeserialization:
             'username': 'foobar.com',
             'years': '42'
         }
-        result, errors = AliasingUserSerializer().load(data)
-        assert errors
+        with pytest.raises(ValidationError) as excinfo:
+            AliasingUserSerializer().load(data)
+        errors = excinfo.value.messages
         assert errors['username'] == ['Not a valid email address.']
 
-    def test_deserialize_with_attribute_param_error_returns_load_from_not_attribute_name(self):
+    def test_deserialize_with_attribute_param_error_returns_data_key_not_attribute_name(self):
         class AliasingUserSerializer(Schema):
-            name = fields.String(load_from='Name')
-            username = fields.Email(attribute='email', load_from='UserName')
-            years = fields.Integer(attribute='age', load_from='Years')
+            name = fields.String(data_key='Name')
+            username = fields.Email(attribute='email', data_key='UserName')
+            years = fields.Integer(attribute='age', data_key='Years')
         data = {
             'Name': 'Mick',
             'UserName': 'foobar.com',
-            'years': 'abc'
+            'Years': 'abc'
         }
-        result, errors = AliasingUserSerializer().load(data)
+        with pytest.raises(ValidationError) as excinfo:
+            AliasingUserSerializer().load(data)
+        errors = excinfo.value.messages
         assert errors['UserName'] == [u'Not a valid email address.']
-        assert errors['years'] == [u'Not a valid integer.']
+        assert errors['Years'] == [u'Not a valid integer.']
 
-    def test_deserialize_with_load_from_param(self):
+    def test_deserialize_with_data_key_param(self):
         class AliasingUserSerializer(Schema):
-            name = fields.String(load_from='Name')
-            username = fields.Email(attribute='email', load_from='UserName')
-            years = fields.Integer(attribute='age', load_from='Years')
+            name = fields.String(data_key='Name')
+            username = fields.Email(attribute='email', data_key='UserName')
+            years = fields.Integer(data_key='Years')
         data = {
             'Name': 'Mick',
             'UserName': 'foo@bar.com',
             'years': '42'
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
-        assert result['age'] == 42
+        assert 'years' not in result
 
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
@@ -1012,32 +1105,36 @@ class TestSchemaDeserialization:
             'years': '42',
             'nicknames': ['Your Majesty', 'Brenda']
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert 'years' not in result
         assert 'nicknames' not in result
 
     def test_deserialize_with_missing_param_value(self):
+        bdate = dt.datetime(2017, 9, 29)
+
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=10)
+            birthdate = fields.DateTime(missing=bdate)
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
-        assert result['years'] == 10
+        assert result['birthdate'] == bdate
 
     def test_deserialize_with_missing_param_callable(self):
+        bdate = dt.datetime(2017, 9, 29)
+
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=lambda: 13 + 7)
+            birthdate = fields.DateTime(missing=lambda: bdate)
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
-        assert result['years'] == 20
+        assert result['birthdate'] == bdate
 
     def test_deserialize_with_missing_param_none(self):
         class AliasingUserSerializer(Schema):
@@ -1046,72 +1143,57 @@ class TestSchemaDeserialization:
         data = {
             'name': 'Mick',
         }
-        result, errors = AliasingUserSerializer().load(data)
-        assert not errors
+        result = AliasingUserSerializer().load(data)
         assert result['name'] == 'Mick'
         assert result['years'] is None
 
-    def test_deserialization_returns_errors(self):
+    def test_deserialization_raises_with_errors(self):
         bad_data = {
             'email': 'invalid-email',
             'colors': 'burger',
             'age': -1,
         }
-        v = Validator(strict=False)
-        result, errors = v.load(bad_data)
-        assert 'email' in errors
-        assert 'colors' in errors
-        assert 'age' in errors
-
-    def test_deserialization_returns_errors_with_multiple_validators(self):
-        bad_data = {
-            'email': 'invalid-email',
-            'colors': 'burger',
-            'age': -1,
-        }
-        v = Validators(strict=False)
-        result, errors = v.load(bad_data)
-        assert 'email' in errors
-        assert 'colors' in errors
-        assert 'age' in errors
-
-    def test_strict_mode_deserialization(self):
-        bad_data = {
-            'email': 'invalid-email',
-            'colors': 'burger',
-            'age': -1,
-        }
-        v = Validator(strict=True)
-        with pytest.raises(ValidationError):
+        v = Validator()
+        with pytest.raises(ValidationError) as excinfo:
             v.load(bad_data)
+        errors = excinfo.value.messages
+        assert 'email' in errors
+        assert 'colors' in errors
+        assert 'age' in errors
 
-    def test_strict_mode_many(self):
+    def test_deserialization_raises_with_errors_with_multiple_validators(self):
+        bad_data = {
+            'email': 'invalid-email',
+            'colors': 'burger',
+            'age': -1,
+        }
+        v = Validators()
+        with pytest.raises(ValidationError) as excinfo:
+            v.load(bad_data)
+        errors = excinfo.value.messages
+        assert 'email' in errors
+        assert 'colors' in errors
+        assert 'age' in errors
+
+    def test_deserialization_many_raises_errors(self):
         bad_data = [
             {'email': 'foo@bar.com', 'colors': 'red', 'age': 18},
             {'email': 'bad', 'colors': 'pizza', 'age': -1}
         ]
-        v = Validator(strict=True, many=True)
+        v = Validator(many=True)
         with pytest.raises(ValidationError):
             v.load(bad_data)
 
-    def test_strict_mode_deserialization_with_multiple_validators(self):
-        bad_data = {
-            'email': 'invalid-email',
-            'colors': 'burger',
-            'age': -1,
-        }
-        v = Validators(strict=True)
-        with pytest.raises(ValidationError):
-            v.load(bad_data)
-
-    def test_uncaught_validation_errors_are_stored(self):
+    def test_validation_errors_are_stored(self):
         def validate_field(val):
             raise ValidationError('Something went wrong')
 
         class MySchema(Schema):
             foo = fields.Field(validate=validate_field)
 
-        _, errors = MySchema().load({'foo': 42})
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'foo': 42})
+        errors = excinfo.value.messages
         assert 'Something went wrong' in errors['foo']
 
     def test_multiple_errors_can_be_stored_for_a_field(self):
@@ -1127,7 +1209,9 @@ class TestSchemaDeserialization:
                 validate_with_bool,
                 validate_with_error,
             ])
-        _, errors = MySchema().load({'foo': 'bar'})
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'foo': 'bar'})
+        errors = excinfo.value.messages
 
         assert type(errors['foo']) == list
         assert len(errors['foo']) == 2
@@ -1140,7 +1224,9 @@ class TestSchemaDeserialization:
             email = fields.Email(validate=[
                 validate_with_bool,
             ])
-        _, errors = MySchema().load({'email': 'foo'})
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'email': 'foo'})
+        errors = excinfo.value.messages
         assert len(errors['email']) == 2
         assert 'Not a valid email address.' in errors['email'][0]
 
@@ -1152,7 +1238,9 @@ class TestSchemaDeserialization:
             url = fields.Url(validate=[
                 validate_with_bool,
             ])
-        _, errors = MySchema().load({'url': 'foo'})
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'url': 'foo'})
+        errors = excinfo.value.messages
         assert len(errors['url']) == 2
         assert 'Not a valid URL.' in errors['url'][0]
 
@@ -1160,7 +1248,9 @@ class TestSchemaDeserialization:
         class MySchema(Schema):
             foo = fields.Field(required=True, validate=lambda f: False)
 
-        _, errors = MySchema().load({})
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({})
+        errors = excinfo.value.messages
         # required value missing
         assert len(errors['foo']) == 1
         assert 'Missing data for required field.' in errors['foo']
@@ -1181,11 +1271,10 @@ class TestSchemaDeserialization:
             schema_args['partial'] = True
         else:
             load_args['partial'] = True
-        data, errors = MySchema(**schema_args).load({'foo': 3}, **load_args)
+        data = MySchema(**schema_args).load({'foo': 3}, **load_args)
 
         assert data['foo'] == 3
         assert 'bar' not in data
-        assert not errors
 
     def test_partial_fields_deserialization(self):
         class MySchema(Schema):
@@ -1193,22 +1282,22 @@ class TestSchemaDeserialization:
             bar = fields.Field(required=True)
             baz = fields.Field(required=True)
 
-        data, errors = MySchema().load({'foo': 3}, partial=tuple())
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'foo': 3}, partial=tuple())
+        data, errors = excinfo.value.valid_data, excinfo.value.messages
         assert data['foo'] == 3
         assert 'bar' in errors
         assert 'baz' in errors
 
-        data, errors = MySchema().load({'foo': 3}, partial=('bar', 'baz'))
+        data = MySchema().load({'foo': 3}, partial=('bar', 'baz'))
         assert data['foo'] == 3
         assert 'bar' not in data
         assert 'baz' not in data
-        assert not errors
 
-        data, errors = MySchema(partial=True).load({'foo': 3}, partial=('bar', 'baz'))
+        data = MySchema(partial=True).load({'foo': 3}, partial=('bar', 'baz'))
         assert data['foo'] == 3
         assert 'bar' not in data
         assert 'baz' not in data
-        assert not errors
 
     def test_partial_fields_validation(self):
         class MySchema(Schema):
@@ -1221,10 +1310,11 @@ class TestSchemaDeserialization:
         assert 'baz' in errors
 
         errors = MySchema().validate({'foo': 3}, partial=('bar', 'baz'))
-        assert not errors
+        assert errors == {}
 
         errors = MySchema(partial=True).validate({'foo': 3}, partial=('bar', 'baz'))
-        assert not errors
+        assert errors == {}
+
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
@@ -1297,9 +1387,9 @@ class TestValidation:
 
             def get_name(self, val):
                 return val.upper()
-        assert MethodSerializer(strict=True).load({'name': 'joe'})
+        assert MethodSerializer().load({'name': 'joe'})
         with pytest.raises(ValidationError) as excinfo:
-            MethodSerializer(strict=True).load({'name': 'joseph'})
+            MethodSerializer().load({'name': 'joseph'})
 
         assert 'Invalid value.' in str(excinfo)
 
@@ -1316,11 +1406,15 @@ class TestValidation:
 
         sch = SchemaB()
 
-        data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': 89, 'z': None}})
+        with pytest.raises(ValidationError) as excinfo:
+            sch.load({'w': 90, 'n': {'x': 90, 'y': 89, 'z': None}})
+        data, errors = excinfo.value.valid_data, excinfo.value.messages
         assert 'z' in errors['n']
         assert data == {'w': 90, 'n': {'x': 90, 'y': 89}}
 
-        data, errors = sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
+        with pytest.raises(ValidationError) as excinfo:
+            sch.load({'w': 90, 'n': {'x': 90, 'y': -1, 'z': 180}})
+        data, errors = excinfo.value.valid_data, excinfo.value.messages
         assert 'y' in errors['n']
         assert data == {'w': 90, 'n': {'x': 90, 'z': 180}}
 
@@ -1344,9 +1438,10 @@ def test_required_field_failure(FieldClass):  # noqa
     class RequireSchema(Schema):
         age = FieldClass(required=True)
     user_data = {"name": "Phil"}
-    data, errs = RequireSchema().load(user_data)
-    assert "Missing data for required field." in errs['age']
-    assert data == {}
+    with pytest.raises(ValidationError) as excinfo:
+        RequireSchema().load(user_data)
+    errors = excinfo.value.messages
+    assert "Missing data for required field." in errors['age']
 
 @pytest.mark.parametrize('message', ['My custom required message',
                                      {'error': 'something', 'code': 400},
@@ -1356,27 +1451,20 @@ def test_required_message_can_be_changed(message):
         age = fields.Integer(required=True, error_messages={'required': message})
 
     user_data = {"name": "Phil"}
-    data, errs = RequireSchema().load(user_data)
+    with pytest.raises(ValidationError) as excinfo:
+        RequireSchema().load(user_data)
+    errors = excinfo.value.messages
     expected = [message] if isinstance(message, basestring) else message
-    assert expected == errs['age']
-    assert data == {}
-
-# Regression test for https://github.com/marshmallow-code/marshmallow/issues/261
-def test_deserialize_doesnt_raise_exception_if_strict_is_false_and_input_type_is_incorrect():
-    class MySchema(Schema):
-        foo = fields.Field()
-        bar = fields.Field()
-    data, errs = MySchema().load([])
-    assert '_schema' in errs
-    assert errs['_schema'] == ['Invalid input type.']
+    assert expected == errors['age']
 
 
-def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorrect():
+@pytest.mark.parametrize('data', [True, False, 42, None, []])
+def test_deserialize_raises_exception_if_input_type_is_incorrect(data):
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
     with pytest.raises(ValidationError) as excinfo:
-        MySchema(strict=True).load([])
+        MySchema().load(data)
     assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']

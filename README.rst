@@ -34,7 +34,7 @@ marshmallow: simplified object serialization
 
     schema = AlbumSchema()
     result = schema.dump(album)
-    pprint(result.data, indent=2)
+    pprint(result, indent=2)
     # { 'artist': {'name': 'David Bowie'},
     #   'release_date': '1971-12-17',
     #   'title': 'Hunky Dory'}
@@ -62,7 +62,7 @@ Full documentation is available at http://marshmallow.readthedocs.io/ .
 Requirements
 ============
 
-- Python >= 2.7 or >= 3.4
+- Python >= 2.7 or >= 3.5
 
 marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
 
@@ -74,6 +74,50 @@ A list of marshmallow-related libraries can be found at the GitHub wiki here:
 
 https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem
 
+Credits
+=======
+
+Contributors
+------------
+
+This project exists thanks to all the people who contribute.
+
+You're highly encouraged to participate in marshmallow's development. 
+Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see
+how you can help.
+
+Thank you to all who have already contributed to marshmallow!
+
+.. image:: https://opencollective.com/marshmallow/contributors.svg?width=890&button=false
+    :target: https://marshmallow.readthedocs.io/en/latest/authors.html
+    :alt: Contributors
+
+Backers
+-------
+
+If you find marshmallow useful, please consider supporting the team with
+a donation. Your donation helps move marshmallow forward. 
+
+Thank you to all our backers! [`Become a backer`_]
+
+.. _`Become a backer`: https://opencollective.com/marshmallow#backer
+
+.. image:: https://opencollective.com/marshmallow/backers.svg?width=890
+    :target: https://opencollective.com/marshmallow#backers
+    :alt: Backers
+
+Sponsors
+--------
+
+Support this project by becoming a sponsor (or ask your company to support this project by becoming a sponsor).
+Your logo will show up here with a link to your website. [`Become a sponsor`_]
+
+.. _`Become a sponsor`: https://opencollective.com/marshmallow#sponsor
+
+.. image:: https://opencollective.com/marshmallow/sponsor/0/avatar.svg
+    :target: https://opencollective.com/marshmallow/sponsor/0/website
+    :alt: Sponsors
+
 Project Links
 =============
 
@@ -81,6 +125,7 @@ Project Links
 - Changelog: http://marshmallow.readthedocs.io/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
+- Donate: https://opencollective.com/marshmallow
 
 License
 =======

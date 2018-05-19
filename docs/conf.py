@@ -56,8 +56,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'marshmallow'
-copyright = ' {0:%Y} <a href="http://stevenloria.com">Steven Loria</a>'.format(
-    dt.datetime.utcnow()
+copyright = ' {0:%Y} <a href="https://stevenloria.com">Steven Loria</a>'.format(
+    dt.datetime.utcfromtimestamp(os.path.getmtime('../CHANGELOG.rst'))
 )
 
 version = release = marshmallow.__version__
@@ -80,7 +80,7 @@ html_theme_options = {
     'github_repo': 'marshmallow',
     'github_banner': True,
     'github_type': 'star',
-    'donate_url': 'https://www.paypal.me/StevenLoria',
+    'opencollective': 'marshmallow',
     'code_font_size': '0.8em',
     'warn_bg': '#FFC',
     'warn_border': '#EEE',

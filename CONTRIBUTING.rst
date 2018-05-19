@@ -1,10 +1,16 @@
 Contributing Guidelines
 =======================
 
-Questions, Feature Requests, Bug Reports, and Feedback. . .
------------------------------------------------------------
+So you're interested in contributing to marshmallow or `one of our associated
+projects <https://github.com/marshmallow-code>`__? That's awesome! We
+welcome contributions from anyone willing to work in good faith with
+other contributors and the community (see also our
+:ref:`code-of-conduct`).
 
-. . .should all be reported on the `Github Issue Tracker`_ .
+Questions, Feature Requests, Bug Reports, and Feedback…
+-------------------------------------------------------
+
+…should all be reported on the `Github Issue Tracker`_ .
 
 .. _`Github Issue Tracker`: https://github.com/marshmallow-code/marshmallow/issues?state=open
 
@@ -12,10 +18,10 @@ Ways to Contribute
 ------------------
 
 - Comment on some of marshmallow's `open issues <https://github.com/marshmallow-code/marshmallow/issues>`_ (especially those `labeled "feedback welcome" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22feedback+welcome%22>`_). Share a solution or workaround. Make a suggestion for how a feature can be made better. Opinions are welcome!
-- Improve `the docs <https://marshmallow.readthedocs.io>`_. For simple edits, click the ReadTheDocs menu button in the bottom-right corner of the page and click "Edit".  See the :ref:`Documentation <contributing_documentation>` section of this page if you want to build the docs locally.
+- Improve `the docs <https://marshmallow.readthedocs.io>`_. For straightforward edits, click the ReadTheDocs menu button in the bottom-right corner of the page and click "Edit".  See the :ref:`Documentation <contributing_documentation>` section of this page if you want to build the docs locally.
 - If you think you've found a bug, `open an issue <https://github.com/marshmallow-code/marshmallow/issues>`_.
 - Contribute an :ref:`example usage <contributing_examples>` of marshmallow.
-- Send a PR for an open issue (especially one `labeled "please help" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aissue+is%3Aopen+label%3A%22please+help%22>`_). The next section details how to contribute code.
+- Send a PR for an open issue (especially one `labeled "help wanted" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_). The next section details how to contribute code.
 
 
 Contributing Code
@@ -100,7 +106,7 @@ To run all tests: ::
 
     $ invoke test
 
-To run tests on Python 2.7, 3.4, 3.5, and PyPy virtual environments (must have each interpreter installed): ::
+To run tests on Python 2.7, 3.5, 3.6, and PyPy virtual environments (must have each interpreter installed): ::
 
     $ tox
 

@@ -3,18 +3,39 @@
 language: python
 # http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
 sudo: false
+cache: pip
 python:
   - "3.6"
   - "3.5"
-  - "3.4"
   - "2.7"
   - "pypy"
 
 before_install:
   - pip install -U pip
+  # Workaround for travis issue: https://github.com/marshmallow-code/marshmallow/issues/681
+  - pip install -U six
 
 install:
   - pip install -U .[reco]
   - pip install -U -r dev-requirements.txt
 
 script: invoke test
+jobs:
+  include:
+  - stage: PyPI Release
+    if: tag IS present
+    python: "3.6"
+    env: []
+    # Override before_install, install, and script to no-ops
+    before_install: true
+    install: true
+    script: echo "Releasing to PyPI..."
+    after_success: true
+    deploy:
+      provider: pypi
+      user: sloria
+      on:
+        tags: true
+      distributions: sdist bdist_wheel
+      password:
+        secure: ESoVNuEqjuNGCCGMbjHwIJS3LfPL2BKPQG5RuDiW8qo4+BN25yobiD+Bo7kozUtUHVKa6oTdi4Gqb1i5IUKNcaP0qBItdkk3LPOAUyOhdFZF+dL22JhajJ6LNO7i1cyUTzjYaS2cOTG8kSSYd7W9Okfp5bY6HtUNgCqhI1mZfMU=

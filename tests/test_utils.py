@@ -34,6 +34,7 @@ def test_to_marshallable_type():
 def test_to_marshallable_type_none():
     assert utils.to_marshallable_type(None) is None
 
+
 PointNT = namedtuple('Point', ['x', 'y'])
 
 def test_to_marshallable_type_with_namedtuple():
@@ -85,13 +86,13 @@ def test_get_value_from_dict():
     assert utils.get_value(d, 'keys') == ['baz', 'quux']
 
 def test_get_value():
-    l = [1, 2, 3]
-    assert utils.get_value(l, 1) == 2
+    lst = [1, 2, 3]
+    assert utils.get_value(lst, 1) == 2
 
     class MyInt(int):
         pass
 
-    assert utils.get_value(l, MyInt(1)) == 2
+    assert utils.get_value(lst, MyInt(1)) == 2
 
 
 def test_set_value():
@@ -122,8 +123,8 @@ def test_is_keyed_tuple():
     assert utils.is_keyed_tuple(d) is False
     s = 'xy'
     assert utils.is_keyed_tuple(s) is False
-    l = [24, 42]
-    assert utils.is_keyed_tuple(l) is False
+    lst = [24, 42]
+    assert utils.is_keyed_tuple(lst) is False
 
 def test_to_marshallable_type_list():
     assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']
@@ -187,17 +188,17 @@ def test_from_rfc(use_dateutil):
     assert_datetime_equal(result, d)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_iso(use_dateutil):
+def test_from_iso_datetime(use_dateutil):
     d = dt.datetime.now()
     formatted = d.isoformat()
-    result = utils.from_iso(formatted, use_dateutil=use_dateutil)
+    result = utils.from_iso_datetime(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
 def test_from_iso_with_tz():
     d = central.localize(dt.datetime.now())
     formatted = d.isoformat()
-    result = utils.from_iso(formatted)
+    result = utils.from_iso_datetime(formatted)
     assert_datetime_equal(result, d)
     if utils.dateutil_available:
         # Note a naive datetime

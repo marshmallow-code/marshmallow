@@ -10,6 +10,7 @@ import json
 import re
 import time
 import types
+import warnings
 from calendar import timegm
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
@@ -92,6 +93,7 @@ def float_to_decimal(f):
         result = ctx.divide(numerator, denominator)
     return result
 
+
 ZERO_DECIMAL = Decimal()
 
 def decimal_to_fixed(value, precision):
@@ -131,6 +133,7 @@ def pprint(obj, *args, **kwargs):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
+
 
 # From pytz: http://pytz.sourceforge.net/
 ZERO = datetime.timedelta(0)
@@ -183,6 +186,7 @@ class UTC(datetime.tzinfo):
     def __str__(self):
         return "UTC"
 
+
 UTC = utc = UTC()  # UTC is a singleton
 
 
@@ -210,6 +214,7 @@ def rfcformat(dt, localtime=False):
         return formatdate(timegm(dt.utctimetuple()))
     else:
         return local_rfcformat(dt)
+
 
 # From Django
 _iso8601_re = re.compile(
@@ -259,6 +264,11 @@ def from_rfc(datestring, use_dateutil=True):
 
 
 def from_iso(datestring, use_dateutil=True):
+    warnings.warn('from_iso is deprecated. Use from_iso_datetime instead.', UserWarning)
+    return from_iso_datetime(datestring, use_dateutil)
+
+
+def from_iso_datetime(datestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
@@ -311,10 +321,10 @@ def pluck(dictlist, key):
 
 def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects"""
-    if isinstance(key, int):
-        return _get_value_for_key(obj, key, default)
-    else:
+    if not isinstance(key, int) and '.' in key:
         return _get_value_for_keys(obj, key.split('.'), default)
+    else:
+        return _get_value_for_key(obj, key, default)
 
 
 def _get_value_for_keys(obj, keys, default):
@@ -328,12 +338,10 @@ def _get_value_for_keys(obj, keys, default):
 def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
-    except (KeyError, AttributeError, IndexError, TypeError):
-        try:
-            return getattr(obj, key)
-        except AttributeError:
-            return default
-    return default
+    except (TypeError, AttributeError):
+        return getattr(obj, key, default)
+    except (KeyError, IndexError):
+        return default
 
 
 def set_value(dct, key, value):
