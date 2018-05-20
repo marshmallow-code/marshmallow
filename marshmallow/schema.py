@@ -247,6 +247,7 @@ class BaseSchema(base.SchemaABC):
     :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
         If None, all fields are used.
         Nested fields can be represented with dot delimiters.
+        Fields names not part of the Schema will be ignored
     :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
         If a field appears in both `only` and `exclude`, it is not used.
         Nested fields can be represented with dot delimiters.
@@ -690,13 +691,7 @@ class BaseSchema(base.SchemaABC):
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        if self.only is not None:
-            # Return only fields specified in only option
-            if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
-            else:
-                field_names = self.set_class(self.only)
-        elif self.opts.fields:
+        if self.opts.fields:
             # Return fields specified in fields option
             field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
@@ -705,6 +700,10 @@ class BaseSchema(base.SchemaABC):
                             self.set_class(self.opts.additional))
         else:
             field_names = self.set_class(self.declared_fields.keys())
+
+        if self.only is not None:
+            # Return only fields specified in only option
+            field_names &= self.set_class(self.only)
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
