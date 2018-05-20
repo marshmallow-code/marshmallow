@@ -468,7 +468,7 @@ class Nested(Field):
         finally:
             if isinstance(self.only, basestring):  # self.only is a field name
                 only_field = self.schema.fields[self.only]
-                key = only_field.data_key or self.only
+                key = ''.join([self.schema.prefix or '', only_field.data_key or self.only])
                 if self.many:
                     return utils.pluck(ret, key=key)
                 else:
