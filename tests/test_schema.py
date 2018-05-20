@@ -653,9 +653,6 @@ def test_only_in_init(SchemaClass, user):
     assert 'name' in s
     assert 'age' in s
 
-def test_invalid_only_param(user):
-    with pytest.raises(AttributeError):
-        UserSchema(only=("_invalid", "name")).dump(user)
 
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user['uid'] == str(user.uid)
@@ -1283,14 +1280,20 @@ def test_exclude_invalid_attribute():
     assert sch.dump({'foo': 42}) == {'foo': 42}
 
 
-def test_only_with_invalid_attribute():
-    class MySchema(Schema):
-        foo = fields.Field()
+def test_only_field_not_in_schema_ignored():
+    class MySchema1(Schema):
+        class Meta:
+            fields = ('a', )
 
-    sch = MySchema(only=('bar', ))
-    with pytest.raises(KeyError) as excinfo:
-        sch.dump(dict(foo=42))
-    assert '"bar" is not a valid field' in str(excinfo.value.args[0])
+    class MySchema2(Schema):
+        a = fields.Str()
+
+        class Meta:
+            additional = ('b', )
+
+    assert MySchema1(only=('b', )).dump({'a': 1, 'b': 2}) == {}
+    assert MySchema2(only=('c', )).dump({'a': 1, 'b': 2, 'c': 3}) == {}
+
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
