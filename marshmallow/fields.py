@@ -449,10 +449,12 @@ class Nested(Field):
         ret, errors = schema.dump(nested_obj, many=self.many,
                 update_fields=not self.__updated_fields)
         if isinstance(self.only, basestring):  # self.only is a field name
+            only_field = self.schema.fields[self.only]
+            key = ''.join([self.schema.prefix or '', only_field.dump_to or self.only])
             if self.many:
-                return utils.pluck(ret, key=self.only)
+                return utils.pluck(ret, key=key)
             else:
-                return ret[self.only]
+                return ret[key]
         if errors:
             raise ValidationError(errors, data=ret)
         return ret
