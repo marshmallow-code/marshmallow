@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.15.3 (2018-05-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing ``only`` as a string to ``nested`` when the passed field
+  defines ``dump_to`` (:issue:`800`, :issue:`822`). Thanks
+  :user:`deckar01` for the catch and patch.
+
 2.15.2 (2018-05-10)
 +++++++++++++++++++
 
