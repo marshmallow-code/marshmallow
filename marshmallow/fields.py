@@ -589,8 +589,11 @@ class UUID(String):
         if isinstance(value, uuid.UUID):
             return value
         try:
-            return uuid.UUID(value)
-        except (ValueError, AttributeError):
+            if isinstance(value, bytes) and len(value) == 16:
+                return uuid.UUID(bytes=value)
+            else:
+                return uuid.UUID(value)
+        except (ValueError, AttributeError, TypeError):
             self.fail('invalid_uuid')
 
     def _serialize(self, value, attr, obj):
@@ -1130,6 +1133,15 @@ class Dict(Field):
                 raise ValueError('"keys" must be of type '
                                  'marshmallow.base.FieldABC')
             self.key_container = keys
+
+    def _add_to_schema(self, field_name, schema):
+        super(Dict, self)._add_to_schema(field_name, schema)
+        if self.value_container:
+            self.value_container.parent = self
+            self.value_container.name = field_name
+        if self.key_container:
+            self.key_container.parent = self
+            self.key_container.name = field_name
 
     def _serialize(self, value, attr, obj):
         if value is None:

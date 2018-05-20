@@ -662,11 +662,17 @@ class TestFieldDeserialization:
         assert isinstance(result, uuid.UUID)
         assert result == uuid4
 
+        uuid_bytes = b']\xc7wW\x132O\xf9\xa5\xbe\x13\x1f\x02\x18\xda\xbf'
+        result = field.deserialize(uuid_bytes)
+        assert isinstance(result, uuid.UUID)
+        assert result.bytes == uuid_bytes
+
     @pytest.mark.parametrize('in_value',
     [
         'malformed',
         123,
         [],
+        b'tooshort',
     ])
     def test_invalid_uuid_deserialization(self, in_value):
         field = fields.UUID()

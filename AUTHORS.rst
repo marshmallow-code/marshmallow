@@ -100,4 +100,5 @@ Contributors (chronological)
 - `@stj <https://github.com/stj>`_
 - Tomasz Magulski `@magul <https://github.com/magul>`_
 - Suren Khorenyan `@surik00 <https://github.com/surik00>`_
+- Jeffrey Berger `@JeffBerger <https://github.com/JeffBerger>`_
 - Prasanjit Prakash `@ikilledthecat <https://github.com/ikilledthecat>`_
