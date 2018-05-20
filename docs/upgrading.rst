@@ -569,6 +569,24 @@ Processors that mutate the data should be updated to also return it.
             in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
             return in_data
 
+The Nested field no longer supports plucking
+********************************************
+
+In marshmallow 2.x, when a string was passed to a ``Nested`` field's ```only`` parameter, the field would be plucked. In marshmallow 3.x, the ``Pluck`` field must be used instead.
+
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        friends = fields.Nested('self', many=True, only='name')
+
+    # 3.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        friends = fields.Pluck('self', 'name', many=True)
+
 
 
 Upgrading to 2.3
