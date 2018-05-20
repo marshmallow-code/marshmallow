@@ -2134,6 +2134,27 @@ class TestContext:
         outer.context['foo_context'] = 'foo'
         assert outer.load({'bars': [{'foo': 42}]})
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/820
+    def test_nested_dict_fields_inherit_context(self):
+        class InnerSchema(Schema):
+            foo = fields.Field()
+
+            @validates('foo')
+            def validate_foo(self, value):
+                if 'foo_context' not in self.context:
+                    raise ValidationError('Missing context')
+
+        class OuterSchema(Schema):
+            bars = fields.Dict(values=fields.Nested(InnerSchema()))
+
+        inner = InnerSchema()
+        inner.context['foo_context'] = 'foo'
+        assert inner.load({'foo': 42})
+
+        outer = OuterSchema()
+        outer.context['foo_context'] = 'foo'
+        assert outer.load({'bars': {'test': {'foo': 42}}})
+
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
     class BlogUsernameSchema(Schema):
