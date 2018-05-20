@@ -451,10 +451,12 @@ class Nested(Field):
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
         finally:
             if isinstance(self.only, basestring):  # self.only is a field name
+                only_field = self.schema.fields[self.only]
+                key = only_field.data_key or self.only
                 if self.many:
-                    return utils.pluck(ret, key=self.only)
+                    return utils.pluck(ret, key=key)
                 else:
-                    return ret[self.only]
+                    return ret[key]
         return ret
 
     def _deserialize(self, value, attr, data):

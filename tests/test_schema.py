@@ -1645,6 +1645,22 @@ class TestNestedSchema:
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
+    def test_flat_nested_with_data_key(self, blog):
+        class UserSchema(Schema):
+            name = fields.String(data_key='username')
+            age = fields.Int()
+
+        class FlatBlogSchema(Schema):
+            name = fields.String()
+            user = fields.Nested(UserSchema, only='name')
+            collaborators = fields.Nested(UserSchema, only='name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/64
     def test_nested_many_with_missing_attribute(self, user):
         class SimpleBlogSchema(Schema):

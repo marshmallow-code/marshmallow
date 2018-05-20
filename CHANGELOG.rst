@@ -18,6 +18,7 @@ Bug fixes:
 * Fields nested within ``Dict`` correctly inherit context from their
   parent schema (:issue:`820`). Thanks :user:`RosanneZe` for reporting
   and :user:`deckar01` for the PR.
+* Includes bug fix from 2.15.3.
 
 3.0.0b10 (2018-05-10)
 +++++++++++++++++++++
@@ -212,6 +213,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.15.3 (2018-05-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing ``only`` as a string to ``nested`` when the passed field
+  defines ``dump_to`` (:issue:`800`, :issue:`822`). Thanks
+  :user:`deckar01` for the catch and patch.
 
 2.15.2 (2018-05-10)
 +++++++++++++++++++
