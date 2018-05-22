@@ -1279,8 +1279,8 @@ def test_exclude_invalid_attribute():
     class MySchema(Schema):
         foo = fields.Field()
 
-    sch = MySchema(exclude=('bar', ))
-    assert sch.dump({'foo': 42}) == {'foo': 42}
+    with pytest.raises(AttributeError):
+        MySchema(exclude=('bar', ))
 
 
 def test_only_bounded_by_fields():

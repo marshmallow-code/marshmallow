@@ -713,16 +713,12 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
+            invalid_excludes = excludes - declared_fields
+            invalid_fields |= invalid_excludes
 
         if invalid_fields:
-            invalid_names = ['"{}"'.format(name) for name in invalid_fields]
-            invalid_names = utils.iterable_to_string(invalid_names)
-            if len(invalid_fields) > 1:
-                message = '{0} are not valid fields for {1}.'
-            else:
-                message = '{0} is not a valid field for {1}.'
-            message = message.format(invalid_names, self.__class__.__name__)
-            raise AttributeError(message)
+            message = 'Invalid fields for {0}: {1}.'.format(self, invalid_fields)
+            raise ValueError(message)
 
         ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
