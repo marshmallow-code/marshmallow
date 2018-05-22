@@ -1258,7 +1258,11 @@ class Method(Field):
         (in addition to self) that is the object to be serialized.
     :param str deserialize: Optional name of the Schema method for deserializing
         a value The method must take a single argument ``value``, which is the
-        value to deserialize.
+        value to deserialize. If ``pass_obj`` is set to True,
+        it should take two arguments ``value`` and ``obj``
+    :param bool pass_obj: Optional parameter which enables passing the object
+        the value was pulled from.
+        This parameter only affects ``deserialize`` method.
 
     .. versionchanged:: 2.0.0
         Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
@@ -1267,16 +1271,18 @@ class Method(Field):
         ``serialize`` to not be passed at all.
     .. versionchanged:: 3.0.0
         Removed ``method_name`` parameter.
+        Added ``pass_obj`` parameter.
     """
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize=None, deserialize=None, **kwargs):
+    def __init__(self, serialize=None, deserialize=None, pass_obj=False, **kwargs):
         # Set dump_only and load_only based on arguments
         kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
         kwargs['load_only'] = bool(deserialize) and not bool(serialize)
         super(Method, self).__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
+        self.pass_obj = pass_obj
 
     def _serialize(self, value, attr, obj):
         if not self.serialize_method_name:
@@ -1292,7 +1298,10 @@ class Method(Field):
             method = utils.callable_or_raise(
                 getattr(self.parent, self.deserialize_method_name, None)
             )
-            return method(value)
+            if self.pass_obj:
+                return method(value, data)
+            else:
+                return method(value)
         return value
 
 

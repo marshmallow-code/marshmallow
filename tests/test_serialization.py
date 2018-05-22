@@ -442,6 +442,19 @@ class TestFieldSerialization:
 
         assert m.serialize('', '', '') is missing_
 
+    def test_method_with_obj_passing(self):
+        class MethodSchema(Schema):
+            method = fields.Method(deserialize='deserialize', pass_obj=True)
+
+            def deserialize(self, value, obj):
+                return value, obj
+
+        obj = MethodSchema().load({
+            'foo': 'foo',
+            'method': 'abc',
+        })
+        assert obj["method"] == ('abc', {'foo': 'foo', 'method': 'abc'})
+
     def test_serialize_with_data_key_param(self):
         class DumpToSchema(Schema):
             name = fields.String(data_key='NamE')
