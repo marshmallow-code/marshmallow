@@ -247,7 +247,6 @@ class BaseSchema(base.SchemaABC):
     :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
         If None, all fields are used.
         Nested fields can be represented with dot delimiters.
-        Fields names not part of the Schema will be ignored
     :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
         If a field appears in both `only` and `exclude`, it is not used.
         Nested fields can be represented with dot delimiters.
@@ -701,14 +700,30 @@ class BaseSchema(base.SchemaABC):
         else:
             field_names = self.set_class(self.declared_fields.keys())
 
+        declared_fields = field_names
+        invalid_fields = self.set_class()
         if self.only is not None:
             # Return only fields specified in only option
-            field_names &= self.set_class(self.only)
+            only = self.set_class(self.only)
+            field_names = only
+            invalid_only = only - declared_fields
+            invalid_fields |= invalid_only
 
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
+
+        if invalid_fields:
+            invalid_names = ['"{}"'.format(name) for name in invalid_fields]
+            invalid_names = utils.iterable_to_string(invalid_names)
+            if len(invalid_fields) > 1:
+                message = '{0} are not valid fields for {1}.'
+            else:
+                message = '{0} is not a valid field for {1}.'
+            message = message.format(invalid_names, self.__class__.__name__)
+            raise AttributeError(message)
+
         ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
