@@ -244,12 +244,13 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
-        If None, all fields are used.
-        Nested fields can be represented with dot delimiters.
-    :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
-        If a field appears in both `only` and `exclude`, it is not used.
-        Nested fields can be represented with dot delimiters.
+    :param tuple|list only: Whitelist of the declared fields to select when
+        instantiating the Schema. If None, all fields are used. Nested fields
+        can be represented with dot delimiters.
+    :param tuple|list exclude: Blacklist of the declared fields to exclude
+        when instantiating the Schema. If a field appears in both `only` and
+        `exclude`, it is not used. Nested fields can be represented with dot
+        delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool many: Should be set to `True` if ``obj`` is a collection
