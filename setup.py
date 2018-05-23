@@ -58,5 +58,9 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
-    test_suite='tests'
+    test_suite='tests',
+    project_urls={
+        'Bug Reports': 'https://github.com/sloria/doitlive/issues',
+        'Funding': 'https://opencollective.com/marshmallow',
+    },
 )
