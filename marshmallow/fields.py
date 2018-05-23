@@ -230,7 +230,7 @@ class Field(FieldABC):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
-        :param str attr: The attibute or key to get from the object.
+        :param str attr: The attribute or key to get from the object.
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
         :raise ValidationError: In case of formatting problem
