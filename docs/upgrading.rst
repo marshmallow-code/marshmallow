@@ -456,6 +456,14 @@ It is not possible to specify a different key for serialization and deserializat
 Also, when ``data_key`` is specified on a field, only ``data_key`` is checked in the input data. In marshmallow 2.x the field name is checked if ``load_from`` is missing from the input data.
 
 
+Pre/Post-processors must return modified data
+*********************************************
+
+In marshmallow 2.x, ``None`` returned by a pre or post-processor is interpreted as "the data was mutated". In marshmallow 3.x, the return value is considered as processed data even if it is ``None``.
+
+Processors that mutate the data should be updated to also return it.
+
+
 Upgrading to 2.3
 ++++++++++++++++
 
