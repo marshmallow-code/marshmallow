@@ -63,7 +63,7 @@ setup(
     ],
     test_suite='tests',
     project_urls={
-        'Bug Reports': 'https://github.com/sloria/doitlive/issues',
+        'Bug Reports': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Funding': 'https://opencollective.com/marshmallow',
     },
 )
