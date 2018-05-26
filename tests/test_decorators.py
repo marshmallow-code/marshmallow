@@ -22,24 +22,25 @@ def test_decorated_processors():
 
         value = fields.Integer(as_string=True)
 
-        # Implicit default raw, pre dump, static method, return modified item.
+        # Implicit default raw, pre dump, static method.
         @pre_dump
         def increment_value(self, item):
             item['value'] += 1
             return item
 
-        # Implicit default raw, post dump, class method, modify in place.
+        # Implicit default raw, post dump, class method.
         @post_dump
         def add_tag(self, item):
             item['value'] = self.TAG + item['value']
+            return item
 
-        # Explicitly raw, post dump, instance method, return modified item.
+        # Explicitly raw, post dump, instance method.
         @post_dump(pass_many=True)
         def add_envelope(self, data, many):
             key = self.get_envelope_key(many)
             return {key: data}
 
-        # Explicitly raw, pre load, instance method, return modified item.
+        # Explicitly raw, pre load, instance method.
         @pre_load(pass_many=True)
         def remove_envelope(self, data, many):
             key = self.get_envelope_key(many)
@@ -49,15 +50,17 @@ def test_decorated_processors():
         def get_envelope_key(many):
             return 'data' if many else 'datum'
 
-        # Explicitly not raw, pre load, instance method, modify in place.
+        # Explicitly not raw, pre load, instance method.
         @pre_load(pass_many=False)
         def remove_tag(self, item):
             item['value'] = item['value'][len(self.TAG):]
+            return item
 
-        # Explicit default raw, post load, instance method, modify in place.
+        # Explicit default raw, post load, instance method.
         @post_load()
         def decrement_value(self, item):
             item['value'] -= 1
+            return item
 
     schema = ExampleSchema()
 
@@ -75,9 +78,44 @@ def test_decorated_processors():
     items_loaded = schema.load(items_dumped, many=True)
     assert items_loaded == make_items()
 
+
+# Regression test for https://github.com/marshmallow-code/marshmallow/issues/347
+def test_decorated_processor_returning_none():
+    class PostSchema(Schema):
+        value = fields.Integer()
+
+        @post_load
+        def load_none(self, item):
+            return None
+
+        @post_dump
+        def dump_none(self, item):
+            return None
+
+    class PreSchema(Schema):
+        value = fields.Integer()
+
+        @pre_load
+        def load_none(self, item):
+            return None
+
+        @pre_dump
+        def dump_none(self, item):
+            return None
+
+    schema = PostSchema()
+    assert schema.dump({'value': 3}) is None
+    assert schema.load({'value': 3}) is None
+    schema = PreSchema()
+    assert schema.dump({'value': 3}) == {}
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load({'value': 3})
+    assert excinfo.value.messages == {'_schema': ['Invalid input type.']}
+
+
 class TestPassOriginal:
 
-    def test_pass_original_single_no_mutation(self):
+    def test_pass_original_single(self):
         class MySchema(Schema):
             foo = fields.Field()
 
@@ -103,19 +141,6 @@ class TestPassOriginal:
 
         assert item_dumped['foo'] == 42
         assert item_dumped['_post_dump'] == 24
-
-    def test_pass_original_single_with_mutation(self):
-        class MySchema(Schema):
-            foo = fields.Field()
-
-            @post_load(pass_original=True)
-            def post_load(self, data, input_data):
-                data['_post_load'] = input_data['post_load']
-
-        schema = MySchema()
-        item_loaded = schema.load({'foo': 42, 'post_load': 24})
-        assert item_loaded['foo'] == 42
-        assert item_loaded['_post_load'] == 24
 
     def test_pass_original_many(self):
         class MySchema(Schema):
@@ -218,6 +243,7 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
         @pre_dump
         def hook(s, data):
             data['generated_field'] = 7
+            return data
 
         class Meta:
             # Removing generated_field from here drops it from the output
@@ -574,7 +600,7 @@ def test_decorator_error_handling():
         @pre_load()
         def pre_load_error1(self, item):
             if item['foo'] != 0:
-                return
+                return item
             errors = {
                 'foo': ['preloadmsg1'],
                 'bar': ['preloadmsg2', 'preloadmsg3'],
@@ -584,13 +610,13 @@ def test_decorator_error_handling():
         @pre_load()
         def pre_load_error2(self, item):
             if item['foo'] != 4:
-                return
+                return item
             raise ValidationError('preloadmsg1', 'foo')
 
         @pre_load()
         def pre_load_error3(self, item):
             if item['foo'] != 8:
-                return
+                return item
             raise ValidationError('preloadmsg1')
 
         @post_load()
@@ -612,7 +638,7 @@ def test_decorator_error_handling():
         @pre_dump()
         def pre_dump_error1(self, item):
             if item['foo'] != 2:
-                return
+                return item
             errors = {
                 'foo': ['predumpmsg1'],
                 'bar': ['predumpmsg2', 'predumpmsg3'],
@@ -622,7 +648,7 @@ def test_decorator_error_handling():
         @pre_dump()
         def pre_dump_error2(self, item):
             if item['foo'] != 6:
-                return
+                return item
             raise ValidationError('predumpmsg1', 'foo')
 
         @post_dump()
@@ -638,7 +664,7 @@ def test_decorator_error_handling():
         @post_dump()
         def post_dump_error2(self, item):
             if item['foo'] != 7:
-                return
+                return item
             raise ValidationError('postdumpmsg1', 'foo')
 
     def make_item(foo, bar):
