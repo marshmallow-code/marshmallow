@@ -464,6 +464,31 @@ In marshmallow 2.x, ``None`` returned by a pre or post-processor is interpreted 
 Processors that mutate the data should be updated to also return it.
 
 
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data):
+            # In 2.x, implicitly returning None implied that data were mutated
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+
+    # 3.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data):
+            # In 3.x, always return the processed data
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            return in_data
+
+
+
 Upgrading to 2.3
 ++++++++++++++++
 

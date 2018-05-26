@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0b12 (unreleased)
++++++++++++++++++++++
+
+- *Backwards-incompatible*: Pre/Post-processors MUST return modified data.
+  Returning ``None`` does not imply data were mutated (:issue:`347`). Thanks
+  :user:`tdevelioglu` for reporting.
+
 3.0.0b11 (2018-05-20)
 +++++++++++++++++++++
 
@@ -20,11 +27,6 @@ Bug fixes:
   and :user:`deckar01` for the PR.
 - Includes bug fix from 2.15.3.
 
-Other changes:
-
-- *Backwards-incompatible*: Pre/Post-processors must return modified data.
-  ``None`` does not mean data was mutated (:issue:`347`). Thanks
-  :user:`tdevelioglu` for reporting.
 
 3.0.0b10 (2018-05-10)
 +++++++++++++++++++++
