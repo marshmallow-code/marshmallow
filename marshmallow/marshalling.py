@@ -46,6 +46,23 @@ class ErrorStore(object):
             errors = self.errors
         return errors
 
+    def store_error(self, field_name, error, field_obj=None, index=None):
+        self.error_kwargs.update(error.kwargs)
+        if field_obj is not None:
+            self.error_fields.append(field_obj)
+        self.error_field_names.append(field_name)
+        errors = self.get_errors(index=index)
+        # Warning: Mutation!
+        if isinstance(error.messages, dict):
+            errors[field_name] = error.messages
+        elif isinstance(errors.get(field_name), dict):
+            errors[field_name].setdefault(FIELD, []).extend(error.messages)
+        else:
+            errors.setdefault(field_name, []).extend(error.messages)
+        # When a Nested field fails validation, the marshalled data is stored
+        # on the ValidationError's valid_data attribute
+        return error.valid_data or missing
+
     def call_and_store(self, getter_func, data, field_name, field_obj, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
 
@@ -60,21 +77,8 @@ class ErrorStore(object):
         """
         try:
             value = getter_func(data)
-        except ValidationError as err:  # Store validation errors
-            self.error_kwargs.update(err.kwargs)
-            self.error_fields.append(field_obj)
-            self.error_field_names.append(field_name)
-            errors = self.get_errors(index=index)
-            # Warning: Mutation!
-            if isinstance(err.messages, dict):
-                errors[field_name] = err.messages
-            elif isinstance(errors.get(field_name), dict):
-                errors[field_name].setdefault(FIELD, []).extend(err.messages)
-            else:
-                errors.setdefault(field_name, []).extend(err.messages)
-            # When a Nested field fails validation, the marshalled data is stored
-            # on the ValidationError's valid_data attribute
-            value = err.valid_data or missing
+        except ValidationError as error:
+            return self.store_error(field_name, error, field_obj, index)
         return value
 
 class Marshaller(ErrorStore):
