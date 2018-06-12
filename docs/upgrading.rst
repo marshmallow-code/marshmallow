@@ -445,16 +445,38 @@ The same key is used for serialization and deserialization.
 
     # 2.x
     class UserSchema(Schema):
-        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
+        email = fields.Email(load_from='CamelCasedEmail',
+                             dump_to='CamelCasedEmail')
 
     # 3.x
     class UserSchema(Schema):
         email = fields.Email(data_key='CamelCasedEmail')
 
-It is not possible to specify a different key for serialization and deserialization. This use case can be covered by using two different `Schema`.
+It is not possible to specify a different key for serialization and deserialization on the same field. 
+This use case is covered by using two different `Schema`.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    # 2.x
+    class UserSchema(Schema):
+        id = fields.Str()
+        email = fields.Email(load_from='CamelCasedEmail',
+                             dump_to='snake_case_email')
+
+    # 3.x
+    class BaseUserSchema(Schema):
+        id = fields.Str()
+
+    class LoadUserSchema(BaseUserSchema):
+        email = fields.Email(data_key='CamelCasedEmail')
+
+    class DumpUserSchema(BaseUserSchema):
+        email = fields.Email(data_key='snake_case_email')
+
 
 Also, when ``data_key`` is specified on a field, only ``data_key`` is checked in the input data. In marshmallow 2.x the field name is checked if ``load_from`` is missing from the input data.
-
 
 Pre/Post-processors must return modified data
 *********************************************

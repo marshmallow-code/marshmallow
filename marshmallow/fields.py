@@ -103,6 +103,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         ``default`` value is only used if explicitly set. Otherwise, missing values
         inputs are excluded from serialized output.
+
+    .. versionchanged:: 3.0.0b8
+        Add ``data_key`` parameter for the specifying the key in the input and
+        output data. This parameter replaced both ``load_from`` and ``dump_to``.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exist as attributes on the objects to serialize. Set this to False
@@ -1314,7 +1318,7 @@ class Function(Field):
 
     .. versionchanged:: 2.3.0
         Deprecated ``func`` parameter in favor of ``serialize``.
-    .. versionchanged:: 3.0.0
+    .. versionchanged:: 3.0.0a1
         Removed ``func`` parameter.
     """
     _CHECK_ATTRIBUTE = False
