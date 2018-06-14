@@ -26,7 +26,7 @@ Schemas are always strict
 Two major changes were made to (de)serialization behavior:
 
 - The ``strict`` parameter was removed. Schemas are always strict.
-- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` duple any more. Only ``data`` is returned.
+- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` tuple any more. Only ``data`` is returned.
 
 If invalid data are passed, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised.
 The dictionary of validation errors is accessible from the
