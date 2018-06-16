@@ -19,7 +19,7 @@ class ValidationError(MarshmallowError):
     :param list fields: `Field` objects to which the error applies.
     """
 
-    def __init__(self, message, field_names=None, fields=None,
+    def __init__(self, message, field_names=None,
                  data=None, valid_data=None, **kwargs):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
@@ -29,8 +29,6 @@ class ValidationError(MarshmallowError):
         #: If a `dict`, the keys will be field names and the values will be lists of
         #: messages.
         self.messages = messages
-        #: List of field objects which failed validation.
-        self.fields = fields
         if isinstance(field_names, basestring):
             #: List of field_names which failed validation.
             self.field_names = [field_names]

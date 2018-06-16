@@ -17,6 +17,10 @@ Other changes:
   Returning ``None`` does not imply data were mutated (:issue:`347`). Thanks
   :user:`tdevelioglu` for reporting.
 
+Deprecations/Removals:
+
+- ``ValidationError.fields`` is removed (:issue:`840`). Access field
+  instances from ``Schema.fields``.
 
 3.0.0b11 (2018-05-20)
 +++++++++++++++++++++

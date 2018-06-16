@@ -31,8 +31,6 @@ class ErrorStore(object):
     def __init__(self):
         #: Dictionary of errors stored during serialization
         self.errors = {}
-        #: List of `Field` objects which have validation errors
-        self.error_fields = []
         #: List of field_names which have validation errors
         self.error_field_names = []
         #: True while (de)serializing a collection
@@ -48,10 +46,8 @@ class ErrorStore(object):
             errors = self.errors
         return errors
 
-    def store_error(self, field_name, error, field_obj=None, index=None):
+    def store_error(self, field_name, error, index=None):
         self.error_kwargs.update(error.kwargs)
-        if field_obj is not None:
-            self.error_fields.append(field_obj)
         self.error_field_names.append(field_name)
         errors = self.get_errors(index=index)
         # Warning: Mutation!
@@ -65,22 +61,20 @@ class ErrorStore(object):
         # on the ValidationError's valid_data attribute
         return error.valid_data or missing
 
-    def call_and_store(self, getter_func, data, field_name, field_obj, index=None):
+    def call_and_store(self, getter_func, data, field_name, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
 
         :param callable getter_func: Function for getting the serialized/deserialized
             value from ``data``.
         :param data: The data passed to ``getter_func``.
         :param str field_name: Field name.
-        :param FieldABC field_obj: Field object that performs the
-            serialization/deserialization behavior.
         :param int index: Index of the item being validated, if validating a collection,
             otherwise `None`.
         """
         try:
             value = getter_func(data)
         except ValidationError as error:
-            return self.store_error(field_name, error, field_obj, index)
+            return self.store_error(field_name, error, index)
         return value
 
 
@@ -126,7 +120,6 @@ class Marshaller(ErrorStore):
                 raise ValidationError(
                     self.errors,
                     field_names=self.error_field_names,
-                    fields=self.error_fields,
                     data=ret,
                 )
             return ret
@@ -142,7 +135,6 @@ class Marshaller(ErrorStore):
                 getter_func=getter,
                 data=obj,
                 field_name=key,
-                field_obj=field_obj,
                 index=(index if index_errors else None)
             )
             if value is missing:
@@ -153,7 +145,6 @@ class Marshaller(ErrorStore):
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
-                fields=self.error_fields,
                 data=ret
             )
         return ret
@@ -190,13 +181,9 @@ class Unmarshaller(ErrorStore):
             # Store or reraise errors
             if err.field_names:
                 field_names = err.field_names
-                field_objs = [fields_dict[each] if each in fields_dict else None
-                              for each in field_names]
             else:
                 field_names = [SCHEMA]
-                field_objs = []
             self.error_field_names = field_names
-            self.error_fields = field_objs
             for field_name in field_names:
                 if isinstance(err.messages, (list, tuple)):
                     # self.errors[field_name] may be a dict if schemas are nested
@@ -244,7 +231,6 @@ class Unmarshaller(ErrorStore):
                 raise ValidationError(
                     self.errors,
                     field_names=self.error_field_names,
-                    fields=self.error_fields,
                     data=ret,
                 )
             return ret
@@ -264,7 +250,6 @@ class Unmarshaller(ErrorStore):
                     input=data, input_type=data.__class__.__name__
                 )
                 self.error_field_names = [SCHEMA]
-                self.error_fields = []
                 errors = self.get_errors()
                 errors.setdefault(SCHEMA, []).append(msg)
                 # Input data type is incorrect, so we can bail out early
@@ -281,7 +266,6 @@ class Unmarshaller(ErrorStore):
                 getter_func=getter,
                 data=raw_value,
                 field_name=field_name,
-                field_obj=field_obj,
                 index=(index if index_errors else None)
             )
             if value is not missing:
@@ -306,7 +290,6 @@ class Unmarshaller(ErrorStore):
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
-                fields=self.error_fields,
                 data=ret,
             )
         return ret
