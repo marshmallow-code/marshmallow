@@ -62,12 +62,8 @@ Git Branch Structure
 
 Marshmallow abides by the following branching model:
 
-
 ``dev``
     Current development branch. **New features should branch off here**.
-
-``pypi``
-    Current production release on PyPI.
 
 ``X.Y-line``
     Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.** The maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.
