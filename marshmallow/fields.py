@@ -250,7 +250,7 @@ class Field(FieldABC):
             value = None
         return self._serialize(value, attr, obj)
 
-    def deserialize(self, value, attr=None, data=None):
+    def deserialize(self, value, attr=None, data=None, **kwargs):
         """Deserialize ``value``.
 
         :raise ValidationError: If an invalid value is passed or if a required value
@@ -264,7 +264,7 @@ class Field(FieldABC):
             return _miss() if callable(_miss) else _miss
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
-        output = self._deserialize(value, attr, data)
+        output = self._deserialize(value, attr, data, **kwargs)
         self._validate(output)
         return output
 
@@ -306,6 +306,8 @@ class Field(FieldABC):
         :param value: The value to be deserialized.
         :param str attr: The attribute/key in `data` to be deserialized.
         :param dict data: The raw input data passed to the `Schema.load`.
+        :param bool|tuple partial: For nested schemas, the ``partial``
+            parameter passed to `Schema.load`.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The deserialized value.
 
@@ -463,7 +465,7 @@ class Nested(Field):
                     return ret[key]
         return ret
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, partial=None):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
@@ -473,7 +475,7 @@ class Nested(Field):
             else:
                 value = {self.only: value}
         try:
-            valid_data = self.schema.load(value)
+            valid_data = self.schema.load(value, partial=partial)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data

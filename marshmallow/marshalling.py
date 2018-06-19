@@ -15,6 +15,7 @@ from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
     ValidationError,
 )
+from marshmallow import fields
 
 __all__ = [
     'Marshaller',
@@ -212,7 +213,7 @@ class Unmarshaller(ErrorStore):
             a collection.
         :param bool|tuple partial: Whether to ignore missing fields. If its
             value is an iterable, only missing fields listed in that iterable
-            will be ignored.
+            will be ignored. Use dot delimiters to specify nested fields.
         :param type dict_class: Dictionary class used to construct the output.
         :param bool index_errors: Whether to store the index of invalid items in
             ``self.errors`` when ``many=True``.
@@ -264,7 +265,18 @@ class Unmarshaller(ErrorStore):
                     (partial_is_collection and attr_name in partial)
                 ):
                     continue
-            getter = lambda val: field_obj.deserialize(val, field_name, data)
+            d_kwargs = {}
+            if isinstance(field_obj, fields.Nested):
+                # Allow partial loading of nested schemas.
+                prefix = field_name + "."
+                if partial_is_collection:
+                    sub_partial = [f[len(prefix):]
+                                   for f in partial if f.startswith(prefix)]
+                else:
+                    sub_partial = partial
+                d_kwargs['partial'] = sub_partial
+            getter = lambda val: field_obj.deserialize(val, field_name,
+                                                       data, **d_kwargs)
             value = self.call_and_store(
                 getter_func=getter,
                 data=raw_value,

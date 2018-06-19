@@ -1431,6 +1431,76 @@ class TestValidation:
         assert 'equal' in errors
         assert errors['equal'] == ['Must be equal to False.']
 
+    def test_nested_partial_load(self):
+        class SchemaA(Schema):
+            x = fields.Integer(required=True)
+            y = fields.Integer()
+
+        class SchemaB(Schema):
+            z = fields.Nested(SchemaA)
+
+        b_dict = {
+            'z': {
+                'y': 42,
+            }
+        }
+        # Partial loading shouldn't generate any errors.
+        result = SchemaB().load(b_dict, partial=True)
+        assert result['z']['y'] == 42
+        # Non partial loading should complain about missing values.
+        with pytest.raises(ValidationError) as excinfo:
+            SchemaB().load(b_dict)
+        data, errors = excinfo.value.valid_data, excinfo.value.messages
+        assert data['z']['y'] == 42
+        assert 'z' in errors
+        assert 'x' in errors['z']
+
+    def test_deeply_nested_partial_load(self):
+        class SchemaC(Schema):
+            x = fields.Integer(required=True)
+            y = fields.Integer()
+
+        class SchemaB(Schema):
+            c = fields.Nested(SchemaC)
+
+        class SchemaA(Schema):
+            b = fields.Nested(SchemaB)
+
+        a_dict = {
+            'b': {
+                'c': {
+                    'y': 42,
+                }
+            }
+        }
+        # Partial loading shouldn't generate any errors.
+        result = SchemaA().load(a_dict, partial=True)
+        assert result['b']['c']['y'] == 42
+        # Non partial loading should complain about missing values.
+        with pytest.raises(ValidationError) as excinfo:
+            SchemaA().load(a_dict)
+        data, errors = excinfo.value.valid_data, excinfo.value.messages
+        assert data['b']['c']['y'] == 42
+        assert 'b' in errors
+        assert 'c' in errors['b']
+        assert 'x' in errors['b']['c']
+
+    def test_nested_partial_tuple(self):
+        class SchemaA(Schema):
+            x = fields.Integer(required=True)
+            y = fields.Integer(required=True)
+
+        class SchemaB(Schema):
+            z = fields.Nested(SchemaA)
+
+        b_dict = {
+            'z': {
+                'y': 42,
+            }
+        }
+        b_partial = ('z.x',)
+        result = SchemaB().load(b_dict, partial=b_partial)
+        assert result['z']['y'] == 42
 
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
 @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)

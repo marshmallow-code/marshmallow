@@ -496,6 +496,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :return: A dict of deserialized data
         :rtype: dict
 
@@ -516,6 +517,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :return: A dict of deserialized data
         :rtype: dict
 
@@ -538,6 +540,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :return: A dictionary of validation errors.
         :rtype: dict
 
