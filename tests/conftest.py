@@ -6,12 +6,12 @@ from tests.base import User, UserSchema, Blog
 
 @pytest.fixture
 def user():
-    return User(name="Monty", age=42.3, homepage="http://monty.python.org/")
+    return User(name='Monty', age=42.3, homepage='http://monty.python.org/')
 
 @pytest.fixture
 def blog(user):
-    col1 = User(name="Mick", age=123)
-    col2 = User(name="Keith", age=456)
+    col1 = User(name='Mick', age=123)
+    col2 = User(name='Keith', age=456)
     return Blog("Monty's blog", user=user, categories=['humor', 'violence'],
                 collaborators=[col1, col2])
 

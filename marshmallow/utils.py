@@ -55,13 +55,13 @@ def is_generator(obj):
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
-        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
+        (isinstance(obj, collections.Iterable) and not hasattr(obj, 'strip')) or is_generator(obj)
     )
 
 
 def is_indexable_but_not_string(obj):
     """Return True if ``obj`` is indexable but isn't a string."""
-    return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
+    return not hasattr(obj, 'strip') and hasattr(obj, '__getitem__')
 
 
 def is_collection(obj):
@@ -124,7 +124,7 @@ def to_marshallable_type(obj, field_names=None):
     else:
         attrs = set(dir(obj))
     return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                  if not attr.startswith("__") and not attr.endswith("__")])
+                  if not attr.startswith('__') and not attr.endswith('__')])
 
 
 def pprint(obj, *args, **kwargs):
@@ -149,7 +149,7 @@ class UTC(datetime.tzinfo):
     Optimized UTC implementation. It unpickles using the single module global
     instance defined beneath this class declaration.
     """
-    zone = "UTC"
+    zone = 'UTC'
 
     _utcoffset = ZERO
     _dst = ZERO
@@ -164,19 +164,19 @@ class UTC(datetime.tzinfo):
         return ZERO
 
     def tzname(self, dt):
-        return "UTC"
+        return 'UTC'
 
     def dst(self, dt):
         return ZERO
 
     def localize(self, dt, is_dst=False):
-        '''Convert naive time to local time'''
+        """Convert naive time to local time"""
         if dt.tzinfo is not None:
             raise ValueError('Not naive datetime (tzinfo is already set)')
         return dt.replace(tzinfo=self)
 
     def normalize(self, dt, is_dst=False):
-        '''Correct the timezone information on the given datetime'''
+        """Correct the timezone information on the given datetime"""
         if dt.tzinfo is self:
             return dt
         if dt.tzinfo is None:
@@ -184,10 +184,10 @@ class UTC(datetime.tzinfo):
         return dt.astimezone(self)
 
     def __repr__(self):
-        return "<UTC>"
+        return '<UTC>'
 
     def __str__(self):
-        return "UTC"
+        return 'UTC'
 
 
 UTC = utc = UTC()  # UTC is a singleton
@@ -197,11 +197,11 @@ def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
     """
-    weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
-    month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-             "Oct", "Nov", "Dec"][dt.month - 1]
-    tz_offset = dt.strftime("%z")
-    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
+    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+             'Oct', 'Nov', 'Dec'][dt.month - 1]
+    tz_offset = dt.strftime('%z')
+    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (weekday, dt.day, month,
         dt.year, dt.hour, dt.minute, dt.second, tz_offset)
 
 
