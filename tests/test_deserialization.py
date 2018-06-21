@@ -1502,6 +1502,7 @@ class TestValidation:
         result = SchemaB().load(b_dict, partial=b_partial)
         assert result['z']['y'] == 42
 
+
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
 @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
 def test_required_field_failure(FieldClass):  # noqa
