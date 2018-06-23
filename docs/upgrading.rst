@@ -99,6 +99,34 @@ will raise a :exc:`TypeError`.
     # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
     schema.load(None)
 
+
+``ValidationError.fields`` is removed
+*************************************
+
+:exc:`ValidationError <marshmallow.exceptions.ValidationError>` no
+longer stores a list of `Field <marshmallow.fields.Field>` instances
+associated with the validation errors.
+
+If you need field instances associated with an error, you can access
+them from ``schema.fields``.
+
+.. code-block:: python
+
+
+    from marshmallow import Schema, fields, ValidationError
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+
+    schema = MySchema()
+
+    try:
+        schema.load({'foo': 'invalid'})
+    except ValidationError as error:
+        field = schema.fields['foo']
+        # ...
+
 Overriding ``get_attribute``
 ****************************
 

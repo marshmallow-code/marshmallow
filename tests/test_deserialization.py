@@ -1558,4 +1558,3 @@ def test_deserialize_raises_exception_if_input_type_is_incorrect(data):
     assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']
-    assert exc.fields == []

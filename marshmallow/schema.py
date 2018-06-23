@@ -461,7 +461,6 @@ class BaseSchema(base.SchemaABC):
             exc = ValidationError(
                 errors,
                 field_names=marshal.error_field_names,
-                fields=marshal.error_fields,
                 data=obj,
                 valid_data=result,
                 **marshal.error_kwargs
@@ -659,7 +658,6 @@ class BaseSchema(base.SchemaABC):
             exc = ValidationError(
                 errors,
                 field_names=unmarshal.error_field_names,
-                fields=unmarshal.error_fields,
                 data=data,
                 valid_data=result,
                 **unmarshal.error_kwargs
@@ -859,7 +857,6 @@ class BaseSchema(base.SchemaABC):
                             getter_func=validator,
                             data=value,
                             field_name=field_name,
-                            field_obj=field_obj,
                             index=(idx if self.opts.index_errors else None)
                         )
                         if validated_value is missing:
@@ -873,8 +870,7 @@ class BaseSchema(base.SchemaABC):
                     validated_value = unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
-                        field_name=field_name,
-                        field_obj=field_obj
+                        field_name=field_name
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)

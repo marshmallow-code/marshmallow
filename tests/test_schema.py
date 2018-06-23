@@ -73,7 +73,6 @@ def test_dump_mode_raises_error(SchemaClass):
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
-    assert type(exc.fields[0]) == fields.Decimal
     assert exc.field_names[0] == 'balance'
 
     assert type(exc.messages) == dict
@@ -164,13 +163,11 @@ def test_dump_resets_error_fields():
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='dummy'))
     exc = excinfo.value
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='__dummy'))
 
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
 def test_load_resets_error_fields():
@@ -181,13 +178,11 @@ def test_load_resets_error_fields():
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'name': 'Joe', 'email': 'not-valid'})
     exc = excinfo.value
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'name': 'Joe', 'email': '__invalid'})
 
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
 def test_load_resets_error_kwargs():
@@ -1476,7 +1471,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
-                assert error.fields == [self.fields['email']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1494,7 +1488,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
-                assert error.fields == [self.fields['email']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1516,7 +1509,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'num' in error.messages
                 assert error.field_names == ['num']
-                assert error.fields == [self.fields['num']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1537,7 +1529,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert '_schema' in error.messages
                 assert error.field_names == ['_schema']
-                assert error.fields == []
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
