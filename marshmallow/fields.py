@@ -12,6 +12,7 @@ import decimal
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
+from marshmallow.utils import EXCLUDE
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
@@ -370,6 +371,8 @@ class Nested(Field):
         value will be returned as output instead of a dictionary.
         This parameter takes precedence over ``exclude``.
     :param bool many: Whether the field is a collection of objects.
+    :param unknown: Whether to exclude, include, or raise an error for unknown
+        fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -382,6 +385,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
+        self.unknown = kwargs.get('unknown', EXCLUDE)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
@@ -473,7 +477,7 @@ class Nested(Field):
             else:
                 value = {self.only: value}
         try:
-            valid_data = self.schema.load(value)
+            valid_data = self.schema.load(value, unknown=self.unknown)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data

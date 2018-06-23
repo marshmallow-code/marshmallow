@@ -18,6 +18,9 @@ from pprint import pprint as py_pprint
 
 from marshmallow.compat import binary_type, text_type
 
+EXCLUDE = 'exclude'
+INCLUDE = 'include'
+RAISE = 'raise'
 
 dateutil_available = False
 try:
