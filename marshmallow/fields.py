@@ -143,7 +143,7 @@ class Field(FieldABC):
             self.validators = []
         else:
             raise ValueError("The 'validate' parameter must be a callable "
-                             "or a collection of callables.")
+                             'or a collection of callables.')
 
         self.required = required
         # If missing=None, None should be considered valid by default

@@ -41,15 +41,15 @@ def benchmark(ctx):
 
 @task
 def clean(ctx):
-    ctx.run("rm -rf build")
-    ctx.run("rm -rf dist")
-    ctx.run("rm -rf marshmallow.egg-info")
+    ctx.run('rm -rf build')
+    ctx.run('rm -rf dist')
+    ctx.run('rm -rf marshmallow.egg-info')
     clean_docs(ctx)
-    print("Cleaned up.")
+    print('Cleaned up.')
 
 @task
 def clean_docs(ctx):
-    ctx.run("rm -rf %s" % build_dir)
+    ctx.run('rm -rf %s' % build_dir)
 
 @task
 def browse_docs(ctx):
@@ -57,7 +57,7 @@ def browse_docs(ctx):
     webbrowser.open_new_tab(path)
 
 def build_docs(ctx, browse):
-    ctx.run("sphinx-build %s %s" % (docs_dir, build_dir), echo=True)
+    ctx.run('sphinx-build %s %s' % (docs_dir, build_dir), echo=True)
     if browse:
         browse_docs(ctx)
 
@@ -86,6 +86,6 @@ def watch_docs(ctx, browse=False):
 
 @task
 def readme(ctx, browse=False):
-    ctx.run("rst2html.py README.rst > README.html")
+    ctx.run('rst2html.py README.rst > README.html')
     if browse:
         webbrowser.open_new_tab('README.html')

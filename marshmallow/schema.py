@@ -188,16 +188,16 @@ class SchemaOpts(object):
     def __init__(self, meta, ordered=False):
         self.fields = getattr(meta, 'fields', ())
         if not isinstance(self.fields, (list, tuple)):
-            raise ValueError("`fields` option must be a list or tuple.")
+            raise ValueError('`fields` option must be a list or tuple.')
         self.additional = getattr(meta, 'additional', ())
         if not isinstance(self.additional, (list, tuple)):
-            raise ValueError("`additional` option must be a list or tuple.")
+            raise ValueError('`additional` option must be a list or tuple.')
         if self.fields and self.additional:
-            raise ValueError("Cannot set both `fields` and `additional` options"
-                            " for the same Schema.")
+            raise ValueError('Cannot set both `fields` and `additional` options'
+                            ' for the same Schema.')
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
-            raise ValueError("`exclude` must be a list or tuple.")
+            raise ValueError('`exclude` must be a list or tuple.')
         self.dateformat = getattr(meta, 'dateformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(

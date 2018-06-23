@@ -43,7 +43,7 @@ class ValidationError(MarshmallowError):
         self.kwargs = kwargs
         MarshmallowError.__init__(self, message)
 
-    def normalized_messages(self, no_field_name="_schema"):
+    def normalized_messages(self, no_field_name='_schema'):
         if isinstance(self.messages, dict):
             return self.messages
         if len(self.field_names) == 0:

@@ -27,7 +27,7 @@ class TestFieldSerialization:
 
     @pytest.fixture
     def user(self):
-        return User("Foo", email="foo@bar.com", age=42)
+        return User('Foo', email='foo@bar.com', age=42)
 
     @pytest.mark.parametrize(('value', 'expected'),
     [
@@ -52,7 +52,7 @@ class TestFieldSerialization:
 
     def test_function_field_passed_func(self, user):
         field = fields.Function(lambda obj: obj.name.upper())
-        assert "FOO" == field.serialize("key", user)
+        assert 'FOO' == field.serialize('key', user)
 
     def test_function_field_passed_serialize_only_is_dump_only(self, user):
         field = fields.Function(serialize=lambda obj: obj.name.upper())
@@ -67,7 +67,7 @@ class TestFieldSerialization:
 
     def test_function_field_passed_serialize(self, user):
         field = fields.Function(serialize=lambda obj: obj.name.upper())
-        assert "FOO" == field.serialize("key", user)
+        assert 'FOO' == field.serialize('key', user)
 
     # https://github.com/marshmallow-code/marshmallow/issues/395
     def test_function_field_does_not_swallow_attribute_error(self, user):
@@ -88,7 +88,7 @@ class TestFieldSerialization:
             serialize=lambda obj, context: obj.name.upper() + context['key']
         )
         field.parent = Parent(context={'key': 'BAR'})
-        assert "FOOBAR" == field.serialize("key", user)
+        assert 'FOOBAR' == field.serialize('key', user)
 
     def test_function_field_passed_uncallable_object(self):
         with pytest.raises(ValueError):
@@ -345,7 +345,7 @@ class TestFieldSerialization:
 
     def test_function_with_uncallable_param(self):
         with pytest.raises(ValueError):
-            fields.Function("uncallable")
+            fields.Function('uncallable')
 
     def test_email_field_serialize_none(self, user):
         user.email = None
@@ -364,33 +364,33 @@ class TestFieldSerialization:
         assert field.serialize('various_data', user) == 'okaydict'
 
     def test_dict_field_serialize(self, user):
-        user.various_data = {"foo": "bar"}
+        user.various_data = {'foo': 'bar'}
         field = fields.Dict()
-        assert field.serialize('various_data', user) == {"foo": "bar"}
+        assert field.serialize('various_data', user) == {'foo': 'bar'}
 
     def test_dict_field_serialize_ordereddict(self, user):
-        user.various_data = OrderedDict([("foo", "bar"), ("bar", "baz")])
+        user.various_data = OrderedDict([('foo', 'bar'), ('bar', 'baz')])
         field = fields.Dict()
         assert field.serialize('various_data', user) == \
-            OrderedDict([("foo", "bar"), ("bar", "baz")])
+            OrderedDict([('foo', 'bar'), ('bar', 'baz')])
 
     def test_structured_dict_value_serialize(self, user):
-        user.various_data = {"foo": decimal.Decimal('1')}
+        user.various_data = {'foo': decimal.Decimal('1')}
         field = fields.Dict(values=fields.Decimal)
-        assert field.serialize('various_data', user) == {"foo": 1}
+        assert field.serialize('various_data', user) == {'foo': 1}
 
     def test_structured_dict_key_serialize(self, user):
-        user.various_data = {1: "bar"}
+        user.various_data = {1: 'bar'}
         field = fields.Dict(keys=fields.Str)
-        assert field.serialize('various_data', user) == {"1": "bar"}
+        assert field.serialize('various_data', user) == {'1': 'bar'}
 
     def test_structured_dict_key_value_serialize(self, user):
         user.various_data = {1: decimal.Decimal('1')}
         field = fields.Dict(keys=fields.Str, values=fields.Decimal)
-        assert field.serialize('various_data', user) == {"1": 1}
+        assert field.serialize('various_data', user) == {'1': 1}
 
     def test_structured_dict_validates(self, user):
-        user.various_data = {"foo": "bar"}
+        user.various_data = {'foo': 'bar'}
         field = fields.Dict(values=fields.Decimal)
         with pytest.raises(ValidationError):
             field.serialize('various_data', user)
@@ -458,7 +458,7 @@ class TestFieldSerialization:
 
     def test_serialize_with_attribute_and_data_key_uses_data_key(self):
         class ConfusedDumpToAndAttributeSerializer(Schema):
-            name = fields.String(data_key="FullName")
+            name = fields.String(data_key='FullName')
             username = fields.String(attribute='uname', data_key='UserName')
             years = fields.Integer(attribute='le_wild_age', data_key='Years')
         data = {
@@ -497,28 +497,28 @@ class TestFieldSerialization:
     def test_datetime_field_rfc822(self, fmt, user):
         field = fields.DateTime(format=fmt)
         expected = utils.rfcformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
+        assert field.serialize('created', user) == expected
 
     def test_localdatetime_rfc_field(self, user):
         field = fields.LocalDateTime(format='rfc')
         expected = utils.rfcformat(user.created, localtime=True)
-        assert field.serialize("created", user) == expected
+        assert field.serialize('created', user) == expected
 
     @pytest.mark.parametrize('fmt', ['iso', 'iso8601'])
     def test_datetime_iso8601(self, fmt, user):
         field = fields.DateTime(format=fmt)
         expected = utils.isoformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
+        assert field.serialize('created', user) == expected
 
     def test_localdatetime_iso(self, user):
-        field = fields.LocalDateTime(format="iso")
+        field = fields.LocalDateTime(format='iso')
         expected = utils.isoformat(user.created, localtime=True)
-        assert field.serialize("created", user) == expected
+        assert field.serialize('created', user) == expected
 
     def test_datetime_format(self, user):
-        format = "%Y-%m-%d"
+        format = '%Y-%m-%d'
         field = fields.DateTime(format=format)
-        assert field.serialize("created", user) == user.created.strftime(format)
+        assert field.serialize('created', user) == user.created.strftime(format)
 
     def test_string_field(self):
         field = fields.String()
@@ -542,7 +542,7 @@ class TestFieldSerialization:
 
     def test_string_field_default_to_empty_string(self, user):
         field = fields.String(default='')
-        assert field.serialize("notfound", {}) == ''
+        assert field.serialize('notfound', {}) == ''
 
     def test_time_field(self, user):
         field = fields.Time()
@@ -713,7 +713,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generators_error(self):
         def custom_generator():
-            for dtime in [dt.datetime.utcnow(), "m", dt.datetime.now()]:
+            for dtime in [dt.datetime.utcnow(), 'm', dt.datetime.now()]:
                 yield dtime
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)
@@ -735,7 +735,7 @@ class TestFieldSerialization:
         custom_set = set([1, 2, 3])
         obj = IntegerList(custom_set)
         field = fields.List(fields.Int)
-        result = field.serialize("ints", obj)
+        result = field.serialize('ints', obj)
         assert len(result) == 3
         assert 1 in result
         assert 2 in result
@@ -752,7 +752,7 @@ class TestFieldSerialization:
         ints = IteratorSupportingClass([1, 2, 3])
         obj = IntegerList(ints)
         field = fields.List(fields.Int)
-        result = field.serialize("ints", obj)
+        result = field.serialize('ints', obj)
         assert len(result) == 3
         assert result[0] == 1
         assert result[1] == 2
@@ -762,7 +762,7 @@ class TestFieldSerialization:
         class ASchema(Schema):
             id = fields.Int()
         with pytest.raises(ValueError):
-            fields.List("string")
+            fields.List('string')
         with pytest.raises(ValueError) as excinfo:
             fields.List(ASchema)
         expected_msg = ('The type of the list elements must be a subclass '

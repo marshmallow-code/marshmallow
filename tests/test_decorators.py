@@ -249,7 +249,7 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
             # Removing generated_field from here drops it from the output
             fields = ('field', 'generated_field')
 
-    assert Foo().dump({"field": 5}) == {'field': 5, 'generated_field': 7}
+    assert Foo().dump({'field': 5}) == {'field': 5, 'generated_field': 7}
 
 
 class ValidatesSchema(Schema):
@@ -391,12 +391,12 @@ class TestValidatesSchemaDecorator:
         assert '_schema' in errors['nested']
         assert 'foo' not in errors['nested']
 
-    @pytest.mark.parametrize("data", ([{"foo": 1, "bar": 2}],))
+    @pytest.mark.parametrize('data', ([{'foo': 1, 'bar': 2}],))
     @pytest.mark.parametrize(
-        "pass_many,expected_data,expected_original_data",
+        'pass_many,expected_data,expected_original_data',
         (
-            [True, [{"foo": 1}], [{"foo": 1, "bar": 2}]],
-            [False, {"foo": 1}, {"foo": 1, "bar": 2}],
+            [True, [{'foo': 1}], [{'foo': 1, 'bar': 2}]],
+            [False, {'foo': 1}, {'foo': 1, 'bar': 2}],
         ),
     )
     def test_validator_nested_many_pass_original_and_pass_many(
@@ -410,15 +410,15 @@ class TestValidatesSchemaDecorator:
                 assert data == expected_data
                 assert original_data == expected_original_data
                 assert many is pass_many
-                raise ValidationError("Method called")
+                raise ValidationError('Method called')
 
         class MySchema(Schema):
             nested = fields.Nested(NestedSchema, required=True, many=True)
 
         schema = MySchema()
-        errors = schema.validate({"nested": data})
-        error = errors["nested"] if pass_many else errors["nested"][0]
-        assert error["_schema"][0] == "Method called"
+        errors = schema.validate({'nested': data})
+        error = errors['nested'] if pass_many else errors['nested'][0]
+        assert error['_schema'][0] == 'Method called'
 
     def test_decorated_validators(self):
 
@@ -800,9 +800,9 @@ example = Example(nested=[Nested(x) for x in range(1)])
 
 
 @pytest.mark.parametrize(
-    "data,expected_data,expected_original_data",
+    'data,expected_data,expected_original_data',
     (
-        [example, {"foo": 0}, example.nested[0]],
+        [example, {'foo': 0}, example.nested[0]],
     ),
 )
 def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
@@ -828,13 +828,13 @@ def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
         nested = fields.Nested(NestedSchema, required=True, many=True)
 
     schema = ExampleSchema()
-    assert schema.dump(data) == {"nested": [{"foo": 0}]}
+    assert schema.dump(data) == {'nested': [{'foo': 0}]}
 
 
 @pytest.mark.parametrize(
-    "data,expected_data,expected_original_data",
+    'data,expected_data,expected_original_data',
     (
-        [{"nested": [{"foo": 0}]}, {"foo": 0}, {"foo": 0}],
+        [{'nested': [{'foo': 0}]}, {'foo': 0}, {'foo': 0}],
     ),
 )
 def test_decorator_post_load_with_nested_pass_original_and_pass_many(

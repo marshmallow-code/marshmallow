@@ -18,15 +18,15 @@ class TestMarshaller:
         return Marshaller()
 
     def test_prefix(self):
-        u = User("Foo", email="foo@bar.com")
+        u = User('Foo', email='foo@bar.com')
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
+        result = marshal(u, {'email': fields.Email(), 'name': fields.String()})
         assert result['usr_name'] == u.name
         assert result['usr_email'] == u.email
 
     def test_marshalling_generator(self, marshal):
-        gen = (u for u in [User("Foo"), User("Bar")])
-        res = marshal(gen, {"name": fields.String()}, many=True)
+        gen = (u for u in [User('Foo'), User('Bar')])
+        res = marshal(gen, {'name': fields.String()}, many=True)
         assert len(res) == 2
 
     def test_default_to_missing(self, marshal):
@@ -75,9 +75,9 @@ class TestMarshaller:
         assert result['EmAiL'] == 'm@wazow.ski'
 
     def test_serialize_fields_with_data_key_and_prefix_params(self):
-        u = User("Foo", email="foo@bar.com")
+        u = User('Foo', email='foo@bar.com')
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(data_key='EmAiL'),
+        result = marshal(u, {'email': fields.Email(data_key='EmAiL'),
                              'name': fields.String(data_key='NaMe')})
         assert result['usr_NaMe'] == u.name
         assert result['usr_EmAiL'] == u.email
@@ -134,10 +134,10 @@ class TestUnmarshaller:
     def test_stores_errors(self, unmarshal):
         data = {'email': 'invalid-email'}
         try:
-            unmarshal(data, {"email": fields.Email()})
+            unmarshal(data, {'email': fields.Email()})
         except ValidationError:
             pass
-        assert "email" in unmarshal.errors
+        assert 'email' in unmarshal.errors
 
     def test_stores_indices_of_errors_when_many_equals_true(self, unmarshal):
         users = [

@@ -33,7 +33,7 @@ class AuthorSchema(Schema):
         return obj.first + ' ' + obj.last
 
     def format_name(self, author):
-        return "{0}, {1}".format(author.last, author.first)
+        return '{0}, {1}'.format(author.last, author.first)
 
 
 class QuoteSchema(Schema):

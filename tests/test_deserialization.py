@@ -537,16 +537,16 @@ class TestFieldDeserialization:
 
     def test_dict_field_deserialization(self):
         field = fields.Dict()
-        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        assert field.deserialize({'foo': 'bar'}) == {'foo': 'bar'}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('baddict')
         assert excinfo.value.args[0] == 'Not a valid mapping type.'
 
     def test_structured_dict_value_deserialization(self):
         field = fields.Dict(values=fields.List(fields.Str))
-        assert field.deserialize({"foo": ["bar", "baz"]}) == {"foo": ["bar", "baz"]}
+        assert field.deserialize({'foo': ['bar', 'baz']}) == {'foo': ['bar', 'baz']}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({"foo": [1, 2], "bar": "baz", "ham": ["spam"]})
+            field.deserialize({'foo': [1, 2], 'bar': 'baz', 'ham': ['spam']})
         assert excinfo.value.args[0] == {
             'foo': {'value': {0: ['Not a valid string.'], 1: ['Not a valid string.']}},
             'bar': {'value': ['Not a valid list.']}, }
@@ -554,35 +554,35 @@ class TestFieldDeserialization:
 
     def test_structured_dict_key_deserialization(self):
         field = fields.Dict(keys=fields.Str)
-        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        assert field.deserialize({'foo': 'bar'}) == {'foo': 'bar'}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({1: "bar", "foo": "baz"})
+            field.deserialize({1: 'bar', 'foo': 'baz'})
         assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
-        assert excinfo.value.data == {'foo': 'baz', 1: "bar"}
+        assert excinfo.value.data == {'foo': 'baz', 1: 'bar'}
 
     def test_structured_dict_key_value_deserialization(self):
         field = fields.Dict(
             keys=fields.Str(validate=[validate.Email(), validate.Regexp(r'.*@test\.com$')]),
             values=fields.Decimal,
         )
-        assert field.deserialize({"foo@test.com": 1}) == {"foo@test.com": decimal.Decimal(1)}
+        assert field.deserialize({'foo@test.com': 1}) == {'foo@test.com': decimal.Decimal(1)}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({1: "bar"})
+            field.deserialize({1: 'bar'})
         assert excinfo.value.args[0] == {1: {
             'key': ['Not a valid string.'],
             'value': ['Not a valid number.'],
         }}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({"foo@test.com": "bar"})
-        assert excinfo.value.args[0] == {"foo@test.com": {'value': ['Not a valid number.']}}
+            field.deserialize({'foo@test.com': 'bar'})
+        assert excinfo.value.args[0] == {'foo@test.com': {'value': ['Not a valid number.']}}
         assert excinfo.value.data == {'foo@test.com': None}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({1: 1})
         assert excinfo.value.args[0] == {1: {'key': ['Not a valid string.']}}
         assert excinfo.value.data == {1: 1}
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize({"foo": "bar"})
-        assert excinfo.value.args[0] == {"foo": {
+            field.deserialize({'foo': 'bar'})
+        assert excinfo.value.args[0] == {'foo': {
             'key': ['Not a valid email address.', 'String does not match expected pattern.'],
             'value': ['Not a valid number.'],
         }}
@@ -1388,22 +1388,22 @@ class TestSchemaDeserialization:
 
     def test_unknown_fields_deserialization_with_data_key(self):
         class MySchema(Schema):
-            foo = fields.Integer(data_key="Foo")
+            foo = fields.Integer(data_key='Foo')
 
-        data = MySchema().load({"Foo": 1})
-        assert data["foo"] == 1
-        assert "Foo" not in data
+        data = MySchema().load({'Foo': 1})
+        assert data['foo'] == 1
+        assert 'Foo' not in data
 
-        data = MySchema(unknown=RAISE).load({"Foo": 1})
-        assert data["foo"] == 1
-        assert "Foo" not in data
+        data = MySchema(unknown=RAISE).load({'Foo': 1})
+        assert data['foo'] == 1
+        assert 'Foo' not in data
 
         with pytest.raises(ValidationError):
-            MySchema(unknown=RAISE).load({"foo": 1})
+            MySchema(unknown=RAISE).load({'foo': 1})
 
-        data = MySchema(unknown=INCLUDE).load({"Foo": 1})
-        assert data["foo"] == 1
-        assert "Foo" not in data
+        data = MySchema(unknown=INCLUDE).load({'Foo': 1})
+        assert data['foo'] == 1
+        assert 'Foo' not in data
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
@@ -1527,11 +1527,11 @@ FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
 def test_required_field_failure(FieldClass):  # noqa
     class RequireSchema(Schema):
         age = FieldClass(required=True)
-    user_data = {"name": "Phil"}
+    user_data = {'name': 'Phil'}
     with pytest.raises(ValidationError) as excinfo:
         RequireSchema().load(user_data)
     errors = excinfo.value.messages
-    assert "Missing data for required field." in errors['age']
+    assert 'Missing data for required field.' in errors['age']
 
 @pytest.mark.parametrize('message', ['My custom required message',
                                      {'error': 'something', 'code': 400},
@@ -1540,7 +1540,7 @@ def test_required_message_can_be_changed(message):
     class RequireSchema(Schema):
         age = fields.Integer(required=True, error_messages={'required': message})
 
-    user_data = {"name": "Phil"}
+    user_data = {'name': 'Phil'}
     with pytest.raises(ValidationError) as excinfo:
         RequireSchema().load(user_data)
     errors = excinfo.value.messages
