@@ -345,28 +345,30 @@ Handling Unknown Fields
 
 By default, :meth:`load <Schema.load>` will exclude any field that has not been defined in the schema.
 
-This behavior can be modified with the ``unknown`` option, which accepts three values:
+This behavior can be modified with the ``unknown`` option, which accepts one of the following:
 
-- `EXCLUDE <marshmallow.utils.EXCLUDE>`, which is the default
-- `INCLUDE <marshmallow.utils.INCLUDE>`, to accept and include the unknown fields inside the returned data
-- `RAISE <marshmallow.utils.RAISE>`, to raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if there is any unknown field
+- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
+- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
+- `RAISE <marshmallow.utils.RAISE>`: raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` 
+  if there are any unknown fields
 
-There are several places where you can apply that option. You can define it in the *class Meta* of your :class:`Schema`:
+You can specify ``unknown`` in the *class Meta* of your `Schema`,
 
 .. code-block:: python
-    :emphasize-lines: 2,3
+
+    from marshmallow import Schema, INCLUDE
 
     class UserSchema(Schema):
         class Meta:
             unknown = INCLUDE
 
-You can apply it at instantiation time:
+at instantiation time,
 
 .. code-block:: python
 
     schema = UserSchema(unknown=INCLUDE)
 
-Or you can force it directly when loading the data:
+or pass it to `load <Schema.load>`.
 
 .. code-block:: python
 

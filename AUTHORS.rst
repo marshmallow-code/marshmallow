@@ -102,3 +102,4 @@ Contributors (chronological)
 - Suren Khorenyan `@surik00 <https://github.com/surik00>`_
 - Jeffrey Berger `@JeffBerger <https://github.com/JeffBerger>`_
 - Felix Yan `@felixonmars <https://github.com/felixonmars>`_
+- Guillaume Gelin `@ramnes <https://github.com/ramnes>`_
