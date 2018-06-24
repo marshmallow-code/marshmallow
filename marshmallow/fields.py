@@ -7,7 +7,6 @@ import collections
 import datetime as dt
 import numbers
 import uuid
-import warnings
 import decimal
 
 from marshmallow import validate, utils, class_registry
@@ -881,6 +880,9 @@ class DateTime(Field):
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
+    :param bool auto_deserialize_format: If `True`, automatically infer format
+        of DateTime strings upon deserialization. Requires the python-dateutil
+        package.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     """
@@ -907,12 +909,18 @@ class DateTime(Field):
         'format': '"{input}" cannot be formatted as a datetime.',
     }
 
-    def __init__(self, format=None, **kwargs):
+    def __init__(self, format=None, auto_deserialize_format=False, **kwargs):
         super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_desrialize`` methods This allows a Schema to dynamically set the
         # dateformat, e.g. from a Meta option
         self.dateformat = format
+
+        if auto_deserialize_format and not utils.dateutil_available:
+            raise RuntimeError('auto_deserialize_format option requires the '
+                'python-dateutil library')
+
+        self.auto_deserialize_format = auto_deserialize_format
 
     def _add_to_schema(self, field_name, schema):
         super(DateTime, self)._add_to_schema(field_name, schema)
@@ -921,41 +929,37 @@ class DateTime(Field):
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+        dateformat = self.dateformat or self.DEFAULT_FORMAT
+        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(dateformat, None)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
             except (AttributeError, ValueError):
                 self.fail('format', input=value)
         else:
-            return value.strftime(self.dateformat)
+            return value.strftime(dateformat)
 
     def _deserialize(self, value, attr, data):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid')
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
-        if func:
+
+        def deserialize_with_format(dateformat):
             try:
-                return func(value)
+                func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
+                return func(value) if func else dt.datetime.strptime(value, dateformat)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid')
-        elif self.dateformat:
-            try:
-                return dt.datetime.strptime(value, self.dateformat)
-            except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
-        elif utils.dateutil_available:
+
+        def deserialize_with_dateutil():
             try:
                 return utils.from_datestring(value)
-            except TypeError:
+            except (TypeError, ValueError):
                 raise self.fail('invalid')
-        else:
-            warnings.warn('It is recommended that you install python-dateutil '
-                          'for improved datetime deserialization.')
-            raise self.fail('invalid')
 
+        if self.auto_deserialize_format:
+            return deserialize_with_dateutil()
+        else:
+            return deserialize_with_format(self.dateformat or self.DEFAULT_FORMAT)
 
 class LocalDateTime(DateTime):
     """A formatted datetime string in localized time, relative to UTC.

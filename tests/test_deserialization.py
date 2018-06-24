@@ -390,6 +390,26 @@ class TestFieldDeserialization:
         field = fields.DateTime(format=fmt)
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
+    def test_auto_deserialize_format(self):
+        if not utils.dateutil_available:
+            return
+
+        field = fields.DateTime(auto_deserialize_format=True)
+        expected = dt.datetime(2017, 4, 29, 19, 30)
+        noncompliant_string = '7:30PM on April 29, 2017'
+
+        assert_datetime_equal(field.deserialize(noncompliant_string), expected)
+
+    def test_noncompliant_exception_when_auto_deser_disabled(self):
+        if not utils.dateutil_available:
+            return
+
+        field = fields.DateTime()
+        noncompliant_string = '7:30PM on April 29, 2017'
+
+        with pytest.raises(ValidationError):
+            field.deserialize(noncompliant_string)
+
     def test_localdatetime_field_deserialization(self):
         dtime = dt.datetime.now()
         localized_dtime = central.localize(dtime)
