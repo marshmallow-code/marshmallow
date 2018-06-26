@@ -21,6 +21,7 @@ def find_version(fname):
         raise RuntimeError('Cannot find version information')
     return version
 
+
 __version__ = find_version('marshmallow/__init__.py')
 
 
@@ -28,6 +29,7 @@ def read(fname):
     with open(fname) as fp:
         content = fp.read()
     return content
+
 
 setup(
     name='marshmallow',
