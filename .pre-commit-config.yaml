@@ -1,0 +1,30 @@
+repos:
+- repo: https://github.com/asottile/add-trailing-comma
+  rev: v0.6.4
+  hooks:
+  - id: add-trailing-comma
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v1.3.0
+  hooks:
+  - id: trailing-whitespace
+    args: ['--markdown-linebreak-ext=md,rst']
+  - id: double-quote-string-fixer
+  - id: end-of-file-fixer
+  - id: flake8
+    # Need duplicated config due to known issues with flake8
+    # https://github.com/pre-commit/pre-commit-hooks/issues/112
+    args: ['--config=setup.cfg', '--ignore=E127,E128,E265,E302,N803,N804,N806,E266,E731', '--max-line-length=100']
+    exclude: >
+        (?x)^(
+          .git|
+          .ropeproject|
+          .tox|
+          docs|
+          .git|
+          tests/test_py3|
+          marshmallow/compat.py|
+          build|
+          setup.py|
+          env|
+          venv
+        )$
