@@ -71,8 +71,10 @@ class Author(object):
 
 
 class Quote(object):
-    def __init__(self, id, author, content, posted_at, book_name, page_number,
-                 line_number, col_number):
+    def __init__(
+        self, id, author, content, posted_at, book_name, page_number,
+        line_number, col_number,
+    ):
         self.id = id
         self.author = author
         self.content = content
@@ -90,10 +92,12 @@ def run_timeit(quotes, iterations, repeat, profile=False):
         profile.enable()
 
     gc.collect()
-    best = min(timeit.repeat(lambda: quotes_schema.dump(quotes),
-                             'gc.enable()',
-                             number=iterations,
-                             repeat=repeat))
+    best = min(timeit.repeat(
+        lambda: quotes_schema.dump(quotes),
+        'gc.enable()',
+        number=iterations,
+        repeat=repeat,
+    ))
     if profile:
         profile.disable()
         profile.dump_stats('marshmallow.pprof')
@@ -104,27 +108,38 @@ def run_timeit(quotes, iterations, repeat, profile=False):
 
 def main():
     parser = argparse.ArgumentParser(description='Runs a benchmark of Marshmallow.')
-    parser.add_argument('--iterations', type=int, default=1000,
-                        help='Number of iterations to run per test.')
-    parser.add_argument('--repeat', type=int, default=5,
-                        help='Number of times to repeat the performance test.  The minimum will '
-                             'be used.')
-    parser.add_argument('--object-count', type=int, default=20,
-                        help='Number of objects to dump.')
-    parser.add_argument('--profile', action='store_true',
-                        help='Whether or not to profile Marshmallow while running the benchmark.')
+    parser.add_argument(
+        '--iterations', type=int, default=1000,
+        help='Number of iterations to run per test.',
+    )
+    parser.add_argument(
+        '--repeat', type=int, default=5,
+        help='Number of times to repeat the performance test.  The minimum will '
+             'be used.',
+    )
+    parser.add_argument(
+        '--object-count', type=int, default=20,
+        help='Number of objects to dump.',
+    )
+    parser.add_argument(
+        '--profile', action='store_true',
+        help='Whether or not to profile Marshmallow while running the benchmark.',
+    )
     args = parser.parse_args()
 
     quotes = []
 
     for i in range(args.object_count):
         quotes.append(
-            Quote(i, Author(i, 'Foo', 'Bar', 42, 66, '123 Fake St'),
-                  'Hello World', time.time(), 'The World', 34, 3, 70)
+            Quote(
+                i, Author(i, 'Foo', 'Bar', 42, 66, '123 Fake St'),
+                'Hello World', time.time(), 'The World', 34, 3, 70,
+            ),
         )
 
     print('Benchmark Result: {0:.2f} usec/dump'.format(
-        run_timeit(quotes, args.iterations, args.repeat, profile=args.profile)))
+        run_timeit(quotes, args.iterations, args.repeat, profile=args.profile),
+    ))
 
 
 if __name__ == '__main__':

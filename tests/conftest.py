@@ -12,8 +12,10 @@ def user():
 def blog(user):
     col1 = User(name='Mick', age=123)
     col2 = User(name='Keith', age=456)
-    return Blog("Monty's blog", user=user, categories=['humor', 'violence'],
-                collaborators=[col1, col2])
+    return Blog(
+        "Monty's blog", user=user, categories=['humor', 'violence'],
+        collaborators=[col1, col2],
+    )
 
 @pytest.fixture
 def serialized_user(user):

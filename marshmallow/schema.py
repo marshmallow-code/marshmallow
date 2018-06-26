@@ -69,7 +69,7 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
             _get_fields(
                 getattr(base, '_declared_fields', base.__dict__),
                 field_class,
-                ordered=ordered
+                ordered=ordered,
             )
             for base in mro[:0:-1]
         ),
@@ -116,7 +116,7 @@ class SchemaMeta(type):
             klass=klass,
             cls_fields=cls_fields,
             inherited_fields=inherited_fields,
-            dict_cls=dict_cls
+            dict_cls=dict_cls,
         )
         return klass
 
@@ -193,8 +193,10 @@ class SchemaOpts(object):
         if not isinstance(self.additional, (list, tuple)):
             raise ValueError('`additional` option must be a list or tuple.')
         if self.fields and self.additional:
-            raise ValueError('Cannot set both `fields` and `additional` options'
-                            ' for the same Schema.')
+            raise ValueError(
+                'Cannot set both `fields` and `additional` options'
+                ' for the same Schema.',
+            )
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError('`exclude` must be a list or tuple.')
@@ -202,7 +204,7 @@ class SchemaOpts(object):
         if hasattr(meta, 'json_module'):
             warnings.warn(
                 'The json_module class Meta option is deprecated. Use render_module instead.',
-                DeprecationWarning
+                DeprecationWarning,
             )
             render_module = getattr(meta, 'json_module', json)
         else:
@@ -329,9 +331,11 @@ class BaseSchema(base.SchemaABC):
         """
         pass
 
-    def __init__(self, only=None, exclude=(), prefix='', many=False,
-                 context=None, load_only=(), dump_only=(), partial=False,
-                 unknown=None):
+    def __init__(
+        self, only=None, exclude=(), prefix='', many=False,
+        context=None, load_only=(), dump_only=(), partial=False,
+        unknown=None,
+    ):
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
@@ -352,7 +356,7 @@ class BaseSchema(base.SchemaABC):
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
-            ClassName=self.__class__.__name__, self=self
+            ClassName=self.__class__.__name__, self=self,
         )
 
     @property
@@ -419,7 +423,8 @@ class BaseSchema(base.SchemaABC):
                     PRE_DUMP,
                     obj,
                     many,
-                    original_data=obj)
+                    original_data=obj,
+                )
             except ValidationError as error:
                 errors = error.normalized_messages()
                 result = None
@@ -441,7 +446,7 @@ class BaseSchema(base.SchemaABC):
                     many=many,
                     accessor=self.get_attribute,
                     dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors
+                    index_errors=self.opts.index_errors,
                 )
             except ValidationError as error:
                 errors = marshal.errors
@@ -514,11 +519,15 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         """
-        return self._do_load(data, many, partial=partial, unknown=unknown,
-                             postprocess=True)
+        return self._do_load(
+            data, many, partial=partial, unknown=unknown,
+            postprocess=True,
+        )
 
-    def loads(self, json_data, many=None, partial=None, unknown=None,
-              **kwargs):
+    def loads(
+        self, json_data, many=None, partial=None, unknown=None,
+        **kwargs
+    ):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
@@ -565,8 +574,10 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _do_load(self, data, many=None, partial=None, unknown=None,
-                 postprocess=True):
+    def _do_load(
+        self, data, many=None, partial=None, unknown=None,
+        postprocess=True,
+    ):
         """Deserialize `data`, returning the deserialized result.
 
         :param data: The data to deserialize.
@@ -674,7 +685,8 @@ class BaseSchema(base.SchemaABC):
             self.__apply_nested_option('only', self.only, 'intersection')
             # Remove the child field names from the only option.
             self.only = self.set_class(
-                [field.split('.', 1)[0] for field in self.only])
+                [field.split('.', 1)[0] for field in self.only],
+            )
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             # Apply the exclude option to nested fields.
@@ -682,11 +694,13 @@ class BaseSchema(base.SchemaABC):
         if self.exclude:
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
-                [field for field in self.exclude if '.' not in field])
+                [field for field in self.exclude if '.' not in field],
+            )
         if self.opts.exclude:
             # Remove the parent field names from the meta exclude option.
             self.opts.exclude = self.set_class(
-                [field for field in self.opts.exclude if '.' not in field])
+                [field for field in self.opts.exclude if '.' not in field],
+            )
 
     def __apply_nested_option(self, option_name, field_names, set_operation):
         """Apply nested options to nested fields"""
@@ -803,7 +817,8 @@ class BaseSchema(base.SchemaABC):
                     except (AttributeError, KeyError) as err:
                         err_type = type(err)
                         raise err_type(
-                            '"{0}" is not a valid field for {1}.'.format(key, obj))
+                            '"{0}" is not a valid field for {1}.'.format(key, obj),
+                        )
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
                 else:  # Object is None
                     field_obj = fields.Field()
@@ -818,19 +833,27 @@ class BaseSchema(base.SchemaABC):
         # The pass_many post-dump processors may do things like add an envelope, so
         # invoke those after invoking the non-pass_many processors which will expect
         # to get a list of items.
-        data = self._invoke_processors(tag, pass_many=False,
-            data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag, pass_many=True,
-            data=data, many=many, original_data=original_data)
+        data = self._invoke_processors(
+            tag, pass_many=False,
+            data=data, many=many, original_data=original_data,
+        )
+        data = self._invoke_processors(
+            tag, pass_many=True,
+            data=data, many=many, original_data=original_data,
+        )
         return data
 
     def _invoke_load_processors(self, tag, data, many, original_data=None):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
-        data = self._invoke_processors(tag, pass_many=True,
-            data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag, pass_many=False,
-            data=data, many=many, original_data=original_data)
+        data = self._invoke_processors(
+            tag, pass_many=True,
+            data=data, many=many, original_data=original_data,
+        )
+        data = self._invoke_processors(
+            tag, pass_many=False,
+            data=data, many=many, original_data=original_data,
+        )
         return data
 
     def _invoke_field_validators(self, unmarshal, data, many):
@@ -857,7 +880,7 @@ class BaseSchema(base.SchemaABC):
                             getter_func=validator,
                             data=value,
                             field_name=field_name,
-                            index=(idx if self.opts.index_errors else None)
+                            index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
                             data[idx].pop(field_name, None)
@@ -870,7 +893,7 @@ class BaseSchema(base.SchemaABC):
                     validated_value = unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
-                        field_name=field_name
+                        field_name=field_name,
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)
@@ -949,8 +972,10 @@ class BaseSchema(base.SchemaABC):
                     data = processor(data, many)
             elif many:
                 if pass_original:
-                    data = [processor(item, original)
-                            for item, original in zip(data, original_data)]
+                    data = [
+                        processor(item, original)
+                        for item, original in zip(data, original_data)
+                    ]
                 else:
                     data = [processor(item) for item in data]
             else:

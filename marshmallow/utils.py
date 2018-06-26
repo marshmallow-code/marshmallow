@@ -198,11 +198,15 @@ def local_rfcformat(dt):
     with the UTC offset.
     """
     weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
-    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-             'Oct', 'Nov', 'Dec'][dt.month - 1]
+    month = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+        'Oct', 'Nov', 'Dec',
+    ][dt.month - 1]
     tz_offset = dt.strftime('%z')
-    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (weekday, dt.day, month,
-        dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (
+        weekday, dt.day, month,
+        dt.year, dt.hour, dt.minute, dt.second, tz_offset,
+    )
 
 
 def rfcformat(dt, localtime=False):
@@ -224,7 +228,7 @@ _iso8601_re = re.compile(
     r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
     r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
     r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
-    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$'
+    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$',
 )
 
 
@@ -335,7 +339,8 @@ def _get_value_for_keys(obj, keys, default):
         return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default)
+            _get_value_for_key(obj, keys[0], default), keys[1:], default,
+        )
 
 
 def _get_value_for_key(obj, key, default):
@@ -364,7 +369,7 @@ def set_value(dct, key, value):
         if not isinstance(target, dict):
             raise ValueError(
                 'Cannot set {key} in {head} '
-                'due to existing value: {target}'.format(key=key, head=head, target=target)
+                'due to existing value: {target}'.format(key=key, head=head, target=target),
             )
         set_value(target, rest, value)
     else:

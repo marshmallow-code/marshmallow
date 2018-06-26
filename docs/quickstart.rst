@@ -349,7 +349,7 @@ This behavior can be modified with the ``unknown`` option, which accepts one of 
 
 - `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
 - `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
-- `RAISE <marshmallow.utils.RAISE>`: raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` 
+- `RAISE <marshmallow.utils.RAISE>`: raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
   if there are any unknown fields
 
 You can specify ``unknown`` in the *class Meta* of your `Schema`,

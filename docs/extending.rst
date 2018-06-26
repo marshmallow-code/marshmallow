@@ -297,7 +297,7 @@ If you want to store schema-level validation errors on a specific field, you can
 Using Original Input Data
 -------------------------
 
-If you want to use the original, unprocessed input, you can add ``pass_original=True`` to 
+If you want to use the original, unprocessed input, you can add ``pass_original=True`` to
 `post_load <marshmallow.decorators.post_load>` or `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python

@@ -21,7 +21,7 @@ def find_version(fname):
         raise RuntimeError('Cannot find version information')
     return version
 
-__version__ = find_version("marshmallow/__init__.py")
+__version__ = find_version('marshmallow/__init__.py')
 
 
 def read(fname):
@@ -32,8 +32,10 @@ def read(fname):
 setup(
     name='marshmallow',
     version=__version__,
-    description=('A lightweight library for converting complex '
-                'datatypes to and from native Python datatypes.'),
+    description=(
+        'A lightweight library for converting complex '
+        'datatypes to and from native Python datatypes.'
+    ),
     long_description=read('README.rst'),
     author='Steven Loria',
     author_email='sloria1@gmail.com',
@@ -44,8 +46,10 @@ setup(
     extras_require={'reco': EXTRA_REQUIREMENTS},
     license='MIT',
     zip_safe=False,
-    keywords=('serialization', 'rest', 'json', 'api', 'marshal',
-        'marshalling', 'deserialization', 'validation', 'schema'),
+    keywords=(
+        'serialization', 'rest', 'json', 'api', 'marshal',
+        'marshalling', 'deserialization', 'validation', 'schema',
+    ),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
