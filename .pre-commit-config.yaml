@@ -19,7 +19,6 @@ repos:
           .git|
           .ropeproject|
           .tox|
-          tests/test_py3|
           marshmallow/compat.py|
           build|
           env|
