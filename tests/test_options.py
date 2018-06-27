@@ -4,7 +4,7 @@ import datetime as dt
 
 import pytest
 
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, EXCLUDE
 
 from tests.base import User
 
@@ -107,7 +107,7 @@ class TestFieldOrdering:
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_declared_field_order_is_maintained_on_load(self, serialized_user):
-        schema = KeepOrder()
+        schema = KeepOrder(unknown=EXCLUDE)
         data = schema.load(serialized_user)
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
@@ -154,7 +154,7 @@ class TestFieldOrdering:
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_meta_fields_order_is_maintained_on_load(self, serialized_user):
-        schema = OrderedMetaSchema()
+        schema = OrderedMetaSchema(unknown=EXCLUDE)
         data = schema.load(serialized_user)
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']

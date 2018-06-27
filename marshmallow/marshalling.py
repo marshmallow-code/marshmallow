@@ -204,7 +204,7 @@ class Unmarshaller(ErrorStore):
 
     def deserialize(
         self, data, fields_dict, many=False, partial=False,
-        unknown=EXCLUDE, dict_class=dict, index_errors=True, index=None,
+        unknown=RAISE, dict_class=dict, index_errors=True, index=None,
     ):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 

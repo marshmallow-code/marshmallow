@@ -803,7 +803,7 @@ class TestFieldDeserialization:
             foo = fields.Constant(42)
 
         sch = MySchema()
-        assert sch.load({'bar': 24})['foo'] == 42
+        assert sch.load({})['foo'] == 42
         assert sch.load({'foo': 24})['foo'] == 42
 
     def test_field_deserialization_with_user_validator_function(self):
@@ -934,7 +934,7 @@ class TestSchemaDeserialization:
         assert user['age'] == int(users_data[0]['age'])
 
     def test_exclude(self):
-        schema = SimpleUserSchema(exclude=('age', ))
+        schema = SimpleUserSchema(exclude=('age', ), unknown=EXCLUDE)
         result = schema.load({'name': 'Monty', 'age': 42})
         assert 'name' in result
         assert 'age' not in result
@@ -1121,7 +1121,7 @@ class TestSchemaDeserialization:
             'UserName': 'foo@bar.com',
             'years': '42',
         }
-        result = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer(unknown=EXCLUDE).load(data)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
         assert 'years' not in result
@@ -1136,7 +1136,7 @@ class TestSchemaDeserialization:
             'years': '42',
             'nicknames': ['Your Majesty', 'Brenda'],
         }
-        result = AliasingUserSerializer().load(data)
+        result = AliasingUserSerializer(unknown=EXCLUDE).load(data)
         assert result['name'] == 'Mick'
         assert 'years' not in result
         assert 'nicknames' not in result
@@ -1354,7 +1354,7 @@ class TestSchemaDeserialization:
         class MySchema(Schema):
             foo = fields.Integer()
 
-        data = MySchema().load({'foo': 3, 'bar': 5})
+        data = MySchema(unknown=EXCLUDE).load({'foo': 3, 'bar': 5})
         assert data['foo'] == 3
         assert 'bar' not in data
 
@@ -1362,7 +1362,7 @@ class TestSchemaDeserialization:
         assert data['foo'] == 3
         assert 'bar' not in data
 
-        data = MySchema().load({'foo': 3, 'bar': 5}, unknown=INCLUDE)
+        data = MySchema(unknown=EXCLUDE).load({'foo': 3, 'bar': 5}, unknown=INCLUDE)
         assert data['foo'] == 3
         assert data['bar']
 
@@ -1382,13 +1382,13 @@ class TestSchemaDeserialization:
         assert 'bar' in data[1]
 
         with pytest.raises(ValidationError) as excinfo:
-            MySchema(unknown=RAISE).load({'foo': 3, 'bar': 5})
+            MySchema().load({'foo': 3, 'bar': 5})
         err = excinfo.value
         assert 'bar' in err.messages
         assert err.messages['bar'] == ['Unknown field.']
 
         with pytest.raises(ValidationError) as excinfo:
-            MySchema(unknown=RAISE, many=True).load([
+            MySchema(many=True).load([
                 {'foo': 'abc'},
                 {'foo': 3, 'bar': 5},
             ])

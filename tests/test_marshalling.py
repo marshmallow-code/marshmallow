@@ -2,7 +2,7 @@
 
 import pytest
 
-from marshmallow import fields
+from marshmallow import fields, EXCLUDE, INCLUDE, RAISE
 from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
@@ -125,19 +125,22 @@ class TestUnmarshaller:
     def unmarshal(self):
         return Unmarshaller()
 
-    def test_extra_data_is_ignored(self, unmarshal):
+    def test_extra_data_unknown_raise(self, unmarshal):
         fields_ = {'name': fields.Str()}
-        ret = unmarshal({'extra': 42, 'name': 'Steve'}, fields_)
+        with pytest.raises(ValidationError) as excinfo:
+            unmarshal({'extra': 42, 'name': 'Steve'}, fields_, unknown=RAISE)
+        errors = excinfo.value.messages
+        assert errors == {'extra': ['Unknown field.']}
+
+    def test_extra_data_unknown_exclude(self, unmarshal):
+        fields_ = {'name': fields.Str()}
+        ret = unmarshal({'extra': 42, 'name': 'Steve'}, fields_, unknown=EXCLUDE)
         assert 'extra' not in ret
 
-    # def test_strict_mode_many(self, unmarshal):
-    #     users = [
-    #         {'email': 'foobar'},
-    #         {'email': 'bar@example.com'}
-    #     ]
-    #     with pytest.raises(ValidationError) as excinfo:
-    #         unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
-    #     assert 'Not a valid email address.' in str(excinfo)
+    def test_extra_data_unknown_include(self, unmarshal):
+        fields_ = {'name': fields.Str()}
+        ret = unmarshal({'extra': 42, 'name': 'Steve'}, fields_, unknown=INCLUDE)
+        assert ret['extra'] == 42
 
     def test_stores_errors(self, unmarshal):
         data = {'email': 'invalid-email'}
@@ -257,7 +260,7 @@ class TestUnmarshaller:
             'username': fields.Email(attribute='email', data_key='UserName'),
             'years': fields.Integer(data_key='Years'),
         }
-        result = unmarshal.deserialize(data, fields_dict)
+        result = unmarshal.deserialize(data, fields_dict, unknown=EXCLUDE)
         assert result['name'] == 'Mick'
         assert result['email'] == 'foo@bar.com'
         assert 'years' not in result
@@ -272,7 +275,7 @@ class TestUnmarshaller:
             'years': fields.Integer(dump_only=True),
             'always_invalid': fields.Field(validate=lambda f: False, dump_only=True),
         }
-        result = unmarshal.deserialize(data, fields_dict)
+        result = unmarshal.deserialize(data, fields_dict, unknown=EXCLUDE)
         assert result['name'] == 'Mick'
         assert 'years' not in result
 

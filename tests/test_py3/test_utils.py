@@ -9,6 +9,6 @@ def test_function_field_using_type_annotation():
     class MySchema(Schema):
         friends = fields.Function(deserialize=get_split_words)
 
-    data = {'name': 'Bruce Wayne', 'friends': 'Clark;Alfred;Robin'}
+    data = {'friends': 'Clark;Alfred;Robin'}
     result = MySchema().load(data)
     assert result == {'friends': ['Clark', 'Alfred', 'Robin']}

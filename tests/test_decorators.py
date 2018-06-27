@@ -135,7 +135,7 @@ class TestPassOriginal:
                 ret['_post_dump'] = obj['sentinel']
                 return ret
 
-        schema = MySchema()
+        schema = MySchema(unknown=EXCLUDE)
         datum = {'foo': 42, 'sentinel': 24}
         item_loaded = schema.load(datum)
         assert item_loaded['foo'] == 42
@@ -174,7 +174,7 @@ class TestPassOriginal:
                     ret['_post_dump'] = original['sentinel']
                 return ret
 
-        schema = MySchema()
+        schema = MySchema(unknown=EXCLUDE)
         data = [{'foo': 42, 'sentinel': 24}, {'foo': 424, 'sentinel': 242}]
         items_loaded = schema.load(data, many=True)
         assert items_loaded == [
@@ -520,7 +520,7 @@ class TestValidatesSchemaDecorator:
                 else:
                     check(original_data)
 
-        schema = MySchema()
+        schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate({'foo': 4, 'baz': 42})
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
@@ -531,7 +531,7 @@ class TestValidatesSchemaDecorator:
         assert len(errors['_schema']) == 1
         assert errors['_schema'][0] == 'foo cannot be a string'
 
-        schema = MySchema()
+        schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
         assert '_schema' in errors
         assert len(errors['_schema']) == 1
@@ -550,7 +550,7 @@ class TestValidatesSchemaDecorator:
                     if key not in self.fields:
                         raise ValidationError('Unknown field name', key)
 
-        schema = MySchema()
+        schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate({'foo': 2, 'baz': 42})
         assert 'baz' in errors
         assert len(errors['baz']) == 1
