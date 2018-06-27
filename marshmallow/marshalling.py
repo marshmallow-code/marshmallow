@@ -299,7 +299,7 @@ class Unmarshaller(ErrorStore):
                     self.store_error(
                         field_name=key,
                         error=ValidationError('Unknown field.'),
-                        index=index,
+                        index=(index if index_errors else None),
                     )
 
         if self.errors and not self._pending:

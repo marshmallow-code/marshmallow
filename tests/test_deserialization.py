@@ -1440,6 +1440,23 @@ class TestSchemaDeserialization:
         assert data['foo'] == 1
         assert 'Foo' not in data
 
+    def test_unknown_fields_deserialization_with_index_errors_false(self):
+        class MySchema(Schema):
+            foo = fields.Integer()
+
+            class Meta:
+                unknown = RAISE
+                index_errors = False
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema(many=True).load([{'foo': 'invalid'}, {'foo': 42, 'bar': 24}])
+        err = excinfo.value
+        assert 1 not in err.messages
+        assert 'foo' in err.messages
+        assert 'bar' in err.messages
+        assert err.messages['foo'] == ['Not a valid integer.']
+        assert err.messages['bar'] == ['Unknown field.']
+
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
