@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from marshmallow import Schema, fields, ValidationError, pre_load
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:////tmp/quotes.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/quotes.db'
 db = SQLAlchemy(app)
 
 ##### MODELS #####
@@ -19,9 +19,11 @@ class Author(db.Model):
 class Quote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String, nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey("author.id"))
-    author = db.relationship("Author",
-                        backref=db.backref("quotes", lazy="dynamic"))
+    author_id = db.Column(db.Integer, db.ForeignKey('author.id'))
+    author = db.relationship(
+        'Author',
+        backref=db.backref('quotes', lazy='dynamic'),
+    )
     posted_at = db.Column(db.DateTime)
 
 ##### SCHEMAS #####
@@ -30,10 +32,10 @@ class AuthorSchema(Schema):
     id = fields.Int(dump_only=True)
     first = fields.Str()
     last = fields.Str()
-    formatted_name = fields.Method("format_name", dump_only=True)
+    formatted_name = fields.Method('format_name', dump_only=True)
 
     def format_name(self, author):
-        return "{}, {}".format(author.last, author.first)
+        return '{}, {}'.format(author.last, author.first)
 
 
 # Custom validator
@@ -60,6 +62,7 @@ class QuoteSchema(Schema):
         data['author'] = author_dict
         return data
 
+
 author_schema = AuthorSchema()
 authors_schema = AuthorSchema(many=True)
 quote_schema = QuoteSchema()
@@ -74,12 +77,12 @@ def get_authors():
     result = authors_schema.dump(authors)
     return jsonify({'authors': result})
 
-@app.route("/authors/<int:pk>")
+@app.route('/authors/<int:pk>')
 def get_author(pk):
     try:
         author = Author.query.get(pk)
     except IntegrityError:
-        return jsonify({"message": "Author could not be found."}), 400
+        return jsonify({'message': 'Author could not be found.'}), 400
     author_result = author_schema.dump(author)
     quotes_result = quotes_schema.dump(author.quotes.all())
     return jsonify({'author': author_result, 'quotes': quotes_result})
@@ -88,18 +91,18 @@ def get_author(pk):
 def get_quotes():
     quotes = Quote.query.all()
     result = quotes_schema.dump(quotes)
-    return jsonify({"quotes": result})
+    return jsonify({'quotes': result})
 
-@app.route("/quotes/<int:pk>")
+@app.route('/quotes/<int:pk>')
 def get_quote(pk):
     try:
         quote = Quote.query.get(pk)
     except IntegrityError:
-        return jsonify({"message": "Quote could not be found."}), 400
+        return jsonify({'message': 'Quote could not be found.'}), 400
     result = quote_schema.dump(quote)
-    return jsonify({"quote": result})
+    return jsonify({'quote': result})
 
-@app.route("/quotes/", methods=["POST"])
+@app.route('/quotes/', methods=['POST'])
 def new_quote():
     json_data = request.get_json()
     if not json_data:
@@ -119,13 +122,16 @@ def new_quote():
     quote = Quote(
         content=data['content'],
         author=author,
-        posted_at=datetime.datetime.utcnow()
+        posted_at=datetime.datetime.utcnow(),
     )
     db.session.add(quote)
     db.session.commit()
     result = quote_schema.dump(Quote.query.get(quote.id))
-    return jsonify({"message": "Created new quote.",
-                    "quote": result})
+    return jsonify({
+        'message': 'Created new quote.',
+        'quote': result,
+    })
+
 
 if __name__ == '__main__':
     db.create_all()

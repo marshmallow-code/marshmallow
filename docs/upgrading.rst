@@ -149,7 +149,7 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
 ``pass_original=True`` passes individual items when ``many=True``
 *****************************************************************
 
-When ``pass_original=True`` is passed to 
+When ``pass_original=True`` is passed to
 `validates_schema <marshmallow.decorators.validates_schema>`,
 `post_load <marshmallow.decorators.post_load>`, or
 `post_dump <marshmallow.decorators.post_dump>`, the `original_data`
@@ -480,7 +480,7 @@ The same key is used for serialization and deserialization.
     class UserSchema(Schema):
         email = fields.Email(data_key='CamelCasedEmail')
 
-It is not possible to specify a different key for serialization and deserialization on the same field. 
+It is not possible to specify a different key for serialization and deserialization on the same field.
 This use case is covered by using two different `Schema`.
 
 .. code-block:: python

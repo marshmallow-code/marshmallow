@@ -65,16 +65,18 @@ def assert_time_equal(t1, t2, microseconds=True):
 class User(object):
     SPECIES = 'Homo sapiens'
 
-    def __init__(self, name, age=0, id_=None, homepage=None, email=None,
-                 registered=True, time_registered=None, birthdate=None,
-                 balance=100, sex='male', employer=None, various_data=None):
+    def __init__(
+        self, name, age=0, id_=None, homepage=None, email=None,
+        registered=True, time_registered=None, birthdate=None,
+        balance=100, sex='male', employer=None, various_data=None,
+    ):
         self.name = name
         self.age = age
         # A naive datetime
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
         self.updated = central.localize(
-            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False
+            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False,
         )
         self.id = id_
         self.homepage = homepage
@@ -90,9 +92,11 @@ class User(object):
         self.sex = sex
         self.employer = employer
         self.relatives = []
-        self.various_data = various_data or {'pets': ['cat', 'dog'],
-                                             'address': '1600 Pennsylvania Ave\n'
-                                                        'Washington, DC 20006'}
+        self.various_data = various_data or {
+            'pets': ['cat', 'dog'],
+            'address': '1600 Pennsylvania Ave\n'
+                       'Washington, DC 20006',
+        }
 
     @property
     def since_created(self):
@@ -214,11 +218,13 @@ class UserMetaSchema(Schema):
             raise ValidationError(text_type(te))
 
     class Meta:
-        fields = ('name', 'age', 'created', 'updated', 'id', 'homepage',
-                  'uppername', 'email', 'balance', 'is_old', 'lowername',
-                  'updated_local', 'species', 'registered', 'hair_colors',
-                  'sex_choices', 'finger_count', 'uid', 'time_registered',
-                  'birthdate', 'since_created', 'various_data')
+        fields = (
+            'name', 'age', 'created', 'updated', 'id', 'homepage',
+            'uppername', 'email', 'balance', 'is_old', 'lowername',
+            'updated_local', 'species', 'registered', 'hair_colors',
+            'sex_choices', 'finger_count', 'uid', 'time_registered',
+            'birthdate', 'since_created', 'various_data',
+        )
 
 
 class UserExcludeSchema(UserSchema):

@@ -88,9 +88,11 @@ class Marshaller(ErrorStore):
         self.prefix = prefix
         ErrorStore.__init__(self)
 
-    def serialize(self, obj, fields_dict, many=False,
-                  accessor=None, dict_class=dict, index_errors=True,
-                  index=None):
+    def serialize(
+        self, obj, fields_dict, many=False,
+        accessor=None, dict_class=dict, index_errors=True,
+        index=None,
+    ):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
@@ -111,10 +113,14 @@ class Marshaller(ErrorStore):
         """
         if many and obj is not None:
             self._pending = True
-            ret = [self.serialize(d, fields_dict, many=False,
-                                    dict_class=dict_class, accessor=accessor,
-                                    index=idx, index_errors=index_errors)
-                    for idx, d in enumerate(obj)]
+            ret = [
+                self.serialize(
+                    d, fields_dict, many=False,
+                    dict_class=dict_class, accessor=accessor,
+                    index=idx, index_errors=index_errors,
+                )
+                for idx, d in enumerate(obj)
+            ]
             self._pending = False
             if self.errors:
                 raise ValidationError(
@@ -135,7 +141,7 @@ class Marshaller(ErrorStore):
                 getter_func=getter,
                 data=obj,
                 field_name=key,
-                index=(index if index_errors else None)
+                index=(index if index_errors else None),
             )
             if value is missing:
                 continue
@@ -145,7 +151,7 @@ class Marshaller(ErrorStore):
             raise ValidationError(
                 self.errors,
                 field_names=self.error_field_names,
-                data=ret
+                data=ret,
             )
         return ret
 
@@ -165,9 +171,11 @@ class Unmarshaller(ErrorStore):
 
     default_schema_validation_error = 'Invalid data.'
 
-    def run_validator(self, validator_func, output,
-            original_data, fields_dict, index=None,
-            many=False, pass_original=False):
+    def run_validator(
+        self, validator_func, output,
+        original_data, fields_dict, index=None,
+        many=False, pass_original=False,
+    ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
                 res = validator_func(output, original_data)
@@ -189,7 +197,7 @@ class Unmarshaller(ErrorStore):
                     # self.errors[field_name] may be a dict if schemas are nested
                     if isinstance(errors.get(field_name), dict):
                         errors[field_name].setdefault(
-                            SCHEMA, []
+                            SCHEMA, [],
                         ).extend(err.messages)
                     else:
                         errors.setdefault(field_name, []).extend(err.messages)
@@ -198,8 +206,10 @@ class Unmarshaller(ErrorStore):
                 else:
                     errors.setdefault(field_name, []).append(text_type(err))
 
-    def deserialize(self, data, fields_dict, many=False, partial=False,
-            unknown=EXCLUDE, dict_class=dict, index_errors=True, index=None):
+    def deserialize(
+        self, data, fields_dict, many=False, partial=False,
+        unknown=EXCLUDE, dict_class=dict, index_errors=True, index=None,
+    ):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
 
         :param dict data: The data to deserialize.
@@ -220,11 +230,15 @@ class Unmarshaller(ErrorStore):
         """
         if many and data is not None:
             self._pending = True
-            ret = [self.deserialize(d, fields_dict, many=False,
-                        partial=partial, unknown=unknown,
-                        dict_class=dict_class, index=idx,
-                        index_errors=index_errors)
-                    for idx, d in enumerate(data)]
+            ret = [
+                self.deserialize(
+                    d, fields_dict, many=False,
+                    partial=partial, unknown=unknown,
+                    dict_class=dict_class, index=idx,
+                    index_errors=index_errors,
+                )
+                for idx, d in enumerate(data)
+            ]
 
             self._pending = False
             if self.errors:
@@ -247,7 +261,7 @@ class Unmarshaller(ErrorStore):
             except AttributeError:  # Input data is not a dict
                 errors = self.get_errors(index=index)
                 msg = field_obj.error_messages['type'].format(
-                    input=data, input_type=data.__class__.__name__
+                    input=data, input_type=data.__class__.__name__,
                 )
                 self.error_field_names = [SCHEMA]
                 errors = self.get_errors()
@@ -266,15 +280,17 @@ class Unmarshaller(ErrorStore):
                 getter_func=getter,
                 data=raw_value,
                 field_name=field_name,
-                index=(index if index_errors else None)
+                index=(index if index_errors else None),
             )
             if value is not missing:
                 key = fields_dict[attr_name].attribute or attr_name
                 set_value(ret, key, value)
 
         if unknown != EXCLUDE:
-            fields = {field_obj.data_key or field_name
-                      for field_name, field_obj in fields_dict.items()}
+            fields = {
+                field_obj.data_key or field_name
+                for field_name, field_obj in fields_dict.items()
+            }
             for key in set(data) - fields:
                 value = data[key]
                 if unknown == INCLUDE:
@@ -283,7 +299,7 @@ class Unmarshaller(ErrorStore):
                     self.store_error(
                         field_name=key,
                         error=ValidationError('Unknown field.'),
-                        index=index
+                        index=index,
                     )
 
         if self.errors and not self._pending:

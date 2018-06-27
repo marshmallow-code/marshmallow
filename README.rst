@@ -82,7 +82,7 @@ Contributors
 
 This project exists thanks to all the people who contribute.
 
-You're highly encouraged to participate in marshmallow's development. 
+You're highly encouraged to participate in marshmallow's development.
 Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see
 how you can help.
 
@@ -96,7 +96,7 @@ Backers
 -------
 
 If you find marshmallow useful, please consider supporting the team with
-a donation. Your donation helps move marshmallow forward. 
+a donation. Your donation helps move marshmallow forward.
 
 Thank you to all our backers! [`Become a backer`_]
 

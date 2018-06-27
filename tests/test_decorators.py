@@ -226,13 +226,13 @@ def test_decorated_processor_inheritance():
     assert parent_dumped == {
         'inherited': 'inherited',
         'overridden': 'base',
-        'deleted': 'retained'
+        'deleted': 'retained',
     }
 
     child_dumped = ChildSchema().dump({})
     assert child_dumped == {
         'inherited': 'inherited',
-        'overridden': 'overridden'
+        'overridden': 'overridden',
     }
 
 # https://github.com/marshmallow-code/marshmallow/issues/229#issuecomment-138949436
@@ -400,7 +400,8 @@ class TestValidatesSchemaDecorator:
         ),
     )
     def test_validator_nested_many_pass_original_and_pass_many(
-            self, pass_many, data, expected_data, expected_original_data):
+            self, pass_many, data, expected_data, expected_original_data,
+    ):
 
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
@@ -752,7 +753,7 @@ def test_decorator_error_handling():
     [
         pre_load,
         post_load,
-    ]
+    ],
 )
 def test_decorator_error_handling_with_load(decorator):
     class ExampleSchema(Schema):
@@ -771,7 +772,7 @@ def test_decorator_error_handling_with_load(decorator):
     [
         pre_dump,
         post_dump,
-    ]
+    ],
 )
 def test_decorator_error_handling_with_dump(decorator):
     class ExampleSchema(Schema):
@@ -806,7 +807,8 @@ example = Example(nested=[Nested(x) for x in range(1)])
     ),
 )
 def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
-        data, expected_data, expected_original_data):
+        data, expected_data, expected_original_data,
+):
 
     class NestedSchema(Schema):
         foo = fields.Int(required=True)
@@ -838,7 +840,8 @@ def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
     ),
 )
 def test_decorator_post_load_with_nested_pass_original_and_pass_many(
-        data, expected_data, expected_original_data):
+        data, expected_data, expected_original_data,
+):
 
     class NestedSchema(Schema):
         foo = fields.Int(required=True)

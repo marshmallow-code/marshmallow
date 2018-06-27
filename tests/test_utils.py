@@ -48,11 +48,13 @@ class PointClass(object):
         self.x = x
         self.y = y
 
-@pytest.mark.parametrize('obj', [
-    PointNT(24, 42),
-    PointClass(24, 42),
-    {'x': 24, 'y': 42}
-])
+@pytest.mark.parametrize(
+    'obj', [
+        PointNT(24, 42),
+        PointClass(24, 42),
+        {'x': 24, 'y': 42},
+    ],
+)
 def test_get_value_from_object(obj):
     result = utils.get_value(obj, 'x')
     assert result == 24
