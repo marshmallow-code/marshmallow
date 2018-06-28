@@ -18,6 +18,7 @@ Other changes:
 - *Backwards-incompatible*: ``Nested`` field now defaults to ``unknown=RAISE``
   instead of ``EXCLUDE``. This harmonizes behavior with ``Schema`` that
   already defaults to ``RAISE`` (:issue:`908`). Thanks :user:`tuukkamustonen`.
+- Tested against Python 3.7.
 
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
