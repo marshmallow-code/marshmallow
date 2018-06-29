@@ -58,10 +58,6 @@ Setting Up for Local Development
     # The pre-commit CLI was installed above
     $ pre-commit install --allow-missing-config
 
-4. Install marshmallow in develop mode. ::
-
-   $ pip install -e .
-
 Git Branch Structure
 ********************
 

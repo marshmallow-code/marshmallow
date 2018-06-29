@@ -16,3 +16,6 @@ flake8==3.5.0
 
 # Pre-commit hooks
 pre-commit==1.10.2
+
+# Install this package in development mode
+-e '.'
