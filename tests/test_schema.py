@@ -1941,9 +1941,10 @@ class TestNestedSchema:
         assert errors['inner']['_schema'] == ['Invalid input type.']
 
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/298
-    def test_all_errors_on_many_nested_field_with_validates_decorator(self):
+    @pytest.mark.parametrize('required', (True, False))
+    def test_all_errors_on_many_nested_field_with_validates_decorator(self, required):
         class Inner(Schema):
-            req = fields.Field(required=True)
+            req = fields.Field(required=required)
 
         class Outer(Schema):
             inner = fields.Nested(Inner, many=True)
