@@ -247,12 +247,13 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
-        If None, all fields are used.
-        Nested fields can be represented with dot delimiters.
-    :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
-        If a field appears in both `only` and `exclude`, it is not used.
-        Nested fields can be represented with dot delimiters.
+    :param tuple|list only: Whitelist of the declared fields to select when
+        instantiating the Schema. If None, all fields are used. Nested fields
+        can be represented with dot delimiters.
+    :param tuple|list exclude: Blacklist of the declared fields to exclude
+        when instantiating the Schema. If a field appears in both `only` and
+        `exclude`, it is not used. Nested fields can be represented with dot
+        delimiters.
     :param str prefix: Optional prefix that will be prepended to all the
         serialized field names.
     :param bool many: Should be set to `True` if ``obj`` is a collection
@@ -723,13 +724,7 @@ class BaseSchema(base.SchemaABC):
 
     def _update_fields(self, obj=None, many=False):
         """Update fields based on the passed in object."""
-        if self.only is not None:
-            # Return only fields specified in only option
-            if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
-            else:
-                field_names = self.set_class(self.only)
-        elif self.opts.fields:
+        if self.opts.fields:
             # Return fields specified in fields option
             field_names = self.set_class(self.opts.fields)
         elif self.opts.additional:
@@ -739,10 +734,26 @@ class BaseSchema(base.SchemaABC):
         else:
             field_names = self.set_class(self.declared_fields.keys())
 
+        declared_fields = field_names
+        invalid_fields = self.set_class()
+        if self.only is not None:
+            # Return only fields specified in only option
+            only = self.set_class(self.only)
+            field_names = only
+            invalid_only = only - declared_fields
+            invalid_fields |= invalid_only
+
         # If "exclude" option or param is specified, remove those fields
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
+            invalid_excludes = excludes - declared_fields
+            invalid_fields |= invalid_excludes
+
+        if invalid_fields:
+            message = 'Invalid fields for {0}: {1}.'.format(self, invalid_fields)
+            raise ValueError(message)
+
         ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)

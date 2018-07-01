@@ -16,6 +16,10 @@ Other changes:
 - *Backwards-incompatible*: Pre/Post-processors MUST return modified data.
   Returning ``None`` does not imply data were mutated (:issue:`347`). Thanks
   :user:`tdevelioglu` for reporting.
+- *Backwards-incompatible*: ``only`` and ``exclude`` are bound by
+  declared and additional fields. A ``ValueError`` is raised if invalid
+  fields are passed (:issue:`636`). Thanks :user:`jan-23` for reporting.
+  Thanks :user:`ikilledthecat` and :user:`deckar01` for the PRs.
 
 Deprecations/Removals:
 

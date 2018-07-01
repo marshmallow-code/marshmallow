@@ -671,7 +671,7 @@ def test_only_in_init(SchemaClass, user):
     assert 'age' in s
 
 def test_invalid_only_param(user):
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValueError):
         UserSchema(only=('_invalid', 'name')).dump(user)
 
 def test_can_serialize_uuid(serialized_user, user):
@@ -1291,23 +1291,70 @@ def test_only_and_exclude():
     assert 'bar' not in result
 
 
+def test_only_and_exclude_with_fields():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            fields = ('bar', 'baz')
+    sch = MySchema(only=('bar', 'baz'), exclude=('bar', ))
+    data = dict(foo=42, bar=24, baz=242)
+    result = sch.dump(data)
+    assert 'baz' in result
+    assert 'bar' not in result
+
+
+def test_invalid_only_and_exclude_with_fields():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            fields = ('bar', 'baz')
+
+    with pytest.raises(ValueError) as excinfo:
+        MySchema(only=('foo', 'par'), exclude=('ban', ))
+
+    assert 'foo' in str(excinfo)
+    assert 'par' in str(excinfo)
+    assert 'ban' in str(excinfo)
+
+
+def test_only_and_exclude_with_additional():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            additional = ('bar', 'baz')
+    sch = MySchema(only=('foo', 'bar'), exclude=('bar', ))
+    data = dict(foo=42, bar=24, baz=242)
+    result = sch.dump(data)
+    assert 'foo' in result
+    assert 'bar' not in result
+
+
+def test_invalid_only_and_exclude_with_additional():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            additional = ('bar', 'baz')
+
+    with pytest.raises(ValueError) as excinfo:
+        MySchema(only=('foop', 'par'), exclude=('ban', ))
+
+    assert 'foop' in str(excinfo)
+    assert 'par' in str(excinfo)
+    assert 'ban' in str(excinfo)
+
+
 def test_exclude_invalid_attribute():
 
     class MySchema(Schema):
         foo = fields.Field()
 
-    sch = MySchema(exclude=('bar', ))
-    assert sch.dump({'foo': 42}) == {'foo': 42}
+    with pytest.raises(ValueError):
+        MySchema(exclude=('bar', ))
 
-
-def test_only_with_invalid_attribute():
-    class MySchema(Schema):
-        foo = fields.Field()
-
-    sch = MySchema(only=('bar', ))
-    with pytest.raises(KeyError) as excinfo:
-        sch.dump(dict(foo=42))
-    assert '"bar" is not a valid field' in str(excinfo.value.args[0])
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
@@ -1315,8 +1362,18 @@ def test_only_bounded_by_fields():
         class Meta:
             fields = ('foo', )
 
-    sch = MySchema(only=('baz', ))
-    assert sch.dump({'foo': 42}) == {}
+    with pytest.raises(ValueError):
+        MySchema(only=('baz', ))
+
+
+def test_only_bounded_by_additional():
+    class MySchema(Schema):
+
+        class Meta:
+            additional = ('b', )
+
+    with pytest.raises(ValueError):
+        MySchema(only=('c', )).dump({'c': 3})
 
 def test_only_empty():
     class MySchema(Schema):
