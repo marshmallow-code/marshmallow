@@ -556,19 +556,16 @@ class TestValidatesSchemaDecorator:
         schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate({'foo': 4, 'baz': 42})
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == {'code': 'invalid_field'}
+        assert errors['_schema'] == {'code': 'invalid_field'}
 
         errors = schema.validate({'foo': '4'})
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == 'foo cannot be a string'
+        assert errors['_schema'] == ['foo cannot be a string']
 
         schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == {'code': 'invalid_field'}
+        assert errors['_schema'] == {'code': 'invalid_field'}
 
     # https://github.com/marshmallow-code/marshmallow/issues/273
     def test_allow_arbitrary_field_names_in_error(self):
