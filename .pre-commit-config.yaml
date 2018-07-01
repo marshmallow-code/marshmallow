@@ -1,0 +1,12 @@
+repos:
+- repo: https://github.com/asottile/add-trailing-comma
+  rev: v0.6.4
+  hooks:
+  - id: add-trailing-comma
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v1.3.0
+  hooks:
+  - id: trailing-whitespace
+  - id: double-quote-string-fixer
+  - id: end-of-file-fixer
+  - id: flake8

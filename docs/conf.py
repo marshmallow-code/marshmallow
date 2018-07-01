@@ -57,7 +57,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'marshmallow'
 copyright = ' {0:%Y} <a href="https://stevenloria.com">Steven Loria</a>'.format(
-    dt.datetime.utcfromtimestamp(os.path.getmtime('../CHANGELOG.rst'))
+    dt.datetime.utcfromtimestamp(os.path.getmtime('../CHANGELOG.rst')),
 )
 
 version = release = marshmallow.__version__
@@ -89,13 +89,15 @@ html_theme_options = {
         ('marshmallow @ PyPI', 'http://pypi.python.org/pypi/marshmallow'),
         ('marshmallow @ GitHub', 'http://github.com/marshmallow-code/marshmallow'),
         ('Issue Tracker', 'http://github.com/marshmallow-code/marshmallow/issues'),
-    ])
+    ]),
 }
 
 html_sidebars = {
     'index': [
         'about.html', 'useful-links.html', 'searchbox.html',
     ],
-    '**': ['about.html', 'useful-links.html',
-           'localtoc.html', 'relations.html', 'searchbox.html']
+    '**': [
+        'about.html', 'useful-links.html',
+        'localtoc.html', 'relations.html', 'searchbox.html',
+    ],
 }

@@ -18,21 +18,25 @@ class TestMarshaller:
         return Marshaller()
 
     def test_prefix(self):
-        u = User("Foo", email="foo@bar.com")
+        u = User('Foo', email='foo@bar.com')
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(), 'name': fields.String()})
+        result = marshal(u, {'email': fields.Email(), 'name': fields.String()})
         assert result['usr_name'] == u.name
         assert result['usr_email'] == u.email
 
     def test_marshalling_generator(self, marshal):
-        gen = (u for u in [User("Foo"), User("Bar")])
-        res = marshal(gen, {"name": fields.String()}, many=True)
+        gen = (u for u in [User('Foo'), User('Bar')])
+        res = marshal(gen, {'name': fields.String()}, many=True)
         assert len(res) == 2
 
     def test_default_to_missing(self, marshal):
         u = {'name': 'Foo'}
-        res = marshal(u, {'name': fields.String(),
-                         'email': fields.Email(default=missing)})
+        res = marshal(
+            u, {
+                'name': fields.String(),
+                'email': fields.Email(default=missing),
+            },
+        )
         assert res['name'] == u['name']
         assert 'email' not in res
 
@@ -56,7 +60,7 @@ class TestMarshaller:
 
     def test_serialize_with_load_only_doesnt_validate(self, marshal):
         fields_dict = {
-            'email': fields.Email(load_only=True)
+            'email': fields.Email(load_only=True),
         }
         marshal({'email': 'invalid'}, fields_dict)
         assert 'email' not in marshal.errors
@@ -75,10 +79,14 @@ class TestMarshaller:
         assert result['EmAiL'] == 'm@wazow.ski'
 
     def test_serialize_fields_with_data_key_and_prefix_params(self):
-        u = User("Foo", email="foo@bar.com")
+        u = User('Foo', email='foo@bar.com')
         marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {"email": fields.Email(data_key='EmAiL'),
-                             'name': fields.String(data_key='NaMe')})
+        result = marshal(
+            u, {
+                'email': fields.Email(data_key='EmAiL'),
+                'name': fields.String(data_key='NaMe'),
+            },
+        )
         assert result['usr_NaMe'] == u.name
         assert result['usr_EmAiL'] == u.email
 
@@ -134,10 +142,10 @@ class TestUnmarshaller:
     def test_stores_errors(self, unmarshal):
         data = {'email': 'invalid-email'}
         try:
-            unmarshal(data, {"email": fields.Email()})
+            unmarshal(data, {'email': fields.Email()})
         except ValidationError:
             pass
-        assert "email" in unmarshal.errors
+        assert 'email' in unmarshal.errors
 
     def test_stores_indices_of_errors_when_many_equals_true(self, unmarshal):
         users = [
@@ -170,7 +178,7 @@ class TestUnmarshaller:
 
     def test_deserialize(self, unmarshal):
         user_data = {
-            'age': '12'
+            'age': '12',
         }
         result = unmarshal.deserialize(user_data, {'age': fields.Integer()})
         assert result['age'] == 12
@@ -186,7 +194,7 @@ class TestUnmarshaller:
     def test_deserialize_many(self, unmarshal):
         users_data = [
             {'name': 'Mick', 'age': '71'},
-            {'name': 'Keith', 'age': '70'}
+            {'name': 'Keith', 'age': '70'},
         ]
         fields_dict = {
             'name': fields.String(),
@@ -228,7 +236,7 @@ class TestUnmarshaller:
     def test_deserialize_fields_with_attribute_param(self, unmarshal):
         data = {
             'username': 'mick@stones.com',
-            'name': 'Mick'
+            'name': 'Mick',
         }
         fields_dict = {
             'username': fields.Email(attribute='email'),
@@ -242,12 +250,12 @@ class TestUnmarshaller:
         data = {
             'Name': 'Mick',
             'UserName': 'foo@bar.com',
-            'years': '42'
+            'years': '42',
         }
         fields_dict = {
             'name': fields.String(data_key='Name'),
             'username': fields.Email(attribute='email', data_key='UserName'),
-            'years': fields.Integer(data_key='Years')
+            'years': fields.Integer(data_key='Years'),
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'
@@ -262,7 +270,7 @@ class TestUnmarshaller:
         fields_dict = {
             'name': fields.String(),
             'years': fields.Integer(dump_only=True),
-            'always_invalid': fields.Field(validate=lambda f: False, dump_only=True)
+            'always_invalid': fields.Field(validate=lambda f: False, dump_only=True),
         }
         result = unmarshal.deserialize(data, fields_dict)
         assert result['name'] == 'Mick'

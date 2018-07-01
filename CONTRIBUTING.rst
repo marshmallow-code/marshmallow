@@ -53,21 +53,18 @@ Setting Up for Local Development
     # After activating your virtualenv
     $ pip install -r dev-requirements.txt
 
-3. Install marshmallow in develop mode. ::
+3. Install the pre-commit hooks, which will format and lint your git staged files. ::
 
-   $ pip install -e .
+    # The pre-commit CLI was installed above
+    $ pre-commit install --allow-missing-config
 
 Git Branch Structure
 ********************
 
 Marshmallow abides by the following branching model:
 
-
 ``dev``
     Current development branch. **New features should branch off here**.
-
-``pypi``
-    Current production release on PyPI.
 
 ``X.Y-line``
     Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.** The maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.

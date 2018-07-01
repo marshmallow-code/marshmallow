@@ -18,6 +18,9 @@ from pprint import pprint as py_pprint
 
 from marshmallow.compat import binary_type, text_type
 
+EXCLUDE = 'exclude'
+INCLUDE = 'include'
+RAISE = 'raise'
 
 dateutil_available = False
 try:
@@ -52,13 +55,13 @@ def is_generator(obj):
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
-        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
+        (isinstance(obj, collections.Iterable) and not hasattr(obj, 'strip')) or is_generator(obj)
     )
 
 
 def is_indexable_but_not_string(obj):
     """Return True if ``obj`` is indexable but isn't a string."""
-    return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
+    return not hasattr(obj, 'strip') and hasattr(obj, '__getitem__')
 
 
 def is_collection(obj):
@@ -121,7 +124,7 @@ def to_marshallable_type(obj, field_names=None):
     else:
         attrs = set(dir(obj))
     return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                  if not attr.startswith("__") and not attr.endswith("__")])
+                  if not attr.startswith('__') and not attr.endswith('__')])
 
 
 def pprint(obj, *args, **kwargs):
@@ -146,7 +149,7 @@ class UTC(datetime.tzinfo):
     Optimized UTC implementation. It unpickles using the single module global
     instance defined beneath this class declaration.
     """
-    zone = "UTC"
+    zone = 'UTC'
 
     _utcoffset = ZERO
     _dst = ZERO
@@ -161,19 +164,19 @@ class UTC(datetime.tzinfo):
         return ZERO
 
     def tzname(self, dt):
-        return "UTC"
+        return 'UTC'
 
     def dst(self, dt):
         return ZERO
 
     def localize(self, dt, is_dst=False):
-        '''Convert naive time to local time'''
+        """Convert naive time to local time"""
         if dt.tzinfo is not None:
             raise ValueError('Not naive datetime (tzinfo is already set)')
         return dt.replace(tzinfo=self)
 
     def normalize(self, dt, is_dst=False):
-        '''Correct the timezone information on the given datetime'''
+        """Correct the timezone information on the given datetime"""
         if dt.tzinfo is self:
             return dt
         if dt.tzinfo is None:
@@ -181,10 +184,10 @@ class UTC(datetime.tzinfo):
         return dt.astimezone(self)
 
     def __repr__(self):
-        return "<UTC>"
+        return '<UTC>'
 
     def __str__(self):
-        return "UTC"
+        return 'UTC'
 
 
 UTC = utc = UTC()  # UTC is a singleton
@@ -194,12 +197,16 @@ def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
     """
-    weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
-    month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-             "Oct", "Nov", "Dec"][dt.month - 1]
-    tz_offset = dt.strftime("%z")
-    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
-        dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    month = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+        'Oct', 'Nov', 'Dec',
+    ][dt.month - 1]
+    tz_offset = dt.strftime('%z')
+    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (
+        weekday, dt.day, month,
+        dt.year, dt.hour, dt.minute, dt.second, tz_offset,
+    )
 
 
 def rfcformat(dt, localtime=False):
@@ -221,7 +228,7 @@ _iso8601_re = re.compile(
     r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
     r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
     r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
-    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$'
+    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$',
 )
 
 
@@ -332,7 +339,8 @@ def _get_value_for_keys(obj, keys, default):
         return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default)
+            _get_value_for_key(obj, keys[0], default), keys[1:], default,
+        )
 
 
 def _get_value_for_key(obj, key, default):
@@ -361,7 +369,7 @@ def set_value(dct, key, value):
         if not isinstance(target, dict):
             raise ValueError(
                 'Cannot set {key} in {head} '
-                'due to existing value: {target}'.format(key=key, head=head, target=target)
+                'due to existing value: {target}'.format(key=key, head=head, target=target),
             )
         set_value(target, rest, value)
     else:

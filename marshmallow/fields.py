@@ -12,6 +12,7 @@ import decimal
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
+from marshmallow.utils import EXCLUDE
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError
@@ -103,6 +104,10 @@ class Field(FieldABC):
     .. versionchanged:: 2.0.0
         ``default`` value is only used if explicitly set. Otherwise, missing values
         inputs are excluded from serialized output.
+
+    .. versionchanged:: 3.0.0b8
+        Add ``data_key`` parameter for the specifying the key in the input and
+        output data. This parameter replaced both ``load_from`` and ``dump_to``.
     """
     # Some fields, such as Method fields and Function fields, are not expected
     #  to exist as attributes on the objects to serialize. Set this to False
@@ -117,12 +122,14 @@ class Field(FieldABC):
         'required': 'Missing data for required field.',
         'type': 'Invalid input type.',  # used by Unmarshaller
         'null': 'Field may not be null.',
-        'validator_failed': 'Invalid value.'
+        'validator_failed': 'Invalid value.',
     }
 
-    def __init__(self, default=missing_, attribute=None, data_key=None, error=None,
-                 validate=None, required=False, allow_none=None, load_only=False,
-                 dump_only=False, missing=missing_, error_messages=None, **metadata):
+    def __init__(
+        self, default=missing_, attribute=None, data_key=None, error=None,
+        validate=None, required=False, allow_none=None, load_only=False,
+        dump_only=False, missing=missing_, error_messages=None, **metadata
+    ):
         self.default = default
         self.attribute = attribute
         self.data_key = data_key
@@ -137,8 +144,10 @@ class Field(FieldABC):
         elif validate is None:
             self.validators = []
         else:
-            raise ValueError("The 'validate' parameter must be a callable "
-                             "or a collection of callables.")
+            raise ValueError(
+                "The 'validate' parameter must be a callable "
+                'or a collection of callables.',
+            )
 
         self.required = required
         # If missing=None, None should be considered valid by default
@@ -366,6 +375,8 @@ class Nested(Field):
         value will be returned as output instead of a dictionary.
         This parameter takes precedence over ``exclude``.
     :param bool many: Whether the field is a collection of objects.
+    :param unknown: Whether to exclude, include, or raise an error for unknown
+        fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -378,6 +389,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
+        self.unknown = kwargs.get('unknown', EXCLUDE)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
@@ -407,7 +419,8 @@ class Nested(Field):
                     many=self.many,
                     only=only, exclude=self.exclude, context=context,
                     load_only=self._nested_normalized_option('load_only'),
-                    dump_only=self._nested_normalized_option('dump_only'))
+                    dump_only=self._nested_normalized_option('dump_only'),
+                )
             elif isinstance(self.nested, basestring):
                 if self.nested == 'self':
                     parent_class = self.parent.__class__
@@ -415,14 +428,16 @@ class Nested(Field):
                         many=self.many, only=only,
                         exclude=self.exclude, context=context,
                         load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'))
+                        dump_only=self._nested_normalized_option('dump_only'),
+                    )
                 else:
                     schema_class = class_registry.get_class(self.nested)
                     self.__schema = schema_class(
                         many=self.many,
                         only=only, exclude=self.exclude, context=context,
                         load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'))
+                        dump_only=self._nested_normalized_option('dump_only'),
+                    )
             else:
                 raise ValueError('Nested fields must be passed a '
                                  'Schema, not {0}.'.format(self.nested.__class__))
@@ -445,8 +460,10 @@ class Nested(Field):
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
         try:
-            ret = schema.dump(nested_obj, many=self.many,
-                              update_fields=not self.__updated_fields)
+            ret = schema.dump(
+                nested_obj, many=self.many,
+                update_fields=not self.__updated_fields,
+            )
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
         finally:
@@ -469,7 +486,7 @@ class Nested(Field):
             else:
                 value = {self.only: value}
         try:
-            valid_data = self.schema.load(value)
+            valid_data = self.schema.load(value, unknown=self.unknown)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
@@ -499,15 +516,19 @@ class List(Field):
         super(List, self).__init__(**kwargs)
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
-                raise ValueError('The type of the list elements '
-                                 'must be a subclass of '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    'The type of the list elements '
+                    'must be a subclass of '
+                    'marshmallow.base.FieldABC',
+                )
             self.container = cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
-                raise ValueError('The instances of the list '
-                                 'elements must be of type '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    'The instances of the list '
+                    'elements must be of type '
+                    'marshmallow.base.FieldABC',
+                )
             self.container = cls_or_instance
 
     def get_value(self, obj, attr, accessor=None):
@@ -561,7 +582,7 @@ class String(Field):
 
     default_error_messages = {
         'invalid': 'Not a valid string.',
-        'invalid_utf8': 'Not a valid utf-8 string.'
+        'invalid_utf8': 'Not a valid utf-8 string.',
     }
 
     def _serialize(self, value, attr, obj):
@@ -615,7 +636,7 @@ class Number(Field):
 
     num_type = float
     default_error_messages = {
-        'invalid': 'Not a valid number.'
+        'invalid': 'Not a valid number.',
     }
 
     def __init__(self, as_string=False, **kwargs):
@@ -630,7 +651,8 @@ class Number(Field):
         if value is True or value is False:
             raise TypeError(
                 'value must be a Number, not a boolean.  value is '
-                '{}'.format(value))
+                '{}'.format(value),
+            )
         return self.num_type(value)
 
     def _validated(self, value):
@@ -660,7 +682,7 @@ class Integer(Number):
 
     num_type = int
     default_error_messages = {
-        'invalid': 'Not a valid integer.'
+        'invalid': 'Not a valid integer.',
     }
 
     # override Number
@@ -772,7 +794,7 @@ class Boolean(Field):
         'true', 'True', 'TRUE',
         'on', 'On', 'ON',
         '1', 1,
-        True
+        True,
     }
     #: Default falsy values.
     falsy = {
@@ -780,11 +802,11 @@ class Boolean(Field):
         'false', 'False', 'FALSE',
         'off', 'Off', 'OFF',
         '0', 0, 0.0,
-        False
+        False,
     }
 
     default_error_messages = {
-        'invalid': 'Not a valid boolean.'
+        'invalid': 'Not a valid boolean.',
     }
 
     def __init__(self, truthy=None, falsy=None, **kwargs):
@@ -834,7 +856,7 @@ class FormattedString(Field):
         res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
     """
     default_error_messages = {
-        'format': 'Cannot format string with given data.'
+        'format': 'Cannot format string with given data.',
     }
     _CHECK_ATTRIBUTE = False
 
@@ -944,8 +966,10 @@ class DateTime(Field):
             except TypeError:
                 raise self.fail('invalid')
         else:
-            warnings.warn('It is recommended that you install python-dateutil '
-                          'for improved datetime deserialization.')
+            warnings.warn(
+                'It is recommended that you install python-dateutil '
+                'for improved datetime deserialization.',
+            )
             raise self.fail('invalid')
 
 
@@ -1047,17 +1071,20 @@ class TimeDelta(Field):
 
     default_error_messages = {
         'invalid': 'Not a valid period of time.',
-        'format': '{input!r} cannot be formatted as a timedelta.'
+        'format': '{input!r} cannot be formatted as a timedelta.',
     }
 
     def __init__(self, precision='seconds', error=None, **kwargs):
         precision = precision.lower()
-        units = (self.DAYS, self.SECONDS, self.MICROSECONDS, self.MILLISECONDS,
-                 self.MINUTES, self.HOURS, self.WEEKS)
+        units = (
+            self.DAYS, self.SECONDS, self.MICROSECONDS, self.MILLISECONDS,
+            self.MINUTES, self.HOURS, self.WEEKS,
+        )
 
         if precision not in units:
             msg = 'The precision must be {0} or "{1}".'.format(
-                ', '.join(['"{}"'.format(each) for each in units[:-1]]), units[-1])
+                ', '.join(['"{}"'.format(each) for each in units[:-1]]), units[-1],
+            )
             raise ValueError(msg)
 
         self.precision = precision
@@ -1106,7 +1133,7 @@ class Dict(Field):
     """
 
     default_error_messages = {
-        'invalid': 'Not a valid mapping type.'
+        'invalid': 'Not a valid mapping type.',
     }
 
     def __init__(self, values=None, keys=None, **kwargs):
@@ -1115,25 +1142,33 @@ class Dict(Field):
             self.value_container = None
         elif isinstance(values, type):
             if not issubclass(values, FieldABC):
-                raise ValueError('"values" must be a subclass of '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    '"values" must be a subclass of '
+                    'marshmallow.base.FieldABC',
+                )
             self.value_container = values()
         else:
             if not isinstance(values, FieldABC):
-                raise ValueError('"values" must be of type '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    '"values" must be of type '
+                    'marshmallow.base.FieldABC',
+                )
             self.value_container = values
         if keys is None:
             self.key_container = None
         elif isinstance(keys, type):
             if not issubclass(keys, FieldABC):
-                raise ValueError('"keys" must be a subclass of '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    '"keys" must be a subclass of '
+                    'marshmallow.base.FieldABC',
+                )
             self.key_container = keys()
         else:
             if not isinstance(keys, FieldABC):
-                raise ValueError('"keys" must be of type '
-                                 'marshmallow.base.FieldABC')
+                raise ValueError(
+                    '"keys" must be of type '
+                    'marshmallow.base.FieldABC',
+                )
             self.key_container = keys
 
     def _add_to_schema(self, field_name, schema):
@@ -1210,12 +1245,14 @@ class Url(String):
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be
         # stored.
-        self.validators.insert(0, validate.URL(
-            relative=self.relative,
-            schemes=schemes,
-            require_tld=self.require_tld,
-            error=self.error_messages['invalid']
-        ))
+        self.validators.insert(
+            0, validate.URL(
+                relative=self.relative,
+                schemes=schemes,
+                require_tld=self.require_tld,
+                error=self.error_messages['invalid'],
+            ),
+        )
 
     def _validated(self, value):
         if value is None:
@@ -1223,7 +1260,7 @@ class Url(String):
         return validate.URL(
             relative=self.relative,
             require_tld=self.require_tld,
-            error=self.error_messages['invalid']
+            error=self.error_messages['invalid'],
         )(value)
 
 
@@ -1246,7 +1283,7 @@ class Email(String):
         if value is None:
             return None
         return validate.Email(
-            error=self.error_messages['invalid']
+            error=self.error_messages['invalid'],
         )(value)
 
 
@@ -1283,14 +1320,14 @@ class Method(Field):
             return missing_
 
         method = utils.callable_or_raise(
-            getattr(self.parent, self.serialize_method_name, None)
+            getattr(self.parent, self.serialize_method_name, None),
         )
         return method(obj)
 
     def _deserialize(self, value, attr, data):
         if self.deserialize_method_name:
             method = utils.callable_or_raise(
-                getattr(self.parent, self.deserialize_method_name, None)
+                getattr(self.parent, self.deserialize_method_name, None),
             )
             return method(value)
         return value
@@ -1314,7 +1351,7 @@ class Function(Field):
 
     .. versionchanged:: 2.3.0
         Deprecated ``func`` parameter in favor of ``serialize``.
-    .. versionchanged:: 3.0.0
+    .. versionchanged:: 3.0.0a1
         Removed ``func`` parameter.
     """
     _CHECK_ATTRIBUTE = False

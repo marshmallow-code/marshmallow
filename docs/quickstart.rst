@@ -338,6 +338,47 @@ Or you can ignore missing fields entirely by setting ``partial=True``.
     # OR UserSchema(partial=True).load({'age': 42})
     result  # => ({'age': 42}, {})
 
+.. _unknown:
+
+Handling Unknown Fields
++++++++++++++++++++++++
+
+By default, :meth:`load <Schema.load>` will exclude any field that has not been defined in the schema.
+
+This behavior can be modified with the ``unknown`` option, which accepts one of the following:
+
+- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
+- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
+- `RAISE <marshmallow.utils.RAISE>`: raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+  if there are any unknown fields
+
+You can specify ``unknown`` in the *class Meta* of your `Schema`,
+
+.. code-block:: python
+
+    from marshmallow import Schema, INCLUDE
+
+    class UserSchema(Schema):
+        class Meta:
+            unknown = INCLUDE
+
+at instantiation time,
+
+.. code-block:: python
+
+    schema = UserSchema(unknown=INCLUDE)
+
+or pass it to `load <Schema.load>`.
+
+.. code-block:: python
+
+    UserSchema().load(data, unknown=INCLUDE)
+
+The ``unknown`` option value set in :meth:`load <Schema.load>` will always override the value applied at instantiation time, which itself will override the value defined in the *class Meta*.
+
+This order of precedence allows you to change the behavior of a schema for different contexts.
+
+
 Schema.validate
 +++++++++++++++
 
