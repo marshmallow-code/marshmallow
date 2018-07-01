@@ -251,7 +251,6 @@ class Unmarshaller(ErrorStore):
             errors = self.get_errors(index=index)
             msg = 'Invalid input type.'
             self.error_field_names = [SCHEMA]
-            errors = self.get_errors()
             errors.setdefault(SCHEMA, []).append(msg)
         else:
             for attr_name, field_obj in iteritems(fields_dict):
