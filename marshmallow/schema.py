@@ -201,6 +201,7 @@ class SchemaOpts(object):
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError('`exclude` must be a list or tuple.')
         self.dateformat = getattr(meta, 'dateformat', None)
+        self.datetimeformat = getattr(meta, 'datetimeformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(
                 'The json_module class Meta option is deprecated. Use render_module instead.',
