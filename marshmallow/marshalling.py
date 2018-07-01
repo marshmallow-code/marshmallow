@@ -39,12 +39,7 @@ class ErrorStore(object):
         self.error_kwargs = {}
 
     def get_errors(self, index=None):
-        if index is not None:
-            errors = self.errors.get(index, {})
-            self.errors[index] = errors
-        else:
-            errors = self.errors
-        return errors
+        return self.errors if index is None else self.errors.setdefault(index, {})
 
     def store_error(self, field_name, error, index=None):
         self.error_kwargs.update(error.kwargs)
