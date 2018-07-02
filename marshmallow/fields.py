@@ -120,7 +120,6 @@ class Field(FieldABC):
     #: :exc:`marshmallow.ValidationError`.
     default_error_messages = {
         'required': 'Missing data for required field.',
-        'type': 'Invalid input type.',  # used by Unmarshaller
         'null': 'Field may not be null.',
         'validator_failed': 'Invalid value.',
     }

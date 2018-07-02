@@ -1620,13 +1620,14 @@ def test_required_message_can_be_changed(message):
     assert expected == errors['age']
 
 
+@pytest.mark.parametrize('unknown', (EXCLUDE, INCLUDE, RAISE))
 @pytest.mark.parametrize('data', [True, False, 42, None, []])
-def test_deserialize_raises_exception_if_input_type_is_incorrect(data):
+def test_deserialize_raises_exception_if_input_type_is_incorrect(data, unknown):
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
     with pytest.raises(ValidationError) as excinfo:
-        MySchema().load(data)
+        MySchema(unknown=unknown).load(data)
     assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']

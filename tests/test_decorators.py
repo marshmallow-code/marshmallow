@@ -11,6 +11,9 @@ from marshmallow import (
     validates,
     validates_schema,
     ValidationError,
+    EXCLUDE,
+    INCLUDE,
+    RAISE,
 )
 
 
@@ -80,7 +83,8 @@ def test_decorated_processors():
 
 
 # Regression test for https://github.com/marshmallow-code/marshmallow/issues/347
-def test_decorated_processor_returning_none():
+@pytest.mark.parametrize('unknown', (EXCLUDE, INCLUDE, RAISE))
+def test_decorated_processor_returning_none(unknown):
     class PostSchema(Schema):
         value = fields.Integer()
 
@@ -103,10 +107,10 @@ def test_decorated_processor_returning_none():
         def dump_none(self, item):
             return None
 
-    schema = PostSchema()
+    schema = PostSchema(unknown=unknown)
     assert schema.dump({'value': 3}) is None
     assert schema.load({'value': 3}) is None
-    schema = PreSchema()
+    schema = PreSchema(unknown=unknown)
     assert schema.dump({'value': 3}) == {}
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'value': 3})

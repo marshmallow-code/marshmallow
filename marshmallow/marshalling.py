@@ -9,6 +9,7 @@ and from primitive types.
 """
 
 from __future__ import unicode_literals
+import collections
 
 from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
@@ -245,57 +246,53 @@ class Unmarshaller(ErrorStore):
             return ret
         partial_is_collection = is_collection(partial)
         ret = dict_class()
-        for attr_name, field_obj in iteritems(fields_dict):
-            if field_obj.dump_only:
-                continue
-            field_name = attr_name
-            if field_obj.data_key:
-                field_name = field_obj.data_key
-            try:
-                raw_value = data.get(field_name, missing)
-            except AttributeError:  # Input data is not a dict
-                errors = self.get_errors(index=index)
-                msg = field_obj.error_messages['type'].format(
-                    input=data, input_type=data.__class__.__name__,
-                )
-                self.error_field_names = [SCHEMA]
-                errors = self.get_errors()
-                errors.setdefault(SCHEMA, []).append(msg)
-                # Input data type is incorrect, so we can bail out early
-                break
-            if raw_value is missing:
-                # Ignore missing field if we're allowed to.
-                if (
-                    partial is True or
-                    (partial_is_collection and attr_name in partial)
-                ):
+        # Check data is a dict
+        if not isinstance(data, collections.Mapping):
+            errors = self.get_errors(index=index)
+            msg = 'Invalid input type.'
+            self.error_field_names = [SCHEMA]
+            errors = self.get_errors()
+            errors.setdefault(SCHEMA, []).append(msg)
+        else:
+            for attr_name, field_obj in iteritems(fields_dict):
+                if field_obj.dump_only:
                     continue
-            getter = lambda val: field_obj.deserialize(val, field_name, data)
-            value = self.call_and_store(
-                getter_func=getter,
-                data=raw_value,
-                field_name=field_name,
-                index=(index if index_errors else None),
-            )
-            if value is not missing:
-                key = fields_dict[attr_name].attribute or attr_name
-                set_value(ret, key, value)
-
-        if unknown != EXCLUDE:
-            fields = {
-                field_obj.data_key or field_name
-                for field_name, field_obj in fields_dict.items()
-            }
-            for key in set(data) - fields:
-                value = data[key]
-                if unknown == INCLUDE:
+                field_name = attr_name
+                if field_obj.data_key:
+                    field_name = field_obj.data_key
+                raw_value = data.get(field_name, missing)
+                if raw_value is missing:
+                    # Ignore missing field if we're allowed to.
+                    if (
+                        partial is True or
+                        (partial_is_collection and attr_name in partial)
+                    ):
+                        continue
+                getter = lambda val: field_obj.deserialize(val, field_name, data)
+                value = self.call_and_store(
+                    getter_func=getter,
+                    data=raw_value,
+                    field_name=field_name,
+                    index=(index if index_errors else None),
+                )
+                if value is not missing:
+                    key = fields_dict[attr_name].attribute or attr_name
                     set_value(ret, key, value)
-                elif unknown == RAISE:
-                    self.store_error(
-                        field_name=key,
-                        error=ValidationError('Unknown field.'),
-                        index=(index if index_errors else None),
-                    )
+            if unknown != EXCLUDE:
+                fields = {
+                    field_obj.data_key or field_name
+                    for field_name, field_obj in fields_dict.items()
+                }
+                for key in set(data) - fields:
+                    value = data[key]
+                    if unknown == INCLUDE:
+                        set_value(ret, key, value)
+                    elif unknown == RAISE:
+                        self.store_error(
+                            field_name=key,
+                            error=ValidationError('Unknown field.'),
+                            index=(index if index_errors else None),
+                        )
 
         if self.errors and not self._pending:
             raise ValidationError(
