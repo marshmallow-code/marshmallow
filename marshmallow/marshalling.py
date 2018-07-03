@@ -282,6 +282,7 @@ class Unmarshaller(ErrorStore):
                 fields = {
                     field_obj.data_key or field_name
                     for field_name, field_obj in fields_dict.items()
+                    if not field_obj.dump_only
                 }
                 for key in set(data) - fields:
                     value = data[key]
