@@ -1457,6 +1457,19 @@ class TestSchemaDeserialization:
         assert err.messages['foo'] == ['Not a valid integer.']
         assert err.messages['bar'] == ['Unknown field.']
 
+    def test_dump_only_fields_considered_unknown(self):
+        class MySchema(Schema):
+            foo = fields.Field(dump_only=True)
+
+            class Meta:
+                unknown = RAISE
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'foo': 42})
+        err = excinfo.value
+        assert 'foo' in err.messages
+        assert err.messages['foo'] == ['Unknown field.']
+
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
