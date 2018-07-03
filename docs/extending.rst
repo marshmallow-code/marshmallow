@@ -252,7 +252,7 @@ You can register schema-level validation functions for a :class:`Schema` using t
                 raise ValidationError('field_a must be greater than field_b')
 
     schema = NumberSchema()
-    result, errors = schema.load({'field_a': 2, 'field_b': 1})
+    result, errors = schema.load({'field_a': 1, 'field_b': 2})
     errors['_schema'] # => ["field_a must be greater than field_b"]
 
 
