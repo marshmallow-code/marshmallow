@@ -6,7 +6,9 @@ Changelog
 
 Features:
 
-- The behavior to apply when encountering unknown fields while deserializing can be controlled with the ``unknown`` option (:issue:`524`).
+- The behavior to apply when encountering unknown fields while deserializing
+  can be controlled with the ``unknown`` option (:issue:`524`,
+  :issue:`747`, :issue:`127`).
   It makes it possible to either "include", "exclude", or "raise".
   Thanks :user:`tuukkamustonen` for the suggestion and thanks
   :user:`ramnes` for the PR.
