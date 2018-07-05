@@ -13,6 +13,11 @@ Features:
   Thanks :user:`tuukkamustonen` for the suggestion and thanks
   :user:`ramnes` for the PR.
 
+.. warning::
+
+  The default for ``unknown`` will be changed to ``RAISE`` in the
+  next release.
+
 Other changes:
 
 - *Backwards-incompatible*: Pre/Post-processors MUST return modified data.
