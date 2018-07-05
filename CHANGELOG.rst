@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.0.0b12 (unreleased)
+3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
 
 Features:
@@ -20,6 +20,7 @@ Other changes:
   declared and additional fields. A ``ValueError`` is raised if invalid
   fields are passed (:issue:`636`). Thanks :user:`jan-23` for reporting.
   Thanks :user:`ikilledthecat` and :user:`deckar01` for the PRs.
+- Format code using pre-commit (:issue:`855`).
 
 Deprecations/Removals:
 
