@@ -137,8 +137,8 @@ configurable with the ``unknown`` option:
 - ``INCLUDE``: pass those keys/values as is, with no validation performed
 - ``RAISE`` (default): raise a ``ValidationError``
 
-The unknown option can be passed at load time, on Schema instantiation,
-or as a Meta option.
+The ``unknown`` option can be passed as a Meta option, on Schema instantiation,
+or at load time.
 
 .. code-block:: python
 
@@ -158,7 +158,7 @@ or as a Meta option.
     schema.load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42, 'bar': 'whatever']
 
     # Value passed on load overrides instance attribute
-    schema.load({'foo': 42, 'bar': 'whatever'}, unkown=RAISE)  # => ValidationError
+    schema.load({'foo': 42, 'bar': 'whatever'}, unknown=RAISE)  # => ValidationError
 
 Overriding ``get_attribute``
 ****************************
