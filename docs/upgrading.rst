@@ -127,6 +127,39 @@ them from ``schema.fields``.
         field = schema.fields['foo']
         # ...
 
+Schemas raise ``ValidationError`` when deserializing data with unknown keys
+***************************************************************************
+
+Marshmallow 3.x schemas can deal with unknown keys in three different ways,
+configurable with the ``unknown`` option:
+
+- ``EXCLUDE``: drop those keys (same as marshmallow 2)
+- ``INCLUDE``: pass those keys/values as is, with no validation performed
+- ``RAISE`` (default): raise a ``ValidationError``
+
+The unknown option can be passed at load time, on Schema instantiation,
+or as a Meta option.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, EXCLUDE, INCLUDE, RAISE
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+            class Meta:
+                # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
+                unknown = EXCLUDE
+
+    MySchema().load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42]
+
+    # Value passed on instantiation overrides Meta option
+    schema = MySchema(unknown=INCLUDE)
+    schema.load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42, 'bar': 'whatever']
+
+    # Value passed on load overrides instance attribute
+    schema.load({'foo': 42, 'bar': 'whatever'}, unkown=RAISE)  # => ValidationError
+
 Overriding ``get_attribute``
 ****************************
 
