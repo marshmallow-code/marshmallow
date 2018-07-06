@@ -7,7 +7,8 @@ Changelog
 Other changes:
 
 - *Backwards-incompatible*: The ``unknown`` option now defaults to ``RAISE``
-  `#524 (comment) <https://github.com/marshmallow-code/marshmallow/issues/524#issuecomment-397165731>`_.
+  (`#524 (comment) <https://github.com/marshmallow-code/marshmallow/issues/524#issuecomment-397165731>`_,
+  :issue:`851`).
 
 3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
