@@ -9,7 +9,7 @@ from collections import namedtuple, OrderedDict
 
 import pytest
 
-from marshmallow import Schema, fields, utils, validates, validates_schema
+from marshmallow import Schema, fields, utils, validates, validates_schema, EXCLUDE
 from marshmallow.exceptions import ValidationError
 
 from tests.base import (
@@ -177,6 +177,7 @@ def test_dump_resets_error_fields():
 def test_load_resets_error_fields():
     class MySchema(Schema):
         email = fields.Email()
+        name = fields.Str()
 
     schema = MySchema()
     with pytest.raises(ValidationError) as excinfo:
@@ -185,8 +186,8 @@ def test_load_resets_error_fields():
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
-        schema.load({'name': 'Joe', 'email': '__invalid'})
-
+        schema.load({'name': 12, 'email': 'mick@stones.com'})
+    exc = excinfo.value
     assert len(exc.field_names) == 1
 
 def test_load_resets_error_kwargs():
@@ -1176,7 +1177,7 @@ class TestDeeplyNestedLoadOnly:
         assert 'str_regular' in grand_child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result
@@ -1234,7 +1235,7 @@ class TestDeeplyNestedListLoadOnly:
         assert 'str_regular' in child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result
@@ -2521,7 +2522,7 @@ class TestLoadOnly:
         assert 'str_regular' in result
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result

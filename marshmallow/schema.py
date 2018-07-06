@@ -30,7 +30,7 @@ from marshmallow.decorators import (
     VALIDATES,
     VALIDATES_SCHEMA,
 )
-from marshmallow.utils import EXCLUDE, missing
+from marshmallow.utils import RAISE, missing
 
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
@@ -215,7 +215,7 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
-        self.unknown = getattr(meta, 'unknown', EXCLUDE)
+        self.unknown = getattr(meta, 'unknown', RAISE)
 
 
 class BaseSchema(base.SchemaABC):

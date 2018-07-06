@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError
+from marshmallow import fields, Schema, ValidationError, EXCLUDE
 from marshmallow.marshalling import missing
 
 from tests.base import ALL_FIELDS, User
@@ -53,7 +53,7 @@ class TestField:
         class MySchema(Schema):
             name = MyField()
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
     def test_custom_field_receives_data_key_if_set(self, user):
@@ -66,7 +66,7 @@ class TestField:
         class MySchema(Schema):
             Name = MyField(data_key='name')
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
     def test_custom_field_follows_data_key_if_set(self, user):
