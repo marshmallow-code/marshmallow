@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0b13 (unreleased)
++++++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: The ``unknown`` option now defaults to ``RAISE``.
+
 3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
 
