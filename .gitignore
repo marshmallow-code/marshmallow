@@ -64,6 +64,12 @@ pylintrc
 env
 venv
 
+# pyenv
+.python-version
+
+# pytest
+.pytest_cache
+
 # Other
 .directory
 *.pprof
