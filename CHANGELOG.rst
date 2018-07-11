@@ -4,11 +4,19 @@ Changelog
 3.0.0b13 (unreleased)
 +++++++++++++++++++++
 
+Bug fixes:
+
+- Errors reported by a schema-level validator for a field in a ``Nested`` field
+are stored under corresponding field name, not ``_schema `` key (:issue: `862`).
+
 Other changes:
 
 - *Backwards-incompatible*: The ``unknown`` option now defaults to ``RAISE``
   (`#524 (comment) <https://github.com/marshmallow-code/marshmallow/issues/524#issuecomment-397165731>`_,
   :issue:`851`).
+- *Backwards-incompatible*: When a schema error is raised with a ``dict`` as
+  payload, the ``dict`` overwrites any existing error list. Before this change,
+  it would be appended to the list.
 
 3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
