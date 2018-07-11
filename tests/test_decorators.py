@@ -375,14 +375,10 @@ class TestValidatesDecorator:
 
 class TestValidatesSchemaDecorator:
 
-    def test_validator_nested_many(self):
+    def test_validator_nested_many_invalid_data(self):
 
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
-
-            @validates_schema
-            def validate_schema(self, data):
-                raise ValidationError('This will never work', 'foo')
 
         class MySchema(Schema):
             nested = fields.Nested(NestedSchema, required=True, many=True)
@@ -392,8 +388,45 @@ class TestValidatesSchemaDecorator:
         assert errors
         assert 'nested' in errors
         assert 0 in errors['nested']
-        assert '_schema' in errors['nested']
-        assert 'foo' not in errors['nested']
+        assert errors['nested'][0] == {'_schema': ['Invalid input type.']}
+
+    def test_validator_nested_many_schema_error(self):
+
+        class NestedSchema(Schema):
+            foo = fields.Int(required=True)
+
+            @validates_schema
+            def validate_schema(self, data):
+                raise ValidationError('This will never work.')
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, required=True, many=True)
+
+        schema = MySchema()
+        errors = schema.validate({'nested': [{'foo': 1}]})
+        assert errors
+        assert 'nested' in errors
+        assert 0 in errors['nested']
+        assert errors['nested'][0] == {'_schema': ['This will never work.']}
+
+    def test_validator_nested_many_field_error(self):
+
+        class NestedSchema(Schema):
+            foo = fields.Int(required=True)
+
+            @validates_schema
+            def validate_schema(self, data):
+                raise ValidationError('This will never work.', 'foo')
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, required=True, many=True)
+
+        schema = MySchema()
+        errors = schema.validate({'nested': [{'foo': 1}]})
+        assert errors
+        assert 'nested' in errors
+        assert 0 in errors['nested']
+        assert errors['nested'][0] == {'foo': ['This will never work.']}
 
     @pytest.mark.parametrize('data', ([{'foo': 1, 'bar': 2}],))
     @pytest.mark.parametrize(
@@ -523,19 +556,16 @@ class TestValidatesSchemaDecorator:
         schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate({'foo': 4, 'baz': 42})
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == {'code': 'invalid_field'}
+        assert errors['_schema'] == {'code': 'invalid_field'}
 
         errors = schema.validate({'foo': '4'})
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == 'foo cannot be a string'
+        assert errors['_schema'] == ['foo cannot be a string']
 
         schema = MySchema(unknown=EXCLUDE)
         errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
         assert '_schema' in errors
-        assert len(errors['_schema']) == 1
-        assert errors['_schema'][0] == {'code': 'invalid_field'}
+        assert errors['_schema'] == {'code': 'invalid_field'}
 
     # https://github.com/marshmallow-code/marshmallow/issues/273
     def test_allow_arbitrary_field_names_in_error(self):

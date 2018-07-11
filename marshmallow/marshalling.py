@@ -14,7 +14,7 @@ import collections
 from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
 )
-from marshmallow.compat import text_type, iteritems
+from marshmallow.compat import iteritems, basestring
 from marshmallow.exceptions import (
     ValidationError,
 )
@@ -24,6 +24,8 @@ __all__ = [
     'Unmarshaller',
 ]
 
+# Key used for schema-level validation errors
+SCHEMA = '_schema'
 # Key used for field-level validation errors on nested fields
 FIELD = '_field'
 
@@ -42,17 +44,23 @@ class ErrorStore(object):
     def get_errors(self, index=None):
         return self.errors if index is None else self.errors.setdefault(index, {})
 
-    def store_error(self, field_name, error, index=None):
-        self.error_kwargs.update(error.kwargs)
+    def store_error(self, field_name, messages, index=None):
         self.error_field_names.append(field_name)
         errors = self.get_errors(index=index)
         # Warning: Mutation!
-        if isinstance(error.messages, dict):
-            errors[field_name] = error.messages
+        if isinstance(messages, dict):
+            errors[field_name] = messages
         elif isinstance(errors.get(field_name), dict):
-            errors[field_name].setdefault(FIELD, []).extend(error.messages)
+            errors[field_name].setdefault(FIELD, []).extend(messages)
         else:
-            errors.setdefault(field_name, []).extend(error.messages)
+            errors.setdefault(field_name, []).extend(messages)
+
+    def store_validation_error(self, field_names, error, index=None):
+        if isinstance(field_names, basestring):
+            field_names = (field_names, )
+        self.error_kwargs.update(error.kwargs)
+        for field_name in field_names:
+            self.store_error(field_name, error.messages, index=index)
         # When a Nested field fails validation, the marshalled data is stored
         # on the ValidationError's valid_data attribute
         return error.valid_data or missing
@@ -70,7 +78,7 @@ class ErrorStore(object):
         try:
             value = getter_func(data)
         except ValidationError as error:
-            return self.store_error(field_name, error, index)
+            return self.store_validation_error(field_name, error, index)
         return value
 
 
@@ -155,10 +163,6 @@ class Marshaller(ErrorStore):
     __call__ = serialize
 
 
-# Key used for schema-level validation errors
-SCHEMA = '_schema'
-
-
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
 
@@ -180,27 +184,9 @@ class Unmarshaller(ErrorStore):
             if res is False:
                 raise ValidationError(self.default_schema_validation_error)
         except ValidationError as err:
-            errors = self.get_errors(index=index)
-            self.error_kwargs.update(err.kwargs)
             # Store or reraise errors
-            if err.field_names:
-                field_names = err.field_names
-            else:
-                field_names = [SCHEMA]
-            self.error_field_names = field_names
-            for field_name in field_names:
-                if isinstance(err.messages, (list, tuple)):
-                    # self.errors[field_name] may be a dict if schemas are nested
-                    if isinstance(errors.get(field_name), dict):
-                        errors[field_name].setdefault(
-                            SCHEMA, [],
-                        ).extend(err.messages)
-                    else:
-                        errors.setdefault(field_name, []).extend(err.messages)
-                elif isinstance(err.messages, dict):
-                    errors.setdefault(field_name, []).append(err.messages)
-                else:
-                    errors.setdefault(field_name, []).append(text_type(err))
+            field_names = err.field_names or [SCHEMA]
+            self.store_validation_error(field_names, err, index=index)
 
     def deserialize(
         self, data, fields_dict, many=False, partial=False,
@@ -248,11 +234,7 @@ class Unmarshaller(ErrorStore):
         ret = dict_class()
         # Check data is a dict
         if not isinstance(data, collections.Mapping):
-            errors = self.get_errors(index=index)
-            msg = 'Invalid input type.'
-            self.error_field_names = [SCHEMA]
-            errors = self.get_errors()
-            errors.setdefault(SCHEMA, []).append(msg)
+            self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
         else:
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
@@ -289,10 +271,10 @@ class Unmarshaller(ErrorStore):
                     if unknown == INCLUDE:
                         set_value(ret, key, value)
                     elif unknown == RAISE:
-                        self.store_error(
-                            field_name=key,
-                            error=ValidationError('Unknown field.'),
-                            index=(index if index_errors else None),
+                        self.store_validation_error(
+                            key,
+                            ValidationError('Unknown field.'),
+                            (index if index_errors else None),
                         )
 
         if self.errors and not self._pending:
