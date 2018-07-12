@@ -1,6 +1,6 @@
 # Task execution
 # Need to pin to 0.21.x if supporting Py26
-invoke==1.0.0
+invoke==1.1.0
 
 # Soft dependencies
 python-dateutil==2.7.3
