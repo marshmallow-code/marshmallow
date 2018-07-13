@@ -1,4 +1,3 @@
-.. _quickstart:
 .. module:: marshmallow
 
 Quickstart
@@ -251,7 +250,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
 .. seealso::
 
-    You can register a custom error handler function for a schema by overriding the :func:`handle_error <Schema.handle_error>` method. See the :ref:`Extending Schemas <extending>` page for more info.
+    You can register a custom error handler function for a schema by overriding the :func:`handle_error <Schema.handle_error>` method. See the :doc:`Extending Schemas <extending>` page for more info.
 
 .. seealso::
 
@@ -442,6 +441,7 @@ By default `Schemas` will marshal/unmarshal an input dictionary from/to an outpu
     #{'name': u'Mike',
     # 'email': 'foo@bar.com'}
 
+.. _meta_options:
 
 Refactoring: Implicit Field Creation
 ------------------------------------
@@ -546,5 +546,5 @@ Next Steps
 
 - Need to represent relationships between objects? See the :ref:`Nesting Schemas <nesting>` page.
 - Want to create your own field type? See the :ref:`Custom Fields <custom_fields>` page.
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
 - For example applications using marshmallow, check out the :ref:`Examples <examples>` page.

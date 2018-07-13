@@ -49,7 +49,7 @@ def clean(ctx):
 
 @task
 def clean_docs(ctx):
-    ctx.run('rm -rf %s' % build_dir)
+    ctx.run('rm -rf %s' % build_dir, echo=True)
 
 @task
 def browse_docs(ctx):

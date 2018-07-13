@@ -1,4 +1,3 @@
-.. _extending:
 .. module:: marshmallow
 
 Extending Schemas

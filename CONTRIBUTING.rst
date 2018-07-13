@@ -5,7 +5,7 @@ So you're interested in contributing to marshmallow or `one of our associated
 projects <https://github.com/marshmallow-code>`__? That's awesome! We
 welcome contributions from anyone willing to work in good faith with
 other contributors and the community (see also our
-:ref:`code-of-conduct`).
+:doc:`code_of_conduct`).
 
 Questions, Feature Requests, Bug Reports, and Feedback…
 -------------------------------------------------------

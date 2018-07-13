@@ -4,19 +4,19 @@
 marshmallow: simplified object serialization
 ********************************************
 
-Release v\ |version|. (:ref:`Changelog <changelog>`)
+Release v\ |version|. (:doc:`Changelog <changelog>`)
 
 .. include:: about.rst.inc
 
 Upgrading from an older version?
 ================================
 
-See the :ref:`Upgrading to Newer Releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
+See the :doc:`Upgrading to Newer Releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
 
 Why another library?
 =====================
 
-See :ref:`this document <why>` to learn about what makes marshmallow unique.
+See :doc:`this document <why>` to learn about what makes marshmallow unique.
 
 
 Guide
