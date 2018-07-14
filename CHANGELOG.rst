@@ -7,7 +7,7 @@ Changelog
 Bug fixes:
 
 - Errors reported by a schema-level validator for a field in a ``Nested`` field
-are stored under corresponding field name, not ``_schema `` key (:issue: `862`).
+  are stored under corresponding field name, not ``_schema`` key (:issue:`862`).
 
 Other changes:
 
