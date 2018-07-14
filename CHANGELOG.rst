@@ -7,7 +7,7 @@ Changelog
 Bug fixes:
 
 - Errors reported by a schema-level validator for a field in a ``Nested`` field
-  are stored under corresponding field name, not ``_schema`` key (:issue:`862`).
+  are stored under corresponding field name, not ``_schema`` key (:pr:`862`).
 
 Other changes:
 
@@ -44,7 +44,7 @@ Other changes:
   declared and additional fields. A ``ValueError`` is raised if invalid
   fields are passed (:issue:`636`). Thanks :user:`jan-23` for reporting.
   Thanks :user:`ikilledthecat` and :user:`deckar01` for the PRs.
-- Format code using pre-commit (:issue:`855`).
+- Format code using pre-commit (:pr:`855`).
 
 Deprecations/Removals:
 
@@ -56,11 +56,11 @@ Deprecations/Removals:
 
 Features:
 
-- Clean up code for schema hooks (:issue:`814`). Thanks :user:`taion`.
-- Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`). Thanks again :user:`taion`.
+- Clean up code for schema hooks (:pr:`814`). Thanks :user:`taion`.
+- Minor performance improvement from simplifying ``utils.get_value`` (:pr:`811`). Thanks again :user:`taion`.
 - Add ``require_tld`` argument to ``fields.URL`` (:issue:`749`). Thanks
   :user:`DenerKup` for reporting and thanks :user:`surik00` for the PR.
-- ``fields.UUID`` deserializes ``bytes`` strings using ``UUID(bytes=b'...')`` (:issue:`625`).
+- ``fields.UUID`` deserializes ``bytes`` strings using ``UUID(bytes=b'...')`` (:pr:`625`).
   Thanks :user:`JeffBerger` for the suggestion and the PR.
 
 Bug fixes:
@@ -107,7 +107,7 @@ Features:
   :issue:`743`). Thanks :user:`stj` for the PR.
 - *Backwards-incompatible*: Don't recursively check nested required
   fields when the Nested field's key is missing (:issue:`319`). This
-  reverts :issue:`235`. Thanks :user:`chekunkov` reporting and thanks
+  reverts :pr:`235`. Thanks :user:`chekunkov` reporting and thanks
   :user:`lafrech` for the PR.
 - *Backwards-incompatible*: Change error message collection for `Dict` field (:issue:`730`). Note:
   this is backwards-incompatible with previous 3.0.0bX versions.
@@ -121,7 +121,7 @@ Features:
 - *Backwards-incompatible*: Schemas are always strict (:issue:`377`).
   The ``strict`` parameter is removed.
 - *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
-  ``(data, errors)`` duple (:issue:`598`).
+  ``(data, errors)`` tuple (:issue:`598`).
 - *Backwards-incomaptible*: `Schema().load(None)` raises a
   `ValidationError` (:issue:`511`).
 
@@ -135,7 +135,7 @@ Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
 Other changes:
 
 - *Backwards-incompatible*: Field name is not checked when ``load_from``
-  is specified (:issue:`714`). Thanks :user:`lafrech`.
+  is specified (:pr:`714`). Thanks :user:`lafrech`.
 
 Support:
 
