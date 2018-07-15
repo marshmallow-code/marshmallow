@@ -143,9 +143,9 @@ or at load time.
     class MySchema(Schema):
         foo = fields.Int()
 
-            class Meta:
-                # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
-                unknown = EXCLUDE
+        class Meta:
+            # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
+            unknown = EXCLUDE
 
     MySchema().load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42]
 
@@ -187,11 +187,14 @@ datum.
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, post_load
+    from marshmallow import Schema, fields, post_load, EXCLUDE
 
 
     class ShoeSchema(Schema):
         size = fields.Int()
+
+        class Meta:
+            unknown = EXCLUDE
 
         @post_load(pass_original=True)
         def post_load(self, data, original_data):
