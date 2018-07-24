@@ -90,7 +90,7 @@ def get_author(pk):
 @app.route('/quotes/', methods=['GET'])
 def get_quotes():
     quotes = Quote.query.all()
-    result = quotes_schema.dump(quotes)
+    result = quotes_schema.dump(quotes, many=True)
     return jsonify({'quotes': result})
 
 @app.route('/quotes/<int:pk>')
