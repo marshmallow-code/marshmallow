@@ -7,7 +7,7 @@ python-dateutil==2.7.3
 pytz==2018.5
 
 # Testing
-pytest==3.6.3
+pytest==3.6.4
 tox>=1.5.0
 simplejson==3.16.0
 
