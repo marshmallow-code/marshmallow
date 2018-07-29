@@ -51,6 +51,7 @@ Project Info
     changelog
     upgrading
     ecosystem
+    whos_using
     license
     authors
     contributing
