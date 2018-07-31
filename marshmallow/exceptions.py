@@ -5,7 +5,6 @@ from marshmallow.compat import basestring
 
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
-    pass
 
 
 class ValidationError(MarshmallowError):
@@ -18,11 +17,7 @@ class ValidationError(MarshmallowError):
         If `None`, the error is stored in its default location.
     :param list fields: `Field` objects to which the error applies.
     """
-
-    def __init__(
-        self, message, field_names=None,
-        data=None, valid_data=None, **kwargs
-    ):
+    def __init__(self, message, field_names=None, data=None, valid_data=None, **kwargs):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
@@ -50,8 +45,8 @@ class ValidationError(MarshmallowError):
             return {no_field_name: self.messages}
         return dict((name, self.messages) for name in self.field_names)
 
+
 class RegistryError(NameError):
     """Raised when an invalid operation is performed on the serializer
     class registry.
     """
-    pass
