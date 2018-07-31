@@ -50,3 +50,7 @@ class RegistryError(NameError):
     """Raised when an invalid operation is performed on the serializer
     class registry.
     """
+
+
+class StringNotCollectionError(MarshmallowError, TypeError):
+    """Raised when a string is passed while a list of string is expected."""

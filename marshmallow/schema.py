@@ -20,7 +20,7 @@ from marshmallow.compat import (
     text_type,
     with_metaclass,
 )
-from marshmallow.exceptions import ValidationError
+from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
     POST_DUMP,
@@ -30,7 +30,7 @@ from marshmallow.decorators import (
     VALIDATES,
     VALIDATES_SCHEMA,
 )
-from marshmallow.utils import RAISE, missing
+from marshmallow.utils import RAISE, missing, is_collection
 
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
@@ -337,6 +337,11 @@ class BaseSchema(base.SchemaABC):
         context=None, load_only=(), dump_only=(), partial=False,
         unknown=None,
     ):
+        # Raise error if only or exclude is passed as string, not list of strings
+        if only is not None and not is_collection(only):
+            raise StringNotCollectionError('"only" should be a list of strings')
+        if exclude is not None and not is_collection(exclude):
+            raise StringNotCollectionError('"exclude" should be a list of strings')
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
