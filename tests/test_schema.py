@@ -10,7 +10,7 @@ from collections import namedtuple, OrderedDict
 import pytest
 
 from marshmallow import Schema, fields, utils, validates, validates_schema, EXCLUDE
-from marshmallow.exceptions import ValidationError
+from marshmallow.exceptions import ValidationError, StringNotCollectionError
 
 from tests.base import (
     assert_almost_equal,
@@ -1383,6 +1383,14 @@ def test_only_empty():
     sch = MySchema(only=())
     assert 'foo' not in sch.dump({'foo': 'bar'})
 
+
+@pytest.mark.parametrize('param', ('only', 'exclude'))
+def test_only_and_exclude_as_string(param):
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    with pytest.raises(StringNotCollectionError):
+        MySchema(**{param: 'foo'})
 
 def test_nested_with_sets():
     class Inner(Schema):
