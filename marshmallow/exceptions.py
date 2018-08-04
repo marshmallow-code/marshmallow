@@ -53,4 +53,4 @@ class RegistryError(NameError):
 
 
 class StringNotCollectionError(MarshmallowError, TypeError):
-    """Raised when a string is passed while a list of string is expected."""
+    """Raised when a string is passed while a list of strings is expected."""

@@ -18,6 +18,9 @@ Other changes:
 - *Backwards-incompatible*: When a schema error is raised with a ``dict`` as
   payload, the ``dict`` overwrites any existing error list. Before this change,
   it would be appended to the list.
+- Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
+  passed as a string (:issue:`316`). Thanks :user:`paulocheque` for
+  reporting.
 
 3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
