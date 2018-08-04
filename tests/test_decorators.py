@@ -372,9 +372,10 @@ class TestValidatesDecorator:
         assert len(errors['bar']) == 1
         assert errors['bar'][0] == 'Must be 2'
 
-    def test_validates_load_from(self):
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/748
+    def test_validates_with_data_key(self):
         class BadSchema(Schema):
-            foo = fields.String(load_from='foo-name')
+            foo = fields.String(data_key='foo-name')
 
             @validates('foo')
             def validate_string(self, data):
