@@ -372,6 +372,25 @@ class TestValidatesDecorator:
         assert len(errors['bar']) == 1
         assert errors['bar'][0] == 'Must be 2'
 
+    def test_validates_load_from(self):
+        class BadSchema(Schema):
+            foo = fields.String(load_from='foo-name')
+
+            @validates('foo')
+            def validate_string(self, data):
+                raise ValidationError('nope')
+
+        schema = BadSchema()
+        errors = schema.validate({'foo-name': 'data'})
+        assert 'foo-name' in errors
+        assert errors['foo-name'] == ['nope']
+
+        schema = BadSchema()
+        errors = schema.validate([{'foo-name': 'data'}, {'foo-name': 'data2'}], many=True)
+        assert errors == {
+            0: {'foo-name': ['nope']},
+            1: {'foo-name': ['nope']},
+        }
 
 class TestValidatesSchemaDecorator:
 

@@ -890,7 +890,7 @@ class BaseSchema(base.SchemaABC):
                         validated_value = unmarshal.call_and_store(
                             getter_func=validator,
                             data=value,
-                            field_name=field_name,
+                            field_name=field_obj.load_from or field_name,
                             index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
@@ -904,7 +904,7 @@ class BaseSchema(base.SchemaABC):
                     validated_value = unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
-                        field_name=field_name,
+                        field_name=field_obj.load_from or field_name,
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)

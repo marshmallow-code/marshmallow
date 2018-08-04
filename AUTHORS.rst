@@ -104,3 +104,4 @@ Contributors (chronological)
 - Felix Yan `@felixonmars <https://github.com/felixonmars>`_
 - Prasanjit Prakash `@ikilledthecat <https://github.com/ikilledthecat>`_
 - Guillaume Gelin `@ramnes <https://github.com/ramnes>`_
+- Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_

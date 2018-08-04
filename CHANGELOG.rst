@@ -265,6 +265,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.15.4 (2018-08-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect ``load_from`` when reporting errors for ``@validates('field_name')``
+  (:issue:`748`). Thanks :user:`m-novikov` for the catch and patch.
+
 2.15.3 (2018-05-20)
 +++++++++++++++++++
 
