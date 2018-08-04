@@ -84,3 +84,4 @@ Contributors (chronological)
 - Michal Kononenko `@MichalKononenko <https://github.com/MichalKononenko>`_
 - `@sduthil <https://github.com/sduthil>`_
 - Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
+- Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
