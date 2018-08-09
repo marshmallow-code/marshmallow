@@ -1647,7 +1647,7 @@ class TestFieldValidation:
             # This was https://github.com/marshmallow-code/marshmallow/issues/906
             Sch(many=True).load(val)
         assert e.value.messages == {'_schema': ['Invalid input type.']}
-        assert e.value.valid_data == {}
+        assert e.value.valid_data == []
 
     def test_errors_are_cleared_after_loading_collection(self):
         def always_fail(val):

@@ -203,16 +203,17 @@ class Unmarshaller(ErrorStore):
             will be ignored.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param type dict_class: Dictionary class used to construct the output.
+        :param type dict_class: Dictionary class used to construct the output when many=False.
         :param bool index_errors: Whether to store the index of invalid items in
             ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
+        ret = dict_class() if not many else []
         if many and data is not None and is_iterable_but_not_string(data):
             self._pending = True
-            ret = [
+            ret.extend([
                 self.deserialize(
                     d, fields_dict, many=False,
                     partial=partial, unknown=unknown,
@@ -220,7 +221,7 @@ class Unmarshaller(ErrorStore):
                     index_errors=index_errors,
                 )
                 for idx, d in enumerate(data)
-            ]
+            ])
 
             self._pending = False
             if self.errors:
@@ -230,12 +231,10 @@ class Unmarshaller(ErrorStore):
                     data=ret,
                 )
             return ret
-        partial_is_collection = is_collection(partial)
-        ret = dict_class()
-        # Check data is a dict
         if not isinstance(data, collections.Mapping):
             self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
         else:
+            partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
                     continue
