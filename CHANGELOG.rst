@@ -13,6 +13,12 @@ Features:
 - Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
   passed as a string to ``fields.Nested`` (:pr:`931`).
 
+Other changes:
+
+- *Backwards-incompatible*: ``Nested`` field now defaults to ``unknown=RAISE``
+  instead of ``EXCLUDE``. This harmonizes behavior with ``Schema`` that
+  already defaults to ``RAISE`` (:issue:`908`). Thanks :user:`tuukkamustonen`.
+
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
 

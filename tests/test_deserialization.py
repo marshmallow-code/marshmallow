@@ -942,7 +942,7 @@ class TestSchemaDeserialization:
     def test_nested_single_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
-            author = fields.Nested(SimpleUserSchema)
+            author = fields.Nested(SimpleUserSchema, unknown=EXCLUDE)
 
         blog_dict = {
             'title': 'Gimme Shelter',
