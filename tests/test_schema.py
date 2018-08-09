@@ -1633,6 +1633,22 @@ class TestHandleError:
 
 class TestFieldValidation:
 
+    @pytest.mark.parametrize('val', (None, False, 1, 1.2, object()))
+    def test_non_iterables_with_many(self, val):
+        class Sch(Schema):
+            name = fields.Str()
+
+        with pytest.raises(ValidationError) as e:
+            Sch().load(val)
+        assert e.value.messages == {'_schema': ['Invalid input type.']}
+        assert e.value.valid_data == {}
+
+        with pytest.raises(ValidationError) as e:
+            # This was https://github.com/marshmallow-code/marshmallow/issues/906
+            Sch(many=True).load(val)
+        assert e.value.messages == {'_schema': ['Invalid input type.']}
+        assert e.value.valid_data == {}
+
     def test_errors_are_cleared_after_loading_collection(self):
         def always_fail(val):
             raise ValidationError('lol')

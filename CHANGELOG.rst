@@ -13,6 +13,11 @@ Features:
 - Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
   passed as a string to ``fields.Nested`` (:pr:`931`).
 
+Bug fixes:
+
+- Raise ``ValidationError`` instead of ``TypeError`` when non-iterable types are
+  validated with ``many=True`` (:issue:`851`). Thanks :user:`tuukkamustonen`.
+
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
 

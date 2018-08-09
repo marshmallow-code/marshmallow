@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import collections
 
 from marshmallow.utils import (
-    EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
+    EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value, is_iterable_but_not_string
 )
 from marshmallow.compat import iteritems, basestring
 from marshmallow.exceptions import (
@@ -210,7 +210,7 @@ class Unmarshaller(ErrorStore):
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
-        if many and data is not None:
+        if many and data is not None and is_iterable_but_not_string(data):
             self._pending = True
             ret = [
                 self.deserialize(
