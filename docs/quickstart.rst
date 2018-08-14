@@ -342,7 +342,7 @@ Or you can ignore missing fields entirely by setting ``partial=True``.
 Handling Unknown Fields
 +++++++++++++++++++++++
 
-By default, :meth:`load <Schema.load>` will exclude any field that has not been defined in the schema.
+By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a field that has not been defined in the schema.
 
 This behavior can be modified with the ``unknown`` option, which accepts one of the following:
 
