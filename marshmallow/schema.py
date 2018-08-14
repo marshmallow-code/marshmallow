@@ -319,7 +319,6 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
             `json` from the standard library.
-            Defaults to the ``json`` module in the stdlib.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
