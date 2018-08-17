@@ -72,11 +72,17 @@ You may not need to output all declared fields every time you use a schema. You 
 
 .. code-block:: python
 
-    summary_schema = UserSchema(only=('name', 'email'))
+    summary_schema = UserSchema(only=['name', 'email'])
     summary_schema.dump(user)
     # {"name": "Monty Python", "email": "monty@python.org"}
 
-You can also exclude fields by passing in the ``exclude`` parameter.
+Using the ``exclude`` parameter you can also exclude fields from serialization.
+
+.. code-block:: python
+
+    summary_schema = UserSchema(exclude=['created_at'])
+    summary_schema.dump(user)
+    # {"name": "Monty Python", "email": "monty@python.org"}
 
 
 Deserializing Objects ("Loading")
