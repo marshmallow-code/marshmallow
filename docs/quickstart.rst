@@ -1,4 +1,3 @@
-.. _quickstart:
 .. module:: marshmallow
 
 Quickstart
@@ -251,7 +250,7 @@ Validation functions either return a boolean or raise a :exc:`ValidationError`. 
 
 .. seealso::
 
-    You can register a custom error handler function for a schema by overriding the :func:`handle_error <Schema.handle_error>` method. See the :ref:`Extending Schemas <extending>` page for more info.
+    You can register a custom error handler function for a schema by overriding the :func:`handle_error <Schema.handle_error>` method. See the :doc:`Extending Schemas <extending>` page for more info.
 
 .. seealso::
 
@@ -338,6 +337,47 @@ Or you can ignore missing fields entirely by setting ``partial=True``.
     # OR UserSchema(partial=True).load({'age': 42})
     result  # => ({'age': 42}, {})
 
+.. _unknown:
+
+Handling Unknown Fields
++++++++++++++++++++++++
+
+By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a field that has not been defined in the schema.
+
+This behavior can be modified with the ``unknown`` option, which accepts one of the following:
+
+- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
+- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
+- `RAISE <marshmallow.utils.RAISE>`: raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+  if there are any unknown fields
+
+You can specify ``unknown`` in the *class Meta* of your `Schema`,
+
+.. code-block:: python
+
+    from marshmallow import Schema, INCLUDE
+
+    class UserSchema(Schema):
+        class Meta:
+            unknown = INCLUDE
+
+at instantiation time,
+
+.. code-block:: python
+
+    schema = UserSchema(unknown=INCLUDE)
+
+or pass it to `load <Schema.load>`.
+
+.. code-block:: python
+
+    UserSchema().load(data, unknown=INCLUDE)
+
+The ``unknown`` option value set in :meth:`load <Schema.load>` will always override the value applied at instantiation time, which itself will override the value defined in the *class Meta*.
+
+This order of precedence allows you to change the behavior of a schema for different contexts.
+
+
 Schema.validate
 +++++++++++++++
 
@@ -401,6 +441,7 @@ By default `Schemas` will marshal/unmarshal an input dictionary from/to an outpu
     #{'name': u'Mike',
     # 'email': 'foo@bar.com'}
 
+.. _meta_options:
 
 Refactoring: Implicit Field Creation
 ------------------------------------
@@ -505,5 +546,5 @@ Next Steps
 
 - Need to represent relationships between objects? See the :ref:`Nesting Schemas <nesting>` page.
 - Want to create your own field type? See the :ref:`Custom Fields <custom_fields>` page.
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
 - For example applications using marshmallow, check out the :ref:`Examples <examples>` page.

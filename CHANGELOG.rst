@@ -1,15 +1,78 @@
 Changelog
 ---------
 
-3.0.0b11 (unreleased)
+3.0.0b13 (2018-08-04)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Errors reported by a schema-level validator for a field in a ``Nested`` field
+  are stored under corresponding field name, not ``_schema`` key (:pr:`862`).
+- Includes bug fix from 2.15.4.
+
+Other changes:
+
+- *Backwards-incompatible*: The ``unknown`` option now defaults to ``RAISE``
+  (`#524 (comment) <https://github.com/marshmallow-code/marshmallow/issues/524#issuecomment-397165731>`_,
+  :issue:`851`).
+- *Backwards-incompatible*: When a schema error is raised with a ``dict`` as
+  payload, the ``dict`` overwrites any existing error list. Before this change,
+  it would be appended to the list.
+- Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
+  passed as a string (:issue:`316`). Thanks :user:`paulocheque` for
+  reporting.
+
+3.0.0b12 (2018-07-04)
 +++++++++++++++++++++
 
 Features:
 
-* Clean up code for schema hooks (:issue:`814`). Thanks :user:`taion`.
-* Minor performance improvement from simplifying ``utils.get_value`` (:issue:`811`). Thanks again :user:`taion`.
-* Add ``require_tld`` argument to ``fields.URL`` (:issue:`749`). Thanks
+- The behavior to apply when encountering unknown fields while deserializing
+  can be controlled with the ``unknown`` option (:issue:`524`,
+  :issue:`747`, :issue:`127`).
+  It makes it possible to either "include", "exclude", or "raise".
+  Thanks :user:`tuukkamustonen` for the suggestion and thanks
+  :user:`ramnes` for the PR.
+
+.. warning::
+
+  The default for ``unknown`` will be changed to ``RAISE`` in the
+  next release.
+
+Other changes:
+
+- *Backwards-incompatible*: Pre/Post-processors MUST return modified data.
+  Returning ``None`` does not imply data were mutated (:issue:`347`). Thanks
+  :user:`tdevelioglu` for reporting.
+- *Backwards-incompatible*: ``only`` and ``exclude`` are bound by
+  declared and additional fields. A ``ValueError`` is raised if invalid
+  fields are passed (:issue:`636`). Thanks :user:`jan-23` for reporting.
+  Thanks :user:`ikilledthecat` and :user:`deckar01` for the PRs.
+- Format code using pre-commit (:pr:`855`).
+
+Deprecations/Removals:
+
+- ``ValidationError.fields`` is removed (:issue:`840`). Access field
+  instances from ``Schema.fields``.
+
+3.0.0b11 (2018-05-20)
++++++++++++++++++++++
+
+Features:
+
+- Clean up code for schema hooks (:pr:`814`). Thanks :user:`taion`.
+- Minor performance improvement from simplifying ``utils.get_value`` (:pr:`811`). Thanks again :user:`taion`.
+- Add ``require_tld`` argument to ``fields.URL`` (:issue:`749`). Thanks
   :user:`DenerKup` for reporting and thanks :user:`surik00` for the PR.
+- ``fields.UUID`` deserializes ``bytes`` strings using ``UUID(bytes=b'...')`` (:pr:`625`).
+  Thanks :user:`JeffBerger` for the suggestion and the PR.
+
+Bug fixes:
+
+- Fields nested within ``Dict`` correctly inherit context from their
+  parent schema (:issue:`820`). Thanks :user:`RosanneZe` for reporting
+  and :user:`deckar01` for the PR.
+- Includes bug fix from 2.15.3.
 
 
 3.0.0b10 (2018-05-10)
@@ -48,7 +111,7 @@ Features:
   :issue:`743`). Thanks :user:`stj` for the PR.
 - *Backwards-incompatible*: Don't recursively check nested required
   fields when the Nested field's key is missing (:issue:`319`). This
-  reverts :issue:`235`. Thanks :user:`chekunkov` reporting and thanks
+  reverts :pr:`235`. Thanks :user:`chekunkov` reporting and thanks
   :user:`lafrech` for the PR.
 - *Backwards-incompatible*: Change error message collection for `Dict` field (:issue:`730`). Note:
   this is backwards-incompatible with previous 3.0.0bX versions.
@@ -62,7 +125,7 @@ Features:
 - *Backwards-incompatible*: Schemas are always strict (:issue:`377`).
   The ``strict`` parameter is removed.
 - *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
-  ``(data, errors)`` duple (:issue:`598`).
+  ``(data, errors)`` tuple (:issue:`598`).
 - *Backwards-incomaptible*: `Schema().load(None)` raises a
   `ValidationError` (:issue:`511`).
 
@@ -76,7 +139,7 @@ Special thanks to :user:`MichalKononenko`, :user:`douglas-treadwell`, and
 Other changes:
 
 - *Backwards-incompatible*: Field name is not checked when ``load_from``
-  is specified (:issue:`714`). Thanks :user:`lafrech`.
+  is specified (:pr:`714`). Thanks :user:`lafrech`.
 
 Support:
 
@@ -205,6 +268,23 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.15.4 (2018-08-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect ``load_from`` when reporting errors for ``@validates('field_name')``
+  (:issue:`748`). Thanks :user:`m-novikov` for the catch and patch.
+
+2.15.3 (2018-05-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing ``only`` as a string to ``nested`` when the passed field
+  defines ``dump_to`` (:issue:`800`, :issue:`822`). Thanks
+  :user:`deckar01` for the catch and patch.
 
 2.15.2 (2018-05-10)
 +++++++++++++++++++

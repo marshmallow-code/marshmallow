@@ -9,8 +9,8 @@ from collections import namedtuple, OrderedDict
 
 import pytest
 
-from marshmallow import Schema, fields, utils, validates, validates_schema
-from marshmallow.exceptions import ValidationError
+from marshmallow import Schema, fields, utils, validates, validates_schema, EXCLUDE
+from marshmallow.exceptions import ValidationError, StringNotCollectionError
 
 from tests.base import (
     assert_almost_equal,
@@ -36,9 +36,11 @@ from tests.base import (
 
 random.seed(1)
 
-# Run tests with both verbose serializer and "meta" option serializer
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+# Run tests with both verbose serializer and 'meta' option serializer
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_serializing_basic_object(SchemaClass, user):
     s = SchemaClass()
     data = s.dump(user)
@@ -63,17 +65,18 @@ def test_dump_raises_with_dict_of_errors():
     assert 'age' in errors
 
 
-@pytest.mark.parametrize('SchemaClass',
-[
-    UserSchema, UserMetaSchema
-])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [
+        UserSchema, UserMetaSchema,
+    ],
+)
 def test_dump_mode_raises_error(SchemaClass):
     s = SchemaClass()
     bad_user = User(name='Monty', homepage='http://www.foo.bar', balance='dummy')
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
-    assert type(exc.fields[0]) == fields.Decimal
     assert exc.field_names[0] == 'balance'
 
     assert type(exc.messages) == dict
@@ -164,30 +167,27 @@ def test_dump_resets_error_fields():
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='dummy'))
     exc = excinfo.value
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='__dummy'))
 
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
 def test_load_resets_error_fields():
     class MySchema(Schema):
         email = fields.Email()
+        name = fields.Str()
 
     schema = MySchema()
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'name': 'Joe', 'email': 'not-valid'})
     exc = excinfo.value
-    assert len(exc.fields) == 1
     assert len(exc.field_names) == 1
 
     with pytest.raises(ValidationError) as excinfo:
-        schema.load({'name': 'Joe', 'email': '__invalid'})
-
-    assert len(exc.fields) == 1
+        schema.load({'name': 12, 'email': 'mick@stones.com'})
+    exc = excinfo.value
     assert len(exc.field_names) == 1
 
 def test_load_resets_error_kwargs():
@@ -436,7 +436,7 @@ class TestValidate:
         s = UserSchema(many=True)
         in_data = [
             {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
-            {'name': 'Valid Name2', 'email': 'invalid'}
+            {'name': 'Valid Name2', 'email': 'invalid'},
         ]
         errors = s.validate(in_data, many=True)
         assert 1 in errors
@@ -451,7 +451,7 @@ class TestValidate:
         s = NoIndex()
         in_data = [
             {'name': 'Valid Name', 'email': 'validemail@hotmail.com'},
-            {'name': 'Valid Name2', 'email': 'invalid'}
+            {'name': 'Valid Name2', 'email': 'invalid'},
         ]
         errors = s.validate(in_data, many=True)
         assert 1 not in errors
@@ -471,8 +471,10 @@ class TestValidate:
         assert 'foo' in errors
         assert 'required' in errors['foo'][0]
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_fields_are_not_copies(SchemaClass):
     s = SchemaClass()
     s2 = SchemaClass()
@@ -493,7 +495,7 @@ def test_naive_datetime_field(user, serialized_user):
 
 def test_datetime_formatted_field(user, serialized_user):
     result = serialized_user['created_formatted']
-    assert result == user.created.strftime("%Y-%m-%d")
+    assert result == user.created.strftime('%Y-%m-%d')
 
 def test_datetime_iso_field(user, serialized_user):
     assert serialized_user['created_iso'] == utils.isoformat(user.created)
@@ -510,16 +512,18 @@ def test_local_datetime_field(user, serialized_user):
 def test_class_variable(serialized_user):
     assert serialized_user['species'] == 'Homo sapiens'
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_serialize_many(SchemaClass):
-    user1 = User(name="Mick", age=123)
-    user2 = User(name="Keith", age=456)
+    user1 = User(name='Mick', age=123)
+    user2 = User(name='Keith', age=456)
     users = [user1, user2]
     serialized = SchemaClass(many=True).dump(users)
     assert len(serialized) == 2
-    assert serialized[0]['name'] == "Mick"
-    assert serialized[1]['name'] == "Keith"
+    assert serialized[0]['name'] == 'Mick'
+    assert serialized[1]['name'] == 'Keith'
 
 def test_inheriting_schema(user):
     sch = ExtendedUserSchema()
@@ -539,58 +543,66 @@ def test_relative_url_field():
     u = {'name': 'John', 'homepage': '/foo'}
     UserRelativeUrlSchema().load(u)
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_stores_invalid_url_error(SchemaClass):
     user = {'name': 'Steve', 'homepage': 'www.foo.com'}
     with pytest.raises(ValidationError) as excinfo:
         SchemaClass().load(user)
     errors = excinfo.value.messages
-    assert "homepage" in errors
+    assert 'homepage' in errors
     expected = ['Not a valid URL.']
     assert errors['homepage'] == expected
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_email_field(SchemaClass):
-    u = User("John", email="john@example.com")
+    u = User('John', email='john@example.com')
     s = SchemaClass().dump(u)
-    assert s['email'] == "john@example.com"
+    assert s['email'] == 'john@example.com'
 
 def test_stored_invalid_email():
     u = {'name': 'John', 'email': 'johnexample.com'}
     with pytest.raises(ValidationError) as excinfo:
         UserSchema().load(u)
     errors = excinfo.value.messages
-    assert "email" in errors
+    assert 'email' in errors
     assert errors['email'][0] == 'Not a valid email address.'
 
 def test_integer_field():
-    u = User("John", age=42.3)
+    u = User('John', age=42.3)
     serialized = UserIntSchema().dump(u)
     assert type(serialized['age']) == int
     assert serialized['age'] == 42
 
 def test_as_string():
-    u = User("John", age=42.3)
+    u = User('John', age=42.3)
     serialized = UserFloatStringSchema().dump(u)
     assert type(serialized['age']) == str
     assert_almost_equal(float(serialized['age']), 42.3)
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_method_field(SchemaClass, serialized_user):
     assert serialized_user['is_old'] is False
-    u = User("Joe", age=81)
+    u = User('Joe', age=81)
     assert SchemaClass().dump(u)['is_old'] is True
 
 def test_function_field(serialized_user, user):
     assert serialized_user['lowername'] == user.name.lower()
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_prefix(SchemaClass, user):
-    s = SchemaClass(prefix="usr_").dump(user)
+    s = SchemaClass(prefix='usr_').dump(user)
     assert s['usr_name'] == user.name
 
 def test_fields_must_be_declared_as_instances(user):
@@ -600,10 +612,12 @@ def test_fields_must_be_declared_as_instances(user):
         BadUserSchema().dump(user)
     assert 'must be declared as a Field instance' in str(excinfo)
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_serializing_generator(SchemaClass):
-    users = [User("Foo"), User("Bar")]
+    users = [User('Foo'), User('Bar')]
     user_gen = (u for u in users)
     s = SchemaClass(many=True).dump(user_gen)
     assert len(s) == 2
@@ -616,14 +630,14 @@ def test_serializing_empty_list_returns_empty_list():
 
 
 def test_serializing_dict():
-    user = {"name": "foo", "email": "foo@bar.com", "age": 'badage', "various_data": {"foo": "bar"}}
+    user = {'name': 'foo', 'email': 'foo@bar.com', 'age': 'badage', 'various_data': {'foo': 'bar'}}
     with pytest.raises(ValidationError) as excinfo:
         UserSchema().dump(user)
     data, errors = excinfo.value.valid_data, excinfo.value.messages
-    assert data['name'] == "foo"
+    assert data['name'] == 'foo'
     assert 'age' in errors
     assert 'age' not in data
-    assert data['various_data'] == {"foo": "bar"}
+    assert data['various_data'] == {'foo': 'bar'}
 
 
 def test_serializing_dict_with_meta_fields():
@@ -637,16 +651,20 @@ def test_serializing_dict_with_meta_fields():
     assert data['bar'] == 24
     assert 'baz' not in data
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_exclude_in_init(SchemaClass, user):
     s = SchemaClass(exclude=('age', 'homepage')).dump(user)
     assert 'homepage' not in s
     assert 'age' not in s
     assert 'name' in s
 
-@pytest.mark.parametrize('SchemaClass',
-    [UserSchema, UserMetaSchema])
+@pytest.mark.parametrize(
+    'SchemaClass',
+    [UserSchema, UserMetaSchema],
+)
 def test_only_in_init(SchemaClass, user):
     s = SchemaClass(only=('name', 'age')).dump(user)
     assert 'homepage' not in s
@@ -654,8 +672,8 @@ def test_only_in_init(SchemaClass, user):
     assert 'age' in s
 
 def test_invalid_only_param(user):
-    with pytest.raises(KeyError, match='"_invalid"'):
-        UserSchema(only=("_invalid", "name")).dump(user)
+    with pytest.raises(ValueError):
+        UserSchema(only=('_invalid', 'name')).dump(user)
 
 def test_can_serialize_uuid(serialized_user, user):
     assert serialized_user['uid'] == str(user.uid)
@@ -672,7 +690,7 @@ def test_invalid_time():
     assert '"foo" cannot be formatted as a time.' in errors['time_registered']
 
 def test_invalid_date():
-    u = User("Joe", birthdate='foo')
+    u = User('Joe', birthdate='foo')
     with pytest.raises(ValidationError) as excinfo:
         UserSchema().dump(u)
     errors = excinfo.value.messages
@@ -718,9 +736,9 @@ def test_custom_error_message():
     with pytest.raises(ValidationError) as excinfo:
         s.load(u)
     errors = excinfo.value.messages
-    assert "Bad balance." in errors['balance']
-    assert "Bad homepage." in errors['homepage']
-    assert "Invalid email" in errors['email']
+    assert 'Bad balance.' in errors['balance']
+    assert 'Bad homepage.' in errors['homepage']
+    assert 'Invalid email' in errors['email']
 
 
 def test_load_errors_with_many():
@@ -766,7 +784,7 @@ def test_nested_custom_set_in_exclude_reusing_schema():
         # to pass, since it'll be a valid instance, and this class overrides
         # getitem method to allow the hasattr check to pass too, which will try
         # to access the first obj index and will simulate a IndexError throwing.
-        # e.g. SqlAlchemy.Query is a valid use case for this "obj".
+        # e.g. SqlAlchemy.Query is a valid use case for this 'obj'.
 
         def __getitem__(self, item):
             return [][item]
@@ -952,7 +970,6 @@ def test_nested_exclude_then_only_inheritance():
         bla = fields.Field()
         bli = fields.Field()
         blubb = fields.Nested(ChildSchema, exclude=('foo',))
-
     sch = ParentSchema(only=('blubb.bar',))
     data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
     result = sch.dump(data)
@@ -1084,7 +1101,7 @@ def test_deeply_nested_only_and_exclude():
         blubb = fields.Nested(ChildSchema)
     sch = ParentSchema(
         only=('bla', 'blubb.foo', 'blubb.flubb.goo', 'blubb.flubb.gah'),
-        exclude=('blubb.flubb.goo',)
+        exclude=('blubb.flubb.goo',),
     )
     data = dict(bla=1, bli=2, blubb=dict(foo=3, bar=4, flubb=dict(goo=5, gah=6, bah=7)))
     result = sch.dump(data)
@@ -1141,8 +1158,8 @@ class TestDeeplyNestedLoadOnly:
                     str_dump_only='Dump Only',
                     str_load_only='Load Only',
                     str_regular='Regular String',
-                )
-            )
+                ),
+            ),
         )
 
     def test_load_only(self, schema, data):
@@ -1160,7 +1177,7 @@ class TestDeeplyNestedLoadOnly:
         assert 'str_regular' in grand_child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result
@@ -1203,8 +1220,8 @@ class TestDeeplyNestedListLoadOnly:
             child=[dict(
                 str_dump_only='Dump Only',
                 str_load_only='Load Only',
-                str_regular='Regular String'
-            )]
+                str_regular='Regular String',
+            )],
         )
 
     def test_load_only(self, schema, data):
@@ -1218,7 +1235,7 @@ class TestDeeplyNestedListLoadOnly:
         assert 'str_regular' in child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result
@@ -1245,7 +1262,7 @@ def test_nested_constructor_only_and_exclude():
         blubb = fields.Nested(
             ChildSchema,
             only=('foo', 'flubb.goo', 'flubb.gah'),
-            exclude=('flubb.goo',)
+            exclude=('flubb.goo',),
         )
     sch = ParentSchema(only=('bla', 'blubb'))
     data = dict(bla=1, bli=2, blubb=dict(foo=3, bar=4, flubb=dict(goo=5, gah=6, bah=7)))
@@ -1275,20 +1292,68 @@ def test_only_and_exclude():
     assert 'bar' not in result
 
 
+def test_only_and_exclude_with_fields():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            fields = ('bar', 'baz')
+    sch = MySchema(only=('bar', 'baz'), exclude=('bar', ))
+    data = dict(foo=42, bar=24, baz=242)
+    result = sch.dump(data)
+    assert 'baz' in result
+    assert 'bar' not in result
+
+
+def test_invalid_only_and_exclude_with_fields():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            fields = ('bar', 'baz')
+
+    with pytest.raises(ValueError) as excinfo:
+        MySchema(only=('foo', 'par'), exclude=('ban', ))
+
+    assert 'foo' in str(excinfo)
+    assert 'par' in str(excinfo)
+    assert 'ban' in str(excinfo)
+
+
+def test_only_and_exclude_with_additional():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            additional = ('bar', 'baz')
+    sch = MySchema(only=('foo', 'bar'), exclude=('bar', ))
+    data = dict(foo=42, bar=24, baz=242)
+    result = sch.dump(data)
+    assert 'foo' in result
+    assert 'bar' not in result
+
+
+def test_invalid_only_and_exclude_with_additional():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            additional = ('bar', 'baz')
+
+    with pytest.raises(ValueError) as excinfo:
+        MySchema(only=('foop', 'par'), exclude=('ban', ))
+
+    assert 'foop' in str(excinfo)
+    assert 'par' in str(excinfo)
+    assert 'ban' in str(excinfo)
+
+
 def test_exclude_invalid_attribute():
     class MySchema(Schema):
         foo = fields.Field()
 
-    with pytest.raises(KeyError, match='"bar"'):
-        MySchema(exclude=('bar',))
-
-
-def test_only_with_invalid_attribute():
-    class MySchema(Schema):
-        foo = fields.Field()
-
-    with pytest.raises(KeyError, match='"bar"'):
-        MySchema(only=('bar',))
+    with pytest.raises(ValueError, match="'bar'"):
+        MySchema(exclude=('bar', ))
 
 
 def test_only_bounded_by_fields():
@@ -1296,9 +1361,18 @@ def test_only_bounded_by_fields():
         class Meta:
             fields = ('foo', )
 
-    with pytest.raises(KeyError, match='"baz"'):
-        MySchema(only=('baz',))
+    with pytest.raises(ValueError, match="'baz'"):
+        MySchema(only=('baz', ))
 
+
+def test_only_bounded_by_additional():
+    class MySchema(Schema):
+
+        class Meta:
+            additional = ('b', )
+
+    with pytest.raises(ValueError):
+        MySchema(only=('c', )).dump({'c': 3})
 
 def test_only_empty():
     class MySchema(Schema):
@@ -1307,6 +1381,14 @@ def test_only_empty():
     sch = MySchema(only=())
     assert 'foo' not in sch.dump({'foo': 'bar'})
 
+
+@pytest.mark.parametrize('param', ('only', 'exclude'))
+def test_only_and_exclude_as_string(param):
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    with pytest.raises(StringNotCollectionError):
+        MySchema(**{param: 'foo'})
 
 def test_nested_with_sets():
     class Inner(Schema):
@@ -1324,12 +1406,14 @@ def test_nested_with_sets():
 
 
 def test_meta_serializer_fields():
-    u = User("John", age=42.3, email="john@example.com",
-             homepage="http://john.com")
+    u = User(
+        'John', age=42.3, email='john@example.com',
+        homepage='http://john.com',
+    )
     result = UserMetaSchema().dump(u)
     assert result['name'] == u.name
     assert result['balance'] == decimal.Decimal('100.00')
-    assert result['uppername'] == "JOHN"
+    assert result['uppername'] == 'JOHN'
     assert result['is_old'] is False
     assert result['created'] == utils.isoformat(u.created)
     assert result['updated_local'] == utils.isoformat(u.updated, localtime=True)
@@ -1362,49 +1446,50 @@ def test_meta_field_not_on_obj_raises_attribute_error(user):
             fields = ('name',)
             exclude = ('notfound',)
 
-    with pytest.raises(KeyError, match='"notfound"'):
-        BadUserSchema()
+    with pytest.raises(ValueError, match="'notfound'"):
+        BadUserSchema().dump(user)
+
 
 def test_exclude_fields(user):
     s = UserExcludeSchema().dump(user)
-    assert "created" not in s
-    assert "updated" not in s
-    assert "name" in s
+    assert 'created' not in s
+    assert 'updated' not in s
+    assert 'name' in s
 
 def test_fields_option_must_be_list_or_tuple(user):
     with pytest.raises(ValueError):
         class BadFields(Schema):
             class Meta:
-                fields = "name"
+                fields = 'name'
 
 def test_exclude_option_must_be_list_or_tuple(user):
     with pytest.raises(ValueError):
         class BadExclude(Schema):
             class Meta:
-                exclude = "name"
+                exclude = 'name'
 
 def test_dateformat_option(user):
     fmt = '%Y-%m'
 
     class DateFormatSchema(Schema):
-        updated = fields.DateTime("%m-%d")
+        updated = fields.DateTime('%m-%d')
 
         class Meta:
             fields = ('created', 'updated')
             dateformat = fmt
     serialized = DateFormatSchema().dump(user)
     assert serialized['created'] == user.created.strftime(fmt)
-    assert serialized['updated'] == user.updated.strftime("%m-%d")
+    assert serialized['updated'] == user.updated.strftime('%m-%d')
 
 def test_default_dateformat(user):
     class DateFormatSchema(Schema):
-        updated = fields.DateTime(format="%m-%d")
+        updated = fields.DateTime(format='%m-%d')
 
         class Meta:
             fields = ('created', 'updated')
     serialized = DateFormatSchema().dump(user)
     assert serialized['created'] == utils.isoformat(user.created)
-    assert serialized['updated'] == user.updated.strftime("%m-%d")
+    assert serialized['updated'] == user.updated.strftime('%m-%d')
 
 def test_inherit_meta(user):
     class InheritedMetaSchema(UserMetaSchema):
@@ -1439,7 +1524,7 @@ def test_cant_set_both_additional_and_fields(user):
             name = fields.String()
 
             class Meta:
-                fields = ("name", 'email')
+                fields = ('name', 'email')
                 additional = ('email', 'homepage')
 
 def test_serializing_none_meta():
@@ -1477,7 +1562,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
-                assert error.fields == [self.fields['email']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1495,7 +1579,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
                 assert error.field_names == ['email']
-                assert error.fields == [self.fields['email']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1517,7 +1600,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert 'num' in error.messages
                 assert error.field_names == ['num']
-                assert error.fields == [self.fields['num']]
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1538,7 +1620,6 @@ class TestHandleError:
                 assert type(error) is ValidationError
                 assert '_schema' in error.messages
                 assert error.field_names == ['_schema']
-                assert error.fields == []
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1625,17 +1706,35 @@ class TestNestedSchema:
 
     @pytest.fixture
     def user(self):
-        return User(name="Monty", age=81)
+        return User(name='Monty', age=81)
 
     @pytest.fixture
     def blog(self, user):
-        col1 = User(name="Mick", age=123)
-        col2 = User(name="Keith", age=456)
-        blog = Blog("Monty's blog", user=user, categories=["humor", "violence"],
-                         collaborators=[col1, col2])
+        col1 = User(name='Mick', age=123)
+        col2 = User(name='Keith', age=456)
+        blog = Blog(
+            "Monty's blog", user=user, categories=['humor', 'violence'],
+            collaborators=[col1, col2],
+        )
         return blog
 
     def test_flat_nested(self, blog):
+        class FlatBlogSchema(Schema):
+            name = fields.String()
+            user = fields.Nested(UserSchema, only='name')
+            collaborators = fields.Nested(UserSchema, only='name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
+    def test_flat_nested_with_data_key(self, blog):
+        class UserSchema(Schema):
+            name = fields.String(data_key='username')
+            age = fields.Int()
+
         class FlatBlogSchema(Schema):
             name = fields.String()
             user = fields.Nested(UserSchema, only='name')
@@ -1707,7 +1806,7 @@ class TestNestedSchema:
 
         with pytest.raises(ValidationError) as excinfo:
             BlogSchema().load(
-                {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
+                {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}},
             )
         assert 'email' in str(excinfo)
 
@@ -1723,25 +1822,27 @@ class TestNestedSchema:
         assert serialized_blog['collaborators'] == expected
 
     def test_nested_only(self, blog):
-        col1 = User(name="Mick", age=123, id_="abc")
-        col2 = User(name="Keith", age=456, id_="def")
+        col1 = User(name='Mick', age=123, id_='abc')
+        col2 = User(name='Keith', age=456, id_='def')
         blog.collaborators = [col1, col2]
         serialized_blog = BlogOnlySchema().dump(blog)
-        assert serialized_blog['collaborators'] == [{"id": col1.id}, {"id": col2.id}]
+        assert serialized_blog['collaborators'] == [{'id': col1.id}, {'id': col2.id}]
 
     def test_exclude(self, blog):
         serialized = BlogSchemaExclude().dump(blog)
-        assert "uppername" not in serialized['user'].keys()
+        assert 'uppername' not in serialized['user'].keys()
 
     def test_list_field(self, blog):
         serialized = BlogSchema().dump(blog)
-        assert serialized['categories'] == ["humor", "violence"]
+        assert serialized['categories'] == ['humor', 'violence']
 
     def test_nested_load_many(self):
-        in_data = {'title': 'Shine A Light', 'collaborators': [
-            {'name': 'Mick', 'email': 'mick@stones.com'},
-            {'name': 'Keith', 'email': 'keith@stones.com'}
-        ]}
+        in_data = {
+            'title': 'Shine A Light', 'collaborators': [
+                {'name': 'Mick', 'email': 'mick@stones.com'},
+                {'name': 'Keith', 'email': 'keith@stones.com'},
+            ],
+        }
         data = BlogSchema().load(in_data)
         collabs = data['collaborators']
         assert len(collabs) == 2
@@ -1751,28 +1852,28 @@ class TestNestedSchema:
     def test_nested_errors(self):
         with pytest.raises(ValidationError) as excinfo:
             BlogSchema().load(
-                {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
+                {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}},
             )
         errors = excinfo.value.messages
-        assert "email" in errors['user']
+        assert 'email' in errors['user']
         assert len(errors['user']['email']) == 1
         assert 'Not a valid email address.' in errors['user']['email'][0]
         # No problems with collaborators
-        assert "collaborators" not in errors
+        assert 'collaborators' not in errors
 
     def test_nested_dump_errors(self, blog):
-        blog.user.age = "foo"
+        blog.user.age = 'foo'
         with pytest.raises(ValidationError) as excinfo:
             BlogSchema().dump(blog)
         errors = excinfo.value.messages
-        assert "age" in errors['user']
+        assert 'age' in errors['user']
         assert len(errors['user']['age']) == 1
         assert 'Not a valid number.' in errors['user']['age'][0]
         # No problems with collaborators
-        assert "collaborators" not in errors
+        assert 'collaborators' not in errors
 
     def test_nested_dump(self, blog):
-        blog.user.age = "foo"
+        blog.user.age = 'foo'
         with pytest.raises(ValidationError) as excinfo:
             BlogSchema().dump(blog)
         assert 'age' in str(excinfo)
@@ -1798,11 +1899,11 @@ class TestNestedSchema:
         assert data['collaborators'][0]['usr_name'] == blog.collaborators[0].name
 
     def test_invalid_float_field(self):
-        user = User("Joe", age="1b2")
+        user = User('Joe', age='1b2')
         with pytest.raises(ValidationError) as excinfo:
             UserSchema().dump(user)
         errors = excinfo.value.messages
-        assert "age" in errors
+        assert 'age' in errors
 
     def test_serializer_meta_with_nested_fields(self, blog, user):
         data = BlogSchemaMeta().dump(blog)
@@ -1902,11 +2003,11 @@ class TestSelfReference:
 
     @pytest.fixture
     def employer(self):
-        return User(name="Joe", age=59)
+        return User(name='Joe', age=59)
 
     @pytest.fixture
     def user(self, employer):
-        return User(name="Tom", employer=employer, age=28)
+        return User(name='Tom', employer=employer, age=28)
 
     def test_nesting_schema_within_itself(self, user, employer):
         class SelfSchema(Schema):
@@ -1931,7 +2032,7 @@ class TestSelfReference:
 
     def test_nesting_within_itself_meta(self, user, employer):
         class SelfSchema(Schema):
-            employer = fields.Nested("self", exclude=('employer', ))
+            employer = fields.Nested('self', exclude=('employer', ))
 
             class Meta:
                 additional = ('name', 'age')
@@ -1957,14 +2058,16 @@ class TestSelfReference:
     def test_multiple_nested_self_fields(self, user):
         class MultipleSelfSchema(Schema):
             emp = fields.Nested('self', only='name', attribute='employer')
-            rels = fields.Nested('self', only='name',
-                                    many=True, attribute='relatives')
+            rels = fields.Nested(
+                'self', only='name',
+                many=True, attribute='relatives',
+            )
 
             class Meta:
                 fields = ('name', 'emp', 'rels')
 
         schema = MultipleSelfSchema()
-        user.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
+        user.relatives = [User(name='Bar', age=12), User(name='Baz', age=34)]
         data = schema.dump(user)
         assert len(data['rels']) == len(user.relatives)
         relative = data['rels'][0]
@@ -1978,7 +2081,7 @@ class TestSelfReference:
                 additional = ('name', 'age')
 
         person = User(name='Foo')
-        person.relatives = [User(name="Bar", age=12), User(name='Baz', age=34)]
+        person.relatives = [User(name='Bar', age=12), User(name='Baz', age=34)]
         data = SelfManySchema().dump(person)
         assert data['name'] == person.name
         assert len(data['relatives']) == len(person.relatives)
@@ -2004,23 +2107,26 @@ def test_deserialization_with_required_field():
 
 def test_deserialization_with_required_field_and_custom_validator():
     class ValidatingSchema(Schema):
-        color = fields.String(required=True,
-                        validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
-                        error_messages={
-                            'validator_failed': "Color must be red or blue"})
+        color = fields.String(
+            required=True,
+            validate=lambda x: x.lower() == 'red' or x.lower() == 'blue',
+            error_messages={
+                'validator_failed': 'Color must be red or blue',
+            },
+        )
 
     with pytest.raises(ValidationError) as excinfo:
         ValidatingSchema().load({'name': 'foo'})
     errors = excinfo.value.messages
     assert errors
     assert 'color' in errors
-    assert "Missing data for required field." in errors['color']
+    assert 'Missing data for required field.' in errors['color']
 
     with pytest.raises(ValidationError) as excinfo:
         ValidatingSchema().load({'color': 'green'})
     errors = excinfo.value.messages
     assert 'color' in errors
-    assert "Color must be red or blue" in errors['color']
+    assert 'Color must be red or blue' in errors['color']
 
 
 class UserContextSchema(Schema):
@@ -2109,10 +2215,52 @@ class TestContext:
         ser = CSchema()
         ser.context['info'] = 'i like bikes'
         obj = {
-            'inner': {}
+            'inner': {},
         }
         result = ser.dump(obj)
         assert result['inner']['likes_bikes'] is True
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/820
+    def test_nested_list_fields_inherit_context(self):
+        class InnerSchema(Schema):
+            foo = fields.Field()
+
+            @validates('foo')
+            def validate_foo(self, value):
+                if 'foo_context' not in self.context:
+                    raise ValidationError('Missing context')
+
+        class OuterSchema(Schema):
+            bars = fields.List(fields.Nested(InnerSchema()))
+
+        inner = InnerSchema()
+        inner.context['foo_context'] = 'foo'
+        assert inner.load({'foo': 42})
+
+        outer = OuterSchema()
+        outer.context['foo_context'] = 'foo'
+        assert outer.load({'bars': [{'foo': 42}]})
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/820
+    def test_nested_dict_fields_inherit_context(self):
+        class InnerSchema(Schema):
+            foo = fields.Field()
+
+            @validates('foo')
+            def validate_foo(self, value):
+                if 'foo_context' not in self.context:
+                    raise ValidationError('Missing context')
+
+        class OuterSchema(Schema):
+            bars = fields.Dict(values=fields.Nested(InnerSchema()))
+
+        inner = InnerSchema()
+        inner.context['foo_context'] = 'foo'
+        assert inner.load({'foo': 42})
+
+        outer = OuterSchema()
+        outer.context['foo_context'] = 'foo'
+        assert outer.load({'bars': {'test': {'foo': 42}}})
 
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
@@ -2209,16 +2357,20 @@ class TestGetAttribute:
             def get_attribute(self, obj, attr, default):
                 return get_from_dict(self, obj, attr, default)
 
-        user_dicts = [{'_name': 'joe', '_email': 'joe@shmoe.com'},
-                      {'_name': 'jane', '_email': 'jane@shmane.com'}]
+        user_dicts = [
+            {'_name': 'joe', '_email': 'joe@shmoe.com'},
+            {'_name': 'jane', '_email': 'jane@shmane.com'},
+        ]
         schema = UserDictSchema(many=True)
         results = schema.dump(user_dicts)
         for result, user_dict in zip(results, user_dicts):
             assert result['name'] == user_dict['_name']
             assert result['email'] == user_dict['_email']
         # can't serialize User object
-        users = [User(name='joe', email='joe@shmoe.com'),
-                 User(name='jane', email='jane@shmane.com')]
+        users = [
+            User(name='joe', email='joe@shmoe.com'),
+            User(name='jane', email='jane@shmane.com'),
+        ]
         with pytest.raises(AttributeError):
             schema.dump(users)
 
@@ -2266,8 +2418,10 @@ class TestRequiredFields:
 
     def test_allow_none_custom_message(self, data):
         class MySchema(Schema):
-            allow_none_field = fields.Field(allow_none=False,
-                error_messages={'null': '<custom>'})
+            allow_none_field = fields.Field(
+                allow_none=False,
+                error_messages={'null': '<custom>'},
+            )
 
         schema = MySchema()
         errors = schema.validate({'allow_none_field': None})
@@ -2301,8 +2455,10 @@ class TestDefaults:
         )
 
     def test_missing_inputs_are_excluded_from_dump_output(self, schema, data):
-        for key in ['int_no_default', 'str_no_default',
-                    'list_no_default', 'nested_no_default']:
+        for key in [
+            'int_no_default', 'str_no_default',
+            'list_no_default', 'nested_no_default',
+        ]:
             d = data.copy()
             del d[key]
             result = schema.dump(d)
@@ -2332,8 +2488,10 @@ class TestDefaults:
             result[key] is None
 
     def test_missing_inputs_are_excluded_from_load_output(self, schema, data):
-        for key in ['int_no_default', 'str_no_default',
-                    'list_no_default', 'nested_no_default']:
+        for key in [
+            'int_no_default', 'str_no_default',
+            'list_no_default', 'nested_no_default',
+        ]:
             d = data.copy()
             del d[key]
             result = schema.load(d)
@@ -2363,7 +2521,8 @@ class TestLoadOnly:
         return dict(
             str_dump_only='Dump Only',
             str_load_only='Load Only',
-            str_regular='Regular String')
+            str_regular='Regular String',
+        )
 
     def test_load_only(self, schema, data):
         result = schema.dump(data)
@@ -2372,7 +2531,7 @@ class TestLoadOnly:
         assert 'str_regular' in result
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data)
+        result = schema.load(data, unknown=EXCLUDE)
         assert 'str_dump_only' not in result
         assert 'str_load_only' in result
         assert 'str_regular' in result

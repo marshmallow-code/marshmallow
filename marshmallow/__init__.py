@@ -7,12 +7,15 @@ from . import fields
 from marshmallow.decorators import (
     pre_dump, post_dump, pre_load, post_load, validates, validates_schema
 )
-from marshmallow.utils import pprint, missing
+from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
 
-__version__ = '3.0.0b11.dev0'
+__version__ = '3.0.0b13'
 __author__ = 'Steven Loria'
 __all__ = [
+    'EXCLUDE',
+    'INCLUDE',
+    'RAISE',
     'Schema',
     'SchemaOpts',
     'fields',

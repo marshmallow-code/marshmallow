@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError
+from marshmallow import fields, Schema, ValidationError, EXCLUDE
 from marshmallow.marshalling import missing
 
 from tests.base import ALL_FIELDS, User
@@ -32,8 +32,10 @@ class TestField:
                                'load_only=False, dump_only=False, '
                                'missing={missing}, allow_none=False, '
                                'error_messages={error_messages})>'
-                               .format(default, missing=missing,
-                                       error_messages=field.error_messages))
+                               .format(
+                                   default, missing=missing,
+                                   error_messages=field.error_messages,
+                               ))
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 
@@ -51,7 +53,7 @@ class TestField:
         class MySchema(Schema):
             name = MyField()
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
     def test_custom_field_receives_data_key_if_set(self, user):
@@ -64,7 +66,7 @@ class TestField:
         class MySchema(Schema):
             Name = MyField(data_key='name')
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
     def test_custom_field_follows_data_key_if_set(self, user):
@@ -138,8 +140,10 @@ class TestMetadata:
     def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
-        field = FieldClass(required=True, default=None, validate=lambda v: True,
-                           description='foo', widget='select')
+        field = FieldClass(
+            required=True, default=None, validate=lambda v: True,
+            description='foo', widget='select',
+        )
         assert field.metadata == {'description': 'foo', 'widget': 'select'}
 
     def test_metadata_may_be_added_to_formatted_string_field(self):
@@ -151,7 +155,7 @@ class TestErrorMessages:
 
     class MyField(fields.Field):
         default_error_messages = {
-            'custom': 'Custom error message.'
+            'custom': 'Custom error message.',
         }
 
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(self):

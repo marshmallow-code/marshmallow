@@ -1,4 +1,3 @@
-.. _extending:
 .. module:: marshmallow
 
 Extending Schemas
@@ -35,6 +34,8 @@ Passing "many"
 By default, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the schema at runtime.
 
 In cases where your pre- and post-processing methods need to receive the input collection  when ``many=True``, add ``pass_many=True`` to the method decorators. The method will receive the input data (which may be a single datum or a collection) and the boolean value of ``many``.
+
+
 
 
 Example: Enveloping
@@ -241,7 +242,7 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
 Schema-level Validation
 -----------------------
 
-You can register schema-level validation functions for a :class:`Schema` using the :meth:`marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
+You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. Schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
 
 .. code-block:: python
     :emphasize-lines: 7
@@ -259,38 +260,10 @@ You can register schema-level validation functions for a :class:`Schema` using t
 
     schema = NumberSchema()
     try:
-        schema.load({'field_a': 2, 'field_b': 1})
+        schema.load({'field_a': 1, 'field_b': 2})
     except ValidationError as err:
         err.messages['_schema']
     # => ["field_a must be greater than field_b"]
-
-
-Validating Original Input Data
-++++++++++++++++++++++++++++++
-
-Normally, unspecified field names are ignored by the validator. If you would like access to the original, raw input (e.g. to fail validation if an unknown field name is sent), add ``pass_original=True`` to your call to `validates_schema <marshmallow.decorators.validates_schema>`.
-
-.. code-block:: python
-    :emphasize-lines: 7
-
-    from marshmallow import Schema, fields, validates_schema, ValidationError
-
-    class MySchema(Schema):
-        foo = fields.Int()
-        bar = fields.Int()
-
-        @validates_schema(pass_original=True)
-        def check_unknown_fields(self, data, original_data):
-            unknown = set(original_data) - set(self.fields)
-            if unknown:
-                raise ValidationError('Unknown field', unknown)
-
-    schema = MySchema()
-    try:
-        schema.load({'foo': 1, 'bar': 2, 'baz': 3, 'bu': 4})
-    except ValidationError as err:
-        err.messages
-    # {'baz': 'Unknown field', 'bu': 'Unknown field'}
 
 
 Storing Errors on Specific Fields
@@ -320,7 +293,37 @@ If you want to store schema-level validation errors on a specific field, you can
         err.messages['field_a']
     # => ["field_a must be greater than field_b"]
 
-Overriding how attributes are accessed
+Using Original Input Data
+-------------------------
+
+If you want to use the original, unprocessed input, you can add ``pass_original=True`` to
+`post_load <marshmallow.decorators.post_load>` or `validates_schema <marshmallow.decorators.validates_schema>`.
+
+.. code-block:: python
+    :emphasize-lines: 7
+
+    from marshmallow import Schema, fields, post_load, ValidationError
+
+    class MySchema(Schema):
+        foo = fields.Int()
+        bar = fields.Int()
+
+        @post_load(pass_original=True)
+        def add_baz_to_bar(self, data, original_data):
+            baz = original_data.get('baz')
+            if baz:
+                data['bar'] = data['bar'] + baz
+            return data
+
+    schema = MySchema()
+    schema.load({'foo': 1, 'bar': 2, 'baz': 3})
+    # {'foo': 1, 'bar': 5}
+
+.. seealso::
+
+   The default behavior for unspecified fields can be controlled with the ``unknown`` option, see :ref:`Handling Unknown Fields <unknown>` for more information.
+
+Overriding How Attributes Are Accessed
 --------------------------------------
 
 By default, marshmallow uses the `utils.get_value` function to pull attributes from various types of objects for serialization. This will work for *most* use cases.

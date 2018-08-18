@@ -1,7 +1,3 @@
-
-.. _upgrading:
-
-
 Upgrading to Newer Releases
 ===========================
 
@@ -26,7 +22,7 @@ Schemas are always strict
 Two major changes were made to (de)serialization behavior:
 
 - The ``strict`` parameter was removed. Schemas are always strict.
-- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` duple any more. Only ``data`` is returned.
+- `Schema().load <marshmallow.Schema.load>` and `Schema().dump <marshmallow.Schema.dump>` don't return a ``(data, errors)`` tuple any more. Only ``data`` is returned.
 
 If invalid data are passed, a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised.
 The dictionary of validation errors is accessible from the
@@ -99,6 +95,67 @@ will raise a :exc:`TypeError`.
     # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
     schema.load(None)
 
+
+``ValidationError.fields`` is removed
+*************************************
+
+:exc:`ValidationError <marshmallow.exceptions.ValidationError>` no
+longer stores a list of `Field <marshmallow.fields.Field>` instances
+associated with the validation errors.
+
+If you need field instances associated with an error, you can access
+them from ``schema.fields``.
+
+.. code-block:: python
+
+
+    from marshmallow import Schema, fields, ValidationError
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+
+    schema = MySchema()
+
+    try:
+        schema.load({'foo': 'invalid'})
+    except ValidationError as error:
+        field = schema.fields['foo']
+        # ...
+
+Schemas raise ``ValidationError`` when deserializing data with unknown keys
+***************************************************************************
+
+Marshmallow 3.x schemas can deal with unknown keys in three different ways,
+configurable with the ``unknown`` option:
+
+- ``EXCLUDE``: drop those keys (same as marshmallow 2)
+- ``INCLUDE``: pass those keys/values as is, with no validation performed
+- ``RAISE`` (default): raise a ``ValidationError``
+
+The ``unknown`` option can be passed as a Meta option, on Schema instantiation,
+or at load time.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, EXCLUDE, INCLUDE, RAISE
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        class Meta:
+            # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
+            unknown = EXCLUDE
+
+    MySchema().load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42]
+
+    # Value passed on instantiation overrides Meta option
+    schema = MySchema(unknown=INCLUDE)
+    schema.load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42, 'bar': 'whatever']
+
+    # Value passed on load overrides instance attribute
+    schema.load({'foo': 42, 'bar': 'whatever'}, unknown=RAISE)  # => ValidationError
+
 Overriding ``get_attribute``
 ****************************
 
@@ -121,7 +178,7 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
 ``pass_original=True`` passes individual items when ``many=True``
 *****************************************************************
 
-When ``pass_original=True`` is passed to 
+When ``pass_original=True`` is passed to
 `validates_schema <marshmallow.decorators.validates_schema>`,
 `post_load <marshmallow.decorators.post_load>`, or
 `post_dump <marshmallow.decorators.post_dump>`, the `original_data`
@@ -130,11 +187,14 @@ datum.
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, post_load
+    from marshmallow import Schema, fields, post_load, EXCLUDE
 
 
     class ShoeSchema(Schema):
         size = fields.Int()
+
+        class Meta:
+            unknown = EXCLUDE
 
         @post_load(pass_original=True)
         def post_load(self, data, original_data):
@@ -445,15 +505,70 @@ The same key is used for serialization and deserialization.
 
     # 2.x
     class UserSchema(Schema):
-        email = fields.Email(load_from='CamelCasedEmail', dump_to='CamelCasedEmail')
+        email = fields.Email(load_from='CamelCasedEmail',
+                             dump_to='CamelCasedEmail')
 
     # 3.x
     class UserSchema(Schema):
         email = fields.Email(data_key='CamelCasedEmail')
 
-It is not possible to specify a different key for serialization and deserialization. This use case can be covered by using two different `Schema`.
+It is not possible to specify a different key for serialization and deserialization on the same field.
+This use case is covered by using two different `Schema`.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    # 2.x
+    class UserSchema(Schema):
+        id = fields.Str()
+        email = fields.Email(load_from='CamelCasedEmail',
+                             dump_to='snake_case_email')
+
+    # 3.x
+    class BaseUserSchema(Schema):
+        id = fields.Str()
+
+    class LoadUserSchema(BaseUserSchema):
+        email = fields.Email(data_key='CamelCasedEmail')
+
+    class DumpUserSchema(BaseUserSchema):
+        email = fields.Email(data_key='snake_case_email')
+
 
 Also, when ``data_key`` is specified on a field, only ``data_key`` is checked in the input data. In marshmallow 2.x the field name is checked if ``load_from`` is missing from the input data.
+
+Pre/Post-processors must return modified data
+*********************************************
+
+In marshmallow 2.x, ``None`` returned by a pre or post-processor is interpreted as "the data was mutated". In marshmallow 3.x, the return value is considered as processed data even if it is ``None``.
+
+Processors that mutate the data should be updated to also return it.
+
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data):
+            # In 2.x, implicitly returning None implied that data were mutated
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+
+    # 3.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data):
+            # In 3.x, always return the processed data
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            return in_data
+
 
 
 Upgrading to 2.3
@@ -609,7 +724,7 @@ The pre- and post-processing API was significantly improved for better consisten
             data['field_a'] -= 1
             return data
 
-See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
+See the :doc:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
 Schema Validators
 *****************
@@ -940,7 +1055,7 @@ The default error messages for many fields and validators have been changed for 
 More
 ****
 
-For a full list of changes in 2.0, see the :ref:`Changelog <changelog>`.
+For a full list of changes in 2.0, see the :doc:`Changelog <changelog>`.
 
 
 Upgrading to 1.2
@@ -1069,4 +1184,4 @@ Other notable changes:
 
 .. seealso::
 
-    See the :ref:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.
+    See the :doc:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.
