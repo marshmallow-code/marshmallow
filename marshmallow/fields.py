@@ -1399,7 +1399,13 @@ class Constant(Field):
 
 
 class Inferred(Field):
-    """A field that infers how to serialize, based on the value type."""
+    """A field that infers how to serialize, based on the value type.
+
+    .. warning::
+
+        This class is treated as private API.
+        Users should not need to use this class directly.
+    """
 
     TYPE_MAPPING = {
         text_type: String,
