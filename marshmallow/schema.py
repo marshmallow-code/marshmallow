@@ -719,7 +719,7 @@ class BaseSchema(base.SchemaABC):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, fields.Default())
+            field_obj = self.declared_fields.get(field_name, fields.Inferred())
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 

@@ -1398,7 +1398,7 @@ class Constant(Field):
         return self.constant
 
 
-class Default(Field):
+class Inferred(Field):
     """A field that infers how to serialize, based on the value type."""
 
     TYPE_MAPPING = {
@@ -1419,14 +1419,14 @@ class Default(Field):
     }
 
     def __init__(self):
-        super(Default, self).__init__()
+        super(Inferred, self).__init__()
 
         self._field = None
 
     def _serialize(self, value, attr, obj):
         field_type = self.TYPE_MAPPING.get(type(value), Field)
         if field_type is Field:
-            return super(Default, self)._serialize(value, attr, obj)
+            return super(Inferred, self)._serialize(value, attr, obj)
 
         field = self._field
         if type(field) is not field_type:
