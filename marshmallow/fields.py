@@ -1427,6 +1427,12 @@ class Inferred(Field):
     def __init__(self):
         super(Inferred, self).__init__()
 
+        # We memoize the last field used to avoid creating and binding new
+        # fields every time on serialization. In general, we expect the actual
+        # type of a given field to change very rarely, especially when the same
+        # schema is used to dump multiple objects, so it's likely a good
+        # compromise between performance and simplicity to cache only the most
+        # recently used field.
         self._field = None
 
     def _serialize(self, value, attr, obj):
