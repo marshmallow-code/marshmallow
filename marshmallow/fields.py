@@ -480,10 +480,12 @@ class Nested(Field):
             self.fail('type', input=value, type=value.__class__.__name__)
 
         if isinstance(self.only, basestring):  # self.only is a field name
+            only_field = self.schema.fields[self.only]
+            key = only_field.data_key or self.only
             if self.many:
-                value = [{self.only: v} for v in value]
+                value = [{key: v} for v in value]
             else:
-                value = {self.only: value}
+                value = {key: value}
         try:
             valid_data = self.schema.load(value, unknown=self.unknown)
         except ValidationError as exc:
