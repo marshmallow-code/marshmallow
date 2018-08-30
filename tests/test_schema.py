@@ -350,6 +350,50 @@ def test_load_many():
     assert type(result[0]) == User
     assert result[0].name == 'Mick'
 
+def test_load_many_input_types():
+    class Sch(Schema):
+        name = fields.String()
+    s = Sch(many=True)
+
+    s.load([])
+    s.load(set())
+
+    with pytest.raises(ValidationError) as e:
+        s.load(None)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    with pytest.raises(ValidationError) as e:
+        s.load(123)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    with pytest.raises(ValidationError) as e:
+        s.load('abc')
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    with pytest.raises(ValidationError) as e:
+        s.load({})
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    with pytest.raises(ValidationError) as e:
+        s.load({'name': 2})
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+
+def test_load_many_in_nested_input_types():
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list = fields.List(fields.Nested(Inner))  # these two are pretty
+        list2 = fields.Nested(Inner, many=True)   # much the same?
+
+    s = Outer()
+    s.load({'list': [{'name': 'Mick'}], 'list2': [{'name': 'Keith'}]})
+    s.load({'list': [], 'list2': []})
+
+    with pytest.raises(ValidationError) as e:
+        s.load({'list': {}, 'list2': {}})  # note: {} for many works on Schema level
+    assert e.value.messages == {'list': ['Not a valid list.'], 'list2': ['Invalid type.']}
+
+    with pytest.raises(ValidationError) as e:
+        s.load({'list': 'iterable-but-string', 'list2': 'iterable-but-string'})
+    assert e.value.messages == {'list': ['Not a valid list.'], 'list2': ['Invalid type.']}
+
 def test_loads_returns_a_user():
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))

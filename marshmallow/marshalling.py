@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 import collections
 
 from marshmallow.utils import (
-    EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value, is_iterable_but_not_string
+    EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value
 )
 from marshmallow.compat import iteritems, basestring
 from marshmallow.exceptions import (
@@ -211,7 +211,7 @@ class Unmarshaller(ErrorStore):
         :return: A dictionary of the deserialized data.
         """
         ret = dict_class() if not many else []
-        if many and data is not None and is_iterable_but_not_string(data):
+        if many and data is not None and is_collection(data):
             self._pending = True
             ret.extend([
                 self.deserialize(
@@ -231,7 +231,7 @@ class Unmarshaller(ErrorStore):
                     data=ret,
                 )
             return ret
-        if not isinstance(data, collections.Mapping):
+        if not isinstance(data, collections.Mapping) or many:
             self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
         else:
             partial_is_collection = is_collection(partial)

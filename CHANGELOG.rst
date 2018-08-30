@@ -19,6 +19,9 @@ Bug fixes:
   validated with ``many=True`` (:issue:`851`). Thanks :user:`tuukkamustonen`.
 - Return ``[]`` as ``ValidationError.valid_data`` instead of ``{}`` with
   ``many=True`` (:issue:`907`). Thanks :user:`tuukkamustonen`.
+- ``many=True`` no longer iterates over ``str`` and ``collections.Mapping`` objects, and rather
+  raises ``{'_schema': ['Invalid input type.']}`` error directly (:issue:`930`).
+  Thanks :user:`tuukkamustonen`.
 
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
