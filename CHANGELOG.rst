@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.0.0b14 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+- Add ``fields.Pluck`` for serializing a single field from a nested object (:issue:`800`). Thanks :user:`timc13` for the
+  feedback and :user:`deckar01` for the implementation.
+- **Backwards-incompatible**: Passing a string argument as ``only`` to ``fields.Nested`` is no longer supported.
+  Use ``fields.Pluck`` instead (:issue:`800`).
+
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
 
