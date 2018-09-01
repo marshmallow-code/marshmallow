@@ -4,7 +4,7 @@ import pytest
 from marshmallow import fields, Schema, ValidationError, EXCLUDE
 from marshmallow.marshalling import missing
 
-from tests.base import ALL_FIELDS, User
+from tests.base import ALL_FIELDS
 
 
 class TestFieldAliases:
@@ -43,7 +43,7 @@ class TestField:
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
 
-    def test_custom_field_receives_attr_and_obj(self, user):
+    def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -56,7 +56,7 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
-    def test_custom_field_receives_data_key_if_set(self, user):
+    def test_custom_field_receives_data_key_if_set(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -69,7 +69,7 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
-    def test_custom_field_follows_data_key_if_set(self, user):
+    def test_custom_field_follows_data_key_if_set(self):
         class MyField(fields.Field):
             def _serialize(self, val, attr, data):
                 assert attr == 'name'
