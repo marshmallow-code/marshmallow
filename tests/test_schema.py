@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import datetime as dt
-import simplejson as json
 import decimal
 import random
 from collections import namedtuple, OrderedDict
+
+import simplejson as json
 
 import pytest
 
@@ -349,7 +350,7 @@ def test_load_many():
     assert type(result[0]) == User
     assert result[0].name == 'Mick'
 
-def test_loads_returns_a_user(user):
+def test_loads_returns_a_user():
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))
     assert type(result) == User
@@ -1455,13 +1456,13 @@ def test_exclude_fields(user):
     assert 'updated' not in s
     assert 'name' in s
 
-def test_fields_option_must_be_list_or_tuple(user):
+def test_fields_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
         class BadFields(Schema):
             class Meta:
                 fields = 'name'
 
-def test_exclude_option_must_be_list_or_tuple(user):
+def test_exclude_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
         class BadExclude(Schema):
             class Meta:
