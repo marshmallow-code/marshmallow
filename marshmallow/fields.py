@@ -349,7 +349,7 @@ class Nested(Field):
 
         user = fields.Nested(UserSchema)
         user2 = fields.Nested('UserSchema')  # Equivalent to above
-        collaborators = fields.Nested(UserSchema, many=True, only='id')
+        collaborators = fields.Nested(UserSchema, many=True, only=('id',))
         parent = fields.Nested('self')
 
     When passing a `Schema <marshmallow.Schema>` instance as the first argument,
@@ -401,45 +401,29 @@ class Nested(Field):
             Renamed from `serializer` to `schema`
         """
         if not self.__schema:
-            # Ensure that only parameter is a tuple
-            if isinstance(self.only, basestring):
-                only = (self.only,)
-            else:
-                only = self.only
-
             # Inherit context from parent.
             context = getattr(self.parent, 'context', {})
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
-            elif isinstance(self.nested, type) and \
-                    issubclass(self.nested, SchemaABC):
-                self.__schema = self.nested(
+            else:
+                if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
+                    schema_class = self.nested
+                elif not isinstance(self.nested, basestring):
+                    raise ValueError(
+                        'Nested fields must be passed a '
+                        'Schema, not {0}.'.format(self.nested.__class__),
+                    )
+                elif self.nested == 'self':
+                    schema_class = self.parent.__class__
+                else:
+                    schema_class = class_registry.get_class(self.nested)
+                self.__schema = schema_class(
                     many=self.many,
-                    only=only, exclude=self.exclude, context=context,
+                    only=self.only, exclude=self.exclude, context=context,
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),
                 )
-            elif isinstance(self.nested, basestring):
-                if self.nested == 'self':
-                    parent_class = self.parent.__class__
-                    self.__schema = parent_class(
-                        many=self.many, only=only,
-                        exclude=self.exclude, context=context,
-                        load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'),
-                    )
-                else:
-                    schema_class = class_registry.get_class(self.nested)
-                    self.__schema = schema_class(
-                        many=self.many,
-                        only=only, exclude=self.exclude, context=context,
-                        load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'),
-                    )
-            else:
-                raise ValueError('Nested fields must be passed a '
-                                 'Schema, not {0}.'.format(self.nested.__class__))
             self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
 
@@ -459,36 +443,64 @@ class Nested(Field):
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True
         try:
-            ret = schema.dump(
+            return schema.dump(
                 nested_obj, many=self.many,
                 update_fields=not self.__updated_fields,
             )
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
-        finally:
-            if isinstance(self.only, basestring):  # self.only is a field name
-                only_field = self.schema.fields[self.only]
-                key = only_field.data_key or self.only
-                if self.many:
-                    return utils.pluck(ret, key=key)
-                else:
-                    return ret[key]
-        return ret
 
-    def _deserialize(self, value, attr, data):
+    def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
-        if isinstance(self.only, basestring):  # self.only is a field name
-            if self.many:
-                value = [{self.only: v} for v in value]
-            else:
-                value = {self.only: value}
+    def _load(self, value, data):
         try:
             valid_data = self.schema.load(value, unknown=self.unknown)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
+
+    def _deserialize(self, value, attr, data):
+        self._test_collection(value)
+        return self._load(value, data)
+
+
+class Pluck(Nested):
+    """Allows you to replace nested data with one of the data's fields.
+
+    Examples: ::
+
+        user = fields.Pluck(UserSchema, 'name')
+        collaborators = fields.Pluck(UserSchema, 'id', many=True)
+        parent = fields.Pluck('self', 'name')
+
+    :param Schema nested: The Schema class or class name (string)
+        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param str field_name:
+    :param kwargs: The same keyword arguments that :class:`Nested` receives.
+    """
+    def __init__(self, nested, field_name, **kwargs):
+        super(Pluck, self).__init__(nested, only=(field_name,), **kwargs)
+        self.field_name = field_name
+
+    def _serialize(self, nested_obj, attr, obj):
+        ret = super(Pluck, self)._serialize(nested_obj, attr, obj)
+        only_field = self.schema.fields[self.field_name]
+        data_key = only_field.data_key or self.field_name
+        key = ''.join([self.schema.prefix or '', data_key])
+        if self.many:
+            return utils.pluck(ret, key=key)
+        else:
+            return ret[key]
+
+    def _deserialize(self, value, attr, data):
+        self._test_collection(value)
+        if self.many:
+            value = [{self.field_name: v} for v in value]
+        else:
+            value = {self.field_name: value}
+        return self._load(value, data)
 
 
 class List(Field):

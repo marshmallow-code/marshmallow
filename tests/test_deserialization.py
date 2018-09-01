@@ -1026,7 +1026,7 @@ class TestSchemaDeserialization:
 
         class MainSchema(Schema):
             pk = fields.Str()
-            child = fields.Nested(ANestedSchema, only='pk')
+            child = fields.Pluck(ANestedSchema, 'pk')
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'child': '456'})
@@ -1038,7 +1038,7 @@ class TestSchemaDeserialization:
 
         class MainSchema(Schema):
             pk = fields.Str()
-            children = fields.Nested(ANestedSchema, only='pk', many=True)
+            children = fields.Pluck(ANestedSchema, 'pk', many=True)
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'children': ['456', '789']})

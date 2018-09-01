@@ -1717,23 +1717,6 @@ class TestNestedSchema:
         )
         return blog
 
-    def test_flat_nested(self, blog):
-        class FlatBlogSchema(Schema):
-            name = fields.String()
-            user = fields.Nested(UserSchema, only='name')
-            collaborators = fields.Nested(UserSchema, only='name', many=True)
-        s = FlatBlogSchema()
-        data = s.dump(blog)
-        assert data['user'] == blog.user.name
-        for i, name in enumerate(data['collaborators']):
-            assert name == blog.collaborators[i].name
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
-    def test_flat_nested_with_data_key(self, blog):
-        class UserSchema(Schema):
-            name = fields.String(data_key='username')
-            age = fields.Int()
-
         class FlatBlogSchema(Schema):
             name = fields.String()
             user = fields.Nested(UserSchema, only='name')
@@ -1771,15 +1754,6 @@ class TestNestedSchema:
         s2 = MySchema2()
         result2 = s2.dump({'foo': None})
         assert result2['foo'] is None
-
-    def test_flat_nested2(self, blog):
-        class FlatBlogSchema(Schema):
-            name = fields.String()
-            collaborators = fields.Nested(UserSchema, many=True, only='uid')
-
-        s = FlatBlogSchema()
-        data = s.dump(blog)
-        assert data['collaborators'][0] == str(blog.collaborators[0].uid)
 
     def test_nested_field_does_not_validate_required(self):
         class BlogRequiredSchema(Schema):
@@ -1998,6 +1972,44 @@ class TestNestedSchema:
         assert errors == {'foo': {'foo': ['Not a valid integer.']}}
 
 
+class TestPluckSchema:
+
+    def blog(self):
+        user = User(name='Monty', age=81)
+        col1 = User(name='Mick', age=123)
+        col2 = User(name='Keith', age=456)
+        blog = Blog(
+            user=user, categories=['humor', 'violence'],
+            collaborators=[col1, col2],
+        )
+        return blog
+
+    def test_pluck(self, blog):
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, 'name')
+            collaborators = fields.Pluck(UserSchema, 'name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
+    def test_pluck_with_data_key(self, blog):
+        class UserSchema(Schema):
+            name = fields.String(data_key='username')
+            age = fields.Int()
+
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, 'name')
+            collaborators = fields.Pluck(UserSchema, 'name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
+
 class TestSelfReference:
 
     @pytest.fixture
@@ -2054,13 +2066,10 @@ class TestSelfReference:
         assert data['employer']['name'] == employer.name
         assert 'age' not in data['employer']
 
-    def test_multiple_nested_self_fields(self, user):
+    def test_multiple_pluck_self_field(self, user):
         class MultipleSelfSchema(Schema):
-            emp = fields.Nested('self', only='name', attribute='employer')
-            rels = fields.Nested(
-                'self', only='name',
-                many=True, attribute='relatives',
-            )
+            emp = fields.Pluck('self', 'name', attribute='employer')
+            rels = fields.Pluck('self', 'name', many=True, attribute='relatives')
 
             class Meta:
                 fields = ('name', 'emp', 'rels')
