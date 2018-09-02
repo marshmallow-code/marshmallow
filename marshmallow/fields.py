@@ -951,29 +951,29 @@ class DateTime(Field):
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+        dateformat = self.dateformat or self.DEFAULT_FORMAT
+        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(dateformat, None)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
             except (AttributeError, ValueError):
                 self.fail('format', input=value)
         else:
-            return value.strftime(self.dateformat)
+            return value.strftime(dateformat)
 
     def _deserialize(self, value, attr, data):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid')
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
+        dateformat = self.dateformat or self.DEFAULT_FORMAT
+        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid')
-        elif self.dateformat:
+        elif dateformat:
             try:
-                return dt.datetime.strptime(value, self.dateformat)
+                return dt.datetime.strptime(value, dateformat)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid')
         elif utils.dateutil_available:
