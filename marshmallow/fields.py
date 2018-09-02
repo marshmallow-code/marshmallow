@@ -999,6 +999,56 @@ class LocalDateTime(DateTime):
     localtime = True
 
 
+class AwareDateTime(DateTime):
+    """A formatted timezone aware datetime string.
+
+        Example: ``'2014-12-22T03:12:58.019077+00:00'``
+
+    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`,
+    plus a timezone parameter used as default when receiving a naive datetime.
+
+    :param str timezone: The timezone expressed as a string ('UTC', 'Europe/Paris').
+        Defaults to 'UTC'.
+
+    Note: dateutil must be installed to use any other timezone than UTC.
+    """
+    def __init__(self, format=None, timezone='UTC', **kwargs):
+        self.timezone = utils.str2tz(timezone)
+        super(AwareDateTime, self).__init__(format=format, **kwargs)
+
+    def _deserialize(self, value, attr, data):
+        date = super(AwareDateTime, self)._deserialize(value, attr, data)
+        # If datetime is TZ naive, set UTC timezone
+        if date.tzinfo is None or date.tzinfo.utcoffset(date) is None:
+            date = date.replace(tzinfo=self.timezone)
+        return date
+
+
+class NaiveDateTime(DateTime):
+    """A formatted timezone naive datetime string.
+
+        Example: ``'2014-12-22T03:12:58.019077'``
+
+    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`,
+    plus a timezone parameter used to convert aware datetimes.
+
+    :param str timezone: The timezone expressed as a string ('UTC', 'Europe/Paris').
+        Defaults to 'UTC'.
+
+    Note: dateutil must be installed to use any other timezone than UTC.
+    """
+    def __init__(self, format=None, timezone='UTC', **kwargs):
+        self.timezone = utils.str2tz(timezone)
+        super(NaiveDateTime, self).__init__(format=format, **kwargs)
+
+    def _deserialize(self, value, attr, data):
+        date = super(NaiveDateTime, self)._deserialize(value, attr, data)
+        # If datetime is TZ aware, convert it and remove TZ info
+        if date.tzinfo is not None and date.tzinfo.utcoffset(date) is not None:
+            date = date.astimezone(self.timezone).replace(tzinfo=None)
+        return date
+
+
 class Time(Field):
     """ISO8601-formatted time string.
 

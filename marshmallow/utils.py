@@ -24,7 +24,7 @@ RAISE = 'raise'
 
 dateutil_available = False
 try:
-    from dateutil import parser
+    from dateutil import parser, tz as dateutil_tz
     dateutil_available = True
 except ImportError:
     dateutil_available = False
@@ -308,6 +308,13 @@ def from_iso_date(datestring, use_dateutil=True):
         return parser.parse(datestring).date()
     else:
         return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
+
+def str2tz(timezone):
+    if timezone == 'UTC':
+        return UTC
+    if dateutil_available:
+        return dateutil_tz.gettz(timezone)
+    raise ValueError('Invalid timezone or dateutil not installed.')
 
 def ensure_text_type(val):
     if isinstance(val, binary_type):

@@ -50,6 +50,11 @@ def assert_datetime_equal(dt1, dt2):
     assert dt1.hour == dt2.hour
     assert dt1.minute == dt2.minute
 
+def assert_datetime_tz_aware(dt):
+    return dt.tzinfo is not None and dt.tzinfo.utcoffset(dt) is not None
+
+def assert_datetime_tz_naive(dt):
+    return dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None
 
 def assert_time_equal(t1, t2, microseconds=True):
     assert t1.hour == t2.hour

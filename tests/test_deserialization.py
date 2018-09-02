@@ -3,6 +3,8 @@ import datetime as dt
 import uuid
 import decimal
 
+import dateutil
+
 import pytest
 
 from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, utils, Schema, validate
@@ -14,6 +16,8 @@ from tests.base import (
     assert_almost_equal,
     assert_date_equal,
     assert_datetime_equal,
+    assert_datetime_tz_aware,
+    assert_datetime_tz_naive,
     assert_time_equal,
     central,
     ALL_FIELDS,
@@ -408,6 +412,72 @@ class TestFieldDeserialization:
         # If dateutil is used, the datetime will not be naive
         if utils.dateutil_available:
             assert result.tzinfo is not None
+
+    @pytest.mark.parametrize(
+        'dtime', (
+            '2016-08-06T00:00:00',
+            '2016-08-06T00:00:00Z',
+            '2016-08-06T00:00:00+00:00',
+            '2016-08-06T06:00:00+06:00',
+        ),
+    )
+    def test_awaredatetime_field_utc_deserialization(self, dtime):
+        field = fields.AwareDateTime(timezone='UTC')
+        result = field.deserialize(dtime)
+        assert_datetime_tz_aware(result)
+        assert result == dt.datetime(2016, 8, 6, tzinfo=utils.UTC)
+
+    @pytest.mark.skipif(not utils.dateutil_available, reason='dateutil not available')
+    @pytest.mark.parametrize(
+        'dtime', (
+            '2016-08-06T00:00:00',
+            '2016-08-06T00:00:00Z',
+            '2016-08-06T00:00:00+00:00',
+            '2016-08-06T06:00:00+06:00',
+        ),
+    )
+    def test_awaredatetime_field_non_utc_deserialization(self, dtime):
+        field = fields.AwareDateTime(timezone='Europe/Paris')
+        result = field.deserialize(dtime)
+        assert_datetime_tz_aware(result)
+        if dtime == '2016-08-06T00:00:00':
+            assert result == dt.datetime(2016, 8, 6, tzinfo=dateutil.tz.gettz('Europe/Paris'))
+        else:
+            assert result == dt.datetime(2016, 8, 6, tzinfo=utils.UTC)
+
+    @pytest.mark.parametrize(
+        'dtime', (
+            '2016-08-06T00:00:00',
+            '2016-08-06T00:00:00Z',
+            '2016-08-06T00:00:00+00:00',
+            '2016-08-06T06:00:00+06:00',
+        ),
+    )
+    def test_naivedatetime_field_utc_deserialization(self, dtime):
+        field = fields.NaiveDateTime(timezone='UTC')
+        result = field.deserialize(dtime)
+        assert_datetime_tz_naive(result)
+        assert result == dt.datetime(2016, 8, 6)
+
+    @pytest.mark.skipif(not utils.dateutil_available, reason='dateutil not available')
+    @pytest.mark.parametrize(
+        'dtime', (
+            '2016-08-06T00:00:00',
+            '2016-08-06T00:00:00Z',
+            '2016-08-06T00:00:00+00:00',
+            '2016-08-06T06:00:00+06:00',
+        ),
+    )
+    def test_naivedatetime_field_non_utc_deserialization(self, dtime):
+        field = fields.NaiveDateTime(timezone='Europe/Paris')
+        result = field.deserialize(dtime)
+        assert_datetime_tz_naive(result)
+        if dtime == '2016-08-06T00:00:00':
+            assert result == dt.datetime(2016, 8, 6)
+        else:
+            assert result == dt.datetime(2016, 8, 6, tzinfo=utils.UTC).astimezone(
+                dateutil.tz.gettz('Europe/Paris'),
+            ).replace(tzinfo=None)
 
     def test_time_field_deserialization(self):
         field = fields.Time()
