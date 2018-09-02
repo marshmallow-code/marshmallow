@@ -3,6 +3,7 @@ import pytest
 
 from marshmallow import fields, Schema, ValidationError, EXCLUDE
 from marshmallow.marshalling import missing
+from marshmallow.exceptions import StringNotCollectionError
 
 from tests.base import ALL_FIELDS
 
@@ -191,3 +192,11 @@ class TestErrorMessages:
 
         assert 'doesntexist' in excinfo.value.args[0]
         assert 'MyField' in excinfo.value.args[0]
+
+
+class TestNestedField:
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_nested_only_and_exclude_as_string(self, param):
+        with pytest.raises(StringNotCollectionError):
+            fields.Nested(Schema, **{param: 'foo'})
