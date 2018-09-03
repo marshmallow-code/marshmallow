@@ -377,6 +377,8 @@ class TestFieldDeserialization:
             '',
             [],
             '2018-01-01',
+            dt.datetime.now().strftime('%H:%M:%S %Y-%m-%d'),
+            dt.datetime.now().strftime('%m-%d-%Y %H:%M:%S'),
         ],
     )
     def test_invalid_datetime_deserialization(self, in_value):
@@ -569,6 +571,7 @@ class TestFieldDeserialization:
             '',
             123,
             [],
+            dt.date(2014, 8, 21).strftime('%d-%m-%Y'),
         ],
     )
     def test_invalid_date_field_deserialization(self, in_value):
