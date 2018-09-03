@@ -12,7 +12,7 @@ import decimal
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import EXCLUDE, is_collection
+from marshmallow.utils import RAISE, is_collection
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
@@ -393,7 +393,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
-        self.unknown = kwargs.get('unknown', EXCLUDE)
+        self.unknown = kwargs.get('unknown', RAISE)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
