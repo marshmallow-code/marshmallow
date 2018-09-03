@@ -284,7 +284,7 @@ def from_iso_datetime(datestring, use_dateutil=True):
         raise ValueError('Not a valid ISO8601-formatted datetime string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
-        return parser.parse(datestring)
+        return parser.isoparse(datestring)
     else:
         # Strip off timezone info.
         return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
@@ -305,7 +305,7 @@ def from_iso_time(timestring, use_dateutil=True):
 
 def from_iso_date(datestring, use_dateutil=True):
     if dateutil_available and use_dateutil:
-        return parser.parse(datestring).date()
+        return parser.isoparse(datestring).date()
     else:
         return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
 
