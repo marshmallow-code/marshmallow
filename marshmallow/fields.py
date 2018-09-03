@@ -1066,7 +1066,7 @@ class Date(DateTime):
 
     DEFAULT_FORMAT = 'iso'
 
-    OBJ_TYPE = "date"
+    OBJ_TYPE = 'date'
 
     SCHEMA_OPTS_VAR_NAME = 'dateformat'
 
