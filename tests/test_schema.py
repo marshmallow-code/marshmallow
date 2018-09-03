@@ -1973,32 +1973,26 @@ class TestNestedSchema:
         assert data == {'foo': {'bar': 42}, 'bar': 42}
         assert errors == {'foo': {'foo': ['Not a valid integer.']}}
 
-    @pytest.mark.parametrize('data', ({'child': {'num': 1, 'extra': 1}},))
-    @pytest.mark.parametrize(
-        'child_unknown,errors,load_raises,load_out',
-        (
-            (None, {'child': {'extra': ['Unknown field.']}}, True, None),
-            (RAISE, {'child': {'extra': ['Unknown field.']}}, True, None),
-            (INCLUDE, {}, False, {'child': {'num': 1, 'extra': 1}}),
-            (EXCLUDE, {}, False, {'child': {'num': 1}}),
-        ),
-    )
-    def test_nested_unknown_validation(self, child_unknown, errors, load_raises, load_out, data):
+    @pytest.mark.parametrize('unknown', (None, RAISE, INCLUDE, EXCLUDE))
+    def test_nested_unknown_validation(self, unknown):
 
         class ChildSchema(Schema):
             num = fields.Int()
 
         class ParentSchema(Schema):
-            child = fields.Nested(ChildSchema, unknown=child_unknown)
+            child = fields.Nested(ChildSchema, unknown=unknown)
 
-        errs = ParentSchema().validate(data)
-        assert errs == errors
-        if load_raises:
-            with pytest.raises(ValidationError):
+        data = {'child': {'num': 1, 'extra': 1}}
+        if unknown is None or unknown == RAISE:
+            with pytest.raises(ValidationError) as exc:
                 ParentSchema().load(data)
-        if load_out:
-            out = ParentSchema().load(data)
-            assert out == load_out
+                assert exc.messages == {'child': {'extra': ['Unknown field.']}}
+        else:
+            output = {
+                INCLUDE: {'child': {'num': 1, 'extra': 1}},
+                EXCLUDE: {'child': {'num': 1}},
+            }[unknown]
+            assert ParentSchema().load(data) == output
 
 
 class TestPluckSchema:
