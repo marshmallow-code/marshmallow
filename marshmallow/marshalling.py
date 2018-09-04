@@ -268,9 +268,10 @@ class Unmarshaller(ErrorStore):
             d_kwargs = {}
             if isinstance(field_obj, fields.Nested):
                 # Allow partial loading of nested schemas.
-                prefix = field_name + "."
                 if partial_is_collection:
-                    sub_partial = [f[len(prefix):]
+                    prefix = field_name + "."
+                    len_prefix = len(prefix)
+                    sub_partial = [f[len_prefix:]
                                    for f in partial if f.startswith(prefix)]
                 else:
                     sub_partial = partial
