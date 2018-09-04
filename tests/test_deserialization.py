@@ -1498,9 +1498,12 @@ class TestValidation:
                 'y': 42,
             }
         }
-        b_partial = ('z.x',)
-        result = SchemaB().load(b_dict, partial=b_partial)
+        # If we ignore the missing z.x, z.y should still load.
+        result = SchemaB().load(b_dict, partial=('z.x',))
         assert result['z']['y'] == 42
+        # If we ignore a missing z.y we should get a validation error.
+        with pytest.raises(ValidationError):
+            SchemaB().load(b_dict, partial=('z.y',))
 
 
 FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
