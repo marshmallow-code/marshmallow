@@ -181,7 +181,13 @@ class Field(FieldABC):
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, obj, attr, accessor=None, default=missing_):
-        """Return the value for a given key from an object."""
+        """Return the value for a given key from an object.
+
+        :param object obj: The object to get the value from
+        :param str attr: The attribute/key in `obj` to get the value from.
+        :param callable accessor: A callable used to retrieve the value of `attr` from
+            the object `obj`. Defaults to `marshmallow.utils.get_value`.
+        """
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)

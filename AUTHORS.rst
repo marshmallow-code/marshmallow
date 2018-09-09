@@ -105,3 +105,4 @@ Contributors (chronological)
 - Prasanjit Prakash `@ikilledthecat <https://github.com/ikilledthecat>`_
 - Guillaume Gelin `@ramnes <https://github.com/ramnes>`_
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
+- James Remeika `@remeika <https://github.com/remeika>`_
