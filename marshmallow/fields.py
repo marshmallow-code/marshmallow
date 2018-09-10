@@ -720,6 +720,17 @@ class Integer(Number):
         return super(Integer, self)._format_num(value)
 
 
+class Float(Number):
+    """
+    A double as IEEE-754 double precision string.
+
+    :param bool as_string: If True, format the value as a string.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
+    """
+
+    num_type = float
+
+
 class Decimal(Number):
     """A field that (de)serializes to the Python ``decimal.Decimal`` type.
     It's safe to use when dealing with money values, percentages, ratios
@@ -889,17 +900,6 @@ class FormattedString(Field):
             return self.src_str.format(**data)
         except (TypeError, IndexError):
             self.fail('format')
-
-
-class Float(Number):
-    """
-    A double as IEEE-754 double precision string.
-
-    :param bool as_string: If True, format the value as a string.
-    :param kwargs: The same keyword arguments that :class:`Number` receives.
-    """
-
-    num_type = float
 
 
 class DateTime(Field):
