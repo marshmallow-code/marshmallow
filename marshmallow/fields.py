@@ -667,8 +667,6 @@ class Number(Field):
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
-        if value is None:
-            return None
         # (value is True or value is False) is ~5x faster than isinstance(value, bool)
         if value is True or value is False:
             raise TypeError(
@@ -679,6 +677,8 @@ class Number(Field):
 
     def _validated(self, value):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
         try:
             return self._format_num(value)
         except (TypeError, ValueError):
@@ -771,9 +771,6 @@ class Decimal(Number):
 
     # override Number
     def _format_num(self, value):
-        if value is None:
-            return None
-
         num = decimal.Decimal(str(value))
 
         if self.allow_nan:
