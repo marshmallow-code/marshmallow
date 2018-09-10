@@ -9,6 +9,7 @@ import numbers
 import uuid
 import warnings
 import decimal
+import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -724,11 +725,27 @@ class Float(Number):
     """
     A double as IEEE-754 double precision string.
 
+    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+        even though they are illegal according to the JSON specification.
     :param bool as_string: If True, format the value as a string.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
     num_type = float
+    default_error_messages = {
+        'special': 'Special numeric values are not permitted.',
+    }
+
+    def __init__(self, allow_nan=False, as_string=False, **kwargs):
+        self.allow_nan = allow_nan
+        super(Float, self).__init__(as_string=as_string, **kwargs)
+
+    def _format_num(self, value):
+        num = super(Float, self)._format_num(value)
+        if self.allow_nan is False:
+            if math.isnan(num) or num == float('inf') or num == float('-inf'):
+                self.fail('special')
+        return num
 
 
 class Decimal(Number):
