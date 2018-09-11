@@ -230,7 +230,9 @@ class TestFieldDeserialization:
 
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m1)
-        assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
+        assert str(excinfo.value.args[0]) == (
+            'Special numeric values (nan or infinity) are not permitted.'
+        )
         with pytest.raises(ValidationError):
             field.deserialize(m2)
         with pytest.raises(ValidationError):
@@ -266,7 +268,9 @@ class TestFieldDeserialization:
         else:
             with pytest.raises(ValidationError) as excinfo:
                 field.deserialize(value)
-            assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
+            assert str(excinfo.value.args[0]) == (
+                'Special numeric values (nan or infinity) are not permitted.'
+            )
 
     def test_string_field_deserialization(self):
         field = fields.String()

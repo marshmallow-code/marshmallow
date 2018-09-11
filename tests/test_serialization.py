@@ -335,7 +335,9 @@ class TestFieldSerialization:
         else:
             with pytest.raises(ValidationError) as excinfo:
                 field.serialize('key', user)
-            assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
+            assert str(excinfo.value.args[0]) == (
+                'Special numeric values (nan or infinity) are not permitted.'
+            )
 
     def test_decimal_field_fixed_point_representation(self, user):
         """

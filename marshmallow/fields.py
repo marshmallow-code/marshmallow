@@ -730,7 +730,7 @@ class Float(Number):
 
     num_type = float
     default_error_messages = {
-        'special': 'Special numeric values are not permitted.',
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
     }
 
     def __init__(self, allow_nan=False, as_string=False, **kwargs):
@@ -785,7 +785,7 @@ class Decimal(Number):
     num_type = decimal.Decimal
 
     default_error_messages = {
-        'special': 'Special numeric values are not permitted.',
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
     }
 
     def __init__(self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs):

@@ -611,7 +611,7 @@ In marshmallow 2.x, ``Float`` field would serialize and deserialize special valu
     # => {{'x': 12.0, 'y': nan}}
 
     MySchema().load({'x': 'nan'})
-    # marshmallow.exceptions.ValidationError: {'x': ['Special numeric values are not permitted.']}
+    # marshmallow.exceptions.ValidationError: {'x': ['Special numeric values (nan or infinity) are not permitted.']}
 
 Upgrading to 2.3
 ++++++++++++++++
