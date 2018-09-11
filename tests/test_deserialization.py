@@ -2,6 +2,7 @@
 import datetime as dt
 import uuid
 import decimal
+import math
 
 import pytest
 
@@ -229,7 +230,9 @@ class TestFieldDeserialization:
 
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m1)
-        assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
+        assert str(excinfo.value.args[0]) == (
+            'Special numeric values (nan or infinity) are not permitted.'
+        )
         with pytest.raises(ValidationError):
             field.deserialize(m2)
         with pytest.raises(ValidationError):
@@ -244,6 +247,30 @@ class TestFieldDeserialization:
         m7d = field.deserialize(m7)
         assert isinstance(m7d, decimal.Decimal)
         assert m7d.is_zero() and m7d.is_signed()
+
+    @pytest.mark.parametrize('allow_nan', (None, False, True))
+    @pytest.mark.parametrize('value', ('nan', '-nan', 'inf', '-inf'))
+    def test_float_field_allow_nan(self, value, allow_nan):
+
+        if allow_nan is None:
+            # Test default case is False
+            field = fields.Float()
+        else:
+            field = fields.Float(allow_nan=allow_nan)
+
+        if allow_nan is True:
+            res = field.deserialize(value)
+            assert isinstance(res, float)
+            if value.endswith('nan'):
+                assert math.isnan(res)
+            else:
+                assert res == float(value)
+        else:
+            with pytest.raises(ValidationError) as excinfo:
+                field.deserialize(value)
+            assert str(excinfo.value.args[0]) == (
+                'Special numeric values (nan or infinity) are not permitted.'
+            )
 
     def test_string_field_deserialization(self):
         field = fields.String()
