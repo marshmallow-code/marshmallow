@@ -944,21 +944,23 @@ class DateTime(Field):
     def __init__(self, format=None, **kwargs):
         super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
-        # or ``_desrialize`` methods This allows a Schema to dynamically set the
+        # or ``_deserialize`` methods This allows a Schema to dynamically set the
         # format, e.g. from a Meta option
         self.format = format
 
     def _add_to_schema(self, field_name, schema):
         super(DateTime, self)._add_to_schema(field_name, schema)
-        self.format = self.format or \
-            getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or \
+        self.format = (
+            self.format or
+            getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or
             self.DEFAULT_FORMAT
+        )
 
     def _serialize(self, value, attr, obj):
-        data_format = self.format or self.DEFAULT_FORMAT
         if value is None:
             return None
-        format_func = self.SERIALIZATION_FUNCS.get(data_format, None)
+        data_format = self.format or self.DEFAULT_FORMAT
+        format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
@@ -977,9 +979,9 @@ class DateTime(Field):
         )
 
     def _deserialize(self, value, attr, data):
-        data_format = self.format or self.DEFAULT_FORMAT
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+        data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
