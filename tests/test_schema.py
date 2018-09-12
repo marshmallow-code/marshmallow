@@ -10,7 +10,8 @@ import simplejson as json
 
 import pytest
 
-from marshmallow import Schema, fields, utils, validates, validates_schema, EXCLUDE
+from marshmallow import Schema, fields, utils, validates, validates_schema, \
+    EXCLUDE, INCLUDE, RAISE
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 
 from tests.base import (
@@ -1132,13 +1133,13 @@ class TestDeeplyNestedLoadOnly:
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            grand_child = fields.Nested(GrandChildSchema)
+            grand_child = fields.Nested(GrandChildSchema, unknown=EXCLUDE)
 
         class ParentSchema(Schema):
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            child = fields.Nested(ChildSchema)
+            child = fields.Nested(ChildSchema, unknown=EXCLUDE)
 
         return ParentSchema(
             dump_only=('str_dump_only', 'child.str_dump_only', 'child.grand_child.str_dump_only'),
@@ -1205,7 +1206,7 @@ class TestDeeplyNestedListLoadOnly:
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            child = fields.List(fields.Nested(ChildSchema))
+            child = fields.List(fields.Nested(ChildSchema, unknown=EXCLUDE))
 
         return ParentSchema(
             dump_only=('str_dump_only', 'child.str_dump_only'),
@@ -1986,6 +1987,27 @@ class TestNestedSchema:
         data = excinfo.value.valid_data
         assert data == {'foo': {'bar': 42}, 'bar': 42}
         assert errors == {'foo': {'foo': ['Not a valid integer.']}}
+
+    @pytest.mark.parametrize('unknown', (None, RAISE, INCLUDE, EXCLUDE))
+    def test_nested_unknown_validation(self, unknown):
+
+        class ChildSchema(Schema):
+            num = fields.Int()
+
+        class ParentSchema(Schema):
+            child = fields.Nested(ChildSchema, unknown=unknown)
+
+        data = {'child': {'num': 1, 'extra': 1}}
+        if unknown is None or unknown == RAISE:
+            with pytest.raises(ValidationError) as exc:
+                ParentSchema().load(data)
+                assert exc.messages == {'child': {'extra': ['Unknown field.']}}
+        else:
+            output = {
+                INCLUDE: {'child': {'num': 1, 'extra': 1}},
+                EXCLUDE: {'child': {'num': 1}},
+            }[unknown]
+            assert ParentSchema().load(data) == output
 
 
 class TestPluckSchema:

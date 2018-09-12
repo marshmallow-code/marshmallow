@@ -9,10 +9,11 @@ import numbers
 import uuid
 import warnings
 import decimal
+import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import EXCLUDE, is_collection
+from marshmallow.utils import RAISE, is_collection
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
@@ -181,7 +182,13 @@ class Field(FieldABC):
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, obj, attr, accessor=None, default=missing_):
-        """Return the value for a given key from an object."""
+        """Return the value for a given key from an object.
+
+        :param object obj: The object to get the value from
+        :param str attr: The attribute/key in `obj` to get the value from.
+        :param callable accessor: A callable used to retrieve the value of `attr` from
+            the object `obj`. Defaults to `marshmallow.utils.get_value`.
+        """
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
@@ -393,7 +400,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
-        self.unknown = kwargs.get('unknown', EXCLUDE)
+        self.unknown = kwargs.get('unknown', RAISE)
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
@@ -661,18 +668,15 @@ class Number(Field):
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
-        if value is None:
-            return None
         # (value is True or value is False) is ~5x faster than isinstance(value, bool)
         if value is True or value is False:
-            raise TypeError(
-                'value must be a Number, not a boolean.  value is '
-                '{}'.format(value),
-            )
+            raise TypeError('value must be a Number, not a boolean.')
         return self.num_type(value)
 
     def _validated(self, value):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
         try:
             return self._format_num(value)
         except (TypeError, ValueError):
@@ -712,6 +716,33 @@ class Integer(Number):
             if not isinstance(value, numbers.Integral):
                 self.fail('invalid')
         return super(Integer, self)._format_num(value)
+
+
+class Float(Number):
+    """
+    A double as IEEE-754 double precision string.
+
+    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+        even though they are illegal according to the JSON specification.
+    :param bool as_string: If True, format the value as a string.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
+    """
+
+    num_type = float
+    default_error_messages = {
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
+    }
+
+    def __init__(self, allow_nan=False, as_string=False, **kwargs):
+        self.allow_nan = allow_nan
+        super(Float, self).__init__(as_string=as_string, **kwargs)
+
+    def _format_num(self, value):
+        num = super(Float, self)._format_num(value)
+        if self.allow_nan is False:
+            if math.isnan(num) or num == float('inf') or num == float('-inf'):
+                self.fail('special')
+        return num
 
 
 class Decimal(Number):
@@ -754,7 +785,7 @@ class Decimal(Number):
     num_type = decimal.Decimal
 
     default_error_messages = {
-        'special': 'Special numeric values are not permitted.',
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
     }
 
     def __init__(self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs):
@@ -765,9 +796,6 @@ class Decimal(Number):
 
     # override Number
     def _format_num(self, value):
-        if value is None:
-            return None
-
         num = decimal.Decimal(str(value))
 
         if self.allow_nan:
@@ -886,17 +914,6 @@ class FormattedString(Field):
             return self.src_str.format(**data)
         except (TypeError, IndexError):
             self.fail('format')
-
-
-class Float(Number):
-    """
-    A double as IEEE-754 double precision string.
-
-    :param bool as_string: If True, format the value as a string.
-    :param kwargs: The same keyword arguments that :class:`Number` receives.
-    """
-
-    num_type = float
 
 
 class DateTime(Field):

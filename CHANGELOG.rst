@@ -6,12 +6,24 @@ Changelog
 
 Features:
 
-- Add ``fields.Pluck`` for serializing a single field from a nested object (:issue:`800`). Thanks :user:`timc13` for the
-  feedback and :user:`deckar01` for the implementation.
-- *Backwards-incompatible*: Passing a string argument as ``only`` to ``fields.Nested`` is no longer supported.
-  Use ``fields.Pluck`` instead (:issue:`800`).
+- Add ``fields.Pluck`` for serializing a single field from a nested object
+  (:issue:`800`). Thanks :user:`timc13` for the feedback and :user:`deckar01`
+  for the implementation.
+- *Backwards-incompatible*: Passing a string argument as ``only`` to
+  ``fields.Nested`` is no longer supported. Use ``fields.Pluck`` instead
+  (:issue:`800`).
 - Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
   passed as a string to ``fields.Nested`` (:pr:`931`).
+- *Backwards-incompatible*: ``Float`` takes an ``allow_nan`` parameter to
+  explicitly allow serializing and deserializing special values (``nan``,
+  ``inf`` and ``-inf``). ``allow_nan`` defaults to ``False``.
+
+Other changes:
+
+- *Backwards-incompatible*: ``Nested`` field now defaults to ``unknown=RAISE``
+  instead of ``EXCLUDE``. This harmonizes behavior with ``Schema`` that
+  already defaults to ``RAISE`` (:issue:`908`). Thanks :user:`tuukkamustonen`.
+- Tested against Python 3.7.
 
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++

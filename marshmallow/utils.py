@@ -332,7 +332,16 @@ def pluck(dictlist, key):
 # Various utilities for pulling keyed values from objects
 
 def get_value(obj, key, default=missing):
-    """Helper for pulling a keyed value off various types of objects"""
+    """Helper for pulling a keyed value off various types of objects. Fields use
+    this method by default to access attributes of the source object. For object `x`
+    and attribute `i`, this method first tries to access `x[i]`, and then falls back to
+    `x.i` if an exception is raised.
+
+    .. warning::
+        If an object `x` does not raise an exception when `x[i]` does not exist,
+        `get_value` will never check the value `x.i`. Consider overriding
+        `marshmallow.fields.Field.get_value` in this case.
+    """
     if not isinstance(key, int) and '.' in key:
         return _get_value_for_keys(obj, key.split('.'), default)
     else:

@@ -569,7 +569,7 @@ Processors that mutate the data should be updated to also return it.
             in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
             return in_data
 
-The Nested field no longer supports plucking
+``Nested`` field no longer supports plucking
 ********************************************
 
 In marshmallow 2.x, when a string was passed to a ``Nested`` field's ```only`` parameter, the field would be plucked. In marshmallow 3.x, the ``Pluck`` field must be used instead.
@@ -587,7 +587,31 @@ In marshmallow 2.x, when a string was passed to a ``Nested`` field's ```only`` p
         name = fields.Str()
         friends = fields.Pluck('self', 'name', many=True)
 
+``Float`` field takes a new ``allow_nan`` parameter
+***************************************************
 
+In marshmallow 2.x, ``Float`` field would serialize and deserialize special values such as ``nan``, ``inf`` or ``-inf``. In marshmallow 3, those values trigger a ``ValidationError`` unless ``allow_nan`` is ``True``. ``allow_nan`` defaults to ``False``.
+
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.Float()
+
+    MySchema().load({'x': 'nan'})
+    # => {{'x': nan}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.Float()
+        y = fields.Float(allow_nan=True)
+
+    MySchema().load({'x': 12, 'y': 'nan'})
+    # => {{'x': 12.0, 'y': nan}}
+
+    MySchema().load({'x': 'nan'})
+    # marshmallow.exceptions.ValidationError: {'x': ['Special numeric values (nan or infinity) are not permitted.']}
 
 Upgrading to 2.3
 ++++++++++++++++

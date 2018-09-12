@@ -5,6 +5,7 @@ import datetime as dt
 import itertools
 import decimal
 import uuid
+import math
 
 import pytest
 
@@ -311,6 +312,32 @@ class TestFieldSerialization:
         m7s = field.serialize('m7', user)
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero() and m7s.is_signed()
+
+    @pytest.mark.parametrize('allow_nan', (None, False, True))
+    @pytest.mark.parametrize('value', ('nan', '-nan', 'inf', '-inf'))
+    def test_float_field_allow_nan(self, value, allow_nan, user):
+
+        user.key = value
+
+        if allow_nan is None:
+            # Test default case is False
+            field = fields.Float()
+        else:
+            field = fields.Float(allow_nan=allow_nan)
+
+        if allow_nan is True:
+            res = field.serialize('key', user)
+            assert isinstance(res, float)
+            if value.endswith('nan'):
+                assert math.isnan(res)
+            else:
+                assert res == float(value)
+        else:
+            with pytest.raises(ValidationError) as excinfo:
+                field.serialize('key', user)
+            assert str(excinfo.value.args[0]) == (
+                'Special numeric values (nan or infinity) are not permitted.'
+            )
 
     def test_decimal_field_fixed_point_representation(self, user):
         """
