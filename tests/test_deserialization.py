@@ -349,13 +349,14 @@ class TestFieldDeserialization:
             42,
             '',
             [],
+            '2018-01-01',
         ],
     )
     def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Not a valid datetime.'.format(in_value)
+        msg = 'Not a valid datetime.'
         assert msg in str(excinfo)
 
     def test_datetime_passed_year_is_invalid(self):

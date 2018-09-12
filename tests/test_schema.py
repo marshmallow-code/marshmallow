@@ -1469,29 +1469,31 @@ def test_exclude_option_must_be_list_or_tuple():
                 exclude = 'name'
 
 def test_datetimeformat_option(user):
-    fmt = '%Y-%m'
+    meta_fmt = '%Y-%m'
+    field_fmt = '%m-%d'
 
     class DateTimeFormatSchema(Schema):
-        updated = fields.DateTime('%m-%d')
+        updated = fields.DateTime(field_fmt)
 
         class Meta:
             fields = ('created', 'updated')
-            datetimeformat = fmt
+            datetimeformat = meta_fmt
     serialized = DateTimeFormatSchema().dump(user)
-    assert serialized['created'] == user.created.strftime(fmt)
-    assert serialized['updated'] == user.updated.strftime('%m-%d')
+    assert serialized['created'] == user.created.strftime(meta_fmt)
+    assert serialized['updated'] == user.updated.strftime(field_fmt)
 
 def test_dateformat_option(user):
     fmt = '%Y-%m'
+    field_fmt = '%m-%d'
 
     class DateFormatSchema(Schema):
-        birthdate = fields.Date('%m-%d')
+        birthdate = fields.Date(field_fmt)
 
         class Meta:
             fields = ('birthdate', 'activation_date')
             dateformat = fmt
     serialized = DateFormatSchema().dump(user)
-    assert serialized['birthdate'] == user.birthdate.strftime('%m-%d')
+    assert serialized['birthdate'] == user.birthdate.strftime(field_fmt)
     assert serialized['activation_date'] == user.activation_date.strftime(fmt)
 
 def test_default_dateformat(user):

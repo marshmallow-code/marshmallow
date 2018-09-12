@@ -955,42 +955,46 @@ class DateTime(Field):
             self.DEFAULT_FORMAT
 
     def _serialize(self, value, attr, obj):
-        self.format = self.format or self.DEFAULT_FORMAT
+        data_format = self.format or self.DEFAULT_FORMAT
         if value is None:
             return None
-        format_func = self.SERIALIZATION_FUNCS.get(self.format, None)
+        format_func = self.SERIALIZATION_FUNCS.get(data_format, None)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
             except (TypeError, AttributeError, ValueError):
                 self.fail('format', input=value, obj_type=self.OBJ_TYPE)
         else:
-            return value.strftime(self.format)
+            return value.strftime(data_format)
+
+    def _create_data_object_from_parsed_value(self, parsed):
+        """
+        Return a datetime from a parsed object that contains the needed info.
+        """
+        return dt.datetime(
+            parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute,
+            parsed.second,
+        )
 
     def _deserialize(self, value, attr, data):
-        self.format = self.format or self.DEFAULT_FORMAT
+        data_format = self.format or self.DEFAULT_FORMAT
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid', obj_type=self.OBJ_TYPE)
-        func = self.DESERIALIZATION_FUNCS.get(
-            self.format,
-        )
+        func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
-        elif self.format:
+        elif data_format:
             try:
-                return dt.datetime.strptime(value, self.format)
+                return dt.datetime.strptime(value, data_format)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         elif utils.dateutil_available:
             try:
                 parsed = utils.from_datestring(value)
-                return dt.datetime(
-                    parsed.year, parsed.month, parsed.day, parsed.hour,
-                    parsed.minute, parsed.second,
-                )
+                return self._create_data_object_from_parsed_value(parsed)
             except (TypeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         else:
@@ -1069,6 +1073,12 @@ class Date(DateTime):
     OBJ_TYPE = 'date'
 
     SCHEMA_OPTS_VAR_NAME = 'dateformat'
+
+    def _create_data_object_from_parsed_value(self, parsed):
+        """
+        Return a date from a parsed object that contains the need information.
+        """
+        return dt.date(parsed.year, parsed.month, parsed.day)
 
 
 class TimeDelta(Field):
