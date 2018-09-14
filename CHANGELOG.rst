@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.15.5
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle empty SQAlchemy lazy lists gracefully when dumping (:issue:`948`).
+  Thanks :user:`vke-code` for the catch and :user:`YuriHeupa` for the patch.
+
 2.15.4 (2018-08-04)
 +++++++++++++++++++
 
