@@ -233,7 +233,7 @@ class TestRenderKwargs:
         result = schema.dumps(i)
         assert result == '{"cost": 3.5, "name": "Marshmallow"}'
 
-    def test_render_load_kwargs(self):
+    def test_render_loads_kwargs(self):
         schema = self.SimpleSchema()
         data = '{"name": "Freebee", "cost": NaN}'
         result = schema.loads(data)
