@@ -106,3 +106,4 @@ Contributors (chronological)
 - Guillaume Gelin `@ramnes <https://github.com/ramnes>`_
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
 - James Remeika `@remeika <https://github.com/remeika>`_
+- Craig Holden `@Tecktron <https://github.com/Tecktron>`_

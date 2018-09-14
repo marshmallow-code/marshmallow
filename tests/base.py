@@ -2,6 +2,8 @@
 """Test utilities and fixtures."""
 import datetime as dt
 import uuid
+import decimal
+import json
 
 import simplejson
 
@@ -60,6 +62,11 @@ def assert_time_equal(t1, t2, microseconds=True):
 
 
 ##### Models #####
+
+class Item(object):
+    def __init__(self, name, cost='1.00'):
+        self.name = name
+        self.cost = decimal.Decimal(cost)
 
 
 class User(object):
@@ -305,3 +312,11 @@ class mockjson(object):  # noqa
     @staticmethod
     def loads(val):
         return {'foo': 42}
+
+
+class DecimalAsFloatEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        else:
+            return super(DecimalAsFloatEncoder, self).default(o)

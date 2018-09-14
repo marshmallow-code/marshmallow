@@ -210,6 +210,8 @@ class SchemaOpts(object):
         else:
             render_module = json
         self.render_module = getattr(meta, 'render_module', render_module)
+        self.render_dumps_kwargs = getattr(meta, 'render_dumps_kwargs', {})
+        self.render_loads_kwargs = getattr(meta, 'render_loads_kwargs', {})
         self.ordered = getattr(meta, 'ordered', ordered)
         self.index_errors = getattr(meta, 'index_errors', True)
         self.include = getattr(meta, 'include', {})
@@ -319,6 +321,10 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
             `json` from the standard library.
+        - ``render_dumps_kwargs``: Dictionary of keyword arguments passed to the
+            `render_module` when dumping
+        - ``render_loads_kwargs``: Dictionary of keyword arguments passed to the
+            `render_module` when loading
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
@@ -500,7 +506,9 @@ class BaseSchema(base.SchemaABC):
             if ``obj`` is invalid.
         """
         serialized = self.dump(obj, many=many, update_fields=update_fields)
-        return self.opts.render_module.dumps(serialized, *args, **kwargs)
+        render_kwargs = self.opts.render_dumps_kwargs
+        render_kwargs.update(kwargs)
+        return self.opts.render_module.dumps(serialized, *args, **render_kwargs)
 
     def load(self, data, many=None, partial=None, unknown=None):
         """Deserialize a data structure to an object defined by this Schema's
@@ -553,7 +561,9 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         """
-        data = self.opts.render_module.loads(json_data, **kwargs)
+        render_kwargs = self.opts.render_loads_kwargs
+        render_kwargs.update(kwargs)
+        data = self.opts.render_module.loads(json_data, **render_kwargs)
         return self.load(data, many=many, partial=partial, unknown=unknown)
 
     def validate(self, data, many=None, partial=None):

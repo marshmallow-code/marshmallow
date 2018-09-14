@@ -6,7 +6,7 @@ import pytest
 
 from marshmallow import fields, Schema, EXCLUDE
 
-from tests.base import User
+from tests.base import User, Item, DecimalAsFloatEncoder
 
 
 class TestUnordered:
@@ -209,3 +209,22 @@ class TestIncludeOption:
         assert 'email' in s._declared_fields.keys()
         assert 'from' in s._declared_fields.keys()
         assert isinstance(s._declared_fields['from'], fields.Str)
+
+
+class TestJsonKwargs:
+
+    class SimpleSchema(Schema):
+        name = fields.Str()
+        cost = fields.Decimal(places=2)
+
+        class Meta:
+            render_dumps_kwargs = {
+                'cls': DecimalAsFloatEncoder,
+                'sort_keys': True,
+            }
+
+    def test_dump_returns_cost_as_float(self):
+        schema = self.SimpleSchema()
+        i = Item('Marshmallow', cost=3.50)
+        result = schema.dumps(i)
+        assert result == '{"cost": 3.5, "name": "Marshmallow"}'
