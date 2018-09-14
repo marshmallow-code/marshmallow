@@ -4,6 +4,7 @@ import datetime as dt
 import uuid
 import decimal
 import json
+import math
 
 import simplejson
 
@@ -320,3 +321,15 @@ class DecimalAsFloatEncoder(json.JSONEncoder):
             return float(o)
         else:
             return super(DecimalAsFloatEncoder, self).default(o)
+
+
+class NaNAsZeroDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.nan_to_zero, *args, **kwargs)
+
+    @staticmethod
+    def nan_to_zero(d):
+        for k in d.keys():
+            if type(d[k]) is float and math.isnan(d[k]):
+                d[k] = 0.0
+        return d

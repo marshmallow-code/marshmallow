@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import decimal
 from collections import OrderedDict
 import datetime as dt
 
@@ -6,7 +7,7 @@ import pytest
 
 from marshmallow import fields, Schema, EXCLUDE
 
-from tests.base import User, Item, DecimalAsFloatEncoder
+from tests.base import User, Item, DecimalAsFloatEncoder, NaNAsZeroDecoder
 
 
 class TestUnordered:
@@ -222,9 +223,19 @@ class TestRenderKwargs:
                 'cls': DecimalAsFloatEncoder,
                 'sort_keys': True,
             }
+            render_loads_kwargs = {
+                'cls': NaNAsZeroDecoder,
+            }
 
-    def test_dump_returns_cost_as_float(self):
+    def test_render_dumps_kwargs(self):
         schema = self.SimpleSchema()
         i = Item('Marshmallow', cost=3.50)
         result = schema.dumps(i)
         assert result == '{"cost": 3.5, "name": "Marshmallow"}'
+
+    def test_render_load_kwargs(self):
+        schema = self.SimpleSchema()
+        data = '{"name": "Freebee", "cost": NaN}'
+        result = schema.loads(data)
+        assert type(result['cost']) is decimal.Decimal
+        assert result['cost'] == decimal.Decimal('0.00')
