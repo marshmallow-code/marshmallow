@@ -211,7 +211,7 @@ class TestIncludeOption:
         assert isinstance(s._declared_fields['from'], fields.Str)
 
 
-class TestJsonKwargs:
+class TestRenderKwargs:
 
     class SimpleSchema(Schema):
         name = fields.Str()
