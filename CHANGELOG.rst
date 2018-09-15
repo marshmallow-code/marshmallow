@@ -293,6 +293,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.15.5 (2018-09-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle empty SQLAlchemy lazy lists gracefully when dumping (:issue:`948`).
+  Thanks :user:`vke-code` for the catch and :user:`YuriHeupa` for the patch.
+
 2.15.4 (2018-08-04)
 +++++++++++++++++++
 

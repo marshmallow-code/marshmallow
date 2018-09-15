@@ -67,8 +67,9 @@ setup(
     ],
     test_suite='tests',
     project_urls={
-        'Bug Reports': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Changelog': 'https://marshmallow.readthedocs.io/en/latest/changelog.html',
+        'Issues': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Funding': 'https://opencollective.com/marshmallow',
+        'Tidelift': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi',  # noqa
     },
 )
