@@ -336,7 +336,6 @@ def test_dumps_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1)
 
-
 def test_load_returns_an_object():
     s = UserSchema()
     result = s.load({'name': 'Monty'})
@@ -350,49 +349,58 @@ def test_load_many():
     assert type(result[0]) == User
     assert result[0].name == 'Mick'
 
-def test_load_many_input_types():
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), [], set(), 'lol'))
+def test_load_invalid_input_type(val):
     class Sch(Schema):
-        name = fields.String()
-    s = Sch(many=True)
-
-    s.load([])
-    s.load(set())
+        name = fields.Str()
 
     with pytest.raises(ValidationError) as e:
-        s.load(None)
+        Sch().load(val)
     assert e.value.messages == {'_schema': ['Invalid input type.']}
-    with pytest.raises(ValidationError) as e:
-        s.load(123)
-    assert e.value.messages == {'_schema': ['Invalid input type.']}
-    with pytest.raises(ValidationError) as e:
-        s.load('abc')
-    assert e.value.messages == {'_schema': ['Invalid input type.']}
-    with pytest.raises(ValidationError) as e:
-        s.load({})
-    assert e.value.messages == {'_schema': ['Invalid input type.']}
-    with pytest.raises(ValidationError) as e:
-        s.load({'name': 2})
-    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == {}
 
-def test_load_many_in_nested_input_types():
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/906
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    with pytest.raises(ValidationError) as e:
+        Sch(many=True).load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == []
+
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_empty_collection(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    assert Sch(many=True).load(val) == []
+
+@pytest.mark.parametrize('val', (False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_in_nested_invalid_input_type(val):
     class Inner(Schema):
         name = fields.String()
 
     class Outer(Schema):
-        list = fields.List(fields.Nested(Inner))  # these two are pretty
-        list2 = fields.Nested(Inner, many=True)   # much the same?
-
-    s = Outer()
-    s.load({'list': [{'name': 'Mick'}], 'list2': [{'name': 'Keith'}]})
-    s.load({'list': [], 'list2': []})
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
 
     with pytest.raises(ValidationError) as e:
-        s.load({'list': {}, 'list2': {}})  # note: {} for many works on Schema level
-    assert e.value.messages == {'list': ['Not a valid list.'], 'list2': ['Invalid type.']}
+        Outer().load({'list1': val, 'list2': val})
+    # TODO: Error messages should be identical (#779)
+    assert e.value.messages == {'list1': ['Not a valid list.'], 'list2': ['Invalid type.']}
 
-    with pytest.raises(ValidationError) as e:
-        s.load({'list': 'iterable-but-string', 'list2': 'iterable-but-string'})
-    assert e.value.messages == {'list': ['Not a valid list.'], 'list2': ['Invalid type.']}
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_in_nested_empty_collection(val):
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
+
+    assert Outer().load({'list1': val, 'list2': val}) == {'list1': [], 'list2': []}
 
 def test_loads_returns_a_user():
     s = UserSchema()
@@ -1676,22 +1684,6 @@ class TestHandleError:
 
 
 class TestFieldValidation:
-
-    @pytest.mark.parametrize('val', (None, False, 1, 1.2, object()))
-    def test_non_iterables_with_many(self, val):
-        class Sch(Schema):
-            name = fields.Str()
-
-        with pytest.raises(ValidationError) as e:
-            Sch().load(val)
-        assert e.value.messages == {'_schema': ['Invalid input type.']}
-        assert e.value.valid_data == {}
-
-        with pytest.raises(ValidationError) as e:
-            # This was https://github.com/marshmallow-code/marshmallow/issues/906
-            Sch(many=True).load(val)
-        assert e.value.messages == {'_schema': ['Invalid input type.']}
-        assert e.value.valid_data == []
 
     def test_errors_are_cleared_after_loading_collection(self):
         def always_fail(val):
