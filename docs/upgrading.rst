@@ -79,10 +79,11 @@ will raise a :exc:`TypeError`.
     this change.
 
 
-``Schema().load(None)`` raises a ``ValidationError``
-****************************************************
+Deserializing invalid types raises a ``ValidationError``
+********************************************************
 
-`None` is considered invalid input to `Schema.load
+Numbers, booleans, strings, and ``None`` are
+considered invalid input to `Schema.load
 <marshmallow.Schema.load>`.
 
 .. code-block:: python
@@ -90,10 +91,32 @@ will raise a :exc:`TypeError`.
     # 2.x
     # Passes silently
     schema.load(None)
+    schema.load(False)
+    schema.load('pass')
 
     # 3.x
     # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
     schema.load(None)
+    schema.load(False)
+    schema.load('nope')
+
+
+When ``many=True``, non-collection types are also considered invalid.
+
+
+.. code-block:: python
+
+    # 2.x
+    # Passes silently
+    schema.load(None, many=True)
+    schema.load({}, many=True)
+    schema.load('pass', many=True)
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
+    schema.load(None, many=True)
+    schema.load({}, many=True)
+    schema.load('invalid', many=True)
 
 
 ``ValidationError.fields`` is removed
