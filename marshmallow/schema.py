@@ -620,18 +620,15 @@ class BaseSchema(base.SchemaABC):
         else:
             processed_data = data
         if not errors:
-            try:
-                result = unmarshal(
-                    processed_data,
-                    self.fields,
-                    many=many,
-                    partial=partial,
-                    unknown=unknown,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                )
-            except ValidationError as error:
-                result = error.data
+            result = unmarshal(
+                processed_data,
+                self.fields,
+                many=many,
+                partial=partial,
+                unknown=unknown,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
             self._invoke_field_validators(unmarshal, data=result, many=many)
             errors = unmarshal.errors
             # Run schema-level validation.
