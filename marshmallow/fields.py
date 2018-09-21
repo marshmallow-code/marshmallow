@@ -4,6 +4,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import copy
 import datetime as dt
 import numbers
 import uuid
@@ -568,6 +569,7 @@ class List(Field):
 
     def _add_to_schema(self, field_name, schema):
         super(List, self)._add_to_schema(field_name, schema)
+        self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
 
@@ -1207,9 +1209,11 @@ class Dict(Field):
     def _add_to_schema(self, field_name, schema):
         super(Dict, self)._add_to_schema(field_name, schema)
         if self.value_container:
+            self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
             self.value_container.name = field_name
         if self.key_container:
+            self.key_container = copy.deepcopy(self.key_container)
             self.key_container.parent = self
             self.key_container.name = field_name
 

@@ -129,6 +129,28 @@ class TestParentAndName:
     def test_list_field_inner_root(self, schema):
         assert schema.fields['bar'].container.root == schema
 
+    def test_list_root_inheritance(self, schema):
+        class OtherSchema(TestParentAndName.MySchema):
+            pass
+
+        schema2 = OtherSchema()
+        assert schema.fields['bar'].container.root == schema
+        assert schema2.fields['bar'].container.root == schema2
+
+    def test_dict_root_inheritance(self):
+        class MySchema(Schema):
+            foo = fields.Dict(keys=fields.Str(), values=fields.Int())
+
+        class OtherSchema(MySchema):
+            pass
+
+        schema = MySchema()
+        schema2 = OtherSchema()
+        assert schema.fields['foo'].key_container.root == schema
+        assert schema.fields['foo'].value_container.root == schema
+        assert schema2.fields['foo'].key_container.root == schema2
+        assert schema2.fields['foo'].value_container.root == schema2
+
 
 class TestMetadata:
 
