@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.0.0b16 (2018-09-20)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Fix ``root`` attribute for nested container fields
+  on inheriting schemas (:issue:`956`). Thanks :user:`bmcbu`
+  for reporting.
+
 3.0.0b15 (2018-09-18)
 +++++++++++++++++++++
 
