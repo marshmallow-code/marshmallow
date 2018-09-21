@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.15.6 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent ``TypeError`` when a non-collection is passed to a ``Schema`` with ``many=True``.
+  Instead, raise ``ValidationError`` with ``{'_schema': ['Invalid input type.']}`` (:issue:`906`).
+  
+
 2.15.5 (2018-09-15)
 +++++++++++++++++++
 

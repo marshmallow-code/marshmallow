@@ -220,20 +220,26 @@ class Unmarshaller(ErrorStore):
         :return: A dictionary of the deserialized data.
         """
         if many and data is not None:
-            self._pending = True
-            ret = [self.deserialize(d, fields_dict, many=False,
-                        partial=partial, dict_class=dict_class,
-                        index=idx, index_errors=index_errors)
-                    for idx, d in enumerate(data)]
+            if not is_collection(data):
+                errors = self.get_errors(index=index)
+                self.error_field_names.append(SCHEMA)
+                errors[SCHEMA] = ['Invalid input type.']
+                ret = []
+            else:
+                self._pending = True
+                ret = [self.deserialize(d, fields_dict, many=False,
+                            partial=partial, dict_class=dict_class,
+                            index=idx, index_errors=index_errors)
+                        for idx, d in enumerate(data)]
 
-            self._pending = False
-            if self.errors:
-                raise ValidationError(
-                    self.errors,
-                    field_names=self.error_field_names,
-                    fields=self.error_fields,
-                    data=ret,
-                )
+                self._pending = False
+                if self.errors:
+                    raise ValidationError(
+                        self.errors,
+                        field_names=self.error_field_names,
+                        fields=self.error_fields,
+                        data=ret,
+                    )
             return ret
         if data is not None:
             partial_is_collection = is_collection(partial)

@@ -279,6 +279,16 @@ def test_load_many():
     assert type(result.data[0]) == User
     assert result.data[0].name == 'Mick'
 
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/906
+@pytest.mark.parametrize('val', (False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+    with pytest.raises(ValidationError) as e:
+        Sch(strict=True, many=True).load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert '_schema' in e.value.field_names
+
 def test_loads_returns_an_unmarshalresult(user):
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))
