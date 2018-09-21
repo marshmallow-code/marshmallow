@@ -4,6 +4,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import copy
 import datetime as dt
 import uuid
 import warnings
@@ -556,6 +557,7 @@ class List(Field):
 
     def _add_to_schema(self, field_name, schema):
         super(List, self)._add_to_schema(field_name, schema)
+        self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
 

@@ -115,6 +115,13 @@ class TestParentAndName:
     def test_list_field_inner_root(self, schema):
         assert schema.fields['bar'].container.root == schema
 
+    def test_list_root_inheritance(self, schema):
+        class OtherSchema(TestParentAndName.MySchema):
+            pass
+        schema2 = OtherSchema()
+        assert schema.fields['bar'].container.root == schema
+        assert schema2.fields['bar'].container.root == schema2
+
 
 class TestMetadata:
 
