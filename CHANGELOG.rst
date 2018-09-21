@@ -316,6 +316,20 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.15.6 (2018-09-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent ``TypeError`` when a non-collection is passed to a ``Schema`` with ``many=True``.
+  Instead, raise ``ValidationError`` with ``{'_schema': ['Invalid input type.']}`` (:issue:`906`).
+- Fix ``root`` attribute for nested container fields on list
+  on inheriting schemas (:issue:`956`). Thanks :user:`bmcbu`
+  for reporting.
+
+These fixes were backported from 3.0.0b15 and 3.0.0b16.
+
+
 2.15.5 (2018-09-15)
 +++++++++++++++++++
 
