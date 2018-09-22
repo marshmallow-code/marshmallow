@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.0.0b17 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+- Add ``format`` option to ``Date`` field (:pr:`869`).
+- *Backwards-incompatible*: Rename ``DateTime``'s ``dateformat`` Meta option
+  to ``datetimeformat``. ``dateformat`` now applies to ``Date`` (:pr:`869`).
+  Thanks :user:`knagra` for implementing these changes.
+
 3.0.0b16 (2018-09-20)
 +++++++++++++++++++++
 
