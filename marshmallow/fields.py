@@ -14,8 +14,7 @@ import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import RAISE, is_collection
-from marshmallow.utils import missing as missing_
+from marshmallow.utils import is_collection, missing as missing_
 from marshmallow.compat import text_type, basestring
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
