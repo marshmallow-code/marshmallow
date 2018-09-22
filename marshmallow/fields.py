@@ -401,7 +401,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
-        self.unknown = kwargs.get('unknown', RAISE)
+        self.unknown = kwargs.get('unknown')
         self.__schema = None  # Cached Schema instance
         self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
