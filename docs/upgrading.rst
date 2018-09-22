@@ -639,9 +639,9 @@ In marshmallow 2.x, ``Float`` field would serialize and deserialize special valu
 ``DateTime`` field ``dateformat`` ``Meta`` option is renamed ``datetimeformat``
 *******************************************************************************
 
-The ``Meta`` option ``dateformat`` used to pass format to ``DateTime`` field is renamed as ``datetimeformat``.
+The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow.fields.DateTime>` field is renamed as ``datetimeformat``.
 
-``Date`` field gets a new ``format`` parameter to specify the format to use for serialization. ``dateformat`` ``Meta`` option now applies to ``Date`` field.
+`Date <marshmallow.fields.Date>` field gets a new ``format`` parameter to specify the format to use for serialization. ``dateformat`` ``Meta`` option now applies to `Date <marshmallow.fields.Date>` field.
 
 .. code-block:: python
 
