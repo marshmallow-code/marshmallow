@@ -89,6 +89,7 @@ class User(object):
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
+        self.activation_date = dt.date(2013, 12, 11)
         self.sex = sex
         self.employer = employer
         self.relatives = []
@@ -170,6 +171,7 @@ class UserSchema(Schema):
     uid = fields.UUID()
     time_registered = fields.Time()
     birthdate = fields.Date()
+    activation_date = fields.Date()
     since_created = fields.TimeDelta()
     sex = fields.Str(validate=validate.OneOf(['male', 'female']))
     various_data = fields.Dict()

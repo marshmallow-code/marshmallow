@@ -934,14 +934,14 @@ class DateTime(Field):
 
     """
 
-    DATEFORMAT_SERIALIZATION_FUNCS = {
+    SERIALIZATION_FUNCS = {
         'iso': utils.isoformat,
         'iso8601': utils.isoformat,
         'rfc': utils.rfcformat,
         'rfc822': utils.rfcformat,
     }
 
-    DATEFORMAT_DESERIALIZATION_FUNCS = {
+    DESERIALIZATION_FUNCS = {
         'iso': utils.from_iso_datetime,
         'iso8601': utils.from_iso_datetime,
         'rfc': utils.from_rfc,
@@ -950,62 +950,80 @@ class DateTime(Field):
 
     DEFAULT_FORMAT = 'iso'
 
+    OBJ_TYPE = 'datetime'
+
+    SCHEMA_OPTS_VAR_NAME = 'datetimeformat'
+
     localtime = False
     default_error_messages = {
-        'invalid': 'Not a valid datetime.',
-        'format': '"{input}" cannot be formatted as a datetime.',
+        'invalid': 'Not a valid {obj_type}.',
+        'format': '"{input}" cannot be formatted as a {obj_type}.',
     }
 
     def __init__(self, format=None, **kwargs):
         super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
-        # or ``_desrialize`` methods This allows a Schema to dynamically set the
-        # dateformat, e.g. from a Meta option
-        self.dateformat = format
+        # or ``_deserialize`` methods This allows a Schema to dynamically set the
+        # format, e.g. from a Meta option
+        self.format = format
 
     def _add_to_schema(self, field_name, schema):
         super(DateTime, self)._add_to_schema(field_name, schema)
-        self.dateformat = self.dateformat or schema.opts.dateformat
+        self.format = (
+            self.format or
+            getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or
+            self.DEFAULT_FORMAT
+        )
 
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
-        dateformat = self.dateformat or self.DEFAULT_FORMAT
-        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(dateformat, None)
+        data_format = self.format or self.DEFAULT_FORMAT
+        format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
-            except (AttributeError, ValueError):
-                self.fail('format', input=value)
+            except (TypeError, AttributeError, ValueError):
+                self.fail('format', input=value, obj_type=self.OBJ_TYPE)
         else:
-            return value.strftime(dateformat)
+            return value.strftime(data_format)
+
+    def _create_data_object_from_parsed_value(self, parsed):
+        """
+        Return a datetime from a parsed object that contains the needed info.
+        """
+        return dt.datetime(
+            parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute,
+            parsed.second,
+        )
 
     def _deserialize(self, value, attr, data):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise self.fail('invalid')
-        dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(dateformat)
+            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+        data_format = self.format or self.DEFAULT_FORMAT
+        func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
-        elif dateformat:
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+        elif data_format:
             try:
-                return dt.datetime.strptime(value, dateformat)
+                return dt.datetime.strptime(value, data_format)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         elif utils.dateutil_available:
             try:
-                return utils.from_datestring(value)
-            except TypeError:
-                raise self.fail('invalid')
+                parsed = utils.from_datestring(value)
+                return self._create_data_object_from_parsed_value(parsed)
+            except (TypeError, ValueError):
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         else:
             warnings.warn(
                 'It is recommended that you install python-dateutil '
                 'for improved datetime deserialization.',
             )
-            raise self.fail('invalid')
+            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
 
 
 class LocalDateTime(DateTime):
@@ -1049,9 +1067,11 @@ class Time(Field):
             self.fail('invalid')
 
 
-class Date(Field):
+class Date(DateTime):
     """ISO8601-formatted date string.
 
+    :param format: Either ``"iso"`` (for ISO8601) or a date format string.
+        If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     default_error_messages = {
@@ -1059,25 +1079,27 @@ class Date(Field):
         'format': '"{input}" cannot be formatted as a date.',
     }
 
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return None
-        try:
-            return value.isoformat()
-        except AttributeError:
-            self.fail('format', input=value)
-        return value
+    SERIALIZATION_FUNCS = {
+        'iso': utils.to_iso_date,
+        'iso8601': utils.to_iso_date,
+    }
 
-    def _deserialize(self, value, attr, data):
-        """Deserialize an ISO8601-formatted date string to a
-        :class:`datetime.date` object.
+    DESERIALIZATION_FUNCS = {
+        'iso': utils.from_iso_date,
+        'iso8601': utils.from_iso_date,
+    }
+
+    DEFAULT_FORMAT = 'iso'
+
+    OBJ_TYPE = 'date'
+
+    SCHEMA_OPTS_VAR_NAME = 'dateformat'
+
+    def _create_data_object_from_parsed_value(self, parsed):
         """
-        if not value:  # falsy values are invalid
-            self.fail('invalid')
-        try:
-            return utils.from_iso_date(value)
-        except (AttributeError, TypeError, ValueError):
-            self.fail('invalid')
+        Return a date from a parsed object that contains the need information.
+        """
+        return dt.date(parsed.year, parsed.month, parsed.day)
 
 
 class TimeDelta(Field):
