@@ -634,28 +634,22 @@ class BaseSchema(base.SchemaABC):
             # Run schema-level validation.
             if self._has_processors(VALIDATES_SCHEMA):
                 field_errors = bool(errors)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=True,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=False,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=True,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=False,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
         # Run post processors
         if not errors and postprocess and self._has_processors(POST_LOAD):
             try:
