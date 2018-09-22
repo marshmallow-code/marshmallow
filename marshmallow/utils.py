@@ -245,15 +245,6 @@ def isoformat(dt, localtime=False, *args, **kwargs):
     return localized.isoformat(*args, **kwargs)
 
 
-def from_datestring(datestring):
-    """Parse an arbitrary datestring and return a datetime object using
-    dateutils' parser.
-    """
-    if dateutil_available:
-        return parser.parse(datestring)
-    else:
-        raise RuntimeError('from_datestring requires the python-dateutil library')
-
 def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
