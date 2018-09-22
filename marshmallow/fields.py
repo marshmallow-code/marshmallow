@@ -989,9 +989,7 @@ class DateTime(Field):
             return value.strftime(data_format)
 
     def _create_data_object_from_parsed_value(self, parsed):
-        """
-        Return a datetime from a parsed object that contains the needed info.
-        """
+        """Return a datetime from a parsed object that contains the needed info."""
         return dt.datetime(
             parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute,
             parsed.second,
@@ -1096,9 +1094,7 @@ class Date(DateTime):
     SCHEMA_OPTS_VAR_NAME = 'dateformat'
 
     def _create_data_object_from_parsed_value(self, parsed):
-        """
-        Return a date from a parsed object that contains the need information.
-        """
+        """Return a date from a parsed object that contains the need information."""
         return dt.date(parsed.year, parsed.month, parsed.day)
 
 

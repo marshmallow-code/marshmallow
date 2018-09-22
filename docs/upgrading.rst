@@ -487,12 +487,12 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
     # 2.x
     class UserSchema(Schema):
         id = fields.UUID(missing=lambda: str(uuid.uuid1()))
-        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29).isoformat())
+        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 19).isoformat())
 
     # 3.x
     class UserSchema(Schema):
         id = fields.UUID(missing=uuid.uuid1)
-        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 19))
 
 
 Pass ``default`` as a keyword argument
@@ -635,6 +635,37 @@ In marshmallow 2.x, ``Float`` field would serialize and deserialize special valu
 
     MySchema().load({'x': 'nan'})
     # marshmallow.exceptions.ValidationError: {'x': ['Special numeric values (nan or infinity) are not permitted.']}
+
+``DateTime`` field ``dateformat`` ``Meta`` option is renamed ``datetimeformat``
+*******************************************************************************
+
+The ``Meta`` option ``dateformat`` used to pass format to ``DateTime`` field is renamed as ``datetimeformat``.
+
+``Date`` field gets a new ``format`` parameter to specify the format to use for serialization. ``dateformat`` ``Meta`` option now applies to ``Date`` field.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+
+        class Meta:
+            dateformat = '%Y-%m'
+
+    MySchema().dump({'x': dt.datetime(2017, 9, 19)})
+    # => {{'x': '2017-09'}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.Date()
+
+        class Meta:
+            datetimeformat = '%Y-%m'
+            dateformat = '%m-%d'
+
+    MySchema().dump({'x': dt.datetime(2017, 9, 19), 'y': dt.date(2017, 9, 19)})
+    # => {{'x': '2017-09', 'y': '09-19'}}
 
 Upgrading to 2.3
 ++++++++++++++++
