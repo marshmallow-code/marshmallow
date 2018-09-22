@@ -620,45 +620,36 @@ class BaseSchema(base.SchemaABC):
         else:
             processed_data = data
         if not errors:
-            try:
-                result = unmarshal(
-                    processed_data,
-                    self.fields,
-                    many=many,
-                    partial=partial,
-                    unknown=unknown,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                )
-            except ValidationError as error:
-                result = error.data
+            result = unmarshal(
+                processed_data,
+                self.fields,
+                many=many,
+                partial=partial,
+                unknown=unknown,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
             self._invoke_field_validators(unmarshal, data=result, many=many)
             errors = unmarshal.errors
             # Run schema-level validation.
             if self._has_processors(VALIDATES_SCHEMA):
                 field_errors = bool(errors)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=True,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=False,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=True,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=False,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
         # Run post processors
         if not errors and postprocess and self._has_processors(POST_LOAD):
             try:
@@ -922,7 +913,6 @@ class BaseSchema(base.SchemaABC):
         many,
         field_errors=False,
     ):
-        errors = {}
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_hook__[(VALIDATES_SCHEMA, pass_many)]
@@ -936,33 +926,24 @@ class BaseSchema(base.SchemaABC):
                 validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
-                    try:
-                        unmarshal.run_validator(
-                            validator,
-                            item,
-                            orig,
-                            self.fields,
-                            many=many,
-                            index=idx,
-                            pass_original=pass_original,
-                        )
-                    except ValidationError as err:
-                        errors.update(err.messages)
-            else:
-                try:
                     unmarshal.run_validator(
                         validator,
-                        data,
-                        original_data,
+                        item,
+                        orig,
                         self.fields,
                         many=many,
+                        index=idx,
                         pass_original=pass_original,
                     )
-                except ValidationError as err:
-                    errors.update(err.messages)
-        if errors:
-            raise ValidationError(errors)
-        return None
+            else:
+                unmarshal.run_validator(
+                    validator,
+                    data,
+                    original_data,
+                    self.fields,
+                    many=many,
+                    pass_original=pass_original,
+                )
 
     def _invoke_processors(
         self,

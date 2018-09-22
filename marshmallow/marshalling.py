@@ -226,12 +226,6 @@ class Unmarshaller(ErrorStore):
                     for idx, d in enumerate(data)
                 ]
                 self._pending = False
-            if self.errors:
-                raise ValidationError(
-                    self.errors,
-                    field_names=self.error_field_names,
-                    data=ret,
-                )
             return ret
         ret = dict_class()
         # Check data is a dict
@@ -279,13 +273,6 @@ class Unmarshaller(ErrorStore):
                             ValidationError('Unknown field.'),
                             (index if index_errors else None),
                         )
-
-        if self.errors and not self._pending:
-            raise ValidationError(
-                self.errors,
-                field_names=self.error_field_names,
-                data=ret,
-            )
         return ret
 
     # Make an instance callable
