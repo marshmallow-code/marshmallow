@@ -309,6 +309,11 @@ def from_iso_date(datestring, use_dateutil=True):
     else:
         return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
 
+
+def to_iso_date(date, *args, **kwargs):
+    return datetime.date.isoformat(date)
+
+
 def ensure_text_type(val):
     if isinstance(val, binary_type):
         val = val.decode('utf-8')

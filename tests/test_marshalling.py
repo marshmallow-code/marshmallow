@@ -2,7 +2,7 @@
 
 import pytest
 
-from marshmallow import fields, EXCLUDE, INCLUDE, RAISE
+from marshmallow import fields, EXCLUDE, INCLUDE
 from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
@@ -124,13 +124,6 @@ class TestUnmarshaller:
     @pytest.fixture
     def unmarshal(self):
         return Unmarshaller()
-
-    def test_extra_data_unknown_raise(self, unmarshal):
-        fields_ = {'name': fields.Str()}
-        with pytest.raises(ValidationError) as excinfo:
-            unmarshal({'extra': 42, 'name': 'Steve'}, fields_, unknown=RAISE)
-        errors = excinfo.value.messages
-        assert errors == {'extra': ['Unknown field.']}
 
     def test_extra_data_unknown_exclude(self, unmarshal):
         fields_ = {'name': fields.Str()}

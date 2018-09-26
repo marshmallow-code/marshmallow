@@ -337,7 +337,6 @@ def test_dumps_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1)
 
-
 def test_load_returns_an_object():
     s = UserSchema()
     result = s.load({'name': 'Monty'})
@@ -350,6 +349,59 @@ def test_load_many():
     assert type(result) == list
     assert type(result[0]) == User
     assert result[0].name == 'Mick'
+
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), [], set(), 'lol'))
+def test_load_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    with pytest.raises(ValidationError) as e:
+        Sch().load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == {}
+
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/906
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    with pytest.raises(ValidationError) as e:
+        Sch(many=True).load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == []
+
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_empty_collection(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    assert Sch(many=True).load(val) == []
+
+@pytest.mark.parametrize('val', (False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_in_nested_invalid_input_type(val):
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
+
+    with pytest.raises(ValidationError) as e:
+        Outer().load({'list1': val, 'list2': val})
+    # TODO: Error messages should be identical (#779)
+    assert e.value.messages == {'list1': ['Not a valid list.'], 'list2': ['Invalid type.']}
+
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_in_nested_empty_collection(val):
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
+
+    assert Outer().load({'list1': val, 'list2': val}) == {'list1': [], 'list2': []}
 
 def test_loads_returns_a_user():
     s = UserSchema()
@@ -1469,18 +1521,33 @@ def test_exclude_option_must_be_list_or_tuple():
             class Meta:
                 exclude = 'name'
 
-def test_dateformat_option(user):
-    fmt = '%Y-%m'
+def test_datetimeformat_option(user):
+    meta_fmt = '%Y-%m'
+    field_fmt = '%m-%d'
 
-    class DateFormatSchema(Schema):
-        updated = fields.DateTime('%m-%d')
+    class DateTimeFormatSchema(Schema):
+        updated = fields.DateTime(field_fmt)
 
         class Meta:
             fields = ('created', 'updated')
+            datetimeformat = meta_fmt
+    serialized = DateTimeFormatSchema().dump(user)
+    assert serialized['created'] == user.created.strftime(meta_fmt)
+    assert serialized['updated'] == user.updated.strftime(field_fmt)
+
+def test_dateformat_option(user):
+    fmt = '%Y-%m'
+    field_fmt = '%m-%d'
+
+    class DateFormatSchema(Schema):
+        birthdate = fields.Date(field_fmt)
+
+        class Meta:
+            fields = ('birthdate', 'activation_date')
             dateformat = fmt
     serialized = DateFormatSchema().dump(user)
-    assert serialized['created'] == user.created.strftime(fmt)
-    assert serialized['updated'] == user.updated.strftime('%m-%d')
+    assert serialized['birthdate'] == user.birthdate.strftime(field_fmt)
+    assert serialized['activation_date'] == user.activation_date.strftime(fmt)
 
 def test_default_dateformat(user):
     class DateFormatSchema(Schema):

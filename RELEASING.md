@@ -13,3 +13,5 @@ git checkout 3.0
 git merge dev
 git push origin 3.0
 ```
+
+6. Add release notes on Tidelift.
