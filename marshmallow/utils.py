@@ -224,17 +224,25 @@ def rfcformat(dt, localtime=False):
 
 
 # From Django
-_iso8601_re = re.compile(
+_iso8601_datetime_re = re.compile(
     r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
     r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
     r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
     r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$',
 )
 
+_iso8601_date_re = re.compile(
+    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$',
+)
+
+_iso8601_time_re = re.compile(
+    r'(?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
+    r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?',
+)
+
 
 def isoformat(dt, localtime=False, *args, **kwargs):
-    """Return the ISO8601-formatted UTC representation of a datetime object.
-    """
+    """Return the ISO8601-formatted UTC representation of a datetime object."""
     if localtime and dt.tzinfo is not None:
         localized = dt
     else:
@@ -275,25 +283,27 @@ def from_iso(datestring, use_dateutil=True):
     return from_iso_datetime(datestring, use_dateutil)
 
 
-def from_iso_datetime(datestring, use_dateutil=True):
+def from_iso_datetime(datetimestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
-    if not _iso8601_re.match(datestring):
+    if not _iso8601_datetime_re.match(datetimestring):
         raise ValueError('Not a valid ISO8601-formatted datetime string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
-        return parser.isoparse(datestring)
+        return parser.isoparse(datetimestring)
     else:
         # Strip off timezone info.
-        return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+        return datetime.datetime.strptime(datetimestring[:19], '%Y-%m-%dT%H:%M:%S')
 
 
 def from_iso_time(timestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime.time
     object.
     """
+    if not _iso8601_time_re.match(timestring):
+        raise ValueError('Not a valid ISO8601-formatted time string')
     if dateutil_available and use_dateutil:
         return parser.parse(timestring).time()
     else:
@@ -304,6 +314,8 @@ def from_iso_time(timestring, use_dateutil=True):
         return datetime.datetime.strptime(timestring, fmt).time()
 
 def from_iso_date(datestring, use_dateutil=True):
+    if not _iso8601_date_re.match(datestring):
+        raise ValueError('Not a valid ISO8601-formatted date string')
     if dateutil_available and use_dateutil:
         return parser.isoparse(datestring).date()
     else:
