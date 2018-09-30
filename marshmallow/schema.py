@@ -504,7 +504,7 @@ class BaseSchema(base.SchemaABC):
 
     def load(self, data, many=None, partial=None, unknown=None):
         """Deserialize a data structure to an object defined by this Schema's
-        fields and :meth:`make_object`.
+        fields and :meth:`post_load` decorated method.
 
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
