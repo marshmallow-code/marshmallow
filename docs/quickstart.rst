@@ -342,7 +342,7 @@ Or you can ignore missing fields entirely by setting ``partial=True``.
 Handling Unknown Fields
 +++++++++++++++++++++++
 
-By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a field that has not been defined in the schema.
+By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a key with no matching ``Field`` in the schema.
 
 This behavior can be modified with the ``unknown`` option, which accepts one of the following:
 
@@ -520,6 +520,10 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
         password = fields.Str(load_only=True)
         # created_at is "read-only"
         created_at = fields.DateTime(dump_only=True)
+
+.. warning::
+
+    When loading, dump_only fields are considered unknown. If the ``unknown`` option is set to ``INCLUDE``, values with keys corresponding to those fields are therefore loaded with no validation.
 
 
 Specify Default Serialization/Deserialization Values
