@@ -128,7 +128,7 @@ class TestFieldOrdering:
             'created': dt.datetime.now().isoformat(),
             'id': 123,
             'homepage': 'http://foo.com',
-            'birthdate': dt.datetime.now().isoformat(),
+            'birthdate': dt.datetime.now().date().isoformat(),
         }})
         user_data = data['user']
         keys = list(user_data)
