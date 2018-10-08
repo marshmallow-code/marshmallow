@@ -55,7 +55,7 @@ class URL(Validator):
                 r'^',
                 r'(' if relative else r'',
                 r'(?:[a-z0-9\.\-\+]*)://',  # scheme is validated separately
-                r'(?:[^:@]+?:[^:@]*?@|)',  # basic auth
+                r'(?:[^:@]+?(:[^:@]*?)?@|)',  # basic auth
                 r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+',
                 r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|',  # domain...
                 r'localhost|',  # localhost...
