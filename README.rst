@@ -129,7 +129,7 @@ Tidelift gives software development teams a single source for purchasing and mai
 with professional-grade assurances from the experts who know it best,
 while seamlessly integrating with existing tools. [`Get professional support`_]
 
-.. _`Get professional support`: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
+.. _`Get professional support`: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=marshmallow&utm_medium=referral&utm_campaign=github
 
 .. image:: https://user-images.githubusercontent.com/2379650/45126032-50b69880-b13f-11e8-9c2c-abd16c433495.png
     :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
