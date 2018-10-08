@@ -1424,20 +1424,21 @@ def test_meta_serializer_fields():
 def test_meta_fields_mapping(user):
     s = UserMetaSchema()
     s.dump(user)  # need to call dump to update fields
-    assert type(s.fields['name']._field) == fields.String
-    assert type(s.fields['created']._field) == fields.DateTime
-    assert type(s.fields['updated']._field) == fields.DateTime
-    assert type(s.fields['updated_local']) == fields.LocalDateTime
-    assert type(s.fields['age']._field) == fields.Float
     assert type(s.fields['balance']) == fields.Decimal
-    assert type(s.fields['registered']._field) == fields.Boolean
-    assert type(s.fields['sex_choices']._field) == fields.Raw
-    assert type(s.fields['hair_colors']._field) == fields.Raw
-    assert type(s.fields['finger_count']._field) == fields.Integer
-    assert type(s.fields['uid']._field) == fields.UUID
-    assert type(s.fields['time_registered']._field) == fields.Time
-    assert type(s.fields['birthdate']._field) == fields.Date
-    assert type(s.fields['since_created']._field) == fields.TimeDelta
+    assert type(s.fields['updated_local']) == fields.LocalDateTime
+    # Inferred fields
+    assert type(s.fields['name']._field_cache[fields.String]) == fields.String
+    assert type(s.fields['created']._field_cache[fields.DateTime]) == fields.DateTime
+    assert type(s.fields['updated']._field_cache[fields.DateTime]) == fields.DateTime
+    assert type(s.fields['age']._field_cache[fields.Float]) == fields.Float
+    assert type(s.fields['registered']._field_cache[fields.Boolean]) == fields.Boolean
+    assert type(s.fields['sex_choices']._field_cache[fields.Raw]) == fields.Raw
+    assert type(s.fields['hair_colors']._field_cache[fields.Raw]) == fields.Raw
+    assert type(s.fields['finger_count']._field_cache[fields.Integer]) == fields.Integer
+    assert type(s.fields['uid']._field_cache[fields.UUID]) == fields.UUID
+    assert type(s.fields['time_registered']._field_cache[fields.Time]) == fields.Time
+    assert type(s.fields['birthdate']._field_cache[fields.Date]) == fields.Date
+    assert type(s.fields['since_created']._field_cache[fields.TimeDelta]) == fields.TimeDelta
 
 
 def test_meta_field_not_on_obj_raises_attribute_error(user):

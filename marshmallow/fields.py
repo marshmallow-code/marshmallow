@@ -1426,24 +1426,20 @@ class Inferred(Field):
 
     def __init__(self):
         super(Inferred, self).__init__()
-
-        # We memoize the last field used to avoid creating and binding new
-        # fields every time on serialization. In general, we expect the actual
-        # type of a given field to change very rarely, especially when the same
-        # schema is used to dump multiple objects, so it's likely a good
-        # compromise between performance and simplicity to cache only the most
-        # recently used field.
-        self._field = None
+        # We memoize the fields to avoid creating and binding new fields
+        # every time on serialization.
+        self._field_cache = {}
 
     def _serialize(self, value, attr, obj):
-        field_type = self.TYPE_MAPPING.get(type(value), Field)
-        if field_type is Field:
-            return super(Inferred, self)._serialize(value, attr, obj)
-
-        field = self._field
-        if type(field) is not field_type:
-            self._field = field = field_type()
-            field._bind_to_schema(self.name, self.parent)
+        field_cls = self.TYPE_MAPPING.get(type(value))
+        if field_cls is None:
+            field = super(Inferred, self)
+        else:
+            field = self._field_cache.get(field_cls)
+            if field is None:
+                field = field_cls()
+                field._bind_to_schema(self.name, self.parent)
+                self._field_cache[field_cls] = field
 
         # Use the local field rather than self._field for thread safety.
         return field._serialize(value, attr, obj)
