@@ -61,13 +61,15 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
     test_suite='tests',
     project_urls={
-        'Bug Reports': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Changelog': 'https://marshmallow.readthedocs.io/en/latest/changelog.html',
+        'Issues': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Funding': 'https://opencollective.com/marshmallow',
+        'Tidelift': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi',  # noqa
     },
 )

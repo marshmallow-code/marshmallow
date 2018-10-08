@@ -2,6 +2,7 @@
 import datetime as dt
 import uuid
 import decimal
+import math
 
 import pytest
 
@@ -229,7 +230,9 @@ class TestFieldDeserialization:
 
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(m1)
-        assert str(excinfo.value.args[0]) == 'Special numeric values are not permitted.'
+        assert str(excinfo.value.args[0]) == (
+            'Special numeric values (nan or infinity) are not permitted.'
+        )
         with pytest.raises(ValidationError):
             field.deserialize(m2)
         with pytest.raises(ValidationError):
@@ -244,6 +247,30 @@ class TestFieldDeserialization:
         m7d = field.deserialize(m7)
         assert isinstance(m7d, decimal.Decimal)
         assert m7d.is_zero() and m7d.is_signed()
+
+    @pytest.mark.parametrize('allow_nan', (None, False, True))
+    @pytest.mark.parametrize('value', ('nan', '-nan', 'inf', '-inf'))
+    def test_float_field_allow_nan(self, value, allow_nan):
+
+        if allow_nan is None:
+            # Test default case is False
+            field = fields.Float()
+        else:
+            field = fields.Float(allow_nan=allow_nan)
+
+        if allow_nan is True:
+            res = field.deserialize(value)
+            assert isinstance(res, float)
+            if value.endswith('nan'):
+                assert math.isnan(res)
+            else:
+                assert res == float(value)
+        else:
+            with pytest.raises(ValidationError) as excinfo:
+                field.deserialize(value)
+            assert str(excinfo.value.args[0]) == (
+                'Special numeric values (nan or infinity) are not permitted.'
+            )
 
     def test_string_field_deserialization(self):
         field = fields.String()
@@ -349,13 +376,16 @@ class TestFieldDeserialization:
             42,
             '',
             [],
+            '2018-01-01',
+            dt.datetime.now().strftime('%H:%M:%S %Y-%m-%d'),
+            dt.datetime.now().strftime('%m-%d-%Y %H:%M:%S'),
         ],
     )
     def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
-        msg = 'Not a valid datetime.'.format(in_value)
+        msg = 'Not a valid datetime.'
         assert msg in str(excinfo)
 
     def test_datetime_passed_year_is_invalid(self):
@@ -541,6 +571,7 @@ class TestFieldDeserialization:
             '',
             123,
             [],
+            dt.date(2014, 8, 21).strftime('%d-%m-%Y'),
         ],
     )
     def test_invalid_date_field_deserialization(self, in_value):
@@ -942,7 +973,7 @@ class TestSchemaDeserialization:
     def test_nested_single_deserialization_to_dict(self):
         class SimpleBlogSerializer(Schema):
             title = fields.String()
-            author = fields.Nested(SimpleUserSchema)
+            author = fields.Nested(SimpleUserSchema, unknown=EXCLUDE)
 
         blog_dict = {
             'title': 'Gimme Shelter',
@@ -1026,7 +1057,7 @@ class TestSchemaDeserialization:
 
         class MainSchema(Schema):
             pk = fields.Str()
-            child = fields.Nested(ANestedSchema, only='pk')
+            child = fields.Pluck(ANestedSchema, 'pk')
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'child': '456'})
@@ -1038,7 +1069,7 @@ class TestSchemaDeserialization:
 
         class MainSchema(Schema):
             pk = fields.Str()
-            children = fields.Nested(ANestedSchema, only='pk', many=True)
+            children = fields.Pluck(ANestedSchema, 'pk', many=True)
 
         sch = MainSchema()
         result = sch.load({'pk': '123', 'children': ['456', '789']})

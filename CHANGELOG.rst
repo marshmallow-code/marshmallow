@@ -1,6 +1,65 @@
 Changelog
 ---------
 
+3.0.0b17 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+- Add ``format`` option to ``Date`` field (:pr:`869`).
+- *Backwards-incompatible*: Rename ``DateTime``'s ``dateformat`` Meta option
+  to ``datetimeformat``. ``dateformat`` now applies to ``Date`` (:pr:`869`).
+  Thanks :user:`knagra` for implementing these changes.
+- Enforce ISO 8601 when deserializing date and time (:issue:`899`).
+  Thanks :user:`dushr` for the report and the work on the PR.
+
+3.0.0b16 (2018-09-20)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Fix ``root`` attribute for nested container fields
+  on inheriting schemas (:issue:`956`). Thanks :user:`bmcbu`
+  for reporting.
+
+3.0.0b15 (2018-09-18)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Raise ``ValidationError`` instead of ``TypeError`` when non-iterable types are
+  validated with ``many=True`` (:issue:`851`).
+- ``many=True`` no longer iterates over ``str`` and ``collections.Mapping`` objects and instead
+  raises a ``ValidationError`` with ``{'_schema': ['Invalid input type.']}`` (:issue:`930`).
+- Return ``[]`` as ``ValidationError.valid_data`` instead of ``{}`` when
+  ``many=True`` (:issue:`907`).
+
+Thanks :user:`tuukkamustonen` for implementing these changes.
+
+3.0.0b14 (2018-09-15)
++++++++++++++++++++++
+
+Features:
+
+- Add ``fields.Pluck`` for serializing a single field from a nested object
+  (:issue:`800`). Thanks :user:`timc13` for the feedback and :user:`deckar01`
+  for the implementation.
+- *Backwards-incompatible*: Passing a string argument as ``only`` to
+  ``fields.Nested`` is no longer supported. Use ``fields.Pluck`` instead
+  (:issue:`800`).
+- Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
+  passed as a string to ``fields.Nested`` (:pr:`931`).
+- *Backwards-incompatible*: ``Float`` takes an ``allow_nan`` parameter to
+  explicitly allow serializing and deserializing special values (``nan``,
+  ``inf`` and ``-inf``). ``allow_nan`` defaults to ``False``.
+
+Other changes:
+
+- *Backwards-incompatible*: ``Nested`` field now defaults to ``unknown=RAISE``
+  instead of ``EXCLUDE``. This harmonizes behavior with ``Schema`` that
+  already defaults to ``RAISE`` (:issue:`908`). Thanks :user:`tuukkamustonen`.
+- Tested against Python 3.7.
+
 3.0.0b13 (2018-08-04)
 +++++++++++++++++++++
 
@@ -269,6 +328,28 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.15.6 (2018-09-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent ``TypeError`` when a non-collection is passed to a ``Schema`` with ``many=True``.
+  Instead, raise ``ValidationError`` with ``{'_schema': ['Invalid input type.']}`` (:issue:`906`).
+- Fix ``root`` attribute for nested container fields on list
+  on inheriting schemas (:issue:`956`). Thanks :user:`bmcbu`
+  for reporting.
+
+These fixes were backported from 3.0.0b15 and 3.0.0b16.
+
+
+2.15.5 (2018-09-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle empty SQLAlchemy lazy lists gracefully when dumping (:issue:`948`).
+  Thanks :user:`vke-code` for the catch and :user:`YuriHeupa` for the patch.
+
 2.15.4 (2018-08-04)
 +++++++++++++++++++
 
@@ -306,7 +387,7 @@ Bug fixes:
 
 Bug fixes:
 
-- Fix behavior when an empty list is passed as the ``only`` argument
+- :cve:`CVE-2018-17175`: Fix behavior when an empty list is passed as the ``only`` argument
   (:issue:`772`). Thanks :user:`deckar01` for reporting and thanks
   :user:`lafrech` for the fix.
 

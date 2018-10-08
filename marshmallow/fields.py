@@ -4,18 +4,20 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
+import copy
 import datetime as dt
 import numbers
 import uuid
 import warnings
 import decimal
+import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import EXCLUDE
+from marshmallow.utils import RAISE, is_collection
 from marshmallow.utils import missing as missing_
 from marshmallow.compat import basestring, binary_type, text_type
-from marshmallow.exceptions import ValidationError
+from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
 __all__ = [
@@ -181,7 +183,13 @@ class Field(FieldABC):
                 .format(ClassName=self.__class__.__name__, self=self))
 
     def get_value(self, obj, attr, accessor=None, default=missing_):
-        """Return the value for a given key from an object."""
+        """Return the value for a given key from an object.
+
+        :param object obj: The object to get the value from
+        :param str attr: The attribute/key in `obj` to get the value from.
+        :param callable accessor: A callable used to retrieve the value of `attr` from
+            the object `obj`. Defaults to `marshmallow.utils.get_value`.
+        """
         # NOTE: Use getattr instead of direct attribute access here so that
         # subclasses aren't required to define `attribute` member
         attribute = getattr(self, 'attribute', None)
@@ -349,7 +357,7 @@ class Nested(Field):
 
         user = fields.Nested(UserSchema)
         user2 = fields.Nested('UserSchema')  # Equivalent to above
-        collaborators = fields.Nested(UserSchema, many=True, only='id')
+        collaborators = fields.Nested(UserSchema, many=True, only=('id',))
         parent = fields.Nested('self')
 
     When passing a `Schema <marshmallow.Schema>` instance as the first argument,
@@ -384,11 +392,16 @@ class Nested(Field):
     }
 
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
+        # Raise error if only or exclude is passed as string, not list of strings
+        if only is not None and not is_collection(only):
+            raise StringNotCollectionError('"only" should be a list of strings')
+        if exclude is not None and not is_collection(exclude):
+            raise StringNotCollectionError('"exclude" should be a list of strings')
         self.nested = nested
         self.only = only
         self.exclude = exclude
         self.many = kwargs.get('many', False)
-        self.unknown = kwargs.get('unknown', EXCLUDE)
+        self.unknown = kwargs.get('unknown', RAISE)
         self.__schema = None  # Cached Schema instance
         super(Nested, self).__init__(default=default, **kwargs)
 
@@ -400,45 +413,29 @@ class Nested(Field):
             Renamed from `serializer` to `schema`
         """
         if not self.__schema:
-            # Ensure that only parameter is a tuple
-            if isinstance(self.only, basestring):
-                only = (self.only,)
-            else:
-                only = self.only
-
             # Inherit context from parent.
             context = getattr(self.parent, 'context', {})
             if isinstance(self.nested, SchemaABC):
                 self.__schema = self.nested
                 self.__schema.context.update(context)
-            elif isinstance(self.nested, type) and \
-                    issubclass(self.nested, SchemaABC):
-                self.__schema = self.nested(
+            else:
+                if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
+                    schema_class = self.nested
+                elif not isinstance(self.nested, basestring):
+                    raise ValueError(
+                        'Nested fields must be passed a '
+                        'Schema, not {0}.'.format(self.nested.__class__),
+                    )
+                elif self.nested == 'self':
+                    schema_class = self.parent.__class__
+                else:
+                    schema_class = class_registry.get_class(self.nested)
+                self.__schema = schema_class(
                     many=self.many,
-                    only=only, exclude=self.exclude, context=context,
+                    only=self.only, exclude=self.exclude, context=context,
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),
                 )
-            elif isinstance(self.nested, basestring):
-                if self.nested == 'self':
-                    parent_class = self.parent.__class__
-                    self.__schema = parent_class(
-                        many=self.many, only=only,
-                        exclude=self.exclude, context=context,
-                        load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'),
-                    )
-                else:
-                    schema_class = class_registry.get_class(self.nested)
-                    self.__schema = schema_class(
-                        many=self.many,
-                        only=only, exclude=self.exclude, context=context,
-                        load_only=self._nested_normalized_option('load_only'),
-                        dump_only=self._nested_normalized_option('dump_only'),
-                    )
-            else:
-                raise ValueError('Nested fields must be passed a '
-                                 'Schema, not {0}.'.format(self.nested.__class__))
             self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
 
@@ -455,33 +452,61 @@ class Nested(Field):
         if nested_obj is None:
             return None
         try:
-            ret = schema.dump(nested_obj, many=self.many)
+            return schema.dump(nested_obj, many=self.many)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
-        finally:
-            if isinstance(self.only, basestring):  # self.only is a field name
-                only_field = self.schema.fields[self.only]
-                key = only_field.data_key or self.only
-                if self.many:
-                    return utils.pluck(ret, key=key)
-                else:
-                    return ret[key]
-        return ret
 
-    def _deserialize(self, value, attr, data):
+    def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
             self.fail('type', input=value, type=value.__class__.__name__)
 
-        if isinstance(self.only, basestring):  # self.only is a field name
-            if self.many:
-                value = [{self.only: v} for v in value]
-            else:
-                value = {self.only: value}
+    def _load(self, value, data):
         try:
             valid_data = self.schema.load(value, unknown=self.unknown)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
+
+    def _deserialize(self, value, attr, data):
+        self._test_collection(value)
+        return self._load(value, data)
+
+
+class Pluck(Nested):
+    """Allows you to replace nested data with one of the data's fields.
+
+    Examples: ::
+
+        user = fields.Pluck(UserSchema, 'name')
+        collaborators = fields.Pluck(UserSchema, 'id', many=True)
+        parent = fields.Pluck('self', 'name')
+
+    :param Schema nested: The Schema class or class name (string)
+        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param str field_name:
+    :param kwargs: The same keyword arguments that :class:`Nested` receives.
+    """
+    def __init__(self, nested, field_name, **kwargs):
+        super(Pluck, self).__init__(nested, only=(field_name,), **kwargs)
+        self.field_name = field_name
+
+    def _serialize(self, nested_obj, attr, obj):
+        ret = super(Pluck, self)._serialize(nested_obj, attr, obj)
+        only_field = self.schema.fields[self.field_name]
+        data_key = only_field.data_key or self.field_name
+        key = ''.join([self.schema.prefix or '', data_key])
+        if self.many:
+            return utils.pluck(ret, key=key)
+        else:
+            return ret[key]
+
+    def _deserialize(self, value, attr, data):
+        self._test_collection(value)
+        if self.many:
+            value = [{self.field_name: v} for v in value]
+        else:
+            value = {self.field_name: value}
+        return self._load(value, data)
 
 
 class List(Field):
@@ -537,6 +562,7 @@ class List(Field):
 
     def _bind_to_schema(self, field_name, schema):
         super(List, self)._bind_to_schema(field_name, schema)
+        self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
 
@@ -637,18 +663,15 @@ class Number(Field):
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
-        if value is None:
-            return None
         # (value is True or value is False) is ~5x faster than isinstance(value, bool)
         if value is True or value is False:
-            raise TypeError(
-                'value must be a Number, not a boolean.  value is '
-                '{}'.format(value),
-            )
+            raise TypeError('value must be a Number, not a boolean.')
         return self.num_type(value)
 
     def _validated(self, value):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
         try:
             return self._format_num(value)
         except (TypeError, ValueError):
@@ -688,6 +711,33 @@ class Integer(Number):
             if not isinstance(value, numbers.Integral):
                 self.fail('invalid')
         return super(Integer, self)._format_num(value)
+
+
+class Float(Number):
+    """
+    A double as IEEE-754 double precision string.
+
+    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+        even though they are illegal according to the JSON specification.
+    :param bool as_string: If True, format the value as a string.
+    :param kwargs: The same keyword arguments that :class:`Number` receives.
+    """
+
+    num_type = float
+    default_error_messages = {
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
+    }
+
+    def __init__(self, allow_nan=False, as_string=False, **kwargs):
+        self.allow_nan = allow_nan
+        super(Float, self).__init__(as_string=as_string, **kwargs)
+
+    def _format_num(self, value):
+        num = super(Float, self)._format_num(value)
+        if self.allow_nan is False:
+            if math.isnan(num) or num == float('inf') or num == float('-inf'):
+                self.fail('special')
+        return num
 
 
 class Decimal(Number):
@@ -730,7 +780,7 @@ class Decimal(Number):
     num_type = decimal.Decimal
 
     default_error_messages = {
-        'special': 'Special numeric values are not permitted.',
+        'special': 'Special numeric values (nan or infinity) are not permitted.',
     }
 
     def __init__(self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs):
@@ -741,9 +791,6 @@ class Decimal(Number):
 
     # override Number
     def _format_num(self, value):
-        if value is None:
-            return None
-
         num = decimal.Decimal(str(value))
 
         if self.allow_nan:
@@ -864,17 +911,6 @@ class FormattedString(Field):
             self.fail('format')
 
 
-class Float(Number):
-    """
-    A double as IEEE-754 double precision string.
-
-    :param bool as_string: If True, format the value as a string.
-    :param kwargs: The same keyword arguments that :class:`Number` receives.
-    """
-
-    num_type = float
-
-
 class DateTime(Field):
     """A formatted datetime string in UTC.
 
@@ -891,14 +927,14 @@ class DateTime(Field):
 
     """
 
-    DATEFORMAT_SERIALIZATION_FUNCS = {
+    SERIALIZATION_FUNCS = {
         'iso': utils.isoformat,
         'iso8601': utils.isoformat,
         'rfc': utils.rfcformat,
         'rfc822': utils.rfcformat,
     }
 
-    DATEFORMAT_DESERIALIZATION_FUNCS = {
+    DESERIALIZATION_FUNCS = {
         'iso': utils.from_iso_datetime,
         'iso8601': utils.from_iso_datetime,
         'rfc': utils.from_rfc,
@@ -907,62 +943,78 @@ class DateTime(Field):
 
     DEFAULT_FORMAT = 'iso'
 
+    OBJ_TYPE = 'datetime'
+
+    SCHEMA_OPTS_VAR_NAME = 'datetimeformat'
+
     localtime = False
     default_error_messages = {
-        'invalid': 'Not a valid datetime.',
-        'format': '"{input}" cannot be formatted as a datetime.',
+        'invalid': 'Not a valid {obj_type}.',
+        'format': '"{input}" cannot be formatted as a {obj_type}.',
     }
 
     def __init__(self, format=None, **kwargs):
         super(DateTime, self).__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
-        # or ``_desrialize`` methods This allows a Schema to dynamically set the
-        # dateformat, e.g. from a Meta option
-        self.dateformat = format
+        # or ``_deserialize`` methods This allows a Schema to dynamically set the
+        # format, e.g. from a Meta option
+        self.format = format
 
     def _bind_to_schema(self, field_name, schema):
         super(DateTime, self)._bind_to_schema(field_name, schema)
-        self.dateformat = self.dateformat or schema.opts.dateformat
+        self.format = (
+            self.format or
+            getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or
+            self.DEFAULT_FORMAT
+        )
 
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        format_func = self.DATEFORMAT_SERIALIZATION_FUNCS.get(self.dateformat, None)
+        data_format = self.format or self.DEFAULT_FORMAT
+        format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
             try:
                 return format_func(value, localtime=self.localtime)
-            except (AttributeError, ValueError):
-                self.fail('format', input=value)
+            except (TypeError, AttributeError, ValueError):
+                self.fail('format', input=value, obj_type=self.OBJ_TYPE)
         else:
-            return value.strftime(self.dateformat)
+            return value.strftime(data_format)
+
+    def _create_data_object_from_parsed_value(self, parsed):
+        """Return a datetime from a parsed object that contains the needed info."""
+        return dt.datetime(
+            parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute,
+            parsed.second,
+        )
 
     def _deserialize(self, value, attr, data):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise self.fail('invalid')
-        self.dateformat = self.dateformat or self.DEFAULT_FORMAT
-        func = self.DATEFORMAT_DESERIALIZATION_FUNCS.get(self.dateformat)
+            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+        data_format = self.format or self.DEFAULT_FORMAT
+        func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
-        elif self.dateformat:
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+        elif data_format:
             try:
-                return dt.datetime.strptime(value, self.dateformat)
+                return dt.datetime.strptime(value, data_format)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid')
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         elif utils.dateutil_available:
             try:
-                return utils.from_datestring(value)
-            except TypeError:
-                raise self.fail('invalid')
+                parsed = utils.from_datestring(value)
+                return self._create_data_object_from_parsed_value(parsed)
+            except (TypeError, ValueError):
+                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         else:
             warnings.warn(
                 'It is recommended that you install python-dateutil '
                 'for improved datetime deserialization.',
             )
-            raise self.fail('invalid')
+            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
 
 
 class LocalDateTime(DateTime):
@@ -1006,9 +1058,11 @@ class Time(Field):
             self.fail('invalid')
 
 
-class Date(Field):
+class Date(DateTime):
     """ISO8601-formatted date string.
 
+    :param format: Either ``"iso"`` (for ISO8601) or a date format string.
+        If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     default_error_messages = {
@@ -1016,25 +1070,25 @@ class Date(Field):
         'format': '"{input}" cannot be formatted as a date.',
     }
 
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return None
-        try:
-            return value.isoformat()
-        except AttributeError:
-            self.fail('format', input=value)
-        return value
+    SERIALIZATION_FUNCS = {
+        'iso': utils.to_iso_date,
+        'iso8601': utils.to_iso_date,
+    }
 
-    def _deserialize(self, value, attr, data):
-        """Deserialize an ISO8601-formatted date string to a
-        :class:`datetime.date` object.
-        """
-        if not value:  # falsy values are invalid
-            self.fail('invalid')
-        try:
-            return utils.from_iso_date(value)
-        except (AttributeError, TypeError, ValueError):
-            self.fail('invalid')
+    DESERIALIZATION_FUNCS = {
+        'iso': utils.from_iso_date,
+        'iso8601': utils.from_iso_date,
+    }
+
+    DEFAULT_FORMAT = 'iso'
+
+    OBJ_TYPE = 'date'
+
+    SCHEMA_OPTS_VAR_NAME = 'dateformat'
+
+    def _create_data_object_from_parsed_value(self, parsed):
+        """Return a date from a parsed object that contains the need information."""
+        return dt.date(parsed.year, parsed.month, parsed.day)
 
 
 class TimeDelta(Field):
@@ -1166,9 +1220,11 @@ class Dict(Field):
     def _bind_to_schema(self, field_name, schema):
         super(Dict, self)._bind_to_schema(field_name, schema)
         if self.value_container:
+            self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
             self.value_container.name = field_name
         if self.key_container:
+            self.key_container = copy.deepcopy(self.key_container)
             self.key_container.parent = self
             self.key_container.name = field_name
 

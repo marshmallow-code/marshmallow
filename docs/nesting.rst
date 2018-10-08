@@ -99,32 +99,30 @@ You can represent the attributes of deeply nested objects using dot delimiters.
     #     }
     # }
 
-.. note::
+You can replace nested data with a single value (or flat list of values if ``many=True``) using the :class:`Pluck <marshmallow.fields.Pluck>` field.
 
-    If you pass in a string field name to ``only``, only a single value (or flat list of values if ``many=True``) will be (de)serialized.
+.. code-block:: python
+    :emphasize-lines: 4, 11, 18
 
-    .. code-block:: python
-        :emphasize-lines: 4, 11, 18
-
-        class UserSchema(Schema):
-            name = fields.String()
-            email = fields.Email()
-            friends = fields.Nested('self', only='name', many=True)
-        # ... create ``user`` ...
-        serialized_data = UserSchema().dump(user)
-        pprint(serialized_data)
-        # {
-        #     "name": "Steve",
-        #     "email": "steve@example.com",
-        #     "friends": ["Mike", "Joe"]
-        # }
-        deserialized_data = UserSchema().load(result)
-        pprint(deserialized_data)
-        # {
-        #     "name": "Steve",
-        #     "email": "steve@example.com",
-        #     "friends": [{"name": "Mike"}, {"name": "Joe"}]
-        # }
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Email()
+        friends = fields.Pluck('self', 'name', many=True)
+    # ... create ``user`` ...
+    serialized_data = UserSchema().dump(user)
+    pprint(serialized_data)
+    # {
+    #     "name": "Steve",
+    #     "email": "steve@example.com",
+    #     "friends": ["Mike", "Joe"]
+    # }
+    deserialized_data = UserSchema().load(result)
+    pprint(deserialized_data)
+    # {
+    #     "name": "Steve",
+    #     "email": "steve@example.com",
+    #     "friends": [{"name": "Mike"}, {"name": "Joe"}]
+    # }
 
 
 You can also exclude fields by passing in an ``exclude`` list. This argument also allows representing the attributes of deeply nested objects using dot delimiters.

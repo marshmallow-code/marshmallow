@@ -471,7 +471,7 @@ class TestValidatesSchemaDecorator:
                 raise ValidationError('Method called')
 
         class MySchema(Schema):
-            nested = fields.Nested(NestedSchema, required=True, many=True)
+            nested = fields.Nested(NestedSchema, required=True, many=True, unknown=EXCLUDE)
 
         schema = MySchema()
         errors = schema.validate({'nested': data})

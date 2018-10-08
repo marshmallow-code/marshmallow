@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import datetime as dt
-import simplejson as json
 import decimal
 import random
 from collections import namedtuple, OrderedDict
 
+import simplejson as json
+
 import pytest
 
-from marshmallow import Schema, fields, utils, validates, validates_schema, EXCLUDE
+from marshmallow import Schema, fields, utils, validates, validates_schema, \
+    EXCLUDE, INCLUDE, RAISE
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 
 from tests.base import (
@@ -335,7 +337,6 @@ def test_dumps_many():
     assert len(data) == 2
     assert data[0] == s.dump(u1)
 
-
 def test_load_returns_an_object():
     s = UserSchema()
     result = s.load({'name': 'Monty'})
@@ -349,7 +350,60 @@ def test_load_many():
     assert type(result[0]) == User
     assert result[0].name == 'Mick'
 
-def test_loads_returns_a_user(user):
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), [], set(), 'lol'))
+def test_load_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    with pytest.raises(ValidationError) as e:
+        Sch().load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == {}
+
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/906
+@pytest.mark.parametrize('val', (None, False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_invalid_input_type(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    with pytest.raises(ValidationError) as e:
+        Sch(many=True).load(val)
+    assert e.value.messages == {'_schema': ['Invalid input type.']}
+    assert e.value.valid_data == []
+
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_empty_collection(val):
+    class Sch(Schema):
+        name = fields.Str()
+
+    assert Sch(many=True).load(val) == []
+
+@pytest.mark.parametrize('val', (False, 1, 1.2, object(), {}, {'1': 2}, 'lol'))
+def test_load_many_in_nested_invalid_input_type(val):
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
+
+    with pytest.raises(ValidationError) as e:
+        Outer().load({'list1': val, 'list2': val})
+    # TODO: Error messages should be identical (#779)
+    assert e.value.messages == {'list1': ['Not a valid list.'], 'list2': ['Invalid type.']}
+
+@pytest.mark.parametrize('val', ([], set()))
+def test_load_many_in_nested_empty_collection(val):
+    class Inner(Schema):
+        name = fields.String()
+
+    class Outer(Schema):
+        list1 = fields.List(fields.Nested(Inner))
+        list2 = fields.Nested(Inner, many=True)
+
+    assert Outer().load({'list1': val, 'list2': val}) == {'list1': [], 'list2': []}
+
+def test_loads_returns_a_user():
     s = UserSchema()
     result = s.loads(json.dumps({'name': 'Monty'}))
     assert type(result) == User
@@ -1131,13 +1185,13 @@ class TestDeeplyNestedLoadOnly:
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            grand_child = fields.Nested(GrandChildSchema)
+            grand_child = fields.Nested(GrandChildSchema, unknown=EXCLUDE)
 
         class ParentSchema(Schema):
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            child = fields.Nested(ChildSchema)
+            child = fields.Nested(ChildSchema, unknown=EXCLUDE)
 
         return ParentSchema(
             dump_only=('str_dump_only', 'child.str_dump_only', 'child.grand_child.str_dump_only'),
@@ -1204,7 +1258,7 @@ class TestDeeplyNestedListLoadOnly:
             str_dump_only = fields.String()
             str_load_only = fields.String()
             str_regular = fields.String()
-            child = fields.List(fields.Nested(ChildSchema))
+            child = fields.List(fields.Nested(ChildSchema, unknown=EXCLUDE))
 
         return ParentSchema(
             dump_only=('str_dump_only', 'child.str_dump_only'),
@@ -1457,30 +1511,45 @@ def test_exclude_fields(user):
     assert 'updated' not in s
     assert 'name' in s
 
-def test_fields_option_must_be_list_or_tuple(user):
+def test_fields_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
         class BadFields(Schema):
             class Meta:
                 fields = 'name'
 
-def test_exclude_option_must_be_list_or_tuple(user):
+def test_exclude_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
         class BadExclude(Schema):
             class Meta:
                 exclude = 'name'
 
-def test_dateformat_option(user):
-    fmt = '%Y-%m'
+def test_datetimeformat_option(user):
+    meta_fmt = '%Y-%m'
+    field_fmt = '%m-%d'
 
-    class DateFormatSchema(Schema):
-        updated = fields.DateTime('%m-%d')
+    class DateTimeFormatSchema(Schema):
+        updated = fields.DateTime(field_fmt)
 
         class Meta:
             fields = ('created', 'updated')
+            datetimeformat = meta_fmt
+    serialized = DateTimeFormatSchema().dump(user)
+    assert serialized['created'] == user.created.strftime(meta_fmt)
+    assert serialized['updated'] == user.updated.strftime(field_fmt)
+
+def test_dateformat_option(user):
+    fmt = '%Y-%m'
+    field_fmt = '%m-%d'
+
+    class DateFormatSchema(Schema):
+        birthdate = fields.Date(field_fmt)
+
+        class Meta:
+            fields = ('birthdate', 'activation_date')
             dateformat = fmt
     serialized = DateFormatSchema().dump(user)
-    assert serialized['created'] == user.created.strftime(fmt)
-    assert serialized['updated'] == user.updated.strftime('%m-%d')
+    assert serialized['birthdate'] == user.birthdate.strftime(field_fmt)
+    assert serialized['activation_date'] == user.activation_date.strftime(fmt)
 
 def test_default_dateformat(user):
     class DateFormatSchema(Schema):
@@ -1719,23 +1788,6 @@ class TestNestedSchema:
         )
         return blog
 
-    def test_flat_nested(self, blog):
-        class FlatBlogSchema(Schema):
-            name = fields.String()
-            user = fields.Nested(UserSchema, only='name')
-            collaborators = fields.Nested(UserSchema, only='name', many=True)
-        s = FlatBlogSchema()
-        data = s.dump(blog)
-        assert data['user'] == blog.user.name
-        for i, name in enumerate(data['collaborators']):
-            assert name == blog.collaborators[i].name
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
-    def test_flat_nested_with_data_key(self, blog):
-        class UserSchema(Schema):
-            name = fields.String(data_key='username')
-            age = fields.Int()
-
         class FlatBlogSchema(Schema):
             name = fields.String()
             user = fields.Nested(UserSchema, only='name')
@@ -1773,15 +1825,6 @@ class TestNestedSchema:
         s2 = MySchema2()
         result2 = s2.dump({'foo': None})
         assert result2['foo'] is None
-
-    def test_flat_nested2(self, blog):
-        class FlatBlogSchema(Schema):
-            name = fields.String()
-            collaborators = fields.Nested(UserSchema, many=True, only='uid')
-
-        s = FlatBlogSchema()
-        data = s.dump(blog)
-        assert data['collaborators'][0] == str(blog.collaborators[0].uid)
 
     def test_nested_field_does_not_validate_required(self):
         class BlogRequiredSchema(Schema):
@@ -1999,6 +2042,65 @@ class TestNestedSchema:
         assert data == {'foo': {'bar': 42}, 'bar': 42}
         assert errors == {'foo': {'foo': ['Not a valid integer.']}}
 
+    @pytest.mark.parametrize('unknown', (None, RAISE, INCLUDE, EXCLUDE))
+    def test_nested_unknown_validation(self, unknown):
+
+        class ChildSchema(Schema):
+            num = fields.Int()
+
+        class ParentSchema(Schema):
+            child = fields.Nested(ChildSchema, unknown=unknown)
+
+        data = {'child': {'num': 1, 'extra': 1}}
+        if unknown is None or unknown == RAISE:
+            with pytest.raises(ValidationError) as exc:
+                ParentSchema().load(data)
+                assert exc.messages == {'child': {'extra': ['Unknown field.']}}
+        else:
+            output = {
+                INCLUDE: {'child': {'num': 1, 'extra': 1}},
+                EXCLUDE: {'child': {'num': 1}},
+            }[unknown]
+            assert ParentSchema().load(data) == output
+
+
+class TestPluckSchema:
+
+    def blog(self):
+        user = User(name='Monty', age=81)
+        col1 = User(name='Mick', age=123)
+        col2 = User(name='Keith', age=456)
+        blog = Blog(
+            user=user, categories=['humor', 'violence'],
+            collaborators=[col1, col2],
+        )
+        return blog
+
+    def test_pluck(self, blog):
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, 'name')
+            collaborators = fields.Pluck(UserSchema, 'name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
+    def test_pluck_with_data_key(self, blog):
+        class UserSchema(Schema):
+            name = fields.String(data_key='username')
+            age = fields.Int()
+
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, 'name')
+            collaborators = fields.Pluck(UserSchema, 'name', many=True)
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user.name
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
 
 class TestSelfReference:
 
@@ -2056,13 +2158,10 @@ class TestSelfReference:
         assert data['employer']['name'] == employer.name
         assert 'age' not in data['employer']
 
-    def test_multiple_nested_self_fields(self, user):
+    def test_multiple_pluck_self_field(self, user):
         class MultipleSelfSchema(Schema):
-            emp = fields.Nested('self', only='name', attribute='employer')
-            rels = fields.Nested(
-                'self', only='name',
-                many=True, attribute='relatives',
-            )
+            emp = fields.Pluck('self', 'name', attribute='employer')
+            rels = fields.Pluck('self', 'name', many=True, attribute='relatives')
 
             class Meta:
                 fields = ('name', 'emp', 'rels')

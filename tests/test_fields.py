@@ -3,8 +3,9 @@ import pytest
 
 from marshmallow import fields, Schema, ValidationError, EXCLUDE
 from marshmallow.marshalling import missing
+from marshmallow.exceptions import StringNotCollectionError
 
-from tests.base import ALL_FIELDS, User
+from tests.base import ALL_FIELDS
 
 
 class TestFieldAliases:
@@ -43,7 +44,7 @@ class TestField:
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
 
-    def test_custom_field_receives_attr_and_obj(self, user):
+    def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -56,7 +57,7 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
-    def test_custom_field_receives_data_key_if_set(self, user):
+    def test_custom_field_receives_data_key_if_set(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -69,7 +70,7 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
-    def test_custom_field_follows_data_key_if_set(self, user):
+    def test_custom_field_follows_data_key_if_set(self):
         class MyField(fields.Field):
             def _serialize(self, val, attr, data):
                 assert attr == 'name'
@@ -127,6 +128,28 @@ class TestParentAndName:
 
     def test_list_field_inner_root(self, schema):
         assert schema.fields['bar'].container.root == schema
+
+    def test_list_root_inheritance(self, schema):
+        class OtherSchema(TestParentAndName.MySchema):
+            pass
+
+        schema2 = OtherSchema()
+        assert schema.fields['bar'].container.root == schema
+        assert schema2.fields['bar'].container.root == schema2
+
+    def test_dict_root_inheritance(self):
+        class MySchema(Schema):
+            foo = fields.Dict(keys=fields.Str(), values=fields.Int())
+
+        class OtherSchema(MySchema):
+            pass
+
+        schema = MySchema()
+        schema2 = OtherSchema()
+        assert schema.fields['foo'].key_container.root == schema
+        assert schema.fields['foo'].value_container.root == schema
+        assert schema2.fields['foo'].key_container.root == schema2
+        assert schema2.fields['foo'].value_container.root == schema2
 
 
 class TestMetadata:
@@ -191,3 +214,11 @@ class TestErrorMessages:
 
         assert 'doesntexist' in excinfo.value.args[0]
         assert 'MyField' in excinfo.value.args[0]
+
+
+class TestNestedField:
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_nested_only_and_exclude_as_string(self, param):
+        with pytest.raises(StringNotCollectionError):
+            fields.Nested(Schema, **{param: 'foo'})
