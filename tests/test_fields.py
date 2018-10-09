@@ -223,7 +223,7 @@ class TestNestedField:
         with pytest.raises(StringNotCollectionError):
             fields.Nested(Schema, **{param: 'foo'})
 
-    @pytest.mark.parametrize('unknown', (None, 'raise'))
+    @pytest.mark.parametrize('unknown', (None, 'exclude', 'include', 'raise'))
     def test_nested_unknown_override(self, unknown):
         class NestedSchema(Schema):
             class Meta:
@@ -232,8 +232,10 @@ class TestNestedField:
         class MySchema(Schema):
             nested = fields.Nested(NestedSchema, unknown=unknown)
 
-        if unknown is None:
+        if unknown in (None, 'exclude'):
             assert MySchema().load({'nested': {'x': 1}}) == {'nested': {}}
+        elif unknown == 'include':
+            assert MySchema().load({'nested': {'x': 1}}) == {'nested': {'x': 1}}
         elif unknown == 'raise':
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
