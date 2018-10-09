@@ -81,7 +81,7 @@ html_theme_options = {
     'github_banner': True,
     'github_type': 'star',
     'opencollective': 'marshmallow',
-    'tidelift_url': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=docs',
+    'tidelift_url': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=marshmallow&utm_medium=referral&utm_campaign=docs ',
     'code_font_size': '0.8em',
     'warn_bg': '#FFC',
     'warn_border': '#EEE',

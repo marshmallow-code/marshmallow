@@ -7,7 +7,7 @@ python-dateutil==2.7.3
 pytz==2018.5
 
 # Testing
-pytest==3.8.0
+pytest==3.8.2
 tox>=1.5.0
 simplejson==3.16.0
 
@@ -15,7 +15,7 @@ simplejson==3.16.0
 flake8==3.5.0
 
 # Pre-commit hooks
-pre-commit==1.11.0
+pre-commit==1.11.1
 
 # Install this package in development mode
 -e '.'

@@ -504,8 +504,7 @@ class BaseSchema(base.SchemaABC):
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def load(self, data, many=None, partial=None, unknown=None):
-        """Deserialize a data structure to an object defined by this Schema's
-        fields and :meth:`make_object`.
+        """Deserialize a data structure to an object defined by this Schema's fields.
 
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the

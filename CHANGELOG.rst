@@ -10,6 +10,8 @@ Features:
 - *Backwards-incompatible*: Rename ``DateTime``'s ``dateformat`` Meta option
   to ``datetimeformat``. ``dateformat`` now applies to ``Date`` (:pr:`869`).
   Thanks :user:`knagra` for implementing these changes.
+- Enforce ISO 8601 when deserializing date and time (:issue:`899`).
+  Thanks :user:`dushr` for the report and the work on the PR.
 
 3.0.0b16 (2018-09-20)
 +++++++++++++++++++++
