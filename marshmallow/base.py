@@ -21,7 +21,7 @@ class FieldABC(object):
     def _serialize(self, value, attr, obj):
         raise NotImplementedError
 
-    def _deserialize(self, value, attr, ob):
+    def _deserialize(self, value, attr, data):
         raise NotImplementedError
 
     def __deepcopy__(self, memo):
