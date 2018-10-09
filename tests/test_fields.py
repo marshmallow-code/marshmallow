@@ -222,3 +222,18 @@ class TestNestedField:
     def test_nested_only_and_exclude_as_string(self, param):
         with pytest.raises(StringNotCollectionError):
             fields.Nested(Schema, **{param: 'foo'})
+
+    @pytest.mark.parametrize('unknown', (None, 'raise'))
+    def test_nested_unknown_override(self, unknown):
+        class NestedSchema(Schema):
+            class Meta:
+                unknown = 'exclude'
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, unknown=unknown)
+
+        if unknown is None:
+            assert MySchema().load({'nested': {'x': 1}}) == {'nested': {}}
+        elif unknown == 'raise':
+            with pytest.raises(ValidationError):
+                MySchema().load({'nested': {'x': 1}})
