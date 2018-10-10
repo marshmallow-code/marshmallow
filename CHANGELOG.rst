@@ -19,6 +19,9 @@ Bug fixes:
 
 - Fix inconsistencies in field inference by refactoring the inference feature
   into a dedicated field (:issue:`809`). Thanks :user:`taion` for the PR.
+- When ``unknown`` is not passed to ``Nested``, default to nested ``Schema``
+  ``unknown`` meta option rather than ``RAISE`` (:pr:`963`).
+  Thanks :user:`vgavro` for the PR.
 
 3.0.0b16 (2018-09-20)
 +++++++++++++++++++++
