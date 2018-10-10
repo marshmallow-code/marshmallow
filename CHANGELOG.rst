@@ -4,6 +4,14 @@ Changelog
 2.16.0 (unreleased)
 +++++++++++++++++++
 
+Bug fixes:
+
+- Allow username without password in basic auth part of the url in
+  ``fields.Url`` (:pr:`982`). Thanks user:`alefnula` for the PR.
+
+
+Other changes:
+
 - Drop support for Python 3.3.
 
 2.15.6 (2018-09-20)
