@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError, EXCLUDE
+from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE
 from marshmallow.marshalling import missing
 from marshmallow.exceptions import StringNotCollectionError
 
@@ -223,19 +223,20 @@ class TestNestedField:
         with pytest.raises(StringNotCollectionError):
             fields.Nested(Schema, **{param: 'foo'})
 
-    @pytest.mark.parametrize('unknown', (None, 'exclude', 'include', 'raise'))
-    def test_nested_unknown_override(self, unknown):
+    @pytest.mark.parametrize('schema_unknown', (EXCLUDE, INCLUDE, RAISE))
+    @pytest.mark.parametrize('field_unknown', (None, EXCLUDE, INCLUDE, RAISE))
+    def test_nested_unknown_override(self, schema_unknown, field_unknown):
         class NestedSchema(Schema):
             class Meta:
-                unknown = 'exclude'
+                unknown = schema_unknown
 
         class MySchema(Schema):
-            nested = fields.Nested(NestedSchema, unknown=unknown)
+            nested = fields.Nested(NestedSchema, unknown=field_unknown)
 
-        if unknown in (None, 'exclude'):
+        if field_unknown == EXCLUDE or (schema_unknown == EXCLUDE and not field_unknown):
             assert MySchema().load({'nested': {'x': 1}}) == {'nested': {}}
-        elif unknown == 'include':
+        elif field_unknown == INCLUDE or (schema_unknown == INCLUDE and not field_unknown):
             assert MySchema().load({'nested': {'x': 1}}) == {'nested': {'x': 1}}
-        elif unknown == 'raise':
+        elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
