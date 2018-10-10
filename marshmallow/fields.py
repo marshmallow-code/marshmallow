@@ -15,7 +15,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import basestring, binary_type, text_type
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
@@ -281,9 +281,9 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _add_to_schema(self, field_name, schema):
+    def _bind_to_schema(self, field_name, schema):
         """Update field with values from its parent schema. Called by
-            :meth:`__set_field_attrs <marshmallow.Schema.__set_field_attrs>`.
+            :meth:`_bind_field<marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
         :param Schema schema: Parent schema.
@@ -402,7 +402,6 @@ class Nested(Field):
         self.many = kwargs.get('many', False)
         self.unknown = kwargs.get('unknown')
         self.__schema = None  # Cached Schema instance
-        self.__updated_fields = False
         super(Nested, self).__init__(default=default, **kwargs)
 
     @property
@@ -451,14 +450,8 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
-        if not self.__updated_fields:
-            schema._update_fields(obj=nested_obj, many=self.many)
-            self.__updated_fields = True
         try:
-            return schema.dump(
-                nested_obj, many=self.many,
-                update_fields=not self.__updated_fields,
-            )
+            return schema.dump(nested_obj, many=self.many)
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
 
@@ -566,8 +559,8 @@ class List(Field):
             return self.container.get_value(value, self.container.attribute)
         return value
 
-    def _add_to_schema(self, field_name, schema):
-        super(List, self)._add_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, schema):
+        super(List, self)._bind_to_schema(field_name, schema)
         self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
@@ -966,8 +959,8 @@ class DateTime(Field):
         # format, e.g. from a Meta option
         self.format = format
 
-    def _add_to_schema(self, field_name, schema):
-        super(DateTime, self)._add_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, schema):
+        super(DateTime, self)._bind_to_schema(field_name, schema)
         self.format = (
             self.format or
             getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or
@@ -1223,8 +1216,8 @@ class Dict(Field):
                 )
             self.key_container = keys
 
-    def _add_to_schema(self, field_name, schema):
-        super(Dict, self)._add_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, schema):
+        super(Dict, self)._bind_to_schema(field_name, schema)
         if self.value_container:
             self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
@@ -1458,6 +1451,51 @@ class Constant(Field):
 
     def _deserialize(self, value, *args, **kwargs):
         return self.constant
+
+
+class Inferred(Field):
+    """A field that infers how to serialize, based on the value type.
+
+    .. warning::
+
+        This class is treated as private API.
+        Users should not need to use this class directly.
+    """
+
+    TYPE_MAPPING = {
+        text_type: String,
+        binary_type: String,
+        dt.datetime: DateTime,
+        float: Float,
+        bool: Boolean,
+        tuple: Raw,
+        list: Raw,
+        set: Raw,
+        int: Integer,
+        uuid.UUID: UUID,
+        dt.time: Time,
+        dt.date: Date,
+        dt.timedelta: TimeDelta,
+        decimal.Decimal: Decimal,
+    }
+
+    def __init__(self):
+        super(Inferred, self).__init__()
+        # We memoize the fields to avoid creating and binding new fields
+        # every time on serialization.
+        self._field_cache = {}
+
+    def _serialize(self, value, attr, obj):
+        field_cls = self.TYPE_MAPPING.get(type(value))
+        if field_cls is None:
+            field = super(Inferred, self)
+        else:
+            field = self._field_cache.get(field_cls)
+            if field is None:
+                field = field_cls()
+                field._bind_to_schema(self.name, self.parent)
+                self._field_cache[field_cls] = field
+        return field._serialize(value, attr, obj)
 
 
 # Aliases

@@ -12,6 +12,13 @@ Features:
   Thanks :user:`knagra` for implementing these changes.
 - Enforce ISO 8601 when deserializing date and time (:issue:`899`).
   Thanks :user:`dushr` for the report and the work on the PR.
+- Allow username without password in basic auth part of the url in
+  ``fields.Url`` (:pr:`982`). Thanks user:`alefnula` for the PR.
+
+Bug fixes:
+
+- Fix inconsistencies in field inference by refactoring the inference feature
+  into a dedicated field (:issue:`809`). Thanks :user:`taion` for the PR.
 
 3.0.0b16 (2018-09-20)
 +++++++++++++++++++++
