@@ -1403,21 +1403,19 @@ def test_invalid_only_and_exclude_with_additional():
 
 
 def test_exclude_invalid_attribute():
-
     class MySchema(Schema):
         foo = fields.Field()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="'bar'"):
         MySchema(exclude=('bar', ))
 
 
 def test_only_bounded_by_fields():
     class MySchema(Schema):
-
         class Meta:
             fields = ('foo', )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="'baz'"):
         MySchema(only=('baz', ))
 
 
@@ -1480,28 +1478,32 @@ def test_meta_serializer_fields():
 def test_meta_fields_mapping(user):
     s = UserMetaSchema()
     s.dump(user)  # need to call dump to update fields
-    assert type(s.fields['name']) == fields.String
-    assert type(s.fields['created']) == fields.DateTime
-    assert type(s.fields['updated']) == fields.DateTime
-    assert type(s.fields['updated_local']) == fields.LocalDateTime
-    assert type(s.fields['age']) == fields.Float
     assert type(s.fields['balance']) == fields.Decimal
-    assert type(s.fields['registered']) == fields.Boolean
-    assert type(s.fields['sex_choices']) == fields.Raw
-    assert type(s.fields['hair_colors']) == fields.Raw
-    assert type(s.fields['finger_count']) == fields.Integer
-    assert type(s.fields['uid']) == fields.UUID
-    assert type(s.fields['time_registered']) == fields.Time
-    assert type(s.fields['birthdate']) == fields.Date
-    assert type(s.fields['since_created']) == fields.TimeDelta
+    assert type(s.fields['updated_local']) == fields.LocalDateTime
+    # Inferred fields
+    assert type(s.fields['name']._field_cache[fields.String]) == fields.String
+    assert type(s.fields['created']._field_cache[fields.DateTime]) == fields.DateTime
+    assert type(s.fields['updated']._field_cache[fields.DateTime]) == fields.DateTime
+    assert type(s.fields['age']._field_cache[fields.Float]) == fields.Float
+    assert type(s.fields['registered']._field_cache[fields.Boolean]) == fields.Boolean
+    assert type(s.fields['sex_choices']._field_cache[fields.Raw]) == fields.Raw
+    assert type(s.fields['hair_colors']._field_cache[fields.Raw]) == fields.Raw
+    assert type(s.fields['finger_count']._field_cache[fields.Integer]) == fields.Integer
+    assert type(s.fields['uid']._field_cache[fields.UUID]) == fields.UUID
+    assert type(s.fields['time_registered']._field_cache[fields.Time]) == fields.Time
+    assert type(s.fields['birthdate']._field_cache[fields.Date]) == fields.Date
+    assert type(s.fields['since_created']._field_cache[fields.TimeDelta]) == fields.TimeDelta
 
 
 def test_meta_field_not_on_obj_raises_attribute_error(user):
     class BadUserSchema(Schema):
         class Meta:
-            fields = ('name', 'notfound')
-    with pytest.raises(AttributeError):
+            fields = ('name',)
+            exclude = ('notfound',)
+
+    with pytest.raises(ValueError, match="'notfound'"):
         BadUserSchema().dump(user)
+
 
 def test_exclude_fields(user):
     s = UserExcludeSchema().dump(user)
