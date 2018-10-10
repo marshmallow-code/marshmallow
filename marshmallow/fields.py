@@ -1496,8 +1496,6 @@ class Inferred(Field):
                 field = field_cls()
                 field._bind_to_schema(self.name, self.parent)
                 self._field_cache[field_cls] = field
-
-        # Use the local field rather than self._field for thread safety.
         return field._serialize(value, attr, obj)
 
 
