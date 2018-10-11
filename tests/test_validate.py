@@ -23,6 +23,8 @@ from marshmallow import validate, ValidationError
     'http://123.45.67.8/',
     'http://2001:db8::ff00:42:8329',
     'http://www.example.com:8000/foo',
+    'http://user@example.com',
+    'http://user:pass@example.com',
 ])
 def test_url_absolute_valid(valid_url):
     validator = validate.URL(relative=False)
