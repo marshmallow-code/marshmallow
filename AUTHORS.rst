@@ -110,3 +110,4 @@ Contributors (chronological)
 - Dushyant Rijhwani `@dushr<https://github.com/dushr>`_
 - Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
 - Victor Gavro `@vgavro<https://github.com/vgavro`_
+- Viktor Kerkez `@alefnula<https://github.com/alefnula>`_

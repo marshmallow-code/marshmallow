@@ -12,8 +12,6 @@ Features:
   Thanks :user:`knagra` for implementing these changes.
 - Enforce ISO 8601 when deserializing date and time (:issue:`899`).
   Thanks :user:`dushr` for the report and the work on the PR.
-- Allow username without password in basic auth part of the url in
-  ``fields.Url`` (:pr:`982`). Thanks user:`alefnula` for the PR.
 
 Bug fixes:
 
@@ -22,6 +20,8 @@ Bug fixes:
 - When ``unknown`` is not passed to ``Nested``, default to nested ``Schema``
   ``unknown`` meta option rather than ``RAISE`` (:pr:`963`).
   Thanks :user:`vgavro` for the PR.
+- Includes bug fix from 2.16.0.
+
 
 3.0.0b16 (2018-09-20)
 +++++++++++++++++++++
@@ -337,6 +337,18 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.16.0 (2018-10-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Allow username without password in basic auth part of the url in
+  ``fields.Url`` (:pr:`982`). Thanks user:`alefnula` for the PR.
+
+Other changes:
+
+- Drop support for Python 3.3 (:pr:`987`).
 
 2.15.6 (2018-09-20)
 +++++++++++++++++++
