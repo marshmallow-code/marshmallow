@@ -489,22 +489,24 @@ class Pluck(Nested):
         super(Pluck, self).__init__(nested, only=(field_name,), **kwargs)
         self.field_name = field_name
 
+    @property
+    def _field_data_key(self):
+        only_field = self.schema.fields[self.field_name]
+        return only_field.data_key or self.field_name
+
     def _serialize(self, nested_obj, attr, obj):
         ret = super(Pluck, self)._serialize(nested_obj, attr, obj)
-        only_field = self.schema.fields[self.field_name]
-        data_key = only_field.data_key or self.field_name
-        key = ''.join([self.schema.prefix or '', data_key])
+        key = ''.join([self.schema.prefix or '', self._field_data_key])
         if self.many:
             return utils.pluck(ret, key=key)
-        else:
-            return ret[key]
+        return ret[key]
 
     def _deserialize(self, value, attr, data):
         self._test_collection(value)
         if self.many:
-            value = [{self.field_name: v} for v in value]
+            value = [{self._field_data_key: v} for v in value]
         else:
-            value = {self.field_name: value}
+            value = {self._field_data_key: value}
         return self._load(value, data)
 
 

@@ -2100,6 +2100,10 @@ class TestPluckSchema:
         assert data['user'] == blog.user.name
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
+        assert s.load(data) == {
+            'user': {'name': 'Monty'},
+            'collaborators': [{'name': 'Mick'}, {'name': 'Keith'}],
+        }
 
 
 class TestSelfReference:
