@@ -111,3 +111,4 @@ Contributors (chronological)
 - Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
 - Victor Gavro `@vgavro<https://github.com/vgavro`_
 - Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
+- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`
