@@ -1172,6 +1172,36 @@ def test_deeply_nested_only_and_exclude():
     assert 'bah' not in grand_child
 
 
+@pytest.mark.parametrize('data_key', ('f1', 'f5', None))
+def test_data_key_collision(data_key):
+
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(data_key=data_key)
+        f3 = fields.Field(data_key='f5')
+        f4 = fields.Field(data_key='f1', load_only=True)
+
+    if data_key is None:
+        MySchema()
+    else:
+        with pytest.raises(ValueError, match=data_key):
+            MySchema()
+
+@pytest.mark.parametrize('attribute', ('f1', 'f5', None))
+def test_attribute_collision(attribute):
+
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute=attribute)
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f1', dump_only=True)
+
+    if attribute is None:
+        MySchema()
+    else:
+        with pytest.raises(ValueError, match=attribute):
+            MySchema()
+
 class TestDeeplyNestedLoadOnly:
 
     @pytest.fixture()

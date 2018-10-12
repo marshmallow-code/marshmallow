@@ -714,6 +714,20 @@ class BaseSchema(base.SchemaABC):
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
+        dump_data_keys = [
+            obj.data_key or name for name, obj in iteritems(fields_dict) if not obj.load_only
+        ]
+        if len(dump_data_keys) != len(set(dump_data_keys)):
+            data_keys_duplicates = {x for x in dump_data_keys if dump_data_keys.count(x) > 1}
+            raise ValueError('Duplicate data_keys: {}'.format(data_keys_duplicates))
+
+        load_attributes = [
+            obj.attribute or name for name, obj in iteritems(fields_dict) if not obj.dump_only
+        ]
+        if len(load_attributes) != len(set(load_attributes)):
+            attributes_duplicates = {x for x in load_attributes if load_attributes.count(x) > 1}
+            raise ValueError('Duplicate attributes: {}'.format(attributes_duplicates))
+
         return fields_dict
 
     def on_bind_field(self, field_name, field_obj):

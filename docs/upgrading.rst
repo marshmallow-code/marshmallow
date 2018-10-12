@@ -667,6 +667,47 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
     MySchema().dump({'x': dt.datetime(2017, 9, 19), 'y': dt.date(2017, 9, 19)})
     # => {{'x': '2017-09', 'y': '09-19'}}
 
+``attribute`` or ``data_key`` collision triggers an exception
+*************************************************************
+
+When a `Schema <marshmallow.Schema>` is instantiated, a check is performed and a ``ValueError`` is triggered if
+
+- several fields have the same ``attribute`` value (or field name if ``attribute`` is not passed), excluding ``dump_only`` fields, or
+- several fields have the same ``data_key`` value (or field name if ``data_key`` is not passed), excluding ``load_only`` fields
+
+In marshmallow 2, it was possible to have multiple fields with the same ``attribute``. It would work provided the ``Schema`` was only used for dumping. When loading, the behaviour was undefined. In marshmallow 3, all but one of those fields must be marked as ``dump_only``. Likewise for ``data_key`` (formerly ``dump_to``) for fields that are not ``load_only``.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1')
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5')
+
+    MySchema()
+    # No error
+
+    # 3.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1')
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5')
+
+    MySchema()
+    # ValueError: 'Duplicate attributes: ['f1', 'f5]'
+
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1', dump_only=True)
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5', dump_only=True)
+
+    MySchema()
+    # No error
+
 Upgrading to 2.3
 ++++++++++++++++
 
