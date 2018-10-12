@@ -8,7 +8,6 @@ import copy
 import datetime as dt
 import numbers
 import uuid
-import warnings
 import decimal
 import math
 
@@ -998,23 +997,11 @@ class DateTime(Field):
                 return func(value)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
-        elif data_format:
+        else:
             try:
                 return dt.datetime.strptime(value, data_format)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
-        elif utils.dateutil_available:
-            try:
-                parsed = utils.from_datestring(value)
-                return self._create_data_object_from_parsed_value(parsed)
-            except (TypeError, ValueError):
-                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
-        else:
-            warnings.warn(
-                'It is recommended that you install python-dateutil '
-                'for improved datetime deserialization.',
-            )
-            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
 
 
 class LocalDateTime(DateTime):
