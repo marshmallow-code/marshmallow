@@ -12,6 +12,8 @@ Features:
   Thanks :user:`knagra` for implementing these changes.
 - Enforce ISO 8601 when deserializing date and time (:issue:`899`).
   Thanks :user:`dushr` for the report and the work on the PR.
+- *Backwards-incompatible*: Raise ``ValueError`` on ``Schema`` instantiation in
+  case of ``attribute`` or ``data_key`` collision (:pr:`992`).
 
 Bug fixes:
 
