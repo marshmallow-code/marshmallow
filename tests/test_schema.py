@@ -2096,16 +2096,6 @@ class TestNestedSchema:
 
 class TestPluckSchema:
 
-    def blog(self):
-        user = User(name='Monty', age=81)
-        col1 = User(name='Mick', age=123)
-        col2 = User(name='Keith', age=456)
-        blog = Blog(
-            user=user, categories=['humor', 'violence'],
-            collaborators=[col1, col2],
-        )
-        return blog
-
     def test_pluck(self, blog):
         class FlatBlogSchema(Schema):
             user = fields.Pluck(UserSchema, 'name')
