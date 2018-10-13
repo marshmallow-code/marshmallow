@@ -53,6 +53,9 @@ MISSING_ERROR_MESSAGE = (
     'not exist in the `error_messages` dictionary.'
 )
 
+# Key used for field-level validation errors
+ERRORS = '_errors'
+
 
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
@@ -582,7 +585,7 @@ class List(Field):
                 result.append(self.container.deserialize(each))
             except ValidationError as e:
                 result.append(e.data)
-                errors.update({idx: e.messages})
+                errors.update({idx: {ERRORS: e.messages}})
 
         if errors:
             raise ValidationError(errors, data=result)
@@ -1244,7 +1247,7 @@ class Dict(Field):
                 try:
                     keys[idx] = self.key_container.deserialize(key)
                 except ValidationError as e:
-                    errors[key]['key'] = e.messages
+                    errors[key]['key'] = {ERRORS: e.messages}
         if self.value_container:
             for idx, item in enumerate(values):
                 try:
@@ -1252,7 +1255,7 @@ class Dict(Field):
                 except ValidationError as e:
                     values[idx] = e.data
                     key = keys[idx]
-                    errors[key]['value'] = e.messages
+                    errors[key]['value'] = {ERRORS: e.messages}
         result = dict(zip(keys, values))
 
         if errors:

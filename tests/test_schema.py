@@ -2729,27 +2729,35 @@ def test_deserialize_errors():
     assert errors == {
         '_errors': ['Invalid schema'],
         'dict_field': {'_errors': ['Invalid field'],
-                       'lol': {'key': ['Not a valid integer.'],
-                               'value': ['Not a valid integer.']},
-                       'whatever': {'key': ['Not a valid integer.'],
-                                    'value': ['Not a valid integer.']}},
+                       'lol': {'key': {'_errors': ['Not a valid integer.']},
+                               'value': {'_errors': ['Not a valid integer.']}},
+                       'whatever': {'key': {'_errors': ['Not a valid integer.']},
+                                    'value': {'_errors': ['Not a valid integer.']}}},
         'dict_nested': {'_errors': ['Invalid field'],
-                        'lol': {'key': ['Not a valid integer.'],
-                                'value': {'_errors': ['Invalid child schema'],
-                                          'int_field': {'_errors': ['Not a valid '
-                                                                    'integer.']}}},
-                        'whatever': {'key': ['Not a valid integer.'],
-                                     'value': {'_errors': ['Invalid child schema'],
-                                               'int_field': {'_errors': ['Not a valid '
-                                                                         'integer.']}}}},
+                        'lol': {'key': {'_errors': ['Not a valid integer.']},
+                                'value': {'_errors': {'_errors': ['Invalid child '
+                                                                  'schema'],
+                                                      'int_field': {'_errors': ['Not '
+                                                                                'a '
+                                                                                'valid '
+                                                                                'integer.']}}}},
+                        'whatever': {'key': {'_errors': ['Not a valid integer.']},
+                                     'value': {'_errors': {'_errors': ['Invalid child '
+                                                                       'schema'],
+                                                           'int_field': {'_errors': ['Not '
+                                                                                     'a '
+                                                                                     'valid '
+                                                                                     'integer.']}}}}},
         'int_field': {'_errors': ['Not a valid integer.']},
-        'list_field': {0: ['Not a valid integer.'],
-                       1: ['Not a valid integer.'],
+        'list_field': {0: {'_errors': ['Not a valid integer.']},
+                       1: {'_errors': ['Not a valid integer.']},
                        '_errors': ['Invalid field']},
-        'list_nested': {0: {'_errors': ['Invalid child schema'],
-                            'int_field': {'_errors': ['Not a valid integer.']}},
-                        1: {'_errors': ['Invalid child schema'],
-                            'int_field': {'_errors': ['Not a valid integer.']}},
+        'list_nested': {0: {'_errors': {'_errors': ['Invalid child schema'],
+                                        'int_field': {'_errors': ['Not a valid '
+                                                                  'integer.']}}},
+                        1: {'_errors': {'_errors': ['Invalid child schema'],
+                                        'int_field': {'_errors': ['Not a valid '
+                                                                  'integer.']}}},
                         '_errors': ['Invalid field']},
         'nested': {'_errors': ['Invalid child schema', 'Invalid field'],
                    'int_field': {'_errors': ['Not a valid integer.']}},
@@ -2759,5 +2767,3 @@ def test_deserialize_errors():
                             'int_field': {'_errors': ['Not a valid integer.']}},
                         '_errors': ['Invalid field']},
         'required_field': {'_errors': ['Missing data for required field.']}}
-
-
