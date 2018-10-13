@@ -169,8 +169,6 @@ class Unmarshaller(ErrorStore):
     .. versionadded:: 1.0.0
     """
 
-    default_schema_validation_error = 'Invalid data.'
-
     def run_validator(
         self, validator_func, output,
         original_data, fields_dict, index=None,
@@ -178,11 +176,9 @@ class Unmarshaller(ErrorStore):
     ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
-                res = validator_func(output, original_data)
+                validator_func(output, original_data)
             else:
-                res = validator_func(output)
-            if res is False:
-                raise ValidationError(self.default_schema_validation_error)
+                validator_func(output)
         except ValidationError as err:
             # Store or reraise errors
             field_names = err.field_names or [SCHEMA]
