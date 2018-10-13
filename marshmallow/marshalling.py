@@ -14,10 +14,8 @@ import collections
 from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
 )
-from marshmallow.compat import iteritems, basestring
-from marshmallow.exceptions import (
-    ValidationError,
-)
+from marshmallow.compat import iteritems
+from marshmallow.exceptions import ValidationError
 
 __all__ = [
     'Marshaller',
@@ -56,8 +54,6 @@ class ErrorStore(object):
             errors.setdefault(field_name, []).extend(messages)
 
     def store_validation_error(self, field_names, error, index=None):
-        if isinstance(field_names, basestring):
-            field_names = (field_names, )
         self.error_kwargs.update(error.kwargs)
         for field_name in field_names:
             self.store_error(field_name, error.messages, index=index)
@@ -78,7 +74,7 @@ class ErrorStore(object):
         try:
             value = getter_func(data)
         except ValidationError as error:
-            return self.store_validation_error(field_name, error, index)
+            return self.store_validation_error((field_name,), error, index)
         return value
 
 
