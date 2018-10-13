@@ -22,7 +22,12 @@ Bug fixes:
 - When ``unknown`` is not passed to ``Nested``, default to nested ``Schema``
   ``unknown`` meta option rather than ``RAISE`` (:pr:`963`).
   Thanks :user:`vgavro` for the PR.
+- Fix loading behavior of ``fields.Pluck`` (:pr:`990`).
 - Includes bug fix from 2.16.0.
+
+Other changes:
+
+- Refactoring of field type inference (:issue:`809`). Thanks :user:`taion`.
 
 
 3.0.0b16 (2018-09-20)
