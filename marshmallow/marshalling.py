@@ -268,9 +268,9 @@ class Unmarshaller(ErrorStore):
                     if unknown == INCLUDE:
                         set_value(ret, key, value)
                     elif unknown == RAISE:
-                        self.store_validation_error(
+                        self.store_error(
                             key,
-                            ValidationError('Unknown field.'),
+                            ('Unknown field.',),
                             (index if index_errors else None),
                         )
         return ret
