@@ -2676,3 +2676,88 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {'url': 'marshmallow://app/discounts'}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
+
+
+def test_deserialize_errors():
+
+    class MyChildSchema(Schema):
+        int_field = fields.Int()
+
+        @validates_schema(skip_on_field_errors=False)
+        def validates_myschema(self, data):
+            raise ValidationError('Invalid child schema')
+
+    class MySchema(Schema):
+        int_field = fields.Int()
+        required_field = fields.Field(required=True)
+        nested = fields.Nested(MyChildSchema)
+        nested_many = fields.Nested(MyChildSchema, many=True)
+        list_field = fields.List(fields.Int)
+        list_nested = fields.List(fields.Nested(MyChildSchema))
+        dict_field = fields.Dict(keys=fields.Int, values=fields.Int)
+        dict_nested = fields.Dict(keys=fields.Int, values=fields.Nested(MyChildSchema))
+
+        @validates_schema(skip_on_field_errors=False)
+        def validates_myschema(self, data):
+            raise ValidationError('Invalid schema')
+
+        @validates_schema(skip_on_field_errors=False)
+        def validates_nested_fields(self, data):
+            raise ValidationError('Invalid field', field_names=(
+                'nested', 'nested_many', 'list_field', 'list_nested', 'dict_field', 'dict_nested'))
+
+    data = {
+        'int_field': 'lol',
+        'nested': {'int_field': 'lol'},
+        'nested_many': [
+            {'int_field': 'lol'},
+            {'int_field': 'whatever'},
+        ],
+        'list_field': ['lol', 'whatever'],
+        'list_nested': [{'int_field': 'lol'}, {'int_field': 'whatever'}],
+        'dict_field': {'lol': 'lol', 'whatever': 'whatever'},
+        'dict_nested': {'lol': {'int_field': 'lol'}, 'whatever': {'int_field': 'whatever'}},
+    }
+
+    with pytest.raises(ValidationError) as excinfo:
+        MySchema().load(data)
+    errors = excinfo.value.messages
+    print('')
+    from pprint import pprint
+    pprint(errors)
+
+    assert errors == {
+        '_errors': ['Invalid schema'],
+        'dict_field': {'_errors': ['Invalid field'],
+                       'lol': {'key': ['Not a valid integer.'],
+                               'value': ['Not a valid integer.']},
+                       'whatever': {'key': ['Not a valid integer.'],
+                                    'value': ['Not a valid integer.']}},
+        'dict_nested': {'_errors': ['Invalid field'],
+                        'lol': {'key': ['Not a valid integer.'],
+                                'value': {'_errors': ['Invalid child schema'],
+                                          'int_field': {'_errors': ['Not a valid '
+                                                                    'integer.']}}},
+                        'whatever': {'key': ['Not a valid integer.'],
+                                     'value': {'_errors': ['Invalid child schema'],
+                                               'int_field': {'_errors': ['Not a valid '
+                                                                         'integer.']}}}},
+        'int_field': {'_errors': ['Not a valid integer.']},
+        'list_field': {0: ['Not a valid integer.'],
+                       1: ['Not a valid integer.'],
+                       '_errors': ['Invalid field']},
+        'list_nested': {0: {'_errors': ['Invalid child schema'],
+                            'int_field': {'_errors': ['Not a valid integer.']}},
+                        1: {'_errors': ['Invalid child schema'],
+                            'int_field': {'_errors': ['Not a valid integer.']}},
+                        '_errors': ['Invalid field']},
+        'nested': {'_errors': ['Invalid child schema', 'Invalid field'],
+                   'int_field': {'_errors': ['Not a valid integer.']}},
+        'nested_many': {0: {'_errors': ['Invalid child schema'],
+                            'int_field': {'_errors': ['Not a valid integer.']}},
+                        1: {'_errors': ['Invalid child schema'],
+                            'int_field': {'_errors': ['Not a valid integer.']}},
+                        '_errors': ['Invalid field']},
+        'required_field': {'_errors': ['Missing data for required field.']}}
+
+

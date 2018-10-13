@@ -24,10 +24,10 @@ __all__ = [
     'Unmarshaller',
 ]
 
-# Key used for schema-level validation errors
+# Special keyword to pass a field name for schema-level validation errors
 SCHEMA = '_schema'
-# Key used for field-level validation errors on nested fields
-FIELD = '_field'
+# Key used for field-level validation errors
+ERRORS = '_errors'
 
 class ErrorStore(object):
 
@@ -47,13 +47,15 @@ class ErrorStore(object):
     def store_error(self, field_name, messages, index=None):
         self.error_field_names.append(field_name)
         errors = self.get_errors(index=index)
-        # Warning: Mutation!
-        if isinstance(messages, dict):
-            errors[field_name] = messages
-        elif isinstance(errors.get(field_name), dict):
-            errors[field_name].setdefault(FIELD, []).extend(messages)
+        # Schema errors
+        if field_name == SCHEMA:
+            errors.setdefault(ERRORS, []).extend(messages)
+        # Nested field errors
+        elif isinstance(messages, dict):
+            errors.setdefault(field_name, {}).update(messages)
+        # Field errors
         else:
-            errors.setdefault(field_name, []).extend(messages)
+            errors.setdefault(field_name, {}).setdefault(ERRORS, []).extend(messages)
 
     def store_validation_error(self, field_names, error, index=None):
         if isinstance(field_names, basestring):
