@@ -14,10 +14,8 @@ import collections
 from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
 )
-from marshmallow.compat import iteritems, basestring
-from marshmallow.exceptions import (
-    ValidationError,
-)
+from marshmallow.compat import iteritems
+from marshmallow.exceptions import ValidationError
 
 __all__ = [
     'Marshaller',
@@ -56,8 +54,6 @@ class ErrorStore(object):
             errors.setdefault(field_name, []).extend(messages)
 
     def store_validation_error(self, field_names, error, index=None):
-        if isinstance(field_names, basestring):
-            field_names = (field_names, )
         self.error_kwargs.update(error.kwargs)
         for field_name in field_names:
             self.store_error(field_name, error.messages, index=index)
@@ -78,7 +74,7 @@ class ErrorStore(object):
         try:
             value = getter_func(data)
         except ValidationError as error:
-            return self.store_validation_error(field_name, error, index)
+            return self.store_validation_error((field_name,), error, index)
         return value
 
 
@@ -169,8 +165,6 @@ class Unmarshaller(ErrorStore):
     .. versionadded:: 1.0.0
     """
 
-    default_schema_validation_error = 'Invalid data.'
-
     def run_validator(
         self, validator_func, output,
         original_data, fields_dict, index=None,
@@ -178,11 +172,9 @@ class Unmarshaller(ErrorStore):
     ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
-                res = validator_func(output, original_data)
+                validator_func(output, original_data)
             else:
-                res = validator_func(output)
-            if res is False:
-                raise ValidationError(self.default_schema_validation_error)
+                validator_func(output)
         except ValidationError as err:
             # Store or reraise errors
             field_names = err.field_names or [SCHEMA]
@@ -268,9 +260,9 @@ class Unmarshaller(ErrorStore):
                     if unknown == INCLUDE:
                         set_value(ret, key, value)
                     elif unknown == RAISE:
-                        self.store_validation_error(
+                        self.store_error(
                             key,
-                            ValidationError('Unknown field.'),
+                            ('Unknown field.',),
                             (index if index_errors else None),
                         )
         return ret
