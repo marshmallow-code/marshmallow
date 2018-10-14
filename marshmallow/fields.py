@@ -495,10 +495,9 @@ class Pluck(Nested):
 
     def _serialize(self, nested_obj, attr, obj):
         ret = super(Pluck, self)._serialize(nested_obj, attr, obj)
-        key = ''.join([self.schema.prefix or '', self._field_data_key])
         if self.many:
-            return utils.pluck(ret, key=key)
-        return ret[key]
+            return utils.pluck(ret, key=self._field_data_key)
+        return ret[self._field_data_key]
 
     def _deserialize(self, value, attr, data):
         self._test_collection(value)

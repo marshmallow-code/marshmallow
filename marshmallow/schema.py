@@ -246,8 +246,6 @@ class BaseSchema(base.SchemaABC):
         when instantiating the Schema. If a field appears in both `only` and
         `exclude`, it is not used. Nested fields can be represented with dot
         delimiters.
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
@@ -259,6 +257,9 @@ class BaseSchema(base.SchemaABC):
         ignored.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+
+    .. versionchanged:: 3.0.0
+        `prefix` parameter removed.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -307,9 +308,8 @@ class BaseSchema(base.SchemaABC):
         pass
 
     def __init__(
-        self, only=None, exclude=(), prefix='', many=False,
-        context=None, load_only=(), dump_only=(), partial=False,
-        unknown=None,
+        self, only=None, exclude=(), many=False, context=None,
+        load_only=(), dump_only=(), partial=False, unknown=None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -321,7 +321,6 @@ class BaseSchema(base.SchemaABC):
         self.many = many
         self.only = only
         self.exclude = exclude
-        self.prefix = prefix
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -386,7 +385,7 @@ class BaseSchema(base.SchemaABC):
             if ``obj`` is invalid.
         """
         # Callable marshalling object
-        marshal = marshalling.Marshaller(prefix=self.prefix)
+        marshal = marshalling.Marshaller()
         errors = {}
         many = self.many if many is None else bool(many)
         if many and utils.is_iterable_but_not_string(obj):

@@ -293,11 +293,6 @@ class BlogSchemaOnlyExclude(BlogSchema):
     user = fields.Nested(UserSchema, only=('name', ), exclude=('name', 'species'))
 
 
-class BlogSchemaPrefixedUser(BlogSchema):
-    user = fields.Nested(UserSchema(prefix='usr_'))
-    collaborators = fields.Nested(UserSchema(prefix='usr_'), many=True)
-
-
 class mockjson(object):  # noqa
 
     @staticmethod

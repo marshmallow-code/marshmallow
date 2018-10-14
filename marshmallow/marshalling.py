@@ -79,14 +79,7 @@ class ErrorStore(object):
 
 
 class Marshaller(ErrorStore):
-    """Callable class responsible for serializing data and storing errors.
-
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
-    """
-    def __init__(self, prefix=''):
-        self.prefix = prefix
-        ErrorStore.__init__(self)
+    """Callable class responsible for serializing data and storing errors."""
 
     def serialize(
         self, obj, fields_dict, many=False,
@@ -133,9 +126,7 @@ class Marshaller(ErrorStore):
         for attr_name, field_obj in iteritems(fields_dict):
             if getattr(field_obj, 'load_only', False):
                 continue
-
-            key = ''.join([self.prefix or '', field_obj.data_key or attr_name])
-
+            key = field_obj.data_key or attr_name
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
             value = self.call_and_store(
                 getter_func=getter,

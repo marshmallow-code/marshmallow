@@ -17,13 +17,6 @@ class TestMarshaller:
     def marshal(self):
         return Marshaller()
 
-    def test_prefix(self):
-        u = User('Foo', email='foo@bar.com')
-        marshal = Marshaller(prefix='usr_')
-        result = marshal(u, {'email': fields.Email(), 'name': fields.String()})
-        assert result['usr_name'] == u.name
-        assert result['usr_email'] == u.email
-
     def test_marshalling_generator(self, marshal):
         gen = (u for u in [User('Foo'), User('Bar')])
         res = marshal(gen, {'name': fields.String()}, many=True)
@@ -77,18 +70,6 @@ class TestMarshaller:
         result = marshal.serialize(data, fields_dict)
         assert result['NaMe'] == 'Mike'
         assert result['EmAiL'] == 'm@wazow.ski'
-
-    def test_serialize_fields_with_data_key_and_prefix_params(self):
-        u = User('Foo', email='foo@bar.com')
-        marshal = Marshaller(prefix='usr_')
-        result = marshal(
-            u, {
-                'email': fields.Email(data_key='EmAiL'),
-                'name': fields.String(data_key='NaMe'),
-            },
-        )
-        assert result['usr_NaMe'] == u.name
-        assert result['usr_EmAiL'] == u.email
 
     def test_stores_indices_of_errors_when_many_equals_true(self, marshal):
         users = [
