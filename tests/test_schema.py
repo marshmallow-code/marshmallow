@@ -28,7 +28,6 @@ from tests.base import (
     UserExcludeSchema,
     UserAdditionalSchema,
     BlogSchemaExclude,
-    BlogSchemaPrefixedUser,
     BlogSchemaMeta,
     User,
     mockjson,
@@ -650,14 +649,6 @@ def test_method_field(SchemaClass, serialized_user):
 
 def test_function_field(serialized_user, user):
     assert serialized_user['lowername'] == user.name.lower()
-
-@pytest.mark.parametrize(
-    'SchemaClass',
-    [UserSchema, UserMetaSchema],
-)
-def test_prefix(SchemaClass, user):
-    s = SchemaClass(prefix='usr_').dump(user)
-    assert s['usr_name'] == user.name
 
 def test_fields_must_be_declared_as_instances(user):
     class BadUserSchema(Schema):
@@ -1962,15 +1953,6 @@ class TestNestedSchema:
         assert data['user']['lowername'] == user.name.lower()
         expected = blog.collaborators[0].name.lower()
         assert data['collaborators'][0]['lowername'] == expected
-
-    def test_nested_prefixed_field(self, blog, user):
-        data = BlogSchemaPrefixedUser().dump(blog)
-        assert data['user']['usr_name'] == user.name
-        assert data['user']['usr_lowername'] == user.name.lower()
-
-    def test_nested_prefixed_many_field(self, blog):
-        data = BlogSchemaPrefixedUser().dump(blog)
-        assert data['collaborators'][0]['usr_name'] == blog.collaborators[0].name
 
     def test_invalid_float_field(self):
         user = User('Joe', age='1b2')

@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.0.0b18 (unreleased)
++++++++++++++++++++++
+
+Deprecations/Removals:
+
+- ``prefix`` parameter or ``Schema`` class is removed (:issue:`991`). The same
+  can be achieved using a ``@post_dump`` method.
+
+
 3.0.0b17 (2018-10-13)
 +++++++++++++++++++++
 
