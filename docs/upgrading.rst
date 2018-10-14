@@ -667,6 +667,34 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
     MySchema().dump({'x': dt.datetime(2017, 9, 19), 'y': dt.date(2017, 9, 19)})
     # => {{'x': '2017-09', 'y': '09-19'}}
 
+The ``prefix`` ``Schema`` parameter is removed
+**********************************************
+
+The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achieved using a post_dump <marshmallow.decorators.post_dump>` method.
+
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field()
+
+    MySchema(prefix='pre_').dump({'f1': 'one', 'f2': 'two'})
+    # {'pre_f1': 'one', '_pre_f2': 'two'}
+
+    # 3.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field()
+
+        @post_dump
+        def prefix_usr(self, data):
+            return {'usr_{}'.format(k): v for k, v in iteritems(data)}
+
+    MySchema().dump({'f1': 'one', 'f2': 'two'})
+    # {'pre_f1': 'one', '_pre_f2': 'two'}
+
 ``attribute`` or ``data_key`` collision triggers an exception
 *************************************************************
 
