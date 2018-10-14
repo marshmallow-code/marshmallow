@@ -42,8 +42,8 @@ class TestDeserializingNone:
             field.deserialize(None)
         assert 'Field may not be null.' in str(excinfo)
 
-    def test_allow_none_is_true_if_missing_is_true(self):
-        field = fields.Field(missing=None)
+    def test_allow_none_is_true_if_default_load_is_true(self):
+        field = fields.Field(default_load=None)
         assert field.allow_none is True
         field.deserialize(None) is None
 
@@ -1176,12 +1176,12 @@ class TestSchemaDeserialization:
         assert 'years' not in result
         assert 'nicknames' not in result
 
-    def test_deserialize_with_missing_param_value(self):
+    def test_deserialize_with_default_load_param_value(self):
         bdate = dt.datetime(2017, 9, 29)
 
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(missing=bdate)
+            birthdate = fields.DateTime(default_load=bdate)
         data = {
             'name': 'Mick',
         }
@@ -1189,12 +1189,12 @@ class TestSchemaDeserialization:
         assert result['name'] == 'Mick'
         assert result['birthdate'] == bdate
 
-    def test_deserialize_with_missing_param_callable(self):
+    def test_deserialize_with_default_load_param_callable(self):
         bdate = dt.datetime(2017, 9, 29)
 
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(missing=lambda: bdate)
+            birthdate = fields.DateTime(default_load=lambda: bdate)
         data = {
             'name': 'Mick',
         }
@@ -1202,10 +1202,10 @@ class TestSchemaDeserialization:
         assert result['name'] == 'Mick'
         assert result['birthdate'] == bdate
 
-    def test_deserialize_with_missing_param_none(self):
+    def test_deserialize_with_default_load_param_none(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=None, allow_none=True)
+            years = fields.Integer(default_load=None, allow_none=True)
         data = {
             'name': 'Mick',
         }

@@ -157,7 +157,7 @@ class UserSchema(Schema):
     updated = fields.DateTime()
     updated_local = fields.LocalDateTime(attribute='updated', dump_only=True)
     species = fields.String(attribute='SPECIES')
-    id = fields.String(default='no-id')
+    id = fields.String(default_dump='no-id')
     uppername = Uppercased(attribute='name', dump_only=True)
     homepage = fields.Url()
     email = fields.Email()

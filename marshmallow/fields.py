@@ -60,9 +60,6 @@ class Field(FieldABC):
     data does not need to be formatted before being serialized or deserialized.
     On error, the name of the field will be returned.
 
-    :param default: If set, this value will be used during serialization if the input value
-        is missing. If not set, the field will be excluded from the serialized output if the
-        input value is missing. May be a value or a callable.
     :param str attribute: The name of the attribute to get the value from when serializing.
         If `None`, assumes the attribute has the same name as the field.
     :param str data_key: The name of the key to get the value from when deserializing.
@@ -74,17 +71,23 @@ class Field(FieldABC):
     :param required: Raise a :exc:`ValidationError` if the field value
         is not supplied during deserialization.
     :param allow_none: Set this to `True` if `None` should be considered a valid value during
-        validation/deserialization. If ``missing=None`` and ``allow_none`` is unset,
+        validation/deserialization. If ``default_load=None`` and ``allow_none`` is unset,
         will default to ``True``. Otherwise, the default is ``False``.
     :param bool load_only: If `True` skip this field during serialization, otherwise
         its value will be present in the serialized data.
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
-    :param missing: Default deserialization value for the field if the field is not
+    :param default_dump: If set, this value will be used during serialization if the input value
+        is missing. If not set, the field will be excluded from the serialized output if the
+        input value is missing. May be a value or a callable.
+    :param default_load: Default deserialization value for the field if the field is not
         found in the input data. May be a value or a callable.
     :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra arguments to be stored as metadata.
+
+    .. versionchanged:: 3.0.0
+        Renamed `default` into `default_dump` and `missing` into `default_load`.
 
     .. versionchanged:: 2.0.0
         Removed `error` parameter. Use ``error_messages`` instead.
@@ -125,11 +128,11 @@ class Field(FieldABC):
     }
 
     def __init__(
-        self, default=missing_, attribute=None, data_key=None, error=None,
-        validate=None, required=False, allow_none=None, load_only=False,
-        dump_only=False, missing=missing_, error_messages=None, **metadata
+            self, attribute=None, data_key=None, error=None, validate=None,
+            required=False, allow_none=None, load_only=False, dump_only=False,
+            default_dump=missing_, default_load=missing_, error_messages=None, **metadata
     ):
-        self.default = default
+        self.default_dump = default_dump
         self.attribute = attribute
         self.data_key = data_key
         self.validate = validate
@@ -151,7 +154,7 @@ class Field(FieldABC):
         self.required = required
         # If missing=None, None should be considered valid by default
         if allow_none is None:
-            if missing is None:
+            if default_load is None:
                 self.allow_none = True
             else:
                 self.allow_none = False
@@ -159,7 +162,7 @@ class Field(FieldABC):
             self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
-        self.missing = missing
+        self.default_load = default_load
         self.metadata = metadata
         self._creation_index = Field._creation_index
         Field._creation_index += 1
@@ -172,11 +175,11 @@ class Field(FieldABC):
         self.error_messages = messages
 
     def __repr__(self):
-        return ('<fields.{ClassName}(default={self.default!r}, '
+        return ('<fields.{ClassName}(default_dump={self.default_dump!r}, '
                 'attribute={self.attribute!r}, '
                 'validate={self.validate}, required={self.required}, '
                 'load_only={self.load_only}, dump_only={self.dump_only}, '
-                'missing={self.missing}, allow_none={self.allow_none}, '
+                'default_load={self.default_load}, allow_none={self.allow_none}, '
                 'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
@@ -251,8 +254,8 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_ and hasattr(self, 'default'):
-                default = self.default
+            if value is missing_ and hasattr(self, 'default_dump'):
+                default = self.default_dump
                 value = default() if callable(default) else default
             if value is missing_:
                 return value
@@ -270,7 +273,7 @@ class Field(FieldABC):
         # deserialized value
         self._validate_missing(value)
         if value is missing_:
-            _miss = self.missing
+            _miss = self.default_load
             return _miss() if callable(_miss) else _miss
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
@@ -389,7 +392,7 @@ class Nested(Field):
         'type': 'Invalid type.',
     }
 
-    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
+    def __init__(self, nested, default_dump=missing_, exclude=tuple(), only=None, **kwargs):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
             raise StringNotCollectionError('"only" should be a list of strings')
@@ -401,7 +404,7 @@ class Nested(Field):
         self.many = kwargs.get('many', False)
         self.unknown = kwargs.get('unknown')
         self.__schema = None  # Cached Schema instance
-        super(Nested, self).__init__(default=default, **kwargs)
+        super(Nested, self).__init__(default_dump=default_dump, **kwargs)
 
     @property
     def schema(self):
@@ -518,7 +521,6 @@ class List(Field):
         numbers = fields.List(fields.Float())
 
     :param Field cls_or_instance: A field class or instance.
-    :param bool default: Default value for serialization.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionchanged:: 2.0.0
@@ -1267,7 +1269,6 @@ class Url(String):
     """A validated URL field. Validation occurs during both serialization and
     deserialization.
 
-    :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
@@ -1433,8 +1434,8 @@ class Constant(Field):
     def __init__(self, constant, **kwargs):
         super(Constant, self).__init__(**kwargs)
         self.constant = constant
-        self.missing = constant
-        self.default = constant
+        self.default_load = constant
+        self.default_dump = constant
 
     def _serialize(self, value, *args, **kwargs):
         return self.constant

@@ -34,7 +34,7 @@ class TestMarshaller:
         res = marshal(
             u, {
                 'name': fields.String(),
-                'email': fields.Email(default=missing),
+                'email': fields.Email(default_dump=missing),
             },
         )
         assert res['name'] == u['name']

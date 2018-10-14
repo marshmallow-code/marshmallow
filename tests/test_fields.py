@@ -26,15 +26,15 @@ class TestFieldAliases:
 class TestField:
 
     def test_repr(self):
-        default = u'œ∑´'
-        field = fields.Field(default=default, attribute=None)
-        assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
+        default_dump = u'œ∑´'
+        field = fields.Field(default_dump=default_dump, attribute=None)
+        assert repr(field) == (u'<fields.Field(default_dump={0!r}, attribute=None, '
                                'validate=None, required=False, '
                                'load_only=False, dump_only=False, '
-                               'missing={missing}, allow_none=False, '
+                               'default_load={default_load}, allow_none=False, '
                                'error_messages={error_messages})>'
                                .format(
-                                   default, missing=missing,
+                                   default_dump, default_load=missing,
                                    error_messages=field.error_messages,
                                ))
         int_field = fields.Integer(validate=lambda x: True)
@@ -164,7 +164,7 @@ class TestMetadata:
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
         field = FieldClass(
-            required=True, default=None, validate=lambda v: True,
+            required=True, default_dump=None, validate=lambda v: True,
             description='foo', widget='select',
         )
         assert field.metadata == {'description': 'foo', 'widget': 'select'}

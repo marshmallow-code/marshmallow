@@ -105,16 +105,16 @@ class TestFieldSerialization:
         field = fields.Integer(as_string=True)
         assert field.serialize('age', user) == '42'
 
-    def test_integer_field_default(self, user):
+    def test_integer_field_default_dump(self, user):
         user.age = None
-        field = fields.Integer(default=0)
+        field = fields.Integer(default_dump=0)
         assert field.serialize('age', user) is None
         # missing
         assert field.serialize('age', {}) == 0
 
-    def test_integer_field_default_set_to_none(self, user):
+    def test_integer_field_default_dump_set_to_none(self, user):
         user.age = None
-        field = fields.Integer(default=None)
+        field = fields.Integer(default_dump=None)
         assert field.serialize('age', user) is None
 
     def test_uuid_field(self, user):
@@ -571,8 +571,8 @@ class TestFieldSerialization:
         user = User(name='Monty')
         assert MySchema().dump(user)['greeting'] == 'Hello Monty'
 
-    def test_string_field_default_to_empty_string(self, user):
-        field = fields.String(default='')
+    def test_string_field_default_dump_to_empty_string(self, user):
+        field = fields.String(default_dump='')
         assert field.serialize('notfound', {}) == ''
 
     def test_time_field(self, user):
@@ -850,10 +850,10 @@ class TestFieldSerialization:
 
 class TestSchemaSerialization:
 
-    def test_serialize_with_missing_param_value(self):
+    def test_serialize_with_default_dump_param_value(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+            birthdate = fields.DateTime(default_dump=dt.datetime(2017, 9, 29))
         data = {
             'name': 'Mick',
         }
@@ -861,10 +861,10 @@ class TestSchemaSerialization:
         assert result['name'] == 'Mick'
         assert result['birthdate'] == '2017-09-29T00:00:00+00:00'
 
-    def test_serialize_with_missing_param_callable(self):
+    def test_serialize_with_default_dump_param_callable(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29))
+            birthdate = fields.DateTime(default_dump=lambda: dt.datetime(2017, 9, 29))
         data = {
             'name': 'Mick',
         }
