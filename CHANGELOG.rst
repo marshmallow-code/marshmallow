@@ -4,6 +4,11 @@ Changelog
 3.0.0b18 (unreleased)
 +++++++++++++++++++++
 
+Bug fixes:
+
+- Fix ``Date`` deserialization when using custom format (:issue:`1001`). Thanks
+  :user:`Ondkloss` for reporting.
+
 Deprecations/Removals:
 
 - ``prefix`` parameter or ``Schema`` class is removed (:issue:`991`). The same
