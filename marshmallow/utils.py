@@ -317,10 +317,37 @@ def to_iso_date(date, *args, **kwargs):
     return datetime.date.isoformat(date)
 
 
+def from_timestamp(timestamp, tzinfo=UTC):
+    return datetime.fromutctimestamp(float(timestamp)).replace(tzinfo=tzinfo)
+
+
+def to_timestamp(dt, localtime=False, utc_offset=True):
+    """Converts to timestamp, preserves offset if utc_offset=False"""
+    # TODO: do we need localtime?
+    if not dt.tzinfo or not utc_offset:
+        # We must ensure datetime is timezone-aware,
+        # because it will be converted with local time offset otherwise.
+        # If utc_offset is False - datetime will be converted "as is",
+        # offset related to timezone will be added otherwise
+        return dt.replace(tzinfo=UTC).timestamp()
+    # If we're not replacing tzinfo to UTC, timestamp will be converted
+    # with utc offset by default
+    return dt.timestamp()
+
+
+def from_timestamp_ms(value, tzinfo=UTC):
+    return from_timestamp(float(value) / 1000, tzinfo)
+
+
+def to_timestamp_ms(value, localtime=False, utc_offset=True):
+    return to_timestamp(value, localtime, utc_offset) * 1000
+
+
 def ensure_text_type(val):
     if isinstance(val, binary_type):
         val = val.decode('utf-8')
     return text_type(val)
+
 
 def pluck(dictlist, key):
     """Extracts a list of dictionary values from a list of dictionaries.
