@@ -561,12 +561,13 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
         assert excinfo.value.args[0] == 'Not a valid period of time.'
 
-    def test_date_field_deserialization(self):
-        field = fields.Date()
+    @pytest.mark.parametrize('format', (None, '%Y-%m-%d'))
+    def test_date_field_deserialization(self, format):
+        field = fields.Date(format=format)
         d = dt.date(2014, 8, 21)
         iso_date = d.isoformat()
         result = field.deserialize(iso_date)
-        assert isinstance(result, dt.date)
+        assert type(result) == dt.date
         assert_date_equal(result, d)
 
     @pytest.mark.parametrize(
