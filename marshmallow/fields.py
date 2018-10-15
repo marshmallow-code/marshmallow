@@ -1000,9 +1000,13 @@ class DateTime(Field):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         else:
             try:
-                return dt.datetime.strptime(value, data_format)
+                return self._make_object_from_format(value, data_format)
             except (TypeError, AttributeError, ValueError):
                 raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+
+    @staticmethod
+    def _make_object_from_format(value, data_format):
+        return dt.datetime.strptime(value, data_format)
 
 
 class LocalDateTime(DateTime):
@@ -1077,6 +1081,10 @@ class Date(DateTime):
     def _create_data_object_from_parsed_value(self, parsed):
         """Return a date from a parsed object that contains the need information."""
         return dt.date(parsed.year, parsed.month, parsed.day)
+
+    @staticmethod
+    def _make_object_from_format(value, data_format):
+        return dt.datetime.strptime(value, data_format).date()
 
 
 class TimeDelta(Field):
