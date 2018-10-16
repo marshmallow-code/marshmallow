@@ -932,6 +932,8 @@ class DateTime(Field):
         'iso8601': utils.isoformat,
         'rfc': utils.rfcformat,
         'rfc822': utils.rfcformat,
+        'timestamp': utils.to_timestamp,
+        'timestamp_ms': utils.to_timestamp_ms,
     }
 
     DESERIALIZATION_FUNCS = {
@@ -939,6 +941,8 @@ class DateTime(Field):
         'iso8601': utils.from_iso_datetime,
         'rfc': utils.from_rfc,
         'rfc822': utils.from_rfc,
+        'timestamp': utils.from_timestamp,
+        'timestamp_ms': utils.from_timestamp_ms,
     }
 
     DEFAULT_FORMAT = 'iso'
@@ -953,12 +957,14 @@ class DateTime(Field):
         'format': '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format=None, **kwargs):
+    def __init__(self, format=None, timezone=None, timezone_naive=False, **kwargs):
         super(DateTime, self).__init__(**kwargs)
-        # Allow this to be None. It may be set later in the ``_serialize``
+        # Allow format to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods This allows a Schema to dynamically set the
         # format, e.g. from a Meta option
         self.format = format
+        self.timezone = timezone  # TODO: add str conversion if isinstance(timezone, basestring)
+        self.timezone_naive = timezone_naive
 
     def _bind_to_schema(self, field_name, schema):
         super(DateTime, self)._bind_to_schema(field_name, schema)
@@ -971,6 +977,15 @@ class DateTime(Field):
     def _serialize(self, value, attr, obj):
         if value is None:
             return None
+
+        if self.timezone:
+            if value.tzinfo is None:
+                value = value.replace(tzinfo=self.timezone)
+            if self.format in ('timestamp', 'timestamp_ms'):
+                # We're replacing to UTC to prevent to_timestamp from utc_offset conversion
+                # in case timezone is not UTC
+                value = value.astimezone(self.timezone).replace(tzinfo=utils.UTC)
+
         data_format = self.format or self.DEFAULT_FORMAT
         format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
@@ -981,21 +996,32 @@ class DateTime(Field):
         else:
             return value.strftime(data_format)
 
-    def _deserialize(self, value, attr, data):
-        if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+    def _deserialize_dt(self, value, attr, data):
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+                self.fail('invalid', obj_type=self.OBJ_TYPE)
         else:
             try:
                 return self._make_object_from_format(value, data_format)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+                self.fail('invalid', obj_type=self.OBJ_TYPE)
+
+    def _deserialize(self, value, attr, data):
+        if not value and value != 0:  # Falsy values, e.g. '', None, [] are not valid
+            self.fail('invalid', obj_type=self.OBJ_TYPE)
+        dt = self._deserialize_dt(value, attr, data)
+
+        if self.timezone and (dt.tzinfo is None or self.format in ('timestamp', 'timestamp_ms')):
+            dt = dt.replace(tzinfo=self.timezone)
+        if self.timezone_naive:
+            if self.timezone and value.tzinfo is not None:
+                return dt.astimezone(self.timezone).replace(tzinfo=None)
+            return dt.replace(tzinfo=None)
+        return dt
 
     @staticmethod
     def _make_object_from_format(value, data_format):
