@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError
+from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE
 from marshmallow.marshalling import missing
+from marshmallow.exceptions import StringNotCollectionError
 
-from tests.base import ALL_FIELDS, User
+from tests.base import ALL_FIELDS
 
 
 class TestFieldAliases:
@@ -32,8 +33,10 @@ class TestField:
                                'load_only=False, dump_only=False, '
                                'missing={missing}, allow_none=False, '
                                'error_messages={error_messages})>'
-                               .format(default, missing=missing,
-                                       error_messages=field.error_messages))
+                               .format(
+                                   default, missing=missing,
+                                   error_messages=field.error_messages,
+                               ))
         int_field = fields.Integer(validate=lambda x: True)
         assert '<fields.Integer' in repr(int_field)
 
@@ -41,7 +44,7 @@ class TestField:
         with pytest.raises(ValueError):
             fields.Field(validate='notcallable')
 
-    def test_custom_field_receives_attr_and_obj(self, user):
+    def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -51,10 +54,10 @@ class TestField:
         class MySchema(Schema):
             name = MyField()
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'name': 'Monty'}
 
-    def test_custom_field_receives_data_key_if_set(self, user):
+    def test_custom_field_receives_data_key_if_set(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
                 assert attr == 'name'
@@ -64,10 +67,10 @@ class TestField:
         class MySchema(Schema):
             Name = MyField(data_key='name')
 
-        result = MySchema().load({'name': 'Monty', 'foo': 42})
+        result = MySchema(unknown=EXCLUDE).load({'name': 'Monty', 'foo': 42})
         assert result == {'Name': 'Monty'}
 
-    def test_custom_field_follows_data_key_if_set(self, user):
+    def test_custom_field_follows_data_key_if_set(self):
         class MyField(fields.Field):
             def _serialize(self, val, attr, data):
                 assert attr == 'name'
@@ -126,6 +129,28 @@ class TestParentAndName:
     def test_list_field_inner_root(self, schema):
         assert schema.fields['bar'].container.root == schema
 
+    def test_list_root_inheritance(self, schema):
+        class OtherSchema(TestParentAndName.MySchema):
+            pass
+
+        schema2 = OtherSchema()
+        assert schema.fields['bar'].container.root == schema
+        assert schema2.fields['bar'].container.root == schema2
+
+    def test_dict_root_inheritance(self):
+        class MySchema(Schema):
+            foo = fields.Dict(keys=fields.Str(), values=fields.Int())
+
+        class OtherSchema(MySchema):
+            pass
+
+        schema = MySchema()
+        schema2 = OtherSchema()
+        assert schema.fields['foo'].key_container.root == schema
+        assert schema.fields['foo'].value_container.root == schema
+        assert schema2.fields['foo'].key_container.root == schema2
+        assert schema2.fields['foo'].value_container.root == schema2
+
 
 class TestMetadata:
 
@@ -138,8 +163,10 @@ class TestMetadata:
     def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
-        field = FieldClass(required=True, default=None, validate=lambda v: True,
-                           description='foo', widget='select')
+        field = FieldClass(
+            required=True, default=None, validate=lambda v: True,
+            description='foo', widget='select',
+        )
         assert field.metadata == {'description': 'foo', 'widget': 'select'}
 
     def test_metadata_may_be_added_to_formatted_string_field(self):
@@ -151,7 +178,7 @@ class TestErrorMessages:
 
     class MyField(fields.Field):
         default_error_messages = {
-            'custom': 'Custom error message.'
+            'custom': 'Custom error message.',
         }
 
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(self):
@@ -187,3 +214,29 @@ class TestErrorMessages:
 
         assert 'doesntexist' in excinfo.value.args[0]
         assert 'MyField' in excinfo.value.args[0]
+
+
+class TestNestedField:
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_nested_only_and_exclude_as_string(self, param):
+        with pytest.raises(StringNotCollectionError):
+            fields.Nested(Schema, **{param: 'foo'})
+
+    @pytest.mark.parametrize('schema_unknown', (EXCLUDE, INCLUDE, RAISE))
+    @pytest.mark.parametrize('field_unknown', (None, EXCLUDE, INCLUDE, RAISE))
+    def test_nested_unknown_override(self, schema_unknown, field_unknown):
+        class NestedSchema(Schema):
+            class Meta:
+                unknown = schema_unknown
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema, unknown=field_unknown)
+
+        if field_unknown == EXCLUDE or (schema_unknown == EXCLUDE and not field_unknown):
+            assert MySchema().load({'nested': {'x': 1}}) == {'nested': {}}
+        elif field_unknown == INCLUDE or (schema_unknown == INCLUDE and not field_unknown):
+            assert MySchema().load({'nested': {'x': 1}}) == {'nested': {'x': 1}}
+        elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
+            with pytest.raises(ValidationError):
+                MySchema().load({'nested': {'x': 1}})

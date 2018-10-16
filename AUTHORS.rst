@@ -102,4 +102,14 @@ Contributors (chronological)
 - Suren Khorenyan `@surik00 <https://github.com/surik00>`_
 - Jeffrey Berger `@JeffBerger <https://github.com/JeffBerger>`_
 - Felix Yan `@felixonmars <https://github.com/felixonmars>`_
+- Prasanjit Prakash `@ikilledthecat <https://github.com/ikilledthecat>`_
+- Guillaume Gelin `@ramnes <https://github.com/ramnes>`_
+- Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
+- James Remeika `@remeika <https://github.com/remeika>`_
+- Karandeep Singh Nagra `@knagra <https://github.com/knagra>`_
+- Dushyant Rijhwani `@dushr<https://github.com/dushr>`_
+- Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
+- Victor Gavro `@vgavro<https://github.com/vgavro`_
+- Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
+- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`
 - David Watson `@arbor-dwatson <https://github.com/arbor-dwatson>`_

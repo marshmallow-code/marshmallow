@@ -1,7 +1,3 @@
-
-.. _upgrading:
-
-
 Upgrading to Newer Releases
 ===========================
 
@@ -83,10 +79,11 @@ will raise a :exc:`TypeError`.
     this change.
 
 
-``Schema().load(None)`` raises a ``ValidationError``
-****************************************************
+Deserializing invalid types raises a ``ValidationError``
+********************************************************
 
-`None` is considered invalid input to `Schema.load
+Numbers, booleans, strings, and ``None`` are
+considered invalid input to `Schema.load
 <marshmallow.Schema.load>`.
 
 .. code-block:: python
@@ -94,10 +91,93 @@ will raise a :exc:`TypeError`.
     # 2.x
     # Passes silently
     schema.load(None)
+    schema.load(False)
+    schema.load('pass')
 
     # 3.x
     # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
     schema.load(None)
+    schema.load(False)
+    schema.load('nope')
+
+
+When ``many=True``, non-collection types are also considered invalid.
+
+
+.. code-block:: python
+
+    # 2.x
+    # Passes silently
+    schema.load(None, many=True)
+    schema.load({}, many=True)
+    schema.load('pass', many=True)
+
+    # 3.x
+    # marshmallow.exceptions.ValidationError: {'_schema': ['Invalid input type.']}
+    schema.load(None, many=True)
+    schema.load({}, many=True)
+    schema.load('invalid', many=True)
+
+
+``ValidationError.fields`` is removed
+*************************************
+
+:exc:`ValidationError <marshmallow.exceptions.ValidationError>` no
+longer stores a list of `Field <marshmallow.fields.Field>` instances
+associated with the validation errors.
+
+If you need field instances associated with an error, you can access
+them from ``schema.fields``.
+
+.. code-block:: python
+
+
+    from marshmallow import Schema, fields, ValidationError
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+
+    schema = MySchema()
+
+    try:
+        schema.load({'foo': 'invalid'})
+    except ValidationError as error:
+        field = schema.fields['foo']
+        # ...
+
+Schemas raise ``ValidationError`` when deserializing data with unknown keys
+***************************************************************************
+
+Marshmallow 3.x schemas can deal with unknown keys in three different ways,
+configurable with the ``unknown`` option:
+
+- ``EXCLUDE``: drop those keys (same as marshmallow 2)
+- ``INCLUDE``: pass those keys/values as is, with no validation performed
+- ``RAISE`` (default): raise a ``ValidationError``
+
+The ``unknown`` option can be passed as a Meta option, on Schema instantiation,
+or at load time.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, EXCLUDE, INCLUDE, RAISE
+
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        class Meta:
+            # Pass EXCLUDE as Meta option to keep marshmallow 2 behavior
+            unknown = EXCLUDE
+
+    MySchema().load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42]
+
+    # Value passed on instantiation overrides Meta option
+    schema = MySchema(unknown=INCLUDE)
+    schema.load({'foo': 42, 'bar': 'whatever'})  # => ['foo': 42, 'bar': 'whatever']
+
+    # Value passed on load overrides instance attribute
+    schema.load({'foo': 42, 'bar': 'whatever'}, unknown=RAISE)  # => ValidationError
 
 Overriding ``get_attribute``
 ****************************
@@ -121,7 +201,7 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
 ``pass_original=True`` passes individual items when ``many=True``
 *****************************************************************
 
-When ``pass_original=True`` is passed to 
+When ``pass_original=True`` is passed to
 `validates_schema <marshmallow.decorators.validates_schema>`,
 `post_load <marshmallow.decorators.post_load>`, or
 `post_dump <marshmallow.decorators.post_dump>`, the `original_data`
@@ -130,11 +210,14 @@ datum.
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, post_load
+    from marshmallow import Schema, fields, post_load, EXCLUDE
 
 
     class ShoeSchema(Schema):
         size = fields.Int()
+
+        class Meta:
+            unknown = EXCLUDE
 
         @post_load(pass_original=True)
         def post_load(self, data, original_data):
@@ -404,12 +487,12 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
     # 2.x
     class UserSchema(Schema):
         id = fields.UUID(missing=lambda: str(uuid.uuid1()))
-        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29).isoformat())
+        birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 19).isoformat())
 
     # 3.x
     class UserSchema(Schema):
         id = fields.UUID(missing=uuid.uuid1)
-        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 19))
 
 
 Pass ``default`` as a keyword argument
@@ -452,7 +535,7 @@ The same key is used for serialization and deserialization.
     class UserSchema(Schema):
         email = fields.Email(data_key='CamelCasedEmail')
 
-It is not possible to specify a different key for serialization and deserialization on the same field. 
+It is not possible to specify a different key for serialization and deserialization on the same field.
 This use case is covered by using two different `Schema`.
 
 .. code-block:: python
@@ -509,7 +592,149 @@ Processors that mutate the data should be updated to also return it.
             in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
             return in_data
 
+``Nested`` field no longer supports plucking
+********************************************
 
+In marshmallow 2.x, when a string was passed to a ``Nested`` field's ```only`` parameter, the field would be plucked. In marshmallow 3.x, the ``Pluck`` field must be used instead.
+
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        friends = fields.Nested('self', many=True, only='name')
+
+    # 3.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        friends = fields.Pluck('self', 'name', many=True)
+
+``Float`` field takes a new ``allow_nan`` parameter
+***************************************************
+
+In marshmallow 2.x, ``Float`` field would serialize and deserialize special values such as ``nan``, ``inf`` or ``-inf``. In marshmallow 3, those values trigger a ``ValidationError`` unless ``allow_nan`` is ``True``. ``allow_nan`` defaults to ``False``.
+
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.Float()
+
+    MySchema().load({'x': 'nan'})
+    # => {{'x': nan}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.Float()
+        y = fields.Float(allow_nan=True)
+
+    MySchema().load({'x': 12, 'y': 'nan'})
+    # => {{'x': 12.0, 'y': nan}}
+
+    MySchema().load({'x': 'nan'})
+    # marshmallow.exceptions.ValidationError: {'x': ['Special numeric values (nan or infinity) are not permitted.']}
+
+``DateTime`` field ``dateformat`` ``Meta`` option is renamed ``datetimeformat``
+*******************************************************************************
+
+The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow.fields.DateTime>` field is renamed as ``datetimeformat``.
+
+`Date <marshmallow.fields.Date>` field gets a new ``format`` parameter to specify the format to use for serialization. ``dateformat`` ``Meta`` option now applies to `Date <marshmallow.fields.Date>` field.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+
+        class Meta:
+            dateformat = '%Y-%m'
+
+    MySchema().dump({'x': dt.datetime(2017, 9, 19)})
+    # => {{'x': '2017-09'}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.Date()
+
+        class Meta:
+            datetimeformat = '%Y-%m'
+            dateformat = '%m-%d'
+
+    MySchema().dump({'x': dt.datetime(2017, 9, 19), 'y': dt.date(2017, 9, 19)})
+    # => {{'x': '2017-09', 'y': '09-19'}}
+
+The ``prefix`` ``Schema`` parameter is removed
+**********************************************
+
+The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achieved using a post_dump <marshmallow.decorators.post_dump>` method.
+
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field()
+
+    MySchema(prefix='pre_').dump({'f1': 'one', 'f2': 'two'})
+    # {'pre_f1': 'one', '_pre_f2': 'two'}
+
+    # 3.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field()
+
+        @post_dump
+        def prefix_usr(self, data):
+            return {'usr_{}'.format(k): v for k, v in iteritems(data)}
+
+    MySchema().dump({'f1': 'one', 'f2': 'two'})
+    # {'pre_f1': 'one', '_pre_f2': 'two'}
+
+``attribute`` or ``data_key`` collision triggers an exception
+*************************************************************
+
+When a `Schema <marshmallow.Schema>` is instantiated, a check is performed and a ``ValueError`` is triggered if
+
+- several fields have the same ``attribute`` value (or field name if ``attribute`` is not passed), excluding ``dump_only`` fields, or
+- several fields have the same ``data_key`` value (or field name if ``data_key`` is not passed), excluding ``load_only`` fields
+
+In marshmallow 2, it was possible to have multiple fields with the same ``attribute``. It would work provided the ``Schema`` was only used for dumping. When loading, the behaviour was undefined. In marshmallow 3, all but one of those fields must be marked as ``dump_only``. Likewise for ``data_key`` (formerly ``dump_to``) for fields that are not ``load_only``.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1')
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5')
+
+    MySchema()
+    # No error
+
+    # 3.x
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1')
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5')
+
+    MySchema()
+    # ValueError: 'Duplicate attributes: ['f1', 'f5]'
+
+    class MySchema(Schema):
+        f1 = fields.Field()
+        f2 = fields.Field(attribute='f1', dump_only=True)
+        f3 = fields.Field(attribute='f5')
+        f4 = fields.Field(attribute='f5', dump_only=True)
+
+    MySchema()
+    # No error
 
 Upgrading to 2.3
 ++++++++++++++++
@@ -664,7 +889,7 @@ The pre- and post-processing API was significantly improved for better consisten
             data['field_a'] -= 1
             return data
 
-See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
+See the :doc:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
 Schema Validators
 *****************
@@ -995,7 +1220,7 @@ The default error messages for many fields and validators have been changed for 
 More
 ****
 
-For a full list of changes in 2.0, see the :ref:`Changelog <changelog>`.
+For a full list of changes in 2.0, see the :doc:`Changelog <changelog>`.
 
 
 Upgrading to 1.2
@@ -1124,4 +1349,4 @@ Other notable changes:
 
 .. seealso::
 
-    See the :ref:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.
+    See the :doc:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.

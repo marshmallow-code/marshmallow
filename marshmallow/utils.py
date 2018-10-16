@@ -18,6 +18,9 @@ from pprint import pprint as py_pprint
 
 from marshmallow.compat import binary_type, text_type
 
+EXCLUDE = 'exclude'
+INCLUDE = 'include'
+RAISE = 'raise'
 
 dateutil_available = False
 try:
@@ -52,13 +55,13 @@ def is_generator(obj):
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
-        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
+        (isinstance(obj, collections.Iterable) and not hasattr(obj, 'strip')) or is_generator(obj)
     )
 
 
 def is_indexable_but_not_string(obj):
     """Return True if ``obj`` is indexable but isn't a string."""
-    return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
+    return not hasattr(obj, 'strip') and hasattr(obj, '__getitem__')
 
 
 def is_collection(obj):
@@ -121,7 +124,7 @@ def to_marshallable_type(obj, field_names=None):
     else:
         attrs = set(dir(obj))
     return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                  if not attr.startswith("__") and not attr.endswith("__")])
+                  if not attr.startswith('__') and not attr.endswith('__')])
 
 
 def pprint(obj, *args, **kwargs):
@@ -146,7 +149,7 @@ class UTC(datetime.tzinfo):
     Optimized UTC implementation. It unpickles using the single module global
     instance defined beneath this class declaration.
     """
-    zone = "UTC"
+    zone = 'UTC'
 
     _utcoffset = ZERO
     _dst = ZERO
@@ -161,19 +164,19 @@ class UTC(datetime.tzinfo):
         return ZERO
 
     def tzname(self, dt):
-        return "UTC"
+        return 'UTC'
 
     def dst(self, dt):
         return ZERO
 
     def localize(self, dt, is_dst=False):
-        '''Convert naive time to local time'''
+        """Convert naive time to local time"""
         if dt.tzinfo is not None:
             raise ValueError('Not naive datetime (tzinfo is already set)')
         return dt.replace(tzinfo=self)
 
     def normalize(self, dt, is_dst=False):
-        '''Correct the timezone information on the given datetime'''
+        """Correct the timezone information on the given datetime"""
         if dt.tzinfo is self:
             return dt
         if dt.tzinfo is None:
@@ -181,10 +184,10 @@ class UTC(datetime.tzinfo):
         return dt.astimezone(self)
 
     def __repr__(self):
-        return "<UTC>"
+        return '<UTC>'
 
     def __str__(self):
-        return "UTC"
+        return 'UTC'
 
 
 UTC = utc = UTC()  # UTC is a singleton
@@ -194,12 +197,16 @@ def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
     """
-    weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
-    month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-             "Oct", "Nov", "Dec"][dt.month - 1]
-    tz_offset = dt.strftime("%z")
-    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (weekday, dt.day, month,
-        dt.year, dt.hour, dt.minute, dt.second, tz_offset)
+    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    month = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+        'Oct', 'Nov', 'Dec',
+    ][dt.month - 1]
+    tz_offset = dt.strftime('%z')
+    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (
+        weekday, dt.day, month,
+        dt.year, dt.hour, dt.minute, dt.second, tz_offset,
+    )
 
 
 def rfcformat(dt, localtime=False):
@@ -217,17 +224,25 @@ def rfcformat(dt, localtime=False):
 
 
 # From Django
-_iso8601_re = re.compile(
+_iso8601_datetime_re = re.compile(
     r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
     r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
     r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
-    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$'
+    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$',
+)
+
+_iso8601_date_re = re.compile(
+    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$',
+)
+
+_iso8601_time_re = re.compile(
+    r'(?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
+    r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?',
 )
 
 
 def isoformat(dt, localtime=False, *args, **kwargs):
-    """Return the ISO8601-formatted UTC representation of a datetime object.
-    """
+    """Return the ISO8601-formatted UTC representation of a datetime object."""
     if localtime and dt.tzinfo is not None:
         localized = dt
     else:
@@ -237,15 +252,6 @@ def isoformat(dt, localtime=False, *args, **kwargs):
             localized = dt.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
-
-def from_datestring(datestring):
-    """Parse an arbitrary datestring and return a datetime object using
-    dateutils' parser.
-    """
-    if dateutil_available:
-        return parser.parse(datestring)
-    else:
-        raise RuntimeError('from_datestring requires the python-dateutil library')
 
 def from_rfc(datestring, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
@@ -268,25 +274,27 @@ def from_iso(datestring, use_dateutil=True):
     return from_iso_datetime(datestring, use_dateutil)
 
 
-def from_iso_datetime(datestring, use_dateutil=True):
+def from_iso_datetime(datetimestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
-    if not _iso8601_re.match(datestring):
+    if not _iso8601_datetime_re.match(datetimestring):
         raise ValueError('Not a valid ISO8601-formatted datetime string')
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
-        return parser.parse(datestring)
+        return parser.isoparse(datetimestring)
     else:
         # Strip off timezone info.
-        return datetime.datetime.strptime(datestring[:19], '%Y-%m-%dT%H:%M:%S')
+        return datetime.datetime.strptime(datetimestring[:19], '%Y-%m-%dT%H:%M:%S')
 
 
 def from_iso_time(timestring, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime.time
     object.
     """
+    if not _iso8601_time_re.match(timestring):
+        raise ValueError('Not a valid ISO8601-formatted time string')
     if dateutil_available and use_dateutil:
         return parser.parse(timestring).time()
     else:
@@ -297,10 +305,17 @@ def from_iso_time(timestring, use_dateutil=True):
         return datetime.datetime.strptime(timestring, fmt).time()
 
 def from_iso_date(datestring, use_dateutil=True):
+    if not _iso8601_date_re.match(datestring):
+        raise ValueError('Not a valid ISO8601-formatted date string')
     if dateutil_available and use_dateutil:
-        return parser.parse(datestring).date()
+        return parser.isoparse(datestring).date()
     else:
         return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
+
+
+def to_iso_date(date, *args, **kwargs):
+    return datetime.date.isoformat(date)
+
 
 def ensure_text_type(val):
     if isinstance(val, binary_type):
@@ -320,7 +335,16 @@ def pluck(dictlist, key):
 # Various utilities for pulling keyed values from objects
 
 def get_value(obj, key, default=missing):
-    """Helper for pulling a keyed value off various types of objects"""
+    """Helper for pulling a keyed value off various types of objects. Fields use
+    this method by default to access attributes of the source object. For object `x`
+    and attribute `i`, this method first tries to access `x[i]`, and then falls back to
+    `x.i` if an exception is raised.
+
+    .. warning::
+        If an object `x` does not raise an exception when `x[i]` does not exist,
+        `get_value` will never check the value `x.i`. Consider overriding
+        `marshmallow.fields.Field.get_value` in this case.
+    """
     if not isinstance(key, int) and '.' in key:
         return _get_value_for_keys(obj, key.split('.'), default)
     else:
@@ -332,7 +356,8 @@ def _get_value_for_keys(obj, keys, default):
         return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default)
+            _get_value_for_key(obj, keys[0], default), keys[1:], default,
+        )
 
 
 def _get_value_for_key(obj, key, default):
@@ -361,7 +386,7 @@ def set_value(dct, key, value):
         if not isinstance(target, dict):
             raise ValueError(
                 'Cannot set {key} in {head} '
-                'due to existing value: {target}'.format(key=key, head=head, target=target)
+                'due to existing value: {target}'.format(key=key, head=head, target=target),
             )
         set_value(target, rest, value)
     else:

@@ -5,7 +5,7 @@ So you're interested in contributing to marshmallow or `one of our associated
 projects <https://github.com/marshmallow-code>`__? That's awesome! We
 welcome contributions from anyone willing to work in good faith with
 other contributors and the community (see also our
-:ref:`code-of-conduct`).
+:doc:`code_of_conduct`).
 
 Questions, Feature Requests, Bug Reports, and Feedback…
 -------------------------------------------------------
@@ -53,9 +53,10 @@ Setting Up for Local Development
     # After activating your virtualenv
     $ pip install -r dev-requirements.txt
 
-3. Install marshmallow in develop mode. ::
+3. Install the pre-commit hooks, which will format and lint your git staged files. ::
 
-   $ pip install -e .
+    # The pre-commit CLI was installed above
+    $ pre-commit install --allow-missing-config
 
 Git Branch Structure
 ********************
@@ -102,7 +103,7 @@ To run all tests: ::
 
     $ invoke test
 
-To run tests on Python 2.7, 3.5, 3.6, and PyPy virtual environments (must have each interpreter installed): ::
+To run tests on Python 2.7, 3.5, 3.6, 3.7, and PyPy virtual environments (must have each interpreter installed): ::
 
     $ tox
 

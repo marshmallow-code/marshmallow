@@ -38,4 +38,4 @@ Get It Now
     $ pip install -U marshmallow --pre
 
 
-Ready to get started? Go on to the :ref:`Quickstart tutorial <quickstart>` or check out some :ref:`Examples <examples>`.
+Ready to get started? Go on to the :doc:`Quickstart tutorial <quickstart>` or check out some :doc:`Examples <examples>`.

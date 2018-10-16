@@ -82,7 +82,7 @@ Contributors
 
 This project exists thanks to all the people who contribute.
 
-You're highly encouraged to participate in marshmallow's development. 
+You're highly encouraged to participate in marshmallow's development.
 Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see
 how you can help.
 
@@ -96,7 +96,7 @@ Backers
 -------
 
 If you find marshmallow useful, please consider supporting the team with
-a donation. Your donation helps move marshmallow forward. 
+a donation. Your donation helps move marshmallow forward.
 
 Thank you to all our backers! [`Become a backer`_]
 
@@ -117,6 +117,23 @@ Your logo will show up here with a link to your website. [`Become a sponsor`_]
 .. image:: https://opencollective.com/marshmallow/sponsor/0/avatar.svg
     :target: https://opencollective.com/marshmallow/sponsor/0/website
     :alt: Sponsors
+
+
+Professional support
+====================
+
+Professionally-supported marshmallow is now available through the
+`Tidelift Subscription <https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme>`_.
+
+Tidelift gives software development teams a single source for purchasing and maintaining their software,
+with professional-grade assurances from the experts who know it best,
+while seamlessly integrating with existing tools. [`Get professional support`_]
+
+.. _`Get professional support`: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=marshmallow&utm_medium=referral&utm_campaign=github
+
+.. image:: https://user-images.githubusercontent.com/2379650/45126032-50b69880-b13f-11e8-9c2c-abd16c433495.png
+    :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
+    :alt: Get supported marshmallow with Tidelift
 
 Project Links
 =============

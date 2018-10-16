@@ -2,25 +2,16 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
-from collections import defaultdict, Mapping, OrderedDict
+from collections import defaultdict, OrderedDict
 import functools
 import copy
-import datetime as dt
-import decimal
 import inspect
 import json
-import uuid
 import warnings
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import (
-    binary_type,
-    iteritems,
-    iterkeys,
-    text_type,
-    with_metaclass,
-)
-from marshmallow.exceptions import ValidationError
+from marshmallow.compat import iteritems, iterkeys, with_metaclass
+from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
     POST_DUMP,
@@ -30,7 +21,7 @@ from marshmallow.decorators import (
     VALIDATES,
     VALIDATES_SCHEMA,
 )
-from marshmallow.utils import missing
+from marshmallow.utils import RAISE, missing, is_collection
 
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
@@ -69,7 +60,7 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
             _get_fields(
                 getattr(base, '_declared_fields', base.__dict__),
                 field_class,
-                ordered=ordered
+                ordered=ordered,
             )
             for base in mro[:0:-1]
         ),
@@ -116,7 +107,7 @@ class SchemaMeta(type):
             klass=klass,
             cls_fields=cls_fields,
             inherited_fields=inherited_fields,
-            dict_cls=dict_cls
+            dict_cls=dict_cls,
         )
         return klass
 
@@ -188,21 +179,24 @@ class SchemaOpts(object):
     def __init__(self, meta, ordered=False):
         self.fields = getattr(meta, 'fields', ())
         if not isinstance(self.fields, (list, tuple)):
-            raise ValueError("`fields` option must be a list or tuple.")
+            raise ValueError('`fields` option must be a list or tuple.')
         self.additional = getattr(meta, 'additional', ())
         if not isinstance(self.additional, (list, tuple)):
-            raise ValueError("`additional` option must be a list or tuple.")
+            raise ValueError('`additional` option must be a list or tuple.')
         if self.fields and self.additional:
-            raise ValueError("Cannot set both `fields` and `additional` options"
-                            " for the same Schema.")
+            raise ValueError(
+                'Cannot set both `fields` and `additional` options'
+                ' for the same Schema.',
+            )
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
-            raise ValueError("`exclude` must be a list or tuple.")
+            raise ValueError('`exclude` must be a list or tuple.')
         self.dateformat = getattr(meta, 'dateformat', None)
+        self.datetimeformat = getattr(meta, 'datetimeformat', None)
         if hasattr(meta, 'json_module'):
             warnings.warn(
                 'The json_module class Meta option is deprecated. Use render_module instead.',
-                DeprecationWarning
+                DeprecationWarning,
             )
             render_module = getattr(meta, 'json_module', json)
         else:
@@ -213,6 +207,7 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.unknown = getattr(meta, 'unknown', RAISE)
 
 
 class BaseSchema(base.SchemaABC):
@@ -244,14 +239,13 @@ class BaseSchema(base.SchemaABC):
         data, errors = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param tuple|list only: Whitelist of fields to select when instantiating the Schema.
-        If None, all fields are used.
-        Nested fields can be represented with dot delimiters.
-    :param tuple|list exclude: Blacklist of fields to exclude when instantiating the Schema.
-        If a field appears in both `only` and `exclude`, it is not used.
-        Nested fields can be represented with dot delimiters.
-    :param str prefix: Optional prefix that will be prepended to all the
-        serialized field names.
+    :param tuple|list only: Whitelist of the declared fields to select when
+        instantiating the Schema. If None, all fields are used. Nested fields
+        can be represented with dot delimiters.
+    :param tuple|list exclude: Blacklist of the declared fields to exclude
+        when instantiating the Schema. If a field appears in both `only` and
+        `exclude`, it is not used. Nested fields can be represented with dot
+        delimiters.
     :param bool many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param dict context: Optional context passed to :class:`fields.Method` and
@@ -261,6 +255,11 @@ class BaseSchema(base.SchemaABC):
     :param bool|tuple partial: Whether to ignore missing fields. If its value
         is an iterable, only missing fields listed in that iterable will be
         ignored.
+    :param unknown: Whether to exclude, include, or raise an error for unknown
+        fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+
+    .. versionchanged:: 3.0.0
+        `prefix` parameter removed.
 
     .. versionchanged:: 2.0.0
         `__validators__`, `__preprocessors__`, and `__data_handlers__` are removed in favor of
@@ -269,23 +268,6 @@ class BaseSchema(base.SchemaABC):
         `__accessor__` and `__error_handler__` are deprecated. Implement the
         `handle_error` and `get_attribute` methods instead.
         """
-    TYPE_MAPPING = {
-        text_type: fields.String,
-        binary_type: fields.String,
-        dt.datetime: fields.DateTime,
-        float: fields.Float,
-        bool: fields.Boolean,
-        tuple: fields.Raw,
-        list: fields.Raw,
-        set: fields.Raw,
-        int: fields.Integer,
-        uuid.UUID: fields.UUID,
-        dt.time: fields.Time,
-        dt.date: fields.Date,
-        dt.timedelta: fields.TimeDelta,
-        decimal.Decimal: fields.Decimal,
-    }
-
     OPTIONS_CLASS = SchemaOpts
 
     class Meta(object):
@@ -313,7 +295,6 @@ class BaseSchema(base.SchemaABC):
             date format explicitly specified.
         - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
             `json` from the standard library.
-            Defaults to the ``json`` module in the stdlib.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
@@ -321,31 +302,38 @@ class BaseSchema(base.SchemaABC):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``unknown``: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         """
         pass
 
-    def __init__(self, only=None, exclude=(), prefix='', many=False,
-                 context=None, load_only=(), dump_only=(), partial=False):
+    def __init__(
+        self, only=None, exclude=(), many=False, context=None,
+        load_only=(), dump_only=(), partial=False, unknown=None,
+    ):
+        # Raise error if only or exclude is passed as string, not list of strings
+        if only is not None and not is_collection(only):
+            raise StringNotCollectionError('"only" should be a list of strings')
+        if exclude is not None and not is_collection(exclude):
+            raise StringNotCollectionError('"exclude" should be a list of strings')
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
         self.exclude = exclude
-        self.prefix = prefix
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = self.dict_class()
+        self.unknown = unknown or self.opts.unknown
         self.context = context or {}
         self._normalize_nested_options()
-        self._types_seen = set()
-        self._update_fields(many=many)
+        #: Dictionary mapping field_names -> :class:`Field` objects
+        self.fields = self._init_fields()
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
-            ClassName=self.__class__.__name__, self=self
+            ClassName=self.__class__.__name__, self=self,
         )
 
     @property
@@ -380,16 +368,13 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
-    def dump(self, obj, many=None, update_fields=True):
+    def dump(self, obj, many=None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :param bool update_fields: Whether to update the schema's field classes. Typically
-            set to `True`, but may be `False` when serializing a homogenous collection.
-            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A dict of serialized data
         :rtype: dict
 
@@ -400,7 +385,7 @@ class BaseSchema(base.SchemaABC):
             if ``obj`` is invalid.
         """
         # Callable marshalling object
-        marshal = marshalling.Marshaller(prefix=self.prefix)
+        marshal = marshalling.Marshaller()
         errors = {}
         many = self.many if many is None else bool(many)
         if many and utils.is_iterable_but_not_string(obj):
@@ -412,7 +397,8 @@ class BaseSchema(base.SchemaABC):
                     PRE_DUMP,
                     obj,
                     many,
-                    original_data=obj)
+                    original_data=obj,
+                )
             except ValidationError as error:
                 errors = error.normalized_messages()
                 result = None
@@ -420,13 +406,6 @@ class BaseSchema(base.SchemaABC):
             processed_obj = obj
 
         if not errors:
-            if update_fields:
-                obj_type = type(processed_obj)
-                if obj_type not in self._types_seen:
-                    self._update_fields(processed_obj, many=many)
-                    if not isinstance(processed_obj, Mapping):
-                        self._types_seen.add(obj_type)
-
             try:
                 result = marshal(
                     processed_obj,
@@ -434,7 +413,7 @@ class BaseSchema(base.SchemaABC):
                     many=many,
                     accessor=self.get_attribute,
                     dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors
+                    index_errors=self.opts.index_errors,
                 )
             except ValidationError as error:
                 errors = marshal.errors
@@ -454,7 +433,6 @@ class BaseSchema(base.SchemaABC):
             exc = ValidationError(
                 errors,
                 field_names=marshal.error_field_names,
-                fields=marshal.error_fields,
                 data=obj,
                 valid_data=result,
                 **marshal.error_kwargs
@@ -465,15 +443,12 @@ class BaseSchema(base.SchemaABC):
 
         return result
 
-    def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
+    def dumps(self, obj, many=None, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
         :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :param bool update_fields: Whether to update the schema's field classes. Typically
-            set to `True`, but may be `False` when serializing a homogenous collection.
-            This parameter is used by `fields.Nested` to avoid multiple updates.
         :return: A ``json`` string
         :rtype: str
 
@@ -483,12 +458,11 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
-        serialized = self.dump(obj, many=many, update_fields=update_fields)
+        serialized = self.dump(obj, many=many)
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
-    def load(self, data, many=None, partial=None):
-        """Deserialize a data structure to an object defined by this Schema's
-        fields and :meth:`make_object`.
+    def load(self, data, many=None, partial=None, unknown=None):
+        """Deserialize a data structure to an object defined by this Schema's fields.
 
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
@@ -497,6 +471,9 @@ class BaseSchema(base.SchemaABC):
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
             Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
         :return: A dict of deserialized data
         :rtype: dict
 
@@ -506,9 +483,15 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         """
-        return self._do_load(data, many, partial=partial, postprocess=True)
+        return self._do_load(
+            data, many, partial=partial, unknown=unknown,
+            postprocess=True,
+        )
 
-    def loads(self, json_data, many=None, partial=None, **kwargs):
+    def loads(
+        self, json_data, many=None, partial=None, unknown=None,
+        **kwargs
+    ):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
         :param str json_data: A JSON string of the data to deserialize.
@@ -518,6 +501,9 @@ class BaseSchema(base.SchemaABC):
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
             Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
         :return: A dict of deserialized data
         :rtype: dict
 
@@ -528,7 +514,7 @@ class BaseSchema(base.SchemaABC):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(data, many=many, partial=partial)
+        return self.load(data, many=many, partial=partial, unknown=unknown)
 
     def validate(self, data, many=None, partial=None):
         """Validate `data` against the schema, returning a dictionary of
@@ -554,7 +540,10 @@ class BaseSchema(base.SchemaABC):
 
     ##### Private Helpers #####
 
-    def _do_load(self, data, many=None, partial=None, postprocess=True):
+    def _do_load(
+        self, data, many=None, partial=None, unknown=None,
+        postprocess=True,
+    ):
         """Deserialize `data`, returning the deserialized result.
 
         :param data: The data to deserialize.
@@ -564,6 +553,9 @@ class BaseSchema(base.SchemaABC):
             only fields listed in that iterable will be ignored will be allowed missing.
             If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+            If `None`, the value for `self.unknown` is used.
         :param bool postprocess: Whether to run post_load methods..
         :return: A dict of deserialized data
         :rtype: dict
@@ -572,6 +564,7 @@ class BaseSchema(base.SchemaABC):
         unmarshal = marshalling.Unmarshaller()
         errors = {}
         many = self.many if many is None else bool(many)
+        unknown = unknown or self.unknown
         if partial is None:
             partial = self.partial
         if self._has_processors(PRE_LOAD):
@@ -588,44 +581,36 @@ class BaseSchema(base.SchemaABC):
         else:
             processed_data = data
         if not errors:
-            try:
-                result = unmarshal(
-                    processed_data,
-                    self.fields,
-                    many=many,
-                    partial=partial,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                )
-            except ValidationError as error:
-                result = error.data
+            result = unmarshal(
+                processed_data,
+                self.fields,
+                many=many,
+                partial=partial,
+                unknown=unknown,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
             self._invoke_field_validators(unmarshal, data=result, many=many)
             errors = unmarshal.errors
             # Run schema-level validation.
             if self._has_processors(VALIDATES_SCHEMA):
                 field_errors = bool(errors)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=True,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
-                try:
-                    self._invoke_schema_validators(
-                        unmarshal,
-                        pass_many=False,
-                        data=result,
-                        original_data=data,
-                        many=many,
-                        field_errors=field_errors,
-                    )
-                except ValidationError as err:
-                    errors.update(err.messages)
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=True,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
+                self._invoke_schema_validators(
+                    unmarshal,
+                    pass_many=False,
+                    data=result,
+                    original_data=data,
+                    many=many,
+                    field_errors=field_errors,
+                )
         # Run post processors
         if not errors and postprocess and self._has_processors(POST_LOAD):
             try:
@@ -641,7 +626,6 @@ class BaseSchema(base.SchemaABC):
             exc = ValidationError(
                 errors,
                 field_names=unmarshal.error_field_names,
-                fields=unmarshal.error_fields,
                 data=data,
                 valid_data=result,
                 **unmarshal.error_kwargs
@@ -658,7 +642,8 @@ class BaseSchema(base.SchemaABC):
             self.__apply_nested_option('only', self.only, 'intersection')
             # Remove the child field names from the only option.
             self.only = self.set_class(
-                [field.split('.', 1)[0] for field in self.only])
+                [field.split('.', 1)[0] for field in self.only],
+            )
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             # Apply the exclude option to nested fields.
@@ -666,11 +651,13 @@ class BaseSchema(base.SchemaABC):
         if self.exclude:
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
-                [field for field in self.exclude if '.' not in field])
+                [field for field in self.exclude if '.' not in field],
+            )
         if self.opts.exclude:
             # Remove the parent field names from the meta exclude option.
             self.opts.exclude = self.set_class(
-                [field for field in self.opts.exclude if '.' not in field])
+                [field for field in self.opts.exclude if '.' not in field],
+            )
 
     def __apply_nested_option(self, option_name, field_names, set_operation):
         """Apply nested options to nested fields"""
@@ -691,109 +678,90 @@ class BaseSchema(base.SchemaABC):
                         new_options &= self.set_class(original_options)
             setattr(self.declared_fields[key], option_name, new_options)
 
-    def _update_fields(self, obj=None, many=False):
-        """Update fields based on the passed in object."""
+    def _init_fields(self):
+        """Update fields based on schema options."""
+        if self.opts.fields:
+            available_field_names = self.set_class(self.opts.fields)
+        else:
+            available_field_names = self.set_class(self.declared_fields.keys())
+            if self.opts.additional:
+                available_field_names |= self.set_class(self.opts.additional)
+
+        invalid_fields = self.set_class()
+
         if self.only is not None:
             # Return only fields specified in only option
-            if self.opts.fields:
-                field_names = self.set_class(self.opts.fields) & self.set_class(self.only)
-            else:
-                field_names = self.set_class(self.only)
-        elif self.opts.fields:
-            # Return fields specified in fields option
-            field_names = self.set_class(self.opts.fields)
-        elif self.opts.additional:
-            # Return declared fields + additional fields
-            field_names = (self.set_class(self.declared_fields.keys()) |
-                            self.set_class(self.opts.additional))
-        else:
-            field_names = self.set_class(self.declared_fields.keys())
+            field_names = self.set_class(self.only)
 
-        # If "exclude" option or param is specified, remove those fields
-        excludes = set(self.opts.exclude) | set(self.exclude)
-        if excludes:
-            field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj, many=many)
-        # Set parents
-        self.__set_field_attrs(ret)
-        self.fields = ret
-        return self.fields
+            invalid_fields |= field_names - available_field_names
+        else:
+            field_names = available_field_names
+
+        # If "exclude" option or param is specified, remove those fields.
+        exclude_field_names = set(self.opts.exclude) | set(self.exclude)
+        if exclude_field_names:
+            # Note that this isn't available_field_names, since we want to
+            # apply "only" for the actual calculation.
+            field_names = field_names - exclude_field_names
+
+            invalid_fields |= exclude_field_names - available_field_names
+
+        if invalid_fields:
+            message = 'Invalid fields for {0}: {1}.'.format(self, invalid_fields)
+            raise ValueError(message)
+
+        fields_dict = self.dict_class()
+        for field_name in field_names:
+            field_obj = self.declared_fields.get(field_name, fields.Inferred())
+            self._bind_field(field_name, field_obj)
+            fields_dict[field_name] = field_obj
+
+        dump_data_keys = [
+            obj.data_key or name for name, obj in iteritems(fields_dict) if not obj.load_only
+        ]
+        if len(dump_data_keys) != len(set(dump_data_keys)):
+            data_keys_duplicates = {x for x in dump_data_keys if dump_data_keys.count(x) > 1}
+            raise ValueError('Duplicate data_keys: {}'.format(data_keys_duplicates))
+
+        load_attributes = [
+            obj.attribute or name for name, obj in iteritems(fields_dict) if not obj.dump_only
+        ]
+        if len(load_attributes) != len(set(load_attributes)):
+            attributes_duplicates = {x for x in load_attributes if load_attributes.count(x) > 1}
+            raise ValueError('Duplicate attributes: {}'.format(attributes_duplicates))
+
+        return fields_dict
 
     def on_bind_field(self, field_name, field_obj):
-        """Hook to modify a field when it is bound to the `Schema`. No-op by default."""
+        """Hook to modify a field when it is bound to the `Schema`.
+
+        No-op by default.
+        """
         return None
 
-    def __set_field_attrs(self, fields_dict):
-        """Bind fields to the schema, setting any necessary attributes
-        on the fields (e.g. parent and name).
+    def _bind_field(self, field_name, field_obj):
+        """Bind field to the schema, setting any necessary attributes on the
+        field (e.g. parent and name).
 
         Also set field load_only and dump_only values if field_name was
         specified in ``class Meta``.
         """
-        for field_name, field_obj in iteritems(fields_dict):
-            try:
-                if field_name in self.load_only:
-                    field_obj.load_only = True
-                if field_name in self.dump_only:
-                    field_obj.dump_only = True
-                field_obj._add_to_schema(field_name, self)
-                self.on_bind_field(field_name, field_obj)
-            except TypeError:
-                # field declared as a class, not an instance
-                if (isinstance(field_obj, type) and
-                        issubclass(field_obj, base.FieldABC)):
-                    msg = ('Field for "{0}" must be declared as a '
-                           'Field instance, not a class. '
-                           'Did you mean "fields.{1}()"?'
-                           .format(field_name, field_obj.__name__))
-                    raise TypeError(msg)
-        return fields_dict
-
-    def __filter_fields(self, field_names, obj, many=False):
-        """Return only those field_name:field_obj pairs specified by
-        ``field_names``.
-
-        :param set field_names: Field names to include in the final
-            return dictionary.
-        :returns: An dict of field_name:field_obj pairs.
-        """
-        if obj and many:
-            try:  # Homogeneous collection
-                # Prefer getitem over iter to prevent breaking serialization
-                # of objects for which iter will modify position in the collection
-                # e.g. Pymongo cursors
-                if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    try:
-                        obj_prototype = obj[0]
-                    except KeyError:
-                        obj_prototype = next(iter(obj))
-                else:
-                    obj_prototype = next(iter(obj))
-            except (StopIteration, IndexError):  # Nothing to serialize
-                return {k: v for k, v in self.declared_fields.items() if k in field_names}
-            obj = obj_prototype
-        ret = self.dict_class()
-        for key in field_names:
-            if key in self.declared_fields:
-                ret[key] = self.declared_fields[key]
-            else:  # Implicit field creation (class Meta 'fields' or 'additional')
-                if obj:
-                    attribute_type = None
-                    try:
-                        if isinstance(obj, Mapping):
-                            attribute_type = type(obj[key])
-                        else:
-                            attribute_type = type(getattr(obj, key))
-                    except (AttributeError, KeyError) as err:
-                        err_type = type(err)
-                        raise err_type(
-                            '"{0}" is not a valid field for {1}.'.format(key, obj))
-                    field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
-                else:  # Object is None
-                    field_obj = fields.Field()
-                # map key -> field (default to Raw)
-                ret[key] = field_obj
-        return ret
+        try:
+            if field_name in self.load_only:
+                field_obj.load_only = True
+            if field_name in self.dump_only:
+                field_obj.dump_only = True
+            field_obj._bind_to_schema(field_name, self)
+            self.on_bind_field(field_name, field_obj)
+        except TypeError:
+            # field declared as a class, not an instance
+            if (isinstance(field_obj, type) and
+                    issubclass(field_obj, base.FieldABC)):
+                msg = ('Field for "{0}" must be declared as a '
+                       'Field instance, not a class. '
+                       'Did you mean "fields.{1}()"?'
+                       .format(field_name, field_obj.__name__))
+                raise TypeError(msg)
 
     def _has_processors(self, tag):
         return self._hooks[(tag, True)] or self._hooks[(tag, False)]
@@ -802,19 +770,27 @@ class BaseSchema(base.SchemaABC):
         # The pass_many post-dump processors may do things like add an envelope, so
         # invoke those after invoking the non-pass_many processors which will expect
         # to get a list of items.
-        data = self._invoke_processors(tag, pass_many=False,
-            data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag, pass_many=True,
-            data=data, many=many, original_data=original_data)
+        data = self._invoke_processors(
+            tag, pass_many=False,
+            data=data, many=many, original_data=original_data,
+        )
+        data = self._invoke_processors(
+            tag, pass_many=True,
+            data=data, many=many, original_data=original_data,
+        )
         return data
 
     def _invoke_load_processors(self, tag, data, many, original_data=None):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
-        data = self._invoke_processors(tag, pass_many=True,
-            data=data, many=many, original_data=original_data)
-        data = self._invoke_processors(tag, pass_many=False,
-            data=data, many=many, original_data=original_data)
+        data = self._invoke_processors(
+            tag, pass_many=True,
+            data=data, many=many, original_data=original_data,
+        )
+        data = self._invoke_processors(
+            tag, pass_many=False,
+            data=data, many=many, original_data=original_data,
+        )
         return data
 
     def _invoke_field_validators(self, unmarshal, data, many):
@@ -840,9 +816,8 @@ class BaseSchema(base.SchemaABC):
                         validated_value = unmarshal.call_and_store(
                             getter_func=validator,
                             data=value,
-                            field_name=field_name,
-                            field_obj=field_obj,
-                            index=(idx if self.opts.index_errors else None)
+                            field_name=field_obj.data_key or field_name,
+                            index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
                             data[idx].pop(field_name, None)
@@ -855,8 +830,7 @@ class BaseSchema(base.SchemaABC):
                     validated_value = unmarshal.call_and_store(
                         getter_func=validator,
                         data=value,
-                        field_name=field_name,
-                        field_obj=field_obj
+                        field_name=field_obj.data_key or field_name,
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)
@@ -870,7 +844,6 @@ class BaseSchema(base.SchemaABC):
         many,
         field_errors=False,
     ):
-        errors = {}
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_hook__[(VALIDATES_SCHEMA, pass_many)]
@@ -884,33 +857,24 @@ class BaseSchema(base.SchemaABC):
                 validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
-                    try:
-                        unmarshal.run_validator(
-                            validator,
-                            item,
-                            orig,
-                            self.fields,
-                            many=many,
-                            index=idx,
-                            pass_original=pass_original,
-                        )
-                    except ValidationError as err:
-                        errors.update(err.messages)
-            else:
-                try:
                     unmarshal.run_validator(
                         validator,
-                        data,
-                        original_data,
+                        item,
+                        orig,
                         self.fields,
                         many=many,
+                        index=idx,
                         pass_original=pass_original,
                     )
-                except ValidationError as err:
-                    errors.update(err.messages)
-        if errors:
-            raise ValidationError(errors)
-        return None
+            else:
+                unmarshal.run_validator(
+                    validator,
+                    data,
+                    original_data,
+                    self.fields,
+                    many=many,
+                    pass_original=pass_original,
+                )
 
     def _invoke_processors(
         self,
@@ -935,8 +899,10 @@ class BaseSchema(base.SchemaABC):
                     data = processor(data, many)
             elif many:
                 if pass_original:
-                    data = [processor(item, original)
-                            for item, original in zip(data, original_data)]
+                    data = [
+                        processor(item, original)
+                        for item, original in zip(data, original_data)
+                    ]
                 else:
                     data = [processor(item) for item in data]
             else:

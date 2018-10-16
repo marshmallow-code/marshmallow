@@ -4,7 +4,7 @@ import datetime as dt
 
 import pytest
 
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, EXCLUDE
 
 from tests.base import User
 
@@ -49,8 +49,10 @@ class OrderedMetaSchema(Schema):
     email = fields.Email(allow_none=True)
 
     class Meta:
-        fields = ('name', 'email', 'age', 'created',
-                    'id', 'homepage', 'birthdate')
+        fields = (
+            'name', 'email', 'age', 'created',
+            'id', 'homepage', 'birthdate',
+        )
         ordered = True
 
 class OrderedNestedOnly(Schema):
@@ -105,7 +107,7 @@ class TestFieldOrdering:
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_declared_field_order_is_maintained_on_load(self, serialized_user):
-        schema = KeepOrder()
+        schema = KeepOrder(unknown=EXCLUDE)
         data = schema.load(serialized_user)
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
@@ -126,7 +128,7 @@ class TestFieldOrdering:
             'created': dt.datetime.now().isoformat(),
             'id': 123,
             'homepage': 'http://foo.com',
-            'birthdate': dt.datetime.now().isoformat(),
+            'birthdate': dt.datetime.now().date().isoformat(),
         }})
         user_data = data['user']
         keys = list(user_data)
@@ -152,7 +154,7 @@ class TestFieldOrdering:
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
     def test_meta_fields_order_is_maintained_on_load(self, serialized_user):
-        schema = OrderedMetaSchema()
+        schema = OrderedMetaSchema(unknown=EXCLUDE)
         data = schema.load(serialized_user)
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
@@ -164,7 +166,7 @@ class TestIncludeOption:
 
         class Meta:
             include = {
-                'from': fields.Str()
+                'from': fields.Str(),
             }
 
     def test_fields_are_added(self):
@@ -182,13 +184,15 @@ class TestIncludeOption:
                 include = OrderedDict([
                     ('from', fields.Str()),
                     ('in', fields.Str()),
-                    ('@at', fields.Str())
+                    ('@at', fields.Str()),
                 ])
                 ordered = True
 
         s = AddFieldsOrdered()
-        in_data = {'name': 'Steve', 'from': 'Oskosh', 'email': 'steve@steve.steve',
-                    'in': 'VA', '@at': 'Charlottesville'}
+        in_data = {
+            'name': 'Steve', 'from': 'Oskosh', 'email': 'steve@steve.steve',
+            'in': 'VA', '@at': 'Charlottesville',
+        }
         # declared fields, then "included" fields
         expected_fields = ['name', 'email', 'from', 'in', '@at']
         assert list(AddFieldsOrdered._declared_fields.keys()) == expected_fields

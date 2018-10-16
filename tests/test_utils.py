@@ -48,11 +48,13 @@ class PointClass(object):
         self.x = x
         self.y = y
 
-@pytest.mark.parametrize('obj', [
-    PointNT(24, 42),
-    PointClass(24, 42),
-    {'x': 24, 'y': 42}
-])
+@pytest.mark.parametrize(
+    'obj', [
+        PointNT(24, 42),
+        PointClass(24, 42),
+        {'x': 24, 'y': 42},
+    ],
+)
 def test_get_value_from_object(obj):
     result = utils.get_value(obj, 'x')
     assert result == 24
@@ -135,13 +137,13 @@ def test_to_marshallable_type_generator():
 
 def test_marshallable():
     class ObjContainer(object):
-        contained = {"foo": 1}
+        contained = {'foo': 1}
 
         def __marshallable__(self):
             return self.contained
 
     obj = ObjContainer()
-    assert utils.to_marshallable_type(obj) == {"foo": 1}
+    assert utils.to_marshallable_type(obj) == {'foo': 1}
 
 def test_is_collection():
     assert utils.is_collection([1, 'foo', {}]) is True
@@ -150,7 +152,7 @@ def test_is_collection():
 
 def test_rfcformat_gmt_naive():
     d = dt.datetime(2013, 11, 10, 1, 23, 45)
-    assert utils.rfcformat(d) == "Sun, 10 Nov 2013 01:23:45 -0000"
+    assert utils.rfcformat(d) == 'Sun, 10 Nov 2013 01:23:45 -0000'
 
 def test_rfcformat_central():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
@@ -158,7 +160,7 @@ def test_rfcformat_central():
 
 def test_rfcformat_central_localized():
     d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
-    assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 08:23:45 -0600"
+    assert utils.rfcformat(d, localtime=True) == 'Sun, 10 Nov 2013 08:23:45 -0600'
 
 def test_isoformat():
     d = dt.datetime(2013, 11, 10, 1, 23, 45)
@@ -166,18 +168,11 @@ def test_isoformat():
 
 def test_isoformat_tzaware():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.isoformat(d) == "2013-11-10T07:23:45+00:00"
+    assert utils.isoformat(d) == '2013-11-10T07:23:45+00:00'
 
 def test_isoformat_localtime():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.isoformat(d, localtime=True) == "2013-11-10T01:23:45-06:00"
-
-def test_from_datestring():
-    d = dt.datetime.now()
-    rfc = utils.rfcformat(d)
-    iso = d.isoformat()
-    assert_date_equal(utils.from_datestring(rfc), d)
-    assert_date_equal(utils.from_datestring(iso), d)
+    assert utils.isoformat(d, localtime=True) == '2013-11-10T01:23:45-06:00'
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_rfc(use_dateutil):
