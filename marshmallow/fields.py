@@ -470,9 +470,9 @@ class Nested(Field):
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         self._test_collection(value)
-        return self._load(value, data)
+        return self._load(value, data, **kwargs)
 
 
 class Pluck(Nested):
@@ -504,13 +504,13 @@ class Pluck(Nested):
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         self._test_collection(value)
         if self.many:
             value = [{self._field_data_key: v} for v in value]
         else:
             value = {self._field_data_key: value}
-        return self._load(value, data)
+        return self._load(value, data, **kwargs)
 
 
 class List(Field):
