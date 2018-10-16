@@ -10,7 +10,7 @@ from marshmallow.decorators import (
 from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
 
-__version__ = '3.0.0b17'
+__version__ = '3.0.0b18'
 __author__ = 'Steven Loria'
 __all__ = [
     'EXCLUDE',
