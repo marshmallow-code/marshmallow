@@ -1649,7 +1649,7 @@ class TestValidation:
         b_dict = {
             'z': {
                 'y': 42,
-            }
+            },
         }
         # Partial loading shouldn't generate any errors.
         result = SchemaB().load(b_dict, partial=True)
@@ -1677,8 +1677,8 @@ class TestValidation:
             'b': {
                 'c': {
                     'y': 42,
-                }
-            }
+                },
+            },
         }
         # Partial loading shouldn't generate any errors.
         result = SchemaA().load(a_dict, partial=True)
@@ -1703,7 +1703,7 @@ class TestValidation:
         b_dict = {
             'z': {
                 'y': 42,
-            }
+            },
         }
         # If we ignore the missing z.x, z.y should still load.
         result = SchemaB().load(b_dict, partial=('z.x',))

@@ -16,7 +16,7 @@ from marshmallow.utils import (
 )
 from marshmallow.compat import iteritems
 from marshmallow.exceptions import ValidationError
-from marshmallow import fields
+from marshmallow.fields import Nested
 
 __all__ = [
     'Marshaller',
@@ -232,18 +232,20 @@ class Unmarshaller(ErrorStore):
                     ):
                         continue
                 d_kwargs = {}
-                if isinstance(field_obj, fields.Nested):
+                if isinstance(field_obj, Nested):
                     # Allow partial loading of nested schemas.
                     if partial_is_collection:
-                        prefix = field_name + "."
+                        prefix = field_name + '.'
                         len_prefix = len(prefix)
                         sub_partial = [f[len_prefix:]
                                        for f in partial if f.startswith(prefix)]
                     else:
                         sub_partial = partial
                     d_kwargs['partial'] = sub_partial
-                getter = lambda val: field_obj.deserialize(val, field_name,
-                                                           data, **d_kwargs)
+                getter = lambda val: field_obj.deserialize(
+                    val, field_name,
+                    data, **d_kwargs
+                )
                 value = self.call_and_store(
                     getter_func=getter,
                     data=raw_value,

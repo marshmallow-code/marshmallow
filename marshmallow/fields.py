@@ -462,8 +462,10 @@ class Nested(Field):
 
     def _load(self, value, data, partial=None):
         try:
-            valid_data = self.schema.load(value, unknown=self.unknown,
-                                          partial=partial)
+            valid_data = self.schema.load(
+                value, unknown=self.unknown,
+                partial=partial,
+            )
         except ValidationError as exc:
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
