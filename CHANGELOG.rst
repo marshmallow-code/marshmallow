@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.0.0rc1 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+- Support partial loading of nested fields (:pr:`438`). Thanks
+  :user:`arbor-dwatson` for the PR. *Note*: Subclasses of ``fields.Nested``
+  now take an additional ``partial`` parameter in the ``_deserialize``
+  method.
+
 3.0.0b18 (2018-10-15)
 +++++++++++++++++++++
 
