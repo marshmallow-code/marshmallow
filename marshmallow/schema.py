@@ -470,6 +470,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
@@ -499,6 +500,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
@@ -524,6 +526,7 @@ class BaseSchema(base.SchemaABC):
         :param bool|tuple partial: Whether to ignore missing fields. If `None`,
             the value for `self.partial` is used. If its value is an iterable,
             only missing fields listed in that iterable will be ignored.
+            Use dot delimiters to specify nested fields.
         :return: A dictionary of validation errors.
         :rtype: dict
 

@@ -112,3 +112,4 @@ Contributors (chronological)
 - Victor Gavro `@vgavro<https://github.com/vgavro`_
 - Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
 - Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`
+- David Watson `@arbor-dwatson <https://github.com/arbor-dwatson>`_
