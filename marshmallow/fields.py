@@ -1153,11 +1153,12 @@ class Timestamp(Field):
     """Timestamp field, converts to datetime.
 
     :param timezone: Timezone of timestamp (defaults to UTC), should be tzinfo object.
+        Timezone-aware datetimes will be converted to this before serialization,
+        timezone-naive datetimes will be serialized as is (in timestamp timezone).
     :param bool ms: Milliseconds instead of seconds, defaults to `False`. For javascript
         compatibility.
     :param bool naive: Should deserialize to timezone-naive or timezone-aware datetime.
         Defaults to `False`, so all datetimes will be timezone-aware with `timezone`.
-        On `True` timezone-naive datetimes will be converted to `timezone` on serialization.
     :param bool as_int: If `True`, timestamp will be serialized to int instead of float,
         so datetime microseconds precision can be lost. Note that this affects milliseconds also,
         because 1 millisecond is 1000 microseconds.  Defaults to `False`.
