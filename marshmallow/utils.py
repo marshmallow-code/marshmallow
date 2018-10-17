@@ -318,7 +318,7 @@ def to_iso_date(date, *args, **kwargs):
 
 
 def from_timestamp(value, tzinfo=UTC, ms=False):
-    return (datetime.utcfromtimestamp((float(value) * 1000) if ms else float(value))
+    return (datetime.datetime.utcfromtimestamp((float(value) / 1000) if ms else float(value))
             .replace(tzinfo=tzinfo))
 
 

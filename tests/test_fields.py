@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+import datetime as dt
+
 import pytest
 
 from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE
 from marshmallow.marshalling import missing
 from marshmallow.exceptions import StringNotCollectionError
+from marshmallow.utils import UTC
 
 from tests.base import ALL_FIELDS
 
@@ -240,3 +243,22 @@ class TestNestedField:
         elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
+
+
+class TestTimestamp:
+    class UTC_plus_3(dt.tzinfo):
+        def utcoffset(self, dt):
+            return dt.timedelta(hours=3)
+    UTC_plus_3 = UTC_plus_3()
+
+    @pytest.mark.parametrize('timestamp,datetime,kwargs', (
+        (-1.5, dt.datetime(1969, 12, 31, 23, 59, 58, 500000, tzinfo=UTC), {}),
+        (-1500, dt.datetime(1969, 12, 31, 23, 59, 58, 500000, tzinfo=UTC), {'ms': True}),
+        (0, dt.datetime(1970, 1, 1, tzinfo=UTC), {'timezone': 'UTC', 'ms': True}),
+        (0, dt.datetime(1970, 1, 1, tzinfo=UTC_plus_3), {'timezone': UTC_plus_3}),
+        (0, dt.datetime(1970, 1, 1, tzinfo=None), {'naive': True}),
+    ))
+    def test_load_dump(self, timestamp, datetime, kwargs):
+        field = fields.Timestamp(**kwargs)
+        assert field.deserialize(timestamp) == datetime
+        assert field._serialize(datetime, '', object()) == timestamp
