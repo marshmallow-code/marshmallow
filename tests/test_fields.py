@@ -247,18 +247,21 @@ class TestNestedField:
 
 class TestTimestamp:
     class UTC_plus_3(dt.tzinfo):
-        def utcoffset(self, dt):
+        def utcoffset(self, dt_):
             return dt.timedelta(hours=3)
+        def dst(self, dt_):
+            return dt.timedelta(0)
     UTC_plus_3 = UTC_plus_3()
 
     @pytest.mark.parametrize('timestamp,datetime,kwargs', (
         (-1.5, dt.datetime(1969, 12, 31, 23, 59, 58, 500000, tzinfo=UTC), {}),
         (-1500, dt.datetime(1969, 12, 31, 23, 59, 58, 500000, tzinfo=UTC), {'ms': True}),
         (0, dt.datetime(1970, 1, 1, tzinfo=UTC), {'timezone': 'UTC', 'ms': True}),
-        (0, dt.datetime(1970, 1, 1, tzinfo=UTC_plus_3), {'timezone': UTC_plus_3}),
         (0, dt.datetime(1970, 1, 1, tzinfo=None), {'naive': True}),
+        (0, dt.datetime(1969, 12, 31, 21, tzinfo=UTC), {'timezone': UTC_plus_3}),
+        (0, dt.datetime(1970, 1, 1, 3, tzinfo=UTC_plus_3), {'timezone': UTC}),
     ))
     def test_load_dump(self, timestamp, datetime, kwargs):
         field = fields.Timestamp(**kwargs)
-        assert field.deserialize(timestamp) == datetime
+        assert not (field.deserialize(timestamp) - datetime).total_seconds()
         assert field._serialize(datetime, '', object()) == timestamp
