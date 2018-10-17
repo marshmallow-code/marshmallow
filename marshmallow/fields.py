@@ -1149,6 +1149,41 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
+class Timestamp(Field):
+    """Timestamp field, converts to datetime.
+
+    :param timezone: Timezone of timestamp (defaults to UTC), should be tzinfo object.
+    :param bool ms: Milliseconds instead of seconds, defaults to `False`. For javascript
+        compatibility.
+    :param bool naive: Should deserialize to timezone-naive or timezone-aware datetime.
+        Defaults to `False`, so all datetimes will be timezone-aware with `timezone`.
+        On `True` timezone-naive datetimes will be converted to `timezone` on serialization.
+    :param bool as_int: If `True`, timestamp will be serialized to int instead of float,
+        so datetime microseconds precision can be lost. Note that this affects milliseconds also,
+        because 1 millisecond is 1000 microseconds.  Defaults to `False`.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+    def __init__(self, timezone=utils.UTC, ms=False, naive=False, as_int=False, **kwargs):
+        self.timezone = timezone
+        self.ms = ms
+        self.naive = naive
+        self.as_int = as_int
+        super(Timestamp, self).__init__(**kwargs)
+
+    def _serialize(self, value, attr, obj):
+        if value is None:
+            return None
+        value = utils.to_timestamp(value, self.timezone, self.ms)
+        return int(value) if self.as_int else value
+
+    def _deserialize(self, value, attr, data):
+        try:
+            return utils.from_timestamp(value, None if self.naive else self.timezone, self.ms)
+        except (ValueError, OverflowError, OSError):
+            # Timestamp exceeds limits, ValueError needed for Python < 3.3
+            self.fail('invalid')
+
+
 class Dict(Field):
     """A dict field. Supports dicts and dict-like objects. Optionally composed
     with another `Field` class or instance.

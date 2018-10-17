@@ -317,6 +317,18 @@ def to_iso_date(date, *args, **kwargs):
     return datetime.date.isoformat(date)
 
 
+def from_timestamp(value, tzinfo=UTC, ms=False):
+    return (datetime.utcfromtimestamp((float(value) * 1000) if ms else float(value))
+            .replace(tzinfo=tzinfo))
+
+
+def to_timestamp(dt, tzinfo=UTC, ms=False):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=tzinfo)
+    return (dt.astimezone(tzinfo).replace(tzinfo=UTC).timestamp() *
+            (1000 if ms else 1))
+
+
 def ensure_text_type(val):
     if isinstance(val, binary_type):
         val = val.decode('utf-8')
