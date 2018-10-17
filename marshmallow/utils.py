@@ -317,19 +317,19 @@ def to_iso_date(date, *args, **kwargs):
     return datetime.date.isoformat(date)
 
 
-_EPOCH = datetime.datetime(1970, 1, 1, tzinfo=UTC)
+_EPOCH = datetime.datetime(1970, 1, 1)
 
 
 def from_timestamp(value, tzinfo=UTC, ms=False):
-    return (datetime.datetime.utcfromtimestamp((float(value) / 1000) if ms else float(value))
+    value = float(value)
+    return (datetime.datetime.utcfromtimestamp((value / 1000) if ms else value)
             .replace(tzinfo=tzinfo))
 
 
 def to_timestamp(dt, tzinfo=UTC, ms=False):
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=tzinfo)
-    return ((dt.astimezone(tzinfo).replace(tzinfo=UTC) - _EPOCH)
-            .total_seconds() * (1000 if ms else 1))
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(tzinfo).replace(tzinfo=None)
+    return (dt - _EPOCH).total_seconds() * (1000 if ms else 1)
 
 
 def get_tzinfo(value):
