@@ -317,6 +317,9 @@ def to_iso_date(date, *args, **kwargs):
     return datetime.date.isoformat(date)
 
 
+_EPOCH = datetime.datetime(1970, 1, 1, tzinfo=UTC)
+
+
 def from_timestamp(value, tzinfo=UTC, ms=False):
     return (datetime.datetime.utcfromtimestamp((float(value) / 1000) if ms else float(value))
             .replace(tzinfo=tzinfo))
@@ -325,8 +328,8 @@ def from_timestamp(value, tzinfo=UTC, ms=False):
 def to_timestamp(dt, tzinfo=UTC, ms=False):
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=tzinfo)
-    return (dt.astimezone(tzinfo).replace(tzinfo=UTC).timestamp() *
-            (1000 if ms else 1))
+    return ((dt.astimezone(tzinfo).replace(tzinfo=UTC) - _EPOCH)
+            .total_seconds() * (1000 if ms else 1))
 
 
 def get_tzinfo(value):
