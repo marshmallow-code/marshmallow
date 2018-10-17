@@ -24,7 +24,7 @@ RAISE = 'raise'
 
 dateutil_available = False
 try:
-    from dateutil import parser
+    from dateutil import parser, tz
     dateutil_available = True
 except ImportError:
     dateutil_available = False
@@ -327,6 +327,16 @@ def to_timestamp(dt, tzinfo=UTC, ms=False):
         dt = dt.replace(tzinfo=tzinfo)
     return (dt.astimezone(tzinfo).replace(tzinfo=UTC).timestamp() *
             (1000 if ms else 1))
+
+
+def get_tzinfo(value):
+    if isinstance(value, datetime.tzinfo):
+        return value
+    elif value == 'UTC':
+        return UTC
+    elif dateutil_available:
+        return tz.gettz(value)
+    raise ValueError('Unknown timezone and dateutil not available')
 
 
 def ensure_text_type(val):

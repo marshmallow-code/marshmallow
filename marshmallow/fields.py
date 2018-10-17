@@ -1152,7 +1152,7 @@ class TimeDelta(Field):
 class Timestamp(Field):
     """Timestamp field, converts to datetime.
 
-    :param timezone: Timezone of timestamp (defaults to UTC), should be tzinfo object.
+    :param timezone: Timezone of timestamp (defaults to UTC).
         Timezone-aware datetimes will be converted to this before serialization,
         timezone-naive datetimes will be serialized as is (in timestamp timezone).
     :param bool ms: Milliseconds instead of seconds, defaults to `False`. For javascript
@@ -1165,7 +1165,7 @@ class Timestamp(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
     def __init__(self, timezone=utils.UTC, ms=False, naive=False, as_int=False, **kwargs):
-        self.timezone = timezone
+        self.timezone = utils.get_tzinfo(timezone)
         self.ms = ms
         self.naive = naive
         self.as_int = as_int
