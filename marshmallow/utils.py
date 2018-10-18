@@ -332,13 +332,16 @@ def to_timestamp(dt, tzinfo=UTC, ms=False):
     return (dt - _EPOCH).total_seconds() * (1000 if ms else 1)
 
 
-def get_tzinfo(value):
+def get_tzinfo(value, use_dateutil=True):
     if isinstance(value, datetime.tzinfo):
         return value
     elif value == 'UTC':
         return UTC
-    elif dateutil_available:
-        return tz.gettz(value)
+    elif dateutil_available and use_dateutil:
+        tzinfo = tz.gettz(value)
+        if tzinfo is None:
+            raise ValueError('Unknown timezone', value)
+        return tzinfo
     raise ValueError('Unknown timezone and dateutil not available')
 
 

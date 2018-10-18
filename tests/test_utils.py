@@ -237,3 +237,14 @@ def test_get_func_args():
 
     for func in [f1, f2, f3]:
         assert utils.get_func_args(func) == ['foo', 'bar']
+
+@pytest.mark.parametrize('use_dateutil', [True, False])
+def test_get_tzinfo(use_dateutil):
+    if use_dateutil:
+        assert utils.get_tzinfo('Europe/Kiev', use_dateutil)
+        with pytest.raises(ValueError):
+            utils.get_tzinfo('Europe/Maaaskva', use_dateutil)
+    else:
+        assert utils.get_tzinfo('UTC', use_dateutil)
+        with pytest.raises(ValueError):
+            utils.get_tzinfo('Europe/Kiev', use_dateutil)
