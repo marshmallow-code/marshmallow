@@ -33,7 +33,7 @@ Bug fixes:
   for reporting.
 
 These fixes were backported from 3.0.0b15 and 3.0.0b16.
-  
+
 
 2.15.5 (2018-09-15)
 +++++++++++++++++++
@@ -48,10 +48,10 @@ Bug fixes:
 
 Bug fixes:
 
-- Respect ``load_from`` when reporting errors for ``@validates('field_name')`` 
+- Respect ``load_from`` when reporting errors for ``@validates('field_name')``
   (:issue:`748`). Thanks :user:`m-novikov` for the catch and patch.
 
-2.15.3 (2018-05-20)998
+2.15.3 (2018-05-20)
 +++++++++++++++++++
 
 Bug fixes:
