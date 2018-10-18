@@ -247,6 +247,7 @@ class Field(FieldABC):
         :param str attr: The attribute or key to get from the object.
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
@@ -263,6 +264,10 @@ class Field(FieldABC):
     def deserialize(self, value, attr=None, data=None, **kwargs):
         """Deserialize ``value``.
 
+        :param value: The value to be deserialized.
+        :param str attr: The attribute/key in `data` to be deserialized.
+        :param dict data: The raw input data passed to the `Schema.load`.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
         """
@@ -305,6 +310,7 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The serialized value
         """
