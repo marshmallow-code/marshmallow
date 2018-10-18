@@ -18,10 +18,10 @@ class FieldABC(object):
     def deserialize(self, value):
         raise NotImplementedError
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         raise NotImplementedError
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         raise NotImplementedError
 
     def __deepcopy__(self, memo):
