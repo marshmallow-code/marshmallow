@@ -240,13 +240,14 @@ class Field(FieldABC):
             if hasattr(self, 'allow_none') and self.allow_none is not True:
                 self.fail('null')
 
-    def serialize(self, attr, obj, accessor=None):
+    def serialize(self, attr, obj, accessor=None, **kwargs):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
         :param str attr: The attribute or key to get from the object.
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
@@ -258,11 +259,15 @@ class Field(FieldABC):
                 return value
         else:
             value = None
-        return self._serialize(value, attr, obj)
+        return self._serialize(value, attr, obj, **kwargs)
 
     def deserialize(self, value, attr=None, data=None, **kwargs):
         """Deserialize ``value``.
 
+        :param value: The value to be deserialized.
+        :param str attr: The attribute/key in `data` to be deserialized.
+        :param dict data: The raw input data passed to the `Schema.load`.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
         """
@@ -290,14 +295,14 @@ class Field(FieldABC):
         self.parent = self.parent or schema
         self.name = self.name or field_name
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
 
         Example: ::
 
             class TitleCase(Field):
-                def _serialize(self, value, attr, obj):
+                def _serialize(self, value, attr, obj, **kwargs):
                     if not value:
                         return ''
                     return unicode(value).title()
@@ -305,6 +310,7 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The serialized value
         """
@@ -447,7 +453,7 @@ class Nested(Field):
                 for field in getattr(self.root, option_name, set())
                 if field.startswith(nested_field)]
 
-    def _serialize(self, nested_obj, attr, obj):
+    def _serialize(self, nested_obj, attr, obj, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
@@ -508,8 +514,8 @@ class Pluck(Nested):
         only_field = self.schema.fields[self.field_name]
         return only_field.data_key or self.field_name
 
-    def _serialize(self, nested_obj, attr, obj):
-        ret = super(Pluck, self)._serialize(nested_obj, attr, obj)
+    def _serialize(self, nested_obj, attr, obj, **kwargs):
+        ret = super(Pluck, self)._serialize(nested_obj, attr, obj, **kwargs)
         if self.many:
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
@@ -580,12 +586,12 @@ class List(Field):
         self.container.parent = self
         self.container.name = field_name
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         if utils.is_collection(value):
-            return [self.container._serialize(each, attr, obj) for each in value]
-        return [self.container._serialize(value, attr, obj)]
+            return [self.container._serialize(each, attr, obj, **kwargs) for each in value]
+        return [self.container._serialize(value, attr, obj, **kwargs)]
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
@@ -617,7 +623,7 @@ class String(Field):
         'invalid_utf8': 'Not a valid utf-8 string.',
     }
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         return utils.ensure_text_type(value)
@@ -651,9 +657,9 @@ class UUID(String):
         except (ValueError, AttributeError, TypeError):
             self.fail('invalid_uuid')
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         validated = str(self._validated(value)) if value is not None else None
-        return super(String, self)._serialize(validated, attr, obj)
+        return super(String, self)._serialize(validated, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
         return self._validated(value)
@@ -694,7 +700,7 @@ class Number(Field):
     def _to_string(self, value):
         return str(value)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
         ret = self._validated(value)
         return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
@@ -871,7 +877,7 @@ class Boolean(Field):
         if falsy is not None:
             self.falsy = set(falsy)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         elif value in self.truthy:
@@ -918,7 +924,7 @@ class FormattedString(Field):
         Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         try:
             data = utils.to_marshallable_type(obj)
             return self.src_str.format(**data)
@@ -983,7 +989,7 @@ class DateTime(Field):
             self.DEFAULT_FORMAT
         )
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         data_format = self.format or self.DEFAULT_FORMAT
@@ -1037,7 +1043,7 @@ class Time(Field):
         'format': '"{input}" cannot be formatted as a time.',
     }
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         try:
@@ -1136,7 +1142,7 @@ class TimeDelta(Field):
         self.precision = precision
         super(TimeDelta, self).__init__(error=error, **kwargs)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         try:
@@ -1228,7 +1234,7 @@ class Dict(Field):
             self.key_container.parent = self
             self.key_container.name = field_name
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         if not self.value_container and not self.key_container:
@@ -1236,10 +1242,12 @@ class Dict(Field):
         if isinstance(value, collections.Mapping):
             values = value.values()
             if self.value_container:
-                values = [self.value_container._serialize(item, attr, obj) for item in values]
+                values = [
+                    self.value_container._serialize(item, attr, obj, **kwargs) for item in values
+                ]
             keys = value.keys()
             if self.key_container:
-                keys = [self.key_container._serialize(key, attr, obj) for key in keys]
+                keys = [self.key_container._serialize(key, attr, obj, **kwargs) for key in keys]
             return dict(zip(keys, values))
         self.fail('invalid')
 
@@ -1363,7 +1371,7 @@ class Method(Field):
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         if not self.serialize_method_name:
             return missing_
 
@@ -1412,7 +1420,7 @@ class Function(Field):
         self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         return self._call_or_raise(self.serialize_func, obj, attr)
 
     def _deserialize(self, value, attr, data, **kwargs):
@@ -1486,7 +1494,7 @@ class Inferred(Field):
         # every time on serialization.
         self._field_cache = {}
 
-    def _serialize(self, value, attr, obj):
+    def _serialize(self, value, attr, obj, **kwargs):
         field_cls = self.TYPE_MAPPING.get(type(value))
         if field_cls is None:
             field = super(Inferred, self)
@@ -1496,7 +1504,7 @@ class Inferred(Field):
                 field = field_cls()
                 field._bind_to_schema(self.name, self.parent)
                 self._field_cache[field_cls] = field
-        return field._serialize(value, attr, obj)
+        return field._serialize(value, attr, obj, **kwargs)
 
 
 # Aliases
