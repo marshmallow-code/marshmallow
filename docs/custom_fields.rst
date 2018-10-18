@@ -15,17 +15,24 @@ The method you choose will depend on the manner in which you intend to reuse the
 Creating A Field Class
 ----------------------
 
-To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_serialize <marshmallow.fields.Field._serialize>`, and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
+To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_serialize <marshmallow.fields.Field._serialize>` and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
 
 .. code-block:: python
 
     from marshmallow import fields
 
     class TitleCased(fields.Field):
-        def _serialize(self, value, attr, obj):
+        """Field that serializes to a title case string and deserializes
+        to a lower case string.
+        """
+        def _serialize(self, value, attr, obj, **kwargs):
             if value is None:
                 return ''
             return value.title()
+
+        def _deserialize(self, value, attr, data, **kwargs):
+            return value.lower()
+
 
     class UserSchema(Schema):
         name = fields.String()
