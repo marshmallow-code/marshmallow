@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.16.1 (2018-10-17)
++++++++++++++++++++
+
+Bug fixes:
+
+- Remove spurious warning about implicit collection handling
+  (:issue:`998`). Thanks :user:`lalvarezguillen` for reporting.
+
 2.16.0 (2018-10-10)
 +++++++++++++++++++
 
@@ -43,7 +51,7 @@ Bug fixes:
 - Respect ``load_from`` when reporting errors for ``@validates('field_name')`` 
   (:issue:`748`). Thanks :user:`m-novikov` for the catch and patch.
 
-2.15.3 (2018-05-20)
+2.15.3 (2018-05-20)998
 +++++++++++++++++++
 
 Bug fixes:
