@@ -310,16 +310,18 @@ class Field(FieldABC):
         """
         return value
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
 
         :param value: The value to be deserialized.
         :param str attr: The attribute/key in `data` to be deserialized.
         :param dict data: The raw input data passed to the `Schema.load`.
-        :param bool|tuple partial: For nested schemas, the ``partial``
-            parameter passed to `Schema.load`.
+        :param dict kwargs': Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The deserialized value.
+
+        .. versionchanged:: 3.0.0
+            Add ``**kwargs`` parameters
 
         .. versionchanged:: 2.0.0
             Added ``attr`` and ``data`` parameters.
@@ -470,9 +472,17 @@ class Nested(Field):
             raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
         return valid_data
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, partial=None, **kwargs):
+        """Same as :method:`Field._deserialize` with additional ``partial`` argument.
+
+        :param bool|tuple partial: For nested schemas, the ``partial``
+            parameter passed to `Schema.load`.
+
+        .. versionchanged:: 3.0.0
+            Add ``partial`` parameter
+        """
         self._test_collection(value)
-        return self._load(value, data, **kwargs)
+        return self._load(value, data, partial=partial)
 
 
 class Pluck(Nested):
@@ -504,13 +514,13 @@ class Pluck(Nested):
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, partial=None, **kwargs):
         self._test_collection(value)
         if self.many:
             value = [{self._field_data_key: v} for v in value]
         else:
             value = {self._field_data_key: value}
-        return self._load(value, data, **kwargs)
+        return self._load(value, data, partial=partial)
 
 
 class List(Field):
@@ -577,7 +587,7 @@ class List(Field):
             return [self.container._serialize(each, attr, obj) for each in value]
         return [self.container._serialize(value, attr, obj)]
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
             self.fail('invalid')
 
@@ -612,7 +622,7 @@ class String(Field):
             return None
         return utils.ensure_text_type(value)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, basestring):
             self.fail('invalid')
         try:
@@ -645,7 +655,7 @@ class UUID(String):
         validated = str(self._validated(value)) if value is not None else None
         return super(String, self)._serialize(validated, attr, obj)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         return self._validated(value)
 
 
@@ -689,7 +699,7 @@ class Number(Field):
         ret = self._validated(value)
         return self._to_string(ret) if (self.as_string and ret not in (None, missing_)) else ret
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         return self._validated(value)
 
 
@@ -871,7 +881,7 @@ class Boolean(Field):
 
         return bool(value)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if not self.truthy:
             return bool(value)
         else:
@@ -986,7 +996,7 @@ class DateTime(Field):
         else:
             return value.strftime(data_format)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.fail('invalid', obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
@@ -1038,7 +1048,7 @@ class Time(Field):
             return ret[:15]
         return ret
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         if not value:   # falsy values are invalid
             self.fail('invalid')
@@ -1135,7 +1145,7 @@ class TimeDelta(Field):
         except AttributeError:
             self.fail('format', input=value)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         try:
             value = int(value)
         except (TypeError, ValueError):
@@ -1233,7 +1243,7 @@ class Dict(Field):
             return dict(zip(keys, values))
         self.fail('invalid')
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, collections.Mapping):
             self.fail('invalid')
         if not self.value_container and not self.key_container:
@@ -1362,7 +1372,7 @@ class Method(Field):
         )
         return method(obj)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if self.deserialize_method_name:
             method = utils.callable_or_raise(
                 getattr(self.parent, self.deserialize_method_name, None),
@@ -1405,7 +1415,7 @@ class Function(Field):
     def _serialize(self, value, attr, obj):
         return self._call_or_raise(self.serialize_func, obj, attr)
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         if self.deserialize_func:
             return self._call_or_raise(self.deserialize_func, value, attr)
         return value
