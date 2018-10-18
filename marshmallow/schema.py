@@ -721,14 +721,24 @@ class BaseSchema(base.SchemaABC):
         ]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {x for x in dump_data_keys if dump_data_keys.count(x) > 1}
-            raise ValueError('Duplicate data_keys: {}'.format(data_keys_duplicates))
+            raise ValueError(
+                'The data_key argument for one or more fields collides '
+                "with another field's name or data_key argument. "
+                'Check the following field names and '
+                'data_key arguments: {}'.format(list(data_keys_duplicates)),
+            )
 
         load_attributes = [
             obj.attribute or name for name, obj in iteritems(fields_dict) if not obj.dump_only
         ]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {x for x in load_attributes if load_attributes.count(x) > 1}
-            raise ValueError('Duplicate attributes: {}'.format(attributes_duplicates))
+            raise ValueError(
+                'The attribute argument for one or more fields collides '
+                "with another field's name or attribute argument. "
+                'Check the following field names and '
+                'attribute arguments: {}'.format(list(attributes_duplicates)),
+            )
 
         return fields_dict
 
