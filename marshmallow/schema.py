@@ -468,11 +468,6 @@ class BaseSchema(base.SchemaABC):
         marshal = marshalling.Marshaller(prefix=self.prefix)
         errors = {}
         many = self.many if many is None else bool(many)
-        if not many and utils.is_collection(obj) and not utils.is_keyed_tuple(obj):
-            warnings.warn('Implicit collection handling is deprecated. Set '
-                            'many=True to serialize a collection.',
-                            category=DeprecationWarning)
-
         if many and utils.is_iterable_but_not_string(obj):
             obj = list(obj)
 
