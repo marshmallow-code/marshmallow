@@ -364,6 +364,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.16.1 (2018-10-17)
++++++++++++++++++++
+
+Bug fixes:
+
+- Remove spurious warning about implicit collection handling
+  (:issue:`998`). Thanks :user:`lalvarezguillen` for reporting.
+
 2.16.0 (2018-10-10)
 +++++++++++++++++++
 
