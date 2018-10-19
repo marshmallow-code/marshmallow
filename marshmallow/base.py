@@ -32,14 +32,17 @@ class FieldABC(object):
 class SchemaABC(object):
     """Abstract base class from which all Schemas inherit."""
 
-    def dump(self, obj):
+    def dump(self, obj, many=None):
         raise NotImplementedError
 
-    def dumps(self, obj, *args, **kwargs):
+    def dumps(self, obj, many=None, *args, **kwargs):
         raise NotImplementedError
 
-    def load(self, data):
+    def load(self, data, many=None, partial=None, unknown=None):
         raise NotImplementedError
 
-    def loads(self, data):
+    def loads(
+        self, json_data, many=None, partial=None, unknown=None,
+        **kwargs
+    ):
         raise NotImplementedError
