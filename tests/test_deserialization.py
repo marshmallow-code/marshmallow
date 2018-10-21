@@ -1495,16 +1495,18 @@ class TestSchemaDeserialization:
 
     def test_dump_only_fields_considered_unknown(self):
         class MySchema(Schema):
-            foo = fields.Field(dump_only=True)
-
-            class Meta:
-                unknown = RAISE
+            foo = fields.Int(dump_only=True)
 
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({'foo': 42})
         err = excinfo.value
         assert 'foo' in err.messages
         assert err.messages['foo'] == ['Unknown field.']
+
+        # When unknown = INCLUDE, dump-only fields are included as unknown
+        # without any validation.
+        data = MySchema(unknown=INCLUDE).load({'foo': 'LOL'})
+        assert data['foo'] == 'LOL'
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
