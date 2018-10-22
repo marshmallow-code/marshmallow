@@ -85,4 +85,4 @@ Contributors (chronological)
 - `@sduthil <https://github.com/sduthil>`_
 - Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
-- Viktor Kerkez `@alefnula<https://github.com/alefnula>`_
+- Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
