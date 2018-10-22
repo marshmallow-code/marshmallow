@@ -479,7 +479,7 @@ class Nested(Field):
         return valid_data
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
-        """Same as :method:`Field._deserialize` with additional ``partial`` argument.
+        """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
             parameter passed to `Schema.load`.

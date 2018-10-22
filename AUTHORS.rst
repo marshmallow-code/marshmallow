@@ -109,6 +109,6 @@ Contributors (chronological)
 - Karandeep Singh Nagra `@knagra <https://github.com/knagra>`_
 - Dushyant Rijhwani `@dushr<https://github.com/dushr>`_
 - Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
-- Victor Gavro `@vgavro<https://github.com/vgavro`_
-- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`
+- Victor Gavro `@vgavro <https://github.com/vgavro>`_
+- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`_
 - David Watson `@arbor-dwatson <https://github.com/arbor-dwatson>`_
