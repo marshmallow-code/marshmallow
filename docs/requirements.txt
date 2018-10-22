@@ -1,6 +1,4 @@
-# TODO: Update sphinx when sphinx-version-warning fixes compatibility
-# with sphinx>=1.8
-sphinx==1.7.9
+sphinx==1.8.1
 sphinx-issues==1.1.0
 alabaster==0.7.12
-sphinx-version-warning==1.0.0
+sphinx-version-warning==1.0.2
