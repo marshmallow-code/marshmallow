@@ -107,7 +107,7 @@ versionwarning_messages = {
     'latest': 'This document is for the development version. For the stable version documentation, see <a href="/en/stable/">here</a>.',
     'stable': 'This document is for the latest stable release. For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.',
     '3.0': 'This document is for the latest 3.0 pre-release. For the 2.x documentation, see <a href="/en/2.x-line/">here</a>.',
-    '2.x-line': 'This document is for the latest 2.x (stable) release. For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.',
+    '2.x-line': 'This document is for the 2.x release branch. For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.',
 }
 # Show warning at top of page
 versionwarning_body_selector = 'div.document'
