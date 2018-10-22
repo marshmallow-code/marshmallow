@@ -1,6 +1,6 @@
 #version-warning-banner {
   margin: 10px 0;
-  padding: 5px 10px;
+  padding: 10px;
   border-radius: 4px;
 
   letter-spacing: 1px;
@@ -12,9 +12,9 @@
   background: #004b6b repeating-linear-gradient(
     135deg,
     transparent,
-    transparent 56px,
-    rgba(255, 255, 255, 0.2) 56px,
-    rgba(255, 255, 255, 0.2) 112px
+    transparent 20px,
+    rgba(255, 255, 255, 0.1) 20px,
+    rgba(255, 255, 255, 0.1) 40px
   );
 }
 
