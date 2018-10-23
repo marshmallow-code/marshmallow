@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import basestring, binary_type, text_type
+from marshmallow.compat import basestring, text_type
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
@@ -1471,23 +1471,6 @@ class Inferred(Field):
         Users should not need to use this class directly.
     """
 
-    TYPE_MAPPING = {
-        text_type: String,
-        binary_type: String,
-        dt.datetime: DateTime,
-        float: Float,
-        bool: Boolean,
-        tuple: Raw,
-        list: Raw,
-        set: Raw,
-        int: Integer,
-        uuid.UUID: UUID,
-        dt.time: Time,
-        dt.date: Date,
-        dt.timedelta: TimeDelta,
-        decimal.Decimal: Decimal,
-    }
-
     def __init__(self):
         super(Inferred, self).__init__()
         # We memoize the fields to avoid creating and binding new fields
@@ -1495,7 +1478,7 @@ class Inferred(Field):
         self._field_cache = {}
 
     def _serialize(self, value, attr, obj, **kwargs):
-        field_cls = self.TYPE_MAPPING.get(type(value))
+        field_cls = self.root.TYPE_MAPPING.get(type(value))
         if field_cls is None:
             field = super(Inferred, self)
         else:

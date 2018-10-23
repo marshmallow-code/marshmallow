@@ -11,6 +11,10 @@ Features:
   now take an additional ``partial`` parameter in the ``_deserialize``
   method.
 
+Bug fixes:
+
+- Restore ``Schema.TYPE_MAPPING``, which was removed in 3.0.0b17 (:issue:`1012`).
+
 3.0.0b18 (2018-10-15)
 +++++++++++++++++++++
 

@@ -3,6 +3,9 @@
 from __future__ import absolute_import, unicode_literals
 
 from collections import defaultdict, OrderedDict
+import datetime as dt
+import uuid
+import decimal
 import functools
 import copy
 import inspect
@@ -10,7 +13,7 @@ import json
 import warnings
 
 from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import iteritems, iterkeys, with_metaclass
+from marshmallow.compat import iteritems, iterkeys, with_metaclass, text_type, binary_type
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
@@ -267,7 +270,24 @@ class BaseSchema(base.SchemaABC):
         `marshmallow.decorators.pre_load` and `marshmallow.decorators.post_dump`.
         `__accessor__` and `__error_handler__` are deprecated. Implement the
         `handle_error` and `get_attribute` methods instead.
-        """
+    """
+    TYPE_MAPPING = {
+        text_type: fields.String,
+        binary_type: fields.String,
+        dt.datetime: fields.DateTime,
+        float: fields.Float,
+        bool: fields.Boolean,
+        tuple: fields.Raw,
+        list: fields.Raw,
+        set: fields.Raw,
+        int: fields.Integer,
+        uuid.UUID: fields.UUID,
+        dt.time: fields.Time,
+        dt.date: fields.Date,
+        dt.timedelta: fields.TimeDelta,
+        decimal.Decimal: fields.Decimal,
+    }
+
     OPTIONS_CLASS = SchemaOpts
 
     class Meta(object):
