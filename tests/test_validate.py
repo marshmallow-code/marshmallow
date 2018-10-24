@@ -77,7 +77,7 @@ def test_url_relative_valid(valid_url):
     validator = validate.URL(relative=True)
     assert validator(valid_url) == valid_url
 
-@pytest.mark.parametrize(
+@pytest.mark.parametrize(  # noqa: W605
     'invalid_url', [
         'http//example.org',
         'suppliers.html',
