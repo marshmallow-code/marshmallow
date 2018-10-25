@@ -15,7 +15,7 @@ simplejson==3.16.0
 flake8==3.6.0
 
 # Pre-commit hooks
-pre-commit==1.11.2
+pre-commit==1.12.0
 
 # Install this package in development mode
 -e '.'
