@@ -20,7 +20,7 @@ import alabaster
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-import marshmallow  # flake8: noqa
+import marshmallow  # noqa: E402
 
 # -- General configuration -----------------------------------------------------
 
@@ -82,7 +82,10 @@ html_theme_options = {
     'github_banner': True,
     'github_type': 'star',
     'opencollective': 'marshmallow',
-    'tidelift_url': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=marshmallow&utm_medium=referral&utm_campaign=docs ',
+    'tidelift_url': (
+        'https://tidelift.com/subscription/pkg/pypi-marshmallow'
+        '?utm_source=marshmallow&utm_medium=referral&utm_campaign=docs'
+    ),
     'code_font_size': '0.8em',
     'warn_bg': '#FFC',
     'warn_border': '#EEE',
@@ -106,10 +109,22 @@ html_sidebars = {
 
 # sphinx-version-warning config
 versionwarning_messages = {
-    'latest': 'This document is for the development version. For the stable version documentation, see <a href="/en/stable/">here</a>.',
-    'stable': 'This document is for the latest stable release. For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.',
-    '3.0': 'This document is for the latest 3.0 pre-release. For the 2.x documentation, see <a href="/en/2.x-line/">here</a>.',
-    '2.x-line': 'This document is for the 2.x release branch. For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.',
+    'latest': (
+        'This document is for the development version. '
+        'For the stable version documentation, see <a href="/en/stable/">here</a>.'
+    ),
+    'stable': (
+        'This document is for the latest stable release. '
+        'For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.'
+    ),
+    '3.0': (
+        'This document is for the latest 3.0 pre-release. '
+        'For the 2.x documentation, see <a href="/en/2.x-line/">here</a>.'
+    ),
+    '2.x-line': (
+        'This document is for the 2.x release branch. '
+        'For the 3.0 pre-release documentation, see <a href="/en/3.0/">here</a>.'
+    ),
 }
 # Show warning at top of page
 versionwarning_body_selector = 'div.document'
