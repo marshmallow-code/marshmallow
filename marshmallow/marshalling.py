@@ -36,15 +36,19 @@ class ErrorStore(object):
     def get_errors(self, index=None):
         return self.errors if index is None else self.errors.setdefault(index, {})
 
-    def store_error(self, field_name, messages, index=None):
-        errors = self.get_errors(index=index)
-        # Warning: Mutation!
-        if isinstance(messages, dict):
-            errors[field_name] = messages
-        elif isinstance(errors.get(field_name), dict):
-            errors[field_name].setdefault(SCHEMA, []).extend(messages)
+    def set_errors(self, errors, index=None):
+        if index is None:
+            self.errors = errors
         else:
-            errors.setdefault(field_name, []).extend(messages)
+            self.errors[index] = errors
+
+    def store_error(self, field_name, messages, index=None):
+        if field_name != SCHEMA:
+            messages = {field_name: messages}
+        self.set_errors(
+            merge_errors(self.get_errors(index=index), messages),
+            index=index
+        )
 
     def store_validation_error(self, field_name, error, index=None):
         self.error_kwargs.update(error.kwargs)
@@ -175,7 +179,7 @@ class Unmarshaller(ErrorStore):
         """
         if many:
             if not is_collection(data):
-                self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
+                self.store_error(SCHEMA, ['Invalid input type.'], index=index)
                 ret = []
             else:
                 self._pending = True
@@ -193,7 +197,7 @@ class Unmarshaller(ErrorStore):
         ret = dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
-            self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
+            self.store_error(SCHEMA, ['Invalid input type.'], index=index)
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
@@ -247,7 +251,7 @@ class Unmarshaller(ErrorStore):
                     elif unknown == RAISE:
                         self.store_error(
                             key,
-                            ('Unknown field.',),
+                            ['Unknown field.'],
                             (index if index_errors else None),
                         )
         return ret
