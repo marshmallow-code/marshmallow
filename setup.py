@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     'reco': ['python-dateutil', 'simplejson'],
     'tests': [
-        'pytest==3.9.2',
+        'pytest',
         'pytz',
     ],
     'lint': [
