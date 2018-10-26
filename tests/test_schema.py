@@ -2022,7 +2022,7 @@ class TestNestedSchema:
             outer.load({'inner': [{}]})
         errors = excinfo.value.messages
         assert 'inner' in errors
-        assert '_field' in errors['inner']
+        assert '_schema' in errors['inner']
 
     def test_dump_validation_error(self):
         class Child(object):

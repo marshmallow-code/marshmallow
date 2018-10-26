@@ -2,6 +2,10 @@
 """Exception classes for marshmallow-related errors."""
 
 
+# Key used for schema-level validation errors
+SCHEMA = '_schema'
+
+
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
 
@@ -13,7 +17,7 @@ class ValidationError(MarshmallowError):
     :param message: An error message, list of error messages, or dict of
         error messages.
     :param list field_name: Field name to store the error on.
-        If `None`, the error is stored in its default location.
+        If `None`, the error is stored as schema-level error.
     :param list fields: `Field` objects to which the error applies.
     """
     def __init__(self, message, field_name=None, data=None, valid_data=None, **kwargs):
@@ -33,10 +37,10 @@ class ValidationError(MarshmallowError):
         self.kwargs = kwargs
         MarshmallowError.__init__(self, message)
 
-    def normalized_messages(self, no_field_name='_schema'):
+    def normalized_messages(self):
         if isinstance(self.messages, dict):
             return self.messages
-        return {self.field_name or no_field_name: self.messages}
+        return {self.field_name or SCHEMA: self.messages}
 
 
 class RegistryError(NameError):

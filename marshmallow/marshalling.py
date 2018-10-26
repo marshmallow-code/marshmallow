@@ -14,7 +14,7 @@ from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
 )
 from marshmallow.compat import iteritems, Mapping
-from marshmallow.exceptions import ValidationError
+from marshmallow.exceptions import ValidationError, SCHEMA
 from marshmallow.fields import Nested
 
 __all__ = [
@@ -22,10 +22,6 @@ __all__ = [
     'Unmarshaller',
 ]
 
-# Key used for schema-level validation errors
-SCHEMA = '_schema'
-# Key used for field-level validation errors on nested fields
-FIELD = '_field'
 
 class ErrorStore(object):
 
@@ -46,7 +42,7 @@ class ErrorStore(object):
         if isinstance(messages, dict):
             errors[field_name] = messages
         elif isinstance(errors.get(field_name), dict):
-            errors[field_name].setdefault(FIELD, []).extend(messages)
+            errors[field_name].setdefault(SCHEMA, []).extend(messages)
         else:
             errors.setdefault(field_name, []).extend(messages)
 
