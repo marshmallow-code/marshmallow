@@ -562,14 +562,18 @@ class TestValidatesSchemaDecorator:
                 raise ValidationError({'nested': {'foo': ['Invalid foo']}})
 
             @validates_schema
-            def validate_nested_bar(self, data):
-                raise ValidationError({'nested': {'bar': ['Invalid bar']}})
+            def validate_nested_bar_1(self, data):
+                raise ValidationError({'nested': {'bar': ['Invalid bar 1']}})
+
+            @validates_schema
+            def validate_nested_bar_2(self, data):
+                raise ValidationError({'nested': {'bar': ['Invalid bar 2']}})
 
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({'nested': {'foo': 1, 'bar': 2}})
 
         assert excinfo.value.messages == {
-            'nested': {'foo': ['Invalid foo'], 'bar': ['Invalid bar']},
+            'nested': {'foo': ['Invalid foo'], 'bar': ['Invalid bar 1', 'Invalid bar 2']},
         }
 
     def test_passing_original_data(self):
