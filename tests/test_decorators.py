@@ -795,13 +795,7 @@ def test_decorator_error_handling():
     assert len(errors['_schema']) == 1
     assert errors['_schema'][0] == 'preloadmsg1'
 
-@pytest.mark.parametrize(
-    'decorator',
-    [
-        pre_load,
-        post_load,
-    ],
-)
+@pytest.mark.parametrize('decorator', [pre_load, post_load])
 def test_decorator_error_handling_with_load(decorator):
     class ExampleSchema(Schema):
         @decorator
@@ -814,13 +808,20 @@ def test_decorator_error_handling_with_load(decorator):
     assert exc.value.messages == {'foo': 'error'}
     schema.dump(object())
 
-@pytest.mark.parametrize(
-    'decorator',
-    [
-        pre_dump,
-        post_dump,
-    ],
-)
+@pytest.mark.parametrize('decorator', [pre_load, post_load])
+def test_decorator_error_handling_with_load_dict_error(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'}, 'nested_field')
+
+    schema = ExampleSchema()
+    with pytest.raises(ValidationError) as exc:
+        schema.load({})
+    assert exc.value.messages == {'nested_field': {'foo': 'error'}}
+    schema.dump(object())
+
+@pytest.mark.parametrize('decorator', [pre_dump, post_dump])
 def test_decorator_error_handling_with_dump(decorator):
     class ExampleSchema(Schema):
         @decorator
@@ -831,6 +832,19 @@ def test_decorator_error_handling_with_dump(decorator):
     with pytest.raises(ValidationError) as exc:
         schema.dump(object())
     assert exc.value.messages == {'foo': 'error'}
+    schema.load({})
+
+@pytest.mark.parametrize('decorator', [pre_dump, post_dump])
+def test_decorator_error_handling_with_dump_dict_error(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'}, 'nested')
+
+    schema = ExampleSchema()
+    with pytest.raises(ValidationError) as exc:
+        schema.dump(object())
+    assert exc.value.messages == {'nested': {'foo': 'error'}}
     schema.load({})
 
 

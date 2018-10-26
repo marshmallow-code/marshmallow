@@ -29,7 +29,7 @@ class ValidationError(MarshmallowError):
         #: If a `dict`, the keys will be field names and the values will be lists of
         #: messages.
         self.messages = messages
-        self.field_name = field_name
+        self.field_name = field_name or SCHEMA
         #: The raw input data.
         self.data = data
         #: The valid, (de)serialized data.
@@ -38,9 +38,9 @@ class ValidationError(MarshmallowError):
         MarshmallowError.__init__(self, message)
 
     def normalized_messages(self):
-        if isinstance(self.messages, dict):
+        if self.field_name == SCHEMA and isinstance(self.messages, dict):
             return self.messages
-        return {self.field_name or SCHEMA: self.messages}
+        return {self.field_name: self.messages}
 
 
 class RegistryError(NameError):
