@@ -78,7 +78,7 @@ def test_dump_mode_raises_error(SchemaClass):
     with pytest.raises(ValidationError) as excinfo:
         s.dump(bad_user)
     exc = excinfo.value
-    assert exc.field_names[0] == 'balance'
+    assert list(exc.messages.keys()) == ['balance']
 
     assert type(exc.messages) == dict
     assert exc.messages == {'balance': ['Not a valid number.']}
@@ -168,12 +168,12 @@ def test_dump_resets_error_fields():
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='dummy'))
     exc = excinfo.value
-    assert len(exc.field_names) == 1
+    assert len(exc.messages.keys()) == 1
 
     with pytest.raises(ValidationError) as excinfo:
         schema.dump(User('Joe', age='__dummy'))
-
-    assert len(exc.field_names) == 1
+    exc = excinfo.value
+    assert len(exc.messages.keys()) == 1
 
 def test_load_resets_error_fields():
     class MySchema(Schema):
@@ -184,12 +184,12 @@ def test_load_resets_error_fields():
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'name': 'Joe', 'email': 'not-valid'})
     exc = excinfo.value
-    assert len(exc.field_names) == 1
+    assert len(exc.messages.keys()) == 1
 
     with pytest.raises(ValidationError) as excinfo:
         schema.load({'name': 12, 'email': 'mick@stones.com'})
     exc = excinfo.value
-    assert len(exc.field_names) == 1
+    assert len(exc.messages.keys()) == 1
 
 def test_load_resets_error_kwargs():
     class MySchema(Schema):
@@ -1652,7 +1652,7 @@ class TestHandleError:
             def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
-                assert error.field_names == ['email']
+                assert list(error.messages.keys()) == ['email']
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1669,7 +1669,7 @@ class TestHandleError:
             def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'email' in error.messages
-                assert error.field_names == ['email']
+                assert list(error.messages.keys()) == ['email']
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1690,7 +1690,7 @@ class TestHandleError:
             def handle_error(self, error, data):
                 assert type(error) is ValidationError
                 assert 'num' in error.messages
-                assert error.field_names == ['num']
+                assert list(error.messages.keys()) == ['num']
                 assert data == in_data
                 raise CustomError('Something bad happened')
 
@@ -1709,8 +1709,7 @@ class TestHandleError:
 
             def handle_error(self, error, data):
                 assert type(error) is ValidationError
-                assert '_schema' in error.messages
-                assert error.field_names == ['_schema']
+                assert list(error.messages.keys()) == ['_schema']
                 assert data == in_data
                 raise CustomError('Something bad happened')
 

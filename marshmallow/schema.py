@@ -449,7 +449,6 @@ class BaseSchema(base.SchemaABC):
         if errors:
             exc = ValidationError(
                 errors,
-                field_names=marshal.error_field_names,
                 data=obj,
                 valid_data=result,
                 **marshal.error_kwargs
@@ -645,7 +644,6 @@ class BaseSchema(base.SchemaABC):
         if errors:
             exc = ValidationError(
                 errors,
-                field_names=unmarshal.error_field_names,
                 data=data,
                 valid_data=result,
                 **unmarshal.error_kwargs

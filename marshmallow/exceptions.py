@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
 
-from marshmallow.compat import basestring
 
 class MarshmallowError(Exception):
     """Base class for all marshmallow-related errors."""
@@ -13,11 +12,11 @@ class ValidationError(MarshmallowError):
 
     :param message: An error message, list of error messages, or dict of
         error messages.
-    :param list field_names: Field names to store the error on.
+    :param list field_name: Field name to store the error on.
         If `None`, the error is stored in its default location.
     :param list fields: `Field` objects to which the error applies.
     """
-    def __init__(self, message, field_names=None, data=None, valid_data=None, **kwargs):
+    def __init__(self, message, field_name=None, data=None, valid_data=None, **kwargs):
         if not isinstance(message, dict) and not isinstance(message, list):
             messages = [message]
         else:
@@ -26,11 +25,7 @@ class ValidationError(MarshmallowError):
         #: If a `dict`, the keys will be field names and the values will be lists of
         #: messages.
         self.messages = messages
-        if isinstance(field_names, basestring):
-            #: List of field_names which failed validation.
-            self.field_names = [field_names]
-        else:  # fields is a list or None
-            self.field_names = field_names or []
+        self.field_name = field_name
         #: The raw input data.
         self.data = data
         #: The valid, (de)serialized data.
@@ -41,9 +36,7 @@ class ValidationError(MarshmallowError):
     def normalized_messages(self, no_field_name='_schema'):
         if isinstance(self.messages, dict):
             return self.messages
-        if len(self.field_names) == 0:
-            return {no_field_name: self.messages}
-        return dict((name, self.messages) for name in self.field_names)
+        return {self.field_name or no_field_name: self.messages}
 
 
 class RegistryError(NameError):
