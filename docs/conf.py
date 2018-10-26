@@ -19,7 +19,7 @@ import alabaster
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
-import marshmallow  # flake8: noqa
+import marshmallow  # noqa
 from marshmallow.compat import OrderedDict
 
 # -- General configuration -----------------------------------------------------
