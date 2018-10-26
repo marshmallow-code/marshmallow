@@ -43,12 +43,11 @@ class ErrorStore(object):
             self.errors[index] = errors
 
     def store_error(self, messages, field_name=SCHEMA, index=None):
+        errors = self.get_errors(index=index)
         if field_name != SCHEMA:
-            messages = {field_name: messages}
-        self.set_errors(
-            merge_errors(self.get_errors(index=index), messages),
-            index=index
-        )
+            errors[field_name] = merge_errors(errors.get(field_name), messages)
+        else:
+            self.set_errors(merge_errors(errors, messages), index=index)
 
     def call_and_store(self, getter_func, data, field_name, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
