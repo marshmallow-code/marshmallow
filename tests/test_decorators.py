@@ -579,36 +579,31 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema(pass_original=True)
-            def validate_original(self, data, original_data):
+            def validate_original_foo(self, data, original_data):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
-            # See https://github.com/marshmallow-code/marshmallow/issues/127
             @validates_schema(pass_many=True, pass_original=True)
-            def check_unknown_fields(self, data, original_data, many):
+            def validate_original_bar(self, data, original_data, many):
                 def check(datum):
-                    for key, val in datum.items():
-                        if key not in self.fields:
-                            raise ValidationError({'code': 'invalid_field'})
+                    if isinstance(datum, dict) and isinstance(datum['bar'], str):
+                        raise ValidationError('bar cannot be a string')
                 if many:
                     for each in original_data:
                         check(each)
                 else:
                     check(original_data)
 
-        schema = MySchema(unknown=EXCLUDE)
-        errors = schema.validate({'foo': 4, 'baz': 42})
-        assert '_schema' in errors
-        assert errors['_schema'] == {'code': 'invalid_field'}
+        schema = MySchema()
 
-        errors = schema.validate({'foo': '4'})
-        assert '_schema' in errors
+        errors = schema.validate({'foo': '4', 'bar': 12})
         assert errors['_schema'] == ['foo cannot be a string']
 
-        schema = MySchema(unknown=EXCLUDE)
-        errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
-        assert '_schema' in errors
-        assert errors['_schema'] == {'code': 'invalid_field'}
+        errors = schema.validate({'foo': 4, 'bar': '42'})
+        assert errors['_schema'] == ['bar cannot be a string']
+
+        errors = schema.validate([{'foo': 4, 'bar': '42'}], many=True)
+        assert errors['_schema'] == ['bar cannot be a string']
 
     # https://github.com/marshmallow-code/marshmallow/issues/273
     def test_allow_arbitrary_field_names_in_error(self):
