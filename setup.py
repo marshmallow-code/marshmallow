@@ -3,7 +3,23 @@
 import re
 from setuptools import setup, find_packages
 
-EXTRA_REQUIREMENTS = ['python-dateutil', 'simplejson']
+EXTRAS_REQUIRE = {
+    'reco': ['python-dateutil', 'simplejson'],
+    'tests': [
+        'pytest',
+        'pytz',
+    ],
+    'lint': [
+        'flake8==3.6.0',
+        'pre-commit==1.12.0',
+    ],
+}
+EXTRAS_REQUIRE['dev'] = (
+    EXTRAS_REQUIRE['reco'] +
+    EXTRAS_REQUIRE['tests'] +
+    EXTRAS_REQUIRE['lint'] +
+    ['tox']
+)
 
 def find_version(fname):
     """Attempts to find the version number in the file names fname.
@@ -45,7 +61,7 @@ setup(
     packages=find_packages(exclude=('test*', 'examples')),
     package_dir={'marshmallow': 'marshmallow'},
     include_package_data=True,
-    extras_require={'reco': EXTRA_REQUIREMENTS},
+    extras_require=EXTRAS_REQUIRE,
     license='MIT',
     zip_safe=False,
     keywords=(

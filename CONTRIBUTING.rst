@@ -48,10 +48,14 @@ Setting Up for Local Development
     $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
 
-2. Install development requirements. It is highly recommended that you use a virtualenv. ::
+2. Install development requirements. **It is highly recommended that you use a virtualenv.**
+   Use the following command to install an editable version of
+   marshmallow along with its development requirements.
+
+::
 
     # After activating your virtualenv
-    $ pip install -r dev-requirements.txt
+    $ pip install -e '.[dev]'
 
 3. Install the pre-commit hooks, which will format and lint your git staged files. ::
 
@@ -101,9 +105,13 @@ Running tests
 
 To run all tests: ::
 
-    $ invoke test
+    $ pytest
 
-To run tests on Python 2.7, 3.5, 3.6, 3.7, and PyPy virtual environments (must have each interpreter installed): ::
+To run syntax checks: ::
+
+    $ tox -e lint
+
+(Optional) To run tests on Python 2.7, 3.5, 3.6, 3.7, and PyPy virtual environments (must have each interpreter installed): ::
 
     $ tox
 
@@ -114,20 +122,9 @@ Documentation
 
 Contributions to the documentation are welcome. Documentation is written in `reStructured Text`_ (rST). A quick rST reference can be found `here <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
-To install the packages for building the docs, run the following in the root of the project: ::
+To build the docs in "watch" mode: ::
 
-    $ pip install -r docs/requirements.txt
-
-To build the docs: ::
-
-    $ invoke docs -b
-
-The ``-b`` (for "browse") automatically opens up the docs in your browser after building.
-
-You can also build the docs in "watch" mode: ::
-
-   $ pip install sphinx-autobuild
-   $ invoke docs -wb
+   $ tox -e watch-docs
 
 Changes in the `docs/` directory will automatically trigger a rebuild.
 
