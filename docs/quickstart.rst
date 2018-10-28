@@ -202,7 +202,7 @@ When validating a collection, the errors dictionary will be keyed on the indices
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python
-    :emphasize-lines: 4
+    :emphasize-lines: 6
 
     from marshmallow import ValidationError
 
@@ -218,7 +218,7 @@ You can perform additional validation for a field by passing it a ``validate`` c
         err.messages  # => {'age': ['Validator <lambda>(71.0) is False']}
 
 
-Validation functions either return a boolean or raise a :exc:`ValidationError`. If a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised, its message is stored when validation fails.
+If validation fails, validation functions raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` with an error message.
 
 .. code-block:: python
     :emphasize-lines: 7,10,14
