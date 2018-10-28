@@ -33,21 +33,15 @@ class ErrorStore(object):
         #: Dictionary of extra kwargs from user raised exception
         self.error_kwargs = {}
 
-    def get_errors(self, index=None):
-        return self.errors if index is None else self.errors.setdefault(index, {})
-
-    def set_errors(self, errors, index=None):
-        if index is None:
-            self.errors = errors
-        else:
-            self.errors[index] = errors
-
     def store_error(self, messages, field_name=SCHEMA, index=None):
-        errors = self.get_errors(index=index)
-        if field_name != SCHEMA:
-            errors[field_name] = merge_errors(errors.get(field_name), messages)
-        else:
-            self.set_errors(merge_errors(errors, messages), index=index)
+        # field error  -> store/merge error messages under field name key
+        # schema error -> if string or list, store/merge under _schema key
+        #              -> if dict, store/merge with other top-level keys
+        if field_name != SCHEMA or not isinstance(messages, dict):
+            messages = {field_name: messages}
+        if index is not None:
+            messages = {index: messages}
+        self.errors = merge_errors(self.errors, messages)
 
     def call_and_store(self, getter_func, data, field_name, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
