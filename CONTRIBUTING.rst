@@ -111,7 +111,7 @@ To run syntax checks: ::
 
     $ tox -e lint
 
-(Optional) To run tests on Python 2.7, 3.5, 3.6, 3.7, and PyPy virtual environments (must have each interpreter installed): ::
+(Optional) To run tests on Python 2.7, 3.5, 3.6, and 3.7 virtual environments (must have each interpreter installed): ::
 
     $ tox
 
