@@ -12,13 +12,13 @@ jobs:
   - python: '2.7'
     env: TOXENV=py27
   - python: '3.5'
-    env: TOXENV=py35
+    env: TOXENV=py
   - python: '3.6'
-    env: TOXENV=py36
-  - python: 3.7
+    env: TOXENV=py
+  - python: '3.7'
     dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
     sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
-    env: TOXENV=py37
+    env: TOXENV=py
   - python: '3.6'
     env: TOXENV=docs
 
