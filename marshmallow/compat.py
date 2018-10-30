@@ -23,7 +23,11 @@ if PY2:
         from .ordereddict import OrderedDict
     else:
         from collections import OrderedDict
+    from collections import Mapping, Iterable, MutableSet
     OrderedDict = OrderedDict
+    Mapping = Mapping
+    Iterable = Iterable
+    MutableSet = MutableSet
     def get_func_args(func):
         if isinstance(func, functools.partial):
             return list(inspect.getargspec(func.func).args)
@@ -45,6 +49,13 @@ else:
     zip_longest = itertools.zip_longest
     from collections import OrderedDict
     OrderedDict = OrderedDict
+    try:
+        from collections import Mapping, Iterable, MutableSet
+    except ImportError:
+        from collections.abc import Mapping, Iterable, MutableSet
+    Mapping = Mapping
+    Iterable = Iterable
+    MutableSet = MutableSet
     def get_func_args(func):
         if isinstance(func, functools.partial):
             return list(inspect.signature(func.func).parameters)

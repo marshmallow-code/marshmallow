@@ -3,7 +3,6 @@
 
 from __future__ import absolute_import, unicode_literals
 
-import collections
 import copy
 import datetime as dt
 import uuid
@@ -14,7 +13,7 @@ from operator import attrgetter
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import missing as missing_
-from marshmallow.compat import text_type, basestring
+from marshmallow.compat import text_type, basestring, Mapping
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Validator
 
@@ -1091,7 +1090,7 @@ class Dict(Field):
     }
 
     def _deserialize(self, value, attr, data):
-        if isinstance(value, collections.Mapping):
+        if isinstance(value, Mapping):
             return value
         else:
             self.fail('invalid')

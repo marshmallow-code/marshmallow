@@ -86,3 +86,4 @@ Contributors (chronological)
 - Alisson Silveira `@4lissonsilveira <https://github.com/4lissonsilveira>`_
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
 - Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
+- Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
