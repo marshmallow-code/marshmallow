@@ -29,7 +29,7 @@ Example: ::
             return {namespace: data}
 
         @validates_schema
-        def validate_email(self, data):
+        def validate_email(self, data, **kwargs):
             if len(data['email']) < 3:
                 raise ValidationError('Email must be more than 3 characters', 'email')
 
@@ -69,7 +69,6 @@ def validates(field_name):
 def validates_schema(
     fn=None,
     pass_many=False,
-    pass_original=False,
     skip_on_field_errors=True,
 ):
     """Register a schema-level validator.
@@ -90,7 +89,6 @@ def validates_schema(
     return set_hook(
         fn,
         (VALIDATES_SCHEMA, pass_many),
-        pass_original=pass_original,
         skip_on_field_errors=skip_on_field_errors,
     )
 

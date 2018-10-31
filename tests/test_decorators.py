@@ -415,7 +415,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.')
 
         class MySchema(Schema):
@@ -434,7 +434,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.', 'foo')
 
         class MySchema(Schema):
@@ -462,11 +462,11 @@ class TestValidatesSchemaDecorator:
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
 
-            @validates_schema(pass_many=pass_many, pass_original=True)
-            def validate_schema(self, data, original_data, many=False):
+            @validates_schema(pass_many=pass_many)
+            def validate_schema(self, data, original_data, many, **kwargs):
                 assert data == expected_data
                 assert original_data == expected_original_data
-                assert many is pass_many
+                assert many is True
                 raise ValidationError('Method called')
 
         class MySchema(Schema):
@@ -484,19 +484,19 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema(pass_many=True)
-            def validate_raw(self, data, many):
+            def validate_raw(self, data, original_data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
 
@@ -522,12 +522,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative')
 
@@ -557,15 +557,15 @@ class TestValidatesSchemaDecorator:
             nested = fields.Nested(NestedSchema)
 
             @validates_schema
-            def validate_nested_foo(self, data):
+            def validate_nested_foo(self, data, **kwargs):
                 raise ValidationError({'nested': {'foo': ['Invalid foo']}})
 
             @validates_schema
-            def validate_nested_bar_1(self, data):
+            def validate_nested_bar_1(self, data, **kwargs):
                 raise ValidationError({'nested': {'bar': ['Invalid bar 1']}})
 
             @validates_schema
-            def validate_nested_bar_2(self, data):
+            def validate_nested_bar_2(self, data, **kwargs):
                 raise ValidationError({'nested': {'bar': ['Invalid bar 2']}})
 
         with pytest.raises(ValidationError) as excinfo:
@@ -581,13 +581,13 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validates_schema(pass_original=True)
-            def validate_original_foo(self, data, original_data):
+            @validates_schema
+            def validate_original(self, data, original_data, partial, **kwargs):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
-            @validates_schema(pass_many=True, pass_original=True)
-            def validate_original_bar(self, data, original_data, many):
+            @validates_schema(pass_many=True)
+            def validate_original_bar(self, data, original_data, many, **kwargs):
                 def check(datum):
                     if isinstance(datum, dict) and isinstance(datum['bar'], str):
                         raise ValidationError('bar cannot be a string')
@@ -619,7 +619,7 @@ class TestValidatesSchemaDecorator:
             bam = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def consistency_validation(self, data):
+            def consistency_validation(self, data, **kwargs):
                 errors = {}
                 if data['bar']['baz'] != data['foo']:
                     errors['bar'] = {'baz': 'Non-matching value'}
@@ -639,7 +639,7 @@ class TestValidatesSchemaDecorator:
         class MySchema(Schema):
 
             @validates_schema
-            def validator(self, data):
+            def validator(self, data, **kwargs):
                 raise ValidationError('Error message', 'arbitrary_key')
 
         errors = MySchema().validate({})
@@ -652,12 +652,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] != data['bar']:
                     raise ValidationError('Foo and bar must be equal.')
 
             @validates_schema(skip_on_field_errors=True, pass_many=True)
-            def validate_many(self, data, many):
+            def validate_many(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:

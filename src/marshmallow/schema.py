@@ -3,7 +3,6 @@ from collections import defaultdict, OrderedDict
 import datetime as dt
 import uuid
 import decimal
-import functools
 import copy
 import inspect
 import json
@@ -737,14 +736,11 @@ class BaseSchema(base.SchemaABC):
 
     def _run_validator(
         self, validator_func, output, *,
-        original_data, fields_dict, error_store, index=None,
-        many=False, pass_original=False
+        original_data, fields_dict, error_store,
+        many, partial, index=None,
     ):
         try:
-            if pass_original:  # Pass original, raw data (before unmarshalling)
-                validator_func(output, original_data)
-            else:
-                validator_func(output)
+            validator_func(output, original_data=original_data, partial=partial, many=many)
         except ValidationError as err:
             error_store.store_error(err.messages, err.field_name, index=index)
 
@@ -835,6 +831,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
                 self._invoke_schema_validators(
@@ -843,6 +840,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
             errors = error_store.errors
@@ -1092,6 +1090,7 @@ class BaseSchema(base.SchemaABC):
         data,
         original_data,
         many,
+        partial,
         field_errors=False
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
@@ -1099,10 +1098,7 @@ class BaseSchema(base.SchemaABC):
             validator_kwargs = validator.__marshmallow_hook__[(VALIDATES_SCHEMA, pass_many)]
             if field_errors and validator_kwargs['skip_on_field_errors']:
                 continue
-            pass_original = validator_kwargs.get('pass_original', False)
 
-            if pass_many:
-                validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     self._run_validator(
@@ -1112,8 +1108,8 @@ class BaseSchema(base.SchemaABC):
                         fields_dict=self.fields,
                         error_store=error_store,
                         many=many,
+                        partial=partial,
                         index=idx,
-                        pass_original=pass_original,
                     )
             else:
                 self._run_validator(
@@ -1123,7 +1119,7 @@ class BaseSchema(base.SchemaABC):
                     fields_dict=self.fields,
                     error_store=error_store,
                     many=many,
-                    pass_original=pass_original,
+                    partial=partial,
                 )
 
     def _invoke_processors(
