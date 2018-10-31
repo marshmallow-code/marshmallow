@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0rc1 (unreleased)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Includes bug fix from 2.16.2.
+
 3.0.0b19 (2018-10-24)
 +++++++++++++++++++++
 
