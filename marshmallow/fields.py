@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import basestring, text_type
+from marshmallow.compat import basestring, text_type, Mapping
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
@@ -1239,7 +1239,7 @@ class Dict(Field):
             return None
         if not self.value_container and not self.key_container:
             return value
-        if isinstance(value, collections.Mapping):
+        if isinstance(value, Mapping):
             values = value.values()
             if self.value_container:
                 values = [
@@ -1252,7 +1252,7 @@ class Dict(Field):
         self.fail('invalid')
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if not isinstance(value, collections.Mapping):
+        if not isinstance(value, Mapping):
             self.fail('invalid')
         if not self.value_container and not self.key_container:
             return value

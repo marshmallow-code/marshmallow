@@ -9,12 +9,11 @@ and from primitive types.
 """
 
 from __future__ import unicode_literals
-import collections
 
 from marshmallow.utils import (
     EXCLUDE, INCLUDE, RAISE, is_collection, missing, set_value,
 )
-from marshmallow.compat import iteritems
+from marshmallow.compat import iteritems, Mapping
 from marshmallow.exceptions import ValidationError
 from marshmallow.fields import Nested
 
@@ -213,7 +212,7 @@ class Unmarshaller(ErrorStore):
             return ret
         ret = dict_class()
         # Check data is a dict
-        if not isinstance(data, collections.Mapping):
+        if not isinstance(data, Mapping):
             self.store_error(SCHEMA, ('Invalid input type.', ), index=index)
         else:
             partial_is_collection = is_collection(partial)

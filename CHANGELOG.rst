@@ -69,7 +69,7 @@ Bug fixes:
 
 - Raise ``ValidationError`` instead of ``TypeError`` when non-iterable types are
   validated with ``many=True`` (:issue:`851`).
-- ``many=True`` no longer iterates over ``str`` and ``collections.Mapping`` objects and instead
+- ``many=True`` no longer iterates over ``str`` and ``collections.abc.Mapping`` objects and instead
   raises a ``ValidationError`` with ``{'_schema': ['Invalid input type.']}`` (:issue:`930`).
 - Return ``[]`` as ``ValidationError.valid_data`` instead of ``{}`` when
   ``many=True`` (:issue:`907`).
@@ -367,6 +367,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.16.2 (2018-10-30)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent warning about importing from ``collections`` on Python 3.7
+  (:issue:`1027`). Thanks :user:`nkonin` for reporting and
+  :user:`jmargeta` for the PR.
 
 2.16.1 (2018-10-17)
 +++++++++++++++++++
