@@ -2,7 +2,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
-from collections import defaultdict, Mapping, namedtuple
+from collections import defaultdict, namedtuple
 import copy
 import datetime as dt
 import decimal
@@ -14,7 +14,7 @@ import functools
 
 from marshmallow import base, fields, utils, class_registry, marshalling
 from marshmallow.compat import (with_metaclass, iteritems, text_type,
-                                binary_type, OrderedDict)
+                                binary_type, Mapping, OrderedDict)
 from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,

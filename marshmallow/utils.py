@@ -2,7 +2,6 @@
 """Utility methods for marshmallow."""
 from __future__ import absolute_import, unicode_literals
 
-import collections
 import datetime
 import inspect
 import json
@@ -16,6 +15,7 @@ from pprint import pprint as py_pprint
 
 from marshmallow.compat import OrderedDict, binary_type, text_type
 from marshmallow.compat import get_func_args as compat_get_func_args
+from marshmallow.compat import Mapping, Iterable
 
 
 dateutil_available = False
@@ -51,7 +51,7 @@ def is_generator(obj):
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (
-        (isinstance(obj, collections.Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
+        (isinstance(obj, Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
     )
 
 
@@ -62,7 +62,7 @@ def is_indexable_but_not_string(obj):
 
 def is_collection(obj):
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
-    return is_iterable_but_not_string(obj) and not isinstance(obj, collections.Mapping)
+    return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
 
 def is_instance_or_subclass(val, class_):

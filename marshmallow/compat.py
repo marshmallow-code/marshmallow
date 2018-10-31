@@ -9,6 +9,12 @@ PY26 = PY2 and int(sys.version_info[1]) < 7
 
 if PY2:
     import urlparse
+    if PY26:
+        from .ordereddict import OrderedDict
+    else:
+        from collections import OrderedDict
+    from collections import Mapping, Iterable, MutableSet
+
     urlparse = urlparse
     text_type = unicode
     binary_type = str
@@ -19,11 +25,7 @@ if PY2:
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
     zip_longest = itertools.izip_longest
-    if PY26:
-        from .ordereddict import OrderedDict
-    else:
-        from collections import OrderedDict
-    OrderedDict = OrderedDict
+
     def get_func_args(func):
         if isinstance(func, functools.partial):
             return list(inspect.getargspec(func.func).args)
@@ -33,6 +35,9 @@ if PY2:
             return list(inspect.getargspec(func.__call__).args)
 else:
     import urllib.parse
+    from collections import OrderedDict
+    from collections.abc import Mapping, Iterable, MutableSet
+
     urlparse = urllib.parse
     text_type = str
     binary_type = bytes
@@ -43,8 +48,7 @@ else:
     itervalues = lambda d: d.values()
     iteritems = lambda d: d.items()
     zip_longest = itertools.zip_longest
-    from collections import OrderedDict
-    OrderedDict = OrderedDict
+
     def get_func_args(func):
         if isinstance(func, functools.partial):
             return list(inspect.signature(func.func).parameters)
