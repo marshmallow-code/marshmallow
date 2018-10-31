@@ -92,6 +92,7 @@ def float_to_decimal(f):
         result = ctx.divide(numerator, denominator)
     return result
 
+
 ZERO_DECIMAL = Decimal()
 
 def decimal_to_fixed(value, precision):
@@ -131,6 +132,7 @@ def pprint(obj, *args, **kwargs):
         print(json.dumps(obj, *args, **kwargs))
     else:
         py_pprint(obj, *args, **kwargs)
+
 
 # From pytz: http://pytz.sourceforge.net/
 ZERO = datetime.timedelta(0)
@@ -183,6 +185,7 @@ class UTC(datetime.tzinfo):
     def __str__(self):
         return "UTC"
 
+
 UTC = utc = UTC()  # UTC is a singleton
 
 
@@ -210,6 +213,7 @@ def rfcformat(dt, localtime=False):
         return formatdate(timegm(dt.utctimetuple()))
     else:
         return local_rfcformat(dt)
+
 
 # From Django
 _iso8601_re = re.compile(
