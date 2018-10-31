@@ -416,7 +416,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, original, partial):
                 raise ValidationError('This will never work.')
 
         class MySchema(Schema):
@@ -435,7 +435,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, original, partial):
                 raise ValidationError('This will never work.', 'foo')
 
         class MySchema(Schema):
@@ -463,8 +463,10 @@ class TestValidatesSchemaDecorator:
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
 
-            @validates_schema(pass_many=pass_many, pass_original=True)
-            def validate_schema(self, data, original_data, many=False):
+            @validates_schema(pass_many=pass_many)
+            def validate_schema(self, data, original_data, partial, many=False):
+                # TODO: many is not being passed here.
+                # The default value is being tested
                 assert data == expected_data
                 assert original_data == expected_original_data
                 assert many is pass_many
@@ -485,7 +487,7 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, original_data, partial):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
@@ -523,7 +525,7 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, original_data, partial):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
@@ -606,7 +608,7 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def validate_schema(self, data):
+            def validate_schema(self, data, original_data, partial):
                 if data['foo'] != data['bar']:
                     raise ValidationError('Foo and bar must be equal.')
 

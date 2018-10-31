@@ -623,6 +623,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
                 self._invoke_schema_validators(
@@ -631,6 +632,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
             errors = unmarshal.errors
@@ -875,6 +877,7 @@ class BaseSchema(base.SchemaABC):
         data,
         original_data,
         many,
+        partial,
         field_errors=False,
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
@@ -882,7 +885,6 @@ class BaseSchema(base.SchemaABC):
             validator_kwargs = validator.__marshmallow_hook__[(VALIDATES_SCHEMA, pass_many)]
             if field_errors and validator_kwargs['skip_on_field_errors']:
                 continue
-            pass_original = validator_kwargs.get('pass_original', False)
 
             if pass_many:
                 validator = functools.partial(validator, many=many)
@@ -894,8 +896,8 @@ class BaseSchema(base.SchemaABC):
                         orig,
                         self.fields,
                         many=many,
+                        partial=partial,
                         index=idx,
-                        pass_original=pass_original,
                     )
             else:
                 unmarshal.run_validator(
@@ -904,7 +906,7 @@ class BaseSchema(base.SchemaABC):
                     original_data,
                     self.fields,
                     many=many,
-                    pass_original=pass_original,
+                    partial=partial,
                 )
 
     def _invoke_processors(

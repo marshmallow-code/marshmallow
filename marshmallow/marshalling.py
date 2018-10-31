@@ -159,13 +159,10 @@ class Unmarshaller(ErrorStore):
     def run_validator(
         self, validator_func, output,
         original_data, fields_dict, index=None,
-        many=False, pass_original=False,
+        many=False, partial=False
     ):
         try:
-            if pass_original:  # Pass original, raw data (before unmarshalling)
-                validator_func(output, original_data)
-            else:
-                validator_func(output)
+            validator_func(output, original_data, partial)
         except ValidationError as err:
             # Store or reraise errors
             field_names = err.field_names or [SCHEMA]
