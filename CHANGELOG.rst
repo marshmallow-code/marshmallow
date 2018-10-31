@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.16.2 (2018-10-30)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent warning about importing from ``collections`` on Python 3.7
+  (:issue:`1027`). Thanks :user:`nkonin` for reporting and
+  :user:`jmargeta` for the PR.
+
 2.16.1 (2018-10-17)
 +++++++++++++++++++
 
