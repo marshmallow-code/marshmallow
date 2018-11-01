@@ -196,7 +196,7 @@ def test_load_resets_error_kwargs():
         name = fields.String()
 
         @validates_schema
-        def validate_all(self, data):
+        def validate_all(self, data, original, partial):
             if data:
                 raise ValidationError('oops', custom_error_kwarg=data)
             else:
@@ -1704,7 +1704,7 @@ class TestHandleError:
             num = fields.Int()
 
             @validates_schema
-            def validates_schema(self, data):
+            def validates_schema(self, data, original, partial):
                 raise ValidationError('Invalid schema!')
 
             def handle_error(self, error, data):

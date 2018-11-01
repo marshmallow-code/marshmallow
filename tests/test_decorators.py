@@ -492,14 +492,14 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema(pass_many=True)
-            def validate_raw(self, data, many):
+            def validate_raw(self, data, original_data, partial):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, original_data, partial):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
 
@@ -530,7 +530,7 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, original_data, partial):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative')
 
@@ -558,13 +558,14 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema(pass_original=True)
-            def validate_original(self, data, original_data):
+            def validate_original(self, data, original_data, partial):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
             @validates_schema(pass_many=True, pass_original=True)
-            def check_unknown_fields(self, data, original_data, many):
+            def check_unknown_fields(self, data, original_data, partial, many=True):
+                # TODO: many not passed
                 def check(datum):
                     for key, val in datum.items():
                         if key not in self.fields:
@@ -595,7 +596,7 @@ class TestValidatesSchemaDecorator:
         class MySchema(Schema):
 
             @validates_schema
-            def validator(self, data):
+            def validator(self, data, original, partial):
                 raise ValidationError('Error message', 'arbitrary_key')
 
         errors = MySchema().validate({})
@@ -613,7 +614,8 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('Foo and bar must be equal.')
 
             @validates_schema(skip_on_field_errors=True, pass_many=True)
-            def validate_many(self, data, many):
+            def validate_many(self, data, original, partial, many=True):
+                # TODO: many is not passed
                 if many:
                     assert type(data) is list
                     if len(data) < 2:

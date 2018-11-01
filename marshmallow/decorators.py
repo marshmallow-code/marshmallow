@@ -30,7 +30,7 @@ Example: ::
             return {namespace: data}
 
         @validates_schema
-        def validate_email(self, data):
+        def validate_email(self, data, original, partial):
             if len(data['email']) < 3:
                 raise ValidationError('Email must be more than 3 characters', 'email')
 
