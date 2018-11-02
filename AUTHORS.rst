@@ -87,3 +87,4 @@ Contributors (chronological)
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
 - Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
 - Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
+- AlexV `@asmodehn <https://github.com/asmodehn>`_
