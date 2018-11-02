@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.16.3 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent memory leak when dynamically creating classes with ``type()``.
+
 2.16.2 (2018-10-30)
 +++++++++++++++++++
 
