@@ -1,12 +1,12 @@
 Changelog
 ---------
 
-3.0.0rc1 (unreleased)
+3.0.0b20 (2018-11-01)
 +++++++++++++++++++++
 
 Bug fixes:
 
-- Includes bug fix from 2.16.2.
+- Includes bug fixes from 2.16.2 and 2.16.3.
 
 3.0.0b19 (2018-10-24)
 +++++++++++++++++++++
