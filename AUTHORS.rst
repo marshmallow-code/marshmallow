@@ -113,3 +113,4 @@ Contributors (chronological)
 - Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`_
 - David Watson `@arbor-dwatson <https://github.com/arbor-dwatson>`_
 - Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
+- AlexV `@asmodehn <https://github.com/asmodehn>`_

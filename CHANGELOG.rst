@@ -375,6 +375,15 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.16.3 (2018-11-01)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent memory leak when dynamically creating classes with ``type()``
+  (:issue:`732`). Thanks :user:`asmodehn` for writing the tests to
+  reproduce this issue.
+
 2.16.2 (2018-10-30)
 +++++++++++++++++++
 
