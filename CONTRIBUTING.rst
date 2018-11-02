@@ -43,7 +43,9 @@ In Particular
 Setting Up for Local Development
 ********************************
 
-1. Fork marshmallow_ on Github. ::
+1. Fork marshmallow_ on Github. 
+
+::
 
     $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
@@ -79,6 +81,7 @@ Pull Requests
 **************
 
 1. Create a new local branch.
+
 ::
 
     # For a new feature
@@ -88,6 +91,7 @@ Pull Requests
     $ git checkout -b fix-something 2.x-line
 
 2. Commit your changes. Write `good commit messages <http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
+
 ::
 
     $ git commit -m "Detailed commit message"
