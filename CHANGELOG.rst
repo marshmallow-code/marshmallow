@@ -6,7 +6,9 @@ Changelog
 
 Bug fixes:
 
-- Prevent memory leak when dynamically creating classes with ``type()``.
+- Prevent memory leak when dynamically creating classes with ``type()``
+  (:issue:`732`). Thanks :user:`asmodehn` for writing the tests to
+  reproduce this issue.
 
 2.16.2 (2018-10-30)
 +++++++++++++++++++
