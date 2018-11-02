@@ -25,7 +25,7 @@ def test_serializer_class_registry_register_same_classname_different_module():
 
     reglen = len(class_registry._registry)
 
-    cls1 = type('MyTestRegSchema', (Schema,), {'__module__': 'modA'})
+    type('MyTestRegSchema', (Schema,), {'__module__': 'modA'})
 
     assert 'MyTestRegSchema' in class_registry._registry
     assert len(class_registry._registry.get('MyTestRegSchema')) == 1
@@ -33,7 +33,7 @@ def test_serializer_class_registry_register_same_classname_different_module():
     #  storing for classname and fullpath
     assert len(class_registry._registry) == reglen + 2
 
-    cls2 = type('MyTestRegSchema', (Schema,), {'__module__': 'modB'})
+    type('MyTestRegSchema', (Schema,), {'__module__': 'modB'})
 
     assert 'MyTestRegSchema' in class_registry._registry
     #  aggregating classes with same name from different modules
@@ -42,7 +42,7 @@ def test_serializer_class_registry_register_same_classname_different_module():
     #  storing for same classname (+0) and different module (+1)
     assert len(class_registry._registry) == reglen + 2 + 1
 
-    cls2 = type('MyTestRegSchema', (Schema,), {'__module__': 'modB'})
+    type('MyTestRegSchema', (Schema,), {'__module__': 'modB'})
 
     assert 'MyTestRegSchema' in class_registry._registry
     #  only the class with matching module has been replaced
@@ -56,7 +56,7 @@ def test_serializer_class_registry_override_if_same_classname_same_module():
 
     reglen = len(class_registry._registry)
 
-    cls1 = type('MyTestReg2Schema', (Schema,), {'__module__': 'SameModulePath'})
+    type('MyTestReg2Schema', (Schema,), {'__module__': 'SameModulePath'})
 
     assert 'MyTestReg2Schema' in class_registry._registry
     assert len(class_registry._registry.get('MyTestReg2Schema')) == 1
@@ -65,7 +65,7 @@ def test_serializer_class_registry_override_if_same_classname_same_module():
     #  storing for classname and fullpath
     assert len(class_registry._registry) == reglen + 2
 
-    cls2 = type('MyTestReg2Schema', (Schema,), {'__module__': 'SameModulePath'})
+    type('MyTestReg2Schema', (Schema,), {'__module__': 'SameModulePath'})
 
     assert 'MyTestReg2Schema' in class_registry._registry
     #  overriding same class name and same module
