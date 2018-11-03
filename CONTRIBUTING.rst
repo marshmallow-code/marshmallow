@@ -43,7 +43,7 @@ In Particular
 Setting Up for Local Development
 ********************************
 
-1. Fork marshmallow_ on Github. 
+1. Fork marshmallow_ on Github.
 
 ::
 
@@ -59,7 +59,9 @@ Setting Up for Local Development
     # After activating your virtualenv
     $ pip install -e '.[dev]'
 
-3. Install the pre-commit hooks, which will format and lint your git staged files. ::
+3. Install the pre-commit hooks, which will format and lint your git staged files.
+
+::
 
     # The pre-commit CLI was installed above
     $ pre-commit install --allow-missing-config
