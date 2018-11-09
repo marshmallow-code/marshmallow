@@ -1,7 +1,3 @@
-
-.. _upgrading:
-
-
 Upgrading to Newer Releases
 ===========================
 
@@ -160,7 +156,7 @@ The pre- and post-processing API was significantly improved for better consisten
             data['field_a'] -= 1
             return data
 
-See the :ref:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
+See the :doc:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
 Schema Validators
 *****************
@@ -491,7 +487,7 @@ The default error messages for many fields and validators have been changed for 
 More
 ****
 
-For a full list of changes in 2.0, see the :ref:`Changelog <changelog>`.
+For a full list of changes in 2.0, see the :doc:`Changelog <changelog>`.
 
 
 Upgrading to 1.2
@@ -620,4 +616,4 @@ Other notable changes:
 
 .. seealso::
 
-    See the :ref:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.
+    See the :doc:`Changelog <changelog>` for a  more complete listing of added features, bugfixes and breaking changes.

@@ -1,6 +1,3 @@
-
-.. _nesting:
-
 Nesting Schemas
 ===============
 
@@ -234,6 +231,6 @@ If the object to be marshalled has a relationship to an object of the same type,
 Next Steps
 ----------
 
-- Want to create your own field type? See the :ref:`Custom Fields <custom_fields>` page.
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
-- For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
+- Want to create your own field type? See the :doc:`Custom Fields <custom_fields>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
+- For example applications using marshmallow, check out the :doc:`Examples <examples>` page.

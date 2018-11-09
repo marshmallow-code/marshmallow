@@ -1,6 +1,4 @@
 
-.. _custom_fields:
-
 Custom Fields
 =============
 
@@ -156,5 +154,5 @@ Error messages can also be passed to a `Field's` constructor.
 Next Steps
 ----------
 
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :ref:`Extending Schemas <extending>` page.
-- For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
+- For example applications using marshmallow, check out the :doc:`Examples <examples>` page.
