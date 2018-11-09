@@ -548,7 +548,7 @@ Default values can be provided to a :class:`Field <fields.Field>` for both seria
 Next Steps
 ----------
 
-- Need to represent relationships between objects? See the :ref:`Nesting Schemas <nesting>` page.
-- Want to create your own field type? See the :ref:`Custom Fields <custom_fields>` page.
+- Need to represent relationships between objects? See the :doc:`Nesting Schemas <nesting>` page.
+- Want to create your own field type? See the :doc:`Custom Fields <custom_fields>` page.
 - Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
-- For example applications using marshmallow, check out the :ref:`Examples <examples>` page.
+- For example applications using marshmallow, check out the :doc:`Examples <examples>` page.

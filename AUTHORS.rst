@@ -107,7 +107,7 @@ Contributors (chronological)
 - Maxim Novikov `@m-novikov <https://github.com/m-novikov>`_
 - James Remeika `@remeika <https://github.com/remeika>`_
 - Karandeep Singh Nagra `@knagra <https://github.com/knagra>`_
-- Dushyant Rijhwani `@dushr<https://github.com/dushr>`_
+- Dushyant Rijhwani `@dushr <https://github.com/dushr>`_
 - Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
 - Victor Gavro `@vgavro <https://github.com/vgavro>`_
 - Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`_
