@@ -426,18 +426,15 @@ class BaseSchema(base.SchemaABC):
             processed_obj = obj
 
         if not errors:
-            try:
-                result = marshal(
-                    processed_obj,
-                    self.fields,
-                    many=many,
-                    accessor=self.get_attribute,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                )
-            except ValidationError as error:
-                errors = marshal.errors
-                result = error.data
+            result = marshal(
+                processed_obj,
+                self.fields,
+                many=many,
+                accessor=self.get_attribute,
+                dict_class=self.dict_class,
+                index_errors=self.opts.index_errors,
+            )
+            errors = marshal.errors
 
         if not errors and self._has_processors(POST_DUMP):
             try:

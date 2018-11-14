@@ -115,12 +115,6 @@ class Marshaller(ErrorStore):
                 for idx, d in enumerate(obj)
             ]
             self._pending = False
-            if self.errors:
-                raise ValidationError(
-                    self.errors,
-                    field_names=self.error_field_names,
-                    data=ret,
-                )
             return ret
         items = []
         for attr_name, field_obj in iteritems(fields_dict):
@@ -138,12 +132,6 @@ class Marshaller(ErrorStore):
                 continue
             items.append((key, value))
         ret = dict_class(items)
-        if self.errors and not self._pending:
-            raise ValidationError(
-                self.errors,
-                field_names=self.error_field_names,
-                data=ret,
-            )
         return ret
 
     # Make an instance callable
