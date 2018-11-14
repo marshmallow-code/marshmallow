@@ -2088,6 +2088,19 @@ class TestPluckSchema:
         for i, name in enumerate(data['collaborators']):
             assert name == blog.collaborators[i].name
 
+    def test_pluck_none(self, blog):
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, 'name')
+            collaborators = fields.Pluck(UserSchema, 'name', many=True)
+        col1 = User(name='Mick', age=123)
+        col2 = User(name='Keith', age=456)
+        blog = Blog(title='Unowned Blog', user=None, collaborators=[col1, col2])
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data['user'] == blog.user
+        for i, name in enumerate(data['collaborators']):
+            assert name == blog.collaborators[i].name
+
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/800
     def test_pluck_with_data_key(self, blog):
         class UserSchema(Schema):

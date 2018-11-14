@@ -516,6 +516,8 @@ class Pluck(Nested):
 
     def _serialize(self, nested_obj, attr, obj, **kwargs):
         ret = super(Pluck, self)._serialize(nested_obj, attr, obj, **kwargs)
+        if ret is None:
+            return None
         if self.many:
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
