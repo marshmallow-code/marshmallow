@@ -8,7 +8,7 @@ PY2 = int(sys.version_info[0]) == 2
 
 if PY2:
     import urlparse
-    from collections import Mapping, Iterable, MutableSet
+    from collections import Collection, Mapping, Iterable, MutableSet
 
     urlparse = urlparse
     text_type = unicode
@@ -22,7 +22,7 @@ if PY2:
     zip_longest = itertools.izip_longest
 else:
     import urllib.parse
-    from collections.abc import Mapping, Iterable, MutableSet
+    from collections.abc import Collection, Mapping, Iterable, MutableSet
 
     urlparse = urllib.parse
     text_type = str
