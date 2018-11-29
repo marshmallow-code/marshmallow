@@ -17,7 +17,7 @@ from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
 from marshmallow.compat import binary_type, text_type
-from marshmallow.compat import Mapping, Iterable
+from marshmallow.compat import Collection, Iterable
 
 EXCLUDE = 'exclude'
 INCLUDE = 'include'
@@ -67,7 +67,7 @@ def is_indexable_but_not_string(obj):
 
 def is_collection(obj):
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
-    return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
+    return is_iterable_but_not_string(obj) and not isinstance(obj, Collection)
 
 
 def is_instance_or_subclass(val, class_):
