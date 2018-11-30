@@ -1,6 +1,24 @@
 Changelog
 ---------
 
+3.0.0rc1 (unreleased)
++++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Rework ``ValidationError`` API.
+  It now expects a single field name, and error structures are merged
+  in the final ``ValidationError`` raised when validation completes.
+  This allows schema-level validators to raise errors for individual
+  fields (:issue:`441`). Thanks :user:`maximkulkin` for
+  writing the original ``merge_errors`` implementation in :pr:`442` and thanks
+  :user:`lafrech` for completing the implementation in :pr:`1026`.
+
+Bug fixes:
+
+- Fix ``TypeError`` when serializing ``None`` with ``Pluck`` (:pr:`1049`).
+  Thanks :user:`toffan` for the catch and patch.
+
 3.0.0b20 (2018-11-01)
 +++++++++++++++++++++
 
