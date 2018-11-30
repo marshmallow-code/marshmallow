@@ -549,6 +549,33 @@ class TestValidatesSchemaDecorator:
         assert len(errors[1]['_schema']) == 1
         assert 'Must be greater than 3' in errors[0]['_schema']
 
+    def test_multiple_validators_merge_dict_errors(self):
+        class NestedSchema(Schema):
+            foo = fields.Int()
+            bar = fields.Int()
+
+        class MySchema(Schema):
+            nested = fields.Nested(NestedSchema)
+
+            @validates_schema
+            def validate_nested_foo(self, data):
+                raise ValidationError({'nested': {'foo': ['Invalid foo']}})
+
+            @validates_schema
+            def validate_nested_bar_1(self, data):
+                raise ValidationError({'nested': {'bar': ['Invalid bar 1']}})
+
+            @validates_schema
+            def validate_nested_bar_2(self, data):
+                raise ValidationError({'nested': {'bar': ['Invalid bar 2']}})
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({'nested': {'foo': 1, 'bar': 2}})
+
+        assert excinfo.value.messages == {
+            'nested': {'foo': ['Invalid foo'], 'bar': ['Invalid bar 1', 'Invalid bar 2']},
+        }
+
     def test_passing_original_data(self):
 
         class MySchema(Schema):
@@ -556,36 +583,56 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema(pass_original=True)
-            def validate_original(self, data, original_data):
+            def validate_original_foo(self, data, original_data):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
-            # See https://github.com/marshmallow-code/marshmallow/issues/127
             @validates_schema(pass_many=True, pass_original=True)
-            def check_unknown_fields(self, data, original_data, many):
+            def validate_original_bar(self, data, original_data, many):
                 def check(datum):
-                    for key, val in datum.items():
-                        if key not in self.fields:
-                            raise ValidationError({'code': 'invalid_field'})
+                    if isinstance(datum, dict) and isinstance(datum['bar'], str):
+                        raise ValidationError('bar cannot be a string')
                 if many:
                     for each in original_data:
                         check(each)
                 else:
                     check(original_data)
 
-        schema = MySchema(unknown=EXCLUDE)
-        errors = schema.validate({'foo': 4, 'baz': 42})
-        assert '_schema' in errors
-        assert errors['_schema'] == {'code': 'invalid_field'}
+        schema = MySchema()
 
-        errors = schema.validate({'foo': '4'})
-        assert '_schema' in errors
+        errors = schema.validate({'foo': '4', 'bar': 12})
         assert errors['_schema'] == ['foo cannot be a string']
 
-        schema = MySchema(unknown=EXCLUDE)
-        errors = schema.validate([{'foo': 4, 'baz': 42}], many=True)
-        assert '_schema' in errors
-        assert errors['_schema'] == {'code': 'invalid_field'}
+        errors = schema.validate({'foo': 4, 'bar': '42'})
+        assert errors['_schema'] == ['bar cannot be a string']
+
+        errors = schema.validate([{'foo': 4, 'bar': '42'}], many=True)
+        assert errors['_schema'] == ['bar cannot be a string']
+
+    def test_allow_reporting_field_errors_in_schema_validator(self):
+
+        class NestedSchema(Schema):
+            baz = fields.Int(required=True)
+
+        class MySchema(Schema):
+            foo = fields.Int(required=True)
+            bar = fields.Nested(NestedSchema, required=True)
+            bam = fields.Int(required=True)
+
+            @validates_schema(skip_on_field_errors=True)
+            def consistency_validation(self, data):
+                errors = {}
+                if data['bar']['baz'] != data['foo']:
+                    errors['bar'] = {'baz': 'Non-matching value'}
+                if data['bam'] > data['foo']:
+                    errors['bam'] = 'Value should be less than foo'
+                if errors:
+                    raise ValidationError(errors)
+
+        schema = MySchema()
+        errors = schema.validate({'foo': 2, 'bar': {'baz': 5}, 'bam': 6})
+        assert errors['bar']['baz'] == 'Non-matching value'
+        assert errors['bam'] == 'Value should be less than foo'
 
     # https://github.com/marshmallow-code/marshmallow/issues/273
     def test_allow_arbitrary_field_names_in_error(self):
@@ -795,13 +842,7 @@ def test_decorator_error_handling():
     assert len(errors['_schema']) == 1
     assert errors['_schema'][0] == 'preloadmsg1'
 
-@pytest.mark.parametrize(
-    'decorator',
-    [
-        pre_load,
-        post_load,
-    ],
-)
+@pytest.mark.parametrize('decorator', [pre_load, post_load])
 def test_decorator_error_handling_with_load(decorator):
     class ExampleSchema(Schema):
         @decorator
@@ -814,13 +855,20 @@ def test_decorator_error_handling_with_load(decorator):
     assert exc.value.messages == {'foo': 'error'}
     schema.dump(object())
 
-@pytest.mark.parametrize(
-    'decorator',
-    [
-        pre_dump,
-        post_dump,
-    ],
-)
+@pytest.mark.parametrize('decorator', [pre_load, post_load])
+def test_decorator_error_handling_with_load_dict_error(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'}, 'nested_field')
+
+    schema = ExampleSchema()
+    with pytest.raises(ValidationError) as exc:
+        schema.load({})
+    assert exc.value.messages == {'nested_field': {'foo': 'error'}}
+    schema.dump(object())
+
+@pytest.mark.parametrize('decorator', [pre_dump, post_dump])
 def test_decorator_error_handling_with_dump(decorator):
     class ExampleSchema(Schema):
         @decorator
@@ -831,6 +879,19 @@ def test_decorator_error_handling_with_dump(decorator):
     with pytest.raises(ValidationError) as exc:
         schema.dump(object())
     assert exc.value.messages == {'foo': 'error'}
+    schema.load({})
+
+@pytest.mark.parametrize('decorator', [pre_dump, post_dump])
+def test_decorator_error_handling_with_dump_dict_error(decorator):
+    class ExampleSchema(Schema):
+        @decorator
+        def raise_value_error(self, item):
+            raise ValidationError({'foo': 'error'}, 'nested')
+
+    schema = ExampleSchema()
+    with pytest.raises(ValidationError) as exc:
+        schema.dump(object())
+    assert exc.value.messages == {'nested': {'foo': 'error'}}
     schema.load({})
 
 
