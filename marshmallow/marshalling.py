@@ -258,13 +258,11 @@ def merge_errors(errors1, errors2):
     (recursively). Format is the same as accepted by :exc:`ValidationError`.
     Returns new error messages.
     """
-    if errors1 is None:
+    if not errors1:
         return errors2
-    if errors2 is None:
+    if not errors2:
         return errors1
     if isinstance(errors1, list):
-        if not errors1:
-            return errors2
         if isinstance(errors2, list):
             return errors1 + errors2
         if isinstance(errors2, dict):
