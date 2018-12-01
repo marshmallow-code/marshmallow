@@ -416,7 +416,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data, original, partial):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.')
 
         class MySchema(Schema):
@@ -435,7 +435,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data, original, partial):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.', 'foo')
 
         class MySchema(Schema):
@@ -464,12 +464,10 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema(pass_many=pass_many)
-            def validate_schema(self, data, original_data, partial, many=False):
-                # TODO: many is not being passed here.
-                # The default value is being tested
+            def validate_schema(self, data, original_data, many, **kwargs):
                 assert data == expected_data
                 assert original_data == expected_original_data
-                assert many is pass_many
+                assert many is True
                 raise ValidationError('Method called')
 
         class MySchema(Schema):
@@ -487,19 +485,19 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data, original_data, partial):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema(pass_many=True)
-            def validate_raw(self, data, original_data, partial):
+            def validate_raw(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
             @validates_schema
-            def validate_bar(self, data, original_data, partial):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
 
@@ -525,12 +523,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data, original_data, partial):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema
-            def validate_bar(self, data, original_data, partial):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative')
 
@@ -557,14 +555,14 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validates_schema(pass_original=True)
-            def validate_original(self, data, original_data, partial):
+            @validates_schema
+            def validate_original(self, data, original_data, **kwargs):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             # See https://github.com/marshmallow-code/marshmallow/issues/127
-            @validates_schema(pass_many=True, pass_original=True)
-            def check_unknown_fields(self, data, original_data, partial, many=True):
+            @validates_schema(pass_many=True)
+            def check_unknown_fields(self, data, original_data, many, **kwargs):
                 # TODO: many not passed
                 def check(datum):
                     for key, val in datum.items():
@@ -596,7 +594,7 @@ class TestValidatesSchemaDecorator:
         class MySchema(Schema):
 
             @validates_schema
-            def validator(self, data, original, partial):
+            def validator(self, data, **kwargs):
                 raise ValidationError('Error message', 'arbitrary_key')
 
         errors = MySchema().validate({})
@@ -609,13 +607,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def validate_schema(self, data, original_data, partial):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] != data['bar']:
                     raise ValidationError('Foo and bar must be equal.')
 
             @validates_schema(skip_on_field_errors=True, pass_many=True)
-            def validate_many(self, data, original, partial, many=True):
-                # TODO: many is not passed
+            def validate_many(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:

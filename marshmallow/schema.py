@@ -886,8 +886,6 @@ class BaseSchema(base.SchemaABC):
             if field_errors and validator_kwargs['skip_on_field_errors']:
                 continue
 
-            if pass_many:
-                validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     unmarshal.run_validator(
