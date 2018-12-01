@@ -6,7 +6,6 @@ from collections import defaultdict, OrderedDict
 import datetime as dt
 import uuid
 import decimal
-import functools
 import copy
 import inspect
 import json
