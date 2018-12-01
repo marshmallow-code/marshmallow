@@ -563,7 +563,6 @@ class TestValidatesSchemaDecorator:
             # See https://github.com/marshmallow-code/marshmallow/issues/127
             @validates_schema(pass_many=True)
             def check_unknown_fields(self, data, original_data, many, **kwargs):
-                # TODO: many not passed
                 def check(datum):
                     for key, val in datum.items():
                         if key not in self.fields:
