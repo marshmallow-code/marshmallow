@@ -362,12 +362,13 @@ def _get_value_for_keys(obj, keys, default):
 
 
 def _get_value_for_key(obj, key, default):
+    if not hasattr(obj, '__getitem__'):
+        return getattr(obj, key, default)
+
     try:
         return obj[key]
-    except (TypeError, AttributeError):
+    except (KeyError, IndexError, TypeError, AttributeError):
         return getattr(obj, key, default)
-    except (KeyError, IndexError):
-        return default
 
 
 def set_value(dct, key, value):
@@ -392,6 +393,7 @@ def set_value(dct, key, value):
         set_value(target, rest, value)
     else:
         dct[key] = value
+
 
 def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`.
