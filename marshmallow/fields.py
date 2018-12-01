@@ -462,7 +462,7 @@ class Nested(Field):
         try:
             return schema.dump(nested_obj, many=self.many)
         except ValidationError as exc:
-            raise ValidationError(exc.messages, data=obj, valid_data=exc.valid_data)
+            raise ValidationError(exc.messages, valid_data=exc.valid_data)
 
     def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
@@ -475,7 +475,7 @@ class Nested(Field):
                 partial=partial,
             )
         except ValidationError as exc:
-            raise ValidationError(exc.messages, data=data, valid_data=exc.valid_data)
+            raise ValidationError(exc.messages, valid_data=exc.valid_data)
         return valid_data
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
@@ -516,6 +516,8 @@ class Pluck(Nested):
 
     def _serialize(self, nested_obj, attr, obj, **kwargs):
         ret = super(Pluck, self)._serialize(nested_obj, attr, obj, **kwargs)
+        if ret is None:
+            return None
         if self.many:
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]

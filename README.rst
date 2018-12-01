@@ -118,6 +118,10 @@ Your logo will show up here with a link to your website. [`Become a sponsor`_]
     :target: https://opencollective.com/marshmallow/sponsor/0/website
     :alt: Sponsors
 
+.. image:: https://opencollective.com/static/images/become_sponsor.svg
+    :target: https://opencollective.com/marshmallow#sponsor
+    :alt: Become a sponsor
+
 
 Professional support
 ====================

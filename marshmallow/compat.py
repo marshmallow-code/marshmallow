@@ -2,8 +2,7 @@
 # flake8: noqa
 import sys
 import itertools
-import functools
-import inspect
+
 
 PY2 = int(sys.version_info[0]) == 2
 

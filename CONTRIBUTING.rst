@@ -18,7 +18,10 @@ Ways to Contribute
 ------------------
 
 - Comment on some of marshmallow's `open issues <https://github.com/marshmallow-code/marshmallow/issues>`_ (especially those `labeled "feedback welcome" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22feedback+welcome%22>`_). Share a solution or workaround. Make a suggestion for how a feature can be made better. Opinions are welcome!
-- Improve `the docs <https://marshmallow.readthedocs.io>`_. For straightforward edits, click the ReadTheDocs menu button in the bottom-right corner of the page and click "Edit".  See the :ref:`Documentation <contributing_documentation>` section of this page if you want to build the docs locally.
+- Improve `the docs <https://marshmallow.readthedocs.io>`_.
+  For straightforward edits,
+  click the ReadTheDocs menu button in the bottom-right corner of the page and click "Edit".
+  See the :ref:`Documentation <contributing_documentation>` section of this page if you want to build the docs locally.
 - If you think you've found a bug, `open an issue <https://github.com/marshmallow-code/marshmallow/issues>`_.
 - Contribute an :ref:`example usage <contributing_examples>` of marshmallow.
 - Send a PR for an open issue (especially one `labeled "help wanted" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_). The next section details how to contribute code.
@@ -43,7 +46,9 @@ In Particular
 Setting Up for Local Development
 ********************************
 
-1. Fork marshmallow_ on Github. ::
+1. Fork marshmallow_ on Github.
+
+::
 
     $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
@@ -57,7 +62,9 @@ Setting Up for Local Development
     # After activating your virtualenv
     $ pip install -e '.[dev]'
 
-3. Install the pre-commit hooks, which will format and lint your git staged files. ::
+3. Install the pre-commit hooks, which will format and lint your git staged files.
+
+::
 
     # The pre-commit CLI was installed above
     $ pre-commit install --allow-missing-config
@@ -79,6 +86,7 @@ Pull Requests
 **************
 
 1. Create a new local branch.
+
 ::
 
     # For a new feature
@@ -88,6 +96,7 @@ Pull Requests
     $ git checkout -b fix-something 2.x-line
 
 2. Commit your changes. Write `good commit messages <http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
+
 ::
 
     $ git commit -m "Detailed commit message"

@@ -1,6 +1,4 @@
 
-.. _custom_fields:
-
 Custom Fields
 =============
 

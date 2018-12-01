@@ -1,12 +1,30 @@
 Changelog
 ---------
 
-3.0.0rc1 (unreleased)
+3.0.0rc1 (2018-11-29)
++++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Rework ``ValidationError`` API.
+  It now expects a single field name, and error structures are merged
+  in the final ``ValidationError`` raised when validation completes.
+  This allows schema-level validators to raise errors for individual
+  fields (:issue:`441`). Thanks :user:`maximkulkin` for
+  writing the original ``merge_errors`` implementation in :pr:`442` and thanks
+  :user:`lafrech` for completing the implementation in :pr:`1026`.
+
+Bug fixes:
+
+- Fix ``TypeError`` when serializing ``None`` with ``Pluck`` (:pr:`1049`).
+  Thanks :user:`toffan` for the catch and patch.
+
+3.0.0b20 (2018-11-01)
 +++++++++++++++++++++
 
 Bug fixes:
 
-- Includes bug fix from 2.16.2.
+- Includes bug fixes from 2.16.2 and 2.16.3.
 
 3.0.0b19 (2018-10-24)
 +++++++++++++++++++++
@@ -374,6 +392,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.16.3 (2018-11-01)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent memory leak when dynamically creating classes with ``type()``
+  (:issue:`732`). Thanks :user:`asmodehn` for writing the tests to
+  reproduce this issue.
 
 2.16.2 (2018-10-30)
 +++++++++++++++++++

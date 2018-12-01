@@ -48,11 +48,15 @@ def register(classname, cls):
     if classname in _registry and not \
             any(each.__module__ == module for each in _registry[classname]):
         _registry[classname].append(cls)
-    else:
+    elif classname not in _registry:
         _registry[classname] = [cls]
 
     # Also register the full path
-    _registry.setdefault(fullpath, []).append(cls)
+    if fullpath not in _registry:
+        _registry.setdefault(fullpath, []).append(cls)
+    else:
+        # If fullpath does exist, replace existing entry
+        _registry[fullpath] = [cls]
     return None
 
 def get_class(classname, all=False):
