@@ -2664,3 +2664,15 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {'url': 'marshmallow://app/discounts'}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
+
+def test_eq():
+
+    class MySchema_1(Schema):
+        a = fields.Int()
+
+    class MySchema_2(Schema):
+        a = fields.Int()
+
+    assert MySchema_1() == MySchema_1()
+    assert MySchema_1() != MySchema_2()
+    assert MySchema_1(partial=True) != MySchema_1()

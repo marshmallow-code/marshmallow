@@ -213,6 +213,9 @@ class SchemaOpts(object):
         self.unknown = getattr(meta, 'unknown', RAISE)
 
 
+MODIFIERS = {'only', 'exclude', 'many', 'context', 'load_only', 'dump_only', 'partial', 'unknown'}
+
+
 class BaseSchema(base.SchemaABC):
     """Base schema class with which to define custom schemas.
 
@@ -350,6 +353,16 @@ class BaseSchema(base.SchemaABC):
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self._init_fields()
+
+    def __eq__(self, other):
+        if not isinstance(other, base.SchemaABC):
+            return NotImplemented
+        if self.__class__ != other.__class__:
+            return False
+        return all(getattr(self, m) == getattr(other, m) for m in MODIFIERS)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
