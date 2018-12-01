@@ -158,8 +158,8 @@ class Unmarshaller(ErrorStore):
 
     def run_validator(
         self, validator_func, output,
-        original_data, fields_dict, index=None,
-        many=False, partial=False,
+        original_data, fields_dict,
+        many, partial, index=None,
     ):
         try:
             validator_func(output, original_data=original_data, partial=partial, many=many)
