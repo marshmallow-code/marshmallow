@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0rc2 (unreleased)
++++++++++++++++++++++
+
+Bug fixes:
+
+- Fix serializing dict-like objects with properties (:issue:`1060`).
+  Thanks :user:`taion` for the fix.
+
 3.0.0rc1 (2018-11-29)
 +++++++++++++++++++++
 
