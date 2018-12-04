@@ -243,3 +243,69 @@ class TestNestedField:
         elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
+
+class TestListNested:
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_list_nested_only_and_exclude_propagated_to_nested(self, param):
+
+        class Child(Schema):
+            name = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child))
+
+        schema = Family(**{param: ['children.name']})
+        assert getattr(schema.fields['children'].container, param) == {'name'}
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_list_nested_only_and_exclude_merged_with_nested(self, param):
+
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child, **{param: ('name', 'surname')}))
+
+        schema = Family(**{param: ['children.name', 'children.age']})
+        expected = {
+            'only': {'name'},
+            'exclude': {'name', 'surname', 'age'},
+        }[param]
+        assert getattr(schema.fields['children'].container, param) == expected
+
+class TestDictNested:
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_dict_nested_only_and_exclude_propagated_to_nested(self, param):
+
+        class Child(Schema):
+            name = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.Dict(values=fields.Nested(Child))
+
+        schema = Family(**{param: ['children.name']})
+        assert getattr(schema.fields['children'].value_container, param) == {'name'}
+
+    @pytest.mark.parametrize('param', ('only', 'exclude'))
+    def test_dict_nested_only_and_exclude_merged_with_nested(self, param):
+
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.Dict(values=fields.Nested(Child, **{param: ('name', 'surname')}))
+
+        schema = Family(**{param: ['children.name', 'children.age']})
+        expected = {
+            'only': {'name'},
+            'exclude': {'name', 'surname', 'age'},
+        }[param]
+        assert getattr(schema.fields['children'].value_container, param) == expected
