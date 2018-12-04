@@ -786,6 +786,21 @@ def test_custom_error_message():
     assert 'Invalid email' in errors['email']
 
 
+def test_custom_unknown_error_message():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        deserialization_error_messages = {'unknown': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema()
+    u = {'name': 'Joe', 'age': 13}
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['age']
+
+
 def test_load_errors_with_many():
     class ErrorSchema(Schema):
         email = fields.Email()
@@ -2664,3 +2679,5 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {'url': 'marshmallow://app/discounts'}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
+
+

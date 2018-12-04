@@ -130,6 +130,17 @@ class Unmarshaller(ErrorStore):
 
     .. versionadded:: 1.0.0
     """
+    _default_error_messages = {
+        'type': 'Invalid input type.',
+        'unknown': 'Unknown field.'
+    }
+
+    def __init__(self, error_messages=None):
+        super(Unmarshaller, self).__init__()
+        messages = {}
+        messages.update(self._default_error_messages)
+        messages.update(error_messages or {})
+        self.error_messages = messages
 
     def run_validator(
         self, validator_func, output,
@@ -170,7 +181,7 @@ class Unmarshaller(ErrorStore):
         index = index if index_errors else None
         if many:
             if not is_collection(data):
-                self.store_error(['Invalid input type.'], index=index)
+                self.store_error([self.error_messages['type']], index=index)
                 ret = []
             else:
                 self._pending = True
@@ -188,7 +199,7 @@ class Unmarshaller(ErrorStore):
         ret = dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
-            self.store_error(['Invalid input type.'], index=index)
+            self.store_error([self.error_messages['type']], index=index)
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
@@ -241,7 +252,7 @@ class Unmarshaller(ErrorStore):
                         set_value(ret, key, value)
                     elif unknown == RAISE:
                         self.store_error(
-                            ['Unknown field.'],
+                            [self.error_messages['unknown']],
                             key,
                             (index if index_errors else None),
                         )

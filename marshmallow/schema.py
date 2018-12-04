@@ -288,6 +288,8 @@ class BaseSchema(base.SchemaABC):
         decimal.Decimal: fields.Decimal,
     }
 
+    deserialization_error_messages = {}  # Override this to customize deserialization error messages
+
     OPTIONS_CLASS = SchemaOpts
 
     class Meta(object):
@@ -577,7 +579,7 @@ class BaseSchema(base.SchemaABC):
         :rtype: dict
         """
         # Callable unmarshalling object
-        unmarshal = marshalling.Unmarshaller()
+        unmarshal = marshalling.Unmarshaller(self.deserialization_error_messages)
         errors = {}
         many = self.many if many is None else bool(many)
         unknown = unknown or self.unknown
