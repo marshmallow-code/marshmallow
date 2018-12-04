@@ -801,6 +801,37 @@ def test_custom_unknown_error_message():
     assert custom_message in errors['age']
 
 
+def test_custom_type_error_message():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        deserialization_error_messages = {'type': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema()
+    u = ['Joe']
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['_schema']
+
+
+def test_custom_type_error_message_with_many():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        deserialization_error_messages = {'type': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema(many=True)
+    u = {'name': 'Joe'}
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['_schema']
+
+
+
 def test_load_errors_with_many():
     class ErrorSchema(Schema):
         email = fields.Email()
