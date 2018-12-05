@@ -132,7 +132,7 @@ class Unmarshaller(ErrorStore):
     """
     _default_error_messages = {
         'type': 'Invalid input type.',
-        'unknown': 'Unknown field.'
+        'unknown': 'Unknown field.',
     }
 
     def __init__(self, error_messages=None):

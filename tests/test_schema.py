@@ -831,7 +831,6 @@ def test_custom_type_error_message_with_many():
     assert custom_message in errors['_schema']
 
 
-
 def test_load_errors_with_many():
     class ErrorSchema(Schema):
         email = fields.Email()
@@ -2710,5 +2709,3 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {'url': 'marshmallow://app/discounts'}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
-
-
