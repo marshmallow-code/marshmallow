@@ -13,7 +13,7 @@ import json
 import warnings
 
 from marshmallow import base, fields as ma_fields, class_registry
-from marshmallow.marshalling import ErrorStore
+from marshmallow.error_store import ErrorStore
 from marshmallow.fields import Nested
 from marshmallow.compat import iteritems, iterkeys, with_metaclass, text_type, binary_type, Mapping
 from marshmallow.exceptions import ValidationError, StringNotCollectionError

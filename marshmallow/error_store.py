@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Utility classes and values used for marshalling and unmarshalling objects to
-and from primitive types.
+"""Utilities for storing collections of error messages.
 
 .. warning::
 
