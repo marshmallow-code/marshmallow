@@ -393,6 +393,27 @@ class BaseSchema(base.SchemaABC):
 
     ##### Serialization/Deserialization API #####
 
+    @staticmethod
+    def _call_and_store(getter_func, data, field_name, error_store, index=None):
+        """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
+
+        :param callable getter_func: Function for getting the serialized/deserialized
+            value from ``data``.
+        :param data: The data passed to ``getter_func``.
+        :param str field_name: Field name.
+        :param int index: Index of the item being validated, if validating a collection,
+            otherwise `None`.
+        """
+        try:
+            value = getter_func(data)
+        except ValidationError as err:
+            error_store.error_kwargs.update(err.kwargs)
+            error_store.store_error(err.messages, field_name, index=index)
+            # When a Nested field fails validation, the marshalled data is stored
+            # on the ValidationError's valid_data attribute
+            return err.valid_data or missing
+        return value
+
     def _serialize(
         self, obj, fields_dict, error_store, many=False,
         accessor=None, dict_class=dict, index_errors=True,
@@ -436,10 +457,11 @@ class BaseSchema(base.SchemaABC):
                 continue
             key = field_obj.data_key or attr_name
             getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
-            value = error_store.call_and_store(
+            value = self._call_and_store(
                 getter_func=getter,
                 data=obj,
                 field_name=key,
+                error_store=error_store,
                 index=index,
             )
             if value is missing:
@@ -613,10 +635,11 @@ class BaseSchema(base.SchemaABC):
                     val, field_name,
                     data, **d_kwargs
                 )
-                value = error_store.call_and_store(
+                value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
                     field_name=field_name,
+                    error_store=error_store,
                     index=index,
                 )
                 if value is not missing:
@@ -1018,10 +1041,11 @@ class BaseSchema(base.SchemaABC):
                     except KeyError:
                         pass
                     else:
-                        validated_value = error_store.call_and_store(
+                        validated_value = self._call_and_store(
                             getter_func=validator,
                             data=value,
                             field_name=field_obj.data_key or field_name,
+                            error_store=error_store,
                             index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
@@ -1032,10 +1056,11 @@ class BaseSchema(base.SchemaABC):
                 except KeyError:
                     pass
                 else:
-                    validated_value = error_store.call_and_store(
+                    validated_value = self._call_and_store(
                         getter_func=validator,
                         data=value,
                         field_name=field_obj.data_key or field_name,
+                        error_store=error_store,
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)

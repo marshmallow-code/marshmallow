@@ -9,9 +9,8 @@
 
 from __future__ import unicode_literals
 
-from marshmallow.utils import missing
 from marshmallow.compat import iteritems
-from marshmallow.exceptions import ValidationError, SCHEMA
+from marshmallow.exceptions import SCHEMA
 
 
 class ErrorStore(object):
@@ -33,26 +32,6 @@ class ErrorStore(object):
         if index is not None:
             messages = {index: messages}
         self.errors = merge_errors(self.errors, messages)
-
-    def call_and_store(self, getter_func, data, field_name, index=None):
-        """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
-
-        :param callable getter_func: Function for getting the serialized/deserialized
-            value from ``data``.
-        :param data: The data passed to ``getter_func``.
-        :param str field_name: Field name.
-        :param int index: Index of the item being validated, if validating a collection,
-            otherwise `None`.
-        """
-        try:
-            value = getter_func(data)
-        except ValidationError as err:
-            self.error_kwargs.update(err.kwargs)
-            self.store_error(err.messages, field_name, index=index)
-            # When a Nested field fails validation, the marshalled data is stored
-            # on the ValidationError's valid_data attribute
-            return err.valid_data or missing
-        return value
 
 
 def merge_errors(errors1, errors2):
