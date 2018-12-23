@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE
-from marshmallow.marshalling import missing
+from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE, missing
 from marshmallow.exceptions import StringNotCollectionError
 
 from tests.base import ALL_FIELDS

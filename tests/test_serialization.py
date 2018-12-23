@@ -9,10 +9,9 @@ import math
 
 import pytest
 
-from marshmallow import Schema, fields, utils
+from marshmallow import Schema, fields, utils, missing as missing_
 from marshmallow.exceptions import ValidationError
 from marshmallow.compat import basestring
-from marshmallow.utils import missing as missing_
 
 from tests.base import User, ALL_FIELDS
 
