@@ -9,6 +9,10 @@ Bug fixes:
 - Fix serializing dict-like objects with properties (:issue:`1060`).
   Thanks :user:`taion` for the fix.
 
+Other changes:
+
+- Remove the ``marshmallow.marshalling`` internal module (:pr:`1070`).
+
 3.0.0rc1 (2018-11-29)
 +++++++++++++++++++++
 
