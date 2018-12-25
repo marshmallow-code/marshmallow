@@ -15,6 +15,7 @@ from marshmallow.utils import missing as missing_
 from marshmallow.compat import text_type, basestring, Mapping
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Validator
+from marshmallow.warnings import RemovedInMarshmallow3Warning
 
 __all__ = [
     'Field',
@@ -1182,7 +1183,7 @@ class Method(Field):
     def __init__(self, serialize=None, deserialize=None, method_name=None, **kwargs):
         if method_name is not None:
             warnings.warn('"method_name" argument of fields.Method is deprecated. '
-                          'Use the "serialize" argument instead.', DeprecationWarning)
+                          'Use the "serialize" argument instead.', RemovedInMarshmallow3Warning)
 
         self.serialize_method_name = self.method_name = serialize or method_name
         self.deserialize_method_name = deserialize
@@ -1239,7 +1240,7 @@ class Function(Field):
     def __init__(self, serialize=None, deserialize=None, func=None, **kwargs):
         if func:
             warnings.warn('"func" argument of fields.Function is deprecated. '
-                          'Use the "serialize" argument instead.', DeprecationWarning)
+                          'Use the "serialize" argument instead.', RemovedInMarshmallow3Warning)
             serialize = func
         super(Function, self).__init__(**kwargs)
         self.serialize_func = self.func = serialize and utils.callable_or_raise(serialize)
