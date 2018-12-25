@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.17.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Add ``marshmallow.__version_info__``.
+
 2.16.3 (2018-11-01)
 +++++++++++++++++++
 

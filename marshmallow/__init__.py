@@ -13,8 +13,10 @@ from marshmallow.decorators import (
 )
 from marshmallow.utils import pprint, missing
 from marshmallow.exceptions import ValidationError
+from distutils.version import LooseVersion
 
 __version__ = '2.16.3'
+__version_info__ = tuple(LooseVersion(__version__).version)
 __author__ = 'Steven Loria'
 __all__ = [
     'Schema',
