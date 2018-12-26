@@ -7,6 +7,13 @@ welcome contributions from anyone willing to work in good faith with
 other contributors and the community (see also our
 :doc:`code_of_conduct`).
 
+Security Contact Information
+----------------------------
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_
+Tidelift will coordinate the fix and disclosure.
+
 Questions, Feature Requests, Bug Reports, and Feedback…
 -------------------------------------------------------
 
