@@ -20,6 +20,7 @@ from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
 from marshmallow.utils import missing
+from marshmallow.warnings import RemovedInMarshmallow3Warning, ChangedInMarshmallow3Warning
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -195,7 +196,17 @@ class SchemaOpts(object):
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
         self.strict = getattr(meta, 'strict', False)
+        if hasattr(meta, 'dateformat'):
+            warnings.warn(
+                "The dateformat option is renamed to datetimeformat in marshmallow 3.",
+                ChangedInMarshmallow3Warning
+            )
         self.dateformat = getattr(meta, 'dateformat', None)
+        if hasattr(meta, 'json_module'):
+            warnings.warn(
+                "The json_module option is renamed to render_module in marshmallow 3.",
+                ChangedInMarshmallow3Warning
+            )
         self.json_module = getattr(meta, 'json_module', json)
         if hasattr(meta, 'skip_missing'):
             warnings.warn(
@@ -336,8 +347,23 @@ class BaseSchema(base.SchemaABC):
         self.many = many
         self.only = only
         self.exclude = exclude
+        if prefix:
+            warnings.warn(
+                'The `prefix` argument is deprecated. Use a post_dump '
+                'method to insert a prefix instead.',
+                RemovedInMarshmallow3Warning
+            )
         self.prefix = prefix
         self.strict = strict if strict is not None else self.opts.strict
+        if self.strict is False:
+            warnings.warn(
+                'strict=False is not recommended. In marshmallow 3.0, schemas will '
+                'always be strict. See '
+                'https://marshmallow.readthedocs.io/'
+                'en/latest/upgrading.html#schemas-are-always-strict',
+                ChangedInMarshmallow3Warning
+            )
+
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -348,7 +374,7 @@ class BaseSchema(base.SchemaABC):
             warnings.warn(
                 'The `extra` argument is deprecated. Use a post_dump '
                 'method to add additional data instead.',
-                DeprecationWarning
+                RemovedInMarshmallow3Warning
             )
         self.extra = extra
         self.context = context or {}
