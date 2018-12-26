@@ -405,6 +405,15 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.17.0 (2018-12-26)
++++++++++++++++++++
+
+Features:
+
+- Add ``marshmallow.__version_info__`` (:pr:`1074`).
+- Add warnings for API that is deprecated or changed to help users
+  prepare for marshmallow 3 (:pr:`1075`).
+
 2.16.3 (2018-11-01)
 +++++++++++++++++++
 
