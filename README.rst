@@ -123,7 +123,7 @@ Your logo will show up here with a link to your website. [`Become a sponsor`_]
     :alt: Become a sponsor
 
 
-Professional support
+Professional Support
 ====================
 
 Professionally-supported marshmallow is now available through the
@@ -138,6 +138,13 @@ while seamlessly integrating with existing tools. [`Get professional support`_]
 .. image:: https://user-images.githubusercontent.com/2379650/45126032-50b69880-b13f-11e8-9c2c-abd16c433495.png
     :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
     :alt: Get supported marshmallow with Tidelift
+
+Security Contact Information
+============================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_
+Tidelift will coordinate the fix and disclosure.
 
 Project Links
 =============
