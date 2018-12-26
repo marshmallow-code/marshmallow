@@ -8,6 +8,8 @@ Bug fixes:
 
 - Fix serializing dict-like objects with properties (:issue:`1060`).
   Thanks :user:`taion` for the fix.
+- Fix populating ``ValidationError.valid_data`` for ``List`` and
+  ``Dict`` fields (:issue:`766`).
 
 Other changes:
 
