@@ -143,7 +143,7 @@ Security Contact Information
 ============================
 
 To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_
+`Tidelift security contact <https://tidelift.com/security>`_.
 Tidelift will coordinate the fix and disclosure.
 
 Project Links
