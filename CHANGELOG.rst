@@ -1,12 +1,14 @@
 Changelog
 ---------
 
-2.17.0 (unreleased)
+2.17.0 (2018-12-26)
 +++++++++++++++++++
 
 Features:
 
-- Add ``marshmallow.__version_info__``.
+- Add ``marshmallow.__version_info__`` (:pr:`1074`).
+- Add warnings for API that is deprecated or changed to help users
+  prepare for marshmallow 3 (:pr:`1075`).
 
 2.16.3 (2018-11-01)
 +++++++++++++++++++
