@@ -15,6 +15,8 @@ Other changes:
 
 - Add ``marshmallow.__version_info__`` (:pr:`1074`).
 - Remove the ``marshmallow.marshalling`` internal module (:pr:`1070`).
+- A ``ValueError`` is raised when the ``missing`` parameter is passed
+  for required fields (:issue:`1040`).
 
 3.0.0rc1 (2018-11-29)
 +++++++++++++++++++++

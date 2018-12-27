@@ -41,6 +41,10 @@ class TestField:
         with pytest.raises(ValueError, match='must be a callable'):
             fields.Field(validate='notcallable')
 
+    def test_error_raised_if_missing_is_set_on_required_field(self):
+        with pytest.raises(ValueError, match="'missing' must not be set for required fields"):
+            fields.Field(required=True, missing=42)
+
     def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
             def _deserialize(self, val, attr, data):
