@@ -137,7 +137,7 @@ class SchemaMeta(type):
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
         super(SchemaMeta, self).__init__(name, bases, attrs)
-        if name:
+        if name and self.opts.register:
             class_registry.register(name, self)
         self._hooks = self.resolve_hooks()
 
@@ -216,6 +216,7 @@ class SchemaOpts(object):
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
         self.unknown = getattr(meta, 'unknown', RAISE)
+        self.register = getattr(meta, 'register', True)
 
 
 class BaseSchema(base.SchemaABC):
@@ -329,6 +330,10 @@ class BaseSchema(base.SchemaABC):
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        - ``register``: Whether to register the `Schema` with marshmallow's internal
+            class registry. Must be `True` if you intend to refer to this `Schema`
+            by class name in `Nested` fields. Only set this to `False` when memory
+            usage is critical. Defaults to `True`.
         """
         pass
 

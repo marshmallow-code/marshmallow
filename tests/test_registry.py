@@ -21,6 +21,36 @@ def test_serializer_has_class_registry():
     assert 'tests.test_registry.MySubSchema' in class_registry._registry
 
 
+def test_register_class_meta_option():
+    class UnregisteredSchema(Schema):
+        class Meta:
+            register = False
+
+    class RegisteredSchema(Schema):
+        class Meta:
+            register = True
+
+    class RegisteredOverrideSchema(UnregisteredSchema):
+        class Meta:
+            register = True
+
+    class UnregisteredOverrideSchema(RegisteredSchema):
+        class Meta:
+            register = False
+
+    assert 'UnregisteredSchema' not in class_registry._registry
+    assert 'tests.test_registry.UnregisteredSchema' not in class_registry._registry
+
+    assert 'RegisteredSchema' in class_registry._registry
+    assert 'tests.test_registry.RegisteredSchema' in class_registry._registry
+
+    assert 'RegisteredOverrideSchema' in class_registry._registry
+    assert 'tests.test_registry.RegisteredOverrideSchema' in class_registry._registry
+
+    assert 'UnregisteredOverrideSchema' not in class_registry._registry
+    assert 'tests.test_registry.UnregisteredOverrideSchema' not in class_registry._registry
+
+
 def test_serializer_class_registry_register_same_classname_different_module():
 
     reglen = len(class_registry._registry)

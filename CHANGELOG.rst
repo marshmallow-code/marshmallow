@@ -4,6 +4,11 @@ Changelog
 3.0.0rc2 (unreleased)
 +++++++++++++++++++++
 
+Features:
+
+- Add ``register`` *class Meta* option to allow bypassing marshmallow's
+  internal class registry when memory usage is critical (:issue:`660`).
+
 Bug fixes:
 
 - Fix serializing dict-like objects with properties (:issue:`1060`).
