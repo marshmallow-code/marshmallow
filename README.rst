@@ -3,7 +3,7 @@ marshmallow: simplified object serialization
 ********************************************
 
 .. image:: https://badge.fury.io/py/marshmallow.svg
-    :target: http://badge.fury.io/py/marshmallow
+    :target: https://badge.fury.io/py/marshmallow
     :alt: Latest version
 
 .. image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
@@ -11,7 +11,7 @@ marshmallow: simplified object serialization
     :alt: Travis-CI
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
-   :target: http://marshmallow.readthedocs.io/
+   :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
@@ -57,7 +57,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at http://marshmallow.readthedocs.io/ .
+Full documentation is available at https://marshmallow.readthedocs.io/ .
 
 Requirements
 ============
@@ -149,8 +149,8 @@ Tidelift will coordinate the fix and disclosure.
 Project Links
 =============
 
-- Docs: http://marshmallow.readthedocs.io/
-- Changelog: http://marshmallow.readthedocs.io/en/latest/changelog.html
+- Docs: https://marshmallow.readthedocs.io/
+- Changelog: https://marshmallow.readthedocs.io/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow

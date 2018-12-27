@@ -269,6 +269,6 @@ Attribution
 This Code of Conduct is based on `Trio's Code of Conduct <https://trio.readthedocs.io/en/latest/code-of-conduct.html>`_, which is based on the
 `WeAllJS Code of Conduct <https://wealljs.org/code-of-conduct>`__, which
 is itself based on `Contributor
-Covenant <http://contributor-covenant.org>`__, version 1.4, available at
-http://contributor-covenant.org/version/1/4, and the LGBTQ in Technology
-Slack `Code of Conduct <http://lgbtq.technology/coc.html>`__.
+Covenant <https://contributor-covenant.org>`__, version 1.4, available at
+https://contributor-covenant.org/version/1/4, and the LGBTQ in Technology
+Slack `Code of Conduct <https://lgbtq.technology/coc.html>`__.

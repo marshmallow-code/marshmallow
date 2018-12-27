@@ -85,7 +85,7 @@ def is_keyed_tuple(obj):
 
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
-        See: http://docs.python.org/release/2.6.7/library/decimal.html#decimal-faq
+        See: https://docs.python.org/release/2.6.7/library/decimal.html#decimal-faq
     """
     n, d = f.as_integer_ratio()
     numerator, denominator = Decimal(n), Decimal(d)

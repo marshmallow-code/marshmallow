@@ -44,7 +44,7 @@ In General
 - Test ruthlessly. Write docs for new features.
 - Even more important than Test-Driven Development--*Human-Driven Development*.
 
-.. _`PEP 8`: http://www.python.org/dev/peps/pep-0008/
+.. _`PEP 8`: https://www.python.org/dev/peps/pep-0008/
 
 In Particular
 +++++++++++++
@@ -102,7 +102,7 @@ Pull Requests
     # For a bugfix
     $ git checkout -b fix-something 2.x-line
 
-2. Commit your changes. Write `good commit messages <http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
+2. Commit your changes. Write `good commit messages <https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
 
 ::
 
@@ -136,7 +136,7 @@ To run syntax checks: ::
 Documentation
 *************
 
-Contributions to the documentation are welcome. Documentation is written in `reStructured Text`_ (rST). A quick rST reference can be found `here <http://docutils.sourceforge.net/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
+Contributions to the documentation are welcome. Documentation is written in `reStructured Text`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.net/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
 To build the docs in "watch" mode: ::
 
@@ -153,6 +153,6 @@ Contributing Examples
 Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.
 
 
-.. _Sphinx: http://sphinx.pocoo.org/
+.. _Sphinx: https://www.sphinx-doc.org/
 .. _`reStructured Text`: http://docutils.sourceforge.net/rst.html
 .. _marshmallow: https://github.com/marshmallow-code/marshmallow

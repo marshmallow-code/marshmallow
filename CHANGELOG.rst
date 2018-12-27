@@ -13,6 +13,7 @@ Bug fixes:
 
 Other changes:
 
+- Add ``marshmallow.__version_info__`` (:pr:`1074`).
 - Remove the ``marshmallow.marshalling`` internal module (:pr:`1070`).
 
 3.0.0rc1 (2018-11-29)
@@ -281,7 +282,7 @@ Other changes:
 
 Support:
 
-- Add `Code of Conduct <http://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
+- Add `Code of Conduct <https://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
 
 
 3.0.0b6 (2018-01-02)
