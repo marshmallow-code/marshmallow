@@ -148,7 +148,6 @@ class Field(FieldABC):
                 'or a collection of callables.',
             )
 
-        self.required = required
         # If missing=None, None should be considered valid by default
         if allow_none is None:
             if missing is None:
@@ -159,6 +158,9 @@ class Field(FieldABC):
             self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
+        if required is True and missing is not missing_:
+            raise ValueError("'missing' must not be set for required fields.")
+        self.required = required
         self.missing = missing
         self.metadata = metadata
         self._creation_index = Field._creation_index
