@@ -856,6 +856,8 @@ class Boolean(Field):
         't', 'T',
         'true', 'True', 'TRUE',
         'on', 'On', 'ON',
+        'y', 'Y',
+        'yes', 'Yes', 'YES',
         '1', 1,
         True,
     }
@@ -864,6 +866,8 @@ class Boolean(Field):
         'f', 'F',
         'false', 'False', 'FALSE',
         'off', 'Off', 'OFF',
+        'n', 'N',
+        'no', 'No', 'NO',
         '0', 0, 0.0,
         False,
     }
