@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.0.0rc2 (unreleased)
+3.0.0rc2 (2019-01-03)
 +++++++++++++++++++++
 
 Features:
