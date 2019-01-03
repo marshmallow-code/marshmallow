@@ -335,7 +335,7 @@ def pluck(dictlist, key):
 
 # Various utilities for pulling keyed values from objects
 
-def get_value(obj, key, default=missing):
+def get_value(obj, key, default=missing, delimiter='.'):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -346,29 +346,19 @@ def get_value(obj, key, default=missing):
         `get_value` will never check the value `x.i`. Consider overriding
         `marshmallow.fields.Field.get_value` in this case.
     """
-    if not isinstance(key, int) and '.' in key:
-        return _get_value_for_keys(obj, key.split('.'), default)
-    else:
-        return _get_value_for_key(obj, key, default)
-
-
-def _get_value_for_keys(obj, keys, default):
-    if len(keys) == 1:
-        return _get_value_for_key(obj, keys[0], default)
-    else:
-        return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default,
-        )
-
-
-def _get_value_for_key(obj, key, default):
-    if not hasattr(obj, '__getitem__'):
-        return getattr(obj, key, default)
-
+    ptr = obj
     try:
-        return obj[key]
-    except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        for each in key.split(delimiter):
+            try:
+                ptr = ptr[each]
+            except (TypeError, KeyError, AttributeError):
+                ptr = getattr(ptr, each)
+    except (TypeError, KeyError, AttributeError):
+        try:
+            return ptr[key]
+        except (KeyError, AttributeError, TypeError, IndexError):
+            return default
+    return ptr
 
 
 def set_value(dct, key, value):
