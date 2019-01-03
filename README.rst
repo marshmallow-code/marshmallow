@@ -2,11 +2,11 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badge.fury.io/py/marshmallow.svg
+.. image:: https://badgen.net/pypi/v/marshmallow
     :target: https://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
+.. image:: https://badgen.net/travis/marshmallow-code/marshmallow/dev
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
