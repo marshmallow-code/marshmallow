@@ -35,11 +35,10 @@ class ErrorStore(object):
 
 
 def merge_errors(errors1, errors2):
-    """Deeply merge two error messages
+    """Deeply merge two error messages.
 
-    Error messages can be string, list of strings or dict of error messages
-    (recursively). Format is the same as accepted by :exc:`ValidationError`.
-    Returns new error messages.
+    The format of ``errors1`` and ``errors2`` matches the ``message``
+    parameter of :exc:`marshmallow.exceptions.ValidationError`.
     """
     if not errors1:
         return errors2

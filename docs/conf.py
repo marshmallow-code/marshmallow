@@ -94,6 +94,7 @@ html_theme_options = {
         ('marshmallow @ PyPI', 'https://pypi.python.org/pypi/marshmallow'),
         ('marshmallow @ GitHub', 'https://github.com/marshmallow-code/marshmallow'),
         ('Issue Tracker', 'https://github.com/marshmallow-code/marshmallow/issues'),
+        ('Ecosystem', 'https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem'),
     ]),
 }
 
