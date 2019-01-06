@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0rc3 (unreleased)
+*********************
+
+Features:
+
+- ``fields.Boolean`` parses ``"yes"``/``"no"`` values (:pr:`1081`).
+  Thanks :user:`r1b`.
+
 3.0.0rc2 (2019-01-03)
 +++++++++++++++++++++
 

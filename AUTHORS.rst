@@ -115,3 +115,4 @@ Contributors (chronological)
 - Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
 - AlexV `@asmodehn <https://github.com/asmodehn>`_
 - `@toffan <https://github.com/toffan>`_
+- Robert Jensen `@r1b <https://github.com/r1b>`_
