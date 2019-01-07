@@ -1178,15 +1178,15 @@ class Dict(Field):
 
     Example: ::
 
-        numbers = fields.Dict(values=fields.Float(), keys=fields.Str())
+        numbers = fields.Dict(keys=fields.Str(), values=fields.Float())
 
-    :param Field values: A field class or instance for dict values.
     :param Field keys: A field class or instance for dict keys.
+    :param Field values: A field class or instance for dict values.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. note::
         When the structure of nested data is not known, you may omit the
-        `values` and `keys` arguments to prevent content validation.
+        `keys` and `values` arguments to prevent content validation.
 
     .. versionadded:: 2.1.0
     """
@@ -1195,24 +1195,8 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.',
     }
 
-    def __init__(self, values=None, keys=None, **kwargs):
+    def __init__(self, keys=None, values=None, **kwargs):
         super(Dict, self).__init__(**kwargs)
-        if values is None:
-            self.value_container = None
-        elif isinstance(values, type):
-            if not issubclass(values, FieldABC):
-                raise ValueError(
-                    '"values" must be a subclass of '
-                    'marshmallow.base.FieldABC',
-                )
-            self.value_container = values()
-        else:
-            if not isinstance(values, FieldABC):
-                raise ValueError(
-                    '"values" must be of type '
-                    'marshmallow.base.FieldABC',
-                )
-            self.value_container = values
         if keys is None:
             self.key_container = None
         elif isinstance(keys, type):
@@ -1229,6 +1213,22 @@ class Dict(Field):
                     'marshmallow.base.FieldABC',
                 )
             self.key_container = keys
+        if values is None:
+            self.value_container = None
+        elif isinstance(values, type):
+            if not issubclass(values, FieldABC):
+                raise ValueError(
+                    '"values" must be a subclass of '
+                    'marshmallow.base.FieldABC',
+                )
+            self.value_container = values()
+        else:
+            if not isinstance(values, FieldABC):
+                raise ValueError(
+                    '"values" must be of type '
+                    'marshmallow.base.FieldABC',
+                )
+            self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
         super(Dict, self)._bind_to_schema(field_name, schema)
