@@ -368,6 +368,12 @@ class BaseSchema(base.SchemaABC):
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self._init_fields()
+        messages = {}
+        messages.update(self._default_error_messages)
+        for cls in reversed(self.__class__.__mro__):
+            messages.update(getattr(cls, 'error_messages', {}))
+        messages.update(self.error_messages or {})
+        self.error_messages = messages
 
     def __repr__(self):
         return '<{ClassName}(many={self.many})>'.format(
@@ -598,9 +604,7 @@ class BaseSchema(base.SchemaABC):
         index = index if index_errors else None
         if many:
             if not is_collection(data):
-                default_message = self._default_error_messages['type']
-                message = self.error_messages.get('type', default_message)
-                error_store.store_error([message], index=index)
+                error_store.store_error([self.error_messages['type']], index=index)
                 ret = []
             else:
                 self._pending = True
@@ -618,9 +622,7 @@ class BaseSchema(base.SchemaABC):
         ret = dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
-            default_message = self._default_error_messages['type']
-            message = self.error_messages.get('type', default_message)
-            error_store.store_error([message], index=index)
+            error_store.store_error([self.error_messages['type']], index=index)
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
@@ -673,10 +675,8 @@ class BaseSchema(base.SchemaABC):
                     if unknown == INCLUDE:
                         set_value(ret, key, value)
                     elif unknown == RAISE:
-                        default_message = self._default_error_messages['unknown']
-                        message = self.error_messages.get('unknown', default_message)
                         error_store.store_error(
-                            [message],
+                            [self.error_messages['unknown']],
                             key,
                             (index if index_errors else None),
                         )

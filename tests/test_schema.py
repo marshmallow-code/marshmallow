@@ -831,6 +831,41 @@ def test_custom_type_error_message_with_many():
     assert custom_message in errors['_schema']
 
 
+def test_custom_error_messages_with_inheritance():
+    parent_type_message = 'parent type error message.'
+    parent_unknown_message = 'parent unknown error message.'
+    child_type_message = 'child type error message.'
+
+    class ParentSchema(Schema):
+        error_messages = {
+            'type': parent_type_message,
+            'unknown': parent_unknown_message,
+        }
+        name = fields.String()
+
+    class ChildSchema(ParentSchema):
+        error_messages = {'type': child_type_message}
+
+    unknown_user = {'name': 'Eleven', 'age': 12}
+    type_user = 11
+
+    parent_schema = ParentSchema()
+    with pytest.raises(ValidationError) as excinfo:
+        parent_schema.load(unknown_user)
+    assert parent_unknown_message in excinfo.value.messages['age']
+    with pytest.raises(ValidationError) as excinfo:
+        parent_schema.load(type_user)
+    assert parent_type_message in excinfo.value.messages['_schema']
+
+    child_schema = ChildSchema()
+    with pytest.raises(ValidationError) as excinfo:
+        child_schema.load(unknown_user)
+    assert parent_unknown_message in excinfo.value.messages['age']
+    with pytest.raises(ValidationError) as excinfo:
+        child_schema.load(type_user)
+    assert child_type_message in excinfo.value.messages['_schema']
+
+
 def test_load_errors_with_many():
     class ErrorSchema(Schema):
         email = fields.Email()
