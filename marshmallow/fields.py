@@ -117,7 +117,7 @@ class Field(FieldABC):
 
     #: Default error messages for various kinds of errors. The keys in this dictionary
     #: are passed to `Field.fail`. The values are error messages passed to
-    #: :exc:`marshmallow.ValidationError`.
+    #: :exc:`marshmallow.exceptions.ValidationError`.
     default_error_messages = {
         'required': 'Missing data for required field.',
         'null': 'Field may not be null.',
