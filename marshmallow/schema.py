@@ -294,7 +294,8 @@ class BaseSchema(base.SchemaABC):
         decimal.Decimal: ma_fields.Decimal,
     }
 
-    deserialization_error_messages = {}  # Override this to customize deserialization error messages
+    # Override to customize error messages
+    error_messages = {}
 
     OPTIONS_CLASS = SchemaOpts
 

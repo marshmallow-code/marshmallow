@@ -790,7 +790,7 @@ def test_custom_unknown_error_message():
     custom_message = 'custom error message.'
 
     class ErrorSchema(Schema):
-        deserialization_error_messages = {'unknown': custom_message}
+        error_messages = {'unknown': custom_message}
         name = fields.String()
 
     s = ErrorSchema()
@@ -805,7 +805,7 @@ def test_custom_type_error_message():
     custom_message = 'custom error message.'
 
     class ErrorSchema(Schema):
-        deserialization_error_messages = {'type': custom_message}
+        error_messages = {'type': custom_message}
         name = fields.String()
 
     s = ErrorSchema()
@@ -820,7 +820,7 @@ def test_custom_type_error_message_with_many():
     custom_message = 'custom error message.'
 
     class ErrorSchema(Schema):
-        deserialization_error_messages = {'type': custom_message}
+        error_messages = {'type': custom_message}
         name = fields.String()
 
     s = ErrorSchema(many=True)

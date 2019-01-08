@@ -467,12 +467,12 @@ Custom Error Messages
 ---------------------
 
 You can customize the error messages that `dump<marshmallow.Schema.dump>` and `dumps<marshmallow.Schema.dumps>` uses when raising a `ValidationError<marshmallow.ValidationError>`.
-You do this by overriding the `Schemas<marshmallow.Schema>` deserialization_error_messages field like this:
+You do this by overriding the `Schemas<marshmallow.Schema>` error_messages field like this:
 
 .. code-block:: python
 
     class MySchema(Schema):
-        deserialization_error_messages = {
+        error_messages = {
             'unknown': 'Custom unknown field error message.',
             'type': 'Custom invalid type error message.'
         }
