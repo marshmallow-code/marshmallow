@@ -297,6 +297,11 @@ class BaseSchema(base.SchemaABC):
     # Override to customize error messages
     error_messages = {}
 
+    _default_error_messages = {
+        'type': 'Invalid input type.',
+        'unknown': 'Unknown field.',
+    }
+
     OPTIONS_CLASS = SchemaOpts
 
     class Meta(object):
@@ -593,7 +598,9 @@ class BaseSchema(base.SchemaABC):
         index = index if index_errors else None
         if many:
             if not is_collection(data):
-                error_store.store_error(['Invalid input type.'], index=index)
+                default_message = self._default_error_messages['type']
+                message = self.error_messages.get('type', default_message)
+                error_store.store_error([message], index=index)
                 ret = []
             else:
                 self._pending = True
@@ -611,7 +618,9 @@ class BaseSchema(base.SchemaABC):
         ret = dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
-            error_store.store_error(['Invalid input type.'], index=index)
+            default_message = self._default_error_messages['type']
+            message = self.error_messages.get('type', default_message)
+            error_store.store_error([message], index=index)
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
@@ -664,8 +673,10 @@ class BaseSchema(base.SchemaABC):
                     if unknown == INCLUDE:
                         set_value(ret, key, value)
                     elif unknown == RAISE:
+                        default_message = self._default_error_messages['unknown']
+                        message = self.error_messages.get('unknown', default_message)
                         error_store.store_error(
-                            ['Unknown field.'],
+                            [message],
                             key,
                             (index if index_errors else None),
                         )
