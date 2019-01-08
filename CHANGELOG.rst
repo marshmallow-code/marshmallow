@@ -11,6 +11,8 @@ Features:
 
 Other changes:
 
+- *Backwards-incompatible with previous 3.x versions*: Change ordering
+  of ``keys`` and ``values`` arguments to ``fields.Dict``.
 - Remove unused code in `marshmallow.utils`: ``is_indexable_but_not_string``,
   ``float_to_decimal``, ``decimal_to_fixed``, ``from_iso`` (:pr:`1088`).
 - Remove unused ``marshmallow.compat.string_types``.
