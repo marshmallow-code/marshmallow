@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE
-from marshmallow.marshalling import missing
+from marshmallow import fields, Schema, ValidationError, EXCLUDE, INCLUDE, RAISE, missing
 from marshmallow.exceptions import StringNotCollectionError
 
 from tests.base import ALL_FIELDS
 
 
-class TestFieldAliases:
-
-    def test_int_is_integer(self):
-        assert fields.Int is fields.Integer
-
-    def test_str_is_string(self):
-        assert fields.Str is fields.String
-
-    def test_bool_is_boolean(self):
-        assert fields.Bool is fields.Boolean
-
-    def test_URL_is_Url(self):  # flake8: noqa
-        assert fields.URL is fields.Url
+@pytest.mark.parametrize(
+    ('alias', 'field'),
+    [
+        (fields.Int, fields.Integer),
+        (fields.Str, fields.String),
+        (fields.Bool, fields.Boolean),
+        (fields.URL, fields.Url),
+    ],
+)
+def test_field_aliases(alias, field):
+    assert alias is field
 
 
 class TestField:
@@ -41,8 +38,12 @@ class TestField:
         assert '<fields.Integer' in repr(int_field)
 
     def test_error_raised_if_uncallable_validator_passed(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match='must be a callable'):
             fields.Field(validate='notcallable')
+
+    def test_error_raised_if_missing_is_set_on_required_field(self):
+        with pytest.raises(ValueError, match="'missing' must not be set for required fields"):
+            fields.Field(required=True, missing=42)
 
     def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):

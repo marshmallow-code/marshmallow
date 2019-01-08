@@ -44,10 +44,10 @@ Utility Functions
 .. automodule:: marshmallow.utils
     :members:
 
-Marshalling
+Error Store
 ===========
 
-.. automodule:: marshmallow.marshalling
+.. automodule:: marshmallow.error_store
     :members:
     :private-members:
 

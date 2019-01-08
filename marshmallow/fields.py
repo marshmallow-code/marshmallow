@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import basestring, text_type, Mapping
+from marshmallow.compat import basestring, text_type, Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
@@ -148,7 +148,6 @@ class Field(FieldABC):
                 'or a collection of callables.',
             )
 
-        self.required = required
         # If missing=None, None should be considered valid by default
         if allow_none is None:
             if missing is None:
@@ -159,6 +158,9 @@ class Field(FieldABC):
             self.allow_none = allow_none
         self.load_only = load_only
         self.dump_only = dump_only
+        if required is True and missing is not missing_:
+            raise ValueError("'missing' must not be set for required fields.")
+        self.required = required
         self.missing = missing
         self.metadata = metadata
         self._creation_index = Field._creation_index
@@ -604,13 +606,12 @@ class List(Field):
         for idx, each in enumerate(value):
             try:
                 result.append(self.container.deserialize(each))
-            except ValidationError as e:
-                result.append(e.data)
-                errors.update({idx: e.messages})
-
+            except ValidationError as error:
+                if error.valid_data is not None:
+                    result.append(error.valid_data)
+                errors.update({idx: error.messages})
         if errors:
-            raise ValidationError(errors, data=result)
-
+            raise ValidationError(errors, valid_data=result)
         return result
 
 
@@ -855,6 +856,8 @@ class Boolean(Field):
         't', 'T',
         'true', 'True', 'TRUE',
         'on', 'On', 'ON',
+        'y', 'Y',
+        'yes', 'Yes', 'YES',
         '1', 1,
         True,
     }
@@ -863,6 +866,8 @@ class Boolean(Field):
         'f', 'F',
         'false', 'False', 'FALSE',
         'off', 'Off', 'OFF',
+        'n', 'N',
+        'no', 'No', 'NO',
         '0', 0, 0.0,
         False,
     }
@@ -1173,15 +1178,15 @@ class Dict(Field):
 
     Example: ::
 
-        numbers = fields.Dict(values=fields.Float(), keys=fields.Str())
+        numbers = fields.Dict(keys=fields.Str(), values=fields.Float())
 
-    :param Field values: A field class or instance for dict values.
     :param Field keys: A field class or instance for dict keys.
+    :param Field values: A field class or instance for dict values.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. note::
         When the structure of nested data is not known, you may omit the
-        `values` and `keys` arguments to prevent content validation.
+        `keys` and `values` arguments to prevent content validation.
 
     .. versionadded:: 2.1.0
     """
@@ -1190,24 +1195,8 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.',
     }
 
-    def __init__(self, values=None, keys=None, **kwargs):
+    def __init__(self, keys=None, values=None, **kwargs):
         super(Dict, self).__init__(**kwargs)
-        if values is None:
-            self.value_container = None
-        elif isinstance(values, type):
-            if not issubclass(values, FieldABC):
-                raise ValueError(
-                    '"values" must be a subclass of '
-                    'marshmallow.base.FieldABC',
-                )
-            self.value_container = values()
-        else:
-            if not isinstance(values, FieldABC):
-                raise ValueError(
-                    '"values" must be of type '
-                    'marshmallow.base.FieldABC',
-                )
-            self.value_container = values
         if keys is None:
             self.key_container = None
         elif isinstance(keys, type):
@@ -1224,6 +1213,22 @@ class Dict(Field):
                     'marshmallow.base.FieldABC',
                 )
             self.key_container = keys
+        if values is None:
+            self.value_container = None
+        elif isinstance(values, type):
+            if not issubclass(values, FieldABC):
+                raise ValueError(
+                    '"values" must be a subclass of '
+                    'marshmallow.base.FieldABC',
+                )
+            self.value_container = values()
+        else:
+            if not isinstance(values, FieldABC):
+                raise ValueError(
+                    '"values" must be of type '
+                    'marshmallow.base.FieldABC',
+                )
+            self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
         super(Dict, self)._bind_to_schema(field_name, schema)
@@ -1241,17 +1246,29 @@ class Dict(Field):
             return None
         if not self.value_container and not self.key_container:
             return value
-        if isinstance(value, Mapping):
-            values = value.values()
-            if self.value_container:
-                values = [
-                    self.value_container._serialize(item, attr, obj, **kwargs) for item in values
-                ]
-            keys = value.keys()
-            if self.key_container:
-                keys = [self.key_container._serialize(key, attr, obj, **kwargs) for key in keys]
-            return dict(zip(keys, values))
-        self.fail('invalid')
+        if not isinstance(value, Mapping):
+            self.fail('invalid')
+
+        # Serialize keys
+        if self.key_container is None:
+            keys = {k: k for k in value.keys()}
+        else:
+            keys = {
+                k: self.key_container._serialize(k, None, None, **kwargs)
+                for k in value.keys()
+            }
+
+        # Serialize values
+        # Note: the dict type (dict, OrderedDict,...) of the value is lost
+        if self.value_container is None:
+            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+        else:
+            result = {
+                keys[k]: self.value_container._serialize(v, None, None, **kwargs)
+                for k, v in iteritems(value)
+            }
+
+        return result
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, Mapping):
@@ -1260,26 +1277,37 @@ class Dict(Field):
             return value
 
         errors = collections.defaultdict(dict)
-        values = list(value.values())
-        keys = list(value.keys())
-        if self.key_container:
-            for idx, key in enumerate(keys):
+
+        # Deserialize keys
+        if self.key_container is None:
+            keys = {k: k for k in value.keys()}
+        else:
+            keys = {}
+            for key in value.keys():
                 try:
-                    keys[idx] = self.key_container.deserialize(key)
-                except ValidationError as e:
-                    errors[key]['key'] = e.messages
-        if self.value_container:
-            for idx, item in enumerate(values):
+                    keys[key] = self.key_container.deserialize(key)
+                except ValidationError as error:
+                    errors[key]['key'] = error.messages
+
+        # Deserialize values
+        # Note: the dict type (dict, OrderedDict,...) of the value is lost
+        if self.value_container is None:
+            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+        else:
+            result = {}
+            for key, val in iteritems(value):
                 try:
-                    values[idx] = self.value_container.deserialize(item)
-                except ValidationError as e:
-                    values[idx] = e.data
-                    key = keys[idx]
-                    errors[key]['value'] = e.messages
-        result = dict(zip(keys, values))
+                    deser_val = self.value_container.deserialize(val)
+                except ValidationError as error:
+                    errors[key]['value'] = error.messages
+                    if error.valid_data is not None and key in keys:
+                        result[keys[key]] = error.valid_data
+                else:
+                    if key in keys:
+                        result[keys[key]] = deser_val
 
         if errors:
-            raise ValidationError(errors, data=result)
+            raise ValidationError(errors, valid_data=result)
 
         return result
 

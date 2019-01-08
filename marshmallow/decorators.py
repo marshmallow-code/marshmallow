@@ -162,14 +162,14 @@ def set_hook(fn, key, **kwargs):
     if fn is None:
         return functools.partial(set_hook, key=key, **kwargs)
 
-    # Set a marshmallow_tags attribute instead of wrapping in some class,
+    # Set a __marshmallow_hook__ attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
     try:
         hook_config = fn.__marshmallow_hook__
     except AttributeError:
         fn.__marshmallow_hook__ = hook_config = {}
     # Also save the kwargs for the tagged function on
-    # __marshmallow_tags__, keyed by (<tag>, <pass_many>)
+    # __marshmallow_hook__, keyed by (<tag>, <pass_many>)
     hook_config[key] = kwargs
 
     return fn

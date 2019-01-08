@@ -1,6 +1,44 @@
 Changelog
 ---------
 
+3.0.0rc3 (unreleased)
+*********************
+
+Features:
+
+- ``fields.Boolean`` parses ``"yes"``/``"no"`` values (:pr:`1081`).
+  Thanks :user:`r1b`.
+
+Other changes:
+
+- *Backwards-incompatible with previous 3.x versions*: Change ordering
+  of ``keys`` and ``values`` arguments to ``fields.Dict``.
+- Remove unused code in `marshmallow.utils`: ``is_indexable_but_not_string``,
+  ``float_to_decimal``, ``decimal_to_fixed``, ``from_iso`` (:pr:`1088`).
+- Remove unused ``marshmallow.compat.string_types``.
+
+3.0.0rc2 (2019-01-03)
++++++++++++++++++++++
+
+Features:
+
+- Add ``register`` *class Meta* option to allow bypassing marshmallow's
+  internal class registry when memory usage is critical (:issue:`660`).
+
+Bug fixes:
+
+- Fix serializing dict-like objects with properties (:issue:`1060`).
+  Thanks :user:`taion` for the fix.
+- Fix populating ``ValidationError.valid_data`` for ``List`` and
+  ``Dict`` fields (:issue:`766`).
+
+Other changes:
+
+- Add ``marshmallow.__version_info__`` (:pr:`1074`).
+- Remove the ``marshmallow.marshalling`` internal module (:pr:`1070`).
+- A ``ValueError`` is raised when the ``missing`` parameter is passed
+  for required fields (:issue:`1040`).
+
 3.0.0rc1 (2018-11-29)
 +++++++++++++++++++++
 
@@ -267,7 +305,7 @@ Other changes:
 
 Support:
 
-- Add `Code of Conduct <http://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
+- Add `Code of Conduct <https://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
 
 
 3.0.0b6 (2018-01-02)
@@ -392,6 +430,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.17.0 (2018-12-26)
++++++++++++++++++++
+
+Features:
+
+- Add ``marshmallow.__version_info__`` (:pr:`1074`).
+- Add warnings for API that is deprecated or changed to help users
+  prepare for marshmallow 3 (:pr:`1075`).
 
 2.16.3 (2018-11-01)
 +++++++++++++++++++

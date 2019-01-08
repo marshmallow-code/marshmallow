@@ -12,8 +12,10 @@ import inspect
 import json
 import warnings
 
-from marshmallow import base, fields, utils, class_registry, marshalling
-from marshmallow.compat import iteritems, iterkeys, with_metaclass, text_type, binary_type
+from marshmallow import base, fields as ma_fields, class_registry
+from marshmallow.error_store import ErrorStore
+from marshmallow.fields import Nested
+from marshmallow.compat import iteritems, iterkeys, with_metaclass, text_type, binary_type, Mapping
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
@@ -24,7 +26,10 @@ from marshmallow.decorators import (
     VALIDATES,
     VALIDATES_SCHEMA,
 )
-from marshmallow.utils import RAISE, missing, is_collection
+from marshmallow.utils import (
+    RAISE, EXCLUDE, INCLUDE, missing, set_value, get_value,
+    is_collection, is_instance_or_subclass, is_iterable_but_not_string,
+)
 
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
@@ -37,7 +42,7 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     fields = [
         (field_name, field_value)
         for field_name, field_value in iteritems(attrs)
-        if utils.is_instance_or_subclass(field_value, field_class)
+        if is_instance_or_subclass(field_value, field_class)
     ]
     if pop:
         for field_name, _ in fields:
@@ -132,7 +137,7 @@ class SchemaMeta(type):
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
         super(SchemaMeta, self).__init__(name, bases, attrs)
-        if name:
+        if name and self.opts.register:
             class_registry.register(name, self)
         self._hooks = self.resolve_hooks()
 
@@ -211,6 +216,7 @@ class SchemaOpts(object):
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
         self.unknown = getattr(meta, 'unknown', RAISE)
+        self.register = getattr(meta, 'register', True)
 
 
 class BaseSchema(base.SchemaABC):
@@ -272,20 +278,20 @@ class BaseSchema(base.SchemaABC):
         `handle_error` and `get_attribute` methods instead.
     """
     TYPE_MAPPING = {
-        text_type: fields.String,
-        binary_type: fields.String,
-        dt.datetime: fields.DateTime,
-        float: fields.Float,
-        bool: fields.Boolean,
-        tuple: fields.Raw,
-        list: fields.Raw,
-        set: fields.Raw,
-        int: fields.Integer,
-        uuid.UUID: fields.UUID,
-        dt.time: fields.Time,
-        dt.date: fields.Date,
-        dt.timedelta: fields.TimeDelta,
-        decimal.Decimal: fields.Decimal,
+        text_type: ma_fields.String,
+        binary_type: ma_fields.String,
+        dt.datetime: ma_fields.DateTime,
+        float: ma_fields.Float,
+        bool: ma_fields.Boolean,
+        tuple: ma_fields.Raw,
+        list: ma_fields.Raw,
+        set: ma_fields.Raw,
+        int: ma_fields.Integer,
+        uuid.UUID: ma_fields.UUID,
+        dt.time: ma_fields.Time,
+        dt.date: ma_fields.Date,
+        dt.timedelta: ma_fields.TimeDelta,
+        decimal.Decimal: ma_fields.Decimal,
     }
 
     deserialization_error_messages = {}  # Override this to customize deserialization error messages
@@ -326,6 +332,10 @@ class BaseSchema(base.SchemaABC):
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        - ``register``: Whether to register the `Schema` with marshmallow's internal
+            class registry. Must be `True` if you intend to refer to this `Schema`
+            by class name in `Nested` fields. Only set this to `False` when memory
+            usage is critical. Defaults to `True`.
         """
         pass
 
@@ -386,9 +396,86 @@ class BaseSchema(base.SchemaABC):
         .. versionchanged:: 3.0.0a1
             Changed position of ``obj`` and ``attr``.
         """
-        return utils.get_value(obj, attr, default)
+        return get_value(obj, attr, default)
 
     ##### Serialization/Deserialization API #####
+
+    @staticmethod
+    def _call_and_store(getter_func, data, field_name, error_store, index=None):
+        """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
+
+        :param callable getter_func: Function for getting the serialized/deserialized
+            value from ``data``.
+        :param data: The data passed to ``getter_func``.
+        :param str field_name: Field name.
+        :param int index: Index of the item being validated, if validating a collection,
+            otherwise `None`.
+        """
+        try:
+            value = getter_func(data)
+        except ValidationError as err:
+            error_store.error_kwargs.update(err.kwargs)
+            error_store.store_error(err.messages, field_name, index=index)
+            # When a Nested field fails validation, the marshalled data is stored
+            # on the ValidationError's valid_data attribute
+            return err.valid_data or missing
+        return value
+
+    def _serialize(
+        self, obj, fields_dict, error_store, many=False,
+        accessor=None, dict_class=dict, index_errors=True,
+        index=None,
+    ):
+        """Takes raw data (a dict, list, or other object) and a dict of
+        fields to output and serializes the data based on those fields.
+
+        :param obj: The actual object(s) from which the fields are taken from
+        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
+        :param ErrorStore error_store: Structure to store errors.
+        :param bool many: Set to `True` if ``data`` should be serialized as
+            a collection.
+        :param callable accessor: Function to use for getting values from ``obj``.
+        :param type dict_class: Dictionary class used to construct the output.
+        :param bool index_errors: Whether to store the index of invalid items in
+            ``self.errors`` when ``many=True``.
+        :param int index: Index of the item being serialized (for storing errors) if
+            serializing a collection, otherwise `None`.
+        :return: A dictionary of the marshalled data
+
+        .. versionchanged:: 1.0.0
+            Renamed from ``marshal``.
+        """
+        index = index if index_errors else None
+        if many and obj is not None:
+            self._pending = True
+            ret = [
+                self._serialize(
+                    d, fields_dict, error_store, many=False,
+                    dict_class=dict_class, accessor=accessor,
+                    index=idx, index_errors=index_errors,
+                )
+                for idx, d in enumerate(obj)
+            ]
+            self._pending = False
+            return ret
+        items = []
+        for attr_name, field_obj in iteritems(fields_dict):
+            if getattr(field_obj, 'load_only', False):
+                continue
+            key = field_obj.data_key or attr_name
+            getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
+            value = self._call_and_store(
+                getter_func=getter,
+                data=obj,
+                field_name=key,
+                error_store=error_store,
+                index=index,
+            )
+            if value is missing:
+                continue
+            items.append((key, value))
+        ret = dict_class(items)
+        return ret
 
     def dump(self, obj, many=None):
         """Serialize an object to native Python data types according to this
@@ -406,11 +493,10 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
-        # Callable marshalling object
-        marshal = marshalling.Marshaller()
+        error_store = ErrorStore()
         errors = {}
         many = self.many if many is None else bool(many)
-        if many and utils.is_iterable_but_not_string(obj):
+        if many and is_iterable_but_not_string(obj):
             obj = list(obj)
 
         if self._has_processors(PRE_DUMP):
@@ -428,15 +514,16 @@ class BaseSchema(base.SchemaABC):
             processed_obj = obj
 
         if not errors:
-            result = marshal(
+            result = self._serialize(
                 processed_obj,
                 self.fields,
+                error_store,
                 many=many,
                 accessor=self.get_attribute,
                 dict_class=self.dict_class,
                 index_errors=self.opts.index_errors,
             )
-            errors = marshal.errors
+            errors = error_store.errors
 
         if not errors and self._has_processors(POST_DUMP):
             try:
@@ -453,7 +540,7 @@ class BaseSchema(base.SchemaABC):
                 errors,
                 data=obj,
                 valid_data=result,
-                **marshal.error_kwargs
+                **error_store.error_kwargs
             )
             # User-defined error handler
             self.handle_error(exc, obj)
@@ -478,6 +565,110 @@ class BaseSchema(base.SchemaABC):
         """
         serialized = self.dump(obj, many=many)
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
+
+    def _deserialize(
+        self, data, fields_dict, error_store, many=False, partial=False,
+        unknown=RAISE, dict_class=dict, index_errors=True, index=None,
+    ):
+        """Deserialize ``data`` based on the schema defined by ``fields_dict``.
+
+        :param dict data: The data to deserialize.
+        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
+        :param ErrorStore error_store: Structure to store errors.
+        :param bool many: Set to `True` if ``data`` should be deserialized as
+            a collection.
+        :param bool|tuple partial: Whether to ignore missing fields. If its
+            value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
+        :param unknown: Whether to exclude, include, or raise an error for unknown
+            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        :param type dict_class: Dictionary class used to construct the output.
+        :param bool index_errors: Whether to store the index of invalid items in
+            ``self.errors`` when ``many=True``.
+        :param int index: Index of the item being serialized (for storing errors) if
+            serializing a collection, otherwise `None`.
+        :return: A dictionary of the deserialized data.
+        """
+        index = index if index_errors else None
+        if many:
+            if not is_collection(data):
+                error_store.store_error(['Invalid input type.'], index=index)
+                ret = []
+            else:
+                self._pending = True
+                ret = [
+                    self._deserialize(
+                        d, fields_dict, error_store, many=False,
+                        partial=partial, unknown=unknown,
+                        dict_class=dict_class, index=idx,
+                        index_errors=index_errors,
+                    )
+                    for idx, d in enumerate(data)
+                ]
+                self._pending = False
+            return ret
+        ret = dict_class()
+        # Check data is a dict
+        if not isinstance(data, Mapping):
+            error_store.store_error(['Invalid input type.'], index=index)
+        else:
+            partial_is_collection = is_collection(partial)
+            for attr_name, field_obj in iteritems(fields_dict):
+                if field_obj.dump_only:
+                    continue
+                field_name = attr_name
+                if field_obj.data_key:
+                    field_name = field_obj.data_key
+                raw_value = data.get(field_name, missing)
+                if raw_value is missing:
+                    # Ignore missing field if we're allowed to.
+                    if (
+                        partial is True or
+                        (partial_is_collection and attr_name in partial)
+                    ):
+                        continue
+                d_kwargs = {}
+                if isinstance(field_obj, Nested):
+                    # Allow partial loading of nested schemas.
+                    if partial_is_collection:
+                        prefix = field_name + '.'
+                        len_prefix = len(prefix)
+                        sub_partial = [f[len_prefix:]
+                                       for f in partial if f.startswith(prefix)]
+                    else:
+                        sub_partial = partial
+                    d_kwargs['partial'] = sub_partial
+                getter = lambda val: field_obj.deserialize(
+                    val, field_name,
+                    data, **d_kwargs
+                )
+                value = self._call_and_store(
+                    getter_func=getter,
+                    data=raw_value,
+                    field_name=field_name,
+                    error_store=error_store,
+                    index=index,
+                )
+                if value is not missing:
+                    key = fields_dict[attr_name].attribute or attr_name
+                    set_value(ret, key, value)
+            if unknown != EXCLUDE:
+                fields = {
+                    field_obj.data_key or field_name
+                    for field_name, field_obj in fields_dict.items()
+                    if not field_obj.dump_only
+                }
+                for key in set(data) - fields:
+                    value = data[key]
+                    if unknown == INCLUDE:
+                        set_value(ret, key, value)
+                    elif unknown == RAISE:
+                        error_store.store_error(
+                            ['Unknown field.'],
+                            key,
+                            (index if index_errors else None),
+                        )
+        return ret
 
     def load(self, data, many=None, partial=None, unknown=None):
         """Deserialize a data structure to an object defined by this Schema's fields.
@@ -534,6 +725,20 @@ class BaseSchema(base.SchemaABC):
         data = self.opts.render_module.loads(json_data, **kwargs)
         return self.load(data, many=many, partial=partial, unknown=unknown)
 
+    def _run_validator(
+        self, validator_func, output,
+        original_data, fields_dict, error_store, index=None,
+        many=False, pass_original=False,
+    ):
+        try:
+            if pass_original:  # Pass original, raw data (before unmarshalling)
+                validator_func(output, original_data)
+            else:
+                validator_func(output)
+        except ValidationError as err:
+            error_store.error_kwargs.update(err.kwargs)
+            error_store.store_error(err.messages, err.field_name, index=index)
+
     def validate(self, data, many=None, partial=None):
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
@@ -578,8 +783,7 @@ class BaseSchema(base.SchemaABC):
         :return: A dict of deserialized data
         :rtype: dict
         """
-        # Callable unmarshalling object
-        unmarshal = marshalling.Unmarshaller(self.deserialization_error_messages)
+        error_store = ErrorStore()
         errors = {}
         many = self.many if many is None else bool(many)
         unknown = unknown or self.unknown
@@ -601,9 +805,10 @@ class BaseSchema(base.SchemaABC):
             processed_data = data
         if not errors:
             # Deserialize data
-            result = unmarshal(
+            result = self._deserialize(
                 processed_data,
                 self.fields,
+                error_store,
                 many=many,
                 partial=partial,
                 unknown=unknown,
@@ -611,12 +816,12 @@ class BaseSchema(base.SchemaABC):
                 index_errors=self.opts.index_errors,
             )
             # Run field-level validation
-            self._invoke_field_validators(unmarshal, data=result, many=many)
+            self._invoke_field_validators(error_store, data=result, many=many)
             # Run schema-level validation
             if self._has_processors(VALIDATES_SCHEMA):
-                field_errors = bool(unmarshal.errors)
+                field_errors = bool(error_store.errors)
                 self._invoke_schema_validators(
-                    unmarshal,
+                    error_store,
                     pass_many=True,
                     data=result,
                     original_data=data,
@@ -624,14 +829,14 @@ class BaseSchema(base.SchemaABC):
                     field_errors=field_errors,
                 )
                 self._invoke_schema_validators(
-                    unmarshal,
+                    error_store,
                     pass_many=False,
                     data=result,
                     original_data=data,
                     many=many,
                     field_errors=field_errors,
                 )
-            errors = unmarshal.errors
+            errors = error_store.errors
             # Run post processors
             if not errors and postprocess and self._has_processors(POST_LOAD):
                 try:
@@ -648,7 +853,7 @@ class BaseSchema(base.SchemaABC):
                 errors,
                 data=data,
                 valid_data=result,
-                **unmarshal.error_kwargs
+                **error_store.error_kwargs
             )
             self.handle_error(exc, data)
             raise exc
@@ -732,7 +937,7 @@ class BaseSchema(base.SchemaABC):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, fields.Inferred())
+            field_obj = self.declared_fields.get(field_name, ma_fields.Inferred())
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
@@ -823,7 +1028,7 @@ class BaseSchema(base.SchemaABC):
         )
         return data
 
-    def _invoke_field_validators(self, unmarshal, data, many):
+    def _invoke_field_validators(self, error_store, data, many):
         for attr_name in self._hooks[VALIDATES]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_hook__[VALIDATES]
@@ -843,10 +1048,11 @@ class BaseSchema(base.SchemaABC):
                     except KeyError:
                         pass
                     else:
-                        validated_value = unmarshal.call_and_store(
+                        validated_value = self._call_and_store(
                             getter_func=validator,
                             data=value,
                             field_name=field_obj.data_key or field_name,
+                            error_store=error_store,
                             index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
@@ -857,17 +1063,18 @@ class BaseSchema(base.SchemaABC):
                 except KeyError:
                     pass
                 else:
-                    validated_value = unmarshal.call_and_store(
+                    validated_value = self._call_and_store(
                         getter_func=validator,
                         data=value,
                         field_name=field_obj.data_key or field_name,
+                        error_store=error_store,
                     )
                     if validated_value is missing:
                         data.pop(field_name, None)
 
     def _invoke_schema_validators(
         self,
-        unmarshal,
+        error_store,
         pass_many,
         data,
         original_data,
@@ -885,21 +1092,23 @@ class BaseSchema(base.SchemaABC):
                 validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
-                    unmarshal.run_validator(
+                    self._run_validator(
                         validator,
                         item,
                         orig,
                         self.fields,
+                        error_store,
                         many=many,
                         index=idx,
                         pass_original=pass_original,
                     )
             else:
-                unmarshal.run_validator(
+                self._run_validator(
                     validator,
                     data,
                     original_data,
                     self.fields,
+                    error_store,
                     many=many,
                     pass_original=pass_original,
                 )

@@ -48,18 +48,22 @@ class PointClass(object):
         self.x = x
         self.y = y
 
+class PointDict(dict):
+    def __init__(self, x, y):
+        super(PointDict, self).__init__({'x': x})
+        self.y = y
+
 @pytest.mark.parametrize(
     'obj', [
         PointNT(24, 42),
         PointClass(24, 42),
+        PointDict(24, 42),
         {'x': 24, 'y': 42},
     ],
 )
 def test_get_value_from_object(obj):
-    result = utils.get_value(obj, 'x')
-    assert result == 24
-    result2 = utils.get_value(obj, 'y')
-    assert result2 == 42
+    assert utils.get_value(obj, 'x') == 24
+    assert utils.get_value(obj, 'y') == 42
 
 def test_get_value_from_namedtuple_with_default():
     p = PointNT(x=42, y=None)

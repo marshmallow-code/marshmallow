@@ -13,7 +13,6 @@ if PY2:
     urlparse = urlparse
     text_type = unicode
     binary_type = str
-    string_types = (str, unicode)
     unicode = unicode
     basestring = basestring
     iterkeys = lambda d: d.iterkeys()
@@ -27,7 +26,6 @@ else:
     urlparse = urllib.parse
     text_type = str
     binary_type = bytes
-    string_types = (str,)
     unicode = str
     basestring = (str, bytes)
     iterkeys = lambda d: d.keys()

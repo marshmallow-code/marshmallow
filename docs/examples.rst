@@ -4,12 +4,83 @@
 Examples
 ********
 
-The examples below will use `httpie <http://github.com/jkbr/httpie>`_ (a curl-like tool) for testing the APIs.
+Validating ``package.json``
+===========================
+
+marshmallow can be used to validate configuration according to a schema.
+Below is a schema that could be used to validate
+``package.json`` files. This example demonstrates the following features:
+
+
+- Validation and deserialization using :meth:`Schema.load`
+- :doc:`Custom fields <custom_fields>`
+- Specifying deserialization keys using ``data_key``
+- Including unknown keys using ``unknown = INCLUDE``
+
+.. literalinclude:: ../examples/package_json_example.py
+    :language: python
+
+
+Given the following ``package.json`` file...
+
+.. code-block:: json
+
+    {
+      "name": "dunderscore",
+      "version": "1.2.3",
+      "description": "The Pythonic JavaScript toolkit",
+      "devDependencies": {
+        "pest": "^23.4.1"
+      },
+      "main": "index.js",
+      "scripts": {
+        "test": "pest"
+      },
+      "license": "MIT"
+    }
+
+
+We can validate it using the above script.
+
+.. code-block:: bash
+
+    $ python examples/package_json_example.py < package.json
+    {'description': 'The Pythonic JavaScript toolkit',
+    'dev_dependencies': {'pest': '^23.4.1'},
+    'license': 'MIT',
+    'main': 'index.js',
+    'name': 'dunderscore',
+    'scripts': {'test': 'pest'},
+    'version': <Version('1.2.3')>}
+
+Notice that our custom field deserialized the version string to a ``Version`` object.
+
+But if we pass an invalid package.json file...
+
+.. code-block:: json
+
+    {
+      "name": "dunderscore",
+      "version": "INVALID",
+      "homepage": "INVALID",
+      "description": "The Pythonic JavaScript toolkit",
+      "license": "MIT"
+    }
+
+We see the corresponding error messages.
+
+.. code-block:: bash
+
+    $ python examples/package_json_example.py < invalid_package.json
+    ERROR: package.json is invalid
+    {'homepage': ['Not a valid URL.'], 'version': ['Not a valid version.']}
+
+
 
 Text Analysis API (Bottle + TextBlob)
 =====================================
 
-Here is a very simple text analysis API using `Bottle <http://bottlepy.org>`_ and `TextBlob <http://textblob.readthedocs.io/>`_ that demonstrates how to declare an object serializer.
+Here is a very simple text analysis API using `Bottle <https://bottlepy.org>`_ and `TextBlob <https://textblob.readthedocs.io/>`_ that demonstrates how to declare an object serializer.
 
 Assume that ``TextBlob`` objects have ``polarity``, ``subjectivity``, ``noun_phrase``, ``tags``, and ``words`` properties.
 
@@ -22,12 +93,14 @@ First, run the app.
 
 .. code-block:: bash
 
-    $ python textblob_example.py
+    $ python examples/textblob_example.py
 
-Then send a POST request with some text.
+Then send a POST request with some text with `httpie <https://github.com/jkbr/httpie>`_ (a curl-like tool) for testing the APIs.
+
 
 .. code-block:: bash
 
+    $ pip install httpie
     $ http POST :5000/api/v1/analyze text="Simple is better"
     HTTP/1.0 200 OK
     Content-Length: 189
@@ -63,14 +136,13 @@ Then send a POST request with some text.
 Quotes API (Flask + SQLAlchemy)
 ================================
 
-Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <http://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
+Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <https://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
-    - Validation and deserialization using :meth:`Schema.load`.
-    - Custom validation
-    - Nesting fields
-    - Using ``dump_only=True`` to specify read-only fields
-    - Output filtering using the ``only`` parameter
-    - Using `@pre_load <marshmallow.decorators.pre_load>` to preprocess input data.
+- Custom validation
+- Nesting fields
+- Using ``dump_only=True`` to specify read-only fields
+- Output filtering using the ``only`` parameter
+- Using `@pre_load <marshmallow.decorators.pre_load>` to preprocess input data.
 
 .. literalinclude:: ../examples/flask_example.py
     :language: python
@@ -82,12 +154,13 @@ Run the app.
 
 .. code-block:: bash
 
-    $ python flask_example.py
+    $ python examples/flask_example.py
 
 First we'll POST some quotes.
 
 .. code-block:: bash
 
+    $ pip install httpie
     $ http POST :5000/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
     $ http POST :5000/quotes/ author="Tim Peters" content="Now is better than never."
     $ http POST :5000/quotes/ author="Peter Hintjens" content="Simplicity is always better than functionality."
@@ -97,6 +170,7 @@ If we provide invalid input data, we get 400 error response. Let's omit "author"
 
 .. code-block:: bash
 
+    $ pip install httpie
     $ http POST :5000/quotes/ content="I have no author"
     {
         "author": [
@@ -153,7 +227,7 @@ We can also GET the quotes for a single author.
 ToDo API (Flask + Peewee)
 =========================
 
-This example uses Flask and the `Peewee <http://peewee.readthedocs.io/en/latest/index.html>`_ ORM to create a basic Todo application.
+This example uses Flask and the `Peewee <https://peewee.readthedocs.io/en/latest/index.html>`_ ORM to create a basic Todo application.
 
 Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize input data to model data. Also notice how `pre_load <marshmallow.decorators.pre_load>` is used to clean input data and `post_load <marshmallow.decorators.post_load>` is used to add an envelope to response data.
 
@@ -166,6 +240,7 @@ After registering a user and creating some todo items in the database, here is a
 
 .. code-block:: bash
 
+    $ pip install httpie
     $ http GET :5000/todos/
     {
         "todos": [

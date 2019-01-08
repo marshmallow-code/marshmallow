@@ -4,14 +4,14 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    'reco': ['python-dateutil', 'simplejson'],
+    'reco': ['python-dateutil>=2.7.0', 'simplejson'],
     'tests': [
         'pytest',
         'pytz',
     ],
     'lint': [
         'flake8==3.6.0',
-        'pre-commit==1.12.0',
+        'pre-commit==1.13.0',
     ],
 }
 EXTRAS_REQUIRE['dev'] = (

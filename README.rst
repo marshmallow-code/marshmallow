@@ -2,16 +2,16 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badge.fury.io/py/marshmallow.svg
-    :target: http://badge.fury.io/py/marshmallow
+.. image:: https://badgen.net/pypi/v/marshmallow
+    :target: https://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
+.. image:: https://badgen.net/travis/marshmallow-code/marshmallow/dev
     :target: https://travis-ci.org/marshmallow-code/marshmallow
     :alt: Travis-CI
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
-   :target: http://marshmallow.readthedocs.io/
+   :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
@@ -57,7 +57,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at http://marshmallow.readthedocs.io/ .
+Full documentation is available at https://marshmallow.readthedocs.io/ .
 
 Requirements
 ============
@@ -123,7 +123,7 @@ Your logo will show up here with a link to your website. [`Become a sponsor`_]
     :alt: Become a sponsor
 
 
-Professional support
+Professional Support
 ====================
 
 Professionally-supported marshmallow is now available through the
@@ -139,11 +139,18 @@ while seamlessly integrating with existing tools. [`Get professional support`_]
     :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
     :alt: Get supported marshmallow with Tidelift
 
+Security Contact Information
+============================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
+
 Project Links
 =============
 
-- Docs: http://marshmallow.readthedocs.io/
-- Changelog: http://marshmallow.readthedocs.io/en/latest/changelog.html
+- Docs: https://marshmallow.readthedocs.io/
+- Changelog: https://marshmallow.readthedocs.io/en/latest/changelog.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow
@@ -151,4 +158,4 @@ Project Links
 License
 =======
 
-MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/pypi/LICENSE>`_ file for more details.
+MIT licensed. See the bundled `LICENSE <https://github.com/marshmallow-code/marshmallow/blob/dev/LICENSE>`_ file for more details.
