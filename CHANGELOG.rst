@@ -6,6 +6,8 @@ Changelog
 
 Features:
 
+- Make the error messages for "unknown fields" and "invalid data type"
+  configurable (:issue:`852`). Thanks :user:`Dunstrom` for the PR.
 - ``fields.Boolean`` parses ``"yes"``/``"no"`` values (:pr:`1081`).
   Thanks :user:`r1b`.
 
