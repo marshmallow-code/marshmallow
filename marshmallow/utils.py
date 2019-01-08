@@ -10,9 +10,7 @@ import json
 import re
 import time
 import types
-import warnings
 from calendar import timegm
-from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
@@ -60,11 +58,6 @@ def is_iterable_but_not_string(obj):
     )
 
 
-def is_indexable_but_not_string(obj):
-    """Return True if ``obj`` is indexable but isn't a string."""
-    return not hasattr(obj, 'strip') and hasattr(obj, '__getitem__')
-
-
 def is_collection(obj):
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
@@ -82,27 +75,6 @@ def is_keyed_tuple(obj):
     namedtuples or SQLAlchemy's KeyedTuples.
     """
     return isinstance(obj, tuple) and hasattr(obj, '_fields')
-
-def float_to_decimal(f):
-    """Convert a floating point number to a Decimal with no loss of information.
-        See: https://docs.python.org/release/2.6.7/library/decimal.html#decimal-faq
-    """
-    n, d = f.as_integer_ratio()
-    numerator, denominator = Decimal(n), Decimal(d)
-    ctx = Context(prec=60)
-    result = ctx.divide(numerator, denominator)
-    while ctx.flags[Inexact]:
-        ctx.flags[Inexact] = False
-        ctx.prec *= 2
-        result = ctx.divide(numerator, denominator)
-    return result
-
-
-ZERO_DECIMAL = Decimal()
-
-def decimal_to_fixed(value, precision):
-    """Convert a `Decimal` to a fixed-precision number as a string."""
-    return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
 
 
 def to_marshallable_type(obj, field_names=None):
@@ -141,7 +113,6 @@ def pprint(obj, *args, **kwargs):
 
 # From pytz: http://pytz.sourceforge.net/
 ZERO = datetime.timedelta(0)
-HOUR = datetime.timedelta(hours=1)
 
 
 class UTC(datetime.tzinfo):
@@ -268,11 +239,6 @@ def from_rfc(datestring, use_dateutil=True):
         parsed = parsedate(datestring)  # as a tuple
         timestamp = time.mktime(parsed)
         return datetime.datetime.fromtimestamp(timestamp)
-
-
-def from_iso(datestring, use_dateutil=True):
-    warnings.warn('from_iso is deprecated. Use from_iso_datetime instead.', UserWarning)
-    return from_iso_datetime(datestring, use_dateutil)
 
 
 def from_iso_datetime(datetimestring, use_dateutil=True):
