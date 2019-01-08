@@ -293,8 +293,7 @@ class BaseSchema(base.SchemaABC):
         dt.timedelta: ma_fields.TimeDelta,
         decimal.Decimal: ma_fields.Decimal,
     }
-
-    # Override to customize error messages
+    #: Overrides for default schema-level error messages
     error_messages = {}
 
     _default_error_messages = {

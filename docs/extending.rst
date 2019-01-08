@@ -466,8 +466,8 @@ The ``context`` attribute of a `Schema` is a general-purpose store for extra inf
 Custom Error Messages
 ---------------------
 
-You can customize the error messages that `dump<marshmallow.Schema.dump>` and `dumps<marshmallow.Schema.dumps>` uses when raising a `ValidationError<marshmallow.ValidationError>`.
-You do this by overriding the `Schemas<marshmallow.Schema>` error_messages field like this:
+You can customize the error messages that `dump <marshmallow.Schema.dump>` and `dumps <marshmallow.Schema.dumps>` uses when raising a `ValidationError <marshmallow.exceptions.ValidationError>`.
+You do this by overriding the ``error_messages`` class variable:
 
 .. code-block:: python
 
