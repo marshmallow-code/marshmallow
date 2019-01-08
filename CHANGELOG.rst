@@ -9,6 +9,12 @@ Features:
 - ``fields.Boolean`` parses ``"yes"``/``"no"`` values (:pr:`1081`).
   Thanks :user:`r1b`.
 
+Other changes:
+
+- Remove unused code in `marshmallow.utils`: ``is_indexable_but_not_string``,
+  ``float_to_decimal``, ``decimal_to_fixed``, ``from_iso`` (:pr:`1088`).
+- Remove unused ``marshmallow.compat.string_types``.
+
 3.0.0rc2 (2019-01-03)
 +++++++++++++++++++++
 
