@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.18.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Add warnings for functions in ``marshmallow.utils`` that is removed in
+  marshmallow 3.
+
 2.17.0 (2018-12-26)
 +++++++++++++++++++
 

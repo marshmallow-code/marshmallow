@@ -16,6 +16,7 @@ from pprint import pprint as py_pprint
 from marshmallow.compat import OrderedDict, binary_type, text_type
 from marshmallow.compat import get_func_args as compat_get_func_args
 from marshmallow.compat import Mapping, Iterable
+from marshmallow.warnings import unused_and_removed_in_ma3
 
 
 dateutil_available = False
@@ -54,7 +55,7 @@ def is_iterable_but_not_string(obj):
         (isinstance(obj, Iterable) and not hasattr(obj, "strip")) or is_generator(obj)
     )
 
-
+@unused_and_removed_in_ma3
 def is_indexable_but_not_string(obj):
     """Return True if ``obj`` is indexable but isn't a string."""
     return not hasattr(obj, "strip") and hasattr(obj, "__getitem__")
@@ -78,6 +79,7 @@ def is_keyed_tuple(obj):
     """
     return isinstance(obj, tuple) and hasattr(obj, '_fields')
 
+@unused_and_removed_in_ma3
 def float_to_decimal(f):
     """Convert a floating point number to a Decimal with no loss of information.
         See: http://docs.python.org/release/2.6.7/library/decimal.html#decimal-faq
@@ -95,6 +97,7 @@ def float_to_decimal(f):
 
 ZERO_DECIMAL = Decimal()
 
+@unused_and_removed_in_ma3
 def decimal_to_fixed(value, precision):
     """Convert a `Decimal` to a fixed-precision number as a string."""
     return text_type(value.quantize(precision, rounding=ROUND_HALF_EVEN))
