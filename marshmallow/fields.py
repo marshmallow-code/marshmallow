@@ -1263,13 +1263,14 @@ class Dict(Field):
             }
 
         # Serialize values
+        result = self.loader()
         if self.value_container is None:
-            result = self.loader([(keys[k], v) for k, v in iteritems(value) if k in keys])
+            for k, v in iteritems(value):
+                if k in keys:
+                    result[keys[k]] = v
         else:
-            result = self.loader([
-                (keys[k], self.value_container._serialize(v, None, None, **kwargs))
-                for k, v in iteritems(value)
-            ])
+            for k, v in iteritems(value):
+                result[keys[k]] = self.value_container._serialize(v, None, None, **kwargs)
 
         return result
 
@@ -1293,11 +1294,12 @@ class Dict(Field):
                     errors[key]['key'] = error.messages
 
         # Deserialize values
-        # Note: the dict type (dict, OrderedDict,...) of the value is lost
+        result = self.dumper()
         if self.value_container is None:
-            result = self.dumper([(keys[k], v) for k, v in iteritems(value) if k in keys])
+            for k, v in iteritems(value):
+                if k in keys:
+                    result[keys[k]] = v
         else:
-            result = self.dumper()
             for key, val in iteritems(value):
                 try:
                     deser_val = self.value_container.deserialize(val)
