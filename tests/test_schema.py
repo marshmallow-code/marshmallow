@@ -1308,18 +1308,13 @@ class TestDeeplyNestedLoadOnly:
         assert 'str_regular' in grand_child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data, unknown=EXCLUDE)
-        assert 'str_dump_only' not in result
-        assert 'str_load_only' in result
-        assert 'str_regular' in result
-        child = result['child']
-        assert 'str_dump_only' not in child
-        assert 'str_load_only' in child
-        assert 'str_regular' in child
-        grand_child = child['grand_child']
-        assert 'str_dump_only' not in grand_child
-        assert 'str_load_only' in grand_child
-        assert 'str_regular' in grand_child
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load(data)
+        errors = excinfo.value.messages
+        assert errors['str_dump_only'] == [u'Field may not be deserialized.']
+        assert errors['child']['str_dump_only'] == [u'Field may not be deserialized.']
+        assert errors['child']['grand_child']['str_dump_only'] == \
+                                            [u'Field may not be deserialized.']
 
 
 class TestDeeplyNestedListLoadOnly:
@@ -1366,14 +1361,11 @@ class TestDeeplyNestedListLoadOnly:
         assert 'str_regular' in child
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data, unknown=EXCLUDE)
-        assert 'str_dump_only' not in result
-        assert 'str_load_only' in result
-        assert 'str_regular' in result
-        child = result['child'][0]
-        assert 'str_dump_only' not in child
-        assert 'str_load_only' in child
-        assert 'str_regular' in child
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load(data)
+        errors = excinfo.value.messages
+        assert errors['str_dump_only'] == [u'Field may not be deserialized.']
+        assert errors['child'][0]['str_dump_only'] == [u'Field may not be deserialized.']
 
 
 def test_nested_constructor_only_and_exclude():
@@ -2705,10 +2697,10 @@ class TestLoadOnly:
         assert 'str_regular' in result
 
     def test_dump_only(self, schema, data):
-        result = schema.load(data, unknown=EXCLUDE)
-        assert 'str_dump_only' not in result
-        assert 'str_load_only' in result
-        assert 'str_regular' in result
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load(data)
+        errors = excinfo.value.messages
+        assert errors['str_dump_only'] == [u'Field may not be deserialized.']
 
     # regression test for https://github.com/marshmallow-code/marshmallow/pull/765
     def test_url_field_requre_tld_false(self):

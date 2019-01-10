@@ -122,6 +122,7 @@ class Field(FieldABC):
         'required': 'Missing data for required field.',
         'null': 'Field may not be null.',
         'validator_failed': 'Invalid value.',
+        'dump_only': 'Field may not be deserialized.',
     }
 
     def __init__(

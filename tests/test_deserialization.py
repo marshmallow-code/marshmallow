@@ -1182,10 +1182,11 @@ class TestSchemaDeserialization:
             'years': '42',
             'nicknames': ['Your Majesty', 'Brenda'],
         }
-        result = AliasingUserSerializer(unknown=EXCLUDE).load(data)
-        assert result['name'] == 'Mick'
-        assert 'years' not in result
-        assert 'nicknames' not in result
+        with pytest.raises(ValidationError) as excinfo:
+            AliasingUserSerializer().load(data)
+        errors = excinfo.value.messages
+        assert errors['years'] == [u'Field may not be deserialized.']
+        assert errors['nicknames'] == [u'Field may not be deserialized.']
 
     def test_deserialize_with_missing_param_value(self):
         bdate = dt.datetime(2017, 9, 29)
@@ -1502,21 +1503,6 @@ class TestSchemaDeserialization:
         assert 'bar' in err.messages
         assert err.messages['foo'] == ['Not a valid integer.']
         assert err.messages['bar'] == ['Unknown field.']
-
-    def test_dump_only_fields_considered_unknown(self):
-        class MySchema(Schema):
-            foo = fields.Int(dump_only=True)
-
-        with pytest.raises(ValidationError) as excinfo:
-            MySchema().load({'foo': 42})
-        err = excinfo.value
-        assert 'foo' in err.messages
-        assert err.messages['foo'] == ['Unknown field.']
-
-        # When unknown = INCLUDE, dump-only fields are included as unknown
-        # without any validation.
-        data = MySchema(unknown=INCLUDE).load({'foo': 'LOL'})
-        assert data['foo'] == 'LOL'
 
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])

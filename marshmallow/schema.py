@@ -623,8 +623,6 @@ class BaseSchema(base.SchemaABC):
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
-                if field_obj.dump_only:
-                    continue
                 field_name = attr_name
                 if field_obj.data_key:
                     field_name = field_obj.data_key
@@ -636,6 +634,13 @@ class BaseSchema(base.SchemaABC):
                         (partial_is_collection and attr_name in partial)
                     ):
                         continue
+                elif field_obj.dump_only:
+                    try:
+                        field_obj.fail('dump_only')
+                    except ValidationError as err:
+                        error_store.store_error(err.messages, attr_name, index=index)
+                    continue
+
                 d_kwargs = {}
                 if isinstance(field_obj, Nested):
                     # Allow partial loading of nested schemas.
@@ -665,7 +670,6 @@ class BaseSchema(base.SchemaABC):
                 fields = {
                     field_obj.data_key or field_name
                     for field_name, field_obj in fields_dict.items()
-                    if not field_obj.dump_only
                 }
                 for key in set(data) - fields:
                     value = data[key]
