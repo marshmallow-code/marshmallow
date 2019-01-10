@@ -425,7 +425,6 @@ class BaseSchema(base.SchemaABC):
         try:
             value = getter_func(data)
         except ValidationError as err:
-            error_store.error_kwargs.update(err.kwargs)
             error_store.store_error(err.messages, field_name, index=index)
             # When a Nested field fails validation, the marshalled data is stored
             # on the ValidationError's valid_data attribute
@@ -551,7 +550,6 @@ class BaseSchema(base.SchemaABC):
                 errors,
                 data=obj,
                 valid_data=result,
-                **error_store.error_kwargs
             )
             # User-defined error handler
             self.handle_error(exc, obj)
@@ -747,7 +745,6 @@ class BaseSchema(base.SchemaABC):
             else:
                 validator_func(output)
         except ValidationError as err:
-            error_store.error_kwargs.update(err.kwargs)
             error_store.store_error(err.messages, err.field_name, index=index)
 
     def validate(self, data, many=None, partial=None):
@@ -864,7 +861,6 @@ class BaseSchema(base.SchemaABC):
                 errors,
                 data=data,
                 valid_data=result,
-                **error_store.error_kwargs
             )
             self.handle_error(exc, data)
             raise exc
