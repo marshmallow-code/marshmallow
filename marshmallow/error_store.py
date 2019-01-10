@@ -20,8 +20,6 @@ class ErrorStore(object):
         self.errors = {}
         #: True while (de)serializing a collection
         self._pending = False
-        #: Dictionary of extra kwargs from user raised exception
-        self.error_kwargs = {}
 
     def store_error(self, messages, field_name=SCHEMA, index=None):
         # field error  -> store/merge error messages under field name key

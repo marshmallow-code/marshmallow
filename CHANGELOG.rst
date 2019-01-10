@@ -40,6 +40,9 @@ Other changes:
 - Remove the ``marshmallow.marshalling`` internal module (:pr:`1070`).
 - A ``ValueError`` is raised when the ``missing`` parameter is passed
   for required fields (:issue:`1040`).
+- Extra keyword arguments passed to ``ValidationError`` in validators
+  are no longer passed to the final ``ValidationError`` raised upon
+  validation completion (:issue:`996`).
 
 3.0.0rc1 (2018-11-29)
 +++++++++++++++++++++
