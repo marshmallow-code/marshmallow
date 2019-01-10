@@ -1182,6 +1182,8 @@ class Dict(Field):
 
     :param Field keys: A field class or instance for dict keys.
     :param Field values: A field class or instance for dict values.
+    :param type loader: The loader to use for loading objects. Defaults to dict
+    :param type dumper: The dumper to use for dumping objects. Defaults to dict
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. note::
@@ -1195,8 +1197,10 @@ class Dict(Field):
         'invalid': 'Not a valid mapping type.',
     }
 
-    def __init__(self, keys=None, values=None, **kwargs):
+    def __init__(self, keys=None, values=None, loader=dict, dumper=dict, **kwargs):
         super(Dict, self).__init__(**kwargs)
+        self.loader = loader
+        self.dumper = dumper
         if keys is None:
             self.key_container = None
         elif isinstance(keys, type):
@@ -1259,14 +1263,13 @@ class Dict(Field):
             }
 
         # Serialize values
-        # Note: the dict type (dict, OrderedDict,...) of the value is lost
         if self.value_container is None:
-            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+            result = self.loader([(keys[k], v) for k, v in iteritems(value) if k in keys])
         else:
-            result = {
-                keys[k]: self.value_container._serialize(v, None, None, **kwargs)
+            result = self.loader([
+                (keys[k], self.value_container._serialize(v, None, None, **kwargs))
                 for k, v in iteritems(value)
-            }
+            ])
 
         return result
 
@@ -1292,9 +1295,9 @@ class Dict(Field):
         # Deserialize values
         # Note: the dict type (dict, OrderedDict,...) of the value is lost
         if self.value_container is None:
-            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+            result = self.dumper([(keys[k], v) for k, v in iteritems(value) if k in keys])
         else:
-            result = {}
+            result = self.dumper()
             for key, val in iteritems(value):
                 try:
                     deser_val = self.value_container.deserialize(val)
