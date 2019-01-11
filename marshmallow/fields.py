@@ -1187,8 +1187,7 @@ class Mapping(Field):
     .. versionadded:: TODO: specify version
     """
 
-    mapping_type = _Mapping
-
+    mapping_type = dict
     default_error_messages = {
         'invalid': 'Not a valid mapping type.',
     }
