@@ -23,6 +23,10 @@ class IntegerList:
     def __init__(self, ints):
         self.ints = ints
 
+class DateTimeIntegerTuple:
+    def __init__(self, dtime_int):
+        self.dtime_int = dtime_int
+
 class TestFieldSerialization:
 
     @pytest.fixture
@@ -805,6 +809,52 @@ class TestFieldSerialization:
             fields.List(ASchema)
         expected_msg = (
             'The type of the list elements must be a subclass '
+            'of marshmallow.base.FieldABC'
+        )
+        assert expected_msg in str(excinfo)
+
+    def test_datetime_integer_tuple_field(self):
+        obj = DateTimeIntegerTuple((dt.datetime.utcnow(), 42))
+        field = fields.Tuple([fields.DateTime, fields.Integer])
+        result = field.serialize('dtime_int', obj)
+        assert type(result[0]) == str
+        assert type(result[1]) == int
+
+    @pytest.mark.parametrize(
+        'obj',
+        [
+            DateTimeIntegerTuple(('invaliddate', 42)),
+            DateTimeIntegerTuple((dt.datetime.utcnow(), 'invalidint')),
+            DateTimeIntegerTuple(('invaliddate', 'invalidint')),
+        ],
+    )
+    def test_tuple_field_with_error(self, obj):
+        field = fields.Tuple([fields.DateTime, fields.Integer])
+        with pytest.raises(ValidationError):
+            field.serialize('dtime_int', obj)
+
+    def test_tuple_field_serialize_none_returns_none(self):
+        obj = DateTimeIntegerTuple(None)
+        field = fields.Tuple([fields.DateTime, fields.Integer])
+        assert field.serialize('dtime_int', obj) is None
+
+    def test_tuple_field_respect_inner_attribute(self):
+        now = dt.datetime.now()
+        obj = DateTimeIntegerTuple((now, 42))
+        field = fields.Tuple([fields.Int(attribute='day'), fields.Integer])
+        assert field.serialize('dtime_int', obj) == (now.day, 42)
+
+    def test_bad_tuple_field(self):
+        class ASchema(Schema):
+            id = fields.Int()
+        with pytest.raises(ValueError):
+            fields.Tuple(['string'])
+        with pytest.raises(ValueError):
+            fields.Tuple(fields.String)
+        with pytest.raises(ValueError) as excinfo:
+            fields.Tuple([ASchema])
+        expected_msg = (
+            'The type of the tuple elements must be a subclass '
             'of marshmallow.base.FieldABC'
         )
         assert expected_msg in str(excinfo)
