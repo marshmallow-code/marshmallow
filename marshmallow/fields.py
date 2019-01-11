@@ -1174,12 +1174,7 @@ class TimeDelta(Field):
 
 
 class Mapping(Field):
-    """An abstract class for objects with key-value pairs. Optionally composed
-    with another `Field` class or instance.
-
-    Example: ::
-
-        numbers = fields.Mapping(keys=fields.Str(), values=fields.Float())
+    """An abstract class for objects with key-value pairs.
 
     :param Field keys: A field class or instance for dict keys.
     :param Field values: A field class or instance for dict values.
@@ -1315,6 +1310,7 @@ class Mapping(Field):
 
         return result
 
+
 class Dict(Mapping):
     """A dict field. Supports dicts and dict-like objects. Extends
     Mapping with dict as the mapping_type.
@@ -1327,6 +1323,7 @@ class Dict(Mapping):
 
     .. versionadded:: 2.1.0
     """
+
     mapping_type = dict
 
 
