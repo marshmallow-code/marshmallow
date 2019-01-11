@@ -10,7 +10,6 @@ import numbers
 import uuid
 import decimal
 import math
-from abc import ABCMeta, abstractproperty
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
@@ -23,6 +22,7 @@ __all__ = [
     'Field',
     'Raw',
     'Nested',
+    'Mapping',
     'Dict',
     'List',
     'String',
@@ -1191,11 +1191,8 @@ class Mapping(Field):
 
     .. versionadded:: TODO: specify version
     """
-    __metaclass__ = ABCMeta
 
-    @abstractproperty
-    def mapping_type(self):
-        pass
+    mapping_type = _Mapping
 
     default_error_messages = {
         'invalid': 'Not a valid mapping type.',
