@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import basestring, text_type, Mapping, iteritems
+from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator
 
@@ -1172,13 +1172,13 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
-class Map(Field):
-    """A map field. Supports dicts and dict-like objects. Optionally composed
+class Mapping(Field):
+    """A map field. Supports objects with key-value pairs. Optionally composed
     with another `Field` class or instance.
 
     Example: ::
 
-        numbers = fields.Map(map_type=dict, keys=fields.Str(), values=fields.Float())
+        numbers = fields.Mapping(map_type=dict, keys=fields.Str(), values=fields.Float())
 
     :param type map_type: Type of the map such as dict, OrderedDict
     :param Field keys: A field class or instance for dict keys.
@@ -1197,7 +1197,7 @@ class Map(Field):
     }
 
     def __init__(self, map_type, keys=None, values=None, **kwargs):
-        super(Map, self).__init__(**kwargs)
+        super(Mapping, self).__init__(**kwargs)
         self.map_type = map_type
         if keys is None:
             self.key_container = None
@@ -1233,7 +1233,7 @@ class Map(Field):
             self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
-        super(Map, self)._bind_to_schema(field_name, schema)
+        super(Mapping, self)._bind_to_schema(field_name, schema)
         if self.value_container:
             self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
@@ -1248,7 +1248,7 @@ class Map(Field):
             return None
         if not self.value_container and not self.key_container:
             return value
-        if not isinstance(value, Mapping):
+        if not isinstance(value, _Mapping):
             self.fail('invalid')
 
         # Serialize keys
@@ -1273,7 +1273,7 @@ class Map(Field):
         return result
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if not isinstance(value, Mapping):
+        if not isinstance(value, _Mapping):
             self.fail('invalid')
         if not self.value_container and not self.key_container:
             return value
@@ -1314,14 +1314,15 @@ class Map(Field):
 
         return result
 
-class Dict(Map):
-    """A dict field. Extends Map field with dict as the map_type.
+class Dict(Mapping):
+    """A dict field. Supports dict and dict-like objects.
+    Extends Mapping field with dict as the map_type.
 
     Example: ::
 
-        numbers = fields.Map(keys=fields.Str(), values=fields.Float())
+        numbers = fields.Dict(keys=fields.Str(), values=fields.Float())
 
-    :param kwargs: The same keyword arguments that :class:`Map` receives.
+    :param kwargs: The same keyword arguments that :class:`Mapping` receives.
 
     .. versionadded:: 2.1.0
     """
