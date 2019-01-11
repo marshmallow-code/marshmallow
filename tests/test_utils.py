@@ -2,6 +2,7 @@
 import datetime as dt
 from collections import namedtuple
 from functools import partial
+from copy import copy, deepcopy
 
 import pytest
 
@@ -13,6 +14,10 @@ from tests.base import (
     assert_date_equal,
 )
 
+
+def test_missing_singleton_copy():
+    assert copy(utils.missing) is utils.missing
+    assert deepcopy(utils.missing) is utils.missing
 
 def test_to_marshallable_type():
     class Foo(object):
