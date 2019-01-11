@@ -630,11 +630,17 @@ class Tuple(Field):
     """
 
     default_error_messages = {
-        'invalid': 'Not a valid tuple.'
+        'invalid': 'Not a valid tuple.',
     }
 
     def __init__(self, tuple_fields, *args, **kwargs):
         super(Tuple, self).__init__(*args, **kwargs)
+        if not utils.is_collection(tuple_fields):
+            raise ValueError(
+                'The tuple elements argument must be an iterable of '
+                'subclasses or instances of subclasses of '
+                'marshmallow.base.FieldABC',
+            )
         self.tuple_fields = [
             self._get_instance_from_field_class_or_instance(cls_or_instance)
             for cls_or_instance in tuple_fields
@@ -646,19 +652,36 @@ class Tuple(Field):
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
                 raise ValueError(
-                    "The type of the tuple elements "
-                    "must be a subclass of "
-                    "marshmallow.base.FieldABC"
+                    'The type of the tuple elements '
+                    'must be a subclass of '
+                    'marshmallow.base.FieldABC',
                 )
             return cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
                 raise ValueError(
-                    "The instances of the tuple "
-                    "elements must be of type "
-                    "marshmallow.base.FieldABC"
+                    'The instances of the tuple '
+                    'elements must be of type '
+                    'marshmallow.base.FieldABC',
                 )
             return cls_or_instance
+
+    def get_value(self, obj, attr, accessor=None):
+        """Return the value for a given key from an object."""
+        value = super(Tuple, self).get_value(obj, attr, accessor=accessor)
+        if any(container.attribute for container in self.tuple_fields):
+            if not utils.is_collection(value):
+                self.fail('invalid')
+            result = []
+            for container, each in zip(self.tuple_fields, value):
+                if container.attribute is None:
+                    result.append(each)
+                else:
+                    result.append(
+                        container.get_value(each, container.attribute),
+                    )
+            return tuple(result)
+        return value
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
