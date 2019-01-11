@@ -16,7 +16,7 @@ from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
 from marshmallow.compat import basestring, text_type, Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
-from marshmallow.validate import Validator
+from marshmallow.validate import Validator, Length
 
 __all__ = [
     'Field',
@@ -24,6 +24,7 @@ __all__ = [
     'Nested',
     'Dict',
     'List',
+    'Tuple',
     'String',
     'UUID',
     'Number',
@@ -613,6 +614,87 @@ class List(Field):
         if errors:
             raise ValidationError(errors, valid_data=result)
         return result
+
+
+class Tuple(Field):
+    """A tuple field, composed with a fixed number of other `Field` classes or
+    instances
+
+    Example: ::
+
+        row = Tuple((fields.String(), fields.Integer(), fields.Float()))
+
+    :param Iterable[Field] tuple_fields: An iterable of field classes or
+        instances.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
+    default_error_messages = {
+        'invalid': 'Not a valid tuple.'
+    }
+
+    def __init__(self, tuple_fields, *args, **kwargs):
+        super(Tuple, self).__init__(*args, **kwargs)
+        self.tuple_fields = [
+            self._get_instance_from_field_class_or_instance(cls_or_instance)
+            for cls_or_instance in tuple_fields
+        ]
+        self.validate_length = Length(equal=len(self.tuple_fields))
+
+    @staticmethod
+    def _get_instance_from_field_class_or_instance(cls_or_instance):
+        if isinstance(cls_or_instance, type):
+            if not issubclass(cls_or_instance, FieldABC):
+                raise ValueError(
+                    "The type of the tuple elements "
+                    "must be a subclass of "
+                    "marshmallow.base.FieldABC"
+                )
+            return cls_or_instance()
+        else:
+            if not isinstance(cls_or_instance, FieldABC):
+                raise ValueError(
+                    "The instances of the tuple "
+                    "elements must be of type "
+                    "marshmallow.base.FieldABC"
+                )
+            return cls_or_instance
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        if not utils.is_collection(value):
+            self.fail('invalid')
+
+        self.validate_length(value)
+
+        return tuple(
+            (
+                container._serialize(each, attr, obj, **kwargs)
+                for container, each in zip(self.tuple_fields, value)
+            )
+        )
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not utils.is_collection(value):
+            self.fail('invalid')
+
+        self.validate_length(value)
+
+        result = []
+        errors = {}
+
+        for idx, (container, each) in enumerate(zip(self.tuple_fields, value)):
+            try:
+                result.append(container.deserialize(each))
+            except ValidationError as e:
+                result.append(e.data)
+                errors.update({idx: e.messages})
+
+        if errors:
+            raise ValidationError(errors, data=result)
+
+        return tuple(result)
 
 
 class String(Field):
