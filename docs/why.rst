@@ -3,19 +3,19 @@ Why marshmallow?
 
 The Python ecosystem has many great libraries for data formatting and schema validation.
 
-In fact, marshmallow was influenced by a number of these libraries. Marshmallow is inspired by `Django REST Framework`_, `Flask-RESTful`_, and `colander <http://docs.pylonsproject.org/projects/colander/en/latest/>`_. It borrows a number of implementation and design ideas from these libraries to create a flexible and productive solution for marshalling, unmarshalling, and validating data.
+In fact, marshmallow was influenced by a number of these libraries. Marshmallow is inspired by `Django REST Framework`_, `Flask-RESTful`_, and `colander <https://docs.pylonsproject.org/projects/colander/en/latest/>`_. It borrows a number of implementation and design ideas from these libraries to create a flexible and productive solution for marshalling, unmarshalling, and validating data.
 
 Here are just a few reasons why you might use marshmallow.
 
 Agnostic.
 ---------
 
-Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice (for examples, see `Flask-Marshmallow <https://github.com/marshmallow-code/flask-marshmallow>`_ and `Django REST Marshmallow <http://tomchristie.github.io/django-rest-marshmallow/>`_).
+Marshmallow makes no assumption about web frameworks or database layers. It will work with just about any ORM, ODM, or no ORM at all. This gives you the freedom to choose the components that fit your application's needs without having to change your data formatting code. If you wish, you can build integration layers to make marshmallow work more closely with your frameworks and libraries of choice (for examples, see `Flask-Marshmallow <https://github.com/marshmallow-code/flask-marshmallow>`_ and `Django REST Marshmallow <https://github.com/marshmallow-code/django-rest-marshmallow>`_).
 
 Concise, familiar syntax.
 -------------------------
 
-If you have used `Django REST Framework`_ or  `WTForms <http://wtforms.simplecodes.com/docs/1.0.3/>`_, marshmallow's :class:`Schema <marshmallow.Schema>` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the ``class Meta`` paradigm. Configuration options can be overriden at application runtime by passing arguments to the `Schema <marshmallow.Schema>` constructor. The :meth:`dump <marshmallow.Schema.dump>` and :meth:`load <marshmallow.Schema.load>` methods are used for serialization and deserialization (of course!).
+If you have used `Django REST Framework`_ or  `WTForms <https://wtforms.readthedocs.io/en/stable/>`_, marshmallow's :class:`Schema <marshmallow.Schema>` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the ``class Meta`` paradigm. Configuration options can be overriden at application runtime by passing arguments to the `Schema <marshmallow.Schema>` constructor. The :meth:`dump <marshmallow.Schema.dump>` and :meth:`load <marshmallow.Schema.load>` methods are used for serialization and deserialization (of course!).
 
 Class-based schemas allow for code reuse and configuration.
 -----------------------------------------------------------
@@ -50,8 +50,8 @@ As an example, you might have a JSON endpoint for retrieving all information abo
 
 In this example, a single schema produced three different outputs! The dynamic nature of a :class:`Schema` leads to **less code** and **more consistent formatting**.
 
-.. _Django REST Framework: http://www.django-rest-framework.org/
-.. _Flask-RESTful: http://flask-restful.readthedocs.io/
+.. _Django REST Framework: https://www.django-rest-framework.org/
+.. _Flask-RESTful: https://flask-restful.readthedocs.io/
 
 
 Context-aware serialization.

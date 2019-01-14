@@ -1,4 +1,4 @@
-include *.rst LICENSE NOTICE
+include *.rst NOTICE
 recursive-include tests *
 recursive-include examples *
 recursive-include docs *

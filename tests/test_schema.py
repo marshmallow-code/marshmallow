@@ -191,29 +191,6 @@ def test_load_resets_error_fields():
     exc = excinfo.value
     assert len(exc.messages.keys()) == 1
 
-def test_load_resets_error_kwargs():
-    class MySchema(Schema):
-        name = fields.String()
-
-        @validates_schema
-        def validate_all(self, data, **kwargs):
-            if data:
-                raise ValidationError('oops', custom_error_kwarg=data)
-            else:
-                raise ValidationError('oops')
-
-    schema = MySchema()
-    with pytest.raises(ValidationError) as excinfo:
-        schema.load({'name': 'Joe'})
-
-    exc = excinfo.value
-    assert exc.kwargs['custom_error_kwarg'] == {'name': 'Joe'}
-
-    with pytest.raises(ValidationError) as excinfo:
-        schema.load({})
-
-    exc = excinfo.value
-    assert 'custom_error_kwarg' not in exc.kwargs
 
 def test_errored_fields_do_not_appear_in_output():
 
@@ -784,6 +761,86 @@ def test_custom_error_message():
     assert 'Bad balance.' in errors['balance']
     assert 'Bad homepage.' in errors['homepage']
     assert 'Invalid email' in errors['email']
+
+
+def test_custom_unknown_error_message():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        error_messages = {'unknown': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema()
+    u = {'name': 'Joe', 'age': 13}
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['age']
+
+
+def test_custom_type_error_message():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        error_messages = {'type': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema()
+    u = ['Joe']
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['_schema']
+
+
+def test_custom_type_error_message_with_many():
+    custom_message = 'custom error message.'
+
+    class ErrorSchema(Schema):
+        error_messages = {'type': custom_message}
+        name = fields.String()
+
+    s = ErrorSchema(many=True)
+    u = {'name': 'Joe'}
+    with pytest.raises(ValidationError) as excinfo:
+        s.load(u)
+    errors = excinfo.value.messages
+    assert custom_message in errors['_schema']
+
+
+def test_custom_error_messages_with_inheritance():
+    parent_type_message = 'parent type error message.'
+    parent_unknown_message = 'parent unknown error message.'
+    child_type_message = 'child type error message.'
+
+    class ParentSchema(Schema):
+        error_messages = {
+            'type': parent_type_message,
+            'unknown': parent_unknown_message,
+        }
+        name = fields.String()
+
+    class ChildSchema(ParentSchema):
+        error_messages = {'type': child_type_message}
+
+    unknown_user = {'name': 'Eleven', 'age': 12}
+    type_user = 11
+
+    parent_schema = ParentSchema()
+    with pytest.raises(ValidationError) as excinfo:
+        parent_schema.load(unknown_user)
+    assert parent_unknown_message in excinfo.value.messages['age']
+    with pytest.raises(ValidationError) as excinfo:
+        parent_schema.load(type_user)
+    assert parent_type_message in excinfo.value.messages['_schema']
+
+    child_schema = ChildSchema()
+    with pytest.raises(ValidationError) as excinfo:
+        child_schema.load(unknown_user)
+    assert parent_unknown_message in excinfo.value.messages['age']
+    with pytest.raises(ValidationError) as excinfo:
+        child_schema.load(type_user)
+    assert child_type_message in excinfo.value.messages['_schema']
 
 
 def test_load_errors_with_many():
