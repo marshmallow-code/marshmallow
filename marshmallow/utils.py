@@ -33,6 +33,12 @@ class _Missing(object):
 
     __nonzero__ = __bool__  # PY2 compat
 
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, _):
+        return self
+
     def __repr__(self):
         return '<marshmallow.missing>'
 
