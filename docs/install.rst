@@ -11,7 +11,7 @@ Installation
 
     ::
 
-        $ pip install python-dateutil
+        $ pip install 'python-dateutil>=2.7.0'
 
 Installing/Upgrading from the PyPI
 ----------------------------------
