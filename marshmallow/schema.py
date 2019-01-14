@@ -736,7 +736,7 @@ class BaseSchema(base.SchemaABC):
     def _run_validator(
         self, validator_func, output,
         original_data, fields_dict, error_store,
-        many, partial,  index=None,
+        many, partial, index=None,
     ):
         try:
             validator_func(output, original_data=original_data, partial=partial, many=many)
