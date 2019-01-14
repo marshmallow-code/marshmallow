@@ -1,13 +1,18 @@
 Changelog
 ---------
 
-2.18.0 (unreleased)
+2.18.0 (2019-01-13)
 +++++++++++++++++++
 
 Features:
 
 - Add warnings for functions in ``marshmallow.utils`` that are removed in
   marshmallow 3.
+
+Bug fixes:
+
+- Copying ``missing`` with ``copy.copy`` or ``copy.deepcopy`` will not
+  duplicate it (:pr:`1099`).
 
 2.17.0 (2018-12-26)
 +++++++++++++++++++
