@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.0.0rc4 (unreleased)
+*********************
+
+Features:
+
+- Add ``fields.Mapping``, which makes it easier to support other
+  mapping types (e.g. ``OrderedDict``)  (:issue:`1092`).
+  Thank :user:`sayanarijit` for the suggestion and the PR.
+
 3.0.0rc3 (2019-01-13)
 *********************
 
