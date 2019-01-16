@@ -637,9 +637,8 @@ class Tuple(Field):
         super(Tuple, self).__init__(*args, **kwargs)
         if not utils.is_collection(tuple_fields):
             raise ValueError(
-                'The tuple elements argument must be an iterable of '
-                'subclasses or instances of subclasses of '
-                'marshmallow.base.FieldABC',
+                'tuple_fields must be an iterable of Field classes or '
+                'instances.',
             )
         self.tuple_fields = [
             self._get_instance_from_field_class_or_instance(cls_or_instance)
@@ -652,17 +651,15 @@ class Tuple(Field):
         if isinstance(cls_or_instance, type):
             if not issubclass(cls_or_instance, FieldABC):
                 raise ValueError(
-                    'The type of the tuple elements '
-                    'must be a subclass of '
-                    'marshmallow.base.FieldABC',
+                    'Elements of "tuple_fields" must be subclasses or '
+                    'instances of marshmallow.base.FieldABC.',
                 )
             return cls_or_instance()
         else:
             if not isinstance(cls_or_instance, FieldABC):
                 raise ValueError(
-                    'The instances of the tuple '
-                    'elements must be of type '
-                    'marshmallow.base.FieldABC',
+                    'Elements of "tuple_fields" must be subclasses or '
+                    'instances of marshmallow.base.FieldABC.',
                 )
             return cls_or_instance
 

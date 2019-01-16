@@ -854,8 +854,8 @@ class TestFieldSerialization:
         with pytest.raises(ValueError) as excinfo:
             fields.Tuple([ASchema])
         expected_msg = (
-            'The type of the tuple elements must be a subclass '
-            'of marshmallow.base.FieldABC'
+            'Elements of "tuple_fields" must be subclasses or '
+            'instances of marshmallow.base.FieldABC.'
         )
         assert expected_msg in str(excinfo)
 
