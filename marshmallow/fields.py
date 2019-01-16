@@ -686,13 +686,9 @@ class Tuple(Field):
         if not utils.is_collection(value):
             self.fail('invalid')
 
-        self.validate_length(value)
-
         return tuple(
-            (
-                container._serialize(each, attr, obj, **kwargs)
-                for container, each in zip(self.tuple_fields, value)
-            )
+            container._serialize(each, attr, obj, **kwargs)
+            for container, each in zip(self.tuple_fields, value)
         )
 
     def _deserialize(self, value, attr, data, **kwargs):
