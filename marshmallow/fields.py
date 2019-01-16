@@ -703,12 +703,12 @@ class Tuple(Field):
         for idx, (container, each) in enumerate(zip(self.tuple_fields, value)):
             try:
                 result.append(container.deserialize(each))
-            except ValidationError as e:
-                result.append(e.data)
-                errors.update({idx: e.messages})
-
+            except ValidationError as error:
+                if error.valid_data is not None:
+                    result.append(error.valid_data)
+                errors.update({idx: error.messages})
         if errors:
-            raise ValidationError(errors, data=result)
+            raise ValidationError(errors, valid_data=result)
 
         return tuple(result)
 
