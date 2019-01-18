@@ -618,7 +618,7 @@ class List(Field):
 
 
 class Tuple(Field):
-    """A tuple field, composed with a fixed number of other `Field` classes or
+    """A tuple field, composed of a fixed number of other `Field` classes or
     instances
 
     Example: ::
@@ -626,8 +626,8 @@ class Tuple(Field):
         row = Tuple((fields.String(), fields.Integer(), fields.Float()))
 
     .. note::
-        Because of the structured nature of collections.namedtuple and
-        typing.NamedTuple, using a nested schema for them is more appropriate
+        Because of the structured nature of `collections.namedtuple` and
+        `typing.NamedTuple`, using a nested schema for them is more appropriate
         than using a `Tuple` field.
 
     :param Iterable[Field] tuple_fields: An iterable of field classes or
