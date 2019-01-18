@@ -900,7 +900,6 @@ class TestFieldDeserialization:
             field.deserialize([42])
         assert excinfo.value.args[0] == 'Length must be 2.'
 
-
     def test_constant_field_deserialization(self):
         field = fields.Constant('something')
         assert field.deserialize('whatever') == 'something'
