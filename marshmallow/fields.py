@@ -625,6 +625,11 @@ class Tuple(Field):
 
         row = Tuple((fields.String(), fields.Integer(), fields.Float()))
 
+    .. note::
+        Because of the structured nature of collections.namedtuple and
+        typing.NamedTuple, using a nested schema for them is more appropriate
+        than using a `Tuple` field.
+
     :param Iterable[Field] tuple_fields: An iterable of field classes or
         instances.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
