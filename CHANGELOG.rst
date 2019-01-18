@@ -1,7 +1,16 @@
 Changelog
 ---------
 
-3.0.0rc3 (unreleased)
+3.0.0rc4 (unreleased)
+*********************
+
+Features:
+
+- Add ``fields.Mapping``, which makes it easier to support other
+  mapping types (e.g. ``OrderedDict``)  (:issue:`1092`).
+  Thank :user:`sayanarijit` for the suggestion and the PR.
+
+3.0.0rc3 (2019-01-13)
 *********************
 
 Features:
@@ -18,6 +27,10 @@ Other changes:
 - Remove unused code in `marshmallow.utils`: ``is_indexable_but_not_string``,
   ``float_to_decimal``, ``decimal_to_fixed``, ``from_iso`` (:pr:`1088`).
 - Remove unused ``marshmallow.compat.string_types``.
+
+Bug fixes:
+
+- Includes bug fix from 2.18.0.
 
 3.0.0rc2 (2019-01-03)
 +++++++++++++++++++++
@@ -435,6 +448,19 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.18.0 (2019-01-13)
++++++++++++++++++++
+
+Features:
+
+- Add warnings for functions in ``marshmallow.utils`` that are removed in
+  marshmallow 3.
+
+Bug fixes:
+
+- Copying ``missing`` with ``copy.copy`` or ``copy.deepcopy`` will not
+  duplicate it (:pr:`1099`).
 
 2.17.0 (2018-12-26)
 +++++++++++++++++++

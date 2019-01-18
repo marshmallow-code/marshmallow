@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_
-from marshmallow.compat import basestring, text_type, Mapping, iteritems
+from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator, Length
 
@@ -22,6 +22,7 @@ __all__ = [
     'Field',
     'Raw',
     'Nested',
+    'Mapping',
     'Dict',
     'List',
     'Tuple',
@@ -1270,13 +1271,8 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
-class Dict(Field):
-    """A dict field. Supports dicts and dict-like objects. Optionally composed
-    with another `Field` class or instance.
-
-    Example: ::
-
-        numbers = fields.Dict(keys=fields.Str(), values=fields.Float())
+class Mapping(Field):
+    """An abstract class for objects with key-value pairs.
 
     :param Field keys: A field class or instance for dict keys.
     :param Field values: A field class or instance for dict values.
@@ -1286,15 +1282,16 @@ class Dict(Field):
         When the structure of nested data is not known, you may omit the
         `keys` and `values` arguments to prevent content validation.
 
-    .. versionadded:: 2.1.0
+    .. versionadded:: TODO: specify version
     """
 
+    mapping_type = dict
     default_error_messages = {
         'invalid': 'Not a valid mapping type.',
     }
 
     def __init__(self, keys=None, values=None, **kwargs):
-        super(Dict, self).__init__(**kwargs)
+        super(Mapping, self).__init__(**kwargs)
         if keys is None:
             self.key_container = None
         elif isinstance(keys, type):
@@ -1329,7 +1326,7 @@ class Dict(Field):
             self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
-        super(Dict, self)._bind_to_schema(field_name, schema)
+        super(Mapping, self)._bind_to_schema(field_name, schema)
         if self.value_container:
             self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
@@ -1344,7 +1341,7 @@ class Dict(Field):
             return None
         if not self.value_container and not self.key_container:
             return value
-        if not isinstance(value, Mapping):
+        if not isinstance(value, _Mapping):
             self.fail('invalid')
 
         # Serialize keys
@@ -1357,19 +1354,19 @@ class Dict(Field):
             }
 
         # Serialize values
-        # Note: the dict type (dict, OrderedDict,...) of the value is lost
+        result = self.mapping_type()
         if self.value_container is None:
-            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+            for k, v in iteritems(value):
+                if k in keys:
+                    result[keys[k]] = v
         else:
-            result = {
-                keys[k]: self.value_container._serialize(v, None, None, **kwargs)
-                for k, v in iteritems(value)
-            }
+            for k, v in iteritems(value):
+                result[keys[k]] = self.value_container._serialize(v, None, None, **kwargs)
 
         return result
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if not isinstance(value, Mapping):
+        if not isinstance(value, _Mapping):
             self.fail('invalid')
         if not self.value_container and not self.key_container:
             return value
@@ -1388,11 +1385,12 @@ class Dict(Field):
                     errors[key]['key'] = error.messages
 
         # Deserialize values
-        # Note: the dict type (dict, OrderedDict,...) of the value is lost
+        result = self.mapping_type()
         if self.value_container is None:
-            result = {keys[k]: v for k, v in iteritems(value) if k in keys}
+            for k, v in iteritems(value):
+                if k in keys:
+                    result[keys[k]] = v
         else:
-            result = {}
             for key, val in iteritems(value):
                 try:
                     deser_val = self.value_container.deserialize(val)
@@ -1408,6 +1406,22 @@ class Dict(Field):
             raise ValidationError(errors, valid_data=result)
 
         return result
+
+
+class Dict(Mapping):
+    """A dict field. Supports dicts and dict-like objects. Extends
+    Mapping with dict as the mapping_type.
+
+    Example: ::
+
+        numbers = fields.Dict(keys=fields.Str(), values=fields.Float())
+
+    :param kwargs: The same keyword arguments that :class:`Mapping` receives.
+
+    .. versionadded:: 2.1.0
+    """
+
+    mapping_type = dict
 
 
 class Url(String):
