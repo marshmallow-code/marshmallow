@@ -647,6 +647,16 @@ class Tuple(Field):
         ]
         self.validate_length = Length(equal=len(self.tuple_fields))
 
+    def _bind_to_schema(self, field_name, schema):
+        super(Tuple, self)._bind_to_schema(field_name, schema)
+        new_tuple_fields = []
+        for container in self.tuple_fields:
+            new_container = copy.deepcopy(container)
+            new_container.parent = self
+            new_container.name = field_name
+            new_tuple_fields.append(new_container)
+        self.tuple_fields = new_tuple_fields
+
     @staticmethod
     def _get_instance_from_field_class_or_instance(cls_or_instance):
         if isinstance(cls_or_instance, type):
