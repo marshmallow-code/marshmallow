@@ -405,9 +405,9 @@ class Nested(Field):
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
-            raise StringNotCollectionError('"only" should be a list of strings')
+            raise StringNotCollectionError('"only" should be a list of strings.')
         if exclude is not None and not is_collection(exclude):
-            raise StringNotCollectionError('"exclude" should be a list of strings')
+            raise StringNotCollectionError('"exclude" should be a list of strings.')
         self.nested = nested
         self.only = only
         self.exclude = exclude
@@ -561,7 +561,7 @@ class List(Field):
                 raise ValueError(
                     'The type of the list elements '
                     'must be a subclass of '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.container = cls_or_instance()
         else:
@@ -569,7 +569,7 @@ class List(Field):
                 raise ValueError(
                     'The instances of the list '
                     'elements must be of type '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.container = cls_or_instance
 
@@ -1200,14 +1200,14 @@ class Mapping(Field):
             if not issubclass(keys, FieldABC):
                 raise ValueError(
                     '"keys" must be a subclass of '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.key_container = keys()
         else:
             if not isinstance(keys, FieldABC):
                 raise ValueError(
                     '"keys" must be of type '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.key_container = keys
         if values is None:
@@ -1216,14 +1216,14 @@ class Mapping(Field):
             if not issubclass(values, FieldABC):
                 raise ValueError(
                     '"values" must be a subclass of '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.value_container = values()
         else:
             if not isinstance(values, FieldABC):
                 raise ValueError(
                     '"values" must be of type '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
             self.value_container = values
 
