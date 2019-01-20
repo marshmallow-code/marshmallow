@@ -10,9 +10,9 @@ Data pre-processing and post-processing methods can be registered using the `pre
 
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, pre_load
+
 
     class UserSchema(Schema):
         name = fields.Str()
@@ -20,12 +20,13 @@ Data pre-processing and post-processing methods can be registered using the `pre
 
         @pre_load
         def slugify_name(self, in_data):
-            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
 
+
     schema = UserSchema()
-    result = schema.load({'name': 'Steve', 'slug': 'Steve Loria '})
-    result['slug']  # => 'steve-loria'
+    result = schema.load({"name": "Steve", "slug": "Steve Loria "})
+    result["slug"]  # => 'steve-loria'
 
 
 Passing "many"
@@ -36,29 +37,24 @@ By default, pre- and post-processing methods receive one object/datum at a time,
 In cases where your pre- and post-processing methods need to receive the input collection  when ``many=True``, add ``pass_many=True`` to the method decorators. The method will receive the input data (which may be a single datum or a collection) and the boolean value of ``many``.
 
 
-
-
 Example: Enveloping
 +++++++++++++++++++
 
 One common use case is to wrap data in a namespace upon serialization and unwrap the data during deserialization.
 
 .. code-block:: python
-    :emphasize-lines: 17,18,22,23,27,28
 
     from marshmallow import Schema, fields, pre_load, post_load, post_dump
 
+
     class BaseSchema(Schema):
         # Custom options
-        __envelope__ = {
-            'single': None,
-            'many': None
-        }
+        __envelope__ = {"single": None, "many": None}
         __model__ = User
 
         def get_envelope_key(self, many):
             """Helper to get the envelope key."""
-            key = self.__envelope__['many'] if many else self.__envelope__['single']
+            key = self.__envelope__["many"] if many else self.__envelope__["single"]
             assert key is not None, "Envelope key undefined"
             return key
 
@@ -76,23 +72,24 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
         def make_object(self, data):
             return self.__model__(**data)
 
+
     class UserSchema(BaseSchema):
-        __envelope__ = {
-            'single': 'user',
-            'many': 'users',
-        }
+        __envelope__ = {"single": "user", "many": "users"}
         __model__ = User
         name = fields.Str()
         email = fields.Email()
 
+
     user_schema = UserSchema()
 
-    user = User('Mick', email='mick@stones.org')
+    user = User("Mick", email="mick@stones.org")
     user_data = user_schema.dump(user)
     # {'user': {'email': 'mick@stones.org', 'name': 'Mick'}}
 
-    users = [User('Keith', email='keith@stones.org'),
-            User('Charlie', email='charlie@stones.org')]
+    users = [
+        User("Keith", email="keith@stones.org"),
+        User("Charlie", email="charlie@stones.org"),
+    ]
     users_data = user_schema.dump(users, many=True)
     # {'users': [{'email': 'keith@stones.org', 'name': 'Keith'},
     #            {'email': 'charlie@stones.org', 'name': 'Charlie'}]}
@@ -110,18 +107,20 @@ Pre- and post-processing methods may raise a `ValidationError <marshmallow.excep
 
     from marshmallow import Schema, fields, ValidationError, pre_load
 
+
     class BandSchema(Schema):
         name = fields.Str()
 
         @pre_load
         def unwrap_envelope(self, data):
-            if 'data' not in data:
+            if "data" not in data:
                 raise ValidationError('Input data must have a "data" key.')
-            return data['data']
+            return data["data"]
+
 
     sch = BandSchema()
     try:
-        sch.load({'name': 'The Band'})
+        sch.load({"name": "The Band"})
     except ValidationError as err:
         err.messages
     # {'_schema': ['Input data must have a "data" key.']}
@@ -129,22 +128,26 @@ Pre- and post-processing methods may raise a `ValidationError <marshmallow.excep
 If you want to store and error on a different key, pass the key name as the second argument to `ValidationError <marshmallow.exceptions.ValidationError>`.
 
 .. code-block:: python
-    :emphasize-lines: 9
+    :emphasize-lines: 11
 
     from marshmallow import Schema, fields, ValidationError, pre_load
+
 
     class BandSchema(Schema):
         name = fields.Str()
 
         @pre_load
         def unwrap_envelope(self, data):
-            if 'data' not in data:
-                raise ValidationError('Input data must have a "data" key.', '_preprocessing')
-            return data['data']
+            if "data" not in data:
+                raise ValidationError(
+                    'Input data must have a "data" key.', "_preprocessing"
+                )
+            return data["data"]
+
 
     sch = BandSchema()
     try:
-        sch.load({'name': 'The Band'})
+        sch.load({"name": "The Band"})
     except ValidationError as err:
         err.messages
     # {'_preprocessing': ['Input data must have a "data" key.']}
@@ -190,11 +193,12 @@ The pipeline for serialization is similar, except that the "pass_many" processor
                 return step2_data
 
             def step1(self, data):
-                # ...
+                do_something()
 
             # Depends on step1
             def step2(self, data):
-                # ...
+                do_anothing_thing()
+
 
         # NO
         class MySchema(Schema):
@@ -202,12 +206,12 @@ The pipeline for serialization is similar, except that the "pass_many" processor
 
             @pre_load
             def step1(self, data):
-                # ...
+                do_something()
 
             # Depends on step1
             @pre_load
             def step2(self, data):
-                # ...
+                do_anothing_thing()
 
 
 Handling Errors
@@ -218,13 +222,15 @@ By default, :meth:`Schema.dump` and :meth:`Schema.load` will raise a :exc:`Valid
 You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
 
 .. code-block:: python
-    :emphasize-lines: 10-13
+    :emphasize-lines: 12-15
 
     import logging
     from marshmallow import Schema, fields
 
+
     class AppError(Exception):
         pass
+
 
     class UserSchema(Schema):
         email = fields.Email()
@@ -232,10 +238,11 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
         def handle_error(self, exc, data):
             """Log and raise our custom exception when (de)serialization fails."""
             logging.error(exc.messages)
-            raise AppError('An error occurred with input: {0}'.format(data))
+            raise AppError("An error occurred with input: {0}".format(data))
+
 
     schema = UserSchema()
-    schema.load({'email': 'invalid-email'})  # raises AppError
+    schema.load({"email": "invalid-email"})  # raises AppError
 
 .. _schemavalidation:
 
@@ -245,9 +252,9 @@ Schema-level Validation
 You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. By default, schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
+
 
     class NumberSchema(Schema):
         field_a = fields.Integer()
@@ -255,14 +262,15 @@ You can register schema-level validation functions for a :class:`Schema` using t
 
         @validates_schema
         def validate_numbers(self, data):
-            if data['field_b'] >= data['field_a']:
-                raise ValidationError('field_a must be greater than field_b')
+            if data["field_b"] >= data["field_a"]:
+                raise ValidationError("field_a must be greater than field_b")
+
 
     schema = NumberSchema()
     try:
-        schema.load({'field_a': 1, 'field_b': 2})
+        schema.load({"field_a": 1, "field_b": 2})
     except ValidationError as err:
-        err.messages['_schema']
+        err.messages["_schema"]
     # => ["field_a must be greater than field_b"]
 
 Storing Errors on Specific Fields
@@ -273,9 +281,9 @@ It is possible to report errors on fields and subfields using a `dict`.
 When multiple schema-leval validator return errors, the error structures are merged together in the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` raised at the end of the validation.
 
 .. code-block:: python
-    :emphasize-lines: 17,27
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
+
 
     class NumberSchema(Schema):
         field_a = fields.Integer()
@@ -286,26 +294,27 @@ When multiple schema-leval validator return errors, the error structures are mer
         @validates_schema
         def validate_lower_bound(self, data):
             errors = {}
-            if data['field_b'] <= data['field_a']:
-                errors['field_b'] = ['field_b must be greater than field_a']
-            if data['field_c'] <= data['field_a']:
-                errors['field_c'] = ['field_c must be greater than field_a']
+            if data["field_b"] <= data["field_a"]:
+                errors["field_b"] = ["field_b must be greater than field_a"]
+            if data["field_c"] <= data["field_a"]:
+                errors["field_c"] = ["field_c must be greater than field_a"]
             if errors:
                 raise ValidationError(errors)
 
         @validates_schema
         def validate_upper_bound(self, data):
             errors = {}
-            if data['field_b'] >= data['field_d']:
-                errors['field_b'] = ['field_b must be lower than field_d']
-            if data['field_c'] >= data['field_d']:
-                errors['field_c'] = ['field_c must be lower than field_d']
+            if data["field_b"] >= data["field_d"]:
+                errors["field_b"] = ["field_b must be lower than field_d"]
+            if data["field_c"] >= data["field_d"]:
+                errors["field_c"] = ["field_c must be lower than field_d"]
             if errors:
                 raise ValidationError(errors)
 
+
     schema = NumberSchema()
     try:
-        schema.load({'field_a': 3, 'field_b': 2, 'field_c': 1, 'field_d': 0})
+        schema.load({"field_a": 3, "field_b": 2, "field_c": 1, "field_d": 0})
     except ValidationError as err:
         err.messages
     # => {
@@ -327,9 +336,10 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 `post_load <marshmallow.decorators.post_load>` or `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
-    :emphasize-lines: 7
+    :emphasize-lines: 8
 
     from marshmallow import Schema, fields, post_load, ValidationError
+
 
     class MySchema(Schema):
         foo = fields.Int()
@@ -337,13 +347,14 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 
         @post_load(pass_original=True)
         def add_baz_to_bar(self, data, original_data):
-            baz = original_data.get('baz')
+            baz = original_data.get("baz")
             if baz:
-                data['bar'] = data['bar'] + baz
+                data["bar"] = data["bar"] + baz
             return data
 
+
     schema = MySchema()
-    schema.load({'foo': 1, 'bar': 2, 'baz': 3})
+    schema.load({"foo": 1, "bar": 2, "baz": 3})
     # {'foo': 1, 'bar': 5}
 
 .. seealso::
@@ -399,24 +410,25 @@ Let's build upon the example above for adding an envelope to serialized output. 
 First, we'll add our namespace configuration to a custom options class.
 
 .. code-block:: python
-    :emphasize-lines: 3
 
     from marshmallow import Schema, SchemaOpts
+
 
     class NamespaceOpts(SchemaOpts):
         """Same as the default class Meta options, but adds "name" and
         "plural_name" options for enveloping.
         """
+
         def __init__(self, meta, **kwargs):
             SchemaOpts.__init__(self, meta, **kwargs)
-            self.name = getattr(meta, 'name', None)
-            self.plural_name = getattr(meta, 'plural_name', self.name)
+            self.name = getattr(meta, "name", None)
+            self.plural_name = getattr(meta, "plural_name", self.name)
 
 
 Then we create a custom :class:`Schema` that uses our options class.
 
 .. code-block:: python
-    :emphasize-lines: 1,2
+    :emphasize-lines: 2
 
     class NamespacedSchema(Schema):
         OPTIONS_CLASS = NamespaceOpts
@@ -442,11 +454,12 @@ Our application schemas can now inherit from our custom schema class.
         email = fields.Email()
 
         class Meta:
-            name = 'user'
-            plural_name = 'users'
+            name = "user"
+            plural_name = "users"
+
 
     ser = UserSchema()
-    user = User('Keith', email='keith@stones.com')
+    user = User("Keith", email="keith@stones.com")
     result = ser.dump(user)
     result  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
 
@@ -460,7 +473,7 @@ The ``context`` attribute of a `Schema` is a general-purpose store for extra inf
     schema = UserSchema()
     # Make current HTTP request available to
     # custom fields, schema methods, schema validators, etc.
-    schema.context['request'] = request
+    schema.context["request"] = request
     schema.dump(user)
 
 Custom Error Messages
@@ -473,6 +486,6 @@ You do this by overriding the ``error_messages`` class variable:
 
     class MySchema(Schema):
         error_messages = {
-            'unknown': 'Custom unknown field error message.',
-            'type': 'Custom invalid type error message.'
+            "unknown": "Custom unknown field error message.",
+            "type": "Custom invalid type error message.",
         }

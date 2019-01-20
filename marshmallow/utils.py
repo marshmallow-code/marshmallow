@@ -17,19 +17,20 @@ from pprint import pprint as py_pprint
 from marshmallow.compat import binary_type, text_type
 from marshmallow.compat import Mapping, Iterable
 
-EXCLUDE = 'exclude'
-INCLUDE = 'include'
-RAISE = 'raise'
+EXCLUDE = "exclude"
+INCLUDE = "include"
+RAISE = "raise"
 
 dateutil_available = False
 try:
     from dateutil import parser
+
     dateutil_available = True
 except ImportError:
     dateutil_available = False
 
-class _Missing(object):
 
+class _Missing(object):
     def __bool__(self):
         return False
 
@@ -42,7 +43,7 @@ class _Missing(object):
         return self
 
     def __repr__(self):
-        return '<marshmallow.missing>'
+        return "<marshmallow.missing>"
 
 
 # Singleton value that indicates that a field's value is missing from input
@@ -59,8 +60,8 @@ def is_generator(obj):
 
 def is_iterable_but_not_string(obj):
     """Return True if ``obj`` is an iterable object that isn't a string."""
-    return (
-        (isinstance(obj, Iterable) and not hasattr(obj, 'strip')) or is_generator(obj)
+    return (isinstance(obj, Iterable) and not hasattr(obj, "strip")) or is_generator(
+        obj
     )
 
 
@@ -76,11 +77,12 @@ def is_instance_or_subclass(val, class_):
     except TypeError:
         return isinstance(val, class_)
 
+
 def is_keyed_tuple(obj):
     """Return True if ``obj`` has keyed tuple behavior, such as
     namedtuples or SQLAlchemy's KeyedTuples.
     """
-    return isinstance(obj, tuple) and hasattr(obj, '_fields')
+    return isinstance(obj, tuple) and hasattr(obj, "_fields")
 
 
 def to_marshallable_type(obj, field_names=None):
@@ -89,10 +91,10 @@ def to_marshallable_type(obj, field_names=None):
     if obj is None:
         return None  # make it idempotent for None
 
-    if hasattr(obj, '__marshallable__'):
+    if hasattr(obj, "__marshallable__"):
         return obj.__marshallable__()
 
-    if hasattr(obj, '__getitem__') and not is_keyed_tuple(obj):
+    if hasattr(obj, "__getitem__") and not is_keyed_tuple(obj):
         return obj  # it is indexable it is ok
 
     if isinstance(obj, types.GeneratorType):
@@ -102,8 +104,11 @@ def to_marshallable_type(obj, field_names=None):
         attrs = set(dir(obj)) & set(field_names)
     else:
         attrs = set(dir(obj))
-    return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                  if not attr.startswith('__') and not attr.endswith('__')])
+    return {
+        attr: getattr(obj, attr, None)
+        for attr in attrs
+        if not attr.startswith("__") and not attr.endswith("__")
+    }
 
 
 def pprint(obj, *args, **kwargs):
@@ -127,7 +132,8 @@ class UTC(datetime.tzinfo):
     Optimized UTC implementation. It unpickles using the single module global
     instance defined beneath this class declaration.
     """
-    zone = 'UTC'
+
+    zone = "UTC"
 
     _utcoffset = ZERO
     _dst = ZERO
@@ -142,7 +148,7 @@ class UTC(datetime.tzinfo):
         return ZERO
 
     def tzname(self, dt):
-        return 'UTC'
+        return "UTC"
 
     def dst(self, dt):
         return ZERO
@@ -150,7 +156,7 @@ class UTC(datetime.tzinfo):
     def localize(self, dt, is_dst=False):
         """Convert naive time to local time"""
         if dt.tzinfo is not None:
-            raise ValueError('Not naive datetime (tzinfo is already set)')
+            raise ValueError("Not naive datetime (tzinfo is already set)")
         return dt.replace(tzinfo=self)
 
     def normalize(self, dt, is_dst=False):
@@ -158,14 +164,14 @@ class UTC(datetime.tzinfo):
         if dt.tzinfo is self:
             return dt
         if dt.tzinfo is None:
-            raise ValueError('Naive time - no tzinfo set')
+            raise ValueError("Naive time - no tzinfo set")
         return dt.astimezone(self)
 
     def __repr__(self):
-        return '<UTC>'
+        return "<UTC>"
 
     def __str__(self):
-        return 'UTC'
+        return "UTC"
 
 
 UTC = utc = UTC()  # UTC is a singleton
@@ -175,15 +181,31 @@ def local_rfcformat(dt):
     """Return the RFC822-formatted representation of a timezone-aware datetime
     with the UTC offset.
     """
-    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dt.weekday()]
     month = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-        'Oct', 'Nov', 'Dec',
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
     ][dt.month - 1]
-    tz_offset = dt.strftime('%z')
-    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (
-        weekday, dt.day, month,
-        dt.year, dt.hour, dt.minute, dt.second, tz_offset,
+    tz_offset = dt.strftime("%z")
+    return "%s, %02d %s %04d %02d:%02d:%02d %s" % (
+        weekday,
+        dt.day,
+        month,
+        dt.year,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        tz_offset,
     )
 
 
@@ -203,19 +225,17 @@ def rfcformat(dt, localtime=False):
 
 # From Django
 _iso8601_datetime_re = re.compile(
-    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})'
-    r'[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
-    r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?'
-    r'(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$',
+    r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})"
+    r"[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
+    r"(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?"
+    r"(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$"
 )
 
-_iso8601_date_re = re.compile(
-    r'(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$',
-)
+_iso8601_date_re = re.compile(r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$")
 
 _iso8601_time_re = re.compile(
-    r'(?P<hour>\d{1,2}):(?P<minute>\d{1,2})'
-    r'(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?',
+    r"(?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
+    r"(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?"
 )
 
 
@@ -253,13 +273,13 @@ def from_iso_datetime(datetimestring, use_dateutil=True):
     Use dateutil's parser if possible and return a timezone-aware datetime.
     """
     if not _iso8601_datetime_re.match(datetimestring):
-        raise ValueError('Not a valid ISO8601-formatted datetime string')
+        raise ValueError("Not a valid ISO8601-formatted datetime string")
     # Use dateutil's parser if possible
     if dateutil_available and use_dateutil:
         return parser.isoparse(datetimestring)
     else:
         # Strip off timezone info.
-        return datetime.datetime.strptime(datetimestring[:19], '%Y-%m-%dT%H:%M:%S')
+        return datetime.datetime.strptime(datetimestring[:19], "%Y-%m-%dT%H:%M:%S")
 
 
 def from_iso_time(timestring, use_dateutil=True):
@@ -267,23 +287,24 @@ def from_iso_time(timestring, use_dateutil=True):
     object.
     """
     if not _iso8601_time_re.match(timestring):
-        raise ValueError('Not a valid ISO8601-formatted time string')
+        raise ValueError("Not a valid ISO8601-formatted time string")
     if dateutil_available and use_dateutil:
         return parser.parse(timestring).time()
     else:
         if len(timestring) > 8:  # has microseconds
-            fmt = '%H:%M:%S.%f'
+            fmt = "%H:%M:%S.%f"
         else:
-            fmt = '%H:%M:%S'
+            fmt = "%H:%M:%S"
         return datetime.datetime.strptime(timestring, fmt).time()
+
 
 def from_iso_date(datestring, use_dateutil=True):
     if not _iso8601_date_re.match(datestring):
-        raise ValueError('Not a valid ISO8601-formatted date string')
+        raise ValueError("Not a valid ISO8601-formatted date string")
     if dateutil_available and use_dateutil:
         return parser.isoparse(datestring).date()
     else:
-        return datetime.datetime.strptime(datestring[:10], '%Y-%m-%d').date()
+        return datetime.datetime.strptime(datestring[:10], "%Y-%m-%d").date()
 
 
 def to_iso_date(date, *args, **kwargs):
@@ -292,8 +313,9 @@ def to_iso_date(date, *args, **kwargs):
 
 def ensure_text_type(val):
     if isinstance(val, binary_type):
-        val = val.decode('utf-8')
+        val = val.decode("utf-8")
     return text_type(val)
+
 
 def pluck(dictlist, key):
     """Extracts a list of dictionary values from a list of dictionaries.
@@ -305,7 +327,9 @@ def pluck(dictlist, key):
     """
     return [d[key] for d in dictlist]
 
+
 # Various utilities for pulling keyed values from objects
+
 
 def get_value(obj, key, default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
@@ -318,8 +342,8 @@ def get_value(obj, key, default=missing):
         `get_value` will never check the value `x.i`. Consider overriding
         `marshmallow.fields.Field.get_value` in this case.
     """
-    if not isinstance(key, int) and '.' in key:
-        return _get_value_for_keys(obj, key.split('.'), default)
+    if not isinstance(key, int) and "." in key:
+        return _get_value_for_keys(obj, key.split("."), default)
     else:
         return _get_value_for_key(obj, key, default)
 
@@ -329,12 +353,12 @@ def _get_value_for_keys(obj, keys, default):
         return _get_value_for_key(obj, keys[0], default)
     else:
         return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default,
+            _get_value_for_key(obj, keys[0], default), keys[1:], default
         )
 
 
 def _get_value_for_key(obj, key, default):
-    if not hasattr(obj, '__getitem__'):
+    if not hasattr(obj, "__getitem__"):
         return getattr(obj, key, default)
 
     try:
@@ -354,13 +378,15 @@ def set_value(dct, key, value):
         >>> d
         {'foo': {'bar': 42}}
     """
-    if '.' in key:
-        head, rest = key.split('.', 1)
+    if "." in key:
+        head, rest = key.split(".", 1)
         target = dct.setdefault(head, {})
         if not isinstance(target, dict):
             raise ValueError(
-                'Cannot set {key} in {head} '
-                'due to existing value: {target}'.format(key=key, head=head, target=target),
+                "Cannot set {key} in {head} "
+                "due to existing value: {target}".format(
+                    key=key, head=head, target=target
+                )
             )
         set_value(target, rest, value)
     else:
@@ -371,14 +397,14 @@ def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`.
     """
     if not callable(obj):
-        raise ValueError('Object {0!r} is not callable.'.format(obj))
+        raise ValueError("Object {!r} is not callable.".format(obj))
     return obj
 
 
 def _signature(func):
-    if hasattr(inspect, 'signature'):
+    if hasattr(inspect, "signature"):
         return list(inspect.signature(func).parameters.keys())
-    if hasattr(func, '__self__'):
+    if hasattr(func, "__self__"):
         # Remove bound arg to match inspect.signature()
         return inspect.getargspec(func).args[1:]
     # All args are unbound

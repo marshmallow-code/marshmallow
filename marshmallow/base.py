@@ -9,6 +9,7 @@ import copy
 class FieldABC(object):
     """Abstract base class from which all Field classes inherit.
     """
+
     parent = None
     name = None
 
@@ -41,8 +42,5 @@ class SchemaABC(object):
     def load(self, data, many=None, partial=None, unknown=None):
         raise NotImplementedError
 
-    def loads(
-        self, json_data, many=None, partial=None, unknown=None,
-        **kwargs
-    ):
+    def loads(self, json_data, many=None, partial=None, unknown=None, **kwargs):
         raise NotImplementedError

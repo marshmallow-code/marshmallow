@@ -41,12 +41,13 @@ def register(classname, cls):
     module = cls.__module__
     # Full module path to the class
     # e.g. user.schemas.UserSchema
-    fullpath = '.'.join([module, classname])
+    fullpath = ".".join([module, classname])
     # If the class is already registered; need to check if the entries are
     # in the same module as cls to avoid having multiple instances of the same
     # class in the registry
-    if classname in _registry and not \
-            any(each.__module__ == module for each in _registry[classname]):
+    if classname in _registry and not any(
+        each.__module__ == module for each in _registry[classname]
+    ):
         _registry[classname].append(cls)
     elif classname not in _registry:
         _registry[classname] = [cls]
@@ -59,6 +60,7 @@ def register(classname, cls):
         _registry[fullpath] = [cls]
     return None
 
+
 def get_class(classname, all=False):
     """Retrieve a class from the registry.
 
@@ -68,13 +70,17 @@ def get_class(classname, all=False):
     try:
         classes = _registry[classname]
     except KeyError:
-        raise RegistryError('Class with name {0!r} was not found. You may need '
-            'to import the class.'.format(classname))
+        raise RegistryError(
+            "Class with name {!r} was not found. You may need "
+            "to import the class.".format(classname)
+        )
     if len(classes) > 1:
         if all:
             return _registry[classname]
-        raise RegistryError('Multiple classes with name {0!r} '
-            'were found. Please use the full, '
-            'module-qualified path.'.format(classname))
+        raise RegistryError(
+            "Multiple classes with name {!r} "
+            "were found. Please use the full, "
+            "module-qualified path.".format(classname)
+        )
     else:
         return _registry[classname][0]

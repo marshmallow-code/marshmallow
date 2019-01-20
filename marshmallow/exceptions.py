@@ -5,7 +5,7 @@ from marshmallow.compat import basestring
 
 
 # Key used for schema-level validation errors
-SCHEMA = '_schema'
+SCHEMA = "_schema"
 
 
 class MarshmallowError(Exception):
@@ -25,7 +25,10 @@ class ValidationError(MarshmallowError):
     :param dict data: Raw input data.
     :param dict valid_data: Valid (de)serialized data.
     """
-    def __init__(self, message, field_name=SCHEMA, data=None, valid_data=None, **kwargs):
+
+    def __init__(
+        self, message, field_name=SCHEMA, data=None, valid_data=None, **kwargs
+    ):
         self.messages = [message] if isinstance(message, basestring) else message
         self.field_name = field_name
         self.data = data
