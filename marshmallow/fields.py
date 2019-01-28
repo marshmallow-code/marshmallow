@@ -699,8 +699,6 @@ class Tuple(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if not utils.is_collection(value):
-            self.fail('invalid')
 
         return tuple(
             container._serialize(each, attr, obj, **kwargs)
