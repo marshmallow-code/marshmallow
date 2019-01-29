@@ -13,7 +13,11 @@ import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import is_collection, missing as missing_
+from marshmallow.utils import (
+    is_collection, missing as missing_,
+    FieldInstanceResolutionError,
+    resolve_field_instance,
+)
 from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.validate import Validator, Length
@@ -646,10 +650,18 @@ class Tuple(Field):
                 'tuple_fields must be an iterable of Field classes or '
                 'instances.',
             )
-        self.tuple_fields = [
-            self._get_instance_from_field_class_or_instance(cls_or_instance)
-            for cls_or_instance in tuple_fields
-        ]
+
+        try:
+            self.tuple_fields = [
+                resolve_field_instance(cls_or_instance)
+                for cls_or_instance in tuple_fields
+            ]
+        except FieldInstanceResolutionError:
+            raise ValueError(
+                'Elements of "tuple_fields" must be subclasses or '
+                'instances of marshmallow.base.FieldABC.',
+            )
+
         self.validate_length = Length(equal=len(self.tuple_fields))
 
     def _bind_to_schema(self, field_name, schema):
@@ -661,23 +673,6 @@ class Tuple(Field):
             new_container.name = field_name
             new_tuple_fields.append(new_container)
         self.tuple_fields = new_tuple_fields
-
-    @staticmethod
-    def _get_instance_from_field_class_or_instance(cls_or_instance):
-        if isinstance(cls_or_instance, type):
-            if not issubclass(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'Elements of "tuple_fields" must be subclasses or '
-                    'instances of marshmallow.base.FieldABC.',
-                )
-            return cls_or_instance()
-        else:
-            if not isinstance(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'Elements of "tuple_fields" must be subclasses or '
-                    'instances of marshmallow.base.FieldABC.',
-                )
-            return cls_or_instance
 
     def get_value(self, obj, attr, accessor=None):
         """Return the value for a given key from an object."""
