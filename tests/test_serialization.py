@@ -808,8 +808,8 @@ class TestFieldSerialization:
         with pytest.raises(ValueError) as excinfo:
             fields.List(ASchema)
         expected_msg = (
-            'The type of the list elements must be a subclass '
-            'of marshmallow.base.FieldABC'
+            'The list elements must be a subclass or instance of '
+            'marshmallow.base.FieldABC'
         )
         assert expected_msg in str(excinfo)
 

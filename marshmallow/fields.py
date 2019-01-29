@@ -561,22 +561,13 @@ class List(Field):
 
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
-        if isinstance(cls_or_instance, type):
-            if not issubclass(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'The type of the list elements '
-                    'must be a subclass of '
-                    'marshmallow.base.FieldABC',
-                )
-            self.container = cls_or_instance()
-        else:
-            if not isinstance(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'The instances of the list '
-                    'elements must be of type '
-                    'marshmallow.base.FieldABC',
-                )
-            self.container = cls_or_instance
+        try:
+            self.container = resolve_field_instance(cls_or_instance)
+        except FieldInstanceResolutionError:
+            raise ValueError(
+                'The list elements must be a subclass or instance of '
+                'marshmallow.base.FieldABC',
+            )
 
     def get_value(self, obj, attr, accessor=None):
         """Return the value for a given key from an object."""
@@ -1302,36 +1293,25 @@ class Mapping(Field):
         super(Mapping, self).__init__(**kwargs)
         if keys is None:
             self.key_container = None
-        elif isinstance(keys, type):
-            if not issubclass(keys, FieldABC):
-                raise ValueError(
-                    '"keys" must be a subclass of '
-                    'marshmallow.base.FieldABC',
-                )
-            self.key_container = keys()
         else:
-            if not isinstance(keys, FieldABC):
+            try:
+                self.key_container = resolve_field_instance(keys)
+            except FieldInstanceResolutionError:
                 raise ValueError(
-                    '"keys" must be of type '
+                    '"keys" must be a subclass or instance of '
                     'marshmallow.base.FieldABC',
                 )
-            self.key_container = keys
+
         if values is None:
             self.value_container = None
-        elif isinstance(values, type):
-            if not issubclass(values, FieldABC):
-                raise ValueError(
-                    '"values" must be a subclass of '
-                    'marshmallow.base.FieldABC',
-                )
-            self.value_container = values()
         else:
-            if not isinstance(values, FieldABC):
+            try:
+                self.value_container = resolve_field_instance(values)
+            except FieldInstanceResolutionError:
                 raise ValueError(
-                    '"values" must be of type '
+                    '"values" must be a subclass or instance of '
                     'marshmallow.base.FieldABC',
                 )
-            self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
         super(Mapping, self)._bind_to_schema(field_name, schema)
