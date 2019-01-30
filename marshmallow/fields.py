@@ -622,8 +622,8 @@ class Tuple(Field):
 
     .. note::
         Because of the structured nature of `collections.namedtuple` and
-        `typing.NamedTuple`, using a nested schema for them is more appropriate
-        than using a `Tuple` field.
+        `typing.NamedTuple`, using a Schema within a Nested field for them is
+        more appropriate than using a `Tuple` field.
 
     :param Iterable[Field] tuple_fields: An iterable of field classes or
         instances.
