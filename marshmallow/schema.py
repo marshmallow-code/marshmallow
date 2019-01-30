@@ -907,7 +907,7 @@ class BaseSchema(base.SchemaABC):
                 if set_operation == 'union':
                     new_options |= self.set_class(original_options)
                 if set_operation == 'intersection':
-                        new_options &= self.set_class(original_options)
+                    new_options &= self.set_class(original_options)
             setattr(self.declared_fields[key], option_name, new_options)
 
     def _init_fields(self):
