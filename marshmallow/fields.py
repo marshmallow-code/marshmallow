@@ -410,9 +410,9 @@ class Nested(Field):
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
-            raise StringNotCollectionError('"only" should be a list of strings')
+            raise StringNotCollectionError('"only" should be a list of strings.')
         if exclude is not None and not is_collection(exclude):
-            raise StringNotCollectionError('"exclude" should be a list of strings')
+            raise StringNotCollectionError('"exclude" should be a list of strings.')
         self.nested = nested
         self.only = only
         self.exclude = exclude
@@ -566,7 +566,7 @@ class List(Field):
         except FieldInstanceResolutionError:
             raise ValueError(
                 'The list elements must be a subclass or instance of '
-                'marshmallow.base.FieldABC',
+                'marshmallow.base.FieldABC.',
             )
 
     def get_value(self, obj, attr, accessor=None):
@@ -1299,7 +1299,7 @@ class Mapping(Field):
             except FieldInstanceResolutionError:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
 
         if values is None:
@@ -1310,7 +1310,7 @@ class Mapping(Field):
             except FieldInstanceResolutionError:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
-                    'marshmallow.base.FieldABC',
+                    'marshmallow.base.FieldABC.',
                 )
 
     def _bind_to_schema(self, field_name, schema):
