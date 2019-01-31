@@ -245,7 +245,7 @@ class BaseSchema(base.SchemaABC):
 
         album = Album("Beggars Banquet", dt.date(1968, 12, 6))
         schema = AlbumSchema()
-        data, errors = schema.dump(album)
+        data = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
     :param tuple|list only: Whitelist of the declared fields to select when
