@@ -51,7 +51,7 @@ class TestDeserializingNone:
         field = fields.List(fields.String(allow_none=True), allow_none=True)
         assert field.deserialize(None) is None
 
-    def test_tuple_field_deserialize_none_to_nont(self):
+    def test_tuple_field_deserialize_none_to_none(self):
         field = fields.Tuple([fields.String()], allow_none=True)
         assert field.deserialize(None) is None
 
