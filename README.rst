@@ -3,7 +3,7 @@ marshmallow: simplified object serialization
 ********************************************
 
 .. image:: https://badgen.net/pypi/v/marshmallow
-    :target: https://badge.fury.io/py/marshmallow
+    :target: https://pypi.org/project/marshmallow/
     :alt: Latest version
 
 .. image:: https://badgen.net/travis/marshmallow-code/marshmallow/dev
