@@ -10,8 +10,8 @@ EXTRAS_REQUIRE = {
         'pytz',
     ],
     'lint': [
-        'flake8==3.6.0',
-        'pre-commit==1.14.2',
+        'flake8==3.7.5',
+        'pre-commit==1.14.3',
     ],
 }
 EXTRAS_REQUIRE['dev'] = (

@@ -118,4 +118,5 @@ Contributors (chronological)
 - Hampus Dunström `@Dunstrom <https://github.com/Dunstrom>`_
 - Robert Jensen `@r1b <https://github.com/r1b>`_
 - Arijit Basu `@sayanarijit <https://github.com/sayanarijit>`_
+- Sanjay P `@snjypl <https://github.com/snjypl>`_
 - Víctor Zabalza `@zblz <https://github.com/zblz>`_

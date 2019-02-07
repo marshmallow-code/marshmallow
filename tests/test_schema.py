@@ -2368,7 +2368,7 @@ class TestContext:
         # no context
         serializer.context = None
         data = serializer.dump(owner)
-        assert data['is_collab'] is 'value'
+        assert data['is_collab'] == 'value'
 
     def test_fields_context(self):
         class CSchema(Schema):

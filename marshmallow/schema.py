@@ -245,7 +245,7 @@ class BaseSchema(base.SchemaABC):
 
         album = Album("Beggars Banquet", dt.date(1968, 12, 6))
         schema = AlbumSchema()
-        data, errors = schema.dump(album)
+        data = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
     :param tuple|list only: Whitelist of the declared fields to select when
@@ -907,7 +907,7 @@ class BaseSchema(base.SchemaABC):
                 if set_operation == 'union':
                     new_options |= self.set_class(original_options)
                 if set_operation == 'intersection':
-                        new_options &= self.set_class(original_options)
+                    new_options &= self.set_class(original_options)
             setattr(self.declared_fields[key], option_name, new_options)
 
     def _init_fields(self):
