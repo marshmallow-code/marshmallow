@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.0.0rc4 (unreleased)
+3.0.0rc4 (2019-02-08)
 *********************
 
 Features:
