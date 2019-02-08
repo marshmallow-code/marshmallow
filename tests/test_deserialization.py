@@ -51,6 +51,10 @@ class TestDeserializingNone:
         field = fields.List(fields.String(allow_none=True), allow_none=True)
         assert field.deserialize(None) is None
 
+    def test_tuple_field_deserialize_none_to_none(self):
+        field = fields.Tuple([fields.String()], allow_none=True)
+        assert field.deserialize(None) is None
+
 
 class TestFieldDeserialization:
 
@@ -838,6 +842,63 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(value)
         assert excinfo.value.args[0] == 'Not a valid list.'
+
+    def test_datetime_int_tuple_field_deserialization(self):
+        dtime = dt.datetime.now()
+        data = dtime.isoformat(), 42
+        field = fields.Tuple([fields.DateTime(), fields.Integer()])
+        result = field.deserialize(data)
+
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+        for val, type_, true_val in zip(result, (dt.datetime, int), (dtime, 42)):
+            assert isinstance(val, type_)
+            assert val == true_val
+
+    def test_tuple_field_deserialize_invalid_item(self):
+        field = fields.Tuple([fields.DateTime])
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(['badvalue'])
+        assert excinfo.value.args[0] == {0: ['Not a valid datetime.']}
+
+        field = fields.Tuple([fields.Str(), fields.Integer()])
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(['good', 'bad'])
+        assert excinfo.value.args[0] == {1: ['Not a valid integer.']}
+
+    def test_tuple_field_deserialize_multiple_invalid_items(self):
+        validator = validate.Range(10, 20, error='Value {input} not in range')
+        field = fields.Tuple([
+            fields.Int(validate=validator),
+            fields.Int(validate=validator),
+            fields.Int(validate=validator),
+        ])
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize([10, 5, 25])
+        assert len(excinfo.value.args[0]) == 2
+        assert excinfo.value.args[0][1] == ['Value 5 not in range']
+        assert excinfo.value.args[0][2] == ['Value 25 not in range']
+
+    @pytest.mark.parametrize(
+        'value',
+        [
+            'notalist',
+            42,
+            {},
+        ],
+    )
+    def test_tuple_field_deserialize_value_that_is_not_a_collection(self, value):
+        field = fields.Tuple([fields.Str()])
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(value)
+        assert excinfo.value.args[0] == 'Not a valid tuple.'
+
+    def test_tuple_field_deserialize_invalid_length(self):
+        field = fields.Tuple([fields.Str(), fields.Str()])
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize([42])
+        assert excinfo.value.args[0] == 'Length must be 2.'
 
     def test_constant_field_deserialization(self):
         field = fields.Constant('something')

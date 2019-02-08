@@ -13,10 +13,14 @@ import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import is_collection, missing as missing_
+from marshmallow.utils import (
+    is_collection, missing as missing_,
+    FieldInstanceResolutionError,
+    resolve_field_instance,
+)
 from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
-from marshmallow.validate import Validator
+from marshmallow.validate import Validator, Length
 
 __all__ = [
     'Field',
@@ -25,6 +29,7 @@ __all__ = [
     'Mapping',
     'Dict',
     'List',
+    'Tuple',
     'String',
     'UUID',
     'Number',
@@ -556,22 +561,13 @@ class List(Field):
 
     def __init__(self, cls_or_instance, **kwargs):
         super(List, self).__init__(**kwargs)
-        if isinstance(cls_or_instance, type):
-            if not issubclass(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'The type of the list elements '
-                    'must be a subclass of '
-                    'marshmallow.base.FieldABC.',
-                )
-            self.container = cls_or_instance()
-        else:
-            if not isinstance(cls_or_instance, FieldABC):
-                raise ValueError(
-                    'The instances of the list '
-                    'elements must be of type '
-                    'marshmallow.base.FieldABC.',
-                )
-            self.container = cls_or_instance
+        try:
+            self.container = resolve_field_instance(cls_or_instance)
+        except FieldInstanceResolutionError:
+            raise ValueError(
+                'The list elements must be a subclass or instance of '
+                'marshmallow.base.FieldABC.',
+            )
 
     def get_value(self, obj, attr, accessor=None):
         """Return the value for a given key from an object."""
@@ -614,6 +610,107 @@ class List(Field):
         if errors:
             raise ValidationError(errors, valid_data=result)
         return result
+
+
+class Tuple(Field):
+    """A tuple field, composed of a fixed number of other `Field` classes or
+    instances
+
+    Example: ::
+
+        row = Tuple((fields.String(), fields.Integer(), fields.Float()))
+
+    .. note::
+        Because of the structured nature of `collections.namedtuple` and
+        `typing.NamedTuple`, using a Schema within a Nested field for them is
+        more appropriate than using a `Tuple` field.
+
+    :param Iterable[Field] tuple_fields: An iterable of field classes or
+        instances.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
+    default_error_messages = {
+        'invalid': 'Not a valid tuple.',
+    }
+
+    def __init__(self, tuple_fields, *args, **kwargs):
+        super(Tuple, self).__init__(*args, **kwargs)
+        if not utils.is_collection(tuple_fields):
+            raise ValueError(
+                'tuple_fields must be an iterable of Field classes or '
+                'instances.',
+            )
+
+        try:
+            self.tuple_fields = [
+                resolve_field_instance(cls_or_instance)
+                for cls_or_instance in tuple_fields
+            ]
+        except FieldInstanceResolutionError:
+            raise ValueError(
+                'Elements of "tuple_fields" must be subclasses or '
+                'instances of marshmallow.base.FieldABC.',
+            )
+
+        self.validate_length = Length(equal=len(self.tuple_fields))
+
+    def _bind_to_schema(self, field_name, schema):
+        super(Tuple, self)._bind_to_schema(field_name, schema)
+        new_tuple_fields = []
+        for container in self.tuple_fields:
+            new_container = copy.deepcopy(container)
+            new_container.parent = self
+            new_container.name = field_name
+            new_tuple_fields.append(new_container)
+        self.tuple_fields = new_tuple_fields
+
+    def get_value(self, obj, attr, accessor=None):
+        """Return the value for a given key from an object."""
+        value = super(Tuple, self).get_value(obj, attr, accessor=accessor)
+        if any(container.attribute for container in self.tuple_fields):
+            if not utils.is_collection(value):
+                self.fail('invalid')
+            result = []
+            for container, each in zip(self.tuple_fields, value):
+                if container.attribute is None:
+                    result.append(each)
+                else:
+                    result.append(
+                        container.get_value(each, container.attribute),
+                    )
+            return tuple(result)
+        return value
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+
+        return tuple(
+            container._serialize(each, attr, obj, **kwargs)
+            for container, each in zip(self.tuple_fields, value)
+        )
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not utils.is_collection(value):
+            self.fail('invalid')
+
+        self.validate_length(value)
+
+        result = []
+        errors = {}
+
+        for idx, (container, each) in enumerate(zip(self.tuple_fields, value)):
+            try:
+                result.append(container.deserialize(each))
+            except ValidationError as error:
+                if error.valid_data is not None:
+                    result.append(error.valid_data)
+                errors.update({idx: error.messages})
+        if errors:
+            raise ValidationError(errors, valid_data=result)
+
+        return tuple(result)
 
 
 class String(Field):
@@ -1196,36 +1293,25 @@ class Mapping(Field):
         super(Mapping, self).__init__(**kwargs)
         if keys is None:
             self.key_container = None
-        elif isinstance(keys, type):
-            if not issubclass(keys, FieldABC):
-                raise ValueError(
-                    '"keys" must be a subclass of '
-                    'marshmallow.base.FieldABC.',
-                )
-            self.key_container = keys()
         else:
-            if not isinstance(keys, FieldABC):
+            try:
+                self.key_container = resolve_field_instance(keys)
+            except FieldInstanceResolutionError:
                 raise ValueError(
-                    '"keys" must be of type '
+                    '"keys" must be a subclass or instance of '
                     'marshmallow.base.FieldABC.',
                 )
-            self.key_container = keys
+
         if values is None:
             self.value_container = None
-        elif isinstance(values, type):
-            if not issubclass(values, FieldABC):
-                raise ValueError(
-                    '"values" must be a subclass of '
-                    'marshmallow.base.FieldABC.',
-                )
-            self.value_container = values()
         else:
-            if not isinstance(values, FieldABC):
+            try:
+                self.value_container = resolve_field_instance(values)
+            except FieldInstanceResolutionError:
                 raise ValueError(
-                    '"values" must be of type '
+                    '"values" must be a subclass or instance of '
                     'marshmallow.base.FieldABC.',
                 )
-            self.value_container = values
 
     def _bind_to_schema(self, field_name, schema):
         super(Mapping, self)._bind_to_schema(field_name, schema)

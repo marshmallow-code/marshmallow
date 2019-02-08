@@ -97,6 +97,7 @@ class TestParentAndName:
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.List(fields.Str())
+        baz = fields.Tuple([fields.Str(), fields.Int()])
 
     @pytest.fixture()
     def schema(self):
@@ -123,12 +124,21 @@ class TestParentAndName:
         assert schema.fields['bar'].container.parent == schema.fields['bar']
         assert schema.fields['bar'].container.name == 'bar'
 
+    def test_tuple_field_inner_parent_and_name(self, schema):
+        for container in schema.fields['baz'].tuple_fields:
+            assert container.parent == schema.fields['baz']
+            assert container.name == 'baz'
+
     def test_simple_field_root(self, schema):
         assert schema.fields['foo'].root == schema
         assert schema.fields['bar'].root == schema
 
     def test_list_field_inner_root(self, schema):
         assert schema.fields['bar'].container.root == schema
+
+    def test_tuple_field_inner_root(self, schema):
+        for container in schema.fields['baz'].tuple_fields:
+            assert container.root == schema
 
     def test_list_root_inheritance(self, schema):
         class OtherSchema(TestParentAndName.MySchema):
