@@ -15,8 +15,8 @@ from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
-from marshmallow.compat import binary_type, text_type
-from marshmallow.compat import Mapping, Iterable
+from marshmallow.compat import binary_type, text_type, Mapping, Iterable
+from marshmallow.exceptions import FieldInstanceResolutionError
 
 EXCLUDE = 'exclude'
 INCLUDE = 'include'
@@ -401,11 +401,11 @@ def get_func_args(func):
     return _signature(func.__call__)
 
 
-class FieldInstanceResolutionError(Exception):
-    pass
-
-
 def resolve_field_instance(cls_or_instance):
+    """Return a Schema instance from a Schema class or instance.
+
+    :param type|Schema cls_or_instance: Marshmallow Schema class or instance.
+    """
     if isinstance(cls_or_instance, type):
         if not issubclass(cls_or_instance, FieldABC):
             raise FieldInstanceResolutionError

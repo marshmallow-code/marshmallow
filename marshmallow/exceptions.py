@@ -47,3 +47,7 @@ class RegistryError(NameError):
 
 class StringNotCollectionError(MarshmallowError, TypeError):
     """Raised when a string is passed when a list of strings is expected."""
+
+
+class FieldInstanceResolutionError(MarshmallowError, TypeError):
+    """Raised when schema to instantiate is neither a Schema class nor an instance."""
