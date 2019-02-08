@@ -13,13 +13,11 @@ import math
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import (
-    is_collection, missing as missing_,
-    FieldInstanceResolutionError,
-    resolve_field_instance,
-)
+from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
 from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
-from marshmallow.exceptions import ValidationError, StringNotCollectionError
+from marshmallow.exceptions import (
+    ValidationError, StringNotCollectionError, FieldInstanceResolutionError,
+)
 from marshmallow.validate import Validator, Length
 
 __all__ = [
