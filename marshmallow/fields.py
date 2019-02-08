@@ -626,6 +626,8 @@ class Tuple(Field):
     :param Iterable[Field] tuple_fields: An iterable of field classes or
         instances.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 3.0.0rc4
     """
 
     default_error_messages = {
@@ -1279,7 +1281,7 @@ class Mapping(Field):
         When the structure of nested data is not known, you may omit the
         `keys` and `values` arguments to prevent content validation.
 
-    .. versionadded:: TODO: specify version
+    .. versionadded:: 3.0.0rc4
     """
 
     mapping_type = dict

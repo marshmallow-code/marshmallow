@@ -6,6 +6,7 @@ Changelog
 
 Features:
 
+- Add ``fields.Tuple`` (:issue:`1103`) Thanks :user:`zblz` for the PR.
 - Add ``fields.Mapping``, which makes it easier to support other
   mapping types (e.g. ``OrderedDict``)  (:issue:`1092`).
   Thank :user:`sayanarijit` for the suggestion and the PR.
