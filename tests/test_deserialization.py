@@ -47,7 +47,7 @@ class TestDeserializingNone:
         assert field.allow_none is True
         field.deserialize(None) is None
 
-    def test_list_field_deserialize_none_to_empty_list(self):
+    def test_list_field_deserialize_none_to_none(self):
         field = fields.List(fields.String(allow_none=True), allow_none=True)
         assert field.deserialize(None) is None
 
