@@ -796,7 +796,7 @@ class Number(Field):
         try:
             return self._format_num(value)
         except (TypeError, ValueError):
-            self.fail('invalid')
+            self.fail('invalid', input=value)
 
     def _to_string(self, value):
         return str(value)
@@ -831,7 +831,7 @@ class Integer(Number):
         if self.strict:
             if isinstance(value, numbers.Number) and isinstance(value, numbers.Integral):
                 return super(Integer, self)._format_num(value)
-            self.fail('invalid')
+            self.fail('invalid', input=value)
         return super(Integer, self)._format_num(value)
 
 
@@ -1003,7 +1003,7 @@ class Boolean(Field):
                     return False
             except TypeError:
                 pass
-        self.fail('invalid')
+        self.fail('invalid', input=value)
 
 
 class FormattedString(Field):
@@ -1109,19 +1109,19 @@ class DateTime(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+            raise self.fail('invalid', input=value, obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+                raise self.fail('invalid', input=value, obj_type=self.OBJ_TYPE)
         else:
             try:
                 return self._make_object_from_format(value, data_format)
             except (TypeError, AttributeError, ValueError):
-                raise self.fail('invalid', obj_type=self.OBJ_TYPE)
+                raise self.fail('invalid', input=value, obj_type=self.OBJ_TYPE)
 
     @staticmethod
     def _make_object_from_format(value, data_format):
