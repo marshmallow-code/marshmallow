@@ -1328,14 +1328,20 @@ class Mapping(Field):
         if not isinstance(value, _Mapping):
             self.fail("invalid")
 
-        #  Serialize keys
+        errors = collections.defaultdict(dict)
+
+        #  Serialize keys
         if self.key_field is None:
             keys = {k: k for k in value.keys()}
         else:
-            keys = {
-                k: self.key_field._serialize(k, None, None, **kwargs)
-                for k in value.keys()
-            }
+            keys = {}
+            for key in value.keys():
+                try:
+                    keys[key] = self.key_field._serialize(
+                        key, None, None, **kwargs
+                    )
+                except ValidationError as error:
+                    errors[key]['key'] = error.messages
 
         #  Serialize values
         result = self.mapping_type()
@@ -1344,8 +1350,21 @@ class Mapping(Field):
                 if k in keys:
                     result[keys[k]] = v
         else:
-            for k, v in value.items():
-                result[keys[k]] = self.value_field._serialize(v, None, None, **kwargs)
+            for key, val in iteritems(value):
+                try:
+                    deser_val = self.value_field._serialize(
+                        val, None, None, **kwargs
+                    )
+                except ValidationError as error:
+                    errors[key]['value'] = error.messages
+                    if error.valid_data is not None and key in keys:
+                        result[keys[key]] = error.valid_data
+                else:
+                    if key in keys:
+                        result[keys[key]] = deser_val
+
+        if errors:
+            raise ValidationError(errors, valid_data=result)
 
         return result
 
