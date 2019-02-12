@@ -600,9 +600,20 @@ class List(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if utils.is_collection(value):
-            return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
-        return [self.inner._serialize(value, attr, obj, **kwargs)]
+        if not utils.is_collection(value):
+            return [self.inner._serialize(value, attr, obj, **kwargs)]
+        result = []
+        errors = {}
+        for idx, each in enumerate(value):
+            try:
+                result.append(self.inner._serialize(each, attr, obj, **kwargs))
+            except ValidationError as error:
+                if error.valid_data is not None:
+                    result.append(error.valid_data)
+                errors.update({idx: error.messages})
+        if errors:
+            raise ValidationError(errors, valid_data=result)
+        return result
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
