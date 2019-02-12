@@ -387,6 +387,29 @@ class TestFieldDeserialization:
         assert field.deserialize('nope') is False
         assert field.deserialize(True) is True
 
+    def test_field_toggle_show_invalid_value_in_error_message(self):
+        error_messages = {'invalid': 'Not valid: {input}'}
+        boolfield = fields.Boolean(error_messages=error_messages)
+        with pytest.raises(ValidationError) as excinfo:
+            boolfield.deserialize('notabool')
+        assert str(excinfo.value.args[0]) == 'Not valid: notabool'
+
+        numfield = fields.Number(error_messages=error_messages)
+        with pytest.raises(ValidationError) as excinfo:
+            numfield.deserialize('notanum')
+        assert str(excinfo.value.args[0]) == 'Not valid: notanum'
+
+        intfield = fields.Integer(error_messages=error_messages)
+        with pytest.raises(ValidationError) as excinfo:
+            intfield.deserialize('notanint')
+        assert str(excinfo.value.args[0]) == 'Not valid: notanint'
+
+        date_error_messages = {'invalid': 'Not a valid {obj_type}: {input}'}
+        datefield = fields.DateTime(error_messages=date_error_messages)
+        with pytest.raises(ValidationError) as excinfo:
+            datefield.deserialize('notadate')
+        assert str(excinfo.value.args[0]) == 'Not a valid datetime: notadate'
+
     @pytest.mark.parametrize(
         'in_value',
         [
