@@ -121,3 +121,4 @@ Contributors (chronological)
 - Sanjay P `@snjypl <https://github.com/snjypl>`_
 - Víctor Zabalza `@zblz <https://github.com/zblz>`_
 - Riley Gibbs `@rileyjohngibbs <https://github.com/rileyjohngibbs>`_
+- Henry Doupe `@hdoupe <https://github.com/hdoupe>`_
