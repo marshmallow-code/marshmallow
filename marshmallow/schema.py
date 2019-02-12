@@ -261,9 +261,10 @@ class BaseSchema(base.SchemaABC):
         :class:`fields.Function` fields.
     :param tuple|list load_only: Fields to skip during serialization (write-only fields)
     :param tuple|list dump_only: Fields to skip during deserialization (read-only fields)
-    :param bool|tuple partial: Whether to ignore missing fields. If its value
-        is an iterable, only missing fields listed in that iterable will be
-        ignored.
+    :param bool|tuple partial: Whether to ignore missing fields and not require
+        any fields declared. Propagates down to ``Nested`` fields as well. If
+        its value is an iterable, only missing fields listed in that iterable
+        will be ignored. Use dot delimiters to specify nested fields.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
 
@@ -586,8 +587,9 @@ class BaseSchema(base.SchemaABC):
         :param ErrorStore error_store: Structure to store errors.
         :param bool many: Set to `True` if ``data`` should be deserialized as
             a collection.
-        :param bool|tuple partial: Whether to ignore missing fields. If its
-            value is an iterable, only missing fields listed in that iterable
+        :param bool|tuple partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
@@ -685,10 +687,10 @@ class BaseSchema(base.SchemaABC):
         :param dict data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
-            the value for `self.partial` is used. If its value is an iterable,
-            only missing fields listed in that iterable will be ignored.
-            Use dot delimiters to specify nested fields.
+        :param bool|tuple partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
@@ -715,10 +717,10 @@ class BaseSchema(base.SchemaABC):
         :param str json_data: A JSON string of the data to deserialize.
         :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
-            the value for `self.partial` is used. If its value is an iterable,
-            only missing fields listed in that iterable will be ignored.
-            Use dot delimiters to specify nested fields.
+        :param bool|tuple partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
@@ -754,10 +756,10 @@ class BaseSchema(base.SchemaABC):
         :param dict data: The data to validate.
         :param bool many: Whether to validate `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields. If `None`,
-            the value for `self.partial` is used. If its value is an iterable,
-            only missing fields listed in that iterable will be ignored.
-            Use dot delimiters to specify nested fields.
+        :param bool|tuple partial: Whether to ignore missing fields and not require
+            any fields declared. Propagates down to ``Nested`` fields as well. If
+            its value is an iterable, only missing fields listed in that iterable
+            will be ignored. Use dot delimiters to specify nested fields.
         :return: A dictionary of validation errors.
         :rtype: dict
 
