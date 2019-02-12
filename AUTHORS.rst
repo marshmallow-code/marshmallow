@@ -120,3 +120,4 @@ Contributors (chronological)
 - Arijit Basu `@sayanarijit <https://github.com/sayanarijit>`_
 - Sanjay P `@snjypl <https://github.com/snjypl>`_
 - Víctor Zabalza `@zblz <https://github.com/zblz>`_
+- Riley Gibbs `@rileyjohngibbs <https://github.com/rileyjohngibbs>`_
