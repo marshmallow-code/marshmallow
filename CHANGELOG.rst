@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+******************
+
+Features:
+
+- Allow input value to be included in error messages
+  for a number of fields (:pr:`1129`). Thanks :user:`hdoupe` for the PR.
+
 3.0.0rc4 (2019-02-08)
 *********************
 
