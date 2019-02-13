@@ -2458,7 +2458,7 @@ class TestStrictDefault:
         pass
 
     def test_default(self):
-        assert self.SchemaWithoutMeta().strict is False
+        assert self.SchemaWithoutMeta().strict is None
 
     def test_meta_true(self):
         assert self.SchemaTrueByMeta().strict is True

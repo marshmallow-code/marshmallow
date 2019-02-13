@@ -195,7 +195,7 @@ class SchemaOpts(object):
         self.exclude = getattr(meta, 'exclude', ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
-        self.strict = getattr(meta, 'strict', False)
+        self.strict = getattr(meta, 'strict', None)
         if hasattr(meta, 'dateformat'):
             warnings.warn(
                 "The dateformat option is renamed to datetimeformat in marshmallow 3.",
