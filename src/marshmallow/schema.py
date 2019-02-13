@@ -355,15 +355,6 @@ class BaseSchema(base.SchemaABC):
             )
         self.prefix = prefix
         self.strict = strict if strict is not None else self.opts.strict
-        if self.strict is False:
-            warnings.warn(
-                'strict=False is not recommended. In marshmallow 3.0, schemas will '
-                'always be strict. See '
-                'https://marshmallow.readthedocs.io/'
-                'en/latest/upgrading.html#schemas-are-always-strict',
-                ChangedInMarshmallow3Warning
-            )
-
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
