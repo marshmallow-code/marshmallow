@@ -458,6 +458,15 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.18.1 (2019-02-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- A ``ChangedInMarshmallow3Warning`` is no longer raised when
+  ``strict=False`` (:issue:`1108`). Thanks :user:`Aegdesil` for
+  reporting.
+
 2.18.0 (2019-01-13)
 +++++++++++++++++++
 
