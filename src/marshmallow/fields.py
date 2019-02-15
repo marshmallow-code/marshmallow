@@ -622,7 +622,7 @@ class List(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
-            self.fail('invalid')
+            self.fail("invalid")
         return self._marshal(self.inner.deserialize, value, attr, data, **kwargs)
 
 
@@ -678,27 +678,13 @@ class Tuple(Field):
 
         self.tuple_fields = new_tuple_fields
 
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-
-        return tuple(
-            field._serialize(each, attr, obj, **kwargs)
-            for field, each in zip(self.tuple_fields, value)
-        )
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        if not utils.is_collection(value):
-            self.fail("invalid")
-
-        self.validate_length(value)
-
+    def _marshal(self, operation_name, value, attr, root, **kwargs):
         result = []
         errors = {}
-
         for idx, (field, each) in enumerate(zip(self.tuple_fields, value)):
             try:
-                result.append(field.deserialize(each, **kwargs))
+                operation = getattr(field, operation_name)
+                result.append(operation(each, attr, root, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
                     result.append(error.valid_data)
@@ -707,6 +693,17 @@ class Tuple(Field):
             raise ValidationError(errors, valid_data=result)
 
         return tuple(result)
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return self._marshal("_serialize", value, attr, obj, **kwargs)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not utils.is_collection(value):
+            self.fail("invalid")
+        self.validate_length(value)
+        return self._marshal("deserialize", value, attr, data, **kwargs)
 
 
 class String(Field):
@@ -1339,7 +1336,7 @@ class Mapping(Field):
     def _marshal_values(operation, value, attr, root, **kwargs):
         values = {}
         errors = {}
-        for key, val in iteritems(value):
+        for key, val in value.items():
             try:
                 values[key] = operation(val, attr, root, **kwargs)
             except ValidationError as error:
@@ -1352,7 +1349,7 @@ class Mapping(Field):
         key_errors = {}
         value_errors = {}
 
-        #  Serialize keys
+        #   Serialize keys
         if self.key_field is None:
             keys = {k: k for k in value.keys()}
         else:
@@ -1361,7 +1358,7 @@ class Mapping(Field):
                 operation, value, attr, root, **kwargs
             )
 
-        #  Serialize values
+        #   Serialize values
         if self.value_field is None:
             values = value
         else:
@@ -1377,11 +1374,11 @@ class Mapping(Field):
 
         if key_errors or value_errors:
             errors = {}
-            for key, error in iteritems(key_errors):
-                errors[key] = {'key': error}
-            for key, error in iteritems(value_errors):
+            for key, error in key_errors.items():
+                errors[key] = {"key": error}
+            for key, error in value_errors.items():
                 errors[key] = errors.get(key, {})
-                errors[key]['value'] = error
+                errors[key]["value"] = error
             raise ValidationError(errors, valid_data=result)
 
         return result
@@ -1392,15 +1389,15 @@ class Mapping(Field):
         if not self.value_field and not self.key_field:
             return value
         if not isinstance(value, _Mapping):
-            self.fail('invalid')
-        return self._marshal('_serialize', value, attr, obj, **kwargs)
+            self.fail("invalid")
+        return self._marshal("_serialize", value, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, _Mapping):
             self.fail("invalid")
         if not self.value_field and not self.key_field:
             return value
-        return self._marshal('deserialize', value, attr, data, **kwargs)
+        return self._marshal("deserialize", value, attr, data, **kwargs)
 
 
 class Dict(Mapping):
