@@ -38,9 +38,6 @@ def find_version(fname):
     return version
 
 
-__version__ = find_version('marshmallow/__init__.py')
-
-
 def read(fname):
     with open(fname) as fp:
         content = fp.read()
@@ -49,7 +46,7 @@ def read(fname):
 
 setup(
     name='marshmallow',
-    version=__version__,
+    version=find_version('src/marshmallow/__init__.py'),
     description=(
         'A lightweight library for converting complex '
         'datatypes to and from native Python datatypes.'
@@ -58,8 +55,8 @@ setup(
     author='Steven Loria',
     author_email='sloria1@gmail.com',
     url='https://github.com/marshmallow-code/marshmallow',
-    packages=find_packages(exclude=('test*', 'examples')),
-    package_dir={'marshmallow': 'marshmallow'},
+    packages=find_packages('src', exclude=('test*', 'examples')),
+    package_dir={'': 'src'},
     include_package_data=True,
     extras_require=EXTRAS_REQUIRE,
     license='MIT',
