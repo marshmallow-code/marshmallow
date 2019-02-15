@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.18.1 (2019-02-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- A ``ChangedInMarshmallow3Warning`` is no longer raised when
+  ``strict=False`` (:issue:`1108`). Thanks :user:`Aegdesil` for
+  reporting.
+
 2.18.0 (2019-01-13)
 +++++++++++++++++++
 
