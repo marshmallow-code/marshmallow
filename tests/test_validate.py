@@ -82,7 +82,7 @@ def test_url_relative_valid(valid_url):
         'http//example.org',
         'suppliers.html',
         '../icons/logo.gif',
-        '\icons/logo.gif',
+        'icons/logo.gif',
         '../.../g',
         '...',
         '\\',
