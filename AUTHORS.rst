@@ -88,3 +88,4 @@ Contributors (chronological)
 - Viktor Kerkez `@alefnula <https://github.com/alefnula>`_
 - Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
 - AlexV `@asmodehn <https://github.com/asmodehn>`_
+- `@miniscruff <https://github.com/miniscruff>`_
