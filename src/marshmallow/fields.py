@@ -626,7 +626,7 @@ class List(Field, ContainerMixin):
         return result
 
 
-class Tuple(Field):
+class Tuple(Field, ContainerMixin):
     """A tuple field, composed of a fixed number of other `Field` classes or
     instances
 
@@ -667,15 +667,18 @@ class Tuple(Field):
             )
 
         self.validate_length = Length(equal=len(self.tuple_fields))
+        for container in self.tuple_fields:
+            self.get_container_modifiers(container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         new_tuple_fields = []
         for container in self.tuple_fields:
-            new_container = copy.deepcopy(container)
-            new_container.parent = self
-            new_container.name = field_name
-            new_tuple_fields.append(new_container)
+            container = copy.deepcopy(container)
+            container.parent = self
+            container.name = field_name
+            new_tuple_fields.append(container)
+            self.set_container_modifiers(container)
         self.tuple_fields = new_tuple_fields
 
     def _serialize(self, value, attr, obj, **kwargs):
