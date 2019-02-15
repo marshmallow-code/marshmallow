@@ -28,7 +28,6 @@ ALL_FIELDS = [
     fields.Dict,
     fields.Url,
     fields.Email,
-    fields.FormattedString,
     fields.UUID,
     fields.Decimal,
 ]

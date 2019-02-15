@@ -744,6 +744,25 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
     MySchema().dump({'f1': 'one', 'f2': 'two'})
     # {'pre_f1': 'one', '_pre_f2': 'two'}
 
+
+``fields.FormattedString`` is removed
+*************************************
+
+``fields.FormattedString`` field is removed. Use `fields.Function
+<marshmallow.fields.Function>` or
+`fields.Method <marshmallow.fields.Method>` instead.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        full_name = fields.FormattedString("{first_name} {last_name}")
+
+    # 3.x
+    class MySchema(Schema):
+        full_name = fields.Function(lambda u: f"{u.first_name} {u.last_name}")
+
+
 ``attribute`` or ``data_key`` collision triggers an exception
 *************************************************************
 
