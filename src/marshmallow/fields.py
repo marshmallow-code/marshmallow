@@ -1,6 +1,7 @@
 """Field classes for various types of data."""
 
-import collections
+from __future__ import absolute_import, unicode_literals
+
 import copy
 import datetime as dt
 import numbers
@@ -1323,95 +1324,83 @@ class Mapping(Field):
             self.key_field = copy.deepcopy(self.key_field)
             self.key_field._bind_to_schema(field_name, self)
 
+    @staticmethod
+    def _marshal_keys(operation, value, attr, root, **kwargs):
+        keys = {}
+        errors = {}
+        for key in value.keys():
+            try:
+                keys[key] = operation(key, attr, root, **kwargs)
+            except ValidationError as error:
+                errors[key] = error.messages
+        return keys, errors
+
+    @staticmethod
+    def _marshal_values(operation, value, attr, root, **kwargs):
+        values = {}
+        errors = {}
+        for key, val in iteritems(value):
+            try:
+                values[key] = operation(val, attr, root, **kwargs)
+            except ValidationError as error:
+                errors[key] = error.messages
+                if error.valid_data is not None:
+                    values[key] = error.valid_data
+        return values, errors
+
+    def _marshal(self, operation_name, value, attr, root, **kwargs):
+        key_errors = {}
+        value_errors = {}
+
+        #  Serialize keys
+        if self.key_field is None:
+            keys = {k: k for k in value.keys()}
+        else:
+            operation = getattr(self.key_field, operation_name)
+            keys, key_errors = self._marshal_keys(
+                operation, value, attr, root, **kwargs
+            )
+
+        #  Serialize values
+        if self.value_field is None:
+            values = value
+        else:
+            operation = getattr(self.value_field, operation_name)
+            values, value_errors = self._marshal_values(
+                operation, value, attr, root, **kwargs
+            )
+
+        valid_keys = set(keys.keys()) & set(values.keys())
+        result = self.mapping_type()
+        for key in valid_keys:
+            result[keys[key]] = values[key]
+
+        if key_errors or value_errors:
+            errors = {}
+            for key, error in iteritems(key_errors):
+                errors[key] = {'key': error}
+            for key, error in iteritems(value_errors):
+                errors[key] = errors.get(key, {})
+                errors[key]['value'] = error
+            raise ValidationError(errors, valid_data=result)
+
+        return result
+
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         if not self.value_field and not self.key_field:
             return value
         if not isinstance(value, _Mapping):
-            self.fail("invalid")
-
-        errors = collections.defaultdict(dict)
-
-        #  Serialize keys
-        if self.key_field is None:
-            keys = {k: k for k in value.keys()}
-        else:
-            keys = {}
-            for key in value.keys():
-                try:
-                    keys[key] = self.key_field._serialize(
-                        key, None, None, **kwargs
-                    )
-                except ValidationError as error:
-                    errors[key]['key'] = error.messages
-
-        #  Serialize values
-        result = self.mapping_type()
-        if self.value_field is None:
-            for k, v in value.items():
-                if k in keys:
-                    result[keys[k]] = v
-        else:
-            for key, val in iteritems(value):
-                try:
-                    deser_val = self.value_field._serialize(
-                        val, None, None, **kwargs
-                    )
-                except ValidationError as error:
-                    errors[key]['value'] = error.messages
-                    if error.valid_data is not None and key in keys:
-                        result[keys[key]] = error.valid_data
-                else:
-                    if key in keys:
-                        result[keys[key]] = deser_val
-
-        if errors:
-            raise ValidationError(errors, valid_data=result)
-
-        return result
+            self.fail('invalid')
+        return self._marshal('_serialize', value, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, _Mapping):
             self.fail("invalid")
         if not self.value_field and not self.key_field:
             return value
-
-        errors = collections.defaultdict(dict)
-
-        #  Deserialize keys
-        if self.key_field is None:
-            keys = {k: k for k in value.keys()}
-        else:
-            keys = {}
-            for key in value.keys():
-                try:
-                    keys[key] = self.key_field.deserialize(key, **kwargs)
-                except ValidationError as error:
-                    errors[key]["key"] = error.messages
-
-        #  Deserialize values
-        result = self.mapping_type()
-        if self.value_field is None:
-            for k, v in value.items():
-                if k in keys:
-                    result[keys[k]] = v
-        else:
-            for key, val in value.items():
-                try:
-                    deser_val = self.value_field.deserialize(val, **kwargs)
-                except ValidationError as error:
-                    errors[key]["value"] = error.messages
-                    if error.valid_data is not None and key in keys:
-                        result[keys[key]] = error.valid_data
-                else:
-                    if key in keys:
-                        result[keys[key]] = deser_val
-
-        if errors:
-            raise ValidationError(errors, valid_data=result)
-
-        return result
+        return self._marshal('deserialize', value, attr, data, **kwargs)
 
 
 class Dict(Mapping):
