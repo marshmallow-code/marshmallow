@@ -548,7 +548,21 @@ class Pluck(Nested):
         return self._load(value, data, partial=partial)
 
 
-class List(Field):
+class ContainerMixin(object):
+    """Common methods for container fields"""
+
+    def get_container_modifiers(self, container):
+        if isinstance(container, Nested):
+            self.only = container.only
+            self.exclude = container.exclude
+
+    def set_container_modifiers(self, container):
+        if isinstance(container, Nested):
+            container.only = self.only
+            container.exclude = self.exclude
+
+
+class List(Field, ContainerMixin):
     """A list field, composed with another `Field` class or
     instance.
 
@@ -576,18 +590,14 @@ class List(Field):
                 'The list elements must be a subclass or instance of '
                 'marshmallow.base.FieldABC.',
             )
-        if isinstance(self.container, Nested):
-            self.only = self.container.only
-            self.exclude = self.container.exclude
+        self.get_container_modifiers(self.container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
-        if isinstance(self.container, Nested):
-            self.container.only = self.only
-            self.container.exclude = self.exclude
+        self.set_container_modifiers(self.container)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
@@ -1254,7 +1264,7 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
-class Mapping(Field):
+class Mapping(Field, ContainerMixin):
     """An abstract class for objects with key-value pairs.
 
     :param Field keys: A field class or instance for dict keys.
@@ -1294,9 +1304,7 @@ class Mapping(Field):
                     '"values" must be a subclass or instance of '
                     'marshmallow.base.FieldABC.',
                 )
-            if isinstance(self.value_container, Nested):
-                self.only = self.value_container.only
-                self.exclude = self.value_container.exclude
+            self.get_container_modifiers(self.value_container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -1304,9 +1312,7 @@ class Mapping(Field):
             self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
             self.value_container.name = field_name
-        if isinstance(self.value_container, Nested):
-            self.value_container.only = self.only
-            self.value_container.exclude = self.exclude
+            self.set_container_modifiers(self.value_container)
         if self.key_container:
             self.key_container = copy.deepcopy(self.key_container)
             self.key_container.parent = self
