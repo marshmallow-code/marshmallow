@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 '''A Python 2.6-compatible ordered dictionary.'''
+# flake8: noqa
 # OrderedDict
 # Copyright (c) 2009 Raymond Hettinger
 #

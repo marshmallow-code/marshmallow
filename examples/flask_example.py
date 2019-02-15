@@ -60,6 +60,7 @@ class QuoteSchema(Schema):
         data['author'] = author_dict
         return data
 
+
 author_schema = AuthorSchema()
 authors_schema = AuthorSchema(many=True)
 quote_schema = QuoteSchema()
@@ -125,6 +126,7 @@ def new_quote():
     result = quote_schema.dump(Quote.query.get(quote.id))
     return jsonify({"message": "Created new quote.",
                     "quote": result.data})
+
 
 if __name__ == '__main__':
     db.create_all()

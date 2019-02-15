@@ -18,6 +18,7 @@ class BlobSchema(Schema):
         else:
             return 'neutral'
 
+
 blob_schema = BlobSchema()
 
 @route("/api/v1/analyze", method="POST")

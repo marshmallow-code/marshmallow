@@ -84,6 +84,7 @@ class TodoSchema(Schema):
                     is_done=data['is_done'],
                     posted_on=dt.datetime.utcnow())
 
+
 user_schema = UserSchema()
 todo_schema = TodoSchema()
 todos_schema = TodoSchema(many=True)
@@ -181,6 +182,7 @@ def new_todo(user):
     todo.save()
     result = todo_schema.dump(todo)
     return jsonify(result.data)
+
 
 if __name__ == '__main__':
     create_tables()

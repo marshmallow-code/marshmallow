@@ -10,7 +10,7 @@ EXTRAS_REQUIRE = {
         'pytz',
     ],
     'lint': [
-        'flake8==3.6.0',
+        'flake8==3.7.4',
     ],
 }
 EXTRAS_REQUIRE['dev'] = (
@@ -36,17 +36,16 @@ def find_version(fname):
         raise RuntimeError('Cannot find version information')
     return version
 
-__version__ = find_version("src/marshmallow/__init__.py")
-
 
 def read(fname):
     with open(fname) as fp:
         content = fp.read()
     return content
 
+
 setup(
     name='marshmallow',
-    version=__version__,
+    version=find_version('src/marshmallow/__init__.py'),
     description=('A lightweight library for converting complex '
                 'datatypes to and from native Python datatypes.'),
     long_description=read('README.rst'),
@@ -77,6 +76,6 @@ setup(
     project_urls={
         'Issues': 'https://github.com/marshmallow-code/marshmallow/issues',
         'Funding': 'https://opencollective.com/marshmallow',
-        'Tidelift': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi',
+        'Tidelift': 'https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi',  # noqa
     },
 )
