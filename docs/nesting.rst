@@ -220,6 +220,17 @@ For example, a representation of an ``Author`` model might include the books tha
         books = fields.Nested('path.to.BookSchema',
                               many=True, exclude=('author', ))
 
+.. note::
+
+    In case you need to pass additional arguments to the constructor of a name referenced schema you can use the `schema_args` parameter:
+
+    .. code-block:: python
+        :emphasize-lines: 3
+
+        books = fields.Nested('BookSchema',
+                              many=True, exclude=('author', ),
+                              schema_args={'my_arg': 'my argument'})
+
 .. _self-nesting:
 
 Nesting A Schema Within Itself
