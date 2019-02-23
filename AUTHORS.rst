@@ -123,3 +123,4 @@ Contributors (chronological)
 - Riley Gibbs `@rileyjohngibbs <https://github.com/rileyjohngibbs>`_
 - Henry Doupe `@hdoupe <https://github.com/hdoupe>`_
 - `@miniscruff <https://github.com/miniscruff>`_
+- `@kamforka <https://github.com/kamforka>`_
