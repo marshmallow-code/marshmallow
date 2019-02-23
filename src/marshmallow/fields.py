@@ -398,6 +398,7 @@ class Nested(Field):
     :param bool many: Whether the field is a collection of objects.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+    :param dict schema_args: A dictionary of keyword arguments to pass for name referenced schemas.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -416,6 +417,7 @@ class Nested(Field):
         self.exclude = exclude
         self.many = kwargs.get('many', False)
         self.unknown = kwargs.get('unknown')
+        self.schema_args = kwargs.get('schema_args', {})
         self.__schema = None  # Cached Schema instance
         super(Nested, self).__init__(default=default, **kwargs)
 
@@ -449,6 +451,7 @@ class Nested(Field):
                     only=self.only, exclude=self.exclude, context=context,
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),
+                    **self.schema_args,
                 )
             self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema
