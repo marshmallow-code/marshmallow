@@ -454,7 +454,7 @@ class Nested(Field):
                     only=self.only, exclude=self.exclude, context=context,
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),
-                    **self.schema_args,
+                    **self.schema_args
                 )
             self.__schema.ordered = getattr(self.parent, 'ordered', False)
         return self.__schema

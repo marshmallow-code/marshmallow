@@ -257,7 +257,7 @@ class TestNestedField:
         class CustomSchema(Schema):
             def __init__(self, *args, **kwargs):
                 self.custom_arg = kwargs.pop('custom_arg', None)
-                super().__init__(*args, **kwargs)
+                super(CustomSchema, self).__init__(*args, **kwargs)
 
         nested = fields.Nested('CustomSchema', schema_args=schema_args)
         assert nested.schema.custom_arg == schema_args.get('custom_arg')
