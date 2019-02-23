@@ -251,3 +251,13 @@ class TestNestedField:
         elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
+
+    @pytest.mark.parametrize('schema_args', ({}, {'custom_arg': True}))
+    def test_nested_passes_args_for_name_referenced(self, schema_args):
+        class CustomSchema(Schema):
+            def __init__(self, *args, **kwargs):
+                self.custom_arg = kwargs.pop('custom_arg', None)
+                super().__init__(*args, **kwargs)
+
+        nested = fields.Nested('CustomSchema', schema_args=schema_args)
+        assert nested.schema.custom_arg == schema_args.get('custom_arg')
