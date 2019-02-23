@@ -406,7 +406,10 @@ class Nested(Field):
         'type': 'Invalid type.',
     }
 
-    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
+    def __init__(
+        self, nested, default=missing_, exclude=tuple(),
+        only=None, schema_args=None, **kwargs
+    ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
             raise StringNotCollectionError('"only" should be a list of strings.')
@@ -417,7 +420,7 @@ class Nested(Field):
         self.exclude = exclude
         self.many = kwargs.get('many', False)
         self.unknown = kwargs.get('unknown')
-        self.schema_args = kwargs.get('schema_args', {})
+        self.schema_args = schema_args or {}
         self.__schema = None  # Cached Schema instance
         super(Nested, self).__init__(default=default, **kwargs)
 
