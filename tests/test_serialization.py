@@ -562,18 +562,6 @@ class TestFieldSerialization:
         user.name = None
         assert field.serialize('name', user) is None
 
-    def test_formattedstring_field(self):
-        field = fields.FormattedString('Hello {name}')
-        user = User(name='Monty')
-        assert field.serialize('name', user) == 'Hello Monty'
-
-    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/348
-    def test_formattedstring_field_on_schema(self):
-        class MySchema(Schema):
-            greeting = fields.FormattedString('Hello {name}')
-        user = User(name='Monty')
-        assert MySchema().dump(user)['greeting'] == 'Hello Monty'
-
     def test_string_field_default_to_empty_string(self, user):
         field = fields.String(default='')
         assert field.serialize('notfound', {}) == ''
@@ -886,16 +874,9 @@ class TestFieldSerialization:
 
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_all_fields_serialize_none_to_none(self, FieldClass):
-        if FieldClass == fields.FormattedString:
-            field = FieldClass('{foo}', allow_none=True)
-        else:
-            field = FieldClass(allow_none=True)
-
+        field = FieldClass(allow_none=True)
         res = field.serialize('foo', {'foo': None})
-        if FieldClass == fields.FormattedString:
-            assert res == 'None'
-        else:
-            assert res is None
+        assert res is None
 
 class TestSchemaSerialization:
 

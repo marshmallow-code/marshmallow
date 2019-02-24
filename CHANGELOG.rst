@@ -9,6 +9,11 @@ Features:
 - Allow input value to be included in error messages
   for a number of fields (:pr:`1129`). Thanks :user:`hdoupe` for the PR.
 
+Deprecations/Removals:
+
+- Remove ``fields.FormattedString`` (:issue:`1141`). Use
+  ``fields.Function`` or ``fields.Method`` instead.
+
 3.0.0rc4 (2019-02-08)
 *********************
 

@@ -14,7 +14,7 @@ import math
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
-from marshmallow.compat import basestring, text_type, Mapping as _Mapping, iteritems
+from marshmallow.compat import basestring, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import (
     ValidationError, StringNotCollectionError, FieldInstanceResolutionError,
 )
@@ -34,7 +34,6 @@ __all__ = [
     'Integer',
     'Decimal',
     'Boolean',
-    'FormattedString',
     'Float',
     'DateTime',
     'LocalDateTime',
@@ -1004,37 +1003,6 @@ class Boolean(Field):
             except TypeError:
                 pass
         self.fail('invalid', input=value)
-
-
-class FormattedString(Field):
-    """Interpolate other values from the object into this field. The syntax for
-    the source string is the same as the string `str.format` method
-    from the python stdlib.
-    ::
-
-        class UserSchema(Schema):
-            name = fields.String()
-            greeting = fields.FormattedString('Hello {name}')
-
-        ser = UserSchema()
-        res = ser.dump(user)
-        res.data  # => {'name': 'Monty', 'greeting': 'Hello Monty'}
-    """
-    default_error_messages = {
-        'format': 'Cannot format string with given data.',
-    }
-    _CHECK_ATTRIBUTE = False
-
-    def __init__(self, src_str, *args, **kwargs):
-        Field.__init__(self, *args, **kwargs)
-        self.src_str = text_type(src_str)
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        try:
-            data = utils.to_marshallable_type(obj)
-            return self.src_str.format(**data)
-        except (TypeError, IndexError):
-            self.fail('format')
 
 
 class DateTime(Field):

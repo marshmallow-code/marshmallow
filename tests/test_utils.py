@@ -19,34 +19,9 @@ def test_missing_singleton_copy():
     assert copy(utils.missing) is utils.missing
     assert deepcopy(utils.missing) is utils.missing
 
-def test_to_marshallable_type():
-    class Foo(object):
-        CLASS_VAR = 'bar'
-
-        def __init__(self):
-            self.attribute = 'baz'
-
-        @property
-        def prop(self):
-            return 42
-
-    obj = Foo()
-    u_dict = utils.to_marshallable_type(obj)
-    assert u_dict['CLASS_VAR'] == Foo.CLASS_VAR
-    assert u_dict['attribute'] == obj.attribute
-    assert u_dict['prop'] == obj.prop
-
-def test_to_marshallable_type_none():
-    assert utils.to_marshallable_type(None) is None
-
 
 PointNT = namedtuple('Point', ['x', 'y'])
 
-def test_to_marshallable_type_with_namedtuple():
-    p = PointNT(24, 42)
-    result = utils.to_marshallable_type(p)
-    assert result['x'] == p.x
-    assert result['y'] == p.y
 
 class PointClass(object):
     def __init__(self, x, y):
@@ -137,22 +112,6 @@ def test_is_keyed_tuple():
     lst = [24, 42]
     assert utils.is_keyed_tuple(lst) is False
 
-def test_to_marshallable_type_list():
-    assert utils.to_marshallable_type(['foo', 'bar']) == ['foo', 'bar']
-
-def test_to_marshallable_type_generator():
-    gen = (e for e in ['foo', 'bar'])
-    assert utils.to_marshallable_type(gen) == ['foo', 'bar']
-
-def test_marshallable():
-    class ObjContainer(object):
-        contained = {'foo': 1}
-
-        def __marshallable__(self):
-            return self.contained
-
-    obj = ObjContainer()
-    assert utils.to_marshallable_type(obj) == {'foo': 1}
 
 def test_is_collection():
     assert utils.is_collection([1, 'foo', {}]) is True

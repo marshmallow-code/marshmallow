@@ -165,12 +165,7 @@ class TestParentAndName:
 
 class TestMetadata:
 
-    FIELDS_TO_TEST = [
-        field for field in ALL_FIELDS
-        if field not in [fields.FormattedString]
-    ]
-
-    @pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
+    @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
         field = FieldClass(description='Just a normal field.')
         assert field.metadata['description'] == 'Just a normal field.'
@@ -179,10 +174,6 @@ class TestMetadata:
             description='foo', widget='select',
         )
         assert field.metadata == {'description': 'foo', 'widget': 'select'}
-
-    def test_metadata_may_be_added_to_formatted_string_field(self):
-        field = fields.FormattedString('hello {name}', description='a greeting')
-        assert field.metadata == {'description': 'a greeting'}
 
 
 class TestErrorMessages:

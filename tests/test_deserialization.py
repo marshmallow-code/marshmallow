@@ -24,20 +24,13 @@ class TestDeserializingNone:
 
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_fields_allow_none_deserialize_to_none(self, FieldClass):
-        if FieldClass == fields.FormattedString:
-            field = FieldClass(src_str='foo', allow_none=True)
-        else:
-            field = FieldClass(allow_none=True)
+        field = FieldClass(allow_none=True)
         field.deserialize(None) is None
 
     # https://github.com/marshmallow-code/marshmallow/issues/111
     @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
     def test_fields_dont_allow_none_by_default(self, FieldClass):
-        # by default, allow_none=False
-        if FieldClass == fields.FormattedString:
-            field = FieldClass(src_str='foo')
-        else:
-            field = FieldClass()
+        field = FieldClass()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(None)
         assert 'Field may not be null.' in str(excinfo)
@@ -1809,8 +1802,7 @@ class TestValidation:
             SchemaB().load(b_dict, partial=('z.y',))
 
 
-FIELDS_TO_TEST = [f for f in ALL_FIELDS if f not in [fields.FormattedString]]
-@pytest.mark.parametrize('FieldClass', FIELDS_TO_TEST)
+@pytest.mark.parametrize('FieldClass', ALL_FIELDS)
 def test_required_field_failure(FieldClass):  # noqa
     class RequireSchema(Schema):
         age = FieldClass(required=True)

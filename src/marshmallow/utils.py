@@ -9,7 +9,6 @@ import inspect
 import json
 import re
 import time
-import types
 from calendar import timegm
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
@@ -82,29 +81,6 @@ def is_keyed_tuple(obj):
     namedtuples or SQLAlchemy's KeyedTuples.
     """
     return isinstance(obj, tuple) and hasattr(obj, '_fields')
-
-
-def to_marshallable_type(obj, field_names=None):
-    """Helper for converting an object to a dictionary only if it is not
-    dictionary already or an indexable object nor a simple type"""
-    if obj is None:
-        return None  # make it idempotent for None
-
-    if hasattr(obj, '__marshallable__'):
-        return obj.__marshallable__()
-
-    if hasattr(obj, '__getitem__') and not is_keyed_tuple(obj):
-        return obj  # it is indexable it is ok
-
-    if isinstance(obj, types.GeneratorType):
-        return list(obj)
-    if field_names:
-        # exclude field names that aren't actual attributes of the object
-        attrs = set(dir(obj)) & set(field_names)
-    else:
-        attrs = set(dir(obj))
-    return dict([(attr, getattr(obj, attr, None)) for attr in attrs
-                  if not attr.startswith('__') and not attr.endswith('__')])
 
 
 def pprint(obj, *args, **kwargs):
