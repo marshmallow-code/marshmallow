@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.19.0 (unreleased)
++++++++++++++++++++
+
+Deprecation/Removal:
+
+- A `RemovedInMarshmallow3` warning is raised when using
+  `fields.FormattedString`. Use `fields.Method` or `fields.Function`
+  instead (:issue:`1141`).
+
 2.18.1 (2019-02-15)
 +++++++++++++++++++
 

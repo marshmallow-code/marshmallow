@@ -827,6 +827,8 @@ class FormattedString(Field):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, src_str, *args, **kwargs):
+        warnings.warn('FormattedString is deprecated and will be removed in marshmallow 3. '
+                      'Use a Method or Function field instead.', RemovedInMarshmallow3Warning)
         Field.__init__(self, *args, **kwargs)
         self.src_str = text_type(src_str)
 
