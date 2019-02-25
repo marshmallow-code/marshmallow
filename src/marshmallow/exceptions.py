@@ -21,7 +21,6 @@ class ValidationError(MarshmallowError):
         error messages. If a dict, the keys are subitems and the values are error messages.
     :param str field_name: Field name to store the error on.
         If `None`, the error is stored as schema-level error.
-    :param list fields: `Field` objects to which the error applies.
     :param dict data: Raw input data.
     :param dict valid_data: Valid (de)serialized data.
     """
