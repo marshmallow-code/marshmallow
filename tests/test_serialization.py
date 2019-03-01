@@ -782,3 +782,21 @@ def test_serializing_slice():
 
     serialized = ValueSchema(many=True).dump(slice).data
     assert serialized == values
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/1163
+def test_nested_field_many_serializing_generator():
+    class MySchema(Schema):
+        name = fields.Str()
+
+    class OtherSchema(Schema):
+        objects = fields.Nested(MySchema, many=True)
+
+    def gen():
+        yield {'name': 'foo'}
+        yield {'name': 'bar'}
+
+    obj = {'objects': gen()}
+    data, _ = OtherSchema().dump(obj)
+
+    assert data.get('objects') == [{'name': 'foo'}, {'name': 'bar'}]
