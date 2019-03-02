@@ -390,9 +390,7 @@ class Nested(Field):
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
     :param tuple exclude: A list or tuple of fields to exclude.
-    :param only: A tuple or string of the field(s) to marshal. If `None`, all fields
-        will be marshalled. If a field name (string) is given, only a single
-        value will be returned as output instead of a dictionary.
+    :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
     :param bool many: Whether the field is a collection of objects.
     :param unknown: Whether to exclude, include, or raise an error for unknown
