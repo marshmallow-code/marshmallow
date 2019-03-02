@@ -29,6 +29,7 @@ class TestField:
                                'validate=None, required=False, '
                                'load_only=False, dump_only=False, '
                                'missing={missing}, allow_none=False, '
+                               'blank_none=False, '
                                'error_messages={error_messages})>'
                                .format(
                                    default, missing=missing,

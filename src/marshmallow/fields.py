@@ -129,8 +129,9 @@ class Field(FieldABC):
 
     def __init__(
         self, default=missing_, attribute=None, data_key=None, error=None,
-        validate=None, required=False, allow_none=None, load_only=False,
-        dump_only=False, missing=missing_, error_messages=None, **metadata
+        validate=None, required=False, allow_none=None, blank_none=False,
+        load_only=False, dump_only=False, missing=missing_, error_messages=None,
+        **metadata
     ):
         self.default = default
         self.attribute = attribute
@@ -159,6 +160,7 @@ class Field(FieldABC):
                 self.allow_none = False
         else:
             self.allow_none = allow_none
+        self.blank_none = blank_none
         self.load_only = load_only
         self.dump_only = dump_only
         if required is True and missing is not missing_:
@@ -182,6 +184,7 @@ class Field(FieldABC):
                 'validate={self.validate}, required={self.required}, '
                 'load_only={self.load_only}, dump_only={self.dump_only}, '
                 'missing={self.missing}, allow_none={self.allow_none}, '
+                'blank_none={self.blank_none}, '
                 'error_messages={self.error_messages})>'
                 .format(ClassName=self.__class__.__name__, self=self))
 
@@ -282,6 +285,8 @@ class Field(FieldABC):
         if value is missing_:
             _miss = self.missing
             return _miss() if callable(_miss) else _miss
+        if self.blank_none and value == '':
+            value = None
         if getattr(self, 'allow_none', False) is True and value is None:
             return None
         output = self._deserialize(value, attr, data, **kwargs)

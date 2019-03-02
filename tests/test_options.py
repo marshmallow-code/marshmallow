@@ -209,3 +209,16 @@ class TestIncludeOption:
         assert 'email' in s._declared_fields.keys()
         assert 'from' in s._declared_fields.keys()
         assert isinstance(s._declared_fields['from'], fields.Str)
+
+
+class TestBlankAsNone:
+
+    class BlankSchema(Schema):
+        number = fields.Int(allow_none=True, blank_none=True)
+        date = fields.Date(allow_none=True, blank_none=True)
+
+    s = BlankSchema()
+    in_data = {'number': '', 'date': ''}
+    result = s.load(in_data)
+    assert result['number'] is None
+    assert result['date'] is None
