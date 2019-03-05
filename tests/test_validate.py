@@ -568,7 +568,7 @@ def test_oneof():
 
     with pytest.raises(ValidationError) as excinfo:
         validate.OneOf([1, 2, 3])(4)
-    assert 'Not one of [1, 2, 3].' in str(excinfo)
+    assert 'Must be one of: 1, 2, 3.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.OneOf('abc')('d')
     with pytest.raises(ValidationError):
@@ -633,7 +633,7 @@ def test_oneof_repr():
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=None, error=None)) ==
         '<OneOf(choices=[1, 2, 3], labels=[], error={0!r})>'
-        .format('Not one of [1, 2, 3].')
+        .format('Must be one of: {choices}.')
     )
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
@@ -654,8 +654,9 @@ def test_containsonly_in_list():
     assert validate.ContainsOnly([1, 2, 3])([1, 2, 3, 1]) == [1, 2, 3, 1]
     assert validate.ContainsOnly([1, 2, 3])([]) == []
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         validate.ContainsOnly([1, 2, 3])([4])
+    assert 'One or more of the choices you made was not in: 1, 2, 3.' in str(excinfo)
     with pytest.raises(ValidationError):
         validate.ContainsOnly([])([1])
 
@@ -731,7 +732,7 @@ def test_containsonly_repr():
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=None, error=None)) ==
         '<ContainsOnly(choices=[1, 2, 3], labels=[], error={0!r})>'
-        .format('One or more of the choices you made was not in [1, 2, 3].')
+        .format('One or more of the choices you made was not in: {choices}.')
     )
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==

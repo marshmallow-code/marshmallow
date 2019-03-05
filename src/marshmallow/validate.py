@@ -410,16 +410,13 @@ class OneOf(Validator):
         interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
-    default_message_prefix = 'Not one of'
+    default_message = 'Must be one of: {choices}.'
 
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
         self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
         self.labels_text = ', '.join(text_type(label) for label in self.labels)
-        self.default_message = '{msg_prefix} [{choices}].'.format(
-            msg_prefix=self.default_message_prefix, choices=self.choices_text,
-        )
         self.error = error or self.default_message
 
     def _repr_args(self):
@@ -474,7 +471,7 @@ class ContainsOnly(OneOf):
         to validate against empty inputs.
     """
 
-    default_message_prefix = 'One or more of the choices you made was not in'
+    default_message = 'One or more of the choices you made was not in: {choices}.'
 
     def _format_error(self, value):
         value_text = ', '.join(text_type(val) for val in value)
