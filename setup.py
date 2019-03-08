@@ -61,10 +61,10 @@ setup(
     extras_require=EXTRAS_REQUIRE,
     license='MIT',
     zip_safe=False,
-    keywords=(
+    keywords=[
         'serialization', 'rest', 'json', 'api', 'marshal',
         'marshalling', 'deserialization', 'validation', 'schema',
-    ),
+    ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
