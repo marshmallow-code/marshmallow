@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-2.19.0 (unreleased)
+2.19.0 (2019-03-07)
 +++++++++++++++++++
 
 Deprecation/Removal:
