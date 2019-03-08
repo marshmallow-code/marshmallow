@@ -2,7 +2,7 @@ Changelog
 ---------
 
 3.0.0 (unreleased)
-******************
+++++++++++++++++++
 
 Features:
 
@@ -15,7 +15,7 @@ Deprecations/Removals:
   ``fields.Function`` or ``fields.Method`` instead.
 
 3.0.0rc4 (2019-02-08)
-*********************
++++++++++++++++++++++
 
 Features:
 
@@ -25,7 +25,7 @@ Features:
   Thank :user:`sayanarijit` for the suggestion and the PR.
 
 3.0.0rc3 (2019-01-13)
-*********************
++++++++++++++++++++++
 
 Features:
 
@@ -440,7 +440,6 @@ Other changes:
 - Includes changes from release 2.13.2.
 - *Backwards-incompatible*: ``skip_on_field_errors`` defaults to ``True`` for ``validates_schema`` (:issue:`352`).
 
-
 3.0.0a1 (2017-02-26)
 ++++++++++++++++++++
 
@@ -462,6 +461,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.19.0 (2019-03-07)
++++++++++++++++++++
+
+Deprecation/Removal:
+
+- A `RemovedInMarshmallow3` warning is raised when using
+  `fields.FormattedString`. Use `fields.Method` or `fields.Function`
+  instead (:issue:`1141`).
 
 2.18.1 (2019-02-15)
 +++++++++++++++++++
