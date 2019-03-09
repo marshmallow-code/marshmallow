@@ -816,23 +816,14 @@ class BaseSchema(base.SchemaABC):
 
         :param set field_names: Field names to include in the final
             return dictionary.
+        :param object|Mapping|list obj The object to base filtered fields on.
         :returns: An dict of field_name:field_obj pairs.
         """
         if obj and many:
-            try:  # Homogeneous collection
-                # Prefer getitem over iter to prevent breaking serialization
-                # of objects for which iter will modify position in the collection
-                # e.g. Pymongo cursors
-                if hasattr(obj, '__getitem__') and callable(getattr(obj, '__getitem__')):
-                    try:
-                        obj_prototype = obj[0]
-                    except KeyError:
-                        obj_prototype = next(iter(obj))
-                else:
-                    obj_prototype = next(iter(obj))
-            except (StopIteration, IndexError):  # Nothing to serialize
+            try:  # list
+                obj = obj[0]
+            except IndexError:  # Nothing to serialize
                 return dict((k, v) for k, v in self.declared_fields.items() if k in field_names)
-            obj = obj_prototype
         ret = self.dict_class()
         for key in field_names:
             if key in self.declared_fields:
