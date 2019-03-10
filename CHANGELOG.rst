@@ -8,6 +8,9 @@ Features:
 
 - Allow input value to be included in error messages
   for a number of fields (:pr:`1129`). Thanks :user:`hdoupe` for the PR.
+- Improve default error messages for ``OneOf`` and ``ContainsOnly``
+  (:issue:`885`). Thanks :user:`mcgfeller` for the suggestion
+  and :user:`maxalbert` for the PR.
 
 Deprecations/Removals:
 
