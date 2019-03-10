@@ -410,7 +410,7 @@ class OneOf(Validator):
         interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
-    default_message = 'Not a valid choice.'
+    default_message = 'Must be one of: {choices}.'
 
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
@@ -471,7 +471,7 @@ class ContainsOnly(OneOf):
         to validate against empty inputs.
     """
 
-    default_message = 'One or more of the choices you made was not acceptable.'
+    default_message = 'One or more of the choices you made was not in: {choices}.'
 
     def _format_error(self, value):
         value_text = ', '.join(text_type(val) for val in value)
