@@ -447,7 +447,8 @@ class Nested(Field):
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),
                 )
-            self.__schema.ordered = getattr(self.parent, 'ordered', False)
+            if hasattr(self.parent, 'ordered'):
+                self.__schema.ordered = self.parent.ordered
         return self.__schema
 
     def _nested_normalized_option(self, option_name):
