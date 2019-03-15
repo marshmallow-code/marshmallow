@@ -159,6 +159,38 @@ class TestFieldOrdering:
         keys = list(data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']
 
+    def test_unordered_nested_field_is_overridden_by_parent(self):
+        class Unordered(KeepOrder):
+            class Meta:
+                ordered = False
+
+        class OrderedParentWithUnorderedNested(Schema):
+            class Meta:
+                ordered = True
+
+            user = fields.Nested(Unordered)
+
+        parent_schema = OrderedParentWithUnorderedNested()
+        assert parent_schema.ordered == True
+        assert parent_schema.fields['user'].schema.ordered == True
+
+    def test_ordered_nested_field_is_overridden_by_parent(self):
+        class UnorderedParentWithOrderedNested(Schema):
+            user = fields.Nested(KeepOrder)
+
+        parent_schema = UnorderedParentWithOrderedNested()
+        assert parent_schema.ordered == False
+        assert parent_schema.fields['user'].schema.ordered == False
+
+    def test_ordered_nested_field_in_dict_is_not_overriden(self):
+        class DictWithNestedOrdered(Schema):
+            users = fields.Dict(keys=fields.Str(), values=fields.Nested(KeepOrder))
+
+        parent_schema = DictWithNestedOrdered()
+        assert parent_schema.ordered == False
+        assert parent_schema.fields['users'].value_container.schema.ordered == False
+
+
 class TestIncludeOption:
 
     class AddFieldsSchema(Schema):
