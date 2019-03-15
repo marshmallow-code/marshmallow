@@ -52,7 +52,7 @@ A :class:`Method <marshmallow.fields.Method>` field will serialize to the value 
         since_created = fields.Method("get_days_since_created")
 
         def get_days_since_created(self, obj):
-            return dt.datetime.now().day - obj.created_at.day
+            return dt.datetime.now().day - obj["created_at"].day
 
 Function Fields
 ---------------
@@ -66,7 +66,7 @@ A :class:`Function <marshmallow.fields.Function>` field will serialize the value
         name = fields.String()
         email = fields.String()
         created_at = fields.DateTime()
-        uppername = fields.Function(lambda obj: obj.name.upper())
+        uppername = fields.Function(lambda obj: obj["name"].upper())
 
 `Method` and `Function` field deserialization
 ---------------------------------------------
@@ -80,7 +80,7 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
         balance = fields.Method('get_balance', deserialize='load_balance')
 
         def get_balance(self, obj):
-            return obj.income - obj.debt
+            return obj["income"] - obj["debt"]
 
         def load_balance(self, value):
             return float(value)
