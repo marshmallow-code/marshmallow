@@ -443,6 +443,8 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
+        if self.many and utils.is_iterable_but_not_string(nested_obj):
+            nested_obj = list(nested_obj)
         if not self.__updated_fields:
             schema._update_fields(obj=nested_obj, many=self.many)
             self.__updated_fields = True

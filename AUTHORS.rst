@@ -89,3 +89,4 @@ Contributors (chronological)
 - Jan Margeta `@jmargeta <https://github.com/jmargeta>`_
 - AlexV `@asmodehn <https://github.com/asmodehn>`_
 - `@miniscruff <https://github.com/miniscruff>`_
+- Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
