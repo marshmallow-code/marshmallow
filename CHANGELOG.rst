@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.19.1 (2019-03-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug where ``Nested(many=True)`` would skip first element when
+  serializing a generator (:issue:`1163`). Thanks :user:`khvn26` for the
+  catch and patch.
+
 2.19.0 (2019-03-07)
 +++++++++++++++++++
 
