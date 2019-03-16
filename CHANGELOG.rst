@@ -465,6 +465,15 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.19.1 (2019-03-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug where ``Nested(many=True)`` would skip first element when
+  serializing a generator (:issue:`1163`). Thanks :user:`khvn26` for the
+  catch and patch.
+
 2.19.0 (2019-03-07)
 +++++++++++++++++++
 

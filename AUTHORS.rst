@@ -124,3 +124,4 @@ Contributors (chronological)
 - Henry Doupe `@hdoupe <https://github.com/hdoupe>`_
 - `@miniscruff <https://github.com/miniscruff>`_
 - `@maxalbert <https://github.com/maxalbert>`_
+- Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
