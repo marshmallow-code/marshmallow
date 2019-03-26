@@ -664,7 +664,7 @@ class Number(Field):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         try:
             return self._format_num(value)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             self.fail('invalid')
 
     def _to_string(self, value):
