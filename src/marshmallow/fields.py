@@ -802,7 +802,7 @@ class Number(Field):
             return None
         try:
             return self._format_num(value)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             self.fail('invalid', input=value)
 
     def _to_string(self, value):
