@@ -78,13 +78,6 @@ class TestField:
         result = MySchema().dump({'name': 'Monty', 'foo': 42})
         assert result.data == {'_NaMe': 'Monty'}
 
-    def test_number_field_overflow(self):
-        strict_field = fields.Float()
-        with pytest.raises(ValidationError) as excinfo:
-            strict_field.serialize('value', {'value': 2**1024})
-        assert excinfo.value.args[0] == 'Not a valid number.'
-
-
 class TestParentAndName:
     class MySchema(Schema):
         foo = fields.Field()
