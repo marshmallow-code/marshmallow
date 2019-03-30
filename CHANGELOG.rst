@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-3.0.0 (unreleased)
-++++++++++++++++++
+3.0.0rc5 (2019-03-30)
++++++++++++++++++++++
 
 Features:
 
@@ -16,6 +16,10 @@ Deprecations/Removals:
 
 - Remove ``fields.FormattedString`` (:issue:`1141`). Use
   ``fields.Function`` or ``fields.Method`` instead.
+
+Bug fixes:
+
+- Includes bug fix from 2.19.2.
 
 3.0.0rc4 (2019-02-08)
 +++++++++++++++++++++
