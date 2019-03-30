@@ -70,6 +70,12 @@ class TestFieldDeserialization:
             field.deserialize(in_val)
         assert excinfo.value.args[0] == 'Not a valid number.'
 
+    def test_float_field_overflow(self):
+        field = fields.Float()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(2**1024)
+        assert excinfo.value.args[0] == 'Number too large.'
+
     def test_integer_field_deserialization(self):
         field = fields.Integer()
         assert field.deserialize('42') == 42

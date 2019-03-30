@@ -465,6 +465,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.19.2 (2019-03-30)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle ``OverflowError`` when (de)serializing large integers with
+  ``fields.Float`` (:pr:`1177`). Thanks :user:`brycedrennan` for the PR.
+
 2.19.1 (2019-03-16)
 +++++++++++++++++++
 

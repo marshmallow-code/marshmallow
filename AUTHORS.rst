@@ -125,3 +125,4 @@ Contributors (chronological)
 - `@miniscruff <https://github.com/miniscruff>`_
 - `@maxalbert <https://github.com/maxalbert>`_
 - Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
+- Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
