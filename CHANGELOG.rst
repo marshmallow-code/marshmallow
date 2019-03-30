@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.19.2 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Handle ``OverflowError`` when (de)serializing large integers with
+  ``fields.Float`` (:pr:`1177`). Thanks :user:`brycedrennan` for the PR.
+
 2.19.1 (2019-03-16)
 +++++++++++++++++++
 
