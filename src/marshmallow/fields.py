@@ -647,7 +647,8 @@ class Number(Field):
 
     num_type = float
     default_error_messages = {
-        'invalid': 'Not a valid number.'
+        'invalid': 'Not a valid number.',
+        'too_large': 'Number too large.',
     }
 
     def __init__(self, as_string=False, **kwargs):
@@ -666,6 +667,8 @@ class Number(Field):
             return self._format_num(value)
         except (TypeError, ValueError):
             self.fail('invalid')
+        except OverflowError:
+            self.fail('too_large')
 
     def _to_string(self, value):
         return str(value)

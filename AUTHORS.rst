@@ -90,3 +90,4 @@ Contributors (chronological)
 - AlexV `@asmodehn <https://github.com/asmodehn>`_
 - `@miniscruff <https://github.com/miniscruff>`_
 - Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
+- Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
