@@ -56,6 +56,9 @@ MISSING_ERROR_MESSAGE = (
 )
 
 
+CONTAINER_MODIFIERS = ['only', 'exclude']
+
+
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
@@ -352,6 +355,12 @@ class Field(FieldABC):
         """
         return value
 
+    def get_modifiers(self):
+        return {attr: None for attr in CONTAINER_MODIFIERS}
+
+    def set_modifiers(self, modifiers):
+        pass
+
     # Properties
 
     @property
@@ -506,6 +515,13 @@ class Nested(Field):
         self._test_collection(value)
         return self._load(value, data, partial=partial)
 
+    def get_modifiers(self):
+        return {attr: getattr(self, attr) for attr in CONTAINER_MODIFIERS}
+
+    def set_modifiers(self, modifiers):
+        for attr, value in modifiers.items():
+            setattr(self, attr, value)
+
 
 class Pluck(Nested):
     """Allows you to replace nested data with one of the data's fields.
@@ -548,21 +564,20 @@ class Pluck(Nested):
         return self._load(value, data, partial=partial)
 
 
-class ContainerMixin(object):
+class ContainerMixin:
     """Common methods for container fields"""
 
-    def get_container_modifiers(self, container):
-        if isinstance(container, Nested):
-            self.only = container.only
-            self.exclude = container.exclude
+    def init_container_modifiers(self, container):
+        for attr, value in container.get_modifiers().items():
+            setattr(self, attr, value)
 
     def set_container_modifiers(self, container):
-        if isinstance(container, Nested):
-            container.only = self.only
-            container.exclude = self.exclude
+        container.set_modifiers({
+            attr: getattr(self, attr) for attr in CONTAINER_MODIFIERS
+        })
 
 
-class List(Field, ContainerMixin):
+class List(ContainerMixin, Field):
     """A list field, composed with another `Field` class or
     instance.
 
@@ -590,7 +605,7 @@ class List(Field, ContainerMixin):
                 'The list elements must be a subclass or instance of '
                 'marshmallow.base.FieldABC.',
             )
-        self.get_container_modifiers(self.container)
+        self.init_container_modifiers(self.container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -626,7 +641,7 @@ class List(Field, ContainerMixin):
         return result
 
 
-class Tuple(Field, ContainerMixin):
+class Tuple(ContainerMixin, Field):
     """A tuple field, composed of a fixed number of other `Field` classes or
     instances
 
@@ -668,7 +683,7 @@ class Tuple(Field, ContainerMixin):
 
         self.validate_length = Length(equal=len(self.tuple_fields))
         for container in self.tuple_fields:
-            self.get_container_modifiers(container)
+            self.init_container_modifiers(container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -1267,7 +1282,7 @@ class TimeDelta(Field):
             self.fail('invalid')
 
 
-class Mapping(Field, ContainerMixin):
+class Mapping(ContainerMixin, Field):
     """An abstract class for objects with key-value pairs.
 
     :param Field keys: A field class or instance for dict keys.
@@ -1307,7 +1322,7 @@ class Mapping(Field, ContainerMixin):
                     '"values" must be a subclass or instance of '
                     'marshmallow.base.FieldABC.',
                 )
-            self.get_container_modifiers(self.value_container)
+            self.init_container_modifiers(self.value_container)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
