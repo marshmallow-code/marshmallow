@@ -126,3 +126,4 @@ Contributors (chronological)
 - `@maxalbert <https://github.com/maxalbert>`_
 - Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
 - Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
+- Tim Shaffer `@timster <https://github.com/timster>`_
