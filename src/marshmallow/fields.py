@@ -783,7 +783,6 @@ class Number(Field):
     """
 
     num_type = float
-    default_error_messages = {'invalid': 'Not a valid number.'}
     default_error_messages = {
         'invalid': 'Not a valid number.',
         'too_large': 'Number too large.',
