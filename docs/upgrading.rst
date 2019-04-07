@@ -659,6 +659,24 @@ In marshmallow 2.x, when a string was passed to a ``Nested`` field's ```only`` p
         name = fields.Str()
         friends = fields.Pluck('self', 'name', many=True)
 
+
+Accessing attributes on objects within a list
+*********************************************
+
+In order to serialize attributes on inner objects within a list, use the
+``Pluck`` field.
+
+.. code-block:: python
+
+    # 2.x
+    class FactorySchema(Schema):
+        widget_ids = fields.List(fields.Int(attribute='id'))
+
+    # 3.x
+    class FactorySchema(Schema):
+        widget_ids = fields.List(fields.Pluck(WidgetSchema, 'id'))
+
+
 ``Float`` field takes a new ``allow_nan`` parameter
 ***************************************************
 

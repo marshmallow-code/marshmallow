@@ -712,18 +712,6 @@ class TestFieldSerialization:
         field = fields.List(fields.DateTime)
         assert field.serialize('dtimes', obj) is None
 
-    def test_list_field_respect_inner_attribute(self):
-        now = dt.datetime.now()
-        obj = DateTimeList([now])
-        field = fields.List(fields.Int(attribute='day'))
-        assert field.serialize('dtimes', obj) == [now.day]
-
-    def test_list_field_respect_inner_attribute_single_value(self):
-        now = dt.datetime.now()
-        obj = DateTimeList(now)
-        field = fields.List(fields.Int(attribute='day'))
-        assert field.serialize('dtimes', obj) == [now.day]
-
     def test_list_field_work_with_generator_single_value(self):
         def custom_generator():
             yield dt.datetime.utcnow()
@@ -825,12 +813,6 @@ class TestFieldSerialization:
         obj = DateTimeIntegerTuple(None)
         field = fields.Tuple([fields.DateTime, fields.Integer])
         assert field.serialize('dtime_int', obj) is None
-
-    def test_tuple_field_respect_inner_attribute(self):
-        now = dt.datetime.now()
-        obj = DateTimeIntegerTuple((now, 42))
-        field = fields.Tuple([fields.Int(attribute='day'), fields.Integer])
-        assert field.serialize('dtime_int', obj) == (now.day, 42)
 
     def test_bad_tuple_field(self):
         class ASchema(Schema):

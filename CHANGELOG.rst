@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: Remove special-casing in ``fields.List`` and
+  ``fields.Tuple`` for accessing nested attributes (:pr:`1188`).
+  Use ``fields.List(fields.Pluck(...))`` instead.
+
 3.0.0rc5 (2019-03-30)
 +++++++++++++++++++++
 
