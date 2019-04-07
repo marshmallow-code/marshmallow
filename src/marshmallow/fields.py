@@ -580,18 +580,6 @@ class List(Field):
                 'marshmallow.base.FieldABC.',
             )
 
-    def get_value(self, obj, attr, accessor=None):
-        """Return the value for a given key from an object."""
-        value = super(List, self).get_value(obj, attr, accessor=accessor)
-        if self.container.attribute:
-            if utils.is_collection(value):
-                return [
-                    self.container.get_value(each, self.container.attribute)
-                    for each in value
-                ]
-            return self.container.get_value(value, self.container.attribute)
-        return value
-
     def _bind_to_schema(self, field_name, schema):
         super(List, self)._bind_to_schema(field_name, schema)
         self.container = copy.deepcopy(self.container)
@@ -676,21 +664,6 @@ class Tuple(Field):
             new_container.name = field_name
             new_tuple_fields.append(new_container)
         self.tuple_fields = new_tuple_fields
-
-    def get_value(self, obj, attr, accessor=None):
-        """Return the value for a given key from an object."""
-        value = super(Tuple, self).get_value(obj, attr, accessor=accessor)
-        if any(container.attribute for container in self.tuple_fields):
-            if not utils.is_collection(value):
-                self.fail('invalid')
-            result = []
-            for container, each in zip(self.tuple_fields, value):
-                if container.attribute is None:
-                    result.append(each)
-                else:
-                    result.append(container.get_value(each, container.attribute))
-            return tuple(result)
-        return value
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
