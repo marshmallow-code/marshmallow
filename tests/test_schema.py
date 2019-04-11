@@ -1531,7 +1531,7 @@ def test_nested_with_sets():
     sch = Outer()
 
     DataClass = namedtuple('DataClass', ['foo'])
-    data = dict(inners=set([DataClass(42), DataClass(2)]))
+    data = dict(inners={DataClass(42), DataClass(2)})
     result = sch.dump(data)
     assert len(result['inners']) == 2
 
@@ -2350,7 +2350,7 @@ class TestContext:
         serializer.context = None
         with pytest.raises(ValidationError) as excinfo:
             serializer.dump(owner)
-        msg = 'No context available for Function field {0!r}'.format('is_collab')
+        msg = 'No context available for Function field {!r}'.format('is_collab')
         assert msg in str(excinfo)
 
     def test_function_field_handles_bound_serializer(self):
@@ -2646,7 +2646,7 @@ class TestDefaults:
         assert errors == {}
         result = schema.dump(data)
         for key in data.keys():
-            msg = 'result[{0!r}] should be None'.format(key)
+            msg = 'result[{!r}] should be None'.format(key)
             assert result[key] is None, msg
 
     def test_default_and_value_missing(self, schema, data):

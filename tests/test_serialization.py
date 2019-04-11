@@ -525,7 +525,7 @@ class TestFieldSerialization:
 
         with pytest.raises(ValidationError) as excinfo:
             field.serialize('created', user)
-        assert excinfo.value.args[0] == '"{0}" cannot be formatted as a datetime.'.format(value)
+        assert excinfo.value.args[0] == '"{}" cannot be formatted as a datetime.'.format(value)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_datetime_field_rfc822(self, fmt, user):
@@ -588,7 +588,7 @@ class TestFieldSerialization:
         user.time_registered = in_data
         with pytest.raises(ValidationError) as excinfo:
             field.serialize('time_registered', user)
-        msg = '"{0}" cannot be formatted as a time.'.format(in_data)
+        msg = '"{}" cannot be formatted as a time.'.format(in_data)
         assert excinfo.value.args[0] == msg
 
     def test_date_field(self, user):
@@ -612,7 +612,7 @@ class TestFieldSerialization:
         user.birthdate = in_data
         with pytest.raises(ValidationError) as excinfo:
             field.serialize('birthdate', user)
-        msg = '"{0}" cannot be formatted as a date.'.format(in_data)
+        msg = '"{}" cannot be formatted as a date.'.format(in_data)
         assert excinfo.value.args[0] == msg
 
     def test_timedelta_field(self, user):
@@ -750,7 +750,7 @@ class TestFieldSerialization:
         assert result[1] is None
 
     def test_list_field_work_with_set(self):
-        custom_set = set([1, 2, 3])
+        custom_set = {1, 2, 3}
         obj = IntegerList(custom_set)
         field = fields.List(fields.Int)
         result = field.serialize('ints', obj)

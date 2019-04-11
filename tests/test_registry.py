@@ -163,7 +163,7 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
     sch = MySchema()
     with pytest.raises(RegistryError) as excinfo:
         sch.dump({'nf': None})
-    assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
+    assert 'Class with name {!r} was not found'.format('notfound') in str(excinfo)
 
 class FooSerializer(Schema):
     _id = fields.Integer()
@@ -181,7 +181,7 @@ def test_multiple_classes_with_same_name_raises_error():
     sch = MySchema()
     with pytest.raises(RegistryError) as excinfo:
         sch.dump({'foo': {'_id': 1}})
-    msg = 'Multiple classes with name {0!r} were found.'\
+    msg = 'Multiple classes with name {!r} were found.'\
             .format('FooSerializer')
     assert msg in str(excinfo)
 

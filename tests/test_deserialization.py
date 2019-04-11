@@ -333,7 +333,7 @@ class TestFieldDeserialization:
 
     def test_boolean_field_deserialization_with_custom_truthy_values(self):
         class MyBoolean(fields.Boolean):
-            truthy = set(['yep'])
+            truthy = {'yep'}
         field = MyBoolean()
         assert field.deserialize('yep') is True
 
@@ -352,7 +352,7 @@ class TestFieldDeserialization:
             self, in_val,
     ):
         class MyBoolean(fields.Boolean):
-            truthy = set(['yep'])
+            truthy = {'yep'}
         field = MyBoolean()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_val)
@@ -695,7 +695,7 @@ class TestFieldDeserialization:
         url = 'ws://test.test'
         with pytest.raises(ValidationError):
             field.deserialize(url)
-        field2 = fields.URL(schemes=set(['http', 'https', 'ws']))
+        field2 = fields.URL(schemes={'http', 'https', 'ws'})
         assert field2.deserialize(url) == url
 
     def test_email_field_deserialization(self):

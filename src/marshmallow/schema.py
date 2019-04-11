@@ -941,7 +941,7 @@ class BaseSchema(base.SchemaABC):
             invalid_fields |= exclude_field_names - available_field_names
 
         if invalid_fields:
-            message = 'Invalid fields for {0}: {1}.'.format(self, invalid_fields)
+            message = 'Invalid fields for {}: {}.'.format(self, invalid_fields)
             raise ValueError(message)
 
         fields_dict = self.dict_class()
@@ -1001,9 +1001,9 @@ class BaseSchema(base.SchemaABC):
             # field declared as a class, not an instance
             if (isinstance(field_obj, type) and
                     issubclass(field_obj, base.FieldABC)):
-                msg = ('Field for "{0}" must be declared as a '
+                msg = ('Field for "{}" must be declared as a '
                        'Field instance, not a class. '
-                       'Did you mean "fields.{1}()"?'
+                       'Did you mean "fields.{}()"?'
                        .format(field_name, field_obj.__name__))
                 raise TypeError(msg)
 
@@ -1048,7 +1048,7 @@ class BaseSchema(base.SchemaABC):
             except KeyError:
                 if field_name in self.declared_fields:
                     continue
-                raise ValueError('"{0}" field does not exist.'.format(field_name))
+                raise ValueError('"{}" field does not exist.'.format(field_name))
 
             if many:
                 for idx, item in enumerate(data):
