@@ -133,7 +133,7 @@ def test_url_custom_scheme():
     with pytest.raises(ValidationError):
         validator(url)
 
-    validator = validate.URL(schemes=set(['http', 'https', 'ws']))
+    validator = validate.URL(schemes={'http', 'https', 'ws'})
     assert validator(url) == url
 
 def test_url_relative_and_custom_schemes():
@@ -143,7 +143,7 @@ def test_url_relative_and_custom_schemes():
     with pytest.raises(ValidationError):
         validator(url)
 
-    validator = validate.URL(relative=True, schemes=set(['http', 'https', 'ws']))
+    validator = validate.URL(relative=True, schemes={'http', 'https', 'ws'})
     assert validator(url) == url
 
 def test_url_custom_message():
@@ -155,12 +155,12 @@ def test_url_custom_message():
 def test_url_repr():
     assert (
         repr(validate.URL(relative=False, error=None)) ==
-        '<URL(relative=False, error={0!r})>'
+        '<URL(relative=False, error={!r})>'
         .format('Not a valid URL.')
     )
     assert (
         repr(validate.URL(relative=True, error='foo')) ==
-        '<URL(relative=True, error={0!r})>'
+        '<URL(relative=True, error={!r})>'
         .format('foo')
     )
 
@@ -176,8 +176,8 @@ def test_url_repr():
         "!#$%&'*+-/=?^_`{}|~@example.org",
         'niceandsimple@[64.233.160.0]',
         'niceandsimple@localhost',
-        u'josé@blah.com',
-        u'δοκ.ιμή@παράδειγμα.δοκιμή',
+        'josé@blah.com',
+        'δοκ.ιμή@παράδειγμα.δοκιμή',
     ],
 )
 def test_email_valid(valid_email):
@@ -215,12 +215,12 @@ def test_email_custom_message():
 def test_email_repr():
     assert (
         repr(validate.Email(error=None)) ==
-        '<Email(error={0!r})>'
+        '<Email(error={!r})>'
         .format('Not a valid email address.')
     )
     assert (
         repr(validate.Email(error='foo')) ==
-        '<Email(error={0!r})>'
+        '<Email(error={!r})>'
         .format('foo')
     )
 
@@ -270,7 +270,7 @@ def test_range_repr():
     )
     assert (
         repr(validate.Range(min=1, max=3, error='foo')) ==
-        '<Range(min=1, max=3, error={0!r})>'
+        '<Range(min=1, max=3, error={!r})>'
         .format('foo')
     )
 
@@ -359,12 +359,12 @@ def test_length_repr():
     )
     assert (
         repr(validate.Length(min=1, max=3, error='foo', equal=None)) ==
-        '<Length(min=1, max=3, equal=None, error={0!r})>'
+        '<Length(min=1, max=3, equal=None, error={!r})>'
         .format('foo')
     )
     assert (
         repr(validate.Length(min=None, max=None, error='foo', equal=5)) ==
-        '<Length(min=None, max=None, equal=5, error={0!r})>'
+        '<Length(min=None, max=None, equal=5, error={!r})>'
         .format('foo')
     )
 
@@ -390,12 +390,12 @@ def test_equal_custom_message():
 def test_equal_repr():
     assert (
         repr(validate.Equal(comparable=123, error=None)) ==
-        '<Equal(comparable=123, error={0!r})>'
+        '<Equal(comparable=123, error={!r})>'
         .format('Must be equal to {other}.')
     )
     assert (
         repr(validate.Equal(comparable=123, error='foo')) ==
-        '<Equal(comparable=123, error={0!r})>'
+        '<Equal(comparable=123, error={!r})>'
         .format('foo')
     )
 
@@ -443,12 +443,12 @@ def test_regexp_custom_message():
 def test_regexp_repr():
     assert (
         repr(validate.Regexp(regex='abc', flags=0, error=None)) ==
-        '<Regexp(regex={0!r}, error={1!r})>'
+        '<Regexp(regex={!r}, error={!r})>'
         .format(re.compile('abc'), 'String does not match expected pattern.')
     )
     assert (
         repr(validate.Regexp(regex='abc', flags=re.IGNORECASE, error='foo')) ==
-        '<Regexp(regex={0!r}, error={1!r})>'
+        '<Regexp(regex={!r}, error={!r})>'
         .format(re.compile('abc', re.IGNORECASE), 'foo')
     )
 
@@ -505,12 +505,12 @@ def test_predicate_custom_message():
 def test_predicate_repr():
     assert (
         repr(validate.Predicate(method='foo', error=None)) ==
-        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        '<Predicate(method={!r}, kwargs={!r}, error={!r})>'
         .format('foo', {}, 'Invalid input.')
     )
     assert (
         repr(validate.Predicate(method='foo', error='bar', zoo=1)) ==
-        '<Predicate(method={0!r}, kwargs={1!r}, error={2!r})>'
+        '<Predicate(method={!r}, kwargs={!r}, error={!r})>'
         .format('foo', {str('zoo') if PY2 else 'zoo': 1}, 'bar')
     )
 
@@ -549,12 +549,12 @@ def test_noneof_custom_message():
 def test_noneof_repr():
     assert (
         repr(validate.NoneOf(iterable=[1, 2, 3], error=None)) ==
-        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        '<NoneOf(iterable=[1, 2, 3], error={!r})>'
         .format('Invalid input.')
     )
     assert (
         repr(validate.NoneOf(iterable=[1, 2, 3], error='foo')) ==
-        '<NoneOf(iterable=[1, 2, 3], error={0!r})>'
+        '<NoneOf(iterable=[1, 2, 3], error={!r})>'
         .format('foo')
     )
 
@@ -632,12 +632,12 @@ def test_oneof_custom_message():
 def test_oneof_repr():
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=None, error=None)) ==
-        '<OneOf(choices=[1, 2, 3], labels=[], error={0!r})>'
+        '<OneOf(choices=[1, 2, 3], labels=[], error={!r})>'
         .format('Must be one of: {choices}.')
     )
     assert (
         repr(validate.OneOf(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
-        '<OneOf(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        '<OneOf(choices=[1, 2, 3], labels={!r}, error={!r})>'
         .format(['a', 'b', 'c'], 'foo')
     )
 
@@ -731,11 +731,11 @@ def test_containsonly_custom_message():
 def test_containsonly_repr():
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=None, error=None)) ==
-        '<ContainsOnly(choices=[1, 2, 3], labels=[], error={0!r})>'
+        '<ContainsOnly(choices=[1, 2, 3], labels=[], error={!r})>'
         .format('One or more of the choices you made was not in: {choices}.')
     )
     assert (
         repr(validate.ContainsOnly(choices=[1, 2, 3], labels=['a', 'b', 'c'], error='foo')) ==
-        '<ContainsOnly(choices=[1, 2, 3], labels={0!r}, error={1!r})>'
+        '<ContainsOnly(choices=[1, 2, 3], labels={!r}, error={!r})>'
         .format(['a', 'b', 'c'], 'foo')
     )

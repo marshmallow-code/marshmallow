@@ -146,7 +146,7 @@ def register():
             email=data['email'], joined_on=dt.datetime.now(),
             password=data['password'],
         )
-        message = 'Successfully created user: {0}'.format(user.email)
+        message = 'Successfully created user: {}'.format(user.email)
     else:
         return jsonify({'errors': 'That email address is already in the database'}), 400
 

@@ -1,4 +1,8 @@
 repos:
+- repo: https://github.com/asottile/pyupgrade
+  rev: v1.15.0
+  hooks:
+  - id: pyupgrade
 - repo: https://github.com/asottile/add-trailing-comma
   rev: v0.8.0
   hooks:

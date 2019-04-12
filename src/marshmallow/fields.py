@@ -450,7 +450,7 @@ class Nested(Field):
                 elif not isinstance(self.nested, basestring):
                     raise ValueError(
                         'Nested fields must be passed a '
-                        'Schema, not {0}.'.format(self.nested.__class__),
+                        'Schema, not {}.'.format(self.nested.__class__),
                     )
                 elif self.nested == 'self':
                     schema_class = self.parent.__class__
@@ -1220,7 +1220,7 @@ class TimeDelta(Field):
         )
 
         if precision not in units:
-            msg = 'The precision must be {0} or "{1}".'.format(
+            msg = 'The precision must be {} or "{}".'.format(
                 ', '.join(['"{}"'.format(each) for each in units[:-1]]), units[-1],
             )
             raise ValueError(msg)
@@ -1545,7 +1545,7 @@ class Function(Field):
     def _call_or_raise(self, func, value, attr):
         if len(utils.get_func_args(func)) > 1:
             if self.parent.context is None:
-                msg = 'No context available for Function field {0!r}'.format(attr)
+                msg = 'No context available for Function field {!r}'.format(attr)
                 raise ValidationError(msg)
             return func(value, self.parent.context)
         else:

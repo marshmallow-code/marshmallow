@@ -20,7 +20,7 @@ class Validator(object):
 
     def __repr__(self):
         args = self._repr_args()
-        args = '{0}, '.format(args) if args else ''
+        args = '{}, '.format(args) if args else ''
 
         return (
             '<{self.__class__.__name__}({args}error={self.error!r})>'
@@ -82,7 +82,7 @@ class URL(Validator):
     _regex = RegexMemoizer()
 
     default_message = 'Not a valid URL.'
-    default_schemes = set(['http', 'https', 'ftp', 'ftps'])
+    default_schemes = {'http', 'https', 'ftp', 'ftps'}
 
     # TODO; Switch position of `error` and `schemes` in 3.0
     def __init__(self, relative=False, error=None, schemes=None, require_tld=True):
@@ -92,7 +92,7 @@ class URL(Validator):
         self.require_tld = require_tld
 
     def _repr_args(self):
-        return 'relative={0!r}'.format(self.relative)
+        return 'relative={!r}'.format(self.relative)
 
     def _format_error(self, value):
         return self.error.format(input=value)
@@ -199,7 +199,7 @@ class Range(Validator):
         self.error = error
 
     def _repr_args(self):
-        return 'min={0!r}, max={1!r}'.format(self.min, self.max)
+        return 'min={!r}, max={!r}'.format(self.min, self.max)
 
     def _format_error(self, value, message):
         return (self.error or message).format(input=value, min=self.min, max=self.max)
@@ -249,7 +249,7 @@ class Length(Validator):
         self.equal = equal
 
     def _repr_args(self):
-        return 'min={0!r}, max={1!r}, equal={2!r}'.format(self.min, self.max, self.equal)
+        return 'min={!r}, max={!r}, equal={!r}'.format(self.min, self.max, self.equal)
 
     def _format_error(self, value, message):
         return (self.error or message).format(
@@ -292,7 +292,7 @@ class Equal(Validator):
         self.error = error or self.default_message
 
     def _repr_args(self):
-        return 'comparable={0!r}'.format(self.comparable)
+        return 'comparable={!r}'.format(self.comparable)
 
     def _format_error(self, value):
         return self.error.format(input=value, other=self.comparable)
@@ -321,7 +321,7 @@ class Regexp(Validator):
         self.error = error or self.default_message
 
     def _repr_args(self):
-        return 'regex={0!r}'.format(self.regex)
+        return 'regex={!r}'.format(self.regex)
 
     def _format_error(self, value):
         return self.error.format(input=value, regex=self.regex.pattern)
@@ -353,7 +353,7 @@ class Predicate(Validator):
         self.kwargs = kwargs
 
     def _repr_args(self):
-        return 'method={0!r}, kwargs={1!r}'.format(self.method, self.kwargs)
+        return 'method={!r}, kwargs={!r}'.format(self.method, self.kwargs)
 
     def _format_error(self, value):
         return self.error.format(input=value, method=self.method)
@@ -383,7 +383,7 @@ class NoneOf(Validator):
         self.error = error or self.default_message
 
     def _repr_args(self):
-        return 'iterable={0!r}'.format(self.iterable)
+        return 'iterable={!r}'.format(self.iterable)
 
     def _format_error(self, value):
         return self.error.format(
@@ -420,7 +420,7 @@ class OneOf(Validator):
         self.error = error or self.default_message
 
     def _repr_args(self):
-        return 'choices={0!r}, labels={1!r}'.format(self.choices, self.labels)
+        return 'choices={!r}, labels={!r}'.format(self.choices, self.labels)
 
     def _format_error(self, value):
         return self.error.format(

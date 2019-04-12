@@ -33,7 +33,7 @@ class AuthorSchema(Schema):
         return obj.first + ' ' + obj.last
 
     def format_name(self, author):
-        return '{0}, {1}'.format(author.last, author.first)
+        return '{}, {}'.format(author.last, author.first)
 
 
 class QuoteSchema(Schema):
@@ -137,7 +137,7 @@ def main():
             ),
         )
 
-    print('Benchmark Result: {0:.2f} usec/dump'.format(
+    print('Benchmark Result: {:.2f} usec/dump'.format(
         run_timeit(quotes, args.iterations, args.repeat, profile=args.profile),
     ))
 
