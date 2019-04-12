@@ -9,6 +9,10 @@ Other changes:
 - *Backwards-incompatible*: Remove special-casing in ``fields.List`` and
   ``fields.Tuple`` for accessing nested attributes (:pr:`1188`).
   Use ``fields.List(fields.Pluck(...))`` instead.
+- Add ``python_requires`` to ``setup.py`` (:pr:`1194`).
+  Thanks :user:`hugovk`.
+- Upgrade syntax with ``pyupgrade`` in pre-commit (:pr:`1195`). Thanks
+  again :user:`hugovk`.
 
 3.0.0rc5 (2019-03-30)
 +++++++++++++++++++++
