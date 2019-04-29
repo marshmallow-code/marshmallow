@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Field classes for various types of data."""
 
-from __future__ import absolute_import, unicode_literals
-
 import collections
 import copy
 import datetime as dt
@@ -10,11 +8,11 @@ import numbers
 import uuid
 import decimal
 import math
+from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
-from marshmallow.compat import basestring, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import (
     ValidationError,
     StringNotCollectionError,
@@ -246,7 +244,7 @@ class Field(FieldABC):
             class_name = self.__class__.__name__
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
             raise AssertionError(msg)
-        if isinstance(msg, basestring):
+        if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
         raise ValidationError(msg)
 
@@ -326,7 +324,7 @@ class Field(FieldABC):
                 def _serialize(self, value, attr, obj, **kwargs):
                     if not value:
                         return ''
-                    return unicode(value).title()
+                    return str(value).title()
 
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
@@ -447,7 +445,7 @@ class Nested(Field):
             else:
                 if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
                     schema_class = self.nested
-                elif not isinstance(self.nested, basestring):
+                elif not isinstance(self.nested, (str, bytes)):
                     raise ValueError(
                         'Nested fields must be passed a '
                         'Schema, not {}.'.format(self.nested.__class__),
@@ -712,7 +710,7 @@ class String(Field):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if not isinstance(value, basestring):
+        if not isinstance(value, (str, bytes)):
             self.fail('invalid')
         try:
             return utils.ensure_text_type(value)
@@ -1323,11 +1321,11 @@ class Mapping(Field):
         #  Serialize values
         result = self.mapping_type()
         if self.value_container is None:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 result[keys[k]] = self.value_container._serialize(
                     v, None, None, **kwargs
                 )
@@ -1356,11 +1354,11 @@ class Mapping(Field):
         #  Deserialize values
         result = self.mapping_type()
         if self.value_container is None:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
-            for key, val in iteritems(value):
+            for key, val in value.items():
                 try:
                     deser_val = self.value_container.deserialize(val)
                 except ValidationError as error:

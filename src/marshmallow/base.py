@@ -6,7 +6,7 @@ These are necessary to avoid circular imports between core.py and fields.py.
 import copy
 
 
-class FieldABC(object):
+class FieldABC:
     """Abstract base class from which all Field classes inherit.
     """
     parent = None
@@ -29,7 +29,7 @@ class FieldABC(object):
         return ret
 
 
-class SchemaABC(object):
+class SchemaABC:
     """Abstract base class from which all Schemas inherit."""
 
     def dump(self, obj, many=None):

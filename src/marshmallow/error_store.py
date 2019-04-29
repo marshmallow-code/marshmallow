@@ -7,13 +7,10 @@
     Users should not need to use this module directly.
 """
 
-from __future__ import unicode_literals
-
-from marshmallow.compat import iteritems
 from marshmallow.exceptions import SCHEMA
 
 
-class ErrorStore(object):
+class ErrorStore:
 
     def __init__(self):
         #: Dictionary of errors stored during serialization
@@ -59,7 +56,7 @@ def merge_errors(errors1, errors2):
             )
         if isinstance(errors2, dict):
             errors = dict(errors1)
-            for key, val in iteritems(errors2):
+            for key, val in errors2.items():
                 if key in errors:
                     errors[key] = merge_errors(errors[key], val)
                 else:

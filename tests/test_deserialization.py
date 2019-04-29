@@ -8,7 +8,6 @@ import pytest
 
 from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, utils, Schema, validate
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import basestring
 from marshmallow.validate import Equal
 
 from tests.base import (
@@ -1833,7 +1832,7 @@ def test_required_message_can_be_changed(message):
     with pytest.raises(ValidationError) as excinfo:
         RequireSchema().load(user_data)
     errors = excinfo.value.messages
-    expected = [message] if isinstance(message, basestring) else message
+    expected = [message] if isinstance(message, (bytes, str)) else message
     assert expected == errors['age']
 
 

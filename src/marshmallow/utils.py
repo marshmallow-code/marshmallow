@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Utility methods for marshmallow."""
-from __future__ import absolute_import, unicode_literals
-
 import collections
 import functools
 import datetime
@@ -10,11 +8,11 @@ import json
 import re
 import time
 from calendar import timegm
+from collections.abc import Mapping, Iterable
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
-from marshmallow.compat import binary_type, text_type, Mapping, Iterable
 from marshmallow.exceptions import FieldInstanceResolutionError
 
 EXCLUDE = 'exclude'
@@ -28,12 +26,10 @@ try:
 except ImportError:
     dateutil_available = False
 
-class _Missing(object):
+class _Missing:
 
     def __bool__(self):
         return False
-
-    __nonzero__ = __bool__  # PY2 compat
 
     def __copy__(self):
         return self
@@ -268,9 +264,9 @@ def to_iso_date(date, *args, **kwargs):
 
 
 def ensure_text_type(val):
-    if isinstance(val, binary_type):
+    if isinstance(val, bytes):
         val = val.decode('utf-8')
-    return text_type(val)
+    return str(val)
 
 def pluck(dictlist, key):
     """Extracts a list of dictionary values from a list of dictionaries.

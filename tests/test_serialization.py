@@ -11,7 +11,6 @@ import pytest
 
 from marshmallow import Schema, fields, utils, missing as missing_
 from marshmallow.exceptions import ValidationError
-from marshmallow.compat import basestring
 
 from tests.base import User, ALL_FIELDS
 
@@ -197,11 +196,11 @@ class TestFieldSerialization:
         user.m6 = [1, 2]
 
         field = fields.Decimal(as_string=True)
-        assert isinstance(field.serialize('m1', user), basestring)
+        assert isinstance(field.serialize('m1', user), (bytes, str))
         assert field.serialize('m1', user) == '12'
-        assert isinstance(field.serialize('m2', user), basestring)
+        assert isinstance(field.serialize('m2', user), (bytes, str))
         assert field.serialize('m2', user) == '12.355'
-        assert isinstance(field.serialize('m3', user), basestring)
+        assert isinstance(field.serialize('m3', user), (bytes, str))
         assert field.serialize('m3', user) == '1'
         assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
@@ -210,11 +209,11 @@ class TestFieldSerialization:
             field.serialize('m6', user)
 
         field = fields.Decimal(1, as_string=True)
-        assert isinstance(field.serialize('m1', user), basestring)
+        assert isinstance(field.serialize('m1', user), (bytes, str))
         assert field.serialize('m1', user) == '12.0'
-        assert isinstance(field.serialize('m2', user), basestring)
+        assert isinstance(field.serialize('m2', user), (bytes, str))
         assert field.serialize('m2', user) == '12.4'
-        assert isinstance(field.serialize('m3', user), basestring)
+        assert isinstance(field.serialize('m3', user), (bytes, str))
         assert field.serialize('m3', user) == '1.0'
         assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
@@ -223,11 +222,11 @@ class TestFieldSerialization:
             field.serialize('m6', user)
 
         field = fields.Decimal(1, decimal.ROUND_DOWN, as_string=True)
-        assert isinstance(field.serialize('m1', user), basestring)
+        assert isinstance(field.serialize('m1', user), (bytes, str))
         assert field.serialize('m1', user) == '12.0'
-        assert isinstance(field.serialize('m2', user), basestring)
+        assert isinstance(field.serialize('m2', user), (bytes, str))
         assert field.serialize('m2', user) == '12.3'
-        assert isinstance(field.serialize('m3', user), basestring)
+        assert isinstance(field.serialize('m3', user), (bytes, str))
         assert field.serialize('m3', user) == '1.0'
         assert field.serialize('m4', user) is None
         with pytest.raises(ValidationError):
@@ -277,15 +276,15 @@ class TestFieldSerialization:
         field = fields.Decimal(as_string=True, allow_nan=True)
 
         m2s = field.serialize('m2', user)
-        assert isinstance(m2s, basestring)
+        assert isinstance(m2s, (bytes, str))
         assert m2s == user.m2
 
         m5s = field.serialize('m5', user)
-        assert isinstance(m5s, basestring)
+        assert isinstance(m5s, (bytes, str))
         assert m5s == user.m5
 
         m6s = field.serialize('m6', user)
-        assert isinstance(m6s, basestring)
+        assert isinstance(m6s, (bytes, str))
         assert m6s == user.m6
 
     def test_decimal_field_special_values_not_permitted(self, user):
@@ -356,12 +355,12 @@ class TestFieldSerialization:
 
         field = fields.Decimal(as_string=True)
         s = field.serialize('m1', user)
-        assert isinstance(s, basestring)
+        assert isinstance(s, (bytes, str))
         assert s == user.m1
 
         field = fields.Decimal(as_string=True, places=2)
         s = field.serialize('m1', user)
-        assert isinstance(s, basestring)
+        assert isinstance(s, (bytes, str))
         assert s == '0.00'
 
     def test_boolean_field_serialization(self, user):

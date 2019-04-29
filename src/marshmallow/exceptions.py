@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
 
-from marshmallow.compat import basestring
-
 
 # Key used for schema-level validation errors
 SCHEMA = '_schema'
@@ -25,7 +23,7 @@ class ValidationError(MarshmallowError):
     :param dict valid_data: Valid (de)serialized data.
     """
     def __init__(self, message, field_name=SCHEMA, data=None, valid_data=None, **kwargs):
-        self.messages = [message] if isinstance(message, basestring) else message
+        self.messages = [message] if isinstance(message, (str, bytes)) else message
         self.field_name = field_name
         self.data = data
         self.valid_data = valid_data

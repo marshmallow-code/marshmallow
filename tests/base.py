@@ -8,7 +8,6 @@ import simplejson
 import pytz
 
 from marshmallow import Schema, fields, post_load, validate, missing
-from marshmallow.compat import text_type
 from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone('US/Central')
@@ -188,7 +187,7 @@ class UserSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(text_type(te))
+            raise ValidationError(str(te))
 
     @post_load
     def make_user(self, data):
@@ -216,7 +215,7 @@ class UserMetaSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(text_type(te))
+            raise ValidationError(str(te))
 
     class Meta:
         fields = (
