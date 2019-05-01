@@ -472,7 +472,7 @@ class ContainsOnly(OneOf):
 
     def _format_error(self, value):
         value_text = ', '.join(str(val) for val in value)
-        return super(ContainsOnly, self)._format_error(value_text)
+        return super()._format_error(value_text)
 
     def __call__(self, value):
         # We can't use set.issubset because does not handle unhashable types

@@ -895,12 +895,12 @@ def test_decorator_error_handling_with_dump_dict_error(decorator):
     schema.load({})
 
 
-class Nested(object):
+class Nested:
     def __init__(self, foo):
         self.foo = foo
 
 
-class Example(object):
+class Example:
     def __init__(self, nested):
         self.nested = nested
 

@@ -96,7 +96,7 @@ class SchemaMeta(type):
             else:
                 ordered = False
         cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
-        klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
+        klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
         # Use getattr rather than attrs['Meta'] so that we get inheritance for free
@@ -134,7 +134,7 @@ class SchemaMeta(type):
 
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
-        super(SchemaMeta, self).__init__(name, bases, attrs)
+        super().__init__(name, bases, attrs)
         if name and self.opts.register:
             class_registry.register(name, self)
         self._hooks = self.resolve_hooks()

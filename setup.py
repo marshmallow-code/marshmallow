@@ -65,7 +65,7 @@ setup(
         'serialization', 'rest', 'json', 'api', 'marshal',
         'marshalling', 'deserialization', 'validation', 'schema',
     ],
-    python_requires='>=3, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=3.5',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

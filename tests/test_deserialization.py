@@ -943,7 +943,7 @@ class TestFieldDeserialization:
         assert type(excinfo.value) == ValidationError
 
     def test_field_deserialization_with_user_validator_class_that_returns_bool(self):
-        class MyValidator(object):
+        class MyValidator:
             def __call__(self, val):
                 if val == 'valid':
                     return True
@@ -977,7 +977,7 @@ class TestFieldDeserialization:
     def test_field_deserialization_with_validator_with_nonascii_input(self):
         field = fields.String(validate=lambda s: False)
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize(u'привет')
+            field.deserialize('привет')
         assert type(excinfo.value) == ValidationError
 
     def test_field_deserialization_with_user_validators(self):
@@ -1236,8 +1236,8 @@ class TestSchemaDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             AliasingUserSerializer().load(data)
         errors = excinfo.value.messages
-        assert errors['UserName'] == [u'Not a valid email address.']
-        assert errors['Years'] == [u'Not a valid integer.']
+        assert errors['UserName'] == ['Not a valid email address.']
+        assert errors['Years'] == ['Not a valid integer.']
 
     def test_deserialize_with_data_key_param(self):
         class AliasingUserSerializer(Schema):

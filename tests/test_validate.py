@@ -453,7 +453,7 @@ def test_regexp_repr():
 
 
 def test_predicate():
-    class Dummy(object):
+    class Dummy:
         def _true(self):
             return True
 
@@ -490,7 +490,7 @@ def test_predicate():
         validate.Predicate('_identity', arg='')(d)
 
 def test_predicate_custom_message():
-    class Dummy(object):
+    class Dummy:
         def _false(self):
             return False
 

@@ -880,7 +880,7 @@ def test_error_raised_if_additional_option_is_not_list():
 
 def test_nested_custom_set_in_exclude_reusing_schema():
 
-    class CustomSet(object):
+    class CustomSet:
         # This custom set is to allow the obj check in BaseSchema.__filter_fields
         # to pass, since it'll be a valid instance, and this class overrides
         # getitem method to allow the hasattr check to pass too, which will try
@@ -1140,7 +1140,7 @@ def test_nested_custom_set_not_implementing_getitem():
     :mod:`collections.abc.MutableSequence`, with ``__getitem__`` arguments
     that are not integers.
     """
-    class ListLikeParent(object):
+    class ListLikeParent:
         """
         Implements a list-like object that can get children using a
         non-integer key
@@ -1154,7 +1154,7 @@ def test_nested_custom_set_not_implementing_getitem():
             """
             self.children = {required_key: child}
 
-    class Child(object):
+    class Child:
         """
         Implements an object with some attribute
         """
@@ -2081,12 +2081,12 @@ class TestNestedSchema:
         assert '_schema' in errors['inner']
 
     def test_dump_validation_error(self):
-        class Child(object):
+        class Child:
             def __init__(self, foo, bar):
                 self.foo = foo
                 self.bar = bar
 
-        class Parent(object):
+        class Parent:
             def __init__(self, foo, bar):
                 self.foo = foo
                 self.bar = bar
@@ -2354,7 +2354,7 @@ class TestContext:
         assert msg in str(excinfo)
 
     def test_function_field_handles_bound_serializer(self):
-        class SerializeA(object):
+        class SerializeA:
             def __call__(self, value):
                 return 'value'
         serialize = SerializeA()
@@ -2466,7 +2466,7 @@ class TestFieldInheritance:
             ('field_b', fields.Number()),
         ])
 
-        class PlainBaseClass(object):
+        class PlainBaseClass:
             field_a = expected['field_a']
 
         class SerializerB1(Schema, PlainBaseClass):
