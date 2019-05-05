@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import re
 import pytest
 
-from marshmallow.compat import PY2
 from marshmallow import validate, ValidationError
 
 @pytest.mark.parametrize(
@@ -454,7 +453,7 @@ def test_regexp_repr():
 
 
 def test_predicate():
-    class Dummy(object):
+    class Dummy:
         def _true(self):
             return True
 
@@ -491,7 +490,7 @@ def test_predicate():
         validate.Predicate('_identity', arg='')(d)
 
 def test_predicate_custom_message():
-    class Dummy(object):
+    class Dummy:
         def _false(self):
             return False
 
@@ -511,7 +510,7 @@ def test_predicate_repr():
     assert (
         repr(validate.Predicate(method='foo', error='bar', zoo=1)) ==
         '<Predicate(method={!r}, kwargs={!r}, error={!r})>'
-        .format('foo', {str('zoo') if PY2 else 'zoo': 1}, 'bar')
+        .format('foo', {'zoo': 1}, 'bar')
     )
 
 

@@ -128,3 +128,4 @@ Contributors (chronological)
 - Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
 - Tim Shaffer `@timster <https://github.com/timster>`_
 - Hugo van Kemenade `@hugovk <https://github.com/hugovk>`_
+- Maciej Urbański `@rooterkyberian <https://github.com/rooterkyberian>`_

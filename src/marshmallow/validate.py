@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 """Validation classes for various types of data."""
-
-from __future__ import unicode_literals
-
 import re
+from itertools import zip_longest
 from operator import attrgetter
 
-from marshmallow.compat import basestring, text_type, zip_longest
 from marshmallow.exceptions import ValidationError
 
 
-class Validator(object):
+class Validator:
     """Base abstract class for validators.
 
     .. note::
@@ -45,7 +42,7 @@ class URL(Validator):
     :param bool require_tld: Whether to reject non-FQDN hostnames
     """
 
-    class RegexMemoizer(object):
+    class RegexMemoizer:
 
         def __init__(self):
             self._memoized = {}
@@ -317,7 +314,7 @@ class Regexp(Validator):
     default_message = 'String does not match expected pattern.'
 
     def __init__(self, regex, flags=0, error=None):
-        self.regex = re.compile(regex, flags) if isinstance(regex, basestring) else regex
+        self.regex = re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
         self.error = error or self.default_message
 
     def _repr_args(self):
@@ -379,7 +376,7 @@ class NoneOf(Validator):
 
     def __init__(self, iterable, error=None):
         self.iterable = iterable
-        self.values_text = ', '.join(text_type(each) for each in self.iterable)
+        self.values_text = ', '.join(str(each) for each in self.iterable)
         self.error = error or self.default_message
 
     def _repr_args(self):
@@ -414,9 +411,9 @@ class OneOf(Validator):
 
     def __init__(self, choices, labels=None, error=None):
         self.choices = choices
-        self.choices_text = ', '.join(text_type(choice) for choice in self.choices)
+        self.choices_text = ', '.join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
-        self.labels_text = ', '.join(text_type(label) for label in self.labels)
+        self.labels_text = ', '.join(str(label) for label in self.labels)
         self.error = error or self.default_message
 
     def _repr_args(self):
@@ -438,7 +435,7 @@ class OneOf(Validator):
 
         return value
 
-    def options(self, valuegetter=text_type):
+    def options(self, valuegetter=str):
         """Return a generator over the (value, label) pairs, where value
         is a string associated with each choice. This convenience method
         is useful to populate, for instance, a form select field.
@@ -447,7 +444,7 @@ class OneOf(Validator):
             be a one-argument callable which returns the value of a
             choice. In the latter case, the string specifies the name
             of an attribute of the choice objects. Defaults to `str()`
-            or `unicode()`.
+            or `str()`.
         """
         valuegetter = valuegetter if callable(valuegetter) else attrgetter(valuegetter)
         pairs = zip_longest(self.choices, self.labels, fillvalue='')
@@ -474,8 +471,8 @@ class ContainsOnly(OneOf):
     default_message = 'One or more of the choices you made was not in: {choices}.'
 
     def _format_error(self, value):
-        value_text = ', '.join(text_type(val) for val in value)
-        return super(ContainsOnly, self)._format_error(value_text)
+        value_text = ', '.join(str(val) for val in value)
+        return super()._format_error(value_text)
 
     def __call__(self, value):
         # We can't use set.issubset because does not handle unhashable types

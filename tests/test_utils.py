@@ -23,14 +23,14 @@ def test_missing_singleton_copy():
 PointNT = namedtuple('Point', ['x', 'y'])
 
 
-class PointClass(object):
+class PointClass:
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
 class PointDict(dict):
     def __init__(self, x, y):
-        super(PointDict, self).__init__({'x': x})
+        super().__init__({'x': x})
         self.y = y
 
 @pytest.mark.parametrize(
@@ -52,7 +52,7 @@ def test_get_value_from_namedtuple_with_default():
     # since 'y' is an attribute, None is returned instead of the default
     assert utils.get_value(p, 'y', default=123) is None
 
-class Triangle(object):
+class Triangle:
     def __init__(self, p1, p2, p3):
         self.p1 = p1
         self.p2 = p2
@@ -198,7 +198,7 @@ def test_get_func_args():
 
     f2 = partial(f1, 'baz')
 
-    class F3(object):
+    class F3:
         def __call__(self, foo, bar):
             pass
     f3 = F3()

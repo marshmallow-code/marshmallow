@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """Field classes for various types of data."""
 
-from __future__ import absolute_import, unicode_literals
-
 import collections
 import copy
 import datetime as dt
@@ -10,11 +8,11 @@ import numbers
 import uuid
 import decimal
 import math
+from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
-from marshmallow.compat import basestring, Mapping as _Mapping, iteritems
 from marshmallow.exceptions import (
     ValidationError,
     StringNotCollectionError,
@@ -246,7 +244,7 @@ class Field(FieldABC):
             class_name = self.__class__.__name__
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
             raise AssertionError(msg)
-        if isinstance(msg, basestring):
+        if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
         raise ValidationError(msg)
 
@@ -326,7 +324,7 @@ class Field(FieldABC):
                 def _serialize(self, value, attr, obj, **kwargs):
                     if not value:
                         return ''
-                    return unicode(value).title()
+                    return str(value).title()
 
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
@@ -429,7 +427,7 @@ class Nested(Field):
         self.many = kwargs.get('many', False)
         self.unknown = kwargs.get('unknown')
         self.__schema = None  # Cached Schema instance
-        super(Nested, self).__init__(default=default, **kwargs)
+        super().__init__(default=default, **kwargs)
 
     @property
     def schema(self):
@@ -447,7 +445,7 @@ class Nested(Field):
             else:
                 if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
                     schema_class = self.nested
-                elif not isinstance(self.nested, basestring):
+                elif not isinstance(self.nested, (str, bytes)):
                     raise ValueError(
                         'Nested fields must be passed a '
                         'Schema, not {}.'.format(self.nested.__class__),
@@ -525,7 +523,7 @@ class Pluck(Nested):
     """
 
     def __init__(self, nested, field_name, **kwargs):
-        super(Pluck, self).__init__(nested, only=(field_name,), **kwargs)
+        super().__init__(nested, only=(field_name,), **kwargs)
         self.field_name = field_name
 
     @property
@@ -534,7 +532,7 @@ class Pluck(Nested):
         return only_field.data_key or self.field_name
 
     def _serialize(self, nested_obj, attr, obj, **kwargs):
-        ret = super(Pluck, self)._serialize(nested_obj, attr, obj, **kwargs)
+        ret = super()._serialize(nested_obj, attr, obj, **kwargs)
         if ret is None:
             return None
         if self.many:
@@ -570,7 +568,7 @@ class List(Field):
     default_error_messages = {'invalid': 'Not a valid list.'}
 
     def __init__(self, cls_or_instance, **kwargs):
-        super(List, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         try:
             self.container = resolve_field_instance(cls_or_instance)
         except FieldInstanceResolutionError:
@@ -580,7 +578,7 @@ class List(Field):
             )
 
     def _bind_to_schema(self, field_name, schema):
-        super(List, self)._bind_to_schema(field_name, schema)
+        super()._bind_to_schema(field_name, schema)
         self.container = copy.deepcopy(self.container)
         self.container.parent = self
         self.container.name = field_name
@@ -635,7 +633,7 @@ class Tuple(Field):
     default_error_messages = {'invalid': 'Not a valid tuple.'}
 
     def __init__(self, tuple_fields, *args, **kwargs):
-        super(Tuple, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if not utils.is_collection(tuple_fields):
             raise ValueError(
                 'tuple_fields must be an iterable of Field classes or ' 'instances.',
@@ -655,7 +653,7 @@ class Tuple(Field):
         self.validate_length = Length(equal=len(self.tuple_fields))
 
     def _bind_to_schema(self, field_name, schema):
-        super(Tuple, self)._bind_to_schema(field_name, schema)
+        super()._bind_to_schema(field_name, schema)
         new_tuple_fields = []
         for container in self.tuple_fields:
             new_container = copy.deepcopy(container)
@@ -712,7 +710,7 @@ class String(Field):
         return utils.ensure_text_type(value)
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if not isinstance(value, basestring):
+        if not isinstance(value, (str, bytes)):
             self.fail('invalid')
         try:
             return utils.ensure_text_type(value)
@@ -762,7 +760,7 @@ class Number(Field):
 
     def __init__(self, as_string=False, **kwargs):
         self.as_string = as_string
-        super(Number, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
@@ -810,7 +808,7 @@ class Integer(Number):
     # override Number
     def __init__(self, strict=False, **kwargs):
         self.strict = strict
-        super(Integer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     # override Number
     def _format_num(self, value):
@@ -818,9 +816,9 @@ class Integer(Number):
             if isinstance(value, numbers.Number) and isinstance(
                 value, numbers.Integral,
             ):
-                return super(Integer, self)._format_num(value)
+                return super()._format_num(value)
             self.fail('invalid', input=value)
-        return super(Integer, self)._format_num(value)
+        return super()._format_num(value)
 
 
 class Float(Number):
@@ -840,10 +838,10 @@ class Float(Number):
 
     def __init__(self, allow_nan=False, as_string=False, **kwargs):
         self.allow_nan = allow_nan
-        super(Float, self).__init__(as_string=as_string, **kwargs)
+        super().__init__(as_string=as_string, **kwargs)
 
     def _format_num(self, value):
-        num = super(Float, self)._format_num(value)
+        num = super()._format_num(value)
         if self.allow_nan is False:
             if math.isnan(num) or num == float('inf') or num == float('-inf'):
                 self.fail('special')
@@ -901,7 +899,7 @@ class Decimal(Number):
         )
         self.rounding = rounding
         self.allow_nan = allow_nan
-        super(Decimal, self).__init__(as_string=as_string, **kwargs)
+        super().__init__(as_string=as_string, **kwargs)
 
     # override Number
     def _format_num(self, value):
@@ -922,7 +920,7 @@ class Decimal(Number):
     # override Number
     def _validated(self, value):
         try:
-            return super(Decimal, self)._validated(value)
+            return super()._validated(value)
         except decimal.InvalidOperation:
             self.fail('invalid')
 
@@ -985,7 +983,7 @@ class Boolean(Field):
     default_error_messages = {'invalid': 'Not a valid boolean.'}
 
     def __init__(self, truthy=None, falsy=None, **kwargs):
-        super(Boolean, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if truthy is not None:
             self.truthy = set(truthy)
@@ -1059,14 +1057,14 @@ class DateTime(Field):
     }
 
     def __init__(self, format=None, **kwargs):
-        super(DateTime, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods This allows a Schema to dynamically set the
         # format, e.g. from a Meta option
         self.format = format
 
     def _bind_to_schema(self, field_name, schema):
-        super(DateTime, self)._bind_to_schema(field_name, schema)
+        super()._bind_to_schema(field_name, schema)
         self.format = (
             self.format or
             getattr(schema.opts, self.SCHEMA_OPTS_VAR_NAME) or
@@ -1226,7 +1224,7 @@ class TimeDelta(Field):
             raise ValueError(msg)
 
         self.precision = precision
-        super(TimeDelta, self).__init__(error=error, **kwargs)
+        super().__init__(error=error, **kwargs)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
@@ -1269,7 +1267,7 @@ class Mapping(Field):
     default_error_messages = {'invalid': 'Not a valid mapping type.'}
 
     def __init__(self, keys=None, values=None, **kwargs):
-        super(Mapping, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         if keys is None:
             self.key_container = None
         else:
@@ -1293,7 +1291,7 @@ class Mapping(Field):
                 )
 
     def _bind_to_schema(self, field_name, schema):
-        super(Mapping, self)._bind_to_schema(field_name, schema)
+        super()._bind_to_schema(field_name, schema)
         if self.value_container:
             self.value_container = copy.deepcopy(self.value_container)
             self.value_container.parent = self
@@ -1323,11 +1321,11 @@ class Mapping(Field):
         #  Serialize values
         result = self.mapping_type()
         if self.value_container is None:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 result[keys[k]] = self.value_container._serialize(
                     v, None, None, **kwargs
                 )
@@ -1356,11 +1354,11 @@ class Mapping(Field):
         #  Deserialize values
         result = self.mapping_type()
         if self.value_container is None:
-            for k, v in iteritems(value):
+            for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
-            for key, val in iteritems(value):
+            for key, val in value.items():
                 try:
                     deser_val = self.value_container.deserialize(val)
                 except ValidationError as error:
@@ -1480,7 +1478,7 @@ class Method(Field):
         # Set dump_only and load_only based on arguments
         kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
         kwargs['load_only'] = bool(deserialize) and not bool(serialize)
-        super(Method, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
 
@@ -1530,7 +1528,7 @@ class Function(Field):
         # Set dump_only and load_only based on arguments
         kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
         kwargs['load_only'] = bool(deserialize) and not bool(serialize)
-        super(Function, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
@@ -1565,7 +1563,7 @@ class Constant(Field):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, constant, **kwargs):
-        super(Constant, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.constant = constant
         self.missing = constant
         self.default = constant
@@ -1587,7 +1585,7 @@ class Inferred(Field):
     """
 
     def __init__(self):
-        super(Inferred, self).__init__()
+        super().__init__()
         # We memoize the fields to avoid creating and binding new fields
         # every time on serialization.
         self._field_cache = {}
@@ -1595,7 +1593,7 @@ class Inferred(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         field_cls = self.root.TYPE_MAPPING.get(type(value))
         if field_cls is None:
-            field = super(Inferred, self)
+            field = super()
         else:
             field = self._field_cache.get(field_cls)
             if field is None:

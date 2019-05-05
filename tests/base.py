@@ -8,7 +8,6 @@ import simplejson
 import pytz
 
 from marshmallow import Schema, fields, post_load, validate, missing
-from marshmallow.compat import text_type
 from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone('US/Central')
@@ -61,7 +60,7 @@ def assert_time_equal(t1, t2, microseconds=True):
 ##### Models #####
 
 
-class User(object):
+class User:
     SPECIES = 'Homo sapiens'
 
     def __init__(
@@ -106,7 +105,7 @@ class User(object):
         return '<User {}>'.format(self.name)
 
 
-class Blog(object):
+class Blog:
     def __init__(self, title, user, collaborators=None, categories=None, id_=None):
         self.title = title
         self.user = user
@@ -118,7 +117,7 @@ class Blog(object):
         return item.name in [each.name for each in self.collaborators]
 
 
-class DummyModel(object):
+class DummyModel:
     def __init__(self, foo):
         self.foo = foo
 
@@ -188,7 +187,7 @@ class UserSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(text_type(te))
+            raise ValidationError(str(te))
 
     @post_load
     def make_user(self, data):
@@ -216,7 +215,7 @@ class UserMetaSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(text_type(te))
+            raise ValidationError(str(te))
 
     class Meta:
         fields = (
@@ -292,7 +291,7 @@ class BlogSchemaOnlyExclude(BlogSchema):
     user = fields.Nested(UserSchema, only=('name', ), exclude=('name', 'species'))
 
 
-class mockjson(object):  # noqa
+class mockjson:  # noqa
 
     @staticmethod
     def dumps(val):

@@ -8,8 +8,6 @@ class:`fields.Nested <marshmallow.fields.Nested>`.
     This module is treated as private API.
     Users should not need to use this module directly.
 """
-from __future__ import unicode_literals
-
 from marshmallow.exceptions import RegistryError
 
 # {

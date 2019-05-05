@@ -60,7 +60,7 @@ class QuoteSchema(Schema):
         return data
 
 
-class Author(object):
+class Author:
     def __init__(self, id, first, last, book_count, age, address):
         self.id = id
         self.first = first
@@ -70,7 +70,7 @@ class Author(object):
         self.address = address
 
 
-class Quote(object):
+class Quote:
     def __init__(
         self, id, author, content, posted_at, book_name, page_number,
         line_number, col_number,

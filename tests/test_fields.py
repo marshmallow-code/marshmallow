@@ -23,9 +23,9 @@ def test_field_aliases(alias, field):
 class TestField:
 
     def test_repr(self):
-        default = u'œ∑´'
+        default = 'œ∑´'
         field = fields.Field(default=default, attribute=None)
-        assert repr(field) == (u'<fields.Field(default={0!r}, attribute=None, '
+        assert repr(field) == ('<fields.Field(default={0!r}, attribute=None, '
                                'validate=None, required=False, '
                                'load_only=False, dump_only=False, '
                                'missing={missing}, allow_none=False, '

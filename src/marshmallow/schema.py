@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
-from __future__ import absolute_import, unicode_literals
-
 from collections import defaultdict, OrderedDict
 import datetime as dt
 import uuid
@@ -11,11 +9,11 @@ import copy
 import inspect
 import json
 import warnings
+from collections.abc import Mapping
 
 from marshmallow import base, fields as ma_fields, class_registry
 from marshmallow.error_store import ErrorStore
 from marshmallow.fields import Nested
-from marshmallow.compat import iteritems, iterkeys, with_metaclass, text_type, binary_type, Mapping
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
@@ -41,7 +39,7 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
     """
     fields = [
         (field_name, field_value)
-        for field_name, field_value in iteritems(attrs)
+        for field_name, field_value in attrs.items()
         if is_instance_or_subclass(field_value, field_class)
     ]
     if pop:
@@ -98,7 +96,7 @@ class SchemaMeta(type):
             else:
                 ordered = False
         cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
-        klass = super(SchemaMeta, mcs).__new__(mcs, name, bases, attrs)
+        klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
         # Use getattr rather than attrs['Meta'] so that we get inheritance for free
@@ -136,7 +134,7 @@ class SchemaMeta(type):
 
     # NOTE: self is the class object
     def __init__(self, name, bases, attrs):
-        super(SchemaMeta, self).__init__(name, bases, attrs)
+        super().__init__(name, bases, attrs)
         if name and self.opts.register:
             class_registry.register(name, self)
         self._hooks = self.resolve_hooks()
@@ -173,7 +171,7 @@ class SchemaMeta(type):
             except AttributeError:
                 pass
             else:
-                for key in iterkeys(hook_config):
+                for key in hook_config.keys():
                     # Use name here so we can get the bound method later, in
                     # case the processor was a descriptor or something.
                     hooks[key].append(attr_name)
@@ -181,7 +179,7 @@ class SchemaMeta(type):
         return hooks
 
 
-class SchemaOpts(object):
+class SchemaOpts:
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
     def __init__(self, meta, ordered=False):
@@ -229,7 +227,7 @@ class BaseSchema(base.SchemaABC):
         import datetime as dt
         from marshmallow import Schema, fields
 
-        class Album(object):
+        class Album:
             def __init__(self, title, release_date):
                 self.title = title
                 self.release_date = release_date
@@ -279,8 +277,8 @@ class BaseSchema(base.SchemaABC):
         `handle_error` and `get_attribute` methods instead.
     """
     TYPE_MAPPING = {
-        text_type: ma_fields.String,
-        binary_type: ma_fields.String,
+        str: ma_fields.String,
+        bytes: ma_fields.String,
         dt.datetime: ma_fields.DateTime,
         float: ma_fields.Float,
         bool: ma_fields.Boolean,
@@ -304,7 +302,7 @@ class BaseSchema(base.SchemaABC):
 
     OPTIONS_CLASS = SchemaOpts
 
-    class Meta(object):
+    class Meta:
         """Options object for a Schema.
 
         Example usage: ::
@@ -470,7 +468,7 @@ class BaseSchema(base.SchemaABC):
             self._pending = False
             return ret
         items = []
-        for attr_name, field_obj in iteritems(fields_dict):
+        for attr_name, field_obj in fields_dict.items():
             if getattr(field_obj, 'load_only', False):
                 continue
             key = field_obj.data_key or attr_name
@@ -624,7 +622,7 @@ class BaseSchema(base.SchemaABC):
             error_store.store_error([self.error_messages['type']], index=index)
         else:
             partial_is_collection = is_collection(partial)
-            for attr_name, field_obj in iteritems(fields_dict):
+            for attr_name, field_obj in fields_dict.items():
                 if field_obj.dump_only:
                     continue
                 field_name = attr_name
@@ -951,7 +949,7 @@ class BaseSchema(base.SchemaABC):
             fields_dict[field_name] = field_obj
 
         dump_data_keys = [
-            obj.data_key or name for name, obj in iteritems(fields_dict) if not obj.load_only
+            obj.data_key or name for name, obj in fields_dict.items() if not obj.load_only
         ]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {x for x in dump_data_keys if dump_data_keys.count(x) > 1}
@@ -963,7 +961,7 @@ class BaseSchema(base.SchemaABC):
             )
 
         load_attributes = [
-            obj.attribute or name for name, obj in iteritems(fields_dict) if not obj.dump_only
+            obj.attribute or name for name, obj in fields_dict.items() if not obj.dump_only
         ]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {x for x in load_attributes if load_attributes.count(x) > 1}
@@ -1159,5 +1157,5 @@ class BaseSchema(base.SchemaABC):
         return data
 
 
-class Schema(with_metaclass(SchemaMeta, BaseSchema)):
+class Schema(BaseSchema, metaclass=SchemaMeta):
     __doc__ = BaseSchema.__doc__
