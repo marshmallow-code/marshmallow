@@ -1,11 +1,13 @@
 Changelog
 ---------
 
-3.0.0 (unreleased)
+3.0.0rc6 (unreleased)
 ++++++++++++++++++
 
 Other changes:
 
+- *Backwards-incompatible*: Remove support for Python 2 (:issue:`1120`).
+  Thank you :user:`rooterkyberian` for the suggestion and the PR.
 - *Backwards-incompatible*: Remove special-casing in ``fields.List`` and
   ``fields.Tuple`` for accessing nested attributes (:pr:`1188`).
   Use ``fields.List(fields.Pluck(...))`` instead.
