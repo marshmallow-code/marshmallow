@@ -1013,14 +1013,6 @@ class TestFieldDeserialization:
             field.deserialize('invalid')
         assert 'Bad value.' in str(excinfo)
 
-    def test_field_deserialization_with_non_utf8_value(self):
-        non_utf8_char = '\xc8'
-        field = fields.String()
-        # This exception only happens in Python version <= 2.7
-        if isinstance(non_utf8_char, bytes):
-            with pytest.raises(ValidationError) as excinfo:
-                field.deserialize(non_utf8_char)
-            assert excinfo.value.args[0] == 'Not a valid utf-8 string.'
 
 # No custom deserialization behavior, so a dict is returned
 class SimpleUserSchema(Schema):
