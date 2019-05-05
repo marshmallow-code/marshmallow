@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from collections import defaultdict, OrderedDict
 import datetime as dt

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for field serialization."""
 from collections import namedtuple, OrderedDict
 import datetime as dt

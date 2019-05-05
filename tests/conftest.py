@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Pytest fixtures that are available in all test modules."""
 import pytest
 

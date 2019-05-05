@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utility methods for marshmallow."""
 import collections
 import functools

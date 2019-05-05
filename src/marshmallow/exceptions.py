@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Exception classes for marshmallow-related errors."""
 
 

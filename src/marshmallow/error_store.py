@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities for storing collections of error messages.
 
 .. warning::

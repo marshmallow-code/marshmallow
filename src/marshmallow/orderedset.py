@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # OrderedSet
 # Copyright (c) 2009 Raymond Hettinger
 #

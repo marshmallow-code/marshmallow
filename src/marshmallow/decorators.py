@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Decorators for registering schema pre-processing and post-processing methods.
 These should be imported from the top-level `marshmallow` module.
 

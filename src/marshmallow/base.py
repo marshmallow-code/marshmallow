@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Abstract base classes.
 
 These are necessary to avoid circular imports between core.py and fields.py.

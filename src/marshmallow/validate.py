@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Validation classes for various types of data."""
 import re
 from itertools import zip_longest

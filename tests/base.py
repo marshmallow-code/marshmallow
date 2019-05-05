@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test utilities and fixtures."""
 import datetime as dt
 import uuid

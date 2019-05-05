@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Field classes for various types of data."""
 
 import collections

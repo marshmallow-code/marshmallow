@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from marshmallow.schema import Schema, SchemaOpts
 
 from . import fields
