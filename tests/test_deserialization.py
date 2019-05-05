@@ -1832,7 +1832,7 @@ def test_required_message_can_be_changed(message):
     with pytest.raises(ValidationError) as excinfo:
         RequireSchema().load(user_data)
     errors = excinfo.value.messages
-    expected = [message] if isinstance(message, (bytes, str)) else message
+    expected = [message] if isinstance(message, str) else message
     assert expected == errors['age']
 
 
