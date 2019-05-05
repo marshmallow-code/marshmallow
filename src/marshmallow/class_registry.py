@@ -66,13 +66,17 @@ def get_class(classname, all=False):
     try:
         classes = _registry[classname]
     except KeyError:
-        raise RegistryError('Class with name {!r} was not found. You may need '
-            'to import the class.'.format(classname))
+        raise RegistryError(
+            'Class with name {!r} was not found. You may need '
+            'to import the class.'.format(classname),
+        )
     if len(classes) > 1:
         if all:
             return _registry[classname]
-        raise RegistryError('Multiple classes with name {!r} '
+        raise RegistryError(
+            'Multiple classes with name {!r} '
             'were found. Please use the full, '
-            'module-qualified path.'.format(classname))
+            'module-qualified path.'.format(classname),
+        )
     else:
         return _registry[classname][0]

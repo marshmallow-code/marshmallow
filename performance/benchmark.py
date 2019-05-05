@@ -92,12 +92,14 @@ def run_timeit(quotes, iterations, repeat, profile=False):
         profile.enable()
 
     gc.collect()
-    best = min(timeit.repeat(
-        lambda: quotes_schema.dump(quotes),
-        'gc.enable()',
-        number=iterations,
-        repeat=repeat,
-    ))
+    best = min(
+        timeit.repeat(
+            lambda: quotes_schema.dump(quotes),
+            'gc.enable()',
+            number=iterations,
+            repeat=repeat,
+        ),
+    )
     if profile:
         profile.disable()
         profile.dump_stats('marshmallow.pprof')
@@ -137,9 +139,11 @@ def main():
             ),
         )
 
-    print('Benchmark Result: {:.2f} usec/dump'.format(
-        run_timeit(quotes, args.iterations, args.repeat, profile=args.profile),
-    ))
+    print(
+        'Benchmark Result: {:.2f} usec/dump'.format(
+            run_timeit(quotes, args.iterations, args.repeat, profile=args.profile),
+        ),
+    )
 
 
 if __name__ == '__main__':

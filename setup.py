@@ -11,7 +11,7 @@ EXTRAS_REQUIRE = {
     ],
     'lint': [
         'flake8==3.7.7',
-        'pre-commit==1.15.2',
+        'pre-commit==1.16.0',
     ],
 }
 EXTRAS_REQUIRE['dev'] = (

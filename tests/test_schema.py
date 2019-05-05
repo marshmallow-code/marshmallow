@@ -1348,11 +1348,13 @@ class TestDeeplyNestedListLoadOnly:
             str_dump_only='Dump Only',
             str_load_only='Load Only',
             str_regular='Regular String',
-            child=[dict(
-                str_dump_only='Dump Only',
-                str_load_only='Load Only',
-                str_regular='Regular String',
-            )],
+            child=[
+                dict(
+                    str_dump_only='Dump Only',
+                    str_load_only='Load Only',
+                    str_regular='Regular String',
+                ),
+            ],
         )
 
     def test_load_only(self, schema, data):

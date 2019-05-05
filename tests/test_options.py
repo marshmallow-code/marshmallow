@@ -121,15 +121,17 @@ class TestFieldOrdering:
 
     def test_nested_field_order_with_only_arg_is_maintained_on_load(self):
         schema = OrderedNestedOnly()
-        data = schema.load({'user': {
-            'name': 'Foo',
-            'email': 'Foo@bar.com',
-            'age': 42,
-            'created': dt.datetime.now().isoformat(),
-            'id': 123,
-            'homepage': 'http://foo.com',
-            'birthdate': dt.datetime.now().date().isoformat(),
-        }})
+        data = schema.load({
+            'user': {
+                'name': 'Foo',
+                'email': 'Foo@bar.com',
+                'age': 42,
+                'created': dt.datetime.now().isoformat(),
+                'id': 123,
+                'homepage': 'http://foo.com',
+                'birthdate': dt.datetime.now().date().isoformat(),
+            },
+        })
         user_data = data['user']
         keys = list(user_data)
         assert keys == ['name', 'email', 'age', 'created', 'id', 'homepage', 'birthdate']

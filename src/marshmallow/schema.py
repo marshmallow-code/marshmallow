@@ -642,8 +642,10 @@ class BaseSchema(base.SchemaABC):
                     if partial_is_collection:
                         prefix = field_name + '.'
                         len_prefix = len(prefix)
-                        sub_partial = [f[len_prefix:]
-                                       for f in partial if f.startswith(prefix)]
+                        sub_partial = [
+                            f[len_prefix:]
+                            for f in partial if f.startswith(prefix)
+                        ]
                     else:
                         sub_partial = partial
                     d_kwargs['partial'] = sub_partial
@@ -997,12 +999,16 @@ class BaseSchema(base.SchemaABC):
             self.on_bind_field(field_name, field_obj)
         except TypeError:
             # field declared as a class, not an instance
-            if (isinstance(field_obj, type) and
-                    issubclass(field_obj, base.FieldABC)):
-                msg = ('Field for "{}" must be declared as a '
-                       'Field instance, not a class. '
-                       'Did you mean "fields.{}()"?'
-                       .format(field_name, field_obj.__name__))
+            if (
+                isinstance(field_obj, type) and
+                issubclass(field_obj, base.FieldABC)
+            ):
+                msg = (
+                    'Field for "{}" must be declared as a '
+                    'Field instance, not a class. '
+                    'Did you mean "fields.{}()"?'
+                    .format(field_name, field_obj.__name__)
+                )
                 raise TypeError(msg)
 
     def _has_processors(self, tag):

@@ -654,10 +654,12 @@ class TestFieldDeserialization:
         assert field.deserialize({'foo@test.com': 1}) == {'foo@test.com': decimal.Decimal(1)}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({1: 'bar'})
-        assert excinfo.value.args[0] == {1: {
-            'key': ['Not a valid string.'],
-            'value': ['Not a valid number.'],
-        }}
+        assert excinfo.value.args[0] == {
+            1: {
+                'key': ['Not a valid string.'],
+                'value': ['Not a valid number.'],
+            },
+        }
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({'foo@test.com': 'bar'})
         assert excinfo.value.args[0] == {'foo@test.com': {'value': ['Not a valid number.']}}
@@ -668,10 +670,12 @@ class TestFieldDeserialization:
         assert excinfo.value.valid_data == {}
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize({'foo': 'bar'})
-        assert excinfo.value.args[0] == {'foo': {
-            'key': ['Not a valid email address.', 'String does not match expected pattern.'],
-            'value': ['Not a valid number.'],
-        }}
+        assert excinfo.value.args[0] == {
+            'foo': {
+                'key': ['Not a valid email address.', 'String does not match expected pattern.'],
+                'value': ['Not a valid number.'],
+            },
+        }
         assert excinfo.value.valid_data == {}
 
     def test_url_field_deserialization(self):
@@ -981,20 +985,26 @@ class TestFieldDeserialization:
         assert type(excinfo.value) == ValidationError
 
     def test_field_deserialization_with_user_validators(self):
-        validators_gen = (func for func in (
-            lambda s: s.lower() == 'valid',
-            lambda s: s.lower()[::-1] == 'dilav',
-        ))
+        validators_gen = (
+            func for func in (
+                lambda s: s.lower() == 'valid',
+                lambda s: s.lower()[::-1] == 'dilav',
+            )
+        )
 
         m_colletion_type = [
-            fields.String(validate=[
-                lambda s: s.lower() == 'valid',
-                lambda s: s.lower()[::-1] == 'dilav',
-            ]),
-            fields.String(validate=(
-                lambda s: s.lower() == 'valid',
-                lambda s: s.lower()[::-1] == 'dilav',
-            )),
+            fields.String(
+                validate=[
+                    lambda s: s.lower() == 'valid',
+                    lambda s: s.lower()[::-1] == 'dilav',
+                ],
+            ),
+            fields.String(
+                validate=(
+                    lambda s: s.lower() == 'valid',
+                    lambda s: s.lower()[::-1] == 'dilav',
+                ),
+            ),
             fields.String(validate=validators_gen),
         ]
 
@@ -1374,9 +1384,11 @@ class TestSchemaDeserialization:
             return False
 
         class MySchema(Schema):
-            email = fields.Email(validate=[
-                validate_with_bool,
-            ])
+            email = fields.Email(
+                validate=[
+                    validate_with_bool,
+                ],
+            )
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({'email': 'foo'})
         errors = excinfo.value.messages
@@ -1388,9 +1400,11 @@ class TestSchemaDeserialization:
             return False
 
         class MySchema(Schema):
-            url = fields.Url(validate=[
-                validate_with_bool,
-            ])
+            url = fields.Url(
+                validate=[
+                    validate_with_bool,
+                ],
+            )
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({'url': 'foo'})
         errors = excinfo.value.messages
@@ -1595,11 +1609,15 @@ class TestSchemaDeserialization:
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
-validators_gen_float = (func for func in
-                         [lambda f: f <= 4.1, lambda f: f >= 1.0])
+validators_gen_float = (
+    func for func in
+    [lambda f: f <= 4.1, lambda f: f >= 1.0]
+)
 
-validators_gen_str = (func for func in
-                        [lambda n: len(n) == 3, lambda n: n[1].lower() == 'o'])
+validators_gen_str = (
+    func for func in
+    [lambda n: len(n) == 3, lambda n: n[1].lower() == 'o']
+)
 
 class TestValidation:
 
