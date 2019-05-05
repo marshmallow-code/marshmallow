@@ -1,12 +1,13 @@
 Changelog
 ---------
 
-3.0.0rc6 (unreleased)
-++++++++++++++++++
+3.0.0rc6 (2019-05-05)
++++++++++++++++++++++
 
-Other changes:
+Support:
 
 - *Backwards-incompatible*: Remove support for Python 2 (:issue:`1120`).
+  Only Python>=3.5 is supported.
   Thank you :user:`rooterkyberian` for the suggestion and the PR.
 - *Backwards-incompatible*: Remove special-casing in ``fields.List`` and
   ``fields.Tuple`` for accessing nested attributes (:pr:`1188`).
