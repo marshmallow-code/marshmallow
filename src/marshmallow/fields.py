@@ -132,7 +132,6 @@ class Field(FieldABC):
         default=missing_,
         attribute=None,
         data_key=None,
-        error=None,
         validate=None,
         required=False,
         allow_none=None,
@@ -1183,7 +1182,6 @@ class TimeDelta(Field):
     :param str precision: Influences how the integer is interpreted during
         (de)serialization. Must be 'days', 'seconds', 'microseconds',
         'milliseconds', 'minutes', 'hours' or 'weeks'.
-    :param str error: Error message stored upon validation failure.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionchanged:: 2.0.0
@@ -1204,7 +1202,7 @@ class TimeDelta(Field):
         'format': '{input!r} cannot be formatted as a timedelta.',
     }
 
-    def __init__(self, precision='seconds', error=None, **kwargs):
+    def __init__(self, precision='seconds', **kwargs):
         precision = precision.lower()
         units = (
             self.DAYS,
@@ -1223,7 +1221,7 @@ class TimeDelta(Field):
             raise ValueError(msg)
 
         self.precision = precision
-        super().__init__(error=error, **kwargs)
+        super().__init__(**kwargs)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
