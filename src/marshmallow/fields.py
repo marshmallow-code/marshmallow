@@ -1521,7 +1521,7 @@ class Function(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize=None, deserialize=None, func=None, **kwargs):
+    def __init__(self, serialize=None, deserialize=None, **kwargs):
         # Set dump_only and load_only based on arguments
         kwargs['dump_only'] = bool(serialize) and not bool(deserialize)
         kwargs['load_only'] = bool(deserialize) and not bool(serialize)
