@@ -77,14 +77,15 @@ def validates_schema(
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
     and the value for ``many`` is passed.
 
-    If ``pass_original=True``, the original data (before unmarshalling) will be passed as
-    an additional argument to the method.
-
     If ``skip_on_field_errors=True``, this validation method will be skipped whenever
     validation errors have been detected when validating fields.
 
     .. versionchanged:: 3.0.0b1
         ``skip_on_field_errors`` defaults to `True`.
+
+    .. versionchanged:: 3.0.0
+        Remove ``pass_original``. ``original_data``, ``partial``,
+        and ``many`` are always passed as keyword arguments to the decorated method.
     """
     return set_hook(
         fn,
@@ -104,7 +105,7 @@ def pre_dump(fn=None, pass_many=False):
     return set_hook(fn, (PRE_DUMP, pass_many))
 
 
-def post_dump(fn=None, pass_many=False, pass_original=False):
+def post_dump(fn=None, pass_many=False):
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
@@ -112,10 +113,11 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
 
-    If ``pass_original=True``, the original data (before serializing) will be passed as
-    an additional argument to the method.
+    .. versionchanged:: 3.0.0
+        Remove ``pass_original``. ``original_data`` and ``many``
+        are always passed as keyword arguments to the decorated method.
     """
-    return set_hook(fn, (POST_DUMP, pass_many), pass_original=pass_original)
+    return set_hook(fn, (POST_DUMP, pass_many))
 
 
 def pre_load(fn=None, pass_many=False):
@@ -129,7 +131,7 @@ def pre_load(fn=None, pass_many=False):
     return set_hook(fn, (PRE_LOAD, pass_many))
 
 
-def post_load(fn=None, pass_many=False, pass_original=False):
+def post_load(fn=None, pass_many=False):
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
@@ -137,10 +139,11 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
 
-    If ``pass_original=True``, the original data (before deserializing) will be passed as
-    an additional argument to the method.
+    .. versionchanged:: 3.0.0
+        Remove ``pass_original``. ``original_data``, ``partial``,
+        and ``many`` are always passed as keyword arguments to the decorated method.
     """
-    return set_hook(fn, (POST_LOAD, pass_many), pass_original=pass_original)
+    return set_hook(fn, (POST_LOAD, pass_many))
 
 
 def set_hook(fn, key, **kwargs):

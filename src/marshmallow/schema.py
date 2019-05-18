@@ -1,5 +1,6 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from collections import defaultdict, OrderedDict
+from itertools import zip_longest
 import datetime as dt
 import uuid
 import decimal
@@ -802,6 +803,7 @@ class BaseSchema(base.SchemaABC):
                     data,
                     many,
                     original_data=data,
+                    partial=partial,
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
@@ -852,6 +854,7 @@ class BaseSchema(base.SchemaABC):
                         result,
                         many,
                         original_data=data,
+                        partial=partial,
                     )
                 except ValidationError as err:
                     errors = err.normalized_messages()
@@ -1025,16 +1028,18 @@ class BaseSchema(base.SchemaABC):
         )
         return data
 
-    def _invoke_load_processors(self, tag, data, many, original_data=None):
+    def _invoke_load_processors(self, tag, data, many, original_data, partial):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
         data = self._invoke_processors(
             tag, pass_many=True,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         data = self._invoke_processors(
             tag, pass_many=False,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         return data
 
@@ -1099,7 +1104,7 @@ class BaseSchema(base.SchemaABC):
                 continue
 
             if many and not pass_many:
-                for idx, (item, orig) in enumerate(zip(data, original_data)):
+                for idx, (item, orig) in enumerate(zip_longest(data, original_data)):
                     self._run_validator(
                         validator,
                         item,
@@ -1128,33 +1133,22 @@ class BaseSchema(base.SchemaABC):
         data,
         many,
         original_data=None,
+        **kwargs
     ):
         key = (tag, pass_many)
         for attr_name in self._hooks[key]:
             # This will be a bound method.
             processor = getattr(self, attr_name)
 
-            processor_kwargs = processor.__marshmallow_hook__[key]
-            pass_original = processor_kwargs.get('pass_original', False)
-
             if pass_many:
-                if pass_original:
-                    data = processor(data, many, original_data)
-                else:
-                    data = processor(data, many)
+                data = processor(data, many=many, original_data=original_data, **kwargs)
             elif many:
-                if pass_original:
-                    data = [
-                        processor(item, original)
-                        for item, original in zip(data, original_data)
-                    ]
-                else:
-                    data = [processor(item) for item in data]
+                data = [
+                    processor(item, original_data=original, **kwargs)
+                    for item, original in zip_longest(data, original_data)
+                ]
             else:
-                if pass_original:
-                    data = processor(data, original_data)
-                else:
-                    data = processor(data)
+                data = processor(data, many=many, original_data=original_data)
         return data
 
 

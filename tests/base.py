@@ -189,7 +189,7 @@ class UserSchema(Schema):
             raise ValidationError(str(te))
 
     @post_load
-    def make_user(self, data):
+    def make_user(self, data, **kwargs):
         return User(**data)
 
 class UserMetaSchema(Schema):
