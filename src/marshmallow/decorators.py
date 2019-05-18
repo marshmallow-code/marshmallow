@@ -69,6 +69,7 @@ def validates(field_name):
 def validates_schema(
     fn=None,
     pass_many=False,
+    pass_original=False,
     skip_on_field_errors=True,
 ):
     """Register a schema-level validator.
@@ -93,6 +94,7 @@ def validates_schema(
     return set_hook(
         fn,
         (VALIDATES_SCHEMA, pass_many),
+        pass_original=pass_original,
         skip_on_field_errors=skip_on_field_errors,
     )
 

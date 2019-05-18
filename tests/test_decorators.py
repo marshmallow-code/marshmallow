@@ -456,13 +456,13 @@ class TestValidatesSchemaDecorator:
         ),
     )
     def test_validator_nested_many_pass_original_and_pass_many(
-            self, pass_many, data, expected_data, expected_original_data,
+        self, pass_many, data, expected_data, expected_original_data,
     ):
 
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
 
-            @validates_schema(pass_many=pass_many)
+            @validates_schema(pass_many=pass_many, pass_original=True)
             def validate_schema(self, data, original_data, many, **kwargs):
                 assert data == expected_data
                 assert original_data == expected_original_data
@@ -489,7 +489,7 @@ class TestValidatesSchemaDecorator:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema(pass_many=True)
-            def validate_raw(self, data, original_data, many, **kwargs):
+            def validate_raw(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
@@ -581,12 +581,12 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int()
             bar = fields.Int()
 
-            @validates_schema
+            @validates_schema(pass_original=True)
             def validate_original(self, data, original_data, partial, **kwargs):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
-            @validates_schema(pass_many=True)
+            @validates_schema(pass_many=True, pass_original=True)
             def validate_original_bar(self, data, original_data, many, **kwargs):
                 def check(datum):
                     if isinstance(datum, dict) and isinstance(datum['bar'], str):
