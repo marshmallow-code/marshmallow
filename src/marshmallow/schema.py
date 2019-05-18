@@ -802,6 +802,7 @@ class BaseSchema(base.SchemaABC):
                     data,
                     many=many,
                     original_data=data,
+                    partial=partial,
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
@@ -852,6 +853,7 @@ class BaseSchema(base.SchemaABC):
                         result,
                         many=many,
                         original_data=data,
+                        partial=partial,
                     )
                 except ValidationError as err:
                     errors = err.normalized_messages()
@@ -1025,16 +1027,18 @@ class BaseSchema(base.SchemaABC):
         )
         return data
 
-    def _invoke_load_processors(self, tag, data, *, many, original_data=None):
+    def _invoke_load_processors(self, tag, data, *, many, original_data, partial):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
         data = self._invoke_processors(
             tag, pass_many=True,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         data = self._invoke_processors(
             tag, pass_many=False,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         return data
 
@@ -1129,7 +1133,8 @@ class BaseSchema(base.SchemaABC):
         pass_many,
         data,
         many,
-        original_data=None
+        original_data=None,
+        **kwargs
     ):
         key = (tag, pass_many)
         for attr_name in self._hooks[key]:
@@ -1141,22 +1146,22 @@ class BaseSchema(base.SchemaABC):
 
             if pass_many:
                 if pass_original:
-                    data = processor(data, many, original_data)
+                    data = processor(data, original_data, many=many, **kwargs)
                 else:
-                    data = processor(data, many)
+                    data = processor(data, many=many, **kwargs)
             elif many:
                 if pass_original:
                     data = [
-                        processor(item, original)
+                        processor(item, original, many=many, **kwargs)
                         for item, original in zip(data, original_data)
                     ]
                 else:
-                    data = [processor(item) for item in data]
+                    data = [processor(item, many=many, **kwargs) for item in data]
             else:
                 if pass_original:
-                    data = processor(data, original_data)
+                    data = processor(data, original_data, many=many, **kwargs)
                 else:
-                    data = processor(data)
+                    data = processor(data, many=many, **kwargs)
         return data
 
 
