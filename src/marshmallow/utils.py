@@ -159,7 +159,7 @@ def local_rfcformat(dt):
     )
 
 
-def rfcformat(dt, localtime=False):
+def rfcformat(dt, *, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
 
     :param datetime dt: The datetime.
@@ -191,7 +191,7 @@ _iso8601_time_re = re.compile(
 )
 
 
-def isoformat(dt, localtime=False, *args, **kwargs):
+def isoformat(dt, *args, localtime=False, **kwargs):
     """Return the ISO8601-formatted UTC representation of a datetime object."""
     if localtime and dt.tzinfo is not None:
         localized = dt
@@ -203,7 +203,7 @@ def isoformat(dt, localtime=False, *args, **kwargs):
     return localized.isoformat(*args, **kwargs)
 
 
-def from_rfc(datestring, use_dateutil=True):
+def from_rfc(datestring, *, use_dateutil=True):
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible.
@@ -219,7 +219,7 @@ def from_rfc(datestring, use_dateutil=True):
         return datetime.datetime.fromtimestamp(timestamp)
 
 
-def from_iso_datetime(datetimestring, use_dateutil=True):
+def from_iso_datetime(datetimestring, *, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime object.
 
     Use dateutil's parser if possible and return a timezone-aware datetime.
@@ -234,7 +234,7 @@ def from_iso_datetime(datetimestring, use_dateutil=True):
         return datetime.datetime.strptime(datetimestring[:19], '%Y-%m-%dT%H:%M:%S')
 
 
-def from_iso_time(timestring, use_dateutil=True):
+def from_iso_time(timestring, *, use_dateutil=True):
     """Parse an ISO8601-formatted datetime string and return a datetime.time
     object.
     """
@@ -249,7 +249,7 @@ def from_iso_time(timestring, use_dateutil=True):
             fmt = '%H:%M:%S'
         return datetime.datetime.strptime(timestring, fmt).time()
 
-def from_iso_date(datestring, use_dateutil=True):
+def from_iso_date(datestring, *, use_dateutil=True):
     if not _iso8601_date_re.match(datestring):
         raise ValueError('Not a valid ISO8601-formatted date string')
     if dateutil_available and use_dateutil:
