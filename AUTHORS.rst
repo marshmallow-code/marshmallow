@@ -129,3 +129,4 @@ Contributors (chronological)
 - Tim Shaffer `@timster <https://github.com/timster>`_
 - Hugo van Kemenade `@hugovk <https://github.com/hugovk>`_
 - Maciej Urbański `@rooterkyberian <https://github.com/rooterkyberian>`_
+- Kostas Konstantopoulos `@kdop <https://github.com/kdop>`_

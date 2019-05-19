@@ -170,11 +170,13 @@ class Email(Validator):
 
 
 class Range(Validator):
-    """Validator which succeeds if the value it is passed is greater
-    or equal to ``min`` and less than or equal to ``max``. If ``min``
-    is not specified, or is specified as `None`, no lower bound
-    exists. If ``max`` is not specified, or is specified as `None`,
-    no upper bound exists.
+    """Validator which succeeds if the value passed to it is between
+    ``min`` and ``max``. If ``min`` is not specified, or is specified as `None`,
+    no lower bound exists. If ``max`` is not specified, or is specified as `None`,
+    no upper bound exists. The inclusivity of the bounds (if they exist) is configurable.
+    If ``min_inclusive`` is not specified, or is specified as `True`, then
+    the ``min`` bound is included in the range. If ``max_inclusive`` is not specified,
+    or is specified as `True`, then the ``max`` bound is included in the range.
 
     :param min: The minimum value (lower bound). If not provided, minimum
         value will not be checked.
@@ -182,19 +184,25 @@ class Range(Validator):
         value will not be checked.
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
+    :param bool min_inclusive: Whether the `min` bound should be included in the range.
+    :param bool max_inclusive: Whether the `max` bound should be included in the range.
     """
 
     message_min = 'Must be at least {min}.'
     message_max = 'Must be at most {max}.'
     message_all = 'Must be between {min} and {max}.'
 
-    def __init__(self, min=None, max=None, *, error=None):
+    def __init__(self, min=None, max=None, *, error=None, min_inclusive=True, max_inclusive=True):
         self.min = min
         self.max = max
         self.error = error
+        self.min_inclusive = min_inclusive
+        self.max_inclusive = max_inclusive
 
     def _repr_args(self):
-        return 'min={!r}, max={!r}'.format(self.min, self.max)
+        return 'min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}'.format(
+            self.min, self.max, self.min_inclusive, self.max_inclusive,
+        )
 
     def _format_error(self, value, message):
         return (self.error or message).format(input=value, min=self.min, max=self.max)
