@@ -188,9 +188,14 @@ class Range(Validator):
     :param bool max_inclusive: Whether the `max` bound is included in the range.
     """
 
-    message_min = 'Must be at least {min}.'
-    message_max = 'Must be at most {max}.'
-    message_all = 'Must be between {min} and {max}.'
+    message_min = 'Must be {min_op} {{min}}.'
+    message_max = 'Must be {max_op} {{max}}.'
+    message_all = 'Must be {min_op} {{min}} and {max_op} {{max}}.'
+
+    _msg_gte = 'greater or equal to'
+    _msg_gt = 'greater than'
+    _msg_lte = 'less or equal to'
+    _msg_lt = 'less than'
 
     def __init__(self, min=None, max=None, *, error=None, min_inclusive=True, max_inclusive=True):
         self.min = min
@@ -198,6 +203,18 @@ class Range(Validator):
         self.error = error
         self.min_inclusive = min_inclusive
         self.max_inclusive = max_inclusive
+
+        # interpolate messages based on bound inclusivity
+        self.message_min = self.message_min.format(
+            min_op=self._msg_gte if self.min_inclusive else self._msg_gt,
+        )
+        self.message_max = self.message_max.format(
+            max_op=self._msg_lte if self.max_inclusive else self._msg_lt,
+        )
+        self.message_all = self.message_all.format(
+            min_op=self._msg_gte if self.min_inclusive else self._msg_gt,
+            max_op=self._msg_lte if self.max_inclusive else self._msg_lt,
+        )
 
     def _repr_args(self):
         return 'min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}'.format(
@@ -208,11 +225,11 @@ class Range(Validator):
         return (self.error or message).format(input=value, min=self.min, max=self.max)
 
     def __call__(self, value):
-        if self.min is not None and value < self.min:
+        if self.min is not None and (value < self.min if self.min_inclusive else value <= self.min):
             message = self.message_min if self.max is None else self.message_all
             raise ValidationError(self._format_error(value, message))
 
-        if self.max is not None and value > self.max:
+        if self.max is not None and (value > self.max if self.max_inclusive else value >= self.max):
             message = self.message_max if self.min is None else self.message_all
             raise ValidationError(self._format_error(value, message))
 
