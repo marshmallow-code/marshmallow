@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+++++++++++++++++++
+
+- *Backwards-incompatible*: Use keyword-only arguments (:issue:`1216`).
+
 3.0.0rc6 (2019-05-05)
 +++++++++++++++++++++
 

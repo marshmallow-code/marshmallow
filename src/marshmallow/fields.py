@@ -129,6 +129,7 @@ class Field(FieldABC):
 
     def __init__(
         self,
+        *,
         default=missing_,
         attribute=None,
         data_key=None,
@@ -360,7 +361,8 @@ class Field(FieldABC):
 
     @property
     def root(self):
-        """Reference to the `Schema` that this field belongs to even if it is buried in a `List`.
+        """Reference to the `Schema` that this field belongs to even if it is buried in a
+        container field (e.g. `List`).
         Return `None` for unbound fields.
         """
         ret = self
@@ -413,7 +415,7 @@ class Nested(Field):
 
     default_error_messages = {'type': 'Invalid type.'}
 
-    def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
+    def __init__(self, nested, *, default=missing_, exclude=tuple(), only=None, **kwargs):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
             raise StringNotCollectionError('"only" should be a list of strings.')
@@ -756,7 +758,7 @@ class Number(Field):
         'too_large': 'Number too large.',
     }
 
-    def __init__(self, as_string=False, **kwargs):
+    def __init__(self, *, as_string=False, **kwargs):
         self.as_string = as_string
         super().__init__(**kwargs)
 
@@ -804,7 +806,7 @@ class Integer(Number):
     default_error_messages = {'invalid': 'Not a valid integer.'}
 
     # override Number
-    def __init__(self, strict=False, **kwargs):
+    def __init__(self, *, strict=False, **kwargs):
         self.strict = strict
         super().__init__(**kwargs)
 
@@ -834,7 +836,7 @@ class Float(Number):
         'special': 'Special numeric values (nan or infinity) are not permitted.',
     }
 
-    def __init__(self, allow_nan=False, as_string=False, **kwargs):
+    def __init__(self, *, allow_nan=False, as_string=False, **kwargs):
         self.allow_nan = allow_nan
         super().__init__(as_string=as_string, **kwargs)
 
@@ -890,7 +892,7 @@ class Decimal(Number):
     }
 
     def __init__(
-        self, places=None, rounding=None, allow_nan=False, as_string=False, **kwargs
+        self, places=None, rounding=None, *, allow_nan=False, as_string=False, **kwargs
     ):
         self.places = (
             decimal.Decimal((0, (1,), -places)) if places is not None else None
@@ -980,7 +982,7 @@ class Boolean(Field):
 
     default_error_messages = {'invalid': 'Not a valid boolean.'}
 
-    def __init__(self, truthy=None, falsy=None, **kwargs):
+    def __init__(self, *, truthy=None, falsy=None, **kwargs):
         super().__init__(**kwargs)
 
         if truthy is not None:
@@ -1202,7 +1204,7 @@ class TimeDelta(Field):
         'format': '{input!r} cannot be formatted as a timedelta.',
     }
 
-    def __init__(self, precision='seconds', **kwargs):
+    def __init__(self, precision=SECONDS, **kwargs):
         precision = precision.lower()
         units = (
             self.DAYS,
@@ -1401,7 +1403,7 @@ class Url(String):
 
     default_error_messages = {'invalid': 'Not a valid URL.'}
 
-    def __init__(self, relative=False, schemes=None, require_tld=True, **kwargs):
+    def __init__(self, *, relative=False, schemes=None, require_tld=True, **kwargs):
         String.__init__(self, **kwargs)
 
         self.relative = relative

@@ -80,8 +80,7 @@ class URL(Validator):
     default_message = 'Not a valid URL.'
     default_schemes = {'http', 'https', 'ftp', 'ftps'}
 
-    # TODO; Switch position of `error` and `schemes` in 3.0
-    def __init__(self, relative=False, error=None, schemes=None, require_tld=True):
+    def __init__(self, *, relative=False, schemes=None, require_tld=True, error=None):
         self.relative = relative
         self.error = error or self.default_message
         self.schemes = schemes or self.default_schemes
@@ -139,7 +138,7 @@ class Email(Validator):
 
     default_message = 'Not a valid email address.'
 
-    def __init__(self, error=None):
+    def __init__(self, *, error=None):
         self.error = error or self.default_message
 
     def _format_error(self, value):
@@ -189,7 +188,7 @@ class Range(Validator):
     message_max = 'Must be at most {max}.'
     message_all = 'Must be between {min} and {max}.'
 
-    def __init__(self, min=None, max=None, error=None):
+    def __init__(self, min=None, max=None, *, error=None):
         self.min = min
         self.max = max
         self.error = error
@@ -232,7 +231,7 @@ class Length(Validator):
     message_all = 'Length must be between {min} and {max}.'
     message_equal = 'Length must be {equal}.'
 
-    def __init__(self, min=None, max=None, error=None, equal=None):
+    def __init__(self, min=None, max=None, *, error=None, equal=None):
         if equal is not None and any([min, max]):
             raise ValueError(
                 'The `equal` parameter was provided, maximum or '
@@ -283,7 +282,7 @@ class Equal(Validator):
 
     default_message = 'Must be equal to {other}.'
 
-    def __init__(self, comparable, error=None):
+    def __init__(self, comparable, *, error=None):
         self.comparable = comparable
         self.error = error or self.default_message
 
@@ -312,7 +311,7 @@ class Regexp(Validator):
 
     default_message = 'String does not match expected pattern.'
 
-    def __init__(self, regex, flags=0, error=None):
+    def __init__(self, regex, flags=0, *, error=None):
         self.regex = re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
         self.error = error or self.default_message
 
@@ -343,7 +342,7 @@ class Predicate(Validator):
 
     default_message = 'Invalid input.'
 
-    def __init__(self, method, error=None, **kwargs):
+    def __init__(self, method, *, error=None, **kwargs):
         self.method = method
         self.error = error or self.default_message
         self.kwargs = kwargs
@@ -373,7 +372,7 @@ class NoneOf(Validator):
 
     default_message = 'Invalid input.'
 
-    def __init__(self, iterable, error=None):
+    def __init__(self, iterable, *, error=None):
         self.iterable = iterable
         self.values_text = ', '.join(str(each) for each in self.iterable)
         self.error = error or self.default_message
@@ -408,7 +407,7 @@ class OneOf(Validator):
 
     default_message = 'Must be one of: {choices}.'
 
-    def __init__(self, choices, labels=None, error=None):
+    def __init__(self, choices, labels=None, *, error=None):
         self.choices = choices
         self.choices_text = ', '.join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
