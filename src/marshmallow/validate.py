@@ -184,8 +184,8 @@ class Range(Validator):
         value will not be checked.
     :param str error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
-    :param bool min_inclusive: Whether the `min` bound should be included in the range.
-    :param bool max_inclusive: Whether the `max` bound should be included in the range.
+    :param bool min_inclusive: Whether the `min` bound is included in the range.
+    :param bool max_inclusive: Whether the `max` bound is included in the range.
     """
 
     message_min = 'Must be at least {min}.'
