@@ -170,8 +170,8 @@ class Email(Validator):
 
 
 class Range(Validator):
-    """Validator which succeeds if the value passed to it is between
-    ``min`` and ``max``. If ``min`` is not specified, or is specified as `None`,
+    """Validator which succeeds if the value passed to it is within the specified
+    range. If ``min`` is not specified, or is specified as `None`,
     no lower bound exists. If ``max`` is not specified, or is specified as `None`,
     no upper bound exists. The inclusivity of the bounds (if they exist) is configurable.
     If ``min_inclusive`` is not specified, or is specified as `True`, then
