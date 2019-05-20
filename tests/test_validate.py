@@ -235,9 +235,9 @@ def test_range_min():
     with pytest.raises(ValidationError):
         validate.Range(2)(1)
     with pytest.raises(ValidationError):
-        validate.Range(1, 2, None, False, True)(1)
+        validate.Range(1, 2, min_inclusive=False, max_inclusive=True, error=None)(1)
     with pytest.raises(ValidationError):
-        validate.Range(1, 1, None, True, False)(1)
+        validate.Range(1, 1, min_inclusive=True, max_inclusive=False, error=None)(1)
 
 def test_range_max():
     assert validate.Range(1, 2)(2) == 2
@@ -251,9 +251,9 @@ def test_range_max():
     with pytest.raises(ValidationError):
         validate.Range(None, 1)(2)
     with pytest.raises(ValidationError):
-        validate.Range(1, 2, None, True, False)(2)
+        validate.Range(1, 2, min_inclusive=True, max_inclusive=False, error=None)(2)
     with pytest.raises(ValidationError):
-        validate.Range(2, 2, None, False, True)(2)
+        validate.Range(2, 2, min_inclusive=False, max_inclusive=True, error=None)(2)
 
 def test_range_custom_message():
     v = validate.Range(2, 3, error='{input} is not between {min} and {max}')

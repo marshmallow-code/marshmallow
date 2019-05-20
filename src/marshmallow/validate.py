@@ -192,12 +192,12 @@ class Range(Validator):
     message_max = 'Must be {max_op} {{max}}.'
     message_all = 'Must be {min_op} {{min}} and {max_op} {{max}}.'
 
-    _msg_gte = 'greater or equal to'
-    _msg_gt = 'greater than'
-    _msg_lte = 'less or equal to'
-    _msg_lt = 'less than'
+    message_gte = 'greater or equal to'
+    message_gt = 'greater than'
+    message_lte = 'less or equal to'
+    message_lt = 'less than'
 
-    def __init__(self, min=None, max=None, *, error=None, min_inclusive=True, max_inclusive=True):
+    def __init__(self, min=None, max=None, min_inclusive=True, max_inclusive=True, *, error=None):
         self.min = min
         self.max = max
         self.error = error
@@ -206,14 +206,14 @@ class Range(Validator):
 
         # interpolate messages based on bound inclusivity
         self.message_min = self.message_min.format(
-            min_op=self._msg_gte if self.min_inclusive else self._msg_gt,
+            min_op=self.message_gte if self.min_inclusive else self.message_gt,
         )
         self.message_max = self.message_max.format(
-            max_op=self._msg_lte if self.max_inclusive else self._msg_lt,
+            max_op=self.message_lte if self.max_inclusive else self.message_lt,
         )
         self.message_all = self.message_all.format(
-            min_op=self._msg_gte if self.min_inclusive else self._msg_gt,
-            max_op=self._msg_lte if self.max_inclusive else self._msg_lt,
+            min_op=self.message_gte if self.min_inclusive else self.message_gt,
+            max_op=self.message_lte if self.max_inclusive else self.message_lt,
         )
 
     def _repr_args(self):
