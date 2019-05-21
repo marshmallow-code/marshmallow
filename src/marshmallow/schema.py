@@ -103,7 +103,7 @@ class SchemaMeta(type):
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
         klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
-        # Add fields specifid in the `include` class Meta option
+        # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
         dict_cls = OrderedDict if ordered else dict
