@@ -103,7 +103,7 @@ class SchemaMeta(type):
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
         klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
-        # Add fields specifid in the `include` class Meta option
+        # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
         dict_cls = OrderedDict if ordered else dict
@@ -123,9 +123,9 @@ class SchemaMeta(type):
         computed from class Meta options.
 
         :param type klass: The class object.
-        :param dict cls_fields: The fields declared on the class, including those added
+        :param list cls_fields: The fields declared on the class, including those added
             by the ``include`` class Meta option.
-        :param dict inherited_fileds: Inherited fields.
+        :param list inherited_fields: Inherited fields.
         :param type dict_class: Either `dict` or `OrderedDict`, depending on the whether
             the user specified `ordered=True`.
         """
