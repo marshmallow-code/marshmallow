@@ -16,7 +16,8 @@ from marshmallow import (
 )
 
 
-def test_decorated_processors():
+@pytest.mark.parametrize('partial_val', (True, False))
+def test_decorated_processors(partial_val):
     class ExampleSchema(Schema):
         """Includes different ways to invoke decorators and set up methods"""
 
@@ -27,12 +28,14 @@ def test_decorated_processors():
         # Implicit default raw, pre dump, static method.
         @pre_dump
         def increment_value(self, item, **kwargs):
+            assert 'many' in kwargs
             item['value'] += 1
             return item
 
         # Implicit default raw, post dump, class method.
         @post_dump
         def add_tag(self, item, **kwargs):
+            assert 'many' in kwargs
             item['value'] = self.TAG + item['value']
             return item
 
@@ -44,7 +47,8 @@ def test_decorated_processors():
 
         # Explicitly raw, pre load, instance method.
         @pre_load(pass_many=True)
-        def remove_envelope(self, data, many, **kwargs):
+        def remove_envelope(self, data, many, partial, **kwargs):
+            assert partial is partial_val
             key = self.get_envelope_key(many)
             return data[key]
 
@@ -54,17 +58,21 @@ def test_decorated_processors():
 
         # Explicitly not raw, pre load, instance method.
         @pre_load(pass_many=False)
-        def remove_tag(self, item, **kwargs):
+        def remove_tag(self, item, partial, **kwargs):
+            assert partial is partial_val
+            assert 'many' in kwargs
             item['value'] = item['value'][len(self.TAG):]
             return item
 
         # Explicit default raw, post load, instance method.
         @post_load()
-        def decrement_value(self, item, **kwargs):
+        def decrement_value(self, item, partial, **kwargs):
+            assert partial is partial_val
+            assert 'many' in kwargs
             item['value'] -= 1
             return item
 
-    schema = ExampleSchema()
+    schema = ExampleSchema(partial=partial_val)
 
     # Need to re-create these because the processors will modify in place.
     make_item = lambda: {'value': 3}
