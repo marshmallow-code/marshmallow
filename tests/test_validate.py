@@ -227,23 +227,33 @@ def test_range_min():
     assert validate.Range(1, 2)(1) == 1
     assert validate.Range(0)(1) == 1
     assert validate.Range()(1) == 1
+    assert validate.Range(min_inclusive=False, max_inclusive=False)(1) == 1
     assert validate.Range(1, 1)(1) == 1
 
     with pytest.raises(ValidationError):
         validate.Range(2, 3)(1)
     with pytest.raises(ValidationError):
         validate.Range(2)(1)
+    with pytest.raises(ValidationError):
+        validate.Range(1, 2, min_inclusive=False, max_inclusive=True, error=None)(1)
+    with pytest.raises(ValidationError):
+        validate.Range(1, 1, min_inclusive=True, max_inclusive=False, error=None)(1)
 
 def test_range_max():
     assert validate.Range(1, 2)(2) == 2
     assert validate.Range(None, 2)(2) == 2
     assert validate.Range()(2) == 2
+    assert validate.Range(min_inclusive=False, max_inclusive=False)(2) == 2
     assert validate.Range(2, 2)(2) == 2
 
     with pytest.raises(ValidationError):
         validate.Range(0, 1)(2)
     with pytest.raises(ValidationError):
         validate.Range(None, 1)(2)
+    with pytest.raises(ValidationError):
+        validate.Range(1, 2, min_inclusive=True, max_inclusive=False, error=None)(2)
+    with pytest.raises(ValidationError):
+        validate.Range(2, 2, min_inclusive=False, max_inclusive=True, error=None)(2)
 
 def test_range_custom_message():
     v = validate.Range(2, 3, error='{input} is not between {min} and {max}')
@@ -263,12 +273,14 @@ def test_range_custom_message():
 
 def test_range_repr():
     assert (
-        repr(validate.Range(min=None, max=None, error=None)) ==
-        '<Range(min=None, max=None, error=None)>'
+        repr(
+            validate.Range(min=None, max=None, error=None, min_inclusive=True, max_inclusive=True),
+        ) == '<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>'
     )
     assert (
-        repr(validate.Range(min=1, max=3, error='foo')) ==
-        '<Range(min=1, max=3, error={!r})>'
+        repr(
+            validate.Range(min=1, max=3, error='foo', min_inclusive=False, max_inclusive=False),
+        ) == '<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>'
         .format('foo')
     )
 
