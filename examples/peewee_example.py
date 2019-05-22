@@ -51,13 +51,13 @@ class UserSchema(Schema):
 
     # Clean up data
     @pre_load
-    def process_input(self, data):
+    def process_input(self, data, **kwargs):
         data['email'] = data['email'].lower().strip()
         return data
 
     # We add a post_dump hook to add an envelope to responses
     @post_dump(pass_many=True)
-    def wrap(self, data, many):
+    def wrap(self, data, many, **kwargs):
         key = 'users' if many else 'user'
         return {
             key: data,
@@ -73,7 +73,7 @@ class TodoSchema(Schema):
 
     # Again, add an envelope to responses
     @post_dump(pass_many=True)
-    def wrap(self, data, many):
+    def wrap(self, data, many, **kwargs):
         key = 'todos' if many else 'todo'
         return {
             key: data,
@@ -81,7 +81,7 @@ class TodoSchema(Schema):
 
     # We use make_object to create a new Todo from validated data
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         if not data:
             return None
         return Todo(

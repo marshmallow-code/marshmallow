@@ -52,7 +52,7 @@ class QuoteSchema(Schema):
     # Allow client to pass author's full name in request body
     # e.g. {"author': 'Tim Peters"} rather than {"first": "Tim", "last": "Peters"}
     @pre_load
-    def process_author(self, data):
+    def process_author(self, data, **kwargs):
         author_name = data.get('author')
         if author_name:
             first, last = author_name.split(' ')

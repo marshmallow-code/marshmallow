@@ -106,6 +106,9 @@ def pre_dump(fn=None, pass_many=False):
     By default, receives a single object at a time, regardless of whether ``many=True``
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
     and the value for ``many`` is passed.
+
+    .. versionchanged:: 3.0.0
+        ``many`` is always passed as a keyword arguments to the decorated method.
     """
     return set_hook(fn, (PRE_DUMP, pass_many))
 
@@ -135,6 +138,10 @@ def pre_load(fn=None, pass_many=False):
     By default, receives a single datum at a time, transparently handling the ``many``
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
+
+    .. versionchanged:: 3.0.0
+        ``partial`` and ``many`` are always passed as keyword arguments to
+        the decorated method.
     """
     return set_hook(fn, (PRE_LOAD, pass_many))
 

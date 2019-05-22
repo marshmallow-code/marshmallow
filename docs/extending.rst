@@ -19,7 +19,7 @@ Data pre-processing and post-processing methods can be registered using the `pre
         slug = fields.Str()
 
         @pre_load
-        def slugify_name(self, in_data):
+        def slugify_name(self, in_data, **kwargs):
             in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
             return in_data
 
@@ -34,8 +34,6 @@ Passing "many"
 By default, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the schema at runtime.
 
 In cases where your pre- and post-processing methods need to receive the input collection  when ``many=True``, add ``pass_many=True`` to the method decorators. The method will receive the input data (which may be a single datum or a collection) and the boolean value of ``many``.
-
-
 
 
 Example: Enveloping
@@ -63,17 +61,17 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
             return key
 
         @pre_load(pass_many=True)
-        def unwrap_envelope(self, data, many):
+        def unwrap_envelope(self, data, many, **kwargs):
             key = self.get_envelope_key(many)
             return data[key]
 
         @post_dump(pass_many=True)
-        def wrap_with_envelope(self, data, many):
+        def wrap_with_envelope(self, data, many, **kwargs):
             key = self.get_envelope_key(many)
             return {key: data}
 
         @post_load
-        def make_object(self, data):
+        def make_object(self, data, **kwargs):
             return self.__model__(**data)
 
     class UserSchema(BaseSchema):
@@ -114,7 +112,7 @@ Pre- and post-processing methods may raise a `ValidationError <marshmallow.excep
         name = fields.Str()
 
         @pre_load
-        def unwrap_envelope(self, data):
+        def unwrap_envelope(self, data, **kwargs):
             if 'data' not in data:
                 raise ValidationError('Input data must have a "data" key.')
             return data['data']
@@ -137,7 +135,7 @@ If you want to store and error on a different key, pass the key name as the seco
         name = fields.Str()
 
         @pre_load
-        def unwrap_envelope(self, data):
+        def unwrap_envelope(self, data, **kwargs):
             if 'data' not in data:
                 raise ValidationError('Input data must have a "data" key.', '_preprocessing')
             return data['data']
@@ -184,7 +182,7 @@ The pipeline for serialization is similar, except that the "pass_many" processor
             field_a = fields.Field()
 
             @pre_load
-            def preprocess(self, data):
+            def preprocess(self, data, **kwargs):
                 step1_data = self.step1(data)
                 step2_data = self.step2(step1_data)
                 return step2_data
@@ -201,12 +199,12 @@ The pipeline for serialization is similar, except that the "pass_many" processor
             field_a = fields.Field()
 
             @pre_load
-            def step1(self, data):
+            def step1(self, data, **kwargs):
                 # ...
 
             # Depends on step1
             @pre_load
-            def step2(self, data):
+            def step2(self, data, **kwargs):
                 # ...
 
 
@@ -254,7 +252,7 @@ You can register schema-level validation functions for a :class:`Schema` using t
         field_b = fields.Integer()
 
         @validates_schema
-        def validate_numbers(self, data):
+        def validate_numbers(self, data, **kwargs):
             if data['field_b'] >= data['field_a']:
                 raise ValidationError('field_a must be greater than field_b')
 
@@ -284,7 +282,7 @@ When multiple schema-leval validator return errors, the error structures are mer
         field_d = fields.Integer()
 
         @validates_schema
-        def validate_lower_bound(self, data):
+        def validate_lower_bound(self, data, **kwargs):
             errors = {}
             if data['field_b'] <= data['field_a']:
                 errors['field_b'] = ['field_b must be greater than field_a']
@@ -294,7 +292,7 @@ When multiple schema-leval validator return errors, the error structures are mer
                 raise ValidationError(errors)
 
         @validates_schema
-        def validate_upper_bound(self, data):
+        def validate_upper_bound(self, data, **kwargs):
             errors = {}
             if data['field_b'] >= data['field_d']:
                 errors['field_b'] = ['field_b must be lower than field_d']
@@ -336,7 +334,7 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
         bar = fields.Int()
 
         @post_load(pass_original=True)
-        def add_baz_to_bar(self, data, original_data):
+        def add_baz_to_bar(self, data, original_data, **kwargs):
             baz = original_data.get('baz')
             if baz:
                 data['bar'] = data['bar'] + baz
@@ -422,12 +420,12 @@ Then we create a custom :class:`Schema` that uses our options class.
         OPTIONS_CLASS = NamespaceOpts
 
         @pre_load(pass_many=True)
-        def unwrap_envelope(self, data, many):
+        def unwrap_envelope(self, data, many, **kwargs):
             key = self.opts.plural_name if many else self.opts.name
             return data[key]
 
         @post_dump(pass_many=True)
-        def wrap_with_envelope(self, data, many):
+        def wrap_with_envelope(self, data, many, **kwargs):
             key = self.opts.plural_name if many else self.opts.name
             return {key: data}
 

@@ -120,7 +120,7 @@ In order to deserialize to an object, define a method of your :class:`Schema` an
         created_at = fields.DateTime()
 
         @post_load
-        def make_user(self, data):
+        def make_user(self, data, **kwargs):
             return User(**data)
 
 Now, the :meth:`load <Schema.load>` method will return a ``User`` object.

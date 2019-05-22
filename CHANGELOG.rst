@@ -6,6 +6,11 @@ Changelog
 
 Features:
 
+- *Backwards-incompatible*: ``many`` is passed as a keyword argument to methods decorated with
+  ``pre_load``, ``post_load``, ``pre_dump``, ``post_dump``,
+  and ``validates_schema``. ``partial`` is passed as a keyword argument to
+  methods decorated with ``pre_load``, ``post_load`` and ``validates_schema``.
+  ``**kwargs`` should be added to all decorated methods.
 - Add ``min_inclusive`` and ``max_exclusive`` parameters to
   ``validate.Range`` (:issue:`1221`). Thanks :user:`kdop` for the PR.
 
