@@ -4,6 +4,13 @@ Changelog
 3.0.0 (unreleased)
 ++++++++++++++++++
 
+Features:
+
+- Add ``min_inclusive`` and ``max_exclusive`` parameters to
+  ``validate.Range`` (:issue:`1221`). Thanks :user:`kdop` for the PR.
+
+Other changes:
+
 - *Backwards-incompatible*: Use keyword-only arguments (:issue:`1216`).
 
 3.0.0rc6 (2019-05-05)
