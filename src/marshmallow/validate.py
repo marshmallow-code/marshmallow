@@ -197,7 +197,7 @@ class Range(Validator):
     message_lte = 'less or equal to'
     message_lt = 'less than'
 
-    def __init__(self, min=None, max=None, min_inclusive=True, max_inclusive=True, *, error=None):
+    def __init__(self, min=None, max=None, *, min_inclusive=True, max_inclusive=True, error=None):
         self.min = min
         self.max = max
         self.error = error
