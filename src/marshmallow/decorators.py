@@ -14,27 +14,27 @@ Example: ::
         age = fields.Integer(required=True)
 
         @post_load
-        def lowerstrip_email(self, item):
+        def lowerstrip_email(self, item, **kwargs):
             item['email'] = item['email'].lower().strip()
             return item
 
         @pre_load(pass_many=True)
-        def remove_envelope(self, data, many):
+        def remove_envelope(self, data, many, **kwargs):
             namespace = 'results' if many else 'result'
             return data[namespace]
 
         @post_dump(pass_many=True)
-        def add_envelope(self, data, many):
+        def add_envelope(self, data, many, **kwargs):
             namespace = 'results' if many else 'result'
             return {namespace: data}
 
         @validates_schema
-        def validate_email(self, data):
+        def validate_email(self, data, **kwargs):
             if len(data['email']) < 3:
                 raise ValidationError('Email must be more than 3 characters', 'email')
 
         @validates('age')
-        def validate_age(self, data):
+        def validate_age(self, data, **kwargs):
             if data < 14:
                 raise ValidationError('Too young!')
 
@@ -86,6 +86,10 @@ def validates_schema(
 
     .. versionchanged:: 3.0.0b1
         ``skip_on_field_errors`` defaults to `True`.
+
+    .. versionchanged:: 3.0.0
+        ``partial`` and ``many`` are always passed as keyword arguments to
+        the decorated method.
     """
     return set_hook(
         fn,
@@ -102,6 +106,9 @@ def pre_dump(fn=None, pass_many=False):
     By default, receives a single object at a time, regardless of whether ``many=True``
     is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
     and the value for ``many`` is passed.
+
+    .. versionchanged:: 3.0.0
+        ``many`` is always passed as a keyword arguments to the decorated method.
     """
     return set_hook(fn, (PRE_DUMP, pass_many))
 
@@ -116,6 +123,10 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
 
     If ``pass_original=True``, the original data (before serializing) will be passed as
     an additional argument to the method.
+
+    .. versionchanged:: 3.0.0
+        ``partial`` and ``many`` are always passed as keyword arguments to
+        the decorated method.
     """
     return set_hook(fn, (POST_DUMP, pass_many), pass_original=pass_original)
 
@@ -127,6 +138,10 @@ def pre_load(fn=None, pass_many=False):
     By default, receives a single datum at a time, transparently handling the ``many``
     argument passed to the Schema. If ``pass_many=True``, the raw data
     (which may be a collection) and the value for ``many`` is passed.
+
+    .. versionchanged:: 3.0.0
+        ``partial`` and ``many`` are always passed as keyword arguments to
+        the decorated method.
     """
     return set_hook(fn, (PRE_LOAD, pass_many))
 
@@ -141,6 +156,10 @@ def post_load(fn=None, pass_many=False, pass_original=False):
 
     If ``pass_original=True``, the original data (before deserializing) will be passed as
     an additional argument to the method.
+
+    .. versionchanged:: 3.0.0
+        ``partial`` and ``many`` are always passed as keyword arguments to
+        the decorated method.
     """
     return set_hook(fn, (POST_LOAD, pass_many), pass_original=pass_original)
 

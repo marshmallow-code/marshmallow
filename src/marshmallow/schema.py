@@ -3,7 +3,6 @@ from collections import defaultdict, OrderedDict
 import datetime as dt
 import uuid
 import decimal
-import functools
 import copy
 import inspect
 import json
@@ -737,14 +736,14 @@ class BaseSchema(base.SchemaABC):
 
     def _run_validator(
         self, validator_func, output, *,
-        original_data, fields_dict, error_store, index=None,
-        many=False, pass_original=False
+        original_data, fields_dict, error_store,
+        many, partial, pass_original, index=None
     ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
-                validator_func(output, original_data)
+                validator_func(output, original_data, partial=partial, many=many)
             else:
-                validator_func(output)
+                validator_func(output, partial=partial, many=many)
         except ValidationError as err:
             error_store.store_error(err.messages, err.field_name, index=index)
 
@@ -806,6 +805,7 @@ class BaseSchema(base.SchemaABC):
                     data,
                     many=many,
                     original_data=data,
+                    partial=partial,
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
@@ -835,6 +835,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
                 self._invoke_schema_validators(
@@ -843,6 +844,7 @@ class BaseSchema(base.SchemaABC):
                     data=result,
                     original_data=data,
                     many=many,
+                    partial=partial,
                     field_errors=field_errors,
                 )
             errors = error_store.errors
@@ -854,6 +856,7 @@ class BaseSchema(base.SchemaABC):
                         result,
                         many=many,
                         original_data=data,
+                        partial=partial,
                     )
                 except ValidationError as err:
                     errors = err.normalized_messages()
@@ -1027,16 +1030,18 @@ class BaseSchema(base.SchemaABC):
         )
         return data
 
-    def _invoke_load_processors(self, tag, data, *, many, original_data=None):
+    def _invoke_load_processors(self, tag, data, *, many, original_data, partial):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
         data = self._invoke_processors(
             tag, pass_many=True,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         data = self._invoke_processors(
             tag, pass_many=False,
             data=data, many=many, original_data=original_data,
+            partial=partial,
         )
         return data
 
@@ -1092,6 +1097,7 @@ class BaseSchema(base.SchemaABC):
         data,
         original_data,
         many,
+        partial,
         field_errors=False
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
@@ -1101,8 +1107,6 @@ class BaseSchema(base.SchemaABC):
                 continue
             pass_original = validator_kwargs.get('pass_original', False)
 
-            if pass_many:
-                validator = functools.partial(validator, many=many)
             if many and not pass_many:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     self._run_validator(
@@ -1112,6 +1116,7 @@ class BaseSchema(base.SchemaABC):
                         fields_dict=self.fields,
                         error_store=error_store,
                         many=many,
+                        partial=partial,
                         index=idx,
                         pass_original=pass_original,
                     )
@@ -1124,6 +1129,7 @@ class BaseSchema(base.SchemaABC):
                     error_store=error_store,
                     many=many,
                     pass_original=pass_original,
+                    partial=partial,
                 )
 
     def _invoke_processors(
@@ -1133,7 +1139,8 @@ class BaseSchema(base.SchemaABC):
         pass_many,
         data,
         many,
-        original_data=None
+        original_data=None,
+        **kwargs
     ):
         key = (tag, pass_many)
         for attr_name in self._hooks[key]:
@@ -1145,22 +1152,22 @@ class BaseSchema(base.SchemaABC):
 
             if pass_many:
                 if pass_original:
-                    data = processor(data, many, original_data)
+                    data = processor(data, original_data, many=many, **kwargs)
                 else:
-                    data = processor(data, many)
+                    data = processor(data, many=many, **kwargs)
             elif many:
                 if pass_original:
                     data = [
-                        processor(item, original)
+                        processor(item, original, many=many, **kwargs)
                         for item, original in zip(data, original_data)
                     ]
                 else:
-                    data = [processor(item) for item in data]
+                    data = [processor(item, many=many, **kwargs) for item in data]
             else:
                 if pass_original:
-                    data = processor(data, original_data)
+                    data = processor(data, original_data, many=many, **kwargs)
                 else:
-                    data = processor(data)
+                    data = processor(data, many=many, **kwargs)
         return data
 
 

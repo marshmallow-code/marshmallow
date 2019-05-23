@@ -11,7 +11,7 @@ import gc
 import timeit
 import time
 
-from marshmallow import Schema, fields, ValidationError, pre_load
+from marshmallow import Schema, fields, ValidationError, post_dump
 
 
 # Custom validator
@@ -46,18 +46,9 @@ class QuoteSchema(Schema):
     line_number = fields.Float()
     col_number = fields.Float()
 
-    # Allow client to pass author's full name in request body
-    # e.g. {"author': 'Tim Peters"} rather than {"first": "Tim", "last": "Peters"}
-    @pre_load
-    def process_author(self, data):
-        author_name = data.get('author')
-        if author_name:
-            first, last = author_name.split(' ')
-            author_dict = dict(first=first, last=last)
-        else:
-            author_dict = {}
-        data['author'] = author_dict
-        return data
+    @post_dump
+    def add_full_name(self, data, **kwargs):
+        data['author_full'] = '{}, {}'.format(data['author']['last'], data['author']['first'])
 
 
 class Author:

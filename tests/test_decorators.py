@@ -16,7 +16,8 @@ from marshmallow import (
 )
 
 
-def test_decorated_processors():
+@pytest.mark.parametrize('partial_val', (True, False))
+def test_decorated_processors(partial_val):
     class ExampleSchema(Schema):
         """Includes different ways to invoke decorators and set up methods"""
 
@@ -26,25 +27,28 @@ def test_decorated_processors():
 
         # Implicit default raw, pre dump, static method.
         @pre_dump
-        def increment_value(self, item):
+        def increment_value(self, item, **kwargs):
+            assert 'many' in kwargs
             item['value'] += 1
             return item
 
         # Implicit default raw, post dump, class method.
         @post_dump
-        def add_tag(self, item):
+        def add_tag(self, item, **kwargs):
+            assert 'many' in kwargs
             item['value'] = self.TAG + item['value']
             return item
 
         # Explicitly raw, post dump, instance method.
         @post_dump(pass_many=True)
-        def add_envelope(self, data, many):
+        def add_envelope(self, data, many, **kwargs):
             key = self.get_envelope_key(many)
             return {key: data}
 
         # Explicitly raw, pre load, instance method.
         @pre_load(pass_many=True)
-        def remove_envelope(self, data, many):
+        def remove_envelope(self, data, many, partial, **kwargs):
+            assert partial is partial_val
             key = self.get_envelope_key(many)
             return data[key]
 
@@ -54,17 +58,21 @@ def test_decorated_processors():
 
         # Explicitly not raw, pre load, instance method.
         @pre_load(pass_many=False)
-        def remove_tag(self, item):
+        def remove_tag(self, item, partial, **kwargs):
+            assert partial is partial_val
+            assert 'many' in kwargs
             item['value'] = item['value'][len(self.TAG):]
             return item
 
         # Explicit default raw, post load, instance method.
         @post_load()
-        def decrement_value(self, item):
+        def decrement_value(self, item, partial, **kwargs):
+            assert partial is partial_val
+            assert 'many' in kwargs
             item['value'] -= 1
             return item
 
-    schema = ExampleSchema()
+    schema = ExampleSchema(partial=partial_val)
 
     # Need to re-create these because the processors will modify in place.
     make_item = lambda: {'value': 3}
@@ -88,22 +96,22 @@ def test_decorated_processor_returning_none(unknown):
         value = fields.Integer()
 
         @post_load
-        def load_none(self, item):
+        def load_none(self, item, **kwargs):
             return None
 
         @post_dump
-        def dump_none(self, item):
+        def dump_none(self, item, **kwargs):
             return None
 
     class PreSchema(Schema):
         value = fields.Integer()
 
         @pre_load
-        def load_none(self, item):
+        def load_none(self, item, **kwargs):
             return None
 
         @pre_dump
-        def dump_none(self, item):
+        def dump_none(self, item, **kwargs):
             return None
 
     schema = PostSchema(unknown=unknown)
@@ -123,13 +131,13 @@ class TestPassOriginal:
             foo = fields.Field()
 
             @post_load(pass_original=True)
-            def post_load(self, data, input_data):
+            def post_load(self, data, original_data, **kwargs):
                 ret = data.copy()
-                ret['_post_load'] = input_data['sentinel']
+                ret['_post_load'] = original_data['sentinel']
                 return ret
 
             @post_dump(pass_original=True)
-            def post_dump(self, data, obj):
+            def post_dump(self, data, obj, **kwargs):
                 ret = data.copy()
                 ret['_post_dump'] = obj['sentinel']
                 return ret
@@ -150,7 +158,7 @@ class TestPassOriginal:
             foo = fields.Field()
 
             @post_load(pass_many=True, pass_original=True)
-            def post_load(self, data, many, original):
+            def post_load(self, data, original, many, **kwargs):
                 if many:
                     ret = []
                     for item, orig_item in zip(data, original):
@@ -162,7 +170,7 @@ class TestPassOriginal:
                 return ret
 
             @post_dump(pass_many=True, pass_original=True)
-            def post_dump(self, data, many, original):
+            def post_dump(self, data, original, many, **kwargs):
                 if many:
                     ret = []
                     for item, orig_item in zip(data, original):
@@ -202,24 +210,24 @@ def test_decorated_processor_inheritance():
     class ParentSchema(Schema):
 
         @post_dump
-        def inherited(self, item):
+        def inherited(self, item, **kwargs):
             item['inherited'] = 'inherited'
             return item
 
         @post_dump
-        def overridden(self, item):
+        def overridden(self, item, **kwargs):
             item['overridden'] = 'base'
             return item
 
         @post_dump
-        def deleted(self, item):
+        def deleted(self, item, **kwargs):
             item['deleted'] = 'retained'
             return item
 
     class ChildSchema(ParentSchema):
 
         @post_dump
-        def overridden(self, item):
+        def overridden(self, item, **kwargs):
             item['overridden'] = 'overridden'
             return item
 
@@ -244,7 +252,7 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
         field = fields.Integer()
 
         @pre_dump
-        def hook(s, data):
+        def hook(s, data, **kwargs):
             data['generated_field'] = 7
             return data
 
@@ -415,7 +423,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.')
 
         class MySchema(Schema):
@@ -434,7 +442,7 @@ class TestValidatesSchemaDecorator:
             foo = fields.Int(required=True)
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 raise ValidationError('This will never work.', 'foo')
 
         class MySchema(Schema):
@@ -456,17 +464,17 @@ class TestValidatesSchemaDecorator:
         ),
     )
     def test_validator_nested_many_pass_original_and_pass_many(
-            self, pass_many, data, expected_data, expected_original_data,
+        self, pass_many, data, expected_data, expected_original_data,
     ):
 
         class NestedSchema(Schema):
             foo = fields.Int(required=True)
 
             @validates_schema(pass_many=pass_many, pass_original=True)
-            def validate_schema(self, data, original_data, many=False):
+            def validate_schema(self, data, original_data, many, **kwargs):
                 assert data == expected_data
                 assert original_data == expected_original_data
-                assert many is pass_many
+                assert many is True
                 raise ValidationError('Method called')
 
         class MySchema(Schema):
@@ -484,19 +492,19 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema(pass_many=True)
-            def validate_raw(self, data, many):
+            def validate_raw(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
                         raise ValidationError('Must provide at least 2 items')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative', 'bar')
 
@@ -522,12 +530,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] <= 3:
                     raise ValidationError('Must be greater than 3')
 
             @validates_schema
-            def validate_bar(self, data):
+            def validate_bar(self, data, **kwargs):
                 if 'bar' in data and data['bar'] < 0:
                     raise ValidationError('bar must not be negative')
 
@@ -557,15 +565,15 @@ class TestValidatesSchemaDecorator:
             nested = fields.Nested(NestedSchema)
 
             @validates_schema
-            def validate_nested_foo(self, data):
+            def validate_nested_foo(self, data, **kwargs):
                 raise ValidationError({'nested': {'foo': ['Invalid foo']}})
 
             @validates_schema
-            def validate_nested_bar_1(self, data):
+            def validate_nested_bar_1(self, data, **kwargs):
                 raise ValidationError({'nested': {'bar': ['Invalid bar 1']}})
 
             @validates_schema
-            def validate_nested_bar_2(self, data):
+            def validate_nested_bar_2(self, data, **kwargs):
                 raise ValidationError({'nested': {'bar': ['Invalid bar 2']}})
 
         with pytest.raises(ValidationError) as excinfo:
@@ -582,12 +590,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int()
 
             @validates_schema(pass_original=True)
-            def validate_original_foo(self, data, original_data):
+            def validate_original(self, data, original_data, partial, **kwargs):
                 if isinstance(original_data, dict) and isinstance(original_data['foo'], str):
                     raise ValidationError('foo cannot be a string')
 
             @validates_schema(pass_many=True, pass_original=True)
-            def validate_original_bar(self, data, original_data, many):
+            def validate_original_bar(self, data, original_data, many, **kwargs):
                 def check(datum):
                     if isinstance(datum, dict) and isinstance(datum['bar'], str):
                         raise ValidationError('bar cannot be a string')
@@ -619,7 +627,7 @@ class TestValidatesSchemaDecorator:
             bam = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def consistency_validation(self, data):
+            def consistency_validation(self, data, **kwargs):
                 errors = {}
                 if data['bar']['baz'] != data['foo']:
                     errors['bar'] = {'baz': 'Non-matching value'}
@@ -639,7 +647,7 @@ class TestValidatesSchemaDecorator:
         class MySchema(Schema):
 
             @validates_schema
-            def validator(self, data):
+            def validator(self, data, **kwargs):
                 raise ValidationError('Error message', 'arbitrary_key')
 
         errors = MySchema().validate({})
@@ -652,12 +660,12 @@ class TestValidatesSchemaDecorator:
             bar = fields.Int(required=True)
 
             @validates_schema(skip_on_field_errors=True)
-            def validate_schema(self, data):
+            def validate_schema(self, data, **kwargs):
                 if data['foo'] != data['bar']:
                     raise ValidationError('Foo and bar must be equal.')
 
             @validates_schema(skip_on_field_errors=True, pass_many=True)
-            def validate_many(self, data, many):
+            def validate_many(self, data, many, **kwargs):
                 if many:
                     assert type(data) is list
                     if len(data) < 2:
@@ -692,7 +700,7 @@ def test_decorator_error_handling():
         bar = fields.Int()
 
         @pre_load()
-        def pre_load_error1(self, item):
+        def pre_load_error1(self, item, **kwargs):
             if item['foo'] != 0:
                 return item
             errors = {
@@ -702,19 +710,19 @@ def test_decorator_error_handling():
             raise ValidationError(errors)
 
         @pre_load()
-        def pre_load_error2(self, item):
+        def pre_load_error2(self, item, **kwargs):
             if item['foo'] != 4:
                 return item
             raise ValidationError('preloadmsg1', 'foo')
 
         @pre_load()
-        def pre_load_error3(self, item):
+        def pre_load_error3(self, item, **kwargs):
             if item['foo'] != 8:
                 return item
             raise ValidationError('preloadmsg1')
 
         @post_load()
-        def post_load_error1(self, item):
+        def post_load_error1(self, item, **kwargs):
             if item['foo'] != 1:
                 return item
             errors = {
@@ -724,13 +732,13 @@ def test_decorator_error_handling():
             raise ValidationError(errors)
 
         @post_load()
-        def post_load_error2(self, item):
+        def post_load_error2(self, item, **kwargs):
             if item['foo'] != 5:
                 return item
             raise ValidationError('postloadmsg1', 'foo')
 
         @pre_dump()
-        def pre_dump_error1(self, item):
+        def pre_dump_error1(self, item, **kwargs):
             if item['foo'] != 2:
                 return item
             errors = {
@@ -740,13 +748,13 @@ def test_decorator_error_handling():
             raise ValidationError(errors)
 
         @pre_dump()
-        def pre_dump_error2(self, item):
+        def pre_dump_error2(self, item, **kwargs):
             if item['foo'] != 6:
                 return item
             raise ValidationError('predumpmsg1', 'foo')
 
         @post_dump()
-        def post_dump_error1(self, item):
+        def post_dump_error1(self, item, **kwargs):
             if item['foo'] != 3:
                 return item
             errors = {
@@ -756,7 +764,7 @@ def test_decorator_error_handling():
             raise ValidationError(errors)
 
         @post_dump()
-        def post_dump_error2(self, item):
+        def post_dump_error2(self, item, **kwargs):
             if item['foo'] != 7:
                 return item
             raise ValidationError('postdumpmsg1', 'foo')
@@ -845,7 +853,7 @@ def test_decorator_error_handling():
 def test_decorator_error_handling_with_load(decorator):
     class ExampleSchema(Schema):
         @decorator
-        def raise_value_error(self, item):
+        def raise_value_error(self, item, **kwargs):
             raise ValidationError({'foo': 'error'})
 
     schema = ExampleSchema()
@@ -858,7 +866,7 @@ def test_decorator_error_handling_with_load(decorator):
 def test_decorator_error_handling_with_load_dict_error(decorator):
     class ExampleSchema(Schema):
         @decorator
-        def raise_value_error(self, item):
+        def raise_value_error(self, item, **kwargs):
             raise ValidationError({'foo': 'error'}, 'nested_field')
 
     schema = ExampleSchema()
@@ -871,7 +879,7 @@ def test_decorator_error_handling_with_load_dict_error(decorator):
 def test_decorator_error_handling_with_dump(decorator):
     class ExampleSchema(Schema):
         @decorator
-        def raise_value_error(self, item):
+        def raise_value_error(self, item, **kwargs):
             raise ValidationError({'foo': 'error'})
 
     schema = ExampleSchema()
@@ -884,7 +892,7 @@ def test_decorator_error_handling_with_dump(decorator):
 def test_decorator_error_handling_with_dump_dict_error(decorator):
     class ExampleSchema(Schema):
         @decorator
-        def raise_value_error(self, item):
+        def raise_value_error(self, item, **kwargs):
             raise ValidationError({'foo': 'error'}, 'nested')
 
     schema = ExampleSchema()
@@ -913,21 +921,21 @@ example = Example(nested=[Nested(x) for x in range(1)])
         [example, {'foo': 0}, example.nested[0]],
     ),
 )
-def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
-        data, expected_data, expected_original_data,
+def test_decorator_post_dump_with_nested_original_and_pass_many(
+    data, expected_data, expected_original_data,
 ):
 
     class NestedSchema(Schema):
         foo = fields.Int(required=True)
 
         @post_dump(pass_many=False, pass_original=True)
-        def check_pass_original_when_pass_many_false(self, data, original_data):
+        def check_pass_original_when_pass_many_false(self, data, original_data, **kwargs):
             assert data == expected_data
             assert original_data == expected_original_data
             return data
 
         @post_dump(pass_many=True, pass_original=True)
-        def check_pass_original_when_pass_many_true(self, data, many, original_data):
+        def check_pass_original_when_pass_many_true(self, data, original_data, many, **kwargs):
             assert many is True
             assert data == [expected_data]
             assert original_data == [expected_original_data]
@@ -946,21 +954,21 @@ def test_decorator_post_dump_with_nested_pass_original_and_pass_many(
         [{'nested': [{'foo': 0}]}, {'foo': 0}, {'foo': 0}],
     ),
 )
-def test_decorator_post_load_with_nested_pass_original_and_pass_many(
-        data, expected_data, expected_original_data,
+def test_decorator_post_load_with_nested_original_and_pass_many(
+    data, expected_data, expected_original_data,
 ):
 
     class NestedSchema(Schema):
         foo = fields.Int(required=True)
 
         @post_load(pass_many=False, pass_original=True)
-        def check_pass_original_when_pass_many_false(self, data, original_data):
+        def check_pass_original_when_pass_many_false(self, data, original_data, **kwargs):
             assert data == expected_data
             assert original_data == expected_original_data
             return data
 
         @post_load(pass_many=True, pass_original=True)
-        def check_pass_original_when_pass_many_true(self, data, many, original_data):
+        def check_pass_original_when_pass_many_true(self, data, original_data, many, **kwargs):
             assert many is True
             assert data == [expected_data]
             assert original_data == [expected_original_data]

@@ -79,6 +79,39 @@ will raise a :exc:`TypeError`.
     this change.
 
 
+Decorated methods receive ``many`` and ``partial``
+**************************************************
+
+Methods decorated with
+`pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`,
+`pre_dump <marshmallow.decorators.pre_dump>`, `post_dump <marshmallow.decorators.post_dump>`,
+and `validates_schema <marshmallow.decorators.validates_schema>` receive
+``many`` as a keyword argument. In addition, `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`,
+and `validates_schema <marshmallow.decorators.validates_schema>` receive
+``partial``. To account for these additional arguments, add ``**kwargs`` to your methods.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data):
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            return in_data
+
+    # 3.x
+    class UserSchema(Schema):
+        name = fields.Str()
+        slug = fields.Str()
+
+        @pre_load
+        def slugify_name(self, in_data, **kwargs):
+            in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
+            return in_data
+
 Deserializing invalid types raises a ``ValidationError``
 ********************************************************
 
@@ -269,7 +302,7 @@ datum.
             unknown = EXCLUDE
 
         @post_load(pass_original=True)
-        def post_load(self, data, original_data):
+        def post_load(self, data, original_data, **kwargs):
             # original_data has 'width' but
             # data does not because it's not
             # in the schema
@@ -636,7 +669,7 @@ Processors that mutate the data should be updated to also return it.
         slug = fields.Str()
 
         @pre_load
-        def slugify_name(self, in_data):
+        def slugify_name(self, in_data, **kwargs):
             # In 3.x, always return the processed data
             in_data['slug'] = in_data['slug'].lower().strip().replace(' ', '-')
             return in_data
