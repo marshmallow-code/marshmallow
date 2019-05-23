@@ -125,8 +125,7 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     an additional argument to the method.
 
     .. versionchanged:: 3.0.0
-        ``partial`` and ``many`` are always passed as keyword arguments to
-        the decorated method.
+        ``many`` is always passed as a keyword arguments to the decorated method.
     """
     return set_hook(fn, (POST_DUMP, pass_many), pass_original=pass_original)
 
