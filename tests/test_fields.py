@@ -122,32 +122,32 @@ class TestParentAndName:
         assert inner_field.root is None
 
     def test_list_field_inner_parent_and_name(self, schema):
-        assert schema.fields['bar'].container.parent == schema.fields['bar']
-        assert schema.fields['bar'].container.name == 'bar'
+        assert schema.fields['bar'].inner.parent == schema.fields['bar']
+        assert schema.fields['bar'].inner.name == 'bar'
 
     def test_tuple_field_inner_parent_and_name(self, schema):
-        for container in schema.fields['baz'].tuple_fields:
-            assert container.parent == schema.fields['baz']
-            assert container.name == 'baz'
+        for inner in schema.fields['baz'].tuple_fields:
+            assert inner.parent == schema.fields['baz']
+            assert inner.name == 'baz'
 
     def test_simple_field_root(self, schema):
         assert schema.fields['foo'].root == schema
         assert schema.fields['bar'].root == schema
 
     def test_list_field_inner_root(self, schema):
-        assert schema.fields['bar'].container.root == schema
+        assert schema.fields['bar'].inner.root == schema
 
     def test_tuple_field_inner_root(self, schema):
-        for container in schema.fields['baz'].tuple_fields:
-            assert container.root == schema
+        for inner in schema.fields['baz'].tuple_fields:
+            assert inner.root == schema
 
     def test_list_root_inheritance(self, schema):
         class OtherSchema(TestParentAndName.MySchema):
             pass
 
         schema2 = OtherSchema()
-        assert schema.fields['bar'].container.root == schema
-        assert schema2.fields['bar'].container.root == schema2
+        assert schema.fields['bar'].inner.root == schema
+        assert schema2.fields['bar'].inner.root == schema2
 
     def test_dict_root_inheritance(self):
         class MySchema(Schema):
@@ -158,10 +158,10 @@ class TestParentAndName:
 
         schema = MySchema()
         schema2 = OtherSchema()
-        assert schema.fields['foo'].key_container.root == schema
-        assert schema.fields['foo'].value_container.root == schema
-        assert schema2.fields['foo'].key_container.root == schema2
-        assert schema2.fields['foo'].value_container.root == schema2
+        assert schema.fields['foo'].key_inner.root == schema
+        assert schema.fields['foo'].value_inner.root == schema
+        assert schema2.fields['foo'].key_inner.root == schema2
+        assert schema2.fields['foo'].value_inner.root == schema2
 
 
 class TestMetadata:
@@ -257,7 +257,7 @@ class TestListNested:
             children = fields.List(fields.Nested(Child))
 
         schema = Family(**{param: ['children.name']})
-        assert getattr(schema.fields['children'].container, param) == {'name'}
+        assert getattr(schema.fields['children'].inner, param) == {'name'}
 
     @pytest.mark.parametrize('param', ('only', 'exclude'))
     def test_list_nested_only_and_exclude_merged_with_nested(self, param):
@@ -275,7 +275,7 @@ class TestListNested:
             'only': {'name'},
             'exclude': {'name', 'surname', 'age'},
         }[param]
-        assert getattr(schema.fields['children'].container, param) == expected
+        assert getattr(schema.fields['children'].inner, param) == expected
 
 class TestTupleNested:
 
@@ -306,7 +306,7 @@ class TestTupleNested:
                 (
                     fields.Nested(Child, **{param: ('name', 'surname')}),
                     fields.Nested(Child, **{param: ('name', 'surname')}),
-                )
+                ),
             )
 
         schema = Family(**{param: ['children.name', 'children.age']})
@@ -330,7 +330,7 @@ class TestDictNested:
             children = fields.Dict(values=fields.Nested(Child))
 
         schema = Family(**{param: ['children.name']})
-        assert getattr(schema.fields['children'].value_container, param) == {'name'}
+        assert getattr(schema.fields['children'].value_inner, param) == {'name'}
 
     @pytest.mark.parametrize('param', ('only', 'exclude'))
     def test_dict_nested_only_and_exclude_merged_with_nested(self, param):
@@ -348,4 +348,4 @@ class TestDictNested:
             'only': {'name'},
             'exclude': {'name', 'surname', 'age'},
         }[param]
-        assert getattr(schema.fields['children'].value_container, param) == expected
+        assert getattr(schema.fields['children'].value_inner, param) == expected
