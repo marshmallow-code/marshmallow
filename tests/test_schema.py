@@ -938,8 +938,22 @@ def test_meta_nested_exclude():
         blubb = fields.Nested(ChildSchema)
         class Meta:
             exclude = ('blubb.foo',)
-    sch = ParentSchema()
+
     data = dict(bla=1, bli=2, blubb=dict(foo=42, bar=24, baz=242))
+
+    sch = ParentSchema()
+    result = sch.dump(data)
+    assert 'bla' in result.data
+    assert 'blubb' in result.data
+    assert 'bli' in result.data
+    child = result.data['blubb']
+    assert 'foo' not in child
+    assert 'bar' in child
+    assert 'baz' in child
+
+    # Test fields with dot notations in Meta.exclude on multiple instantiations
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1212
+    sch = ParentSchema()
     result = sch.dump(data)
     assert 'bla' in result.data
     assert 'blubb' in result.data
