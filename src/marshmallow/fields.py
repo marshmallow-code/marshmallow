@@ -408,6 +408,10 @@ class Nested(Field):
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
     :param bool many: Whether the field is a collection of objects.
+    :param bool|tuple partial: Whether to ignore missing fields and not require
+        any fields declared. If not None, propagates down to ``Nested`` fields as well.
+        If its value is an iterable, only missing fields listed in that iterable
+        will be ignored. Use dot delimiters to specify nested fields.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
@@ -416,8 +420,8 @@ class Nested(Field):
     default_error_messages = {'type': 'Invalid type.'}
 
     def __init__(
-            self, nested, *, default=missing_, only=None, exclude=(), many=False,
-            unknown=None, **kwargs
+        self, nested, *, default=missing_, only=None, exclude=(), many=False,
+        partial=False, unknown=None, **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -428,6 +432,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = many
+        self.partial = partial
         self.unknown = unknown
         self.__schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
@@ -461,6 +466,7 @@ class Nested(Field):
                     many=self.many,
                     only=self.only,
                     exclude=self.exclude,
+                    partial=self.partial,
                     context=context,
                     load_only=self._nested_normalized_option('load_only'),
                     dump_only=self._nested_normalized_option('dump_only'),

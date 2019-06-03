@@ -1815,6 +1815,40 @@ class TestValidation:
         with pytest.raises(ValidationError):
             SchemaB().load(b_dict, partial=('z.y',))
 
+    @pytest.mark.parametrize('runtime_partial', (True, False, None, ('z.x')))
+    @pytest.mark.parametrize('schema_partial', (True, False, None, ('z.x')))
+    @pytest.mark.parametrize('nested_partial', (True, False, None, ('z.x')))
+    def test_nested_runtime_partial(self, runtime_partial, schema_partial, nested_partial):
+
+        class SchemaA(Schema):
+            x = fields.Integer(required=True)
+            y = fields.Integer(required=True)
+
+        class SchemaB(Schema):
+            z = fields.Nested(SchemaA, partial=nested_partial)
+
+        b_dict = {
+            'z': {
+                'y': 42,
+            },
+        }
+
+        # Precedence: runtime partial > schema partial > nested partial
+        if (
+            runtime_partial is True or
+            (
+                runtime_partial is None and (
+                    schema_partial is True or
+                    (schema_partial is None and nested_partial is True)
+                )
+            )
+        ):
+            result = SchemaB(partial=schema_partial).load(b_dict, partial=runtime_partial)
+            assert result['z']['y'] == 42
+        else:
+            with pytest.raises(ValidationError):
+                SchemaB(partial=schema_partial).load(b_dict, partial=runtime_partial)
+
 
 @pytest.mark.parametrize('FieldClass', ALL_FIELDS)
 def test_required_field_failure(FieldClass):  # noqa

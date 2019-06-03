@@ -258,8 +258,8 @@ class BaseSchema(base.SchemaABC):
     :param tuple|list load_only: Fields to skip during serialization (write-only fields)
     :param tuple|list dump_only: Fields to skip during deserialization (read-only fields)
     :param bool|tuple partial: Whether to ignore missing fields and not require
-        any fields declared. Propagates down to ``Nested`` fields as well. If
-        its value is an iterable, only missing fields listed in that iterable
+        any fields declared. If not None, propagates down to ``Nested`` fields as well.
+        If its value is an iterable, only missing fields listed in that iterable
         will be ignored. Use dot delimiters to specify nested fields.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
@@ -343,7 +343,7 @@ class BaseSchema(base.SchemaABC):
 
     def __init__(
         self, *, only=None, exclude=(), many=False, context=None,
-        load_only=(), dump_only=(), partial=False, unknown=None
+        load_only=(), dump_only=(), partial=None, unknown=None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -573,7 +573,7 @@ class BaseSchema(base.SchemaABC):
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def _deserialize(
-        self, data, fields_dict, *, error_store, many=False, partial=False,
+        self, data, fields_dict, *, error_store, many=False, partial=None,
         unknown=RAISE, dict_class=dict, index_errors=True, index=None
     ):
         """Deserialize ``data`` based on the schema defined by ``fields_dict``.
