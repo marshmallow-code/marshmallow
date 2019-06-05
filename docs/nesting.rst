@@ -8,7 +8,7 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
 
     import datetime as dt
 
-    class User(object):
+    class User:
         def __init__(self, name, email):
             self.name = name
             self.email = email
@@ -16,7 +16,7 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
             self.friends = []
             self.employer = None
 
-    class Blog(object):
+    class Blog:
         def __init__(self, title, author):
             self.title = title
             self.author = author  # A User object
