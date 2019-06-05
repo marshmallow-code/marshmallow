@@ -243,3 +243,99 @@ class TestNestedField:
         elif field_unknown == RAISE or (schema_unknown == RAISE and not field_unknown):
             with pytest.raises(ValidationError):
                 MySchema().load({'nested': {'x': 1}})
+
+
+class TestListNested:
+
+    def test_list_nested_partial_propagated_to_nested(self):
+
+        class Child(Schema):
+            name = fields.String(required=True)
+            age = fields.Integer(required=True)
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child))
+
+        payload = {'children': [{'name': 'Lucette'}]}
+
+        for val in (True, ('children.age', )):
+            result = Family(partial=val).load(payload)
+            assert result['children'][0]['name'] == 'Lucette'
+            result = Family().load(payload, partial=val)
+            assert result['children'][0]['name'] == 'Lucette'
+
+        for val in (False, ('children.name', )):
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family(partial=val).load(payload)
+            assert excinfo.value.args[0] == {
+                'children': {0: {'age': ['Missing data for required field.']}},
+            }
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family().load(payload, partial=val)
+            assert excinfo.value.args[0] == {
+                'children': {0: {'age': ['Missing data for required field.']}},
+            }
+
+
+class TestTupleNested:
+
+    def test_tuple_nested_partial_propagated_to_nested(self):
+
+        class Child(Schema):
+            name = fields.String(required=True)
+            age = fields.Integer(required=True)
+
+        class Family(Schema):
+            children = fields.Tuple((fields.Nested(Child), ))
+
+        payload = {'children': [{'name': 'Lucette'}]}
+
+        for val in (True, ('children.age', )):
+            result = Family(partial=val).load(payload)
+            assert result['children'][0]['name'] == 'Lucette'
+            result = Family().load(payload, partial=val)
+            assert result['children'][0]['name'] == 'Lucette'
+
+        for val in (False, ('children.name', )):
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family(partial=val).load(payload)
+            assert excinfo.value.args[0] == {
+                'children': {0: {'age': ['Missing data for required field.']}},
+            }
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family().load(payload, partial=val)
+            assert excinfo.value.args[0] == {
+                'children': {0: {'age': ['Missing data for required field.']}},
+            }
+
+
+class TestDictNested:
+
+    def test_dict_nested_partial_propagated_to_nested(self):
+
+        class Child(Schema):
+            name = fields.String(required=True)
+            age = fields.Integer(required=True)
+
+        class Family(Schema):
+            children = fields.Dict(values=fields.Nested(Child))
+
+        payload = {'children': {'daughter': {'name': 'Lucette'}}}
+
+        for val in (True, ('children.age', )):
+            result = Family(partial=val).load(payload)
+            assert result['children']['daughter']['name'] == 'Lucette'
+            result = Family().load(payload, partial=val)
+            assert result['children']['daughter']['name'] == 'Lucette'
+
+        for val in (False, ('children.name', )):
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family(partial=val).load(payload)
+            assert excinfo.value.args[0] == {
+                'children': {'daughter': {'value': {'age': ['Missing data for required field.']}}},
+            }
+            with pytest.raises(ValidationError) as excinfo:
+                result = Family().load(payload, partial=val)
+            assert excinfo.value.args[0] == {
+                'children': {'daughter': {'value': {'age': ['Missing data for required field.']}}},
+            }

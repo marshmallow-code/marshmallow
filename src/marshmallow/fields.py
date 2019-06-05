@@ -600,7 +600,7 @@ class List(Field):
         errors = {}
         for idx, each in enumerate(value):
             try:
-                result.append(self.container.deserialize(each))
+                result.append(self.container.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
                     result.append(error.valid_data)
@@ -682,7 +682,7 @@ class Tuple(Field):
 
         for idx, (container, each) in enumerate(zip(self.tuple_fields, value)):
             try:
-                result.append(container.deserialize(each))
+                result.append(container.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
                     result.append(error.valid_data)
@@ -1346,7 +1346,7 @@ class Mapping(Field):
             keys = {}
             for key in value.keys():
                 try:
-                    keys[key] = self.key_container.deserialize(key)
+                    keys[key] = self.key_container.deserialize(key, **kwargs)
                 except ValidationError as error:
                     errors[key]['key'] = error.messages
 
@@ -1359,7 +1359,7 @@ class Mapping(Field):
         else:
             for key, val in value.items():
                 try:
-                    deser_val = self.value_container.deserialize(val)
+                    deser_val = self.value_container.deserialize(val, **kwargs)
                 except ValidationError as error:
                     errors[key]['value'] = error.messages
                     if error.valid_data is not None and key in keys:
