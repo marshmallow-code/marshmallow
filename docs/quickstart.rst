@@ -14,7 +14,7 @@ Let's start with a basic user "model".
 
     import datetime as dt
 
-    class User(object):
+    class User:
         def __init__(self, name, email):
             self.name = name
             self.email = email
