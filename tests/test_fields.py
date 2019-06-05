@@ -48,7 +48,7 @@ class TestField:
 
     def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
-            def _deserialize(self, val, attr, data):
+            def _deserialize(self, val, attr, data, **kwargs):
                 assert attr == 'name'
                 assert data['foo'] == 42
                 return val
@@ -61,7 +61,7 @@ class TestField:
 
     def test_custom_field_receives_data_key_if_set(self):
         class MyField(fields.Field):
-            def _deserialize(self, val, attr, data):
+            def _deserialize(self, val, attr, data, **kwargs):
                 assert attr == 'name'
                 assert data['foo'] == 42
                 return val
