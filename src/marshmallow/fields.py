@@ -1398,6 +1398,7 @@ class Url(String):
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
     :param bool relative: Allow relative URLs.
+    :param set schemes: Valid schemes. By default, http, https, ftp, and ftps.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
@@ -1407,6 +1408,7 @@ class Url(String):
         String.__init__(self, **kwargs)
 
         self.relative = relative
+        self.schemes = schemes
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be
         # stored.
@@ -1425,6 +1427,7 @@ class Url(String):
             return None
         return validate.URL(
             relative=self.relative,
+            schemes=self.schemes,
             require_tld=self.require_tld,
             error=self.error_messages['invalid'],
         )(value)
