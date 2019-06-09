@@ -1,5 +1,6 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from collections import defaultdict, OrderedDict
+from collections.abc import Mapping
 import datetime as dt
 import uuid
 import decimal
@@ -7,11 +8,9 @@ import copy
 import inspect
 import json
 import warnings
-from collections.abc import Mapping
 
 from marshmallow import base, fields as ma_fields, class_registry
 from marshmallow.error_store import ErrorStore
-from marshmallow.fields import Nested
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (
@@ -635,22 +634,18 @@ class BaseSchema(base.SchemaABC):
                     ):
                         continue
                 d_kwargs = {}
-                if isinstance(field_obj, Nested):
-                    # Allow partial loading of nested schemas.
-                    if partial_is_collection:
-                        prefix = field_name + '.'
-                        len_prefix = len(prefix)
-                        sub_partial = [
-                            f[len_prefix:]
-                            for f in partial if f.startswith(prefix)
-                        ]
-                    else:
-                        sub_partial = partial
+                # Allow partial loading of nested schemas.
+                if partial_is_collection:
+                    prefix = field_name + '.'
+                    len_prefix = len(prefix)
+                    sub_partial = [
+                        f[len_prefix:]
+                        for f in partial if f.startswith(prefix)
+                    ]
                     d_kwargs['partial'] = sub_partial
-                getter = lambda val: field_obj.deserialize(
-                    val, field_name,
-                    data, **d_kwargs
-                )
+                else:
+                    d_kwargs['partial'] = partial
+                getter = lambda val: field_obj.deserialize(val, field_name, data, **d_kwargs)
                 value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
