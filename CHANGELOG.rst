@@ -13,6 +13,7 @@ Features:
   ``**kwargs`` should be added to all decorated methods.
 - Add ``min_inclusive`` and ``max_exclusive`` parameters to
   ``validate.Range`` (:issue:`1221`). Thanks :user:`kdop` for the PR.
+- Fix propagation of "partial" to Nested containers (part of :issue:`779`).
 
 Other changes:
 
