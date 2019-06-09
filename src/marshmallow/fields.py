@@ -1420,16 +1420,6 @@ class Url(String):
             ),
         )
 
-    def _validated(self, value):
-        if value is None:
-            return None
-        return validate.URL(
-            relative=self.relative,
-            require_tld=self.require_tld,
-            error=self.error_messages['invalid'],
-        )(value)
-
-
 class Email(String):
     """A validated email field. Validation occurs during both serialization and
     deserialization.
@@ -1445,12 +1435,6 @@ class Email(String):
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.Email(error=self.error_messages['invalid']))
-
-    def _validated(self, value):
-        if value is None:
-            return None
-        return validate.Email(error=self.error_messages['invalid'])(value)
-
 
 class Method(Field):
     """A field that takes the value returned by a `Schema` method.
