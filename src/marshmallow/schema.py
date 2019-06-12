@@ -323,7 +323,9 @@ class BaseSchema(base.SchemaABC):
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
             Nested fields can be represented with dot delimiters.
-        - ``dateformat``: Date format for all DateTime fields that do not have their
+        - ``dateformat``: Date format for the Date field that does not have it's
+            date format explicitly specified.
+        - ``datetimeformat``: Date format for the DateTime field that does not have it's
             date format explicitly specified.
         - ``strict``: If `True`, raise errors during marshalling rather than
             storing them.
