@@ -320,12 +320,10 @@ class BaseSchema(base.SchemaABC):
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
             Nested fields can be represented with dot delimiters.
-        - ``dateformat``: Date format for the Date field that does not have it's
-            date format explicitly specified.
-        - ``datetimeformat``: Date format for the DateTime field that does not have it's
-            date format explicitly specified.
-        - ``render_module``: Module to use for `loads` and `dumps`. Defaults to
-            `json` from the standard library.
+        - ``dateformat``: Default format for `Date <fields.Date>` fields.
+        - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
+        - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
+            Defaults to `json` from the standard library.
         - ``ordered``: If `True`, order serialization output according to the
             order in which fields were declared. Output of `Schema.dump` will be a
             `collections.OrderedDict`.
