@@ -2312,7 +2312,7 @@ class TestSchemaWithJit:
                 return 'The Jit Unmarshaled'
             return unmarshal
 
-     class BadJit(SchemaJit):
+    class BadJit(SchemaJit):
         def __init__(self, schema):
             pass
 
@@ -2328,16 +2328,16 @@ class TestSchemaWithJit:
                 raise ValueError()
             return unmarshal
 
-     class JittableSchema(Schema):
+    class JittableSchema(Schema):
         class Meta:
             additional = ('name', )
         int_value = fields.Int()
 
-     class NestedJittableSchema(Schema):
+    class NestedJittableSchema(Schema):
         class NestedSchema(Schema):
             bar = fields.Str()
 
-         foo = fields.Nested(NestedSchema)
+        foo = fields.Nested(NestedSchema)
 
     @pytest.fixture()
     def schema(self):
@@ -2347,7 +2347,7 @@ class TestSchemaWithJit:
     def nested_schema(self):
         return self.NestedJittableSchema()
 
-     def test_noop_jit_dump(self, schema):
+    def test_noop_jit_dump(self, schema):
         schema.jit = self.NoopJit
         result = schema.dump({'name': 'foo'})
         assert not result.errors
@@ -2356,7 +2356,7 @@ class TestSchemaWithJit:
         assert schema._jit_instance.called_marshal
         assert not schema._jit_instance.called_unmarshal
 
-     def test_new_object_rejits(self, schema):
+    def test_new_object_rejits(self, schema):
         class NewThing(object):
             name = 'Hello'
             int_value = 32
@@ -2377,7 +2377,7 @@ class TestSchemaWithJit:
                                                          'have forced the jit to be invoked ' \
                                                          'again.'
 
-     def test_noop_jit_load(self, schema):
+    def test_noop_jit_load(self, schema):
         schema.jit = self.NoopJit
         result = schema.load({'name': 'foo'})
         assert not result.errors
@@ -2385,7 +2385,7 @@ class TestSchemaWithJit:
         assert not schema._jit_instance.called_marshal
         assert schema._jit_instance.called_unmarshal
 
-     def test_noop_jit_nested_load(self, nested_schema):
+    def test_noop_jit_nested_load(self, nested_schema):
         nested_schema.jit = self.NoopJit
         result = nested_schema.load({'foo': {'bar': 'hello'}})
         assert not result.errors
@@ -2394,30 +2394,30 @@ class TestSchemaWithJit:
         assert not nested_schema.fields['foo'].schema._jit_instance.called_marshal
         assert nested_schema.fields['foo'].schema._jit_instance.called_unmarshal
 
-     def test_hello_world_jit_dump(self, schema):
+    def test_hello_world_jit_dump(self, schema):
         schema.jit = self.HelloWorldJit
         result = schema.dump({'name': 'foo'})
         assert not result.errors
         assert result.data == 'The Jit Marshaled'
 
-     def test_hello_world_jit_load(self, schema):
+    def test_hello_world_jit_load(self, schema):
         schema.jit = self.HelloWorldJit
         result = schema.load({'name': 'foo'})
         assert not result.errors
         assert result.data == 'The Jit Unmarshaled'
 
-     def test_bad_jit_dump_fallback(self, schema):
+    def test_bad_jit_dump_fallback(self, schema):
         schema.jit = self.BadJit
         result = schema.dump({'name': 'foo'})
         assert not result.errors
         assert result.data == {'name': 'foo'}
 
-     def test_bad_jit_dump_fallback_invalid_data(self, schema):
+    def test_bad_jit_dump_fallback_invalid_data(self, schema):
         schema.jit = self.BadJit
         result = schema.dump({'name': 'bar', 'int_value': 'foo'})
         assert result.errors == {'int_value': ['Not a valid integer.']}
 
-     def test_bad_jit_load_fallback_invalid_data(self, schema):
+    def test_bad_jit_load_fallback_invalid_data(self, schema):
         schema.jit = self.BadJit
         result = schema.load({'name': 'bar', 'int_value': 'foo'})
         assert result.errors == {'int_value': ['Not a valid integer.']}
