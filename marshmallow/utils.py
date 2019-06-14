@@ -10,6 +10,7 @@ import re
 import time
 import types
 from calendar import timegm
+from contextlib import contextmanager
 from decimal import Decimal, ROUND_HALF_EVEN, Context, Inexact
 from email.utils import formatdate, parsedate
 from pprint import pprint as py_pprint
@@ -376,3 +377,11 @@ Handles `functools.partial` objects and callable objects.
 
 def if_none(value, default):
     return value if value is not None else default
+
+
+@contextmanager
+def suppress(*exceptions):
+    try:
+        yield
+    except exceptions:
+        pass

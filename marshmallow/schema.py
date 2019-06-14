@@ -2,12 +2,15 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import absolute_import, unicode_literals
 
+from abc import ABCMeta, abstractmethod, abstractproperty
 from collections import defaultdict, Mapping, namedtuple
 import copy
 import datetime as dt
 import decimal
 import inspect
+import importlib
 import json
+import os
 import uuid
 import warnings
 import functools
@@ -19,7 +22,30 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.orderedset import OrderedSet
 from marshmallow.decorators import (PRE_DUMP, POST_DUMP, PRE_LOAD, POST_LOAD,
                                     VALIDATES, VALIDATES_SCHEMA)
-from marshmallow.utils import missing
+from marshmallow.utils import missing, suppress
+
+DEFAULT_JIT_ENVIRONMENT_VARIABLE = 'MARSHMALLOW_SCHEMA_DEFAULT_JIT'
+DEFAULT_JIT = missing
+
+
+def get_default_jit():
+    """Allows overriding the default JIT to use from the environment.
+     This is useful for running tests as well as rolling out a Marshmallow JIT to
+    every schema in a process.
+    """
+    global DEFAULT_JIT
+    if DEFAULT_JIT == missing:
+        DEFAULT_JIT = None
+        with suppress(Exception):
+            default_jit_path = os.getenv(DEFAULT_JIT_ENVIRONMENT_VARIABLE)
+
+            if default_jit_path:
+                parts = default_jit_path.split('.')
+                module_name = '.'.join(parts[0:-1])
+                class_name = parts[-1]
+                jit_module = importlib.import_module(module_name)
+                DEFAULT_JIT = getattr(jit_module, class_name, None)
+    return DEFAULT_JIT
 
 
 #: Return type of :meth:`Schema.dump` including serialized data and errors
@@ -178,6 +204,34 @@ class SchemaMeta(type):
                 self.__processors__[tag].append(attr_name)
 
 
+class SchemaJit(with_metaclass(ABCMeta)):
+    """Abstract Base Class for implementing a jit for Marshmallow.
+     A SchemaJit should create methods to marshal or unmarshal an object for a
+    given schema.  These methods should, given an object, optimistically perform
+    marshalling or unmarshalling.  If they fail, Marshmallow will fallback to the existing
+    reflection-based methods.
+    """
+    @abstractmethod
+    def __init__(self, schema):
+        pass
+
+    @abstractproperty
+    def jitted_marshal_method(self):
+        """Returns the jitted marshal method.
+         :return: A method that accepts an object and returns the marshalling result or None
+            if there is no applicable marshal method.
+        """
+        pass
+
+    @abstractproperty
+    def jitted_unmarshal_method(self):
+        """Returns the jitted unmarshal method.
+         :return: A method that accepts an object and returns the unmarshalling result or None
+            if there is no applicable unmarshal method.
+        """
+        pass
+
+
 class SchemaOpts(object):
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
@@ -208,6 +262,8 @@ class SchemaOpts(object):
         self.include = getattr(meta, 'include', {})
         self.load_only = getattr(meta, 'load_only', ())
         self.dump_only = getattr(meta, 'dump_only', ())
+        self.jit = getattr(meta, 'jit', missing)
+        self.jit_options = getattr(meta, 'jit_options', {})
 
 
 class BaseSchema(base.SchemaABC):
@@ -348,6 +404,11 @@ class BaseSchema(base.SchemaABC):
         self._marshal = marshalling.Marshaller(
             prefix=self.prefix
         )
+        self._jit_class = get_default_jit()
+        if self.opts.jit is not missing:
+            self._jit_class = self.opts.jit
+        self._jit_instance = None
+        self._current_name_to_type = None
         #: Callable unmarshalling object
         self._unmarshal = marshalling.Unmarshaller()
         if extra:
@@ -366,6 +427,17 @@ class BaseSchema(base.SchemaABC):
         return '<{ClassName}(many={self.many}, strict={self.strict})>'.format(
             ClassName=self.__class__.__name__, self=self
         )
+
+    @property
+    def jit(self):
+        return self._jit_class
+
+    @jit.setter
+    def jit(self, value):
+        self._jit_instance = None
+        self._current_name_to_type = None
+        self._jit_class = value
+        self._update_fields(many=self.many)
 
     def _postprocess(self, data, many, obj):
         if self.extra:
@@ -501,21 +573,13 @@ class BaseSchema(base.SchemaABC):
                     if not isinstance(processed_obj, Mapping):
                         self._types_seen.add(obj_type)
 
-            try:
-                preresult = self._marshal(
-                    processed_obj,
-                    self.fields,
-                    many=many,
-                    # TODO: Remove self.__accessor__ in a later release
-                    accessor=self.get_attribute or self.__accessor__,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                    **kwargs
-                )
-            except ValidationError as error:
-                errors = self._marshal.errors
-                preresult = error.data
-
+            jitted_method = (self._jit_instance.jitted_marshal_method
+                             if self._jit_instance else None)
+            errors, preresult = self._transform(jitted_method,
+                                                self._marshal,
+                                                many, processed_obj,
+                                                accessor=self.get_attribute,
+                                                **kwargs)
             result = self._postprocess(preresult, many, obj=obj)
 
         if not errors and self._has_processors:
@@ -543,6 +607,47 @@ class BaseSchema(base.SchemaABC):
                 raise exc
 
         return MarshalResult(result, errors)
+
+    def _transform(self, jitted_method, marshalling_method,
+                   many, obj, **kwargs):
+        """Transforms an object by serializing or deserializing it, returning
+        any errors that occurred as well as the result.
+         This method allows for a single place for the jitted
+        serialize/deserialize methods to be invoked.  First it willa attempt to
+        use the `jitted_method` if available and, should that fail, will fall
+        back to the normal `marshmallow.marshalling`-based methods.
+         :param jitted_method: The jitted method to first attempt to invoke when
+            serializing or deserializng `obj`
+        :param marshalling_method: The marshalling method to call should the
+            jitted_method be absent or fail.  Should be either `self._marshal`
+            or `self._unmarshal`.
+        :param bool many: Whether to serialize `obj` as a collection.
+        :param obj:  The object to serialize or deserialize.
+        :return tuple: A tuple of errors:result.
+        """
+        result = None
+        errors = {}
+        marshalling_method.reset_errors()
+        if jitted_method:
+            try:
+                result = jitted_method(obj, many=many)
+            except (ValidationError, KeyError, AttributeError, ValueError, TypeError):
+                # Fall through to slow path
+                pass
+        if not result:
+            try:
+                result = marshalling_method(
+                    obj,
+                    self.fields,
+                    many=many,
+                    dict_class=self.dict_class,
+                    index_errors=self.opts.index_errors,
+                    **kwargs
+                )
+            except ValidationError as error:
+                errors = marshalling_method.errors
+                result = error.data
+        return errors, result
 
     def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
@@ -649,18 +754,14 @@ class BaseSchema(base.SchemaABC):
         except ValidationError as err:
             errors = err.normalized_messages()
             result = None
-        if not errors:
-            try:
-                result = self._unmarshal(
-                    processed_data,
-                    self.fields,
-                    many=many,
-                    partial=partial,
-                    dict_class=self.dict_class,
-                    index_errors=self.opts.index_errors,
-                )
-            except ValidationError as error:
-                result = error.data
+        else:
+            jitted_method = (self._jit_instance.jitted_unmarshal_method
+                             if self._jit_instance else None)
+            _, result = self._transform(jitted_method,
+                                        self._unmarshal,
+                                        many, processed_data,
+                                        partial=partial)
+
             self._invoke_field_validators(data=result, many=many)
             errors = self._unmarshal.errors
             field_errors = bool(errors)
@@ -757,10 +858,17 @@ class BaseSchema(base.SchemaABC):
         excludes = set(self.opts.exclude) | set(self.exclude)
         if excludes:
             field_names = field_names - excludes
-        ret = self.__filter_fields(field_names, obj, many=many)
+        ret, name_to_type = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
         self.fields = ret
+        # If this schema has a JIT attached and we've changed the types of
+        # the current set of fields we need to create a new JIT instance to
+        # recompile the backing code.
+        if self._jit_class and (not self._jit_instance or
+                                self._current_name_to_type != name_to_type):
+            self._jit_instance = self._jit_class(self)
+            self._current_name_to_type = name_to_type
         return self.fields
 
     def on_bind_field(self, field_name, field_obj):
@@ -799,10 +907,13 @@ class BaseSchema(base.SchemaABC):
 
         :param set field_names: Field names to include in the final
             return dictionary.
-        :returns: An dict of field_name:field_obj pairs.
+        :returns: A tuple of a dict of field_name:field_obj pairs and a dict of
+            field_name:type pairs.
         """
+        name_to_type = {}
         if obj and many:
-            try:  # Homogeneous collection
+            try:
+                # Homogeneous collection
                 # Prefer getitem over iter to prevent breaking serialization
                 # of objects for which iter will modify position in the collection
                 # e.g. Pymongo cursors
@@ -820,6 +931,7 @@ class BaseSchema(base.SchemaABC):
         for key in field_names:
             if key in self.declared_fields:
                 ret[key] = self.declared_fields[key]
+                name_to_type[key] = type(self.declared_fields[key])
             else:  # Implicit field creation (class Meta 'fields' or 'additional')
                 if obj:
                     attribute_type = None
@@ -833,11 +945,13 @@ class BaseSchema(base.SchemaABC):
                         raise err_type(
                             '"{0}" is not a valid field for {1}.'.format(key, obj))
                     field_obj = self.TYPE_MAPPING.get(attribute_type, fields.Field)()
+                    name_to_type[key] = attribute_type
                 else:  # Object is None
                     field_obj = fields.Field()
+                    name_to_type[key] = None
                 # map key -> field (default to Raw)
                 ret[key] = field_obj
-        return ret
+        return ret, name_to_type
 
     def _invoke_dump_processors(self, tag_name, data, many, original_data=None):
         # The pass_many post-dump processors may do things like add an envelope, so
