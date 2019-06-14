@@ -2286,12 +2286,12 @@ class TestSchemaWithJit:
             self.called_unmarshal = False
             self.called_with = schema
 
-         @property
+        @property
         def jitted_marshal_method(self):
             self.called_marshal = True
             return None
 
-         @property
+        @property
         def jitted_unmarshal_method(self):
             self.called_unmarshal = True
             return None
@@ -2300,13 +2300,13 @@ class TestSchemaWithJit:
         def __init__(self, schema):
             pass
 
-         @property
+        @property
         def jitted_marshal_method(self):
             def marshal(obj, many=False):
                 return 'The Jit Marshaled'
             return marshal
 
-         @property
+        @property
         def jitted_unmarshal_method(self):
             def unmarshal(obj, many=False):
                 return 'The Jit Unmarshaled'
@@ -2316,13 +2316,13 @@ class TestSchemaWithJit:
         def __init__(self, schema):
             pass
 
-         @property
+        @property
         def jitted_marshal_method(self):
             def marshal(obj, many=False):
                 raise ValueError()
             return marshal
 
-         @property
+        @property
         def jitted_unmarshal_method(self):
             def unmarshal(obj, many=False):
                 raise ValueError()
@@ -2339,11 +2339,11 @@ class TestSchemaWithJit:
 
          foo = fields.Nested(NestedSchema)
 
-     @pytest.fixture()
+    @pytest.fixture()
     def schema(self):
         return self.JittableSchema()
 
-     @pytest.fixture()
+    @pytest.fixture()
     def nested_schema(self):
         return self.NestedJittableSchema()
 
