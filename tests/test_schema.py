@@ -2296,7 +2296,7 @@ class TestSchemaWithJit:
             self.called_unmarshal = True
             return None
 
-     class HelloWorldJit(SchemaJit):
+    class HelloWorldJit(SchemaJit):
         def __init__(self, schema):
             pass
 
@@ -2361,12 +2361,12 @@ class TestSchemaWithJit:
             name = 'Hello'
             int_value = 32
 
-         class NewerThing(object):
+        class NewerThing(object):
             name = 44
             int_value = 'World'
             float_value = 4.2
 
-         schema.jit = self.NoopJit
+        schema.jit = self.NoopJit
         schema.dump(NewThing())
         old_jit_instance = schema._jit_instance
         schema.dump({'name': 'foo', 'int_value': 32})
