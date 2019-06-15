@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+2.19.3 (2019-06-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug where nested fields in ``Meta.exclude`` would not work on
+  multiple instantiations (:issue:`1212`). Thanks :user:`MHannila` for
+  reporting.
+
 2.19.2 (2019-03-30)
 +++++++++++++++++++
 
