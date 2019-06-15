@@ -657,11 +657,6 @@ class Tuple(Field):
             )
 
         self.validate_length = Length(equal=len(self.tuple_fields))
-        for container in self.tuple_fields:
-            if isinstance(container, Nested):
-                self.only = container.only
-                self.exclude = container.exclude
-                break
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -671,9 +666,6 @@ class Tuple(Field):
             container.parent = self
             container.name = field_name
             new_tuple_fields.append(container)
-            if isinstance(container, Nested):
-                container.only = self.only
-                container.exclude = self.exclude
 
         self.tuple_fields = new_tuple_fields
 
