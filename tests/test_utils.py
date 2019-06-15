@@ -185,15 +185,16 @@ def test_from_datestring():
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_rfc(use_dateutil):
-    d = dt.datetime.now()
+    d = dt.datetime.now().replace(microsecond=0)
     rfc = utils.rfcformat(d)
     result = utils.from_rfc(rfc, use_dateutil=use_dateutil)
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_iso(use_dateutil):
-    d = dt.datetime.now()
+@pytest.mark.parametrize('timezone', [None, central])
+def test_from_iso_datetime(use_dateutil, timezone):
+    d = dt.datetime.now(tz=timezone)
     formatted = d.isoformat()
     result = utils.from_iso(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.datetime
@@ -215,7 +216,7 @@ def test_from_iso_time_with_microseconds(use_dateutil):
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.time
-    assert_time_equal(result, t, microseconds=True)
+    assert_time_equal(result, t)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso_time_without_microseconds(use_dateutil):
@@ -223,7 +224,7 @@ def test_from_iso_time_without_microseconds(use_dateutil):
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
     assert type(result) == dt.time
-    assert_time_equal(result, t, microseconds=True)
+    assert_time_equal(result, t)
 
 @pytest.mark.parametrize('use_dateutil', [True, False])
 def test_from_iso_date(use_dateutil):
