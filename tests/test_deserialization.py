@@ -439,15 +439,15 @@ class TestFieldDeserialization:
     def test_custom_date_format_datetime_field_deserialization(self):
 
         dtime = dt.datetime.now()
-        datestring = dtime.strftime('%H:%M:%S %Y-%m-%d')
+        datestring = dtime.strftime('%H:%M:%S.%f %Y-%m-%d')
 
         field = fields.DateTime(format='%d-%m-%Y %H:%M:%S')
         #deserialization should fail when datestring is not of same format
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(datestring)
-        msg = 'Not a valid datetime.'.format(datestring)
+        msg = 'Not a valid datetime.'
         assert msg in str(excinfo)
-        field = fields.DateTime(format='%H:%M:%S %Y-%m-%d')
+        field = fields.DateTime(format='%H:%M:%S.%f %Y-%m-%d')
         assert_datetime_equal(field.deserialize(datestring), dtime)
 
         field = fields.DateTime()
@@ -455,7 +455,7 @@ class TestFieldDeserialization:
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
-        dtime = dt.datetime.now()
+        dtime = dt.datetime.now().replace(microsecond=0)
         datestring = utils.rfcformat(dtime)
         field = fields.DateTime(format=fmt)
         assert_datetime_equal(field.deserialize(datestring), dtime)
