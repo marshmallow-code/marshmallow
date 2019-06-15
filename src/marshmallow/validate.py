@@ -192,9 +192,9 @@ class Range(Validator):
     message_max = 'Must be {max_op} {{max}}.'
     message_all = 'Must be {min_op} {{min}} and {max_op} {{max}}.'
 
-    message_gte = 'greater or equal to'
+    message_gte = 'greater than or equal to'
     message_gt = 'greater than'
-    message_lte = 'less or equal to'
+    message_lte = 'less than or equal to'
     message_lt = 'less than'
 
     def __init__(self, min=None, max=None, *, min_inclusive=True, max_inclusive=True, error=None):

@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Improve error messages for ``validate.Range``.
+
 3.0.0rc7 (2019-06-15)
 +++++++++++++++++++++
 
