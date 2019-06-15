@@ -346,7 +346,7 @@ class BaseSchema(base.SchemaABC):
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
-        self.exclude = exclude
+        self.exclude = set(self.opts.exclude) | set(exclude)
         if prefix:
             warnings.warn(
                 'The `prefix` argument is deprecated. Use a post_dump '
@@ -719,19 +719,15 @@ class BaseSchema(base.SchemaABC):
             self.__apply_nested_option('only', self.only, 'intersection')
             # Remove the child field names from the only option.
             self.only = self.set_class(
-                [field.split('.', 1)[0] for field in self.only])
-        excludes = set(self.opts.exclude) | set(self.exclude)
-        if excludes:
-            # Apply the exclude option to nested fields.
-            self.__apply_nested_option('exclude', excludes, 'union')
+                [field.split('.', 1)[0] for field in self.only],
+            )
         if self.exclude:
+            # Apply the exclude option to nested fields.
+            self.__apply_nested_option('exclude', self.exclude, 'union')
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
-                [field for field in self.exclude if '.' not in field])
-        if self.opts.exclude:
-            # Remove the parent field names from the meta exclude option.
-            self.opts.exclude = self.set_class(
-                [field for field in self.opts.exclude if '.' not in field])
+                [field for field in self.exclude if '.' not in field],
+            )
 
     def __apply_nested_option(self, option_name, field_names, set_operation):
         """Apply nested options to nested fields"""
@@ -771,9 +767,7 @@ class BaseSchema(base.SchemaABC):
             field_names = self.set_class(self.declared_fields.keys())
 
         # If "exclude" option or param is specified, remove those fields
-        excludes = set(self.opts.exclude) | set(self.exclude)
-        if excludes:
-            field_names = field_names - excludes
+        field_names -= self.exclude
         ret = self.__filter_fields(field_names, obj, many=many)
         # Set parents
         self.__set_field_attrs(ret)
