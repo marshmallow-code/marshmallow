@@ -122,32 +122,32 @@ class TestParentAndName:
         assert inner_field.root is None
 
     def test_list_field_inner_parent_and_name(self, schema):
-        assert schema.fields['bar'].container.parent == schema.fields['bar']
-        assert schema.fields['bar'].container.name == 'bar'
+        assert schema.fields['bar'].inner.parent == schema.fields['bar']
+        assert schema.fields['bar'].inner.name == 'bar'
 
     def test_tuple_field_inner_parent_and_name(self, schema):
-        for container in schema.fields['baz'].tuple_fields:
-            assert container.parent == schema.fields['baz']
-            assert container.name == 'baz'
+        for field in schema.fields['baz'].tuple_fields:
+            assert field.parent == schema.fields['baz']
+            assert field.name == 'baz'
 
     def test_simple_field_root(self, schema):
         assert schema.fields['foo'].root == schema
         assert schema.fields['bar'].root == schema
 
     def test_list_field_inner_root(self, schema):
-        assert schema.fields['bar'].container.root == schema
+        assert schema.fields['bar'].inner.root == schema
 
     def test_tuple_field_inner_root(self, schema):
-        for container in schema.fields['baz'].tuple_fields:
-            assert container.root == schema
+        for field in schema.fields['baz'].tuple_fields:
+            assert field.root == schema
 
     def test_list_root_inheritance(self, schema):
         class OtherSchema(TestParentAndName.MySchema):
             pass
 
         schema2 = OtherSchema()
-        assert schema.fields['bar'].container.root == schema
-        assert schema2.fields['bar'].container.root == schema2
+        assert schema.fields['bar'].inner.root == schema
+        assert schema2.fields['bar'].inner.root == schema2
 
     def test_dict_root_inheritance(self):
         class MySchema(Schema):
@@ -158,10 +158,10 @@ class TestParentAndName:
 
         schema = MySchema()
         schema2 = OtherSchema()
-        assert schema.fields['foo'].key_container.root == schema
-        assert schema.fields['foo'].value_container.root == schema
-        assert schema2.fields['foo'].key_container.root == schema2
-        assert schema2.fields['foo'].value_container.root == schema2
+        assert schema.fields['foo'].key_field.root == schema
+        assert schema.fields['foo'].value_field.root == schema
+        assert schema2.fields['foo'].key_field.root == schema2
+        assert schema2.fields['foo'].value_field.root == schema2
 
 
 class TestMetadata:
@@ -258,7 +258,7 @@ class TestListNested:
             children = fields.List(fields.Nested(Child))
 
         schema = Family(**{param: ['children.name']})
-        assert getattr(schema.fields['children'].container.schema, param) == {'name'}
+        assert getattr(schema.fields['children'].inner.schema, param) == {'name'}
 
     @pytest.mark.parametrize(
         ('param', 'expected'),
@@ -275,7 +275,7 @@ class TestListNested:
             children = fields.List(fields.Nested(Child, **{param: ('name', 'surname')}))
 
         schema = Family(**{param: ['children.name', 'children.age']})
-        assert getattr(schema.fields['children'].container, param) == expected
+        assert getattr(schema.fields['children'].inner, param) == expected
 
     def test_list_nested_partial_propagated_to_nested(self):
 
@@ -366,7 +366,7 @@ class TestDictNested:
             children = fields.Dict(values=fields.Nested(Child))
 
         schema = Family(**{param: ['children.name']})
-        assert getattr(schema.fields['children'].value_container.schema, param) == {'name'}
+        assert getattr(schema.fields['children'].value_field.schema, param) == {'name'}
 
     @pytest.mark.parametrize(
         ('param', 'expected'),
@@ -383,7 +383,7 @@ class TestDictNested:
             children = fields.Dict(values=fields.Nested(Child, **{param: ('name', 'surname')}))
 
         schema = Family(**{param: ['children.name', 'children.age']})
-        assert getattr(schema.fields['children'].value_container, param) == expected
+        assert getattr(schema.fields['children'].value_field, param) == expected
 
     def test_dict_nested_partial_propagated_to_nested(self):
 

@@ -570,33 +570,33 @@ class List(Field):
     def __init__(self, cls_or_instance, **kwargs):
         super().__init__(**kwargs)
         try:
-            self.container = resolve_field_instance(cls_or_instance)
+            self.inner = resolve_field_instance(cls_or_instance)
         except FieldInstanceResolutionError:
             raise ValueError(
                 'The list elements must be a subclass or instance of '
                 'marshmallow.base.FieldABC.',
             )
-        if isinstance(self.container, Nested):
-            self.only = self.container.only
-            self.exclude = self.container.exclude
+        if isinstance(self.inner, Nested):
+            self.only = self.inner.only
+            self.exclude = self.inner.exclude
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
-        self.container = copy.deepcopy(self.container)
-        self.container.parent = self
-        self.container.name = field_name
-        if isinstance(self.container, Nested):
-            self.container.only = self.only
-            self.container.exclude = self.exclude
+        self.inner = copy.deepcopy(self.inner)
+        self.inner.parent = self
+        self.inner.name = field_name
+        if isinstance(self.inner, Nested):
+            self.inner.only = self.only
+            self.inner.exclude = self.exclude
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         if utils.is_collection(value):
             return [
-                self.container._serialize(each, attr, obj, **kwargs) for each in value
+                self.inner._serialize(each, attr, obj, **kwargs) for each in value
             ]
-        return [self.container._serialize(value, attr, obj, **kwargs)]
+        return [self.inner._serialize(value, attr, obj, **kwargs)]
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
@@ -606,7 +606,7 @@ class List(Field):
         errors = {}
         for idx, each in enumerate(value):
             try:
-                result.append(self.container.deserialize(each, **kwargs))
+                result.append(self.inner.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
                     result.append(error.valid_data)
@@ -661,11 +661,11 @@ class Tuple(Field):
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         new_tuple_fields = []
-        for container in self.tuple_fields:
-            container = copy.deepcopy(container)
-            container.parent = self
-            container.name = field_name
-            new_tuple_fields.append(container)
+        for field in self.tuple_fields:
+            field = copy.deepcopy(field)
+            field.parent = self
+            field.name = field_name
+            new_tuple_fields.append(field)
 
         self.tuple_fields = new_tuple_fields
 
@@ -674,8 +674,8 @@ class Tuple(Field):
             return None
 
         return tuple(
-            container._serialize(each, attr, obj, **kwargs)
-            for container, each in zip(self.tuple_fields, value)
+            field._serialize(each, attr, obj, **kwargs)
+            for field, each in zip(self.tuple_fields, value)
         )
 
     def _deserialize(self, value, attr, data, **kwargs):
@@ -687,9 +687,9 @@ class Tuple(Field):
         result = []
         errors = {}
 
-        for idx, (container, each) in enumerate(zip(self.tuple_fields, value)):
+        for idx, (field, each) in enumerate(zip(self.tuple_fields, value)):
             try:
-                result.append(container.deserialize(each, **kwargs))
+                result.append(field.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
                     result.append(error.valid_data)
@@ -1275,10 +1275,10 @@ class Mapping(Field):
     def __init__(self, keys=None, values=None, **kwargs):
         super().__init__(**kwargs)
         if keys is None:
-            self.key_container = None
+            self.key_field = None
         else:
             try:
-                self.key_container = resolve_field_instance(keys)
+                self.key_field = resolve_field_instance(keys)
             except FieldInstanceResolutionError:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
@@ -1286,59 +1286,59 @@ class Mapping(Field):
                 )
 
         if values is None:
-            self.value_container = None
+            self.value_field = None
         else:
             try:
-                self.value_container = resolve_field_instance(values)
+                self.value_field = resolve_field_instance(values)
             except FieldInstanceResolutionError:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
                     'marshmallow.base.FieldABC.',
                 )
-            if isinstance(self.value_container, Nested):
-                self.only = self.value_container.only
-                self.exclude = self.value_container.exclude
+            if isinstance(self.value_field, Nested):
+                self.only = self.value_field.only
+                self.exclude = self.value_field.exclude
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
-        if self.value_container:
-            self.value_container = copy.deepcopy(self.value_container)
-            self.value_container.parent = self
-            self.value_container.name = field_name
-        if isinstance(self.value_container, Nested):
-            self.value_container.only = self.only
-            self.value_container.exclude = self.exclude
-        if self.key_container:
-            self.key_container = copy.deepcopy(self.key_container)
-            self.key_container.parent = self
-            self.key_container.name = field_name
+        if self.value_field:
+            self.value_field = copy.deepcopy(self.value_field)
+            self.value_field.parent = self
+            self.value_field.name = field_name
+        if isinstance(self.value_field, Nested):
+            self.value_field.only = self.only
+            self.value_field.exclude = self.exclude
+        if self.key_field:
+            self.key_field = copy.deepcopy(self.key_field)
+            self.key_field.parent = self
+            self.key_field.name = field_name
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if not self.value_container and not self.key_container:
+        if not self.value_field and not self.key_field:
             return value
         if not isinstance(value, _Mapping):
             self.fail('invalid')
 
         #  Serialize keys
-        if self.key_container is None:
+        if self.key_field is None:
             keys = {k: k for k in value.keys()}
         else:
             keys = {
-                k: self.key_container._serialize(k, None, None, **kwargs)
+                k: self.key_field._serialize(k, None, None, **kwargs)
                 for k in value.keys()
             }
 
         #  Serialize values
         result = self.mapping_type()
-        if self.value_container is None:
+        if self.value_field is None:
             for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
             for k, v in value.items():
-                result[keys[k]] = self.value_container._serialize(
+                result[keys[k]] = self.value_field._serialize(
                     v, None, None, **kwargs
                 )
 
@@ -1347,32 +1347,32 @@ class Mapping(Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, _Mapping):
             self.fail('invalid')
-        if not self.value_container and not self.key_container:
+        if not self.value_field and not self.key_field:
             return value
 
         errors = collections.defaultdict(dict)
 
         #  Deserialize keys
-        if self.key_container is None:
+        if self.key_field is None:
             keys = {k: k for k in value.keys()}
         else:
             keys = {}
             for key in value.keys():
                 try:
-                    keys[key] = self.key_container.deserialize(key, **kwargs)
+                    keys[key] = self.key_field.deserialize(key, **kwargs)
                 except ValidationError as error:
                     errors[key]['key'] = error.messages
 
         #  Deserialize values
         result = self.mapping_type()
-        if self.value_container is None:
+        if self.value_field is None:
             for k, v in value.items():
                 if k in keys:
                     result[keys[k]] = v
         else:
             for key, val in value.items():
                 try:
-                    deser_val = self.value_container.deserialize(val, **kwargs)
+                    deser_val = self.value_field.deserialize(val, **kwargs)
                 except ValidationError as error:
                     errors[key]['value'] = error.messages
                     if error.valid_data is not None and key in keys:
