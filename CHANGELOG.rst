@@ -1,8 +1,8 @@
 Changelog
 ---------
 
-3.0.0 (unreleased)
-++++++++++++++++++
+3.0.0rc7 (unreleased)
++++++++++++++++++++++
 
 Features:
 
@@ -13,10 +13,10 @@ Features:
   ``**kwargs`` should be added to all decorated methods.
 - Add ``min_inclusive`` and ``max_exclusive`` parameters to
   ``validate.Range`` (:issue:`1221`). Thanks :user:`kdop` for the PR.
-- Fix propagation of "partial" to Nested containers (part of :issue:`779`).
 
 Bug fixes:
 
+- Fix propagation of "partial" to Nested containers (part of :issue:`779`).
 - Includes bug fix from 2.19.3.
 
 Other changes:
