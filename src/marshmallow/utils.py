@@ -5,10 +5,9 @@ import datetime
 import inspect
 import json
 import re
-import time
 from calendar import timegm
 from collections.abc import Mapping, Iterable
-from email.utils import formatdate, parsedate
+from email.utils import formatdate, parsedate_to_datetime
 from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
@@ -203,20 +202,12 @@ def isoformat(dt, *args, localtime=False, **kwargs):
     return localized.isoformat(*args, **kwargs)
 
 
-def from_rfc(datestring, *, use_dateutil=True):
+def from_rfc(datestring):
     """Parse a RFC822-formatted datetime string and return a datetime object.
-
-    Use dateutil's parser if possible.
 
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
     """
-    # Use dateutil's parser if possible
-    if dateutil_available and use_dateutil:
-        return parser.parse(datestring)
-    else:
-        parsed = parsedate(datestring)  # as a tuple
-        timestamp = time.mktime(parsed)
-        return datetime.datetime.fromtimestamp(timestamp)
+    return parsedate_to_datetime(datestring)
 
 
 def from_iso_datetime(datetimestring, *, use_dateutil=True):
