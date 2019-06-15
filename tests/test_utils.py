@@ -141,11 +141,10 @@ def test_isoformat_localtime():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
     assert utils.isoformat(d, localtime=True) == '2013-11-10T01:23:45-06:00'
 
-@pytest.mark.parametrize('use_dateutil', [True, False])
-def test_from_rfc(use_dateutil):
+def test_from_rfc():
     d = dt.datetime.now()
     rfc = utils.rfcformat(d)
-    result = utils.from_rfc(rfc, use_dateutil=use_dateutil)
+    result = utils.from_rfc(rfc)
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
