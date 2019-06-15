@@ -15,6 +15,10 @@ Features:
   ``validate.Range`` (:issue:`1221`). Thanks :user:`kdop` for the PR.
 - Fix propagation of "partial" to Nested containers (part of :issue:`779`).
 
+Bug fixes:
+
+- Includes bug fix from 2.19.3.
+
 Other changes:
 
 - *Backwards-incompatible*: Use keyword-only arguments (:issue:`1216`).
@@ -502,6 +506,15 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.19.3 (2019-06-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug where nested fields in ``Meta.exclude`` would not work on
+  multiple instantiations (:issue:`1212`). Thanks :user:`MHannila` for
+  reporting.
 
 2.19.2 (2019-03-30)
 +++++++++++++++++++

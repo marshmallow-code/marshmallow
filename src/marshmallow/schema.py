@@ -353,7 +353,7 @@ class BaseSchema(base.SchemaABC):
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
-        self.exclude = exclude
+        self.exclude = set(self.opts.exclude) | set(exclude)
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -875,19 +875,12 @@ class BaseSchema(base.SchemaABC):
             self.only = self.set_class(
                 [field.split('.', 1)[0] for field in self.only],
             )
-        excludes = set(self.opts.exclude) | set(self.exclude)
-        if excludes:
-            # Apply the exclude option to nested fields.
-            self.__apply_nested_option('exclude', excludes, 'union')
         if self.exclude:
+            # Apply the exclude option to nested fields.
+            self.__apply_nested_option('exclude', self.exclude, 'union')
             # Remove the parent field names from the exclude option.
             self.exclude = self.set_class(
                 [field for field in self.exclude if '.' not in field],
-            )
-        if self.opts.exclude:
-            # Remove the parent field names from the meta exclude option.
-            self.opts.exclude = self.set_class(
-                [field for field in self.opts.exclude if '.' not in field],
             )
 
     def __apply_nested_option(self, option_name, field_names, set_operation):
@@ -929,13 +922,11 @@ class BaseSchema(base.SchemaABC):
             field_names = available_field_names
 
         # If "exclude" option or param is specified, remove those fields.
-        exclude_field_names = set(self.opts.exclude) | set(self.exclude)
-        if exclude_field_names:
+        if self.exclude:
             # Note that this isn't available_field_names, since we want to
             # apply "only" for the actual calculation.
-            field_names = field_names - exclude_field_names
-
-            invalid_fields |= exclude_field_names - available_field_names
+            field_names = field_names - self.exclude
+            invalid_fields |= self.exclude - available_field_names
 
         if invalid_fields:
             message = 'Invalid fields for {}: {}.'.format(self, invalid_fields)
