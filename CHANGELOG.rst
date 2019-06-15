@@ -6,6 +6,10 @@ Changelog
 
 Features:
 
+- Propagate ``only`` and ``exclude`` parameters to ``Nested`` fields
+  within ``List`` and ``Dict`` (:issue:`779`, :issue:`946`).
+- Use ``email.utils.parsedate_to_datetime`` instead of conditionally
+  using dateutil for parsing RFC dates (:pr:`1246`).
 - Improve error messages for ``validate.Range``.
 
 3.0.0rc7 (2019-06-15)
