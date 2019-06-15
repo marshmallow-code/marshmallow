@@ -12,6 +12,12 @@ Features:
   using dateutil for parsing RFC dates (:pr:`1246`).
 - Improve error messages for ``validate.Range``.
 
+Other changes:
+
+- *Backwards-incompatible*: Rename ``fields.List.container`` to ``fields.List.inner``,
+  ``fields.Dict.key_container`` to ``fields.Dict.key_field``, and
+  ``fields.Dict.value_container`` to ``fields.Dict.value_field``.
+
 3.0.0rc7 (2019-06-15)
 +++++++++++++++++++++
 
