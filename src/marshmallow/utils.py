@@ -5,9 +5,8 @@ import datetime
 import inspect
 import json
 import re
-from calendar import timegm
 from collections.abc import Mapping, Iterable
-from email.utils import formatdate, parsedate_to_datetime
+from email.utils import format_datetime, parsedate_to_datetime
 from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
@@ -142,22 +141,6 @@ class UTC(datetime.tzinfo):
 UTC = utc = UTC()  # UTC is a singleton
 
 
-def local_rfcformat(dt):
-    """Return the RFC822-formatted representation of a timezone-aware datetime
-    with the UTC offset.
-    """
-    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
-    month = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-        'Oct', 'Nov', 'Dec',
-    ][dt.month - 1]
-    tz_offset = dt.strftime('%z')
-    return '%s, %02d %s %04d %02d:%02d:%02d %s' % (
-        weekday, dt.day, month,
-        dt.year, dt.hour, dt.minute, dt.second, tz_offset,
-    )
-
-
 def rfcformat(dt, *, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
 
@@ -166,10 +149,12 @@ def rfcformat(dt, *, localtime=False):
         timezone instead of UTC, displaying the proper offset,
         e.g. "Sun, 10 Nov 2013 08:23:45 -0600"
     """
-    if not localtime:
-        return formatdate(timegm(dt.utctimetuple()))
-    else:
-        return local_rfcformat(dt)
+    if localtime and dt.tzinfo is None:
+        dt = UTC.localize(dt)
+    if not localtime and dt.tzinfo is not None:
+        # Remove timezone to format as "-0000" rather than "+0000"
+        dt = dt.astimezone(UTC).replace(tzinfo=None)
+    return format_datetime(dt)
 
 
 # From Django
