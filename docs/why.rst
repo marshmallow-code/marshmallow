@@ -35,18 +35,20 @@ As an example, you might have a JSON endpoint for retrieving all information abo
         _id = fields.UUID(required=True)
         players = fields.Nested(PlayerSchema, many=True)
         score = fields.Nested(ScoreSchema)
-        last_changed = fields.DateTime(format='rfc')
+        last_changed = fields.DateTime(format="rfc")
 
         class Meta:
-            additional = ('title', 'date_created', 'type', 'is_active')
+            additional = ("title", "date_created", "type", "is_active")
+
 
     # Serializes full game state
     full_serializer = GameStateSchema()
     # Serializes a subset of information, for a low-latency endpoint
-    summary_serializer = GameStateSchema(only=('_id', 'last_changed'))
+    summary_serializer = GameStateSchema(only=("_id", "last_changed"))
     # Also filter the fields when serializing multiple games
-    gamelist_serializer = GameStateSchema(many=True,
-                                          only=('_id', 'players', 'last_changed'))
+    gamelist_serializer = GameStateSchema(
+        many=True, only=("_id", "players", "last_changed")
+    )
 
 In this example, a single schema produced three different outputs! The dynamic nature of a :class:`Schema` leads to **less code** and **more consistent formatting**.
 
@@ -65,19 +67,20 @@ Here's a simple example that shows how a `Schema <marshmallow.Schema>` can anony
 
     class PersonSchema(Schema):
         id = fields.Integer()
-        name = fields.Method('get_name')
+        name = fields.Method("get_name")
 
         def get_name(self, person, context):
-            if context.get('anonymize'):
-                return '<anonymized>'
+            if context.get("anonymize"):
+                return "<anonymized>"
             return person.name
 
-    person = Person(name='Monty')
+
+    person = Person(name="Monty")
     schema = PersonSchema()
     schema.dump(person)  # {'id': 143, 'name': 'Monty'}
 
     # In a different context, anonymize the name
-    schema.context['anonymize'] = True
+    schema.context["anonymize"] = True
     schema.dump(person)  # {'id': 143, 'name': '<anonymized>'}
 
 

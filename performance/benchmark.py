@@ -17,7 +17,7 @@ from marshmallow import Schema, fields, ValidationError, post_dump
 # Custom validator
 def must_not_be_blank(data):
     if not data:
-        raise ValidationError('Data not provided.')
+        raise ValidationError("Data not provided.")
 
 
 class AuthorSchema(Schema):
@@ -27,13 +27,13 @@ class AuthorSchema(Schema):
     book_count = fields.Float()
     age = fields.Float()
     address = fields.Str()
-    full_name = fields.Method('full_name')
+    full_name = fields.Method("full_name")
 
     def full_name(self, obj):
-        return obj.first + ' ' + obj.last
+        return obj.first + " " + obj.last
 
     def format_name(self, author):
-        return '{}, {}'.format(author.last, author.first)
+        return "{}, {}".format(author.last, author.first)
 
 
 class QuoteSchema(Schema):
@@ -48,7 +48,9 @@ class QuoteSchema(Schema):
 
     @post_dump
     def add_full_name(self, data, **kwargs):
-        data['author_full'] = '{}, {}'.format(data['author']['last'], data['author']['first'])
+        data["author_full"] = "{}, {}".format(
+            data["author"]["last"], data["author"]["first"]
+        )
 
 
 class Author:
@@ -63,8 +65,15 @@ class Author:
 
 class Quote:
     def __init__(
-        self, id, author, content, posted_at, book_name, page_number,
-        line_number, col_number,
+        self,
+        id,
+        author,
+        content,
+        posted_at,
+        book_name,
+        page_number,
+        line_number,
+        col_number,
     ):
         self.id = id
         self.author = author
@@ -86,37 +95,41 @@ def run_timeit(quotes, iterations, repeat, profile=False):
     best = min(
         timeit.repeat(
             lambda: quotes_schema.dump(quotes),
-            'gc.enable()',
+            "gc.enable()",
             number=iterations,
             repeat=repeat,
-        ),
+        )
     )
     if profile:
         profile.disable()
-        profile.dump_stats('marshmallow.pprof')
+        profile.dump_stats("marshmallow.pprof")
 
     usec = best * 1e6 / iterations
     return usec
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Runs a benchmark of Marshmallow.')
+    parser = argparse.ArgumentParser(description="Runs a benchmark of Marshmallow.")
     parser.add_argument(
-        '--iterations', type=int, default=1000,
-        help='Number of iterations to run per test.',
+        "--iterations",
+        type=int,
+        default=1000,
+        help="Number of iterations to run per test.",
     )
     parser.add_argument(
-        '--repeat', type=int, default=5,
-        help='Number of times to repeat the performance test.  The minimum will '
-             'be used.',
+        "--repeat",
+        type=int,
+        default=5,
+        help="Number of times to repeat the performance test.  The minimum will "
+        "be used.",
     )
     parser.add_argument(
-        '--object-count', type=int, default=20,
-        help='Number of objects to dump.',
+        "--object-count", type=int, default=20, help="Number of objects to dump."
     )
     parser.add_argument(
-        '--profile', action='store_true',
-        help='Whether or not to profile Marshmallow while running the benchmark.',
+        "--profile",
+        action="store_true",
+        help="Whether or not to profile Marshmallow while running the benchmark.",
     )
     args = parser.parse_args()
 
@@ -125,17 +138,23 @@ def main():
     for i in range(args.object_count):
         quotes.append(
             Quote(
-                i, Author(i, 'Foo', 'Bar', 42, 66, '123 Fake St'),
-                'Hello World', time.time(), 'The World', 34, 3, 70,
-            ),
+                i,
+                Author(i, "Foo", "Bar", 42, 66, "123 Fake St"),
+                "Hello World",
+                time.time(),
+                "The World",
+                34,
+                3,
+                70,
+            )
         )
 
     print(
-        'Benchmark Result: {:.2f} usec/dump'.format(
-            run_timeit(quotes, args.iterations, args.repeat, profile=args.profile),
-        ),
+        "Benchmark Result: {:.2f} usec/dump".format(
+            run_timeit(quotes, args.iterations, args.repeat, profile=args.profile)
+        )
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
