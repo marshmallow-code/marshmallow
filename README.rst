@@ -13,6 +13,11 @@ marshmallow: simplified object serialization
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
+   
+.. image:: https://badgen.net/badge/code%20style/black/000
+    :target: https://github.com/ambv/black
+    :alt: code style: black
+
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
