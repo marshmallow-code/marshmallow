@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.19.4 (2019-06-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Microseconds no longer gets lost when deserializing datetimes without dateutil
+  installed (:issue:`1147`).
+
 2.19.3 (2019-06-15)
 +++++++++++++++++++
 
