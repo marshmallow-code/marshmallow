@@ -9,7 +9,7 @@ import pytz
 from marshmallow import Schema, fields, post_load, validate, missing
 from marshmallow.exceptions import ValidationError
 
-central = pytz.timezone('US/Central')
+central = pytz.timezone("US/Central")
 
 
 ALL_FIELDS = [
@@ -31,6 +31,7 @@ ALL_FIELDS = [
 ]
 
 ##### Custom asserts #####
+
 
 def assert_almost_equal(a, b, precision=5):
     assert round(a, precision) == round(b, precision)
@@ -61,12 +62,22 @@ def assert_time_equal(t1, t2):
 
 
 class User:
-    SPECIES = 'Homo sapiens'
+    SPECIES = "Homo sapiens"
 
     def __init__(
-        self, name, age=0, id_=None, homepage=None, email=None,
-        registered=True, time_registered=None, birthdate=None,
-        balance=100, sex='male', employer=None, various_data=None,
+        self,
+        name,
+        age=0,
+        id_=None,
+        homepage=None,
+        email=None,
+        registered=True,
+        time_registered=None,
+        birthdate=None,
+        balance=100,
+        sex="male",
+        employer=None,
+        various_data=None,
     ):
         self.name = name
         self.age = age
@@ -74,15 +85,15 @@ class User:
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
         self.updated = central.localize(
-            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False,
+            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False
         )
         self.id = id_
         self.homepage = homepage
         self.email = email
         self.balance = balance
         self.registered = True
-        self.hair_colors = ['black', 'brown', 'blond', 'redhead']
-        self.sex_choices = ('male', 'female')
+        self.hair_colors = ["black", "brown", "blond", "redhead"]
+        self.sex_choices = ("male", "female")
         self.finger_count = 10
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
@@ -92,9 +103,8 @@ class User:
         self.employer = employer
         self.relatives = []
         self.various_data = various_data or {
-            'pets': ['cat', 'dog'],
-            'address': '1600 Pennsylvania Ave\n'
-                       'Washington, DC 20006',
+            "pets": ["cat", "dog"],
+            "address": "1600 Pennsylvania Ave\n" "Washington, DC 20006",
         }
 
     @property
@@ -102,7 +112,7 @@ class User:
         return dt.datetime(2013, 11, 24) - self.created
 
     def __repr__(self):
-        return '<User {}>'.format(self.name)
+        return "<User {}>".format(self.name)
 
 
 class Blog:
@@ -125,9 +135,11 @@ class DummyModel:
         return self.foo == other.foo
 
     def __str__(self):
-        return 'bar {}'.format(self.foo)
+        return "bar {}".format(self.foo)
+
 
 ###### Schemas #####
+
 
 class Uppercased(fields.Field):
     """Custom field formatting example."""
@@ -141,7 +153,7 @@ def get_lowername(obj):
     if obj is None:
         return missing
     if isinstance(obj, dict):
-        return obj.get('name').lower()
+        return obj.get("name").lower()
     else:
         return obj.name.lower()
 
@@ -150,17 +162,19 @@ class UserSchema(Schema):
     name = fields.String()
     age = fields.Float()
     created = fields.DateTime()
-    created_formatted = fields.DateTime(format='%Y-%m-%d', attribute='created', dump_only=True)
-    created_iso = fields.DateTime(format='iso', attribute='created', dump_only=True)
+    created_formatted = fields.DateTime(
+        format="%Y-%m-%d", attribute="created", dump_only=True
+    )
+    created_iso = fields.DateTime(format="iso", attribute="created", dump_only=True)
     updated = fields.DateTime()
-    updated_local = fields.LocalDateTime(attribute='updated', dump_only=True)
-    species = fields.String(attribute='SPECIES')
-    id = fields.String(default='no-id')
-    uppername = Uppercased(attribute='name', dump_only=True)
+    updated_local = fields.LocalDateTime(attribute="updated", dump_only=True)
+    species = fields.String(attribute="SPECIES")
+    id = fields.String(default="no-id")
+    uppername = Uppercased(attribute="name", dump_only=True)
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Decimal()
-    is_old = fields.Method('get_is_old')
+    is_old = fields.Method("get_is_old")
     lowername = fields.Function(get_lowername)
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)
@@ -171,7 +185,7 @@ class UserSchema(Schema):
     birthdate = fields.Date()
     activation_date = fields.Date()
     since_created = fields.TimeDelta()
-    sex = fields.Str(validate=validate.OneOf(['male', 'female']))
+    sex = fields.Str(validate=validate.OneOf(["male", "female"]))
     various_data = fields.Dict()
 
     class Meta:
@@ -181,7 +195,7 @@ class UserSchema(Schema):
         if obj is None:
             return missing
         if isinstance(obj, dict):
-            age = obj.get('age')
+            age = obj.get("age")
         else:
             age = obj.age
         try:
@@ -193,14 +207,16 @@ class UserSchema(Schema):
     def make_user(self, data, **kwargs):
         return User(**data)
 
+
 class UserMetaSchema(Schema):
     """The equivalent of the UserSchema, using the ``fields`` option."""
-    uppername = Uppercased(attribute='name', dump_only=True)
+
+    uppername = Uppercased(attribute="name", dump_only=True)
     balance = fields.Decimal()
-    is_old = fields.Method('get_is_old')
+    is_old = fields.Method("get_is_old")
     lowername = fields.Function(get_lowername)
-    updated_local = fields.LocalDateTime(attribute='updated', dump_only=True)
-    species = fields.String(attribute='SPECIES')
+    updated_local = fields.LocalDateTime(attribute="updated", dump_only=True)
+    species = fields.String(attribute="SPECIES")
     homepage = fields.Url()
     email = fields.Email()
     various_data = fields.Dict()
@@ -209,7 +225,7 @@ class UserMetaSchema(Schema):
         if obj is None:
             return missing
         if isinstance(obj, dict):
-            age = obj.get('age')
+            age = obj.get("age")
         else:
             age = obj.age
         try:
@@ -219,24 +235,41 @@ class UserMetaSchema(Schema):
 
     class Meta:
         fields = (
-            'name', 'age', 'created', 'updated', 'id', 'homepage',
-            'uppername', 'email', 'balance', 'is_old', 'lowername',
-            'updated_local', 'species', 'registered', 'hair_colors',
-            'sex_choices', 'finger_count', 'uid', 'time_registered',
-            'birthdate', 'since_created', 'various_data',
+            "name",
+            "age",
+            "created",
+            "updated",
+            "id",
+            "homepage",
+            "uppername",
+            "email",
+            "balance",
+            "is_old",
+            "lowername",
+            "updated_local",
+            "species",
+            "registered",
+            "hair_colors",
+            "sex_choices",
+            "finger_count",
+            "uid",
+            "time_registered",
+            "birthdate",
+            "since_created",
+            "various_data",
         )
 
 
 class UserExcludeSchema(UserSchema):
     class Meta:
-        exclude = ('created', 'updated',)
+        exclude = ("created", "updated")
 
 
 class UserAdditionalSchema(Schema):
     lowername = fields.Function(lambda obj: obj.name.lower())
 
     class Meta:
-        additional = ('name', 'age', 'created', 'email')
+        additional = ("name", "age", "created", "email")
 
 
 class UserIntSchema(UserSchema):
@@ -270,33 +303,33 @@ class BlogUserMetaSchema(Schema):
 
 class BlogSchemaMeta(Schema):
     """Same as BlogSerializer but using ``fields`` options."""
+
     user = fields.Nested(UserSchema)
     collaborators = fields.Nested(UserSchema, many=True)
 
     class Meta:
-        fields = ('title', 'user', 'collaborators', 'categories', 'id')
+        fields = ("title", "user", "collaborators", "categories", "id")
 
 
 class BlogOnlySchema(Schema):
     title = fields.String()
     user = fields.Nested(UserSchema)
-    collaborators = fields.Nested(UserSchema, only=('id', ), many=True)
+    collaborators = fields.Nested(UserSchema, only=("id",), many=True)
 
 
 class BlogSchemaExclude(BlogSchema):
-    user = fields.Nested(UserSchema, exclude=('uppername', 'species'))
+    user = fields.Nested(UserSchema, exclude=("uppername", "species"))
 
 
 class BlogSchemaOnlyExclude(BlogSchema):
-    user = fields.Nested(UserSchema, only=('name', ), exclude=('name', 'species'))
+    user = fields.Nested(UserSchema, only=("name",), exclude=("name", "species"))
 
 
 class mockjson:  # noqa
-
     @staticmethod
     def dumps(val):
-        return "{'foo': 42}".encode('utf-8')
+        return "{'foo': 42}".encode("utf-8")
 
     @staticmethod
     def loads(val):
-        return {'foo': 42}
+        return {"foo": 42}

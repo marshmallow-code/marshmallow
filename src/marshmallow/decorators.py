@@ -50,12 +50,12 @@ Example: ::
 import functools
 
 
-PRE_DUMP = 'pre_dump'
-POST_DUMP = 'post_dump'
-PRE_LOAD = 'pre_load'
-POST_LOAD = 'post_load'
-VALIDATES = 'validates'
-VALIDATES_SCHEMA = 'validates_schema'
+PRE_DUMP = "pre_dump"
+POST_DUMP = "post_dump"
+PRE_LOAD = "pre_load"
+POST_LOAD = "post_load"
+VALIDATES = "validates"
+VALIDATES_SCHEMA = "validates_schema"
 
 
 def validates(field_name):
@@ -67,10 +67,7 @@ def validates(field_name):
 
 
 def validates_schema(
-    fn=None,
-    pass_many=False,
-    pass_original=False,
-    skip_on_field_errors=True,
+    fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True
 ):
     """Register a schema-level validator.
 
