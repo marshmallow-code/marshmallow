@@ -66,11 +66,11 @@ def get_class(classname, all=False):
     """
     try:
         classes = _registry[classname]
-    except KeyError:
+    except KeyError as exc:
         raise RegistryError(
             "Class with name {!r} was not found. You may need "
             "to import the class.".format(classname)
-        )
+        ) from exc
     if len(classes) > 1:
         if all:
             return _registry[classname]

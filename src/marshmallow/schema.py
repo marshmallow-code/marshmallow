@@ -1022,7 +1022,7 @@ class BaseSchema(base.SchemaABC):
                 field_obj.dump_only = True
             field_obj._bind_to_schema(field_name, self)
             self.on_bind_field(field_name, field_obj)
-        except TypeError:
+        except TypeError as exc:
             # field declared as a class, not an instance
             if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
                 msg = (
@@ -1030,7 +1030,7 @@ class BaseSchema(base.SchemaABC):
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
                 )
-                raise TypeError(msg)
+                raise TypeError(msg) from exc
 
     def _has_processors(self, tag):
         return self._hooks[(tag, True)] or self._hooks[(tag, False)]
@@ -1076,10 +1076,12 @@ class BaseSchema(base.SchemaABC):
 
             try:
                 field_obj = self.fields[field_name]
-            except KeyError:
+            except KeyError as exc:
                 if field_name in self.declared_fields:
                     continue
-                raise ValueError('"{}" field does not exist.'.format(field_name))
+                raise ValueError(
+                    '"{}" field does not exist.'.format(field_name)
+                ) from exc
 
             if many:
                 for idx, item in enumerate(data):

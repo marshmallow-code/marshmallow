@@ -460,8 +460,8 @@ class OneOf(Validator):
         try:
             if value not in self.choices:
                 raise ValidationError(self._format_error(value))
-        except TypeError:
-            raise ValidationError(self._format_error(value))
+        except TypeError as exc:
+            raise ValidationError(self._format_error(value)) from exc
 
         return value
 

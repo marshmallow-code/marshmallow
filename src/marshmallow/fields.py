@@ -239,10 +239,10 @@ class Field(FieldABC):
         """
         try:
             msg = self.error_messages[key]
-        except KeyError:
+        except KeyError as exc:
             class_name = self.__class__.__name__
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
-            raise AssertionError(msg)
+            raise AssertionError(msg) from exc
         if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
         raise ValidationError(msg)
@@ -483,7 +483,7 @@ class Nested(Field):
         try:
             return schema.dump(nested_obj, many=self.many)
         except ValidationError as exc:
-            raise ValidationError(exc.messages, valid_data=exc.valid_data)
+            raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
 
     def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
@@ -493,7 +493,7 @@ class Nested(Field):
         try:
             valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
         except ValidationError as exc:
-            raise ValidationError(exc.messages, valid_data=exc.valid_data)
+            raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
         return valid_data
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
@@ -573,11 +573,11 @@ class List(Field):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
-        except FieldInstanceResolutionError:
+        except FieldInstanceResolutionError as exc:
             raise ValueError(
                 "The list elements must be a subclass or instance of "
                 "marshmallow.base.FieldABC."
-            )
+            ) from exc
         if isinstance(self.inner, Nested):
             self.only = self.inner.only
             self.exclude = self.inner.exclude
@@ -650,11 +650,11 @@ class Tuple(Field):
                 resolve_field_instance(cls_or_instance)
                 for cls_or_instance in tuple_fields
             ]
-        except FieldInstanceResolutionError:
+        except FieldInstanceResolutionError as exc:
             raise ValueError(
                 'Elements of "tuple_fields" must be subclasses or '
                 "instances of marshmallow.base.FieldABC."
-            )
+            ) from exc
 
         self.validate_length = Length(equal=len(self.tuple_fields))
 
@@ -1099,13 +1099,13 @@ class DateTime(Field):
         if func:
             try:
                 return func(value)
-            except (TypeError, AttributeError, ValueError):
-                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE)
+            except (TypeError, AttributeError, ValueError) as exc:
+                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE) from exc
         else:
             try:
                 return self._make_object_from_format(value, data_format)
-            except (TypeError, AttributeError, ValueError):
-                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE)
+            except (TypeError, AttributeError, ValueError) as exc:
+                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE) from exc
 
     @staticmethod
     def _make_object_from_format(value, data_format):
@@ -1279,22 +1279,22 @@ class Mapping(Field):
         else:
             try:
                 self.key_field = resolve_field_instance(keys)
-            except FieldInstanceResolutionError:
+            except FieldInstanceResolutionError as exc:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
                     "marshmallow.base.FieldABC."
-                )
+                ) from exc
 
         if values is None:
             self.value_field = None
         else:
             try:
                 self.value_field = resolve_field_instance(values)
-            except FieldInstanceResolutionError:
+            except FieldInstanceResolutionError as exc:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
                     "marshmallow.base.FieldABC."
-                )
+                ) from exc
             if isinstance(self.value_field, Nested):
                 self.only = self.value_field.only
                 self.exclude = self.value_field.exclude
