@@ -12,6 +12,10 @@ Features:
   using dateutil for parsing RFC dates (:pr:`1246`).
 - Improve error messages for ``validate.Range``.
 
+Bug fixes:
+
+- Includes bug fix from 2.19.4.
+
 Other changes:
 
 - *Backwards-incompatible*: Rename ``fields.List.container`` to ``fields.List.inner``,
@@ -523,6 +527,14 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.19.4 (2019-06-16)
++++++++++++++++++++
+
+Bug fixes:
+
+- Microseconds no longer gets lost when deserializing datetimes without dateutil
+  installed (:issue:`1147`).
 
 2.19.3 (2019-06-15)
 +++++++++++++++++++
