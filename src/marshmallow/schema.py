@@ -897,7 +897,9 @@ class BaseSchema(base.SchemaABC):
                     if not field_obj.attribute or '.' not in field_obj.attribute:
                         continue
                     try:
-                        value = functools.reduce(operator.getitem, field_obj.attribute.split('.'), data)
+                        value = functools.reduce(
+                            operator.getitem, field_obj.attribute.split('.'), data
+                        )
                     except KeyError:
                         continue
                 validated_value = unmarshal.call_and_store(
