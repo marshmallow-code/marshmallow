@@ -14,7 +14,7 @@ Features:
 
 Bug fixes:
 
-- Includes bug fix from 2.19.4.
+- Includes bug fixes from 2.19.4 and 2.19.5.
 
 Other changes:
 
@@ -527,6 +527,14 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.19.5 (2019-06-18)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix deserializing ISO8601-formatted datetimes with less than 6-digit
+  miroseconds (:issue:`1251`). Thanks :user:`diego-plan9` for reporting.
 
 2.19.4 (2019-06-16)
 +++++++++++++++++++

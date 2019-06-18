@@ -210,6 +210,9 @@ def from_iso_datetime(datetimestring, *, use_dateutil=True):
         # Strip off timezone info.
         if "." in datetimestring:
             # datetimestring contains microseconds
+            (dt_nomstz, mstz) = datetimestring.split(".")
+            ms_notz = mstz[: len(mstz) - len(mstz.lstrip("0123456789"))]
+            datetimestring = ".".join((dt_nomstz, ms_notz))
             return datetime.datetime.strptime(
                 datetimestring[:26], "%Y-%m-%dT%H:%M:%S.%f"
             )
