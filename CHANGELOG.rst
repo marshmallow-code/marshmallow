@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.19.5 (2019-06-18)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix deserializing ISO8601-formatted datetimes with less than 6-digit
+  miroseconds (:issue:`1251`). Thanks :user:`diego-plan9` for reporting.
+
 2.19.4 (2019-06-16)
 +++++++++++++++++++
 
