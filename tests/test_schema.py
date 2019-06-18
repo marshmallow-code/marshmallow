@@ -417,6 +417,42 @@ class TestValidate:
         assert 'foo' in errors
         assert 'required' in errors['foo'][0]
 
+    def test_validates_as_decorator_with_dotted_attribute(self):
+        class ValidatesSchema(Schema):
+            counter = fields.Int(attribute='my.age_counter')
+
+            @validates('counter')
+            def validate_counter(self, value):
+                if value < 20:
+                    raise ValidationError("Counter must be bigger than 20.")
+
+        schema = ValidatesSchema()
+
+        no_error = schema.validate({'counter': 30})
+        assert no_error == {}
+
+        error = schema.validate({'counter': 10})
+        assert 'counter' in error
+        assert "Counter must be bigger than 20." in error['counter']
+
+    def test_validate_as_function_with_dotted_attribute(self):
+        def validate_counter(value):
+            if value < 20:
+                raise ValidationError("Counter must be bigger than 20.")
+
+        class ValidatesSchema(Schema):
+            counter = fields.Int(attribute='my.age_counter', validate=validate_counter)
+
+        schema = ValidatesSchema()
+
+        no_error = schema.validate({'counter': 30})
+        assert no_error == {}
+
+        error = schema.validate({'counter': 10})
+        assert 'counter' in error
+        assert "Counter must be bigger than 20." in error['counter']
+
+
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
 def test_fields_are_not_copies(SchemaClass):

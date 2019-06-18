@@ -8,6 +8,7 @@ import datetime as dt
 import decimal
 import inspect
 import json
+import operator
 import uuid
 import warnings
 import functools
@@ -893,16 +894,20 @@ class BaseSchema(base.SchemaABC):
                 try:
                     value = data[field_obj.attribute or field_name]
                 except KeyError:
-                    pass
-                else:
-                    validated_value = unmarshal.call_and_store(
-                        getter_func=validator,
-                        data=value,
-                        field_name=field_obj.load_from or field_name,
-                        field_obj=field_obj
-                    )
-                    if validated_value is missing:
-                        data.pop(field_name, None)
+                    if not field_obj.attribute or '.' not in field_obj.attribute:
+                        continue
+                    try:
+                        value = functools.reduce(operator.getitem, field_obj.attribute.split('.'), data)
+                    except KeyError:
+                        continue
+                validated_value = unmarshal.call_and_store(
+                    getter_func=validator,
+                    data=value,
+                    field_name=field_obj.load_from or field_name,
+                    field_obj=field_obj
+                )
+                if validated_value is missing:
+                    data.pop(field_name, None)
 
     def _invoke_validators(
             self, unmarshal, pass_many, data, original_data, many, field_errors=False):
