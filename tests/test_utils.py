@@ -200,6 +200,15 @@ def test_from_iso_datetime(use_dateutil, timezone):
     assert type(result) == dt.datetime
     assert_datetime_equal(result, d)
 
+    # Test with 3-digit only microseconds
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
+    d = dt.datetime.now(tz=timezone).replace(microsecond=123000)
+    formatted = d.isoformat()
+    formatted = formatted[:23] + formatted[26:]
+    result = utils.from_iso(formatted, use_dateutil=use_dateutil)
+    assert type(result) == dt.datetime
+    assert_datetime_equal(result, d)
+
 def test_from_iso_with_tz():
     d = central.localize(dt.datetime.now())
     formatted = d.isoformat()
