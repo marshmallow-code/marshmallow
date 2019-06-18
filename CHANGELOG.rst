@@ -555,6 +555,9 @@ Bug fixes:
   multiple instantiations (:issue:`1212`). Thanks :user:`MHannila` for
   reporting.
 
+Other changes:
+- ``Schema.exclude`` is now a set (previously it was a list or tuple)
+
 2.19.2 (2019-03-30)
 +++++++++++++++++++
 
