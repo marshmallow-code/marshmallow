@@ -130,3 +130,4 @@ Contributors (chronological)
 - Hugo van Kemenade `@hugovk <https://github.com/hugovk>`_
 - Maciej Urbański `@rooterkyberian <https://github.com/rooterkyberian>`_
 - Kostas Konstantopoulos `@kdop <https://github.com/kdop>`_
+- Stephen J. Fuhry `@fuhrysteve <https://github.com/fuhrysteve>`_

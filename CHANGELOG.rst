@@ -11,6 +11,8 @@ Features:
 - Use ``email.utils.parsedate_to_datetime`` instead of conditionally
   using dateutil for parsing RFC dates (:pr:`1246`).
 - Improve error messages for ``validate.Range``.
+- Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
+  :user:`fuhrysteve`.
 
 Bug fixes:
 
