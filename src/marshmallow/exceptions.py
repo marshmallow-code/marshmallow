@@ -1,4 +1,5 @@
 """Exception classes for marshmallow-related errors."""
+import typing
 
 
 # Key used for schema-level validation errors
@@ -23,13 +24,20 @@ class ValidationError(MarshmallowError):
     """
 
     def __init__(
-        self, message, field_name=SCHEMA, data=None, valid_data=None, **kwargs
+        self,
+        message: typing.Union[str, typing.List, typing.Dict],
+        field_name: str = SCHEMA,
+        data: typing.Dict[str, typing.Any] = None,
+        valid_data: typing.Dict[str, typing.Any] = None,
+        **kwargs
     ):
-        self.messages = [message] if isinstance(message, (str, bytes)) else message
-        self.field_name = field_name
-        self.data = data
-        self.valid_data = valid_data
-        self.kwargs = kwargs
+        self.messages: typing.Union[typing.List, typing.Dict] = [message] if isinstance(
+            message, (str, bytes)
+        ) else message
+        self.field_name: str = field_name
+        self.data: typing.Dict[str, typing.Any] = data
+        self.valid_data: typing.Dict[str, typing.Any] = valid_data
+        self.kwargs: typing.Dict[str, typing.Any] = kwargs
         MarshmallowError.__init__(self, message)
 
     def normalized_messages(self):

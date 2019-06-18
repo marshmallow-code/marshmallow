@@ -16,13 +16,12 @@ EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
 
-dateutil_available = False
 try:
     from dateutil import parser
-
-    dateutil_available = True
 except ImportError:
     dateutil_available = False
+else:
+    dateutil_available = True
 
 
 class _Missing:

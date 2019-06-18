@@ -7,6 +7,7 @@ import numbers
 import uuid
 import decimal
 import math
+import typing
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
@@ -130,16 +131,16 @@ class Field(FieldABC):
     def __init__(
         self,
         *,
-        default=missing_,
-        attribute=None,
-        data_key=None,
-        validate=None,
-        required=False,
-        allow_none=None,
-        load_only=False,
-        dump_only=False,
-        missing=missing_,
-        error_messages=None,
+        default: typing.Any = missing_,
+        attribute: str = None,
+        data_key: str = None,
+        validate: typing.Callable = None,
+        required: bool = False,
+        allow_none: bool = None,
+        load_only: bool = False,
+        dump_only: bool = False,
+        missing: typing.Any = missing_,
+        error_messages: typing.Dict[str, str] = None,
         **metadata
     ):
         self.default = default
@@ -186,7 +187,7 @@ class Field(FieldABC):
         messages.update(error_messages or {})
         self.error_messages = messages
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             "<fields.{ClassName}(default={self.default!r}, "
             "attribute={self.attribute!r}, "
@@ -313,7 +314,7 @@ class Field(FieldABC):
         self.parent = self.parent or schema
         self.name = self.name or field_name
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
 
@@ -416,7 +417,13 @@ class Nested(Field):
     default_error_messages = {"type": "Invalid type."}
 
     def __init__(
-        self, nested, *, default=missing_, exclude=tuple(), only=None, **kwargs
+        self,
+        nested: SchemaABC,
+        *,
+        default: typing.Any = missing_,
+        exclude: typing.Union[typing.List, typing.Tuple] = tuple(),
+        only: typing.Union[typing.List, typing.Tuple] = None,
+        **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -466,7 +473,7 @@ class Nested(Field):
                 )
         return self.__schema
 
-    def _nested_normalized_option(self, option_name):
+    def _nested_normalized_option(self, option_name: str) -> typing.List[str]:
         nested_field = "%s." % self.name
         return [
             field.split(nested_field, 1)[1]
@@ -598,7 +605,7 @@ class List(Field):
             return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
         return [self.inner._serialize(value, attr, obj, **kwargs)]
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
             self.fail("invalid")
 

@@ -58,7 +58,7 @@ VALIDATES = "validates"
 VALIDATES_SCHEMA = "validates_schema"
 
 
-def validates(field_name):
+def validates(field_name: str):
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.

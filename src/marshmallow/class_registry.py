@@ -7,6 +7,7 @@ class:`fields.Nested <marshmallow.fields.Nested>`.
     This module is treated as private API.
     Users should not need to use this module directly.
 """
+import typing
 from marshmallow.exceptions import RegistryError
 
 # {
@@ -15,8 +16,11 @@ from marshmallow.exceptions import RegistryError
 # }
 _registry = {}
 
+if typing.TYPE_CHECKING:
+    from marshmallow import Schema
 
-def register(classname, cls):
+
+def register(classname: str, cls: "Schema") -> None:
     """Add a class to the registry of serializer classes. When a class is
     registered, an entry for both its classname and its full, module-qualified
     path are added to the registry.
@@ -58,7 +62,7 @@ def register(classname, cls):
     return None
 
 
-def get_class(classname, all=False):
+def get_class(classname: str, all: bool = False) -> "Schema":
     """Retrieve a class from the registry.
 
     :raises: marshmallow.exceptions.RegistryError if the class cannot be found
