@@ -191,7 +191,7 @@ def isoformat(dt, *args, localtime=False, **kwargs):
 def from_rfc(datestring):
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
-    https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime
+    https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime  # noqa: B950
     """
     return parsedate_to_datetime(datestring)
 

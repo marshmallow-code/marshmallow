@@ -104,8 +104,7 @@ class SchemaMeta(type):
         klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
-        # Use getattr rather than attrs['Meta'] so that we get inheritance for free
-        meta = getattr(klass, "Meta")
+        meta = klass.Meta
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
         klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
@@ -137,24 +136,23 @@ class SchemaMeta(type):
         """
         return dict_cls(inherited_fields + cls_fields)
 
-    # NOTE: self is the class object
-    def __init__(self, name, bases, attrs):
-        super().__init__(name, bases, attrs)
-        if name and self.opts.register:
-            class_registry.register(name, self)
-        self._hooks = self.resolve_hooks()
+    def __init__(cls, name, bases, attrs):
+        super().__init__(cls, bases, attrs)
+        if name and cls.opts.register:
+            class_registry.register(name, cls)
+        cls._hooks = cls.resolve_hooks()
 
-    def resolve_hooks(self):
+    def resolve_hooks(cls):
         """Add in the decorated processors
 
         By doing this after constructing the class, we let standard inheritance
         do all the hard work.
         """
-        mro = inspect.getmro(self)
+        mro = inspect.getmro(cls)
 
         hooks = defaultdict(list)
 
-        for attr_name in dir(self):
+        for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
             # bound to the class. This needs to come from the __dict__ of the
             # declaring class.
@@ -812,9 +810,9 @@ class BaseSchema(base.SchemaABC):
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to validate required fields. If its value is an iterable,
-            only fields listed in that iterable will be ignored will be allowed missing.
-            If `True`, all fields will be allowed missing.
+        :param bool|tuple partial: Whether to validate required fields. If its
+            value is an iterable, only fields listed in that iterable will be
+            ignored will be allowed missing. If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.

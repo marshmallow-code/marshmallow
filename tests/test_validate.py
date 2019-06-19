@@ -292,13 +292,13 @@ def test_range_repr():
                 min=None, max=None, error=None, min_inclusive=True, max_inclusive=True
             )
         )
-        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"
+        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"  # noqa: B950
     )
     assert repr(
         validate.Range(
             min=1, max=3, error="foo", min_inclusive=False, max_inclusive=False
         )
-    ) == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(
+    ) == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(  # noqa: B950
         "foo"
     )
 

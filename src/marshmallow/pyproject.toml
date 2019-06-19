@@ -1,2 +1,4 @@
 [tool.black]
-target-version = ['py35', 'py36', 'py37']
+line-length = 88
+# Uncomment when https://github.com/python/black/pull/763 is released
+# target-version = ['py35', 'py36', 'py37']

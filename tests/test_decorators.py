@@ -248,7 +248,7 @@ def test_pre_dump_is_invoked_before_implicit_field_generation():
         field = fields.Integer()
 
         @pre_dump
-        def hook(s, data, **kwargs):
+        def hook(self, data, **kwargs):
             data["generated_field"] = 7
             return data
 

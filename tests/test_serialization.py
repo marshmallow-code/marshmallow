@@ -717,9 +717,9 @@ class TestFieldSerialization:
         with pytest.raises(ValidationError):
             field.serialize("dtimes", obj)
 
-    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(
+    def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(  # noqa: B950
         self
-    ):  # noqa
+    ):
         def custom_generator():
             yield
             yield
