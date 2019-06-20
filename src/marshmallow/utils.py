@@ -136,6 +136,14 @@ class UTC(datetime.tzinfo):
 UTC = utc = UTC()  # UTC is a singleton
 
 
+def from_rfc(datestring):
+    """Parse a RFC822-formatted datetime string and return a datetime object.
+
+    https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime  # noqa: B950
+    """
+    return parsedate_to_datetime(datestring)
+
+
 def rfcformat(dt, *, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
 
@@ -152,7 +160,8 @@ def rfcformat(dt, *, localtime=False):
     return format_datetime(dt)
 
 
-# From Django
+# Hat tip to Django for ISO8601 deserialization functions
+
 _iso8601_datetime_re = re.compile(
     r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})"
     r"[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
@@ -168,27 +177,6 @@ _iso8601_time_re = re.compile(
 )
 
 
-def isoformat(dt, *args, localtime=False, **kwargs):
-    """Return the ISO8601-formatted UTC representation of a datetime object."""
-    if localtime and dt.tzinfo is not None:
-        localized = dt
-    else:
-        if dt.tzinfo is None:
-            localized = UTC.localize(dt)
-        else:
-            localized = dt.astimezone(UTC)
-    return localized.isoformat(*args, **kwargs)
-
-
-def from_rfc(datestring):
-    """Parse a RFC822-formatted datetime string and return a datetime object.
-
-    https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime  # noqa: B950
-    """
-    return parsedate_to_datetime(datestring)
-
-
-# From Django
 def get_fixed_timezone(offset):
     """Return a tzinfo instance with a fixed offset from UTC."""
     if isinstance(offset, datetime.timedelta):
@@ -204,9 +192,6 @@ def from_iso_datetime(value):
 
     This function supports time zone offsets. When the input contains one,
     the output uses a timezone with a fixed offset from UTC.
-
-    Raise ValueError if the input is well formatted but not a valid datetime.
-    Return None if the input isn't well formatted.
     """
     match = _iso8601_datetime_re.match(value)
     if not match:
@@ -231,10 +216,6 @@ def from_iso_time(value):
     """Parse a string and return a datetime.time.
 
     This function doesn't support time zone offsets.
-
-    Raise ValueError if the input is well formatted but not a valid time.
-    Return None if the input isn't well formatted, in particular if it
-    contains an offset.
     """
     match = _iso8601_time_re.match(value)
     if not match:
@@ -246,16 +227,24 @@ def from_iso_time(value):
 
 
 def from_iso_date(value):
-    """Parse a string and return a datetime.date.
-
-    Raise ValueError if the input is well formatted but not a valid date.
-    Return None if the input isn't well formatted.
-    """
+    """Parse a string and return a datetime.date."""
     match = _iso8601_date_re.match(value)
     if not match:
         raise ValueError("Not a valid ISO8601-formatted date string")
     kw = {k: int(v) for k, v in match.groupdict().items()}
     return datetime.date(**kw)
+
+
+def isoformat(dt, *args, localtime=False, **kwargs):
+    """Return the ISO8601-formatted UTC representation of a datetime object."""
+    if localtime and dt.tzinfo is not None:
+        localized = dt
+    else:
+        if dt.tzinfo is None:
+            localized = UTC.localize(dt)
+        else:
+            localized = dt.astimezone(UTC)
+    return localized.isoformat(*args, **kwargs)
 
 
 def to_iso_date(date, *args, **kwargs):
