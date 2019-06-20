@@ -16,14 +16,6 @@ EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
 
-dateutil_available = False
-try:
-    from dateutil import parser
-
-    dateutil_available = True
-except ImportError:
-    dateutil_available = False
-
 
 class _Missing:
     def __bool__(self):
@@ -196,52 +188,74 @@ def from_rfc(datestring):
     return parsedate_to_datetime(datestring)
 
 
-def from_iso_datetime(datetimestring, *, use_dateutil=True):
-    """Parse an ISO8601-formatted datetime string and return a datetime object.
+# From Django
+def get_fixed_timezone(offset):
+    """Return a tzinfo instance with a fixed offset from UTC."""
+    if isinstance(offset, datetime.timedelta):
+        offset = offset.total_seconds() // 60
+    sign = "-" if offset < 0 else "+"
+    hhmm = "%02d%02d" % divmod(abs(offset), 60)
+    name = sign + hhmm
+    return datetime.timezone(datetime.timedelta(minutes=offset), name)
 
-    Use dateutil's parser if possible and return a timezone-aware datetime.
+
+def from_iso_datetime(value, **kwargs):
+    """Parse a string and return a datetime.datetime.
+
+    This function supports time zone offsets. When the input contains one,
+    the output uses a timezone with a fixed offset from UTC.
+
+    Raise ValueError if the input is well formatted but not a valid datetime.
+    Return None if the input isn't well formatted.
     """
-    if not _iso8601_datetime_re.match(datetimestring):
+    match = _iso8601_datetime_re.match(value)
+    if not match:
         raise ValueError("Not a valid ISO8601-formatted datetime string")
-    # Use dateutil's parser if possible
-    if dateutil_available and use_dateutil:
-        return parser.isoparse(datetimestring)
-    else:
-        # Strip off timezone info.
-        if "." in datetimestring:
-            # datetimestring contains microseconds
-            (dt_nomstz, mstz) = datetimestring.split(".")
-            ms_notz = mstz[: len(mstz) - len(mstz.lstrip("0123456789"))]
-            datetimestring = ".".join((dt_nomstz, ms_notz))
-            return datetime.datetime.strptime(
-                datetimestring[:26], "%Y-%m-%dT%H:%M:%S.%f"
-            )
-        return datetime.datetime.strptime(datetimestring[:19], "%Y-%m-%dT%H:%M:%S")
+    kw = match.groupdict()
+    kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
+    tzinfo = kw.pop("tzinfo")
+    if tzinfo == "Z":
+        tzinfo = utc
+    elif tzinfo is not None:
+        offset_mins = int(tzinfo[-2:]) if len(tzinfo) > 3 else 0
+        offset = 60 * int(tzinfo[1:3]) + offset_mins
+        if tzinfo[0] == "-":
+            offset = -offset
+        tzinfo = get_fixed_timezone(offset)
+    kw = {k: int(v) for k, v in kw.items() if v is not None}
+    kw["tzinfo"] = tzinfo
+    return datetime.datetime(**kw)
 
 
-def from_iso_time(timestring, *, use_dateutil=True):
-    """Parse an ISO8601-formatted datetime string and return a datetime.time
-    object.
+def from_iso_time(value, **kwargs):
+    """Parse a string and return a datetime.time.
+
+    This function doesn't support time zone offsets.
+
+    Raise ValueError if the input is well formatted but not a valid time.
+    Return None if the input isn't well formatted, in particular if it
+    contains an offset.
     """
-    if not _iso8601_time_re.match(timestring):
+    match = _iso8601_time_re.match(value)
+    if not match:
         raise ValueError("Not a valid ISO8601-formatted time string")
-    if dateutil_available and use_dateutil:
-        return parser.parse(timestring).time()
-    else:
-        if len(timestring) > 8:  # has microseconds
-            fmt = "%H:%M:%S.%f"
-        else:
-            fmt = "%H:%M:%S"
-        return datetime.datetime.strptime(timestring, fmt).time()
+    kw = match.groupdict()
+    kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
+    kw = {k: int(v) for k, v in kw.items() if v is not None}
+    return datetime.time(**kw)
 
 
-def from_iso_date(datestring, *, use_dateutil=True):
-    if not _iso8601_date_re.match(datestring):
+def from_iso_date(value, **kwargs):
+    """Parse a string and return a datetime.date.
+
+    Raise ValueError if the input is well formatted but not a valid date.
+    Return None if the input isn't well formatted.
+    """
+    match = _iso8601_date_re.match(value)
+    if not match:
         raise ValueError("Not a valid ISO8601-formatted date string")
-    if dateutil_available and use_dateutil:
-        return parser.isoparse(datestring).date()
-    else:
-        return datetime.datetime.strptime(datestring[:10], "%Y-%m-%d").date()
+    kw = {k: int(v) for k, v in match.groupdict().items()}
+    return datetime.date(**kw)
 
 
 def to_iso_date(date, *args, **kwargs):
