@@ -199,7 +199,7 @@ def get_fixed_timezone(offset):
     return datetime.timezone(datetime.timedelta(minutes=offset), name)
 
 
-def from_iso_datetime(value, **kwargs):
+def from_iso_datetime(value):
     """Parse a string and return a datetime.datetime.
 
     This function supports time zone offsets. When the input contains one,
@@ -227,7 +227,7 @@ def from_iso_datetime(value, **kwargs):
     return datetime.datetime(**kw)
 
 
-def from_iso_time(value, **kwargs):
+def from_iso_time(value):
     """Parse a string and return a datetime.time.
 
     This function doesn't support time zone offsets.
@@ -245,7 +245,7 @@ def from_iso_time(value, **kwargs):
     return datetime.time(**kw)
 
 
-def from_iso_date(value, **kwargs):
+def from_iso_date(value):
     """Parse a string and return a datetime.date.
 
     Raise ValueError if the input is well formatted but not a valid date.

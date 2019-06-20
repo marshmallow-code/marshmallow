@@ -72,9 +72,6 @@ Requirements
 
 - Python >= 3.5
 
-marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
-
-
 Ecosystem
 =========
 

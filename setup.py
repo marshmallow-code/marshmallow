@@ -3,7 +3,7 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "reco": ["python-dateutil>=2.7.0", "simplejson"],
+    "reco": ["simplejson"],
     "tests": ["pytest", "pytz"],
     "lint": ["flake8==3.7.7", "flake8-bugbear==19.3.0", "pre-commit==1.17.0"],
 }
