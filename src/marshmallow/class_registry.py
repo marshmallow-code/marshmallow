@@ -10,14 +10,14 @@ class:`fields.Nested <marshmallow.fields.Nested>`.
 import typing
 from marshmallow.exceptions import RegistryError
 
+if typing.TYPE_CHECKING:
+    from marshmallow import Schema
+
 # {
 #   <class_name>: <list of class objects>
 #   <module_path_to_class>: <list of class objects>
 # }
-_registry = {}
-
-if typing.TYPE_CHECKING:
-    from marshmallow import Schema
+_registry: typing.Dict[str, typing.List["Schema"]] = {}
 
 
 def register(classname: str, cls: "Schema") -> None:
@@ -62,7 +62,9 @@ def register(classname: str, cls: "Schema") -> None:
     return None
 
 
-def get_class(classname: str, all: bool = False) -> "Schema":
+def get_class(
+    classname: str, all: bool = False
+) -> typing.Union[typing.List["Schema"], "Schema"]:
     """Retrieve a class from the registry.
 
     :raises: marshmallow.exceptions.RegistryError if the class cannot be found

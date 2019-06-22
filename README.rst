@@ -70,7 +70,7 @@ Full documentation is available at https://marshmallow.readthedocs.io/ .
 Requirements
 ============
 
-- Python >= 3.5
+- Python >= 3.6
 
 marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
 

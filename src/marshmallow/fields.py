@@ -134,7 +134,7 @@ class Field(FieldABC):
         default: typing.Any = missing_,
         attribute: str = None,
         data_key: str = None,
-        validate: typing.Callable = None,
+        validate=None,
         required: bool = False,
         allow_none: bool = None,
         load_only: bool = False,
@@ -142,7 +142,7 @@ class Field(FieldABC):
         missing: typing.Any = missing_,
         error_messages: typing.Dict[str, str] = None,
         **metadata
-    ):
+    ) -> None:
         self.default = default
         self.attribute = attribute
         self.data_key = data_key
@@ -181,7 +181,7 @@ class Field(FieldABC):
         Field._creation_index += 1
 
         # Collect default error message from self and parent classes
-        messages = {}
+        messages: typing.Dict[str, str] = {}
         for cls in reversed(self.__class__.__mro__):
             messages.update(getattr(cls, "default_error_messages", {}))
         messages.update(error_messages or {})
@@ -759,14 +759,13 @@ class UUID(String):
         return self._validated(value)
 
 
-class Number(Field):
+class _BaseNumber(Field):
     """Base class for number fields.
 
     :param bool as_string: If True, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    num_type = float
     default_error_messages = {
         "invalid": "Not a valid number.",
         "too_large": "Number too large.",
@@ -810,7 +809,11 @@ class Number(Field):
         return self._validated(value)
 
 
-class Integer(Number):
+class Number(_BaseNumber):
+    num_type = float
+
+
+class Integer(_BaseNumber):
     """An integer field.
 
     :param kwargs: The same keyword arguments that :class:`Number` receives.
@@ -862,7 +865,7 @@ class Float(Number):
         return num
 
 
-class Decimal(Number):
+class Decimal(_BaseNumber):
     """A field that (de)serializes to the Python ``decimal.Decimal`` type.
     It's safe to use when dealing with money values, percentages, ratios
     or other numbers where precision is critical.

@@ -92,7 +92,7 @@ def pprint(obj, *args, **kwargs):
 ZERO = datetime.timedelta(0)
 
 
-class UTC(datetime.tzinfo):
+class _UTC(datetime.tzinfo):
     """UTC
 
     Optimized UTC implementation. It unpickles using the single module global
@@ -140,7 +140,7 @@ class UTC(datetime.tzinfo):
         return "UTC"
 
 
-UTC = utc = UTC()  # UTC is a singleton
+UTC = utc = _UTC()  # UTC is a singleton
 
 
 def rfcformat(dt, *, localtime=False):

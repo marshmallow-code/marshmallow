@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
     "reco": ["python-dateutil>=2.7.0", "simplejson"],
-    "tests": ["pytest", "pytz"],
+    "tests": ["pytest", "pytz", "mypy>=0.710"],
     "lint": ["flake8==3.7.7", "flake8-bugbear==19.3.0", "pre-commit==1.17.0"],
 }
 EXTRAS_REQUIRE["dev"] = (
@@ -63,13 +63,12 @@ setup(
         "validation",
         "schema",
     ],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],

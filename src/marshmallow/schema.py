@@ -7,6 +7,7 @@ import decimal
 import copy
 import inspect
 import json
+import typing
 import warnings
 
 from marshmallow import base, fields as ma_fields, class_registry
@@ -297,7 +298,7 @@ class BaseSchema(base.SchemaABC):
         decimal.Decimal: ma_fields.Decimal,
     }
     #: Overrides for default schema-level error messages
-    error_messages = {}
+    error_messages: typing.Dict[str, str] = {}
 
     _default_error_messages = {
         "type": "Invalid input type.",
