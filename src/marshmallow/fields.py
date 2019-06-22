@@ -421,8 +421,8 @@ class Nested(Field):
         nested: SchemaABC,
         *,
         default: typing.Any = missing_,
-        exclude: typing.Union[typing.List, typing.Tuple] = tuple(),
-        only: typing.Union[typing.List, typing.Tuple] = None,
+        exclude: typing.Union[typing.List, typing.Tuple, typing.Set] = tuple(),
+        only: typing.Union[typing.List, typing.Tuple, typing.Set] = None,
         **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
