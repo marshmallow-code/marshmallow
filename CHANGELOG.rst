@@ -10,6 +10,9 @@ Features:
   within ``List`` and ``Dict`` (:issue:`779`, :issue:`946`).
 - Use ``email.utils.parsedate_to_datetime`` instead of conditionally
   using dateutil for parsing RFC dates (:pr:`1246`).
+- Use internal util functions instead of conditionally using dateutil
+  for parsing  ISO 8601 datetimes, dates and times. Timezone info is now
+  correctly deserialized whether or not dateutil is installed. (:pr:`1265`)
 - Improve error messages for ``validate.Range``.
 - Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
   :user:`fuhrysteve`.
@@ -23,6 +26,8 @@ Other changes:
 - *Backwards-incompatible*: Rename ``fields.List.container`` to ``fields.List.inner``,
   ``fields.Dict.key_container`` to ``fields.Dict.key_field``, and
   ``fields.Dict.value_container`` to ``fields.Dict.value_field``.
+- python-dateutil is not used anymore and dropped from the recommended
+  dependencies.
 
 3.0.0rc7 (2019-06-15)
 +++++++++++++++++++++
