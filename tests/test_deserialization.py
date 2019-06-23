@@ -460,9 +460,7 @@ class TestFieldDeserialization:
         field = fields.DateTime(format="iso")
         result = field.deserialize(localized_dtime.isoformat())
         assert_datetime_equal(result, dtime)
-        # If dateutil is used, the datetime will not be naive
-        if utils.dateutil_available:
-            assert result.tzinfo is not None
+        assert result.tzinfo is not None
 
     def test_time_field_deserialization(self):
         field = fields.Time()

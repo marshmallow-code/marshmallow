@@ -883,6 +883,17 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
     MySchema()
     # No error
 
+
+``python-dateutil`` recommended dependency is removed
+*****************************************************
+
+In marshmallow 2, ``python-dateutil`` was used to deserialize RFC or ISO 8601
+datetimes if it was installed. In marshmallow 3, datetime deserialization is
+done with no additional dependency.
+
+``python-dateutil`` is no longer used by marshmallow.
+
+
 Upgrading to 2.3
 ++++++++++++++++
 

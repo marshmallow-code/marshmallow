@@ -5,14 +5,6 @@ Installation
 
 **marshmallow** requires Python >= 3.5. It has no external dependencies other than the Python standard library.
 
-.. note::
-
-    The `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ package is not a hard dependency, but it is recommended for robust datetime deserialization.
-
-    ::
-
-        $ pip install 'python-dateutil>=2.7.0'
-
 Installing/Upgrading from the PyPI
 ----------------------------------
 
