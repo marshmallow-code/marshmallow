@@ -1,7 +1,7 @@
 """Utility methods for marshmallow."""
 import collections
 import functools
-import datetime
+import datetime as dt
 import inspect
 import json
 import re
@@ -82,10 +82,10 @@ def pprint(obj, *args, **kwargs):
 
 
 # From pytz: http://pytz.sourceforge.net/
-ZERO = datetime.timedelta(0)
+ZERO = dt.timedelta(0)
 
 
-class UTC(datetime.tzinfo):
+class UTC(dt.tzinfo):
     """UTC
 
     Optimized UTC implementation. It unpickles using the single module global
@@ -98,33 +98,33 @@ class UTC(datetime.tzinfo):
     _dst = ZERO
     _tzname = zone
 
-    def fromutc(self, dt):
-        if dt.tzinfo is None:
-            return self.localize(dt)
-        return super(utc.__class__, self).fromutc(dt)
+    def fromutc(self, datetime):
+        if datetime.tzinfo is None:
+            return self.localize(datetime)
+        return super(utc.__class__, self).fromutc(datetime)
 
-    def utcoffset(self, dt):
+    def utcoffset(self, datetime):
         return ZERO
 
-    def tzname(self, dt):
+    def tzname(self, datetime):
         return "UTC"
 
-    def dst(self, dt):
+    def dst(self, datetime):
         return ZERO
 
-    def localize(self, dt, is_dst=False):
+    def localize(self, datetime, is_dst=False):
         """Convert naive time to local time"""
-        if dt.tzinfo is not None:
+        if datetime.tzinfo is not None:
             raise ValueError("Not naive datetime (tzinfo is already set)")
-        return dt.replace(tzinfo=self)
+        return datetime.replace(tzinfo=self)
 
-    def normalize(self, dt, is_dst=False):
+    def normalize(self, datetime, is_dst=False):
         """Correct the timezone information on the given datetime"""
-        if dt.tzinfo is self:
-            return dt
-        if dt.tzinfo is None:
+        if datetime.tzinfo is self:
+            return datetime
+        if datetime.tzinfo is None:
             raise ValueError("Naive time - no tzinfo set")
-        return dt.astimezone(self)
+        return datetime.astimezone(self)
 
     def __repr__(self):
         return "<UTC>"
@@ -144,20 +144,20 @@ def from_rfc(datestring):
     return parsedate_to_datetime(datestring)
 
 
-def rfcformat(dt, *, localtime=False):
+def rfcformat(datetime, *, localtime=False):
     """Return the RFC822-formatted representation of a datetime object.
 
-    :param datetime dt: The datetime.
+    :param datetime datetime: The datetime.
     :param bool localtime: If ``True``, return the date relative to the local
         timezone instead of UTC, displaying the proper offset,
         e.g. "Sun, 10 Nov 2013 08:23:45 -0600"
     """
-    if localtime and dt.tzinfo is None:
-        dt = UTC.localize(dt)
-    if not localtime and dt.tzinfo is not None:
+    if localtime and datetime.tzinfo is None:
+        datetime = UTC.localize(datetime)
+    if not localtime and datetime.tzinfo is not None:
         # Remove timezone to format as "-0000" rather than "+0000"
-        dt = dt.astimezone(UTC).replace(tzinfo=None)
-    return format_datetime(dt)
+        datetime = datetime.astimezone(UTC).replace(tzinfo=None)
+    return format_datetime(datetime)
 
 
 # Hat tip to Django for ISO8601 deserialization functions
@@ -179,12 +179,12 @@ _iso8601_time_re = re.compile(
 
 def get_fixed_timezone(offset):
     """Return a tzinfo instance with a fixed offset from UTC."""
-    if isinstance(offset, datetime.timedelta):
+    if isinstance(offset, dt.timedelta):
         offset = offset.total_seconds() // 60
     sign = "-" if offset < 0 else "+"
     hhmm = "%02d%02d" % divmod(abs(offset), 60)
     name = sign + hhmm
-    return datetime.timezone(datetime.timedelta(minutes=offset), name)
+    return dt.timezone(dt.timedelta(minutes=offset), name)
 
 
 def from_iso_datetime(value):
@@ -209,7 +209,7 @@ def from_iso_datetime(value):
         tzinfo = get_fixed_timezone(offset)
     kw = {k: int(v) for k, v in kw.items() if v is not None}
     kw["tzinfo"] = tzinfo
-    return datetime.datetime(**kw)
+    return dt.datetime(**kw)
 
 
 def from_iso_time(value):
@@ -223,7 +223,7 @@ def from_iso_time(value):
     kw = match.groupdict()
     kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
     kw = {k: int(v) for k, v in kw.items() if v is not None}
-    return datetime.time(**kw)
+    return dt.time(**kw)
 
 
 def from_iso_date(value):
@@ -232,23 +232,23 @@ def from_iso_date(value):
     if not match:
         raise ValueError("Not a valid ISO8601-formatted date string")
     kw = {k: int(v) for k, v in match.groupdict().items()}
-    return datetime.date(**kw)
+    return dt.date(**kw)
 
 
-def isoformat(dt, *args, localtime=False, **kwargs):
+def isoformat(datetime, *args, localtime=False, **kwargs):
     """Return the ISO8601-formatted UTC representation of a datetime object."""
-    if localtime and dt.tzinfo is not None:
-        localized = dt
+    if localtime and datetime.tzinfo is not None:
+        localized = datetime
     else:
-        if dt.tzinfo is None:
-            localized = UTC.localize(dt)
+        if datetime.tzinfo is None:
+            localized = UTC.localize(datetime)
         else:
-            localized = dt.astimezone(UTC)
+            localized = datetime.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
 
 def to_iso_date(date, *args, **kwargs):
-    return datetime.date.isoformat(date)
+    return dt.date.isoformat(date)
 
 
 def ensure_text_type(val):
