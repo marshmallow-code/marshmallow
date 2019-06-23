@@ -3,13 +3,10 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "reco": ["simplejson"],
-    "tests": ["pytest", "pytz"],
+    "tests": ["pytest", "pytz", "simplejson"],
     "lint": ["flake8==3.7.7", "flake8-bugbear==19.3.0", "pre-commit==1.17.0"],
 }
-EXTRAS_REQUIRE["dev"] = (
-    EXTRAS_REQUIRE["reco"] + EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
-)
+EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
 
 
 def find_version(fname):
