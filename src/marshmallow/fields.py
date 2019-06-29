@@ -1415,7 +1415,7 @@ class Url(String):
     default_error_messages = {"invalid": "Not a valid URL."}
 
     def __init__(self, *, relative=False, schemes=None, require_tld=True, **kwargs):
-        String.__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.relative = relative
         self.require_tld = require_tld
@@ -1443,7 +1443,7 @@ class Email(String):
     default_error_messages = {"invalid": "Not a valid email address."}
 
     def __init__(self, *args, **kwargs):
-        String.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be
         # stored.
         self.validators.insert(0, validate.Email(error=self.error_messages["invalid"]))
