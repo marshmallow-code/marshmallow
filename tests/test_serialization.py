@@ -764,13 +764,12 @@ class TestFieldSerialization:
 
         with pytest.raises(ValueError):
             fields.List("string")
-        with pytest.raises(ValueError) as excinfo:
-            fields.List(ASchema)
         expected_msg = (
             "The list elements must be a subclass or instance of "
             "marshmallow.base.FieldABC"
         )
-        assert expected_msg in str(excinfo)
+        with pytest.raises(ValueError, match=expected_msg):
+            fields.List(ASchema)
 
     def test_datetime_integer_tuple_field(self):
         obj = DateTimeIntegerTuple((dt.datetime.utcnow(), 42))
@@ -805,13 +804,12 @@ class TestFieldSerialization:
             fields.Tuple(["string"])
         with pytest.raises(ValueError):
             fields.Tuple(fields.String)
-        with pytest.raises(ValueError) as excinfo:
-            fields.Tuple([ASchema])
         expected_msg = (
             'Elements of "tuple_fields" must be subclasses or '
             "instances of marshmallow.base.FieldABC."
         )
-        assert expected_msg in str(excinfo)
+        with pytest.raises(ValueError, match=expected_msg):
+            fields.Tuple([ASchema])
 
     def test_serialize_does_not_apply_validators(self, user):
         field = fields.Field(validate=lambda x: False)

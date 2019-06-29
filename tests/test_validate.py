@@ -161,9 +161,8 @@ def test_url_relative_and_custom_schemes():
 
 def test_url_custom_message():
     validator = validate.URL(error="{input} ain't an URL")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="invalid ain't an URL"):
         validator("invalid")
-    assert "invalid ain't an URL" in str(excinfo)
 
 
 def test_url_repr():
@@ -222,9 +221,8 @@ def test_email_invalid(invalid_email):
 
 def test_email_custom_message():
     validator = validate.Email(error="{input} is not an email addy.")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="invalid is not an email addy."):
         validator("invalid")
-    assert "invalid is not an email addy." in str(excinfo)
 
 
 def test_email_repr():
@@ -270,19 +268,16 @@ def test_range_max():
 
 def test_range_custom_message():
     v = validate.Range(2, 3, error="{input} is not between {min} and {max}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="1 is not between 2 and 3"):
         v(1)
-    assert "1 is not between 2 and 3" in str(excinfo)
 
     v = validate.Range(2, None, error="{input} is less than {min}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="1 is less than 2"):
         v(1)
-    assert "1 is less than 2" in str(excinfo)
 
     v = validate.Range(None, 3, error="{input} is greater than {max}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="4 is greater than 3"):
         v(4)
-    assert "4 is greater than 3" in str(excinfo)
 
 
 def test_range_repr():
@@ -364,24 +359,20 @@ def test_length_equal():
 
 def test_length_custom_message():
     v = validate.Length(5, 6, error="{input} is not between {min} and {max}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="foo is not between 5 and 6"):
         v("foo")
-    assert "foo is not between 5 and 6" in str(excinfo)
 
     v = validate.Length(5, None, error="{input} is shorter than {min}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="foo is shorter than 5"):
         v("foo")
-    assert "foo is shorter than 5" in str(excinfo)
 
     v = validate.Length(None, 2, error="{input} is longer than {max}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="foo is longer than 2"):
         v("foo")
-    assert "foo is longer than 2" in str(excinfo)
 
     v = validate.Length(None, None, equal=4, error="{input} does not have {equal}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="foo does not have 4"):
         v("foo")
-    assert "foo does not have 4" in str(excinfo)
 
 
 def test_length_repr():
@@ -412,9 +403,8 @@ def test_equal():
 
 def test_equal_custom_message():
     v = validate.Equal("a", error="{input} is not equal to {other}.")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="b is not equal to a."):
         v("b")
-    assert "b is not equal to a." in str(excinfo)
 
 
 def test_equal_repr():
@@ -464,9 +454,8 @@ def test_regexp_compile():
 def test_regexp_custom_message():
     rex = r"[0-9]+"
     v = validate.Regexp(rex, error="{input} does not match {regex}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="a does not match"):
         v("a")
-    assert "a does not match [0-9]+" in str(excinfo)
 
 
 def test_regexp_repr():
@@ -507,9 +496,8 @@ def test_predicate():
     assert validate.Predicate("_identity", arg=1)(d) == d
     assert validate.Predicate("_identity", arg="abc")(d) == d
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Invalid input."):
         validate.Predicate("_false")(d)
-    assert "Invalid input." in str(excinfo)
     with pytest.raises(ValidationError):
         validate.Predicate("_empty")(d)
     with pytest.raises(ValidationError):
@@ -529,9 +517,8 @@ def test_predicate_custom_message():
             return "Dummy"
 
     d = Dummy()
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Dummy._false is invalid!"):
         validate.Predicate("_false", error="{input}.{method} is invalid!")(d)
-    assert "Dummy._false is invalid!" in str(excinfo)
 
 
 def test_predicate_repr():
@@ -555,9 +542,8 @@ def test_noneof():
     assert validate.NoneOf([])([]) == []
     assert validate.NoneOf([1, 2, 3])(None) is None
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Invalid input."):
         validate.NoneOf([1, 2, 3])(3)
-    assert "Invalid input." in str(excinfo)
     with pytest.raises(ValidationError):
         validate.NoneOf("abc")("c")
     with pytest.raises(ValidationError):
@@ -567,14 +553,12 @@ def test_noneof():
 
 
 def test_noneof_custom_message():
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="<not valid>"):
         validate.NoneOf([1, 2], error="<not valid>")(1)
-    assert "<not valid>" in str(excinfo)
 
     none_of = validate.NoneOf([1, 2], error="{input} cannot be one of {values}")
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="1 cannot be one of 1, 2"):
         none_of(1)
-    assert "1 cannot be one of 1, 2" in str(excinfo)
 
 
 def test_noneof_repr():
@@ -593,9 +577,8 @@ def test_oneof():
     assert validate.OneOf(dict(a=0, b=1))("a") == "a"
     assert validate.OneOf((1, 2, None))(None) is None
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
         validate.OneOf([1, 2, 3])(4)
-    assert "Must be one of: 1, 2, 3." in str(excinfo)
     with pytest.raises(ValidationError):
         validate.OneOf("abc")("d")
     with pytest.raises(ValidationError):
@@ -683,9 +666,11 @@ def test_containsonly_in_list():
     assert validate.ContainsOnly([1, 2, 3])([1, 2, 3, 1]) == [1, 2, 3, 1]
     assert validate.ContainsOnly([1, 2, 3])([]) == []
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(
+        ValidationError,
+        match="One or more of the choices you made was not in: 1, 2, 3.",
+    ):
         validate.ContainsOnly([1, 2, 3])([4])
-    assert "One or more of the choices you made was not in: 1, 2, 3." in str(excinfo)
     with pytest.raises(ValidationError):
         validate.ContainsOnly([])([1])
 

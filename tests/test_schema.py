@@ -667,9 +667,8 @@ def test_fields_must_be_declared_as_instances(user):
     class BadUserSchema(Schema):
         name = fields.String
 
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError, match="must be declared as a Field instance"):
         BadUserSchema().dump(user)
-    assert "must be declared as a Field instance" in str(excinfo)
 
 
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
@@ -1537,9 +1536,9 @@ def test_invalid_only_and_exclude_with_fields():
     with pytest.raises(ValueError) as excinfo:
         MySchema(only=("foo", "par"), exclude=("ban",))
 
-    assert "foo" in str(excinfo)
-    assert "par" in str(excinfo)
-    assert "ban" in str(excinfo)
+    assert "foo" in str(excinfo.value)
+    assert "par" in str(excinfo.value)
+    assert "ban" in str(excinfo.value)
 
 
 def test_only_and_exclude_with_additional():
@@ -1566,9 +1565,9 @@ def test_invalid_only_and_exclude_with_additional():
     with pytest.raises(ValueError) as excinfo:
         MySchema(only=("foop", "par"), exclude=("ban",))
 
-    assert "foop" in str(excinfo)
-    assert "par" in str(excinfo)
-    assert "ban" in str(excinfo)
+    assert "foop" in str(excinfo.value)
+    assert "par" in str(excinfo.value)
+    assert "ban" in str(excinfo.value)
 
 
 def test_exclude_invalid_attribute():
@@ -2034,11 +2033,10 @@ class TestNestedSchema:
         serialized_user = user_serializer.dump(user)
         assert serialized_blog["user"] == serialized_user
 
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="email"):
             BlogSchema().load(
                 {"title": "Monty's blog", "user": {"name": "Monty", "email": "foo"}}
             )
-        assert "email" in str(excinfo)
 
     def test_nested_many_fields(self, blog):
         serialized_blog = BlogSchema().dump(blog)
@@ -2105,9 +2103,8 @@ class TestNestedSchema:
 
     def test_nested_dump(self, blog):
         blog.user.age = "foo"
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="age"):
             BlogSchema().dump(blog)
-        assert "age" in str(excinfo)
 
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)
@@ -2464,10 +2461,9 @@ class TestContext:
         serializer = UserFunctionContextSchema()
         # no context
         serializer.context = None
-        with pytest.raises(ValidationError) as excinfo:
-            serializer.dump(owner)
         msg = "No context available for Function field {!r}".format("is_collab")
-        assert msg in str(excinfo)
+        with pytest.raises(ValidationError, match=msg):
+            serializer.dump(owner)
 
     def test_function_field_handles_bound_serializer(self):
         class SerializeA:

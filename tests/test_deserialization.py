@@ -29,9 +29,8 @@ class TestDeserializingNone:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
     def test_fields_dont_allow_none_by_default(self, FieldClass):
         field = FieldClass()
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Field may not be null."):
             field.deserialize(None)
-        assert "Field may not be null." in str(excinfo)
 
     def test_allow_none_is_true_if_missing_is_true(self):
         field = fields.Field(missing=None)
@@ -408,10 +407,8 @@ class TestFieldDeserialization:
     )
     def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
-        msg = "Not a valid datetime."
-        assert msg in str(excinfo)
 
     def test_datetime_passed_year_is_invalid(self):
         field = fields.DateTime()
@@ -424,21 +421,15 @@ class TestFieldDeserialization:
             field.deserialize("2017-04-13")
 
     def test_custom_date_format_datetime_field_deserialization(self):
-
         dtime = dt.datetime.now()
         datestring = dtime.strftime("%H:%M:%S.%f %Y-%m-%d")
 
         field = fields.DateTime(format="%d-%m-%Y %H:%M:%S")
         # deserialization should fail when datestring is not of same format
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(datestring)
-        msg = "Not a valid datetime."
-        assert msg in str(excinfo)
         field = fields.DateTime(format="%H:%M:%S.%f %Y-%m-%d")
         assert_datetime_equal(field.deserialize(datestring), dtime)
-
-        field = fields.DateTime()
-        assert msg in str(excinfo)
 
     @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
     def test_rfc_datetime_field_deserialization(self, fmt):
@@ -483,9 +474,8 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == "Not a valid time."
 
     def test_invalid_timedelta_precision(self):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='The precision must be "days",'):
             fields.TimeDelta("invalid")
-        assert 'The precision must be "days",' in str(excinfo)
 
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
@@ -898,9 +888,8 @@ class TestFieldDeserialization:
 
         field = fields.Field(validate=MyValidator())
         assert field.deserialize("valid") == "valid"
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Invalid value."):
             field.deserialize("invalid")
-        assert "Invalid value." in str(excinfo)
 
     def test_field_deserialization_with_user_validator_that_raises_error_with_list(
         self
@@ -956,18 +945,16 @@ class TestFieldDeserialization:
 
         for field in m_colletion_type:
             assert field.deserialize("Valid") == "Valid"
-            with pytest.raises(ValidationError) as excinfo:
+            with pytest.raises(ValidationError, match="Invalid value."):
                 field.deserialize("invalid")
-            assert "Invalid value." in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(
             validate=lambda s: s.lower() == "valid",
             error_messages={"validator_failed": "Bad value."},
         )
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Bad value."):
             field.deserialize("invalid")
-        assert "Bad value." in str(excinfo)
 
 
 # No custom deserialization behavior, so a dict is returned
@@ -1411,9 +1398,8 @@ class TestSchemaDeserialization:
         assert data["foo"] == 3
         assert data["bar"]
 
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="foo"):
             MySchema(unknown=INCLUDE).load({"foo": "asd", "bar": 5})
-        assert "foo" in str(excinfo)
 
         data = MySchema(unknown=INCLUDE, many=True).load(
             [{"foo": 1}, {"foo": 3, "bar": 5}]
@@ -1598,10 +1584,8 @@ class TestValidation:
                 return val.upper()
 
         assert MethodSerializer().load({"name": "joe"})
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Invalid value."):
             MethodSerializer().load({"name": "joseph"})
-
-        assert "Invalid value." in str(excinfo)
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/269
     def test_nested_data_is_stored_when_validation_fails(self):
@@ -1741,8 +1725,7 @@ def test_deserialize_raises_exception_if_input_type_is_incorrect(data, unknown):
         foo = fields.Field()
         bar = fields.Field()
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Invalid input type.") as excinfo:
         MySchema(unknown=unknown).load(data)
-    assert "Invalid input type." in str(excinfo)
     exc = excinfo.value
     assert list(exc.messages.keys()) == ["_schema"]
