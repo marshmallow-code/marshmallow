@@ -345,9 +345,8 @@ class TestValidatesDecorator:
 
         schema = BadSchema()
 
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='"bar" field does not exist.'):
             schema.validate({"foo": 42})
-        assert '"bar" field does not exist.' in str(excinfo)
 
     def test_precedence(self):
         class Schema2(ValidatesSchema):
