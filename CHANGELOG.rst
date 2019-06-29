@@ -19,6 +19,8 @@ Features:
 
 Bug fixes:
 
+- Fix method resolution for ``__init__`` method of ``fields.Email`` and
+  ``fields.URL`` (:issue:`1268`). Thanks :user:`dursk` for the catch and patch.
 - Includes bug fixes from 2.19.4 and 2.19.5.
 
 Other changes:
