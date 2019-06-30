@@ -549,9 +549,8 @@ def test_prefix(SchemaClass, user):
 def test_fields_must_be_declared_as_instances(user):
     class BadUserSchema(Schema):
         name = fields.String
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError, match='must be declared as a Field instance'):
         BadUserSchema().dump(user)
-    assert 'must be declared as a Field instance' in str(excinfo)
 
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
@@ -1768,11 +1767,10 @@ class TestNestedSchema:
         assert "collaborators" not in errors
 
     def test_nested_strict(self):
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='email'):
             _, errors = BlogSchema(strict=True).load(
                 {'title': "Monty's blog", 'user': {'name': 'Monty', 'email': 'foo'}}
             )
-        assert 'email' in str(excinfo)
 
     def test_nested_dump_errors(self, blog):
         blog.user.email = "foo"
@@ -1785,9 +1783,8 @@ class TestNestedSchema:
 
     def test_nested_dump_strict(self, blog):
         blog.user.email = "foo"
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='email'):
             _, errors = BlogSchema(strict=True).dump(blog)
-        assert 'email' in str(excinfo)
 
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)[0]
@@ -2127,10 +2124,9 @@ class TestContext:
         serializer = UserFunctionContextSchema(strict=True)
         # no context
         serializer.context = None
-        with pytest.raises(ValidationError) as excinfo:
-            serializer.dump(owner)
         msg = 'No context available for Function field {0!r}'.format('is_collab')
-        assert msg in str(excinfo)
+        with pytest.raises(ValidationError, match=msg) as excinfo:
+            serializer.dump(owner)
 
     def test_fields_context(self):
         class CSchema(Schema):

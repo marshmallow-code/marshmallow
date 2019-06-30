@@ -131,9 +131,9 @@ def test_invalid_class_name_in_nested_field_raises_error(user):
     class MySchema(Schema):
         nf = fields.Nested('notfound')
     sch = MySchema()
-    with pytest.raises(RegistryError) as excinfo:
+    msg = 'Class with name {0!r} was not found'.format('notfound')
+    with pytest.raises(RegistryError, match=msg):
         sch.dump({'nf': None})
-    assert 'Class with name {0!r} was not found'.format('notfound') in str(excinfo)
 
 class FooSerializer(Schema):
     _id = fields.Integer()
@@ -149,11 +149,10 @@ def test_multiple_classes_with_same_name_raises_error():
     # Using a nested field with the class name fails because there are
     # two defined classes with the same name
     sch = MySchema()
-    with pytest.raises(RegistryError) as excinfo:
-        sch.dump({'foo': {'_id': 1}})
     msg = 'Multiple classes with name {0!r} were found.'\
             .format('FooSerializer')
-    assert msg in str(excinfo)
+    with pytest.raises(RegistryError, match=msg) as excinfo:
+        sch.dump({'foo': {'_id': 1}})
 
 def test_multiple_classes_with_all():
     # Import a class with the same name
