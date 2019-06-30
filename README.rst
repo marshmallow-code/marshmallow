@@ -6,9 +6,9 @@ marshmallow: simplified object serialization
     :target: http://badge.fury.io/py/marshmallow
     :alt: Latest version
 
-.. image:: https://travis-ci.org/marshmallow-code/marshmallow.svg?branch=pypi
-    :target: https://travis-ci.org/marshmallow-code/marshmallow
-    :alt: Travis-CI
+.. image:: https://dev.azure.com/sloria1/sloria/_apis/build/status/marshmallow-code.marshmallow?branchName=2.x-line
+    :target: https://dev.azure.com/sloria1/sloria/_build/latest?definitionId=5&branchName=2.x-line
+    :alt: Build status
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
