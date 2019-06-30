@@ -122,15 +122,6 @@ class TestUnmarshaller:
         ret = unmarshal({'extra': 42, 'name': 'Steve'}, fields_)
         assert 'extra' not in ret
 
-    # def test_strict_mode_many(self, unmarshal):
-    #     users = [
-    #         {'email': 'foobar'},
-    #         {'email': 'bar@example.com'}
-    #     ]
-    #     with pytest.raises(ValidationError) as excinfo:
-    #         unmarshal(users, {'email': fields.Email()}, strict=True, many=True)
-    #     assert 'Not a valid email address.' in str(excinfo)
-
     def test_stores_errors(self, unmarshal):
         data = {'email': 'invalid-email'}
         try:

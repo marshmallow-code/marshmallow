@@ -38,9 +38,8 @@ class TestDeserializingNone:
             field = FieldClass(src_str='foo')
         else:
             field = FieldClass()
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='Field may not be null.'):
             field.deserialize(None)
-        assert 'Field may not be null.' in str(excinfo)
 
     def test_allow_none_is_true_if_missing_is_true(self):
         field = fields.Field(missing=None)
@@ -311,10 +310,9 @@ class TestFieldDeserialization:
     ])
     def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
-        with pytest.raises(ValidationError) as excinfo:
-            field.deserialize(in_value)
         msg = 'Not a valid datetime.'.format(in_value)
-        assert msg in str(excinfo)
+        with pytest.raises(ValidationError, match=msg):
+            field.deserialize(in_value)
 
     def test_datetime_passed_year_is_invalid(self):
         field = fields.DateTime()
@@ -328,15 +326,10 @@ class TestFieldDeserialization:
 
         field = fields.DateTime(format='%d-%m-%Y %H:%M:%S')
         #deserialization should fail when datestring is not of same format
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='Not a valid datetime.'):
             field.deserialize(datestring)
-        msg = 'Not a valid datetime.'
-        assert msg in str(excinfo)
         field = fields.DateTime(format='%H:%M:%S.%f %Y-%m-%d')
         assert_datetime_equal(field.deserialize(datestring), dtime)
-
-        field = fields.DateTime()
-        assert msg in str(excinfo)
 
     @pytest.mark.parametrize('fmt', ['rfc', 'rfc822'])
     def test_rfc_datetime_field_deserialization(self, fmt):
@@ -667,9 +660,8 @@ class TestFieldDeserialization:
 
         field = fields.Field(validate=MyValidator())
         assert field.deserialize('valid') == 'valid'
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='Invalid value.'):
             field.deserialize('invalid')
-        assert 'Invalid value.' in str(excinfo)
 
     def test_field_deserialization_with_user_validator_that_raises_error_with_list(self):
         def validator(val):
@@ -710,16 +702,14 @@ class TestFieldDeserialization:
 
         for field in m_colletion_type:
             assert field.deserialize('Valid') == 'Valid'
-            with pytest.raises(ValidationError) as excinfo:
+            with pytest.raises(ValidationError, match='Invalid value.'):
                 field.deserialize('invalid')
-            assert 'Invalid value.' in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(validate=lambda s: s.lower() == 'valid',
                 error_messages={'validator_failed': 'Bad value.'})
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='Bad value.'):
             field.deserialize('invalid')
-        assert 'Bad value.' in str(excinfo)
 
     def test_field_deserialization_with_non_utf8_value(self):
         non_utf8_char = '\xc8'
@@ -1235,10 +1225,9 @@ class TestValidation:
             def get_name(self, val):
                 return val.upper()
         assert MethodSerializer(strict=True).load({'name': 'joe'})
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match='Invalid value.'):
             MethodSerializer(strict=True).load({'name': 'joseph'})
 
-        assert 'Invalid value.' in str(excinfo)
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/269
     def test_nested_data_is_stored_when_validation_fails(self):
@@ -1312,9 +1301,8 @@ def test_deserialize_raises_exception_if_strict_is_true_and_input_type_is_incorr
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.Field()
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match='Invalid input type.') as excinfo:
         MySchema(strict=True).load([])
-    assert 'Invalid input type.' in str(excinfo)
     exc = excinfo.value
     assert exc.field_names == ['_schema']
     assert exc.fields == []

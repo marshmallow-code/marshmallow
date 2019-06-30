@@ -705,11 +705,10 @@ class TestFieldSerialization:
             id = fields.Int()
         with pytest.raises(ValueError):
             fields.List("string")
-        with pytest.raises(ValueError) as excinfo:
-            fields.List(ASchema)
         expected_msg = ('The type of the list elements must be a subclass '
                 'of marshmallow.base.FieldABC')
-        assert expected_msg in str(excinfo)
+        with pytest.raises(ValueError, match=expected_msg):
+            fields.List(ASchema)
 
     def test_serialize_does_not_apply_validators(self, user):
         field = fields.Field(validate=lambda x: False)
