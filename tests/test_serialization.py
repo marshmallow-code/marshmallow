@@ -841,7 +841,7 @@ class TestSchemaSerialization:
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
         assert result["name"] == "Mick"
-        assert result["birthdate"] == "2017-09-29T00:00:00+00:00"
+        assert result["birthdate"] == "2017-09-29T00:00:00"
 
     def test_serialize_with_missing_param_callable(self):
         class AliasingUserSerializer(Schema):
@@ -851,7 +851,7 @@ class TestSchemaSerialization:
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
         assert result["name"] == "Mick"
-        assert result["birthdate"] == "2017-09-29T00:00:00+00:00"
+        assert result["birthdate"] == "2017-09-29T00:00:00"
 
 
 def test_serializing_named_tuple():

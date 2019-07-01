@@ -150,9 +150,6 @@ def rfcformat(datetime):
 
     :param datetime datetime: The datetime.
     """
-    if datetime.tzinfo is not None:
-        # Remove timezone to format as "-0000" rather than "+0000"
-        datetime = datetime.astimezone(UTC).replace(tzinfo=None)
     return format_datetime(datetime)
 
 
@@ -232,12 +229,11 @@ def from_iso_date(value):
 
 
 def isoformat(datetime, *args, **kwargs):
-    """Return the ISO8601-formatted UTC representation of a datetime object."""
-    if datetime.tzinfo is None:
-        localized = UTC.localize(datetime)
-    else:
-        localized = datetime.astimezone(UTC)
-    return localized.isoformat(*args, **kwargs)
+    """Return the ISO8601-formatted representation of a datetime object.
+
+    :param datetime datetime: The datetime.
+    """
+    return datetime.isoformat(*args, **kwargs)
 
 
 def to_iso_date(date, *args, **kwargs):
