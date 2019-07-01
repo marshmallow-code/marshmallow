@@ -16,6 +16,8 @@ Features:
 - Improve error messages for ``validate.Range``.
 - Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
   :user:`fuhrysteve`.
+- python-dateutil is no longer used. This resolves the inconsistent behavior 
+  based on the presence of python-dateutil (:issue:`497`, :issue:`1234`).
 
 Bug fixes:
 
@@ -28,8 +30,7 @@ Other changes:
 - *Backwards-incompatible*: Rename ``fields.List.container`` to ``fields.List.inner``,
   ``fields.Dict.key_container`` to ``fields.Dict.key_field``, and
   ``fields.Dict.value_container`` to ``fields.Dict.value_field``.
-- python-dateutil is not used anymore and dropped from the recommended
-  dependencies.
+- Switch to Azure Pipelines for CI (:issue:`1261`).
 
 3.0.0rc7 (2019-06-15)
 +++++++++++++++++++++
