@@ -35,7 +35,6 @@ __all__ = [
     "Boolean",
     "Float",
     "DateTime",
-    "LocalDateTime",
     "Time",
     "Date",
     "TimeDelta",
@@ -1062,7 +1061,6 @@ class DateTime(Field):
 
     SCHEMA_OPTS_VAR_NAME = "datetimeformat"
 
-    localtime = False
     default_error_messages = {
         "invalid": "Not a valid {obj_type}.",
         "format": '"{input}" cannot be formatted as a {obj_type}.',
@@ -1090,7 +1088,7 @@ class DateTime(Field):
         format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
             try:
-                return format_func(value, localtime=self.localtime)
+                return format_func(value)
             except (TypeError, AttributeError, ValueError):
                 self.fail("format", input=value, obj_type=self.OBJ_TYPE)
         else:
@@ -1119,17 +1117,6 @@ class DateTime(Field):
     @staticmethod
     def _make_object_from_format(value, data_format):
         return dt.datetime.strptime(value, data_format)
-
-
-class LocalDateTime(DateTime):
-    """A formatted datetime string in localized time, relative to UTC.
-
-        ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
-
-    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
-    """
-
-    localtime = True
 
 
 class Time(Field):

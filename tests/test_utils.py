@@ -130,16 +130,6 @@ def test_rfcformat_central():
     assert utils.rfcformat(d) == "Sun, 10 Nov 2013 07:23:45 -0000"
 
 
-def test_rfcformat_naive_localized():
-    d = dt.datetime(2013, 11, 10, 1, 23, 45)
-    assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 01:23:45 +0000"
-
-
-def test_rfcformat_central_localized():
-    d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
-    assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 08:23:45 -0600"
-
-
 def test_isoformat():
     d = dt.datetime(2013, 11, 10, 1, 23, 45)
     assert utils.isoformat(d) == "2013-11-10T01:23:45+00:00"
@@ -148,11 +138,6 @@ def test_isoformat():
 def test_isoformat_tzaware():
     d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
     assert utils.isoformat(d) == "2013-11-10T07:23:45+00:00"
-
-
-def test_isoformat_localtime():
-    d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.isoformat(d, localtime=True) == "2013-11-10T01:23:45-06:00"
 
 
 def test_from_rfc():

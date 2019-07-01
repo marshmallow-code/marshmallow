@@ -145,17 +145,12 @@ def from_rfc(datestring):
     return parsedate_to_datetime(datestring)
 
 
-def rfcformat(datetime, *, localtime=False):
+def rfcformat(datetime):
     """Return the RFC822-formatted representation of a datetime object.
 
     :param datetime datetime: The datetime.
-    :param bool localtime: If ``True``, return the date relative to the local
-        timezone instead of UTC, displaying the proper offset,
-        e.g. "Sun, 10 Nov 2013 08:23:45 -0600"
     """
-    if localtime and datetime.tzinfo is None:
-        datetime = UTC.localize(datetime)
-    if not localtime and datetime.tzinfo is not None:
+    if datetime.tzinfo is not None:
         # Remove timezone to format as "-0000" rather than "+0000"
         datetime = datetime.astimezone(UTC).replace(tzinfo=None)
     return format_datetime(datetime)
@@ -236,15 +231,12 @@ def from_iso_date(value):
     return dt.date(**kw)
 
 
-def isoformat(datetime, *args, localtime=False, **kwargs):
+def isoformat(datetime, *args, **kwargs):
     """Return the ISO8601-formatted UTC representation of a datetime object."""
-    if localtime and datetime.tzinfo is not None:
-        localized = datetime
+    if datetime.tzinfo is None:
+        localized = UTC.localize(datetime)
     else:
-        if datetime.tzinfo is None:
-            localized = UTC.localize(datetime)
-        else:
-            localized = datetime.astimezone(UTC)
+        localized = datetime.astimezone(UTC)
     return localized.isoformat(*args, **kwargs)
 
 

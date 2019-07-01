@@ -500,7 +500,7 @@ class TestFieldSerialization:
 
     def test_datetime_serializes_to_iso_by_default(self, user):
         field = fields.DateTime()  # No format specified
-        expected = utils.isoformat(user.created, localtime=False)
+        expected = utils.isoformat(user.created)
         assert field.serialize("created", user) == expected
 
     @pytest.mark.parametrize("value", ["invalid", [], 24])
@@ -517,23 +517,13 @@ class TestFieldSerialization:
     @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
     def test_datetime_field_rfc822(self, fmt, user):
         field = fields.DateTime(format=fmt)
-        expected = utils.rfcformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
-
-    def test_localdatetime_rfc_field(self, user):
-        field = fields.LocalDateTime(format="rfc")
-        expected = utils.rfcformat(user.created, localtime=True)
+        expected = utils.rfcformat(user.created)
         assert field.serialize("created", user) == expected
 
     @pytest.mark.parametrize("fmt", ["iso", "iso8601"])
     def test_datetime_iso8601(self, fmt, user):
         field = fields.DateTime(format=fmt)
-        expected = utils.isoformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
-
-    def test_localdatetime_iso(self, user):
-        field = fields.LocalDateTime(format="iso")
-        expected = utils.isoformat(user.created, localtime=True)
+        expected = utils.isoformat(user.created)
         assert field.serialize("created", user) == expected
 
     def test_datetime_format(self, user):
