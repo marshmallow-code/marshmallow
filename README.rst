@@ -7,7 +7,7 @@ marshmallow: simplified object serialization
     :alt: Latest version
 
 .. image:: https://dev.azure.com/sloria/sloria/_apis/build/status/marshmallow-code.marshmallow?branchName=2.x-line
-    :target: https://dev.azure.com/sloria1/sloria/_build/latest?definitionId=5&branchName=2.x-line
+    :target: https://dev.azure.com/sloria/sloria/_build/latest?definitionId=5&branchName=2.x-line
     :alt: Build status
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
