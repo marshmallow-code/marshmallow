@@ -38,14 +38,6 @@ def assert_date_equal(d1, d2):
     assert d1.day == d2.day
 
 
-def assert_datetime_equal(dt1, dt2):
-    assert_date_equal(dt1, dt2)
-    assert dt1.hour == dt2.hour
-    assert dt1.minute == dt2.minute
-    assert dt1.second == dt2.second
-    assert dt1.microsecond == dt2.microsecond
-
-
 def assert_time_equal(t1, t2):
     assert t1.hour == t2.hour
     assert t1.minute == t2.minute
