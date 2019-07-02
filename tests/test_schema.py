@@ -3,6 +3,7 @@
 import datetime as dt
 import decimal
 import random
+import math
 from collections import namedtuple, OrderedDict
 
 import simplejson as json
@@ -22,7 +23,6 @@ from marshmallow import (
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 
 from tests.base import (
-    assert_almost_equal,
     UserSchema,
     UserMetaSchema,
     UserRelativeUrlSchema,
@@ -50,7 +50,7 @@ def test_serializing_basic_object(SchemaClass, user):
     s = SchemaClass()
     data = s.dump(user)
     assert data["name"] == user.name
-    assert_almost_equal(data["age"], 42.3)
+    assert math.isclose(data["age"], 42.3)
     assert data["registered"]
 
 
@@ -427,7 +427,7 @@ def test_loads_deserializes_from_json():
     result = UserSchema().loads(user_json)
     assert isinstance(result, User)
     assert result.name == "Monty"
-    assert_almost_equal(result.age, 42.3)
+    assert math.isclose(result.age, 42.3)
 
 
 def test_serializing_none():
@@ -649,7 +649,7 @@ def test_as_string():
     u = User("John", age=42.3)
     serialized = UserFloatStringSchema().dump(u)
     assert type(serialized["age"]) == str
-    assert_almost_equal(float(serialized["age"]), 42.3)
+    assert math.isclose(float(serialized["age"]), 42.3)
 
 
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
