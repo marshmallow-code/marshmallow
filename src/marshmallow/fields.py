@@ -11,7 +11,7 @@ from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
+from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance, is_aware
 from marshmallow.exceptions import (
     ValidationError,
     StringNotCollectionError,
@@ -35,6 +35,8 @@ __all__ = [
     "Boolean",
     "Float",
     "DateTime",
+    "NaiveDateTime",
+    "AwareDateTime",
     "Time",
     "Date",
     "TimeDelta",
@@ -1026,19 +1028,13 @@ class Boolean(Field):
 
 
 class DateTime(Field):
-    """A formatted datetime string in UTC.
+    """A formatted datetime string.
 
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
-
-    Timezone-naive `datetime` objects are converted to
-    UTC (+00:00) by :meth:`Schema.dump <marshmallow.Schema.dump>`.
-    :meth:`Schema.load <marshmallow.Schema.load>` returns `datetime`
-    objects that are timezone-aware.
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
     """
 
     SERIALIZATION_FUNCS = {
@@ -1117,6 +1113,28 @@ class DateTime(Field):
     @staticmethod
     def _make_object_from_format(value, data_format):
         return dt.datetime.strptime(value, data_format)
+
+
+class NaiveDateTime(DateTime):
+    """A formatted naive datetime string."""
+    OBJ_TYPE = "naive datetime"
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        ret = super()._deserialize(value, attr, data, **kwargs)
+        if is_aware(ret):
+            raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+        return ret
+
+
+class AwareDateTime(DateTime):
+    """A formatted aware datetime string."""
+    OBJ_TYPE = "aware datetime"
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        ret = super()._deserialize(value, attr, data, **kwargs)
+        if not is_aware(ret):
+            raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+        return ret
 
 
 class Time(Field):

@@ -137,6 +137,11 @@ class UTC(dt.tzinfo):
 UTC = utc = UTC()  # UTC is a singleton
 
 
+# https://stackoverflow.com/a/27596917
+def is_aware(datetime):
+    return datetime.tzinfo is not None and datetime.tzinfo.utcoffset(datetime) is not None
+
+
 def from_rfc(datestring):
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
