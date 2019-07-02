@@ -10,7 +10,6 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
 
 from tests.base import (
-    assert_almost_equal,
     assert_date_equal,
     assert_datetime_equal,
     assert_time_equal,
@@ -49,8 +48,8 @@ class TestDeserializingNone:
 class TestFieldDeserialization:
     def test_float_field_deserialization(self):
         field = fields.Float()
-        assert_almost_equal(field.deserialize("12.3"), 12.3)
-        assert_almost_equal(field.deserialize(12.3), 12.3)
+        assert math.isclose(field.deserialize("12.3"), 12.3)
+        assert math.isclose(field.deserialize(12.3), 12.3)
 
     @pytest.mark.parametrize("in_val", ["bad", "", {}])
     def test_invalid_float_field_deserialization(self, in_val):
@@ -980,7 +979,7 @@ class TestSchemaDeserialization:
         user_dict = {"name": "Monty", "age": "42.3"}
         result = SimpleUserSchema().load(user_dict)
         assert result["name"] == "Monty"
-        assert_almost_equal(result["age"], 42.3)
+        assert math.isclose(result["age"], 42.3)
 
     def test_deserialize_with_missing_values(self):
         user_dict = {"name": "Monty"}
