@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.20.0 (unreleased)
+*******************
+
+Deprecation/Removal:
+
+- Python 2.6 is no longer officially supported (:issue:`1274`).
+
 2.19.5 (2019-06-18)
 +++++++++++++++++++
 
