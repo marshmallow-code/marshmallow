@@ -112,7 +112,6 @@ Deserializing to Objects
 In order to deserialize to an object, define a method of your :class:`Schema` and decorate it with `post_load <marshmallow.decorators.post_load>`. The method receives a dictionary of deserialized data as its only parameter.
 
 .. code-block:: python
-    :emphasize-lines: 8-10
 
     from marshmallow import Schema, fields, post_load
 
@@ -141,7 +140,6 @@ Handling Collections of Objects
 Iterable collections of objects are also serializable and deserializable. Just set ``many=True``.
 
 .. code-block:: python
-    :emphasize-lines: 3,4
 
     user1 = User(name="Mick", email="mick@stones.com")
     user2 = User(name="Keith", email="keith@stones.com")
@@ -204,7 +202,6 @@ When validating a collection, the errors dictionary will be keyed on the indices
 You can perform additional validation for a field by passing it a ``validate`` callable (function, lambda, or object with ``__call__`` defined).
 
 .. code-block:: python
-    :emphasize-lines: 6
 
     from marshmallow import ValidationError
 
@@ -225,7 +222,6 @@ You can perform additional validation for a field by passing it a ``validate`` c
 If validation fails, validation functions raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` with an error message.
 
 .. code-block:: python
-    :emphasize-lines: 7,10,14
 
     from marshmallow import Schema, fields, ValidationError
 
@@ -321,7 +317,6 @@ Partial Loading
 When using the same schema in multiple places, you may only want to check required fields some of the time when deserializing by specifying them in ``partial``.
 
 .. code-block:: python
-    :emphasize-lines: 5,6
 
     class UserSchema(Schema):
         name = fields.String(required=True)
@@ -335,7 +330,6 @@ When using the same schema in multiple places, you may only want to check requir
 Or you can ignore missing fields entirely by setting ``partial=True``.
 
 .. code-block:: python
-    :emphasize-lines: 5,6
 
     class UserSchema(Schema):
         name = fields.String(required=True)
@@ -405,7 +399,6 @@ Specifying Attribute Names
 By default, `Schemas` will marshal the object attributes that are identical to the schema's field names. However, you may want to have different field and attribute names. In this case, you can explicitly specify which attribute names to use.
 
 .. code-block:: python
-    :emphasize-lines: 3,4,11,12
 
     class UserSchema(Schema):
         name = fields.String()
@@ -428,7 +421,6 @@ Specifying Serialization/Deserialization Keys
 By default `Schemas` will marshal/unmarshal an input dictionary from/to an output dictionary whose keys are identical to the field names.  However, if you are producing/consuming data that does not exactly match your schema, you can specify additional keys to dump/load values by passing the `data_key` argument.
 
 .. code-block:: python
-    :emphasize-lines: 3,9,13,17,21
 
     class UserSchema(Schema):
         name = fields.String()
@@ -459,7 +451,6 @@ The *class Meta* paradigm allows you to specify which attributes you want to ser
 Let's refactor our User schema to be more concise.
 
 .. code-block:: python
-    :emphasize-lines: 4,5
 
     # Refactored schema
     class UserSchema(Schema):
@@ -491,7 +482,6 @@ Ordering Output
 For some use cases, it may be useful to maintain field ordering of serialized output. To enable ordering, set the ``ordered`` option to `True`. This will instruct marshmallow to serialize data to a `collections.OrderedDict`.
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from collections import OrderedDict
 
@@ -534,7 +524,7 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
 
 .. warning::
 
-    When loading, dump_only fields are considered unknown. If the ``unknown`` option is set to ``INCLUDE``, values with keys corresponding to those fields are therefore loaded with no validation.
+    When loading, dump-only fields are considered unknown. If the ``unknown`` option is set to ``INCLUDE``, values with keys corresponding to those fields are therefore loaded with no validation.
 
 
 Specify Default Serialization/Deserialization Values

@@ -1203,7 +1203,6 @@ Handle ``ValidationError`` in strict mode
 When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump` and `Schema.load`.
 
 .. code-block:: python
-    :emphasize-lines: 3,14
 
     from marshmallow import exceptions as exc
 
@@ -1228,7 +1227,6 @@ Accessing error messages in strict mode
 In 2.0, `strict` mode was improved so that you can access all error messages for a schema (rather than failing early) by accessing a `ValidationError's` ``messages`` attribute.
 
 .. code-block:: python
-    :emphasize-lines: 6
 
     schema = BandMemberSchema(strict=True)
 

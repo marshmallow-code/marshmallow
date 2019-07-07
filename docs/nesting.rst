@@ -4,7 +4,6 @@ Nesting Schemas
 Schemas can be nested to represent relationships between objects (e.g. foreign key relationships). For example, a ``Blog`` may have an author represented by a User object.
 
 .. code-block:: python
-    :emphasize-lines: 14
 
     import datetime as dt
 
@@ -26,7 +25,6 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
 Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema class.
 
 .. code-block:: python
-    :emphasize-lines: 10
 
     from marshmallow import Schema, fields, pprint
 
@@ -69,7 +67,6 @@ Specifying Which Fields to Nest
 You can explicitly specify which attributes of the nested objects you want to serialize with the ``only`` argument.
 
 .. code-block:: python
-    :emphasize-lines: 3
 
     class BlogSchema2(Schema):
         title = fields.String()
@@ -87,7 +84,6 @@ You can explicitly specify which attributes of the nested objects you want to se
 You can represent the attributes of deeply nested objects using dot delimiters.
 
 .. code-block:: python
-    :emphasize-lines: 5
 
     class SiteSchema(Schema):
         blog = fields.Nested(BlogSchema2)
@@ -105,7 +101,6 @@ You can represent the attributes of deeply nested objects using dot delimiters.
 You can replace nested data with a single value (or flat list of values if ``many=True``) using the :class:`Pluck <marshmallow.fields.Pluck>` field.
 
 .. code-block:: python
-    :emphasize-lines: 4, 11, 18
 
     class UserSchema(Schema):
         name = fields.String()
@@ -179,7 +174,6 @@ If you have two objects that nest each other, you can refer to a nested schema b
 For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
 
 .. code-block:: python
-    :emphasize-lines: 4
 
     class AuthorSchema(Schema):
         # Make sure to use the 'only' or 'exclude' params
@@ -241,7 +235,6 @@ Nesting A Schema Within Itself
 If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
 
 .. code-block:: python
-    :emphasize-lines: 4,6
 
     class UserSchema(Schema):
         name = fields.String()

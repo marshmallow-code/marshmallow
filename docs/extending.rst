@@ -10,7 +10,6 @@ Data pre-processing and post-processing methods can be registered using the `pre
 
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, pre_load
 
@@ -44,7 +43,6 @@ Example: Enveloping
 One common use case is to wrap data in a namespace upon serialization and unwrap the data during deserialization.
 
 .. code-block:: python
-    :emphasize-lines: 17,18,22,23,27,28
 
     from marshmallow import Schema, fields, pre_load, post_load, post_dump
 
@@ -130,7 +128,6 @@ Pre- and post-processing methods may raise a `ValidationError <marshmallow.excep
 If you want to store and error on a different key, pass the key name as the second argument to `ValidationError <marshmallow.exceptions.ValidationError>`.
 
 .. code-block:: python
-    :emphasize-lines: 9
 
     from marshmallow import Schema, fields, ValidationError, pre_load
 
@@ -224,7 +221,6 @@ By default, :meth:`Schema.dump` and :meth:`Schema.load` will raise a :exc:`Valid
 You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
 
 .. code-block:: python
-    :emphasize-lines: 10-13
 
     import logging
     from marshmallow import Schema, fields
@@ -254,7 +250,6 @@ Schema-level Validation
 You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. By default, schema-level validation errors will be stored on the ``_schema`` key of the errors dictionary.
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
 
@@ -284,7 +279,6 @@ It is possible to report errors on fields and subfields using a `dict`.
 When multiple schema-leval validator return errors, the error structures are merged together in the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` raised at the end of the validation.
 
 .. code-block:: python
-    :emphasize-lines: 17,27
 
     from marshmallow import Schema, fields, validates_schema, ValidationError
 
@@ -340,7 +334,6 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 `post_load <marshmallow.decorators.post_load>` or `validates_schema <marshmallow.decorators.validates_schema>`.
 
 .. code-block:: python
-    :emphasize-lines: 7
 
     from marshmallow import Schema, fields, post_load, ValidationError
 
@@ -373,7 +366,6 @@ By default, marshmallow uses the `utils.get_value` function to pull attributes f
 However, if you want to specify how values are accessed from an object, you can override the :meth:`get_attribute <marshmallow.Schema.get_attribute>` method.
 
 .. code-block:: python
-    :emphasize-lines: 7-8
 
     class UserDictSchema(Schema):
         name = fields.Str()
@@ -414,7 +406,6 @@ Let's build upon the example above for adding an envelope to serialized output. 
 First, we'll add our namespace configuration to a custom options class.
 
 .. code-block:: python
-    :emphasize-lines: 3
 
     from marshmallow import Schema, SchemaOpts
 
@@ -433,7 +424,6 @@ First, we'll add our namespace configuration to a custom options class.
 Then we create a custom :class:`Schema` that uses our options class.
 
 .. code-block:: python
-    :emphasize-lines: 1,2
 
     class NamespacedSchema(Schema):
         OPTIONS_CLASS = NamespaceOpts
@@ -452,7 +442,6 @@ Then we create a custom :class:`Schema` that uses our options class.
 Our application schemas can now inherit from our custom schema class.
 
 .. code-block:: python
-    :emphasize-lines: 1,6,7
 
     class UserSchema(NamespacedSchema):
         name = fields.String()
