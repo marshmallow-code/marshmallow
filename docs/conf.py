@@ -55,7 +55,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "marshmallow"
-copyright = ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a>'.format(
+copyright = ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
     dt.datetime.utcfromtimestamp(os.path.getmtime("../CHANGELOG.rst"))
 )
 
