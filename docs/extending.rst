@@ -251,7 +251,7 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
 Schema-level Validation
 -----------------------
 
-You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. By default, schema-level validation errors will be stored on the ``_schema`` key of the errors dictonary.
+You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. By default, schema-level validation errors will be stored on the ``_schema`` key of the errors dictionary.
 
 .. code-block:: python
     :emphasize-lines: 7
