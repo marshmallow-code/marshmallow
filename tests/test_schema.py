@@ -2359,7 +2359,7 @@ class TestSelfReference:
         relative = data["rels"][0]
         assert relative == user.relatives[0].name
 
-    def test_nested_many(self):
+    def test_nested_self_many(self):
         class SelfManySchema(Schema):
             relatives = fields.Nested("self", many=True)
 
@@ -2369,6 +2369,21 @@ class TestSelfReference:
         person = User(name="Foo")
         person.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
         data = SelfManySchema().dump(person)
+        assert data["name"] == person.name
+        assert len(data["relatives"]) == len(person.relatives)
+        assert data["relatives"][0]["name"] == person.relatives[0].name
+        assert data["relatives"][0]["age"] == person.relatives[0].age
+
+    def test_nested_self_list(self):
+        class SelfListSchema(Schema):
+            relatives = fields.List(fields.Nested("self"))
+
+            class Meta:
+                additional = ("name", "age")
+
+        person = User(name="Foo")
+        person.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
+        data = SelfListSchema().dump(person)
         assert data["name"] == person.name
         assert len(data["relatives"]) == len(person.relatives)
         assert data["relatives"][0]["name"] == person.relatives[0].name
