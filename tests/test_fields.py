@@ -107,6 +107,7 @@ class TestParentAndName:
         foo = fields.Field()
         bar = fields.List(fields.Str())
         baz = fields.Tuple([fields.Str(), fields.Int()])
+        bax = fields.Mapping(fields.Str(), fields.Int())
 
     @pytest.fixture()
     def schema(self):
@@ -130,13 +131,19 @@ class TestParentAndName:
         assert inner_field.root is None
 
     def test_list_field_inner_parent_and_name(self, schema):
-        assert schema.fields["bar"].inner.parent == schema.fields["bar"]
+        assert schema.fields["bar"].inner.parent == schema
         assert schema.fields["bar"].inner.name == "bar"
 
     def test_tuple_field_inner_parent_and_name(self, schema):
         for field in schema.fields["baz"].tuple_fields:
-            assert field.parent == schema.fields["baz"]
+            assert field.parent == schema
             assert field.name == "baz"
+
+    def test_mapping_field_inner_parent_and_name(self, schema):
+        assert schema.fields["bax"].value_field.parent == schema
+        assert schema.fields["bax"].value_field.name == "bax"
+        assert schema.fields["bax"].key_field.parent == schema
+        assert schema.fields["bax"].key_field.name == "bax"
 
     def test_simple_field_root(self, schema):
         assert schema.fields["foo"].root == schema
