@@ -453,7 +453,10 @@ class Nested(Field):
                         "Schema, not {}.".format(self.nested.__class__)
                     )
                 elif self.nested == "self":
-                    schema_class = self.parent.__class__
+                    ret = self
+                    while not isinstance(ret, SchemaABC):
+                        ret = ret.parent
+                    schema_class = ret.__class__
                 else:
                     schema_class = class_registry.get_class(self.nested)
                 self.__schema = schema_class(
