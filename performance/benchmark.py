@@ -9,9 +9,10 @@ import argparse
 import cProfile
 import gc
 import timeit
-import time
+import datetime
 
 from marshmallow import Schema, fields, ValidationError, post_dump
+from marshmallow.utils import UTC
 
 
 # Custom validator
@@ -29,10 +30,7 @@ class AuthorSchema(Schema):
     address = fields.Str()
     full_name = fields.Method("full_name")
 
-    def full_name(self, obj):
-        return obj.first + " " + obj.last
-
-    def format_name(self, author):
+    def full_name(self, author):
         return "{}, {}".format(author.last, author.first)
 
 
@@ -40,7 +38,7 @@ class QuoteSchema(Schema):
     id = fields.Int(dump_only=True)
     author = fields.Nested(AuthorSchema, validate=must_not_be_blank)
     content = fields.Str(required=True, validate=must_not_be_blank)
-    posted_at = fields.Int(dump_only=True)
+    posted_at = fields.DateTime(dump_only=True)
     book_name = fields.Str()
     page_number = fields.Float()
     line_number = fields.Float()
@@ -51,6 +49,7 @@ class QuoteSchema(Schema):
         data["author_full"] = "{}, {}".format(
             data["author"]["last"], data["author"]["first"]
         )
+        return data
 
 
 class Author:
@@ -141,7 +140,7 @@ def main():
                 i,
                 Author(i, "Foo", "Bar", 42, 66, "123 Fake St"),
                 "Hello World",
-                time.time(),
+                datetime.datetime(2019, 7, 4, tzinfo=UTC),
                 "The World",
                 34,
                 3,
