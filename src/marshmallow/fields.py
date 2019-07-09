@@ -585,8 +585,7 @@ class List(Field):
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         self.inner = copy.deepcopy(self.inner)
-        self.inner.parent = self
-        self.inner.name = field_name
+        self.inner._bind_to_schema(field_name, self)
         if isinstance(self.inner, Nested):
             self.inner.only = self.only
             self.inner.exclude = self.exclude
@@ -663,8 +662,7 @@ class Tuple(Field):
         new_tuple_fields = []
         for field in self.tuple_fields:
             field = copy.deepcopy(field)
-            field.parent = self
-            field.name = field_name
+            field._bind_to_schema(field_name, self)
             new_tuple_fields.append(field)
 
         self.tuple_fields = new_tuple_fields
@@ -1303,15 +1301,13 @@ class Mapping(Field):
         super()._bind_to_schema(field_name, schema)
         if self.value_field:
             self.value_field = copy.deepcopy(self.value_field)
-            self.value_field.parent = self
-            self.value_field.name = field_name
+            self.value_field._bind_to_schema(field_name, self)
         if isinstance(self.value_field, Nested):
             self.value_field.only = self.only
             self.value_field.exclude = self.exclude
         if self.key_field:
             self.key_field = copy.deepcopy(self.key_field)
-            self.key_field.parent = self
-            self.key_field.name = field_name
+            self.key_field._bind_to_schema(field_name, self)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
