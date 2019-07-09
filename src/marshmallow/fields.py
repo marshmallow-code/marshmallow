@@ -366,7 +366,7 @@ class Field(FieldABC):
         Return `None` for unbound fields.
         """
         ret = self
-        while hasattr(ret, "parent") and ret.parent:
+        while hasattr(ret, "parent"):
             ret = ret.parent
         return ret if isinstance(ret, SchemaABC) else None
 
