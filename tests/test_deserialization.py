@@ -518,6 +518,51 @@ class TestFieldDeserialization:
         else:
             assert field.deserialize(value) == expected
 
+    @pytest.mark.parametrize(
+        ("fmt", "timezone", "value", "expected"),
+        [
+            (
+                "iso",
+                None,
+                "2013-11-10T01:23:45",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "iso",
+                utils.UTC,
+                "2013-11-10T01:23:45+00:00",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "iso",
+                central,
+                "2013-11-10T01:23:45-03:00",
+                dt.datetime(2013, 11, 9, 22, 23, 45),
+            ),
+            (
+                "rfc",
+                None,
+                "Sun, 10 Nov 2013 01:23:45 -0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "rfc",
+                utils.UTC,
+                "Sun, 10 Nov 2013 01:23:45 +0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "rfc",
+                central,
+                "Sun, 10 Nov 2013 01:23:45 -0300",
+                dt.datetime(2013, 11, 9, 22, 23, 45),
+            )
+        ]
+    )
+    def test_naive_datetime_with_timezone(self, fmt, timezone, value, expected):
+        field = fields.NaiveDateTime(format=fmt, timezone=timezone)
+        assert field.deserialize(value) == expected
+
     def test_time_field_deserialization(self):
         field = fields.Time()
         t = dt.time(1, 23, 45)

@@ -1119,10 +1119,16 @@ class NaiveDateTime(DateTime):
     """A formatted naive datetime string."""
     OBJ_TYPE = "naive datetime"
 
+    def __init__(self, format=None, *, timezone=None, **kwargs):
+        super().__init__(format=format, **kwargs)
+        self.timezone = timezone
+
     def _deserialize(self, value, attr, data, **kwargs):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if is_aware(ret):
-            raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+            if self.timezone is None:
+                raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+            ret = ret.astimezone(self.timezone).replace(tzinfo=None)
         return ret
 
 
