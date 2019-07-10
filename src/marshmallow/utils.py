@@ -139,7 +139,9 @@ UTC = utc = UTC()  # UTC is a singleton
 
 # https://stackoverflow.com/a/27596917
 def is_aware(datetime):
-    return datetime.tzinfo is not None and datetime.tzinfo.utcoffset(datetime) is not None
+    return (
+        datetime.tzinfo is not None and datetime.tzinfo.utcoffset(datetime) is not None
+    )
 
 
 def from_rfc(datestring):

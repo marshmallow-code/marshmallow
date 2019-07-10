@@ -6,11 +6,7 @@ from copy import copy, deepcopy
 import pytest
 
 from marshmallow import utils, fields, Schema
-from tests.base import (
-    central,
-    assert_time_equal,
-    assert_date_equal,
-)
+from tests.base import central, assert_time_equal, assert_date_equal
 
 
 def test_missing_singleton_copy():
@@ -122,19 +118,16 @@ def test_is_collection():
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (
-            dt.datetime(2013, 11, 10, 1, 23, 45),
-            "Sun, 10 Nov 2013 01:23:45 -0000"
-        ),
+        (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
         (
             utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
-            "Sun, 10 Nov 2013 01:23:45 +0000"
+            "Sun, 10 Nov 2013 01:23:45 +0000",
         ),
         (
             central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
-            "Sun, 10 Nov 2013 01:23:45 -0600"
-        )
-    ]
+            "Sun, 10 Nov 2013 01:23:45 -0600",
+        ),
+    ],
 )
 def test_rfc_format(value, expected):
     assert utils.rfcformat(value) == expected
@@ -143,23 +136,20 @@ def test_rfc_format(value, expected):
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (
-            dt.datetime(2013, 11, 10, 1, 23, 45),
-            "2013-11-10T01:23:45"
-        ),
+        (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
         (
             utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
-            "2013-11-10T01:23:45.123456+00:00"
+            "2013-11-10T01:23:45.123456+00:00",
         ),
         (
             utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
-            "2013-11-10T01:23:45+00:00"
+            "2013-11-10T01:23:45+00:00",
         ),
         (
             central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
-            "2013-11-10T01:23:45-06:00"
-        )
-    ]
+            "2013-11-10T01:23:45-06:00",
+        ),
+    ],
 )
 def test_isoformat(value, expected):
     assert utils.isoformat(value) == expected
@@ -168,19 +158,16 @@ def test_isoformat(value, expected):
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (
-            "Sun, 10 Nov 2013 01:23:45 -0000",
-            dt.datetime(2013, 11, 10, 1, 23, 45)
-        ),
+        ("Sun, 10 Nov 2013 01:23:45 -0000", dt.datetime(2013, 11, 10, 1, 23, 45)),
         (
             "Sun, 10 Nov 2013 01:23:45 +0000",
-            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45))
+            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
         ),
         (
             "Sun, 10 Nov 2013 01:23:45 -0600",
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        )
-    ]
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+        ),
+    ],
 )
 def test_from_rfc(value, expected):
     result = utils.from_rfc(value)
@@ -191,28 +178,25 @@ def test_from_rfc(value, expected):
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (
-            "2013-11-10T01:23:45",
-            dt.datetime(2013, 11, 10, 1, 23, 45)
-        ),
+        ("2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),
         (
             "2013-11-10T01:23:45+00:00",
-            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45))
+            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
         ),
         (
             # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
             "2013-11-10T01:23:45.123+00:00",
-            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123000))
+            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123000)),
         ),
         (
             "2013-11-10T01:23:45.123456+00:00",
-            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456))
+            utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
         ),
         (
             "2013-11-10T01:23:45-06:00",
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-        )
-    ]
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+        ),
+    ],
 )
 def test_from_iso_datetime(value, expected):
     result = utils.from_iso_datetime(value)

@@ -513,19 +513,16 @@ class TestFieldSerialization:
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
-            (
-                dt.datetime(2013, 11, 10, 1, 23, 45),
-                "Sun, 10 Nov 2013 01:23:45 -0000"
-            ),
+            (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
             (
                 utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
-                "Sun, 10 Nov 2013 01:23:45 +0000"
+                "Sun, 10 Nov 2013 01:23:45 +0000",
             ),
             (
                 central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
-                "Sun, 10 Nov 2013 01:23:45 -0600"
-            )
-        ]
+                "Sun, 10 Nov 2013 01:23:45 -0600",
+            ),
+        ],
     )
     def test_datetime_field_rfc822(self, fmt, value, expected):
         field = fields.DateTime(format=fmt)
@@ -535,23 +532,20 @@ class TestFieldSerialization:
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
-            (
-                dt.datetime(2013, 11, 10, 1, 23, 45),
-                "2013-11-10T01:23:45"
-            ),
+            (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
             (
                 utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
-                "2013-11-10T01:23:45.123456+00:00"
+                "2013-11-10T01:23:45.123456+00:00",
             ),
             (
                 utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
-                "2013-11-10T01:23:45+00:00"
+                "2013-11-10T01:23:45+00:00",
             ),
             (
                 central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
-                "2013-11-10T01:23:45-06:00"
-            )
-        ]
+                "2013-11-10T01:23:45-06:00",
+            ),
+        ],
     )
     def test_datetime_field_iso8601(self, fmt, value, expected):
         if fmt is None:
