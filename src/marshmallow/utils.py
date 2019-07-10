@@ -233,15 +233,15 @@ def from_iso_date(value):
     return dt.date(**kw)
 
 
-def isoformat(datetime, *args, **kwargs):
+def isoformat(datetime):
     """Return the ISO8601-formatted representation of a datetime object.
 
     :param datetime datetime: The datetime.
     """
-    return datetime.isoformat(*args, **kwargs)
+    return datetime.isoformat()
 
 
-def to_iso_date(date, *args, **kwargs):
+def to_iso_date(date):
     return dt.date.isoformat(date)
 
 
