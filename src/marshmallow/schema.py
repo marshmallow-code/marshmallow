@@ -362,7 +362,7 @@ class BaseSchema(base.SchemaABC):
         dump_only=(),
         partial=False,
         unknown=None,
-        load_necessary=(),
+        load_necessary=()
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
