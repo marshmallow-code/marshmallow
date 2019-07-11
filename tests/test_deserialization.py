@@ -424,9 +424,8 @@ class TestFieldDeserialization:
         )
 
         field = fields.AwareDateTime(format="%H:%M:%S.%f %Y-%m-%d")
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Not a valid aware datetime."):
             field.deserialize(datestring)
-        assert excinfo.value.args[0] == "Not a valid aware datetime."
 
     @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
     @pytest.mark.parametrize(
@@ -454,16 +453,14 @@ class TestFieldDeserialization:
         assert field.deserialize(value) == expected
         field = fields.NaiveDateTime(format=fmt)
         if aware:
-            with pytest.raises(ValidationError) as excinfo:
+            with pytest.raises(ValidationError, match="Not a valid naive datetime."):
                 field.deserialize(value)
-            assert excinfo.value.args[0] == "Not a valid naive datetime."
         else:
             assert field.deserialize(value) == expected
         field = fields.AwareDateTime(format=fmt)
         if not aware:
-            with pytest.raises(ValidationError) as excinfo:
+            with pytest.raises(ValidationError, match="Not a valid aware datetime."):
                 field.deserialize(value)
-            assert excinfo.value.args[0] == "Not a valid aware datetime."
         else:
             assert field.deserialize(value) == expected
 
@@ -500,16 +497,14 @@ class TestFieldDeserialization:
         assert field.deserialize(value) == expected
         field = fields.NaiveDateTime(format=fmt)
         if aware:
-            with pytest.raises(ValidationError) as excinfo:
-                field.deserialize(value) == expected
-            assert excinfo.value.args[0] == "Not a valid naive datetime."
+            with pytest.raises(ValidationError, match="Not a valid naive datetime."):
+                field.deserialize(value)
         else:
             assert field.deserialize(value) == expected
         field = fields.AwareDateTime(format=fmt)
         if not aware:
-            with pytest.raises(ValidationError) as excinfo:
-                field.deserialize(value) == expected
-            assert excinfo.value.args[0] == "Not a valid aware datetime."
+            with pytest.raises(ValidationError, match="Not a valid aware datetime."):
+                field.deserialize(value)
         else:
             assert field.deserialize(value) == expected
 
