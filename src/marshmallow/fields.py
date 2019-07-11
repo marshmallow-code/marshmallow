@@ -513,7 +513,7 @@ class Nested(Field):
 class Pluck(Nested):
     """Allows you to replace nested data with one of the data's fields.
 
-    Examples: ::
+    Example: ::
 
         user = fields.Pluck(UserSchema, 'name')
         collaborators = fields.Pluck(UserSchema, 'id', many=True)
@@ -521,7 +521,7 @@ class Pluck(Nested):
 
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
-    :param str field_name:
+    :param str field_name: The key to pluck a value from.
     :param kwargs: The same keyword arguments that :class:`Nested` receives.
     """
 
