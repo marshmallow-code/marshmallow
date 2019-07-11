@@ -1791,7 +1791,7 @@ def test_required_fields_in_constructor():
     class MySchema(Schema):
         foo = fields.Field()
 
-    sch = MySchema(load_necessary=("foo",))
+    sch = MySchema(required_fields=("foo",))
     data = dict(baz=242)
 
     with pytest.raises(ValidationError) as excinfo:
@@ -1806,7 +1806,7 @@ def test_required_fields_in_meta():
         foo = fields.Field()
 
         class Meta:
-            load_necessary = ("foo",)
+            required_fields = ("foo",)
 
     sch = MySchema()
     data = dict(baz=242)

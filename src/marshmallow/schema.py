@@ -218,7 +218,7 @@ class SchemaOpts:
         self.dump_only = getattr(meta, "dump_only", ())
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
-        self.load_necessary = getattr(meta, "load_necessary", ())
+        self.required_fields = getattr(meta, "required_fields", ())
 
 
 class BaseSchema(base.SchemaABC):
@@ -345,7 +345,7 @@ class BaseSchema(base.SchemaABC):
             class registry. Must be `True` if you intend to refer to this `Schema`
             by class name in `Nested` fields. Only set this to `False` when memory
             usage is critical. Defaults to `True`.
-        - ``load_necessary``:  Tuple or list of fields of necessarily include in the
+        - ``required_fields``:  Tuple or list of fields of necessarily include in the
             deserialization result
         """
 
@@ -362,7 +362,7 @@ class BaseSchema(base.SchemaABC):
         dump_only=(),
         partial=False,
         unknown=None,
-        load_necessary=()
+        required_fields=()
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -379,7 +379,7 @@ class BaseSchema(base.SchemaABC):
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
         self.unknown = unknown or self.opts.unknown
-        self.load_necessary = set(self.opts.load_necessary) | set(load_necessary)
+        self.required_fields = set(self.opts.required_fields) | set(required_fields)
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -664,7 +664,7 @@ class BaseSchema(base.SchemaABC):
                     field_name = field_obj.data_key
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
-                    if field_name in self.load_necessary:
+                    if field_name in self.required_fields:
                         try:
                             field_obj.fail("required")
                         except ValidationError as err:
