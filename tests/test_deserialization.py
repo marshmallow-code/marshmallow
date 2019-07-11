@@ -1178,6 +1178,18 @@ class TestSchemaDeserialization:
         assert result["email"] == "foo@bar.com"
         assert "years" not in result
 
+    def test_deserialize_dotted_path_with_data_key_param(self):
+        class MySchema(Schema):
+            foo = fields.Str(data_key="foo")
+            bar = fields.Str(data_key="data.bar")
+
+        sch = MySchema(unknown=EXCLUDE)
+        data = {"foo": "dotted", "data": {"bar": "paths!"}}
+
+        ret = sch.load(data)
+        assert ret["foo"] == "dotted"
+        assert ret["bar"] == "paths!"
+
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()

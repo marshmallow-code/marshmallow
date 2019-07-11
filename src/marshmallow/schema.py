@@ -657,7 +657,7 @@ class BaseSchema(base.SchemaABC):
                 field_name = attr_name
                 if field_obj.data_key:
                     field_name = field_obj.data_key
-                raw_value = data.get(field_name, missing)
+                raw_value = get_value(data, field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
