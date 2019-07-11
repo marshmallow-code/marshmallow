@@ -48,6 +48,7 @@ __all__ = [
     "Bool",
     "Int",
     "Constant",
+    "Pluck",
 ]
 
 MISSING_ERROR_MESSAGE = (
