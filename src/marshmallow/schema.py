@@ -668,7 +668,9 @@ class BaseSchema(base.SchemaABC):
                         try:
                             field_obj.fail("required")
                         except ValidationError as err:
-                            error_store.store_error(err.messages, field_name=field_name, index=index)
+                            error_store.store_error(
+                                err.messages, field_name=field_name, index=index
+                            )
                             continue
 
                     # Ignore missing field if we're allowed to.
