@@ -1064,6 +1064,7 @@ class DateTime(Field):
 
     default_error_messages = {
         "invalid": "Not a valid {obj_type}.",
+        "invalid_awareness": "Not a valid {awareness} {obj_type}.",
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
@@ -1123,7 +1124,7 @@ class DateTime(Field):
 class NaiveDateTime(DateTime):
     """A formatted naive datetime string."""
 
-    OBJ_TYPE = "naive datetime"
+    AWARENESS = "naive"
 
     def __init__(self, format=None, *, timezone=None, **kwargs):
         super().__init__(format=format, **kwargs)
@@ -1133,7 +1134,11 @@ class NaiveDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if is_aware(ret):
             if self.timezone is None:
-                raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+                raise self.fail(
+                    "invalid_awareness",
+                    awareness=self.AWARENESS,
+                    obj_type=self.OBJ_TYPE,
+                )
             ret = ret.astimezone(self.timezone).replace(tzinfo=None)
         return ret
 
@@ -1141,7 +1146,7 @@ class NaiveDateTime(DateTime):
 class AwareDateTime(DateTime):
     """A formatted aware datetime string."""
 
-    OBJ_TYPE = "aware datetime"
+    AWARENESS = "aware"
 
     def __init__(self, format=None, *, default_timezone=None, **kwargs):
         super().__init__(format=format, **kwargs)
@@ -1151,7 +1156,11 @@ class AwareDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if not is_aware(ret):
             if self.default_timezone is None:
-                raise self.fail("invalid", obj_type=self.OBJ_TYPE)
+                raise self.fail(
+                    "invalid_awareness",
+                    awareness=self.AWARENESS,
+                    obj_type=self.OBJ_TYPE,
+                )
             ret = ret.replace(tzinfo=self.default_timezone)
         return ret
 
