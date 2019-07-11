@@ -1180,15 +1180,29 @@ class TestSchemaDeserialization:
 
     def test_deserialize_dotted_path_with_data_key_param(self):
         class MySchema(Schema):
-            foo = fields.Str(data_key="foo")
-            bar = fields.Str(data_key="data.bar")
+            foo = fields.Str()
+            bar = fields.Str(data_key="nested.bar")
 
         sch = MySchema(unknown=EXCLUDE)
-        data = {"foo": "dotted", "data": {"bar": "paths!"}}
+        data = {"foo": "unnested data", "nested": {"bar": "nested data"}}
 
         ret = sch.load(data)
-        assert ret["foo"] == "dotted"
-        assert ret["bar"] == "paths!"
+        assert ret["foo"] == "unnested data"
+        assert ret["bar"] == "nested data"
+
+    def test_deserialize_dotted_path_validation(self):
+        class MySchema(Schema):
+            bar = fields.Integer(data_key="data.bar")
+
+        sch = MySchema(unknown=EXCLUDE)
+        data = {"data": {"bar": "misplaced string"}}
+
+        with pytest.raises(ValidationError) as excinfo:
+            sch.load(data)
+        errors = excinfo.value.messages
+        # The validation should reference the dotted path location in the
+        # source data, rather than just "bar"
+        assert errors["data.bar"] == ["Not a valid integer."]
 
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
