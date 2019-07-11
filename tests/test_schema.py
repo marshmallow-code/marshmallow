@@ -1787,6 +1787,31 @@ def test_serializing_none_meta():
     assert s == {}
 
 
+def test_required_fields_in_constructor():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+    sch = MySchema(load_necessary=("foo",))
+    data = dict(baz=242)
+
+    with pytest.raises(ValidationError):
+        sch.load(data)
+
+
+def test_required_fields_in_meta():
+    class MySchema(Schema):
+        foo = fields.Field()
+
+        class Meta:
+            load_necessary = ("foo",)
+
+    sch = MySchema()
+    data = dict(baz=242)
+
+    with pytest.raises(ValidationError):
+        sch.load(data)
+
+
 class CustomError(Exception):
     pass
 
