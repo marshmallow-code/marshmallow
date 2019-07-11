@@ -665,7 +665,12 @@ class BaseSchema(base.SchemaABC):
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     if field_name in self.load_necessary:
-                        field_obj.fail("required")
+                        try:
+                            field_obj.fail("required")
+                        except ValidationError as err:
+                            error_store.store_error(err.messages, field_name=field_name, index=index)
+                            continue
+
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
                         partial_is_collection and attr_name in partial

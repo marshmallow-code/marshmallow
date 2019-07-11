@@ -1794,8 +1794,11 @@ def test_required_fields_in_constructor():
     sch = MySchema(load_necessary=("foo",))
     data = dict(baz=242)
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         sch.load(data)
+
+    errors = excinfo.value.messages
+    assert len(errors["foo"]) == 1
 
 
 def test_required_fields_in_meta():
@@ -1808,8 +1811,11 @@ def test_required_fields_in_meta():
     sch = MySchema()
     data = dict(baz=242)
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as excinfo:
         sch.load(data)
+
+    errors = excinfo.value.messages
+    assert len(errors["foo"]) == 1
 
 
 class CustomError(Exception):
