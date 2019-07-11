@@ -1122,7 +1122,15 @@ class DateTime(Field):
 
 
 class NaiveDateTime(DateTime):
-    """A formatted naive datetime string."""
+    """A formatted naive datetime string.
+
+    :param str format: See :class:`DateTime`.
+    :param timezone timezone: Used on deserialization. If `None`,
+        aware datetimes are rejected. If not `None`, aware datetimes are
+        converted to this timezone before their timezone information is
+        removed.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     AWARENESS = "naive"
 
@@ -1144,7 +1152,14 @@ class NaiveDateTime(DateTime):
 
 
 class AwareDateTime(DateTime):
-    """A formatted aware datetime string."""
+    """A formatted aware datetime string.
+
+    :param str format: See :class:`DateTime`.
+    :param timezone default_timezone: Used on deserialization. If `None`, naive
+        datetimes are rejected. If not `None`, naive datetimes are set this
+        timezone.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
 
     AWARENESS = "aware"
 
