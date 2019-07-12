@@ -788,6 +788,44 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
     MySchema().dump({"x": dt.datetime(2017, 9, 19), "y": dt.date(2017, 9, 19)})
     # => {{'x': '2017-09', 'y': '09-19'}}
 
+``DateTime`` leaves timezone information untouched during serialization
+***********************************************************************
+
+``DateTime`` does not convert naive datetimes to UTC on serialization and
+``LocalDateTime`` is removed.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.DateTime()
+        z = fields.LocalDateTime()
+
+
+    MySchema().dump(
+        {
+            "x": dt.datetime(2017, 9, 19),
+            "y": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+            "z": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+        }
+    )
+    # => {{'x': '2017-09-19T00:00:00+00:00', 'y': '2017-09-18T22:00:00+00:00', 'z': '2017-09-19T00:00:00+02:00'}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.DateTime()
+
+
+    MySchema().dump(
+        {
+            "x": dt.datetime(2017, 9, 19),
+            "y": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+        }
+    )
+    # => {{'x': '2017-09-19T00:00:00', 'y': '2017-09-19T00:00:00+02:00'}}
+
 The ``prefix`` ``Schema`` parameter is removed
 **********************************************
 
