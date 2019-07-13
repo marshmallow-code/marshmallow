@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior of `List(Nested("self"))` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
+
 3.0.0rc8 (2019-07-04)
 +++++++++++++++++++++
 
