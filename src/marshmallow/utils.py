@@ -5,6 +5,7 @@ import datetime as dt
 import inspect
 import json
 import re
+import typing
 from collections.abc import Mapping, Iterable
 from email.utils import format_datetime, parsedate_to_datetime
 from pprint import pprint as py_pprint
@@ -341,18 +342,12 @@ def callable_or_raise(obj):
     return obj
 
 
-def _signature(func):
-    if hasattr(inspect, "signature"):
-        return list(inspect.signature(func).parameters.keys())
-    if hasattr(func, "__self__"):
-        # Remove bound arg to match inspect.signature()
-        return inspect.getargspec(func).args[1:]
-    # All args are unbound
-    return inspect.getargspec(func).args
+def _signature(func: typing.Callable) -> typing.List[str]:
+    return list(inspect.signature(func).parameters.keys())
 
 
-def get_func_args(func):
-    """Given a callable, return a tuple of argument names. Handles
+def get_func_args(func: typing.Callable) -> typing.List[str]:
+    """Given a callable, return a list of argument names. Handles
     `functools.partial` objects and class-based callables.
 
     .. versionchanged:: 3.0.0a1
