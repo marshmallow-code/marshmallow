@@ -234,10 +234,7 @@ class Field(FieldABC):
         if errors:
             raise ValidationError(errors, **kwargs)
 
-    # Hat tip to django-rest-framework.
-    def fail(self, key, **kwargs):
-        """A helper method that simply raises a `ValidationError`.
-        """
+    def make_error(self, key: str, **kwargs) -> ValidationError:
         try:
             msg = self.error_messages[key]
         except KeyError as exc:
@@ -246,7 +243,13 @@ class Field(FieldABC):
             raise AssertionError(msg) from exc
         if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
-        raise ValidationError(msg)
+        return ValidationError(msg)
+
+    # Hat tip to django-rest-framework.
+    def fail(self, key: str, **kwargs):
+        """A helper method that simply raises a `ValidationError`.
+        """
+        raise self.make_error(key=key, **kwargs)
 
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
@@ -1095,19 +1098,23 @@ class DateTime(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE)
+            self.fail("invalid", input=value, obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
             try:
                 return func(value)
             except (TypeError, AttributeError, ValueError) as exc:
-                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE) from exc
+                raise self.make_error(
+                    "invalid", input=value, obj_type=self.OBJ_TYPE
+                ) from exc
         else:
             try:
                 return self._make_object_from_format(value, data_format)
             except (TypeError, AttributeError, ValueError) as exc:
-                raise self.fail("invalid", input=value, obj_type=self.OBJ_TYPE) from exc
+                raise self.make_error(
+                    "invalid", input=value, obj_type=self.OBJ_TYPE
+                ) from exc
 
     @staticmethod
     def _make_object_from_format(value, data_format):
