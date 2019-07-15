@@ -841,6 +841,26 @@ class TestFieldSerialization:
         res = field.serialize("foo", {"foo": None})
         assert res is None
 
+    def test_dotted_schema_serializes_to_nested_json(self):
+        """
+        Serialization of dotted path data keys should yield a nested json
+        structure, rather than {"foo.bar": 1}.
+        """
+
+        class MySchema(Schema):
+            foo = fields.Integer(data_key="data.foo")
+            bar = fields.Integer(data_key="data.bar")
+            baz = fields.Str(data_key="three.deep.baz")
+
+            class Meta:
+                ordered = True
+
+        sch = MySchema()
+        data = {"foo": 1, "bar": 2, "baz": "foo"}
+
+        ret = sch.dump(data)
+        assert ret == {"data": {"foo": 1, "bar": 2}, "three": {"deep": {"baz": "foo"}}}
+
 
 class TestSchemaSerialization:
     def test_serialize_with_missing_param_value(self):

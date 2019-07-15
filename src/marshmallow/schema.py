@@ -492,7 +492,7 @@ class BaseSchema(base.SchemaABC):
             ]
             self._pending = False
             return ret
-        items = []
+        ret = dict_class()  # empty dict or OrderedDict
         for attr_name, field_obj in fields_dict.items():
             if getattr(field_obj, "load_only", False):
                 continue
@@ -507,8 +507,9 @@ class BaseSchema(base.SchemaABC):
             )
             if value is missing:
                 continue
-            items.append((key, value))
-        ret = dict_class(items)
+
+            set_value(ret, key, value)
+
         return ret
 
     def dump(self, obj, *, many=None):
