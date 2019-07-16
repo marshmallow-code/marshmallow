@@ -1142,7 +1142,7 @@ class NaiveDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if is_aware(ret):
             if self.timezone is None:
-                raise self.fail(
+                self.fail(
                     "invalid_awareness",
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
@@ -1171,7 +1171,7 @@ class AwareDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if not is_aware(ret):
             if self.default_timezone is None:
-                raise self.fail(
+                self.fail(
                     "invalid_awareness",
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
