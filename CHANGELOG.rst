@@ -4,6 +4,16 @@ Changelog
 3.0.0 (unreleased)
 ++++++++++++++++++
 
+Features:
+
+- *Backwards-incompatible*: ``DateTime`` does not affect timezone information
+  on serialization and deserialization.
+- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness.
+
+Deprecations/Removals:
+
+- ``LocalDateTime`` is removed.
+
 Bug fixes:
 
 - Fix behavior of `List(Nested("self"))` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
@@ -23,7 +33,7 @@ Features:
 - Improve error messages for ``validate.Range``.
 - Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
   :user:`fuhrysteve`.
-- python-dateutil is no longer used. This resolves the inconsistent behavior 
+- python-dateutil is no longer used. This resolves the inconsistent behavior
   based on the presence of python-dateutil (:issue:`497`, :issue:`1234`).
 
 Bug fixes:
