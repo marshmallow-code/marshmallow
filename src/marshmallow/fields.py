@@ -487,14 +487,15 @@ class Nested(Field):
             if field.startswith(nested_field)
         ]
 
-    def _serialize(self, nested_obj, attr, obj, **kwargs):
+    def _serialize(self, nested_obj, attr, obj, many=False, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
         if nested_obj is None:
             return None
         try:
-            return schema.dump(nested_obj, many=self.many)
+            many = self.many or many
+            return schema.dump(nested_obj, many=many)
         except ValidationError as exc:
             raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
 
@@ -606,9 +607,12 @@ class List(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if utils.is_collection(value):
-            return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
-        return [self.inner._serialize(value, attr, obj, **kwargs)]
+        if not utils.is_collection(value):
+            value = [value]
+        # Optimize dumping a list of Nested objects by calling dump(many=True)
+        if isinstance(self.inner, Nested) and not self.inner.many:
+            return self.inner._serialize(value, attr, obj, many=True, **kwargs)
+        return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
