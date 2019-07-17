@@ -499,18 +499,22 @@ class Nested(Field):
         except ValidationError as exc:
             raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
 
-    def _test_collection(self, value):
-        if self.many and not utils.is_collection(value):
+    def _test_collection(self, value, many=False):
+        many = self.many or many
+        if many and not utils.is_collection(value):
             self.fail("type", input=value, type=value.__class__.__name__)
 
-    def _load(self, value, data, partial=None):
+    def _load(self, value, data, partial=None, many=False):
         try:
-            valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
+            many = self.many or many
+            valid_data = self.schema.load(
+                value, unknown=self.unknown, partial=partial, many=many
+            )
         except ValidationError as exc:
             raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
         return valid_data
 
-    def _deserialize(self, value, attr, data, partial=None, **kwargs):
+    def _deserialize(self, value, attr, data, partial=None, many=False, **kwargs):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
@@ -519,8 +523,8 @@ class Nested(Field):
         .. versionchanged:: 3.0.0
             Add ``partial`` parameter
         """
-        self._test_collection(value)
-        return self._load(value, data, partial=partial)
+        self._test_collection(value, many=many)
+        return self._load(value, data, partial=partial, many=many)
 
 
 class Pluck(Nested):
@@ -617,6 +621,8 @@ class List(Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
             self.fail("invalid")
+        if isinstance(self.inner, Nested) and not self.inner.many:
+            return self.inner.deserialize(value, many=True, **kwargs)
 
         result = []
         errors = {}
