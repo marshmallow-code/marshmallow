@@ -11,7 +11,7 @@ import pytest
 from marshmallow import Schema, fields, utils, missing as missing_
 from marshmallow.exceptions import ValidationError
 
-from tests.base import User, ALL_FIELDS
+from tests.base import User, ALL_FIELDS, central
 
 
 class DateTimeList:
@@ -498,11 +498,6 @@ class TestFieldSerialization:
             "Years": 999,
         }
 
-    def test_datetime_serializes_to_iso_by_default(self, user):
-        field = fields.DateTime()  # No format specified
-        expected = utils.isoformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
-
     @pytest.mark.parametrize("value", ["invalid", [], 24])
     def test_datetime_invalid_serialization(self, value, user):
         field = fields.DateTime()
@@ -515,28 +510,52 @@ class TestFieldSerialization:
         ] == '"{}" cannot be formatted as a datetime.'.format(value)
 
     @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
-    def test_datetime_field_rfc822(self, fmt, user):
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
+            (
+                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                "Sun, 10 Nov 2013 01:23:45 +0000",
+            ),
+            (
+                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                "Sun, 10 Nov 2013 01:23:45 -0600",
+            ),
+        ],
+    )
+    def test_datetime_field_rfc822(self, fmt, value, expected):
         field = fields.DateTime(format=fmt)
-        expected = utils.rfcformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
+        assert field.serialize("d", {"d": value}) == expected
 
-    def test_localdatetime_rfc_field(self, user):
-        field = fields.LocalDateTime(format="rfc")
-        expected = utils.rfcformat(user.created, localtime=True)
-        assert field.serialize("created", user) == expected
+    @pytest.mark.parametrize("fmt", ["iso", "iso8601", None])
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
+            (
+                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
+                "2013-11-10T01:23:45.123456+00:00",
+            ),
+            (
+                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                "2013-11-10T01:23:45+00:00",
+            ),
+            (
+                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                "2013-11-10T01:23:45-06:00",
+            ),
+        ],
+    )
+    def test_datetime_field_iso8601(self, fmt, value, expected):
+        if fmt is None:
+            # Test default is ISO
+            field = fields.DateTime()
+        else:
+            field = fields.DateTime(format=fmt)
+        assert field.serialize("d", {"d": value}) == expected
 
-    @pytest.mark.parametrize("fmt", ["iso", "iso8601"])
-    def test_datetime_iso8601(self, fmt, user):
-        field = fields.DateTime(format=fmt)
-        expected = utils.isoformat(user.created, localtime=False)
-        assert field.serialize("created", user) == expected
-
-    def test_localdatetime_iso(self, user):
-        field = fields.LocalDateTime(format="iso")
-        expected = utils.isoformat(user.created, localtime=True)
-        assert field.serialize("created", user) == expected
-
-    def test_datetime_format(self, user):
+    def test_datetime_field_format(self, user):
         format = "%Y-%m-%d"
         field = fields.DateTime(format=format)
         assert field.serialize("created", user) == user.created.strftime(format)
@@ -851,7 +870,7 @@ class TestSchemaSerialization:
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
         assert result["name"] == "Mick"
-        assert result["birthdate"] == "2017-09-29T00:00:00+00:00"
+        assert result["birthdate"] == "2017-09-29T00:00:00"
 
     def test_serialize_with_missing_param_callable(self):
         class AliasingUserSerializer(Schema):
@@ -861,7 +880,7 @@ class TestSchemaSerialization:
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
         assert result["name"] == "Mick"
-        assert result["birthdate"] == "2017-09-29T00:00:00+00:00"
+        assert result["birthdate"] == "2017-09-29T00:00:00"
 
 
 def test_serializing_named_tuple():

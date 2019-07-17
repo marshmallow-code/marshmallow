@@ -11,7 +11,12 @@ from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
 from marshmallow.base import FieldABC, SchemaABC
-from marshmallow.utils import is_collection, missing as missing_, resolve_field_instance
+from marshmallow.utils import (
+    is_collection,
+    missing as missing_,
+    resolve_field_instance,
+    is_aware,
+)
 from marshmallow.exceptions import (
     ValidationError,
     StringNotCollectionError,
@@ -35,7 +40,8 @@ __all__ = [
     "Boolean",
     "Float",
     "DateTime",
-    "LocalDateTime",
+    "NaiveDateTime",
+    "AwareDateTime",
     "Time",
     "Date",
     "TimeDelta",
@@ -1027,19 +1033,13 @@ class Boolean(Field):
 
 
 class DateTime(Field):
-    """A formatted datetime string in UTC.
+    """A formatted datetime string.
 
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
-
-    Timezone-naive `datetime` objects are converted to
-    UTC (+00:00) by :meth:`Schema.dump <marshmallow.Schema.dump>`.
-    :meth:`Schema.load <marshmallow.Schema.load>` returns `datetime`
-    objects that are timezone-aware.
 
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
     """
 
     SERIALIZATION_FUNCS = {
@@ -1062,9 +1062,9 @@ class DateTime(Field):
 
     SCHEMA_OPTS_VAR_NAME = "datetimeformat"
 
-    localtime = False
     default_error_messages = {
         "invalid": "Not a valid {obj_type}.",
+        "invalid_awareness": "Not a valid {awareness} {obj_type}.",
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
@@ -1090,7 +1090,7 @@ class DateTime(Field):
         format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
             try:
-                return format_func(value, localtime=self.localtime)
+                return format_func(value)
             except (TypeError, AttributeError, ValueError):
                 self.fail("format", input=value, obj_type=self.OBJ_TYPE)
         else:
@@ -1121,15 +1121,63 @@ class DateTime(Field):
         return dt.datetime.strptime(value, data_format)
 
 
-class LocalDateTime(DateTime):
-    """A formatted datetime string in localized time, relative to UTC.
+class NaiveDateTime(DateTime):
+    """A formatted naive datetime string.
 
-        ex. ``"Sun, 10 Nov 2013 08:23:45 -0600"``
-
-    Takes the same arguments as :class:`DateTime <marshmallow.fields.DateTime>`.
+    :param str format: See :class:`DateTime`.
+    :param timezone timezone: Used on deserialization. If `None`,
+        aware datetimes are rejected. If not `None`, aware datetimes are
+        converted to this timezone before their timezone information is
+        removed.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    localtime = True
+    AWARENESS = "naive"
+
+    def __init__(self, format=None, *, timezone=None, **kwargs):
+        super().__init__(format=format, **kwargs)
+        self.timezone = timezone
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        ret = super()._deserialize(value, attr, data, **kwargs)
+        if is_aware(ret):
+            if self.timezone is None:
+                self.fail(
+                    "invalid_awareness",
+                    awareness=self.AWARENESS,
+                    obj_type=self.OBJ_TYPE,
+                )
+            ret = ret.astimezone(self.timezone).replace(tzinfo=None)
+        return ret
+
+
+class AwareDateTime(DateTime):
+    """A formatted aware datetime string.
+
+    :param str format: See :class:`DateTime`.
+    :param timezone default_timezone: Used on deserialization. If `None`, naive
+        datetimes are rejected. If not `None`, naive datetimes are set this
+        timezone.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
+    AWARENESS = "aware"
+
+    def __init__(self, format=None, *, default_timezone=None, **kwargs):
+        super().__init__(format=format, **kwargs)
+        self.default_timezone = default_timezone
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        ret = super()._deserialize(value, attr, data, **kwargs)
+        if not is_aware(ret):
+            if self.default_timezone is None:
+                self.fail(
+                    "invalid_awareness",
+                    awareness=self.AWARENESS,
+                    obj_type=self.OBJ_TYPE,
+                )
+            ret = ret.replace(tzinfo=self.default_timezone)
+        return ret
 
 
 class Time(Field):

@@ -569,11 +569,6 @@ def test_tz_datetime_field(user, serialized_user):
     assert serialized_user["updated"] == expected
 
 
-def test_local_datetime_field(user, serialized_user):
-    expected = utils.isoformat(user.updated, localtime=True)
-    assert serialized_user["updated_local"] == expected
-
-
 def test_class_variable(serialized_user):
     assert serialized_user["species"] == "Homo sapiens"
 
@@ -1636,7 +1631,6 @@ def test_meta_serializer_fields():
     assert result["uppername"] == "JOHN"
     assert result["is_old"] is False
     assert result["created"] == utils.isoformat(u.created)
-    assert result["updated_local"] == utils.isoformat(u.updated, localtime=True)
     assert result["finger_count"] == 10
     assert result["various_data"] == dict(u.various_data)
 
@@ -1645,7 +1639,6 @@ def test_meta_fields_mapping(user):
     s = UserMetaSchema()
     s.dump(user)  # need to call dump to update fields
     assert type(s.fields["balance"]) == fields.Decimal
-    assert type(s.fields["updated_local"]) == fields.LocalDateTime
     # Inferred fields
     assert type(s.fields["name"]._field_cache[fields.String]) == fields.String
     assert type(s.fields["created"]._field_cache[fields.DateTime]) == fields.DateTime
