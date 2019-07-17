@@ -276,7 +276,6 @@ class Field(FieldABC):
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
         :param dict kwargs': Field-specific keyword arguments.
-        :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
@@ -339,7 +338,6 @@ class Field(FieldABC):
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
         :param dict kwargs': Field-specific keyword arguments.
-        :raise ValidationError: In case of formatting or validation failure.
         :return: The serialized value
         """
         return value
@@ -493,10 +491,7 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
-        try:
-            return schema.dump(nested_obj, many=self.many)
-        except ValidationError as exc:
-            raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
+        return schema.dump(nested_obj, many=self.many)
 
     def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
@@ -1089,10 +1084,7 @@ class DateTime(Field):
         data_format = self.format or self.DEFAULT_FORMAT
         format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
-            try:
-                return format_func(value)
-            except (TypeError, AttributeError, ValueError):
-                self.fail("format", input=value, obj_type=self.OBJ_TYPE)
+            return format_func(value)
         else:
             return value.strftime(data_format)
 
@@ -1194,10 +1186,7 @@ class Time(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        try:
-            ret = value.isoformat()
-        except AttributeError:
-            self.fail("format", input=value)
+        ret = value.isoformat()
         if value.microsecond:
             return ret[:15]
         return ret
@@ -1292,11 +1281,8 @@ class TimeDelta(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        try:
-            base_unit = dt.timedelta(**{self.precision: 1})
-            return int(value.total_seconds() / base_unit.total_seconds())
-        except AttributeError:
-            self.fail("format", input=value)
+        base_unit = dt.timedelta(**{self.precision: 1})
+        return int(value.total_seconds() / base_unit.total_seconds())
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
@@ -1373,8 +1359,6 @@ class Mapping(Field):
             return None
         if not self.value_field and not self.key_field:
             return value
-        if not isinstance(value, _Mapping):
-            self.fail("invalid")
 
         #  Serialize keys
         if self.key_field is None:
