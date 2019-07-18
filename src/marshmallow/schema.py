@@ -1,6 +1,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
+from functools import lru_cache
 import datetime as dt
 import uuid
 import decimal
@@ -492,7 +493,7 @@ class BaseSchema(base.SchemaABC):
             ]
             self._pending = False
             return ret
-        items = []
+        ret = self.dict_class()
         for attr_name, field_obj in fields_dict.items():
             if getattr(field_obj, "load_only", False):
                 continue
@@ -507,8 +508,7 @@ class BaseSchema(base.SchemaABC):
             )
             if value is missing:
                 continue
-            items.append((key, value))
-        ret = dict_class(items)
+            ret[key] = value
         return ret
 
     def dump(self, obj, *, many=None):
@@ -1030,6 +1030,7 @@ class BaseSchema(base.SchemaABC):
                 )
                 raise TypeError(msg) from exc
 
+    @lru_cache(maxsize=8)
     def _has_processors(self, tag):
         return self._hooks[(tag, True)] or self._hooks[(tag, False)]
 
