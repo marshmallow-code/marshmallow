@@ -727,6 +727,29 @@ In order to serialize attributes on inner objects within a list, use the
         widget_ids = fields.List(fields.Pluck(WidgetSchema, "id"))
 
 
+``List`` does not wrap single values in a list on serialization
+***************************************************************
+
+In marshmallow 2.x, ``List`` serializes a single object as a list with a single
+element. In marshmallow 3.x, the object is assumed to be iterable and passing a
+non-iterable element results in an error.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        numbers = fields.List(fields.Int())
+
+
+    user = {"numbers": 1}
+    UserSchema().dump(user)
+
+    # 2.x
+    # => {'numbers': [1]}
+
+    # 3.x
+    # => TypeError: 'int' object is not iterable
+
+
 ``Float`` field takes a new ``allow_nan`` parameter
 ***************************************************
 

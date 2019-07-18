@@ -606,9 +606,7 @@ class List(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if utils.is_collection(value):
-            return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
-        return [self.inner._serialize(value, attr, obj, **kwargs)]
+        return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
