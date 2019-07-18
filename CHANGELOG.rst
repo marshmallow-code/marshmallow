@@ -7,8 +7,11 @@ Changelog
 Features:
 
 - *Backwards-incompatible*: ``DateTime`` does not affect timezone information
-  on serialization and deserialization.
-- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness.
+  on serialization and deserialization (:pr:`1287`).
+- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness
+  (:pr:`1287`).
+- *Backwards-incompatible*: ``List`` does not wrap single values in a list on
+  serialization (:pr:`1307`).
 
 Deprecations/Removals:
 
