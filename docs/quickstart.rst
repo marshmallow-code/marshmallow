@@ -45,7 +45,7 @@ Create a schema by defining a class with variables mapping attribute names to :c
 Serializing Objects ("Dumping")
 -------------------------------
 
-Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result (or raises a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` with a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
+Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result.
 
 .. code-block:: python
 
@@ -84,9 +84,11 @@ You can also exclude fields by passing in the ``exclude`` parameter.
 Deserializing Objects ("Loading")
 ---------------------------------
 
-The opposite of the :meth:`dump <Schema.dump>` method is the :meth:`load <Schema.load>` method, which deserializes an input dictionary to an application-level data structure.
+The reverse of the `dump <Schema.dump>` method is `load <Schema.load>`, which validates and deserializes 
+an input dictionary to an application-level data structure. 
 
-By default, :meth:`load <Schema.load>` will return a dictionary of field names mapped to the deserialized values.
+By default, :meth:`load <Schema.load>` will return a dictionary of field names mapped to deserialized values (or raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` 
+with a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
 
 .. code-block:: python
 
@@ -160,7 +162,7 @@ Iterable collections of objects are also serializable and deserializable. Just s
 Validation
 ----------
 
-:meth:`Schema.load` (and its JSON-decoding counterpart, :meth:`Schema.loads`) raises a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` error when invalid data are passed in. You can access the dictionary of validation errors from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute. The data that was correctly serialized / deserialized is accessible in `ValidationError.valid_data <marshmallow.exceptions.ValidationError.valid_data>`. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
+:meth:`Schema.load` (and its JSON-decoding counterpart, :meth:`Schema.loads`) raises a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` error when invalid data are passed in. You can access the dictionary of validation errors from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute. The data that were correctly deserialized are accessible in `ValidationError.valid_data <marshmallow.exceptions.ValidationError.valid_data>`. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
 
 .. code-block:: python
 
@@ -169,8 +171,8 @@ Validation
     try:
         result = UserSchema().load({"name": "John", "email": "foo"})
     except ValidationError as err:
-        err.messages  # => {'email': ['"foo" is not a valid email address.']}
-        valid_data = err.valid_data  # => {'name': 'John'}
+        err.messages  # => {"email": ['"foo" is not a valid email address.']}
+        valid_data = err.valid_data  # => {"name": "John"}
 
 
 When validating a collection, the errors dictionary will be keyed on the indices of invalid items.
@@ -243,13 +245,11 @@ If validation fails, validation functions raise a :exc:`ValidationError <marshma
     except ValidationError as err:
         err.messages  # => {'quantity': ['Quantity must not be greater than 30.']}
 
-.. note::
+You may also pass a collection (list, tuple, generator) of callables to ``validate``.
 
-    If you have multiple validations to perform, you may also pass a collection (list, tuple, generator) of callables.
+.. warning::
 
-.. note::
-
-    :meth:`Schema.dump` also returns a dictionary of errors, which will include any ``ValidationErrors`` raised during serialization. However, ``required``, ``allow_none``, ``validate``, `@validates <marshmallow.decorators.validates>`, and `@validates_schema <marshmallow.decorators.validates_schema>` only apply during deserialization.
+    Validation only happens on deserialization, not serialization. To improve serialization performance, data passed to :meth:`Schema.dump` are considered valid.
 
 .. seealso::
 
