@@ -346,10 +346,10 @@ def get_func_args(func: typing.Callable) -> typing.List[str]:
     .. versionchanged:: 3.0.0a1
         Do not return bound arguments, eg. ``self``.
     """
-    if isinstance(func, functools.partial):
-        return _signature(func.func)
     if inspect.isfunction(func) or inspect.ismethod(func):
         return _signature(func)
+    if isinstance(func, functools.partial):
+        return _signature(func.func)
     # Callable class
     return _signature(func.__call__)
 
