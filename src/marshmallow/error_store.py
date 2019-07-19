@@ -13,8 +13,6 @@ class ErrorStore:
     def __init__(self):
         #: Dictionary of errors stored during serialization
         self.errors = {}
-        #: True while (de)serializing a collection
-        self._pending = False
 
     def store_error(self, messages, field_name=SCHEMA, index=None):
         # field error  -> store/merge error messages under field name key
