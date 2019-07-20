@@ -531,9 +531,19 @@ class Pluck(Nested):
 
     Example: ::
 
-        user = fields.Pluck(UserSchema, 'name')
-        collaborators = fields.Pluck(UserSchema, 'id', many=True)
-        parent = fields.Pluck('self', 'name')
+        from marshmallow import Schema, fields
+
+        class ArtistSchema(Schema):
+            id = fields.Int()
+            name = fields.Str()
+
+        class AlbumSchema(Schema):
+            artist = fields.Pluck(ArtistSchema, 'id')
+
+
+        in_data = {'artist': 42}
+        loaded = AlbumSchema().load(in_data) # => {'artist': {'id': 42}}
+        dumped = AlbumSchema().dump(loaded)  # => {'artist': 42}
 
     :param Schema nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the :class:`Schema` within itself.
