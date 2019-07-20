@@ -243,10 +243,10 @@ class Field(FieldABC):
     def make_error(self, key: str, **kwargs) -> ValidationError:
         try:
             msg = self.error_messages[key]
-        except KeyError as exc:
+        except KeyError as error:
             class_name = self.__class__.__name__
             msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
-            raise AssertionError(msg) from exc
+            raise AssertionError(msg) from error
         if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
         return ValidationError(msg)
@@ -495,8 +495,10 @@ class Nested(Field):
             return None
         try:
             return schema.dump(nested_obj, many=self.many)
-        except ValidationError as exc:
-            raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
+        except ValidationError as error:
+            raise ValidationError(
+                error.messages, valid_data=error.valid_data
+            ) from error
 
     def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
@@ -505,8 +507,10 @@ class Nested(Field):
     def _load(self, value, data, partial=None):
         try:
             valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
-        except ValidationError as exc:
-            raise ValidationError(exc.messages, valid_data=exc.valid_data) from exc
+        except ValidationError as error:
+            raise ValidationError(
+                error.messages, valid_data=error.valid_data
+            ) from error
         return valid_data
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
@@ -586,11 +590,11 @@ class List(Field):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
-        except FieldInstanceResolutionError as exc:
+        except FieldInstanceResolutionError as error:
             raise ValueError(
                 "The list elements must be a subclass or instance of "
                 "marshmallow.base.FieldABC."
-            ) from exc
+            ) from error
         if isinstance(self.inner, Nested):
             self.only = self.inner.only
             self.exclude = self.inner.exclude
@@ -660,11 +664,11 @@ class Tuple(Field):
                 resolve_field_instance(cls_or_instance)
                 for cls_or_instance in tuple_fields
             ]
-        except FieldInstanceResolutionError as exc:
+        except FieldInstanceResolutionError as error:
             raise ValueError(
                 'Elements of "tuple_fields" must be subclasses or '
                 "instances of marshmallow.base.FieldABC."
-            ) from exc
+            ) from error
 
         self.validate_length = Length(equal=len(self.tuple_fields))
 
@@ -730,8 +734,8 @@ class String(Field):
             self.fail("invalid")
         try:
             return utils.ensure_text_type(value)
-        except UnicodeDecodeError:
-            self.fail("invalid_utf8")
+        except UnicodeDecodeError as error:
+            raise self.make_error("invalid_utf8") from error
 
 
 class UUID(String):
@@ -750,8 +754,8 @@ class UUID(String):
                 return uuid.UUID(bytes=value)
             else:
                 return uuid.UUID(value)
-        except (ValueError, AttributeError, TypeError):
-            self.fail("invalid_uuid")
+        except (ValueError, AttributeError, TypeError) as error:
+            raise self.make_error("invalid_uuid") from error
 
     def _serialize(self, value, attr, obj, **kwargs):
         validated = str(self._validated(value)) if value is not None else None
@@ -791,10 +795,10 @@ class Number(Field):
             return None
         try:
             return self._format_num(value)
-        except (TypeError, ValueError):
-            self.fail("invalid", input=value)
-        except OverflowError:
-            self.fail("too_large", input=value)
+        except (TypeError, ValueError) as error:
+            raise self.make_error("invalid", input=value) from error
+        except OverflowError as error:
+            raise self.make_error("too_large", input=value) from error
 
     def _to_string(self, value):
         return str(value)
@@ -937,8 +941,8 @@ class Decimal(Number):
     def _validated(self, value):
         try:
             return super()._validated(value)
-        except decimal.InvalidOperation:
-            self.fail("invalid")
+        except decimal.InvalidOperation as error:
+            raise self.make_error("invalid") from error
 
     # override Number
     def _to_string(self, value):
@@ -1089,8 +1093,10 @@ class DateTime(Field):
         if format_func:
             try:
                 return format_func(value)
-            except (TypeError, AttributeError, ValueError):
-                self.fail("format", input=value, obj_type=self.OBJ_TYPE)
+            except (TypeError, AttributeError, ValueError) as error:
+                raise self.make_error(
+                    "format", input=value, obj_type=self.OBJ_TYPE
+                ) from error
         else:
             return value.strftime(data_format)
 
@@ -1102,17 +1108,17 @@ class DateTime(Field):
         if func:
             try:
                 return func(value)
-            except (TypeError, AttributeError, ValueError) as exc:
+            except (TypeError, AttributeError, ValueError) as error:
                 raise self.make_error(
                     "invalid", input=value, obj_type=self.OBJ_TYPE
-                ) from exc
+                ) from error
         else:
             try:
                 return self._make_object_from_format(value, data_format)
-            except (TypeError, AttributeError, ValueError) as exc:
+            except (TypeError, AttributeError, ValueError) as error:
                 raise self.make_error(
                     "invalid", input=value, obj_type=self.OBJ_TYPE
-                ) from exc
+                ) from error
 
     @staticmethod
     def _make_object_from_format(value, data_format):
@@ -1194,8 +1200,8 @@ class Time(Field):
             return None
         try:
             ret = value.isoformat()
-        except AttributeError:
-            self.fail("format", input=value)
+        except AttributeError as error:
+            raise self.make_error("format", input=value) from error
         if value.microsecond:
             return ret[:15]
         return ret
@@ -1206,8 +1212,8 @@ class Time(Field):
             self.fail("invalid")
         try:
             return utils.from_iso_time(value)
-        except (AttributeError, TypeError, ValueError):
-            self.fail("invalid")
+        except (AttributeError, TypeError, ValueError) as error:
+            raise self.make_error("invalid") from error
 
 
 class Date(DateTime):
@@ -1293,21 +1299,21 @@ class TimeDelta(Field):
         try:
             base_unit = dt.timedelta(**{self.precision: 1})
             return int(value.total_seconds() / base_unit.total_seconds())
-        except AttributeError:
-            self.fail("format", input=value)
+        except AttributeError as error:
+            raise self.make_error("format", input=value) from error
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
             value = int(value)
-        except (TypeError, ValueError):
-            self.fail("invalid")
+        except (TypeError, ValueError) as error:
+            raise self.make_error("invalid") from error
 
         kwargs = {self.precision: value}
 
         try:
             return dt.timedelta(**kwargs)
-        except OverflowError:
-            self.fail("invalid")
+        except OverflowError as error:
+            raise self.make_error("invalid") from error
 
 
 class Mapping(Field):
@@ -1334,22 +1340,22 @@ class Mapping(Field):
         else:
             try:
                 self.key_field = resolve_field_instance(keys)
-            except FieldInstanceResolutionError as exc:
+            except FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
                     "marshmallow.base.FieldABC."
-                ) from exc
+                ) from error
 
         if values is None:
             self.value_field = None
         else:
             try:
                 self.value_field = resolve_field_instance(values)
-            except FieldInstanceResolutionError as exc:
+            except FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
                     "marshmallow.base.FieldABC."
-                ) from exc
+                ) from error
             if isinstance(self.value_field, Nested):
                 self.only = self.value_field.only
                 self.exclude = self.value_field.exclude
