@@ -7,13 +7,17 @@ Changelog
 Features:
 
 - *Backwards-incompatible*: ``DateTime`` does not affect timezone information
-  on serialization and deserialization.
-- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness.
+  on serialization and deserialization (:issue:`1234`, :pr:`1287`).
+- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness
+  (:issue:`1234`, :pr:`1287`).
+- *Backwards-incompatible*: ``List`` does not wrap single values in a list on
+  serialization (:pr:`1307`).
+- Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
 - Performance improvements (:pr:`1309`).
 
 Deprecations/Removals:
 
-- ``LocalDateTime`` is removed.
+- ``LocalDateTime`` is removed (:issue:`1234`).
 
 Bug fixes:
 
