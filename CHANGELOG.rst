@@ -9,6 +9,7 @@ Features:
 - *Backwards-incompatible*: ``DateTime`` does not affect timezone information
   on serialization and deserialization.
 - Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness.
+- Performance improvements (:pr:`1309`).
 
 Deprecations/Removals:
 
