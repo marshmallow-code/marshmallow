@@ -58,9 +58,6 @@ def test_serializer_dump(user):
     s = UserSchema()
     result = s.dump(user)
     assert result["name"] == user.name
-    bad_user = User(name="Monty", age="badage")
-    with pytest.raises(ValidationError):
-        s.dump(bad_user)
 
 
 def test_load_resets_errors():

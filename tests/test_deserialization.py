@@ -45,7 +45,7 @@ class TestFieldDeserialization:
         assert math.isclose(field.deserialize("12.3"), 12.3)
         assert math.isclose(field.deserialize(12.3), 12.3)
 
-    @pytest.mark.parametrize("in_val", ["bad", "", {}])
+    @pytest.mark.parametrize("in_val", ["bad", "", {}, True, False])
     def test_invalid_float_field_deserialization(self, in_val):
         field = fields.Float()
         with pytest.raises(ValidationError) as excinfo:
