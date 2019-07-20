@@ -1321,6 +1321,23 @@ class TestSchemaDeserialization:
         assert result["name"] == "Mick"
         assert result["birthdate"] == bdate
 
+    def test_deserialize_with_static_missing_param_is_validated(self):
+        def validate_name(name):
+            if not name.startswith("A"):
+                raise ValidationError('Name should start with the letter "A"')
+
+        class WrongUserSerializer(Schema):
+            name = fields.String(missing="Unknown User", validate=validate_name)
+
+        with pytest.raises(ValidationError):
+            WrongUserSerializer().load({})
+
+        class GoodUserSerializer(Schema):
+            name = fields.String(missing="An Unknown User", validate=validate_name)
+
+        res = GoodUserSerializer().load({})
+        assert res["name"] == "An Unknown User"
+
     def test_deserialize_with_missing_param_none(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()

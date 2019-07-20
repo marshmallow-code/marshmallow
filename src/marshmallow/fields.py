@@ -302,12 +302,16 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         self._validate_missing(value)
+
         if value is missing_:
-            _miss = self.missing
-            return _miss() if callable(_miss) else _miss
-        if getattr(self, "allow_none", False) is True and value is None:
+            if self.missing is missing_:
+                return missing_
+            output = self.missing() if callable(self.missing) else self.missing
+        elif value is None and getattr(self, "allow_none", False):
             return None
-        output = self._deserialize(value, attr, data, **kwargs)
+        else:
+            output = self._deserialize(value, attr, data, **kwargs)
+
         self._validate(output)
         return output
 
