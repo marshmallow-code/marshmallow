@@ -436,11 +436,11 @@ class BaseSchema(base.SchemaABC):
         """
         try:
             value = getter_func(data)
-        except ValidationError as err:
-            error_store.store_error(err.messages, field_name, index=index)
+        except ValidationError as error:
+            error_store.store_error(error.messages, field_name, index=index)
             # When a Nested field fails validation, the marshalled data is stored
             # on the ValidationError's valid_data attribute
-            return err.valid_data or missing
+            return error.valid_data or missing
         return value
 
     def _serialize(

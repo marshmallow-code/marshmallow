@@ -12,6 +12,7 @@ Features:
   (:issue:`1234`, :pr:`1287`).
 - *Backwards-incompatible*: ``List`` does not wrap single values in a list on
   serialization (:pr:`1307`).
+- Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
 
 Deprecations/Removals:
 
