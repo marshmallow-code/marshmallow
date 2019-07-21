@@ -1477,7 +1477,8 @@ class Url(String):
     :param default: Default value for the field if the attribute is not set.
     :param str attribute: The name of the attribute to get the value from. If
         `None`, assumes the attribute has the same name as the field.
-    :param bool relative: Allow relative URLs.
+    :param bool relative: Whether to allow relative URLs.
+    :param bool require_tld: Whether to reject non-FQDN hostnames.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
