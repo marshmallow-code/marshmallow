@@ -134,7 +134,7 @@ Then send a POST request with some text with `httpie <https://github.com/jkbr/ht
 
 
 Quotes API (Flask + SQLAlchemy)
-================================
+===============================
 
 Below is a full example of a REST API for a quotes app using `Flask <http://flask.pocoo.org/>`_  and `SQLAlchemy <https://www.sqlalchemy.org/>`_  with marshmallow. It demonstrates a number of features, including:
 
@@ -282,3 +282,13 @@ After registering a user and creating some todo items in the database, here is a
             }
         ]
     }
+
+
+Inflection (Camel-casing Keys)
+==============================
+
+HTTP APIs will often use camel-cased keys for their input and output representations. This example shows how you can use the
+`Schema.on_bind_field <marshmallow.Schema.on_bind_field>` hook to automatically inflect keys.
+
+.. literalinclude:: ../examples/inflection_example.py
+    :language: python
