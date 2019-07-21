@@ -233,7 +233,7 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
     class UserSchema(Schema):
         email = fields.Email()
 
-        def handle_error(self, exc, data):
+        def handle_error(self, exc, data, **kwargs):
             """Log and raise our custom exception when (de)serialization fails."""
             logging.error(exc.messages)
             raise AppError("An error occurred with input: {0}".format(data))

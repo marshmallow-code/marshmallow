@@ -12,6 +12,7 @@ Features:
   (:issue:`1234`, :pr:`1287`).
 - *Backwards-incompatible*: ``List`` does not wrap single values in a list on
   serialization (:pr:`1307`).
+- *Backwards-incompatible*: ``Schema.handle_error`` receives ``many`` and ``partial`` as keyword arguments (:pr:`1321`).
 - Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
 - Rename ``Nested.__schema`` to ``Nested._schema`` to prevent name mangling (:issue:`1289`).
 - Performance improvements (:pr:`1309`).

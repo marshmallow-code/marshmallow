@@ -79,8 +79,8 @@ will raise a :exc:`TypeError`.
     this change.
 
 
-Decorated methods receive ``many`` and ``partial``
-**************************************************
+Decorated methods and ``handle_error`` receive ``many`` and ``partial``
+***********************************************************************
 
 Methods decorated with
 `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`,
@@ -112,6 +112,22 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
         def slugify_name(self, in_data, **kwargs):
             in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
+
+`Schema.handle_error <marshmallow.Schema.handle_error>` also receives ``many`` and ``partial`` as keyword arguments.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data):
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+    # 3.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data, **kwargs):
+            raise AppError("An error occurred with input: {0}".format(data))
+
 
 Deserializing invalid types raises a ``ValidationError``
 ********************************************************

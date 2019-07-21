@@ -402,13 +402,18 @@ class BaseSchema(base.SchemaABC):
 
     ##### Override-able methods #####
 
-    def handle_error(self, error, data):
+    def handle_error(self, error, data, *, many, **kwargs):
         """Custom error handler function for the schema.
 
         :param ValidationError error: The `ValidationError` raised during (de)serialization.
         :param data: The original input data.
+        :param bool many: Value of ``many`` on dump or load.
+        :param bool partial: Value of ``partial`` on load.
 
         .. versionadded:: 2.0.0
+
+        .. versionchanged:: 3.0.0rc9
+            Receives `many` and `partial` (on deserialization) as keyword arguments.
         """
         pass
 
@@ -566,7 +571,7 @@ class BaseSchema(base.SchemaABC):
         if errors:
             exc = ValidationError(errors, data=obj, valid_data=result)
             # User-defined error handler
-            self.handle_error(exc, obj)
+            self.handle_error(exc, obj, many=many)
             raise exc
 
         return result
@@ -890,7 +895,7 @@ class BaseSchema(base.SchemaABC):
                     errors = err.normalized_messages()
         if errors:
             exc = ValidationError(errors, data=data, valid_data=result)
-            self.handle_error(exc, data)
+            self.handle_error(exc, data, many=many, partial=partial)
             raise exc
 
         return result
