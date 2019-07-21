@@ -438,7 +438,7 @@ class Nested(Field):
         self.exclude = exclude
         self.many = kwargs.get("many", False)
         self.unknown = kwargs.get("unknown")
-        self.__schema = None  # Cached Schema instance
+        self._schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
 
     @property
@@ -448,12 +448,12 @@ class Nested(Field):
         .. versionchanged:: 1.0.0
             Renamed from `serializer` to `schema`
         """
-        if not self.__schema:
+        if not self._schema:
             # Inherit context from parent.
             context = getattr(self.parent, "context", {})
             if isinstance(self.nested, SchemaABC):
-                self.__schema = self.nested
-                self.__schema.context.update(context)
+                self._schema = self.nested
+                self._schema.context.update(context)
             else:
                 if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
                     schema_class = self.nested
@@ -469,7 +469,7 @@ class Nested(Field):
                     schema_class = ret.__class__
                 else:
                     schema_class = class_registry.get_class(self.nested)
-                self.__schema = schema_class(
+                self._schema = schema_class(
                     many=self.many,
                     only=self.only,
                     exclude=self.exclude,
@@ -477,7 +477,7 @@ class Nested(Field):
                     load_only=self._nested_normalized_option("load_only"),
                     dump_only=self._nested_normalized_option("dump_only"),
                 )
-        return self.__schema
+        return self._schema
 
     def _nested_normalized_option(self, option_name):
         nested_field = "%s." % self.name

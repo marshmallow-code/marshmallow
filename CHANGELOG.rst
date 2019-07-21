@@ -13,6 +13,7 @@ Features:
 - *Backwards-incompatible*: ``List`` does not wrap single values in a list on
   serialization (:pr:`1307`).
 - Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
+- Rename ``Nested.__schema`` to ``Nested._schema`` to prevent name mangling (:issue:`1289`).
 - Performance improvements (:pr:`1309`).
 
 Deprecations/Removals:
