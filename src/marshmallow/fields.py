@@ -118,7 +118,7 @@ class Field(FieldABC):
     #: :exc:`marshmallow.ValidationError`.
     default_error_messages = {
         'required': 'Missing data for required field.',
-        'type': 'Invalid input type.',  # used by Unmarshaller
+        'type': 'Invalid type.',  # used by Unmarshaller
         'null': 'Field may not be null.',
         'validator_failed': 'Invalid value.'
     }
@@ -329,9 +329,11 @@ class Field(FieldABC):
             ret = ret.parent
         return ret if isinstance(ret, SchemaABC) else None
 
+
 class Raw(Field):
     """Field that applies no formatting or validation."""
     pass
+
 
 class Nested(Field):
     """Allows you to nest a :class:`Schema <marshmallow.Schema>`
@@ -373,11 +375,6 @@ class Nested(Field):
     :param bool many: Whether the field is a collection of objects.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
-
-    default_error_messages = {
-        'type': 'Invalid type.',
-    }
-
     def __init__(self, nested, default=missing_, exclude=tuple(), only=None, **kwargs):
         self.nested = nested
         self.only = only
@@ -811,6 +808,7 @@ class Boolean(Field):
             except TypeError:
                 pass
         self.fail('invalid')
+
 
 class FormattedString(Field):
     """Interpolate other values from the object into this field. The syntax for

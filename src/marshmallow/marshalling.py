@@ -10,6 +10,8 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
+import collections
+
 from marshmallow.utils import is_collection, missing, set_value
 from marshmallow.compat import text_type, iteritems
 from marshmallow.exceptions import (
@@ -23,6 +25,7 @@ __all__ = [
 
 # Key used for field-level validation errors on nested fields
 FIELD = '_field'
+
 
 class ErrorStore(object):
 
@@ -76,6 +79,7 @@ class ErrorStore(object):
             # on the ValidationError's data attribute
             value = err.data or missing
         return value
+
 
 class Marshaller(ErrorStore):
     """Callable class responsible for serializing data and storing errors.
@@ -156,6 +160,7 @@ class Marshaller(ErrorStore):
 
 # Key used for schema-level validation errors
 SCHEMA = '_schema'
+
 
 class Unmarshaller(ErrorStore):
     """Callable class responsible for deserializing data and storing errors.
@@ -242,25 +247,22 @@ class Unmarshaller(ErrorStore):
                         data=ret,
                     )
             return ret
-        if data is not None:
-            partial_is_collection = is_collection(partial)
-            ret = dict_class()
+
+        partial_is_collection = is_collection(partial)
+        ret = dict_class()
+
+        if not isinstance(data, collections.Mapping):
+            errors = self.get_errors(index=index)
+            msg = 'Invalid input type.'
+            self.error_field_names = [SCHEMA]
+            errors = self.get_errors()
+            errors.setdefault(SCHEMA, []).append(msg)
+            return None
+        else:
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
                     continue
-                try:
-                    raw_value = data.get(attr_name, missing)
-                except AttributeError:  # Input data is not a dict
-                    errors = self.get_errors(index=index)
-                    msg = field_obj.error_messages['type'].format(
-                        input=data, input_type=data.__class__.__name__
-                    )
-                    self.error_field_names = [SCHEMA]
-                    self.error_fields = []
-                    errors = self.get_errors()
-                    errors.setdefault(SCHEMA, []).append(msg)
-                    # Input data type is incorrect, so we can bail out early
-                    break
+                raw_value = data.get(attr_name, missing)
                 field_name = attr_name
                 if raw_value is missing and field_obj.load_from:
                     field_name = field_obj.load_from
@@ -292,8 +294,6 @@ class Unmarshaller(ErrorStore):
                 if value is not missing:
                     key = fields_dict[attr_name].attribute or attr_name
                     set_value(ret, key, value)
-        else:
-            ret = None
 
         if self.errors and not self._pending:
             raise ValidationError(
