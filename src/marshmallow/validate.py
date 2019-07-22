@@ -37,7 +37,7 @@ class URL(Validator):
         Can be interpolated with `{input}`.
     :param set schemes: Valid schemes. By default, ``http``, ``https``,
         ``ftp``, and ``ftps`` are allowed.
-    :param bool require_tld: Whether to reject non-FQDN hostnames
+    :param bool require_tld: Whether to reject non-FQDN hostnames.
     """
 
     class RegexMemoizer:
@@ -334,7 +334,11 @@ class Equal(Validator):
 
 
 class Regexp(Validator):
-    """Validate ``value`` against the provided regex.
+    """Validator which succeeds if the ``value`` matches ``regex``.
+
+    .. note::
+
+        Uses `re.match`, which searches for a match at the beginning of a string.
 
     :param regex: The regular expression string to use. Can also be a compiled
         regular expression pattern.

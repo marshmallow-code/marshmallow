@@ -1,22 +1,33 @@
 Changelog
 ---------
 
-3.0.0 (unreleased)
-++++++++++++++++++
+3.0.0rc9 (unreleased)
++++++++++++++++++++++
 
 Features:
 
 - *Backwards-incompatible*: ``DateTime`` does not affect timezone information
-  on serialization and deserialization.
-- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness.
+  on serialization and deserialization (:issue:`1234`, :pr:`1287`).
+- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness
+  (:issue:`1234`, :pr:`1287`).
+- *Backwards-incompatible*: ``List`` does not wrap single values in a list on
+  serialization (:pr:`1307`).
+- *Backwards-incompatible*: ``Schema.handle_error`` receives ``many`` and ``partial`` as keyword arguments (:pr:`1321`).
+- Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
+- Rename ``Nested.__schema`` to ``Nested._schema`` to prevent name mangling (:issue:`1289`).
+- Performance improvements (:pr:`1309`).
 
 Deprecations/Removals:
 
-- ``LocalDateTime`` is removed.
+- ``LocalDateTime`` is removed (:issue:`1234`).
 
 Bug fixes:
 
 - Fix behavior of `List(Nested("self"))` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
+
+Support:
+
+- Document usage of  `validate.Regexp`'s usage `re.search` (:issue:`1285`). Thanks :user:`macdonaldezra`.
 
 3.0.0rc8 (2019-07-04)
 +++++++++++++++++++++

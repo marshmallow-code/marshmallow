@@ -1650,7 +1650,7 @@ class MySchema(Schema):
     email = fields.Email()
     age = fields.Integer()
 
-    def handle_error(self, errors, obj):
+    def handle_error(self, errors, obj, **kwargs):
         raise CustomError("Something bad happened")
 
     def test_load_with_custom_error_handler(self):
@@ -1659,7 +1659,7 @@ class MySchema(Schema):
         class MySchema3(Schema):
             email = fields.Email()
 
-            def handle_error(self, error, data):
+            def handle_error(self, error, data, **kwargs):
                 assert type(error) is ValidationError
                 assert "email" in error.messages
                 assert list(error.messages.keys()) == ["email"]
@@ -1676,7 +1676,7 @@ class MySchema(Schema):
             email = fields.Email()
             url = fields.URL()
 
-            def handle_error(self, error, data):
+            def handle_error(self, error, data, **kwargs):
                 assert type(error) is ValidationError
                 assert "email" in error.messages
                 assert list(error.messages.keys()) == ["email"]
@@ -1697,7 +1697,7 @@ class MySchema(Schema):
                 if value < 0:
                     raise ValidationError("Must be greater than 0.")
 
-            def handle_error(self, error, data):
+            def handle_error(self, error, data, **kwargs):
                 assert type(error) is ValidationError
                 assert "num" in error.messages
                 assert list(error.messages.keys()) == ["num"]
@@ -1717,7 +1717,7 @@ class MySchema(Schema):
             def validates_schema(self, data, **kwargs):
                 raise ValidationError("Invalid schema!")
 
-            def handle_error(self, error, data):
+            def handle_error(self, error, data, **kwargs):
                 assert type(error) is ValidationError
                 assert list(error.messages.keys()) == ["_schema"]
                 assert data == in_data

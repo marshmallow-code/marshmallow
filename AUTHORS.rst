@@ -132,3 +132,5 @@ Contributors (chronological)
 - Kostas Konstantopoulos `@kdop <https://github.com/kdop>`_
 - Stephen J. Fuhry `@fuhrysteve <https://github.com/fuhrysteve>`_
 - `@dursk <https://github.com/dursk>`_
+- Ezra MacDonald `@kdop <https://github.com/macdonaldezra>`_
+- Stanislav Rogovskiy `@atmo <https://github.com/atmo>`_
