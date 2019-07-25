@@ -20,6 +20,7 @@ Features:
 Deprecations/Removals:
 
 - ``LocalDateTime`` is removed (:issue:`1234`).
+- ``marshmallow.utils.utc`` is removed. Use ``datetime.timezone.utc`` instead.
 
 Bug fixes:
 
