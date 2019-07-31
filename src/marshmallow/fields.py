@@ -934,11 +934,12 @@ class Decimal(Number):
     # override Number
     def _validated(self, value):
         try:
-            return super()._validated(value)
-        except decimal.InvalidOperation:
-            self.make_error("invalid")
+            num = super()._validated(value)
+        except decimal.InvalidOperation as error:
+            raise self.make_error("invalid") from error
         if not self.allow_nan and (num.is_nan() or num.is_infinite()):
-            self.make_error("special")
+            raise self.make_error("special")
+        return num
 
     # override Number
     def _to_string(self, value):

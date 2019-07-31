@@ -570,13 +570,6 @@ class TestFieldSerialization:
         result = field.serialize("dtimes", obj)
         assert all([type(each) == str for each in result])
 
-    def test_datetime_list_serialize_single_value(self):
-        obj = DateTimeList(dt.datetime.utcnow())
-        field = fields.List(fields.DateTime)
-        result = field.serialize("dtimes", obj)
-        assert len(result) == 1
-        assert type(result[0]) == str
-
     def test_list_field_serialize_none_returns_none(self):
         obj = DateTimeList(None)
         field = fields.List(fields.DateTime)
