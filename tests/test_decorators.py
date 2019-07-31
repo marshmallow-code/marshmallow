@@ -724,32 +724,6 @@ def test_decorator_error_handling():  # noqa: C901
                 return item
             raise ValidationError("postloadmsg1", "foo")
 
-        @pre_dump()
-        def pre_dump_error1(self, item, **kwargs):
-            if item["foo"] != 2:
-                return item
-            errors = {"foo": ["predumpmsg1"], "bar": ["predumpmsg2", "predumpmsg3"]}
-            raise ValidationError(errors)
-
-        @pre_dump()
-        def pre_dump_error2(self, item, **kwargs):
-            if item["foo"] != 6:
-                return item
-            raise ValidationError("predumpmsg1", "foo")
-
-        @post_dump()
-        def post_dump_error1(self, item, **kwargs):
-            if item["foo"] != 3:
-                return item
-            errors = {"foo": ["postdumpmsg1"], "bar": ["postdumpmsg2", "postdumpmsg3"]}
-            raise ValidationError(errors)
-
-        @post_dump()
-        def post_dump_error2(self, item, **kwargs):
-            if item["foo"] != 7:
-                return item
-            raise ValidationError("postdumpmsg1", "foo")
-
     def make_item(foo, bar):
         data = schema.load({"foo": foo, "bar": bar})
         assert data is not None
@@ -777,26 +751,6 @@ def test_decorator_error_handling():  # noqa: C901
     assert "postloadmsg2" in errors["bar"]
     assert "postloadmsg3" in errors["bar"]
     with pytest.raises(ValidationError) as excinfo:
-        schema.dump(make_item(2, 1))
-    errors = excinfo.value.messages
-    assert "foo" in errors
-    assert len(errors["foo"]) == 1
-    assert errors["foo"][0] == "predumpmsg1"
-    assert "bar" in errors
-    assert len(errors["bar"]) == 2
-    assert "predumpmsg2" in errors["bar"]
-    assert "predumpmsg3" in errors["bar"]
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(make_item(3, 1))
-    errors = excinfo.value.messages
-    assert "foo" in errors
-    assert len(errors["foo"]) == 1
-    assert errors["foo"][0] == "postdumpmsg1"
-    assert "bar" in errors
-    assert len(errors["bar"]) == 2
-    assert "postdumpmsg2" in errors["bar"]
-    assert "postdumpmsg3" in errors["bar"]
-    with pytest.raises(ValidationError) as excinfo:
         schema.load({"foo": 4, "bar": 1})
     errors = excinfo.value.messages
     assert len(errors) == 1
@@ -810,18 +764,6 @@ def test_decorator_error_handling():  # noqa: C901
     assert "foo" in errors
     assert len(errors["foo"]) == 1
     assert errors["foo"][0] == "postloadmsg1"
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(make_item(6, 1))
-    errors = excinfo.value.messages
-    assert "foo" in errors
-    assert len(errors["foo"]) == 1
-    assert errors["foo"][0] == "predumpmsg1"
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(make_item(7, 1))
-    errors = excinfo.value.messages
-    assert "foo" in errors
-    assert len(errors["foo"]) == 1
-    assert errors["foo"][0] == "postdumpmsg1"
     with pytest.raises(ValidationError) as excinfo:
         schema.load({"foo": 8, "bar": 1})
     errors = excinfo.value.messages
@@ -870,20 +812,6 @@ def test_decorator_error_handling_with_dump(decorator):
     with pytest.raises(ValidationError) as exc:
         schema.dump(object())
     assert exc.value.messages == {"foo": "error"}
-    schema.load({})
-
-
-@pytest.mark.parametrize("decorator", [pre_dump, post_dump])
-def test_decorator_error_handling_with_dump_dict_error(decorator):
-    class ExampleSchema(Schema):
-        @decorator
-        def raise_value_error(self, item, **kwargs):
-            raise ValidationError({"foo": "error"}, "nested")
-
-    schema = ExampleSchema()
-    with pytest.raises(ValidationError) as exc:
-        schema.dump(object())
-    assert exc.value.messages == {"nested": {"foo": "error"}}
     schema.load({})
 
 

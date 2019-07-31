@@ -54,7 +54,7 @@ along with the valid data from the `ValidationError.valid_data
         errors = err.messages
         valid_data = err.valid_data
 
-:meth:`Schema().validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+:meth:`Schema.validate() <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
 
 .. code-block:: python
 
@@ -113,6 +113,7 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
             in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
 
+
 `Schema.handle_error <marshmallow.Schema.handle_error>` also receives ``many`` and ``partial`` as keyword arguments.
 
 .. code-block:: python
@@ -127,6 +128,41 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
     class UserSchema(Schema):
         def handle_error(self, exc, data, **kwargs):
             raise AppError("An error occurred with input: {0}".format(data))
+
+
+Validation does not occur on serialization
+******************************************
+
+:meth:`Schema.dump() <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
+your data before serializing it.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError
+
+    invalid_data = dict(created_at="invalid")
+
+
+    class WidgetSchema(Schema):
+        created_at = fields.DateTime()
+
+
+    # 2.x
+    WidgetSchema(strict=True).dump(invalid_data)
+    # marshmallow.exceptions.ValidationError: {'created_at': ['"invalid" cannot be formatted as a datetime.']}
+
+    # 3.x
+    WidgetSchema().dump(invalid_data)
+    # AttributeError: 'str' object has no attribute 'isoformat'
+
+    # Instead, validate before dumping
+    schema = WidgetSchema()
+    try:
+        widget = schema.load(invalid_data)
+    except ValidationError:
+        print("handle errors...")
+    else:
+        dumped = schema.dump(widget)
 
 
 Deserializing invalid types raises a ``ValidationError``

@@ -58,48 +58,6 @@ def test_serializer_dump(user):
     s = UserSchema()
     result = s.dump(user)
     assert result["name"] == user.name
-    bad_user = User(name="Monty", age="badage")
-    with pytest.raises(ValidationError):
-        s.dump(bad_user)
-
-
-def test_dump_raises_with_dict_of_errors():
-    s = UserSchema()
-    bad_user = User(name="Monty", age="badage")
-    with pytest.raises(ValidationError) as excinfo:
-        s.dump(bad_user)
-    errors = excinfo.value.messages
-    assert "age" in errors
-
-
-@pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
-def test_dump_mode_raises_error(SchemaClass):
-    s = SchemaClass()
-    bad_user = User(name="Monty", homepage="http://www.foo.bar", balance="dummy")
-    with pytest.raises(ValidationError) as excinfo:
-        s.dump(bad_user)
-    exc = excinfo.value
-    assert list(exc.messages.keys()) == ["balance"]
-
-    assert type(exc.messages) == dict
-    assert exc.messages == {"balance": ["Not a valid number."]}
-
-
-def test_dump_resets_errors():
-    class MySchema(Schema):
-        age = fields.Int()
-
-    schema = MySchema()
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User("Joe", age="dummy"))
-    errors = excinfo.value.messages
-    assert len(errors["age"]) == 1
-    assert "Not a valid integer." in errors["age"][0]
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User("Steve", age="__dummy"))
-    errors = excinfo.value.messages
-    assert len(errors["age"]) == 1
-    assert "Not a valid integer." in errors["age"][0]
 
 
 def test_load_resets_errors():
@@ -143,47 +101,6 @@ def test_load_validation_error_stores_input_data_and_valid_data():
         pytest.fail("Data is invalid. Expected a ValidationError to be raised.")
 
 
-def test_dump_validation_error_stores_partially_valid_data():
-    class FailOnDump(fields.Field):
-        def _serialize(self, *args, **kwargs):
-            raise ValidationError("fail")
-
-    class MySchema(Schema):
-        always_valid = fields.DateTime()
-        always_invalid = FailOnDump()
-
-    schema = MySchema()
-    input_data = {"always_valid": dt.datetime.utcnow(), "always_invalid": 24}
-    try:
-        schema.dump(input_data)
-    except ValidationError as err:
-        # err.data is the raw input data
-        assert err.data == input_data
-        assert "always_valid" in err.valid_data
-        # err.valid_data contains valid, serialized data
-        assert isinstance(err.valid_data["always_valid"], str)
-        # excludes invalid data
-        assert "always_invalid" not in err.valid_data
-    else:
-        pytest.fail("Data is invalid. Expected a ValidationError to be raised.")
-
-
-def test_dump_resets_error_fields():
-    class MySchema(Schema):
-        age = fields.Int()
-
-    schema = MySchema()
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User("Joe", age="dummy"))
-    exc = excinfo.value
-    assert len(exc.messages.keys()) == 1
-
-    with pytest.raises(ValidationError) as excinfo:
-        schema.dump(User("Joe", age="__dummy"))
-    exc = excinfo.value
-    assert len(exc.messages.keys()) == 1
-
-
 def test_load_resets_error_fields():
     class MySchema(Schema):
         email = fields.Email()
@@ -212,13 +129,6 @@ def test_errored_fields_do_not_appear_in_output():
     sch = MySchema()
     with pytest.raises(ValidationError) as excinfo:
         sch.load({"foo": 2})
-    data, errors = excinfo.value.valid_data, excinfo.value.messages
-
-    assert "foo" in errors
-    assert "foo" not in data
-
-    with pytest.raises(ValidationError) as excinfo:
-        sch.dump({"foo": 2})
     data, errors = excinfo.value.valid_data, excinfo.value.messages
 
     assert "foo" in errors
@@ -262,36 +172,6 @@ def test_multiple_errors_can_be_stored_for_a_given_index():
     assert len(errors[1]) == 2
     assert "foo" in errors[1]
     assert "bar" in errors[1]
-
-
-def test_dump_many_stores_error_indices():
-    s = UserSchema()
-    u1, u2 = User("Mick", balance=42), User("Keith", balance="dummy")
-
-    with pytest.raises(ValidationError) as excinfo:
-        s.dump([u1, u2], many=True)
-    errors = excinfo.value.messages
-    assert 1 in errors
-    assert len(errors[1]) == 1
-
-    assert "balance" in errors[1]
-
-
-def test_dump_many_doesnt_stores_error_indices_when_index_errors_is_false():
-    class NoIndex(Schema):
-        age = fields.Int()
-
-        class Meta:
-            index_errors = False
-
-    s = NoIndex()
-    u1, u2 = User("Mick", age=42), User("Keith", age="dummy")
-
-    with pytest.raises(ValidationError) as excinfo:
-        s.dump([u1, u2], many=True)
-    errors = excinfo.value.messages
-    assert 1 not in errors
-    assert "age" in errors
 
 
 def test_dump_returns_a_dict(user):
@@ -684,15 +564,12 @@ def test_serializing_dict():
     user = {
         "name": "foo",
         "email": "foo@bar.com",
-        "age": "badage",
+        "age": 42,
         "various_data": {"foo": "bar"},
     }
-    with pytest.raises(ValidationError) as excinfo:
-        UserSchema().dump(user)
-    data, errors = excinfo.value.valid_data, excinfo.value.messages
+    data = UserSchema().dump(user)
     assert data["name"] == "foo"
-    assert "age" in errors
-    assert "age" not in data
+    assert data["age"] == 42
     assert data["various_data"] == {"foo": "bar"}
 
 
@@ -736,22 +613,6 @@ def test_can_serialize_uuid(serialized_user, user):
 def test_can_serialize_time(user, serialized_user):
     expected = user.time_registered.isoformat()[:15]
     assert serialized_user["time_registered"] == expected
-
-
-def test_invalid_time():
-    u = User("Joe", time_registered="foo")
-    with pytest.raises(ValidationError) as excinfo:
-        UserSchema().dump(u)
-    errors = excinfo.value.messages
-    assert '"foo" cannot be formatted as a time.' in errors["time_registered"]
-
-
-def test_invalid_date():
-    u = User("Joe", birthdate="foo")
-    with pytest.raises(ValidationError) as excinfo:
-        UserSchema().dump(u)
-    errors = excinfo.value.messages
-    assert '"foo" cannot be formatted as a date.' in errors["birthdate"]
 
 
 def test_invalid_dict_but_okay():
@@ -1792,13 +1653,6 @@ class MySchema(Schema):
     def handle_error(self, errors, obj, **kwargs):
         raise CustomError("Something bad happened")
 
-
-class TestHandleError:
-    def test_dump_with_custom_error_handler(self, user):
-        user.age = "notavalidage"
-        with pytest.raises(CustomError):
-            MySchema().dump(user)
-
     def test_load_with_custom_error_handler(self):
         in_data = {"email": "invalid"}
 
@@ -2083,22 +1937,6 @@ class TestNestedSchema:
         # No problems with collaborators
         assert "collaborators" not in errors
 
-    def test_nested_dump_errors(self, blog):
-        blog.user.age = "foo"
-        with pytest.raises(ValidationError) as excinfo:
-            BlogSchema().dump(blog)
-        errors = excinfo.value.messages
-        assert "age" in errors["user"]
-        assert len(errors["user"]["age"]) == 1
-        assert "Not a valid number." in errors["user"]["age"][0]
-        # No problems with collaborators
-        assert "collaborators" not in errors
-
-    def test_nested_dump(self, blog):
-        blog.user.age = "foo"
-        with pytest.raises(ValidationError, match="age"):
-            BlogSchema().dump(blog)
-
     def test_nested_method_field(self, blog):
         data = BlogSchema().dump(blog)
         assert data["user"]["is_old"]
@@ -2109,13 +1947,6 @@ class TestNestedSchema:
         assert data["user"]["lowername"] == user.name.lower()
         expected = blog.collaborators[0].name.lower()
         assert data["collaborators"][0]["lowername"] == expected
-
-    def test_invalid_float_field(self):
-        user = User("Joe", age="1b2")
-        with pytest.raises(ValidationError) as excinfo:
-            UserSchema().dump(user)
-        errors = excinfo.value.messages
-        assert "age" in errors
 
     def test_serializer_meta_with_nested_fields(self, blog, user):
         data = BlogSchemaMeta().dump(blog)
@@ -2183,35 +2014,6 @@ class TestNestedSchema:
         errors = excinfo.value.messages
         assert "inner" in errors
         assert "_schema" in errors["inner"]
-
-    def test_dump_validation_error(self):
-        class Child:
-            def __init__(self, foo, bar):
-                self.foo = foo
-                self.bar = bar
-
-        class Parent:
-            def __init__(self, foo, bar):
-                self.foo = foo
-                self.bar = bar
-
-        class ChildSchema(Schema):
-            foo = fields.Int()
-            bar = fields.Int()
-
-        class ParentSchema(Schema):
-            foo = fields.Nested(ChildSchema)
-            bar = fields.Int()
-
-        child = Child(foo="dummy", bar=42)
-        parent = Parent(foo=child, bar=42)
-
-        with pytest.raises(ValidationError) as excinfo:
-            ParentSchema().dump(parent)
-        errors = excinfo.value.messages
-        data = excinfo.value.valid_data
-        assert data == {"foo": {"bar": 42}, "bar": 42}
-        assert errors == {"foo": {"foo": ["Not a valid integer."]}}
 
     @pytest.mark.parametrize("unknown", (None, RAISE, INCLUDE, EXCLUDE))
     def test_nested_unknown_validation(self, unknown):

@@ -216,9 +216,9 @@ The pipeline for serialization is similar, except that the "pass_many" processor
 Handling Errors
 ---------------
 
-By default, :meth:`Schema.dump` and :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`.
+By default, :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if passed invalid data.
 
-You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original object (or input data if deserializing) to be (de)serialized.
+You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original input data to be deserialized.
 
 .. code-block:: python
 

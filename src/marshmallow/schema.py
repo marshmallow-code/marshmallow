@@ -450,51 +450,29 @@ class BaseSchema(base.SchemaABC):
         return value
 
     def _serialize(
-        self,
-        obj,
-        fields_dict,
-        *,
-        error_store,
-        many=False,
-        accessor=None,
-        dict_class=dict,
-        index_errors=True,
-        index=None
+        self, obj, fields_dict, *, many=False, accessor=None, dict_class=dict
     ):
         """Takes raw data (a dict, list, or other object) and a dict of
         fields to output and serializes the data based on those fields.
 
         :param obj: The actual object(s) from which the fields are taken from
         :param dict fields_dict: Mapping of field names to :class:`Field` objects.
-        :param ErrorStore error_store: Structure to store errors.
         :param bool many: Set to `True` if ``data`` should be serialized as
             a collection.
         :param callable accessor: Function to use for getting values from ``obj``.
         :param type dict_class: Dictionary class used to construct the output.
-        :param bool index_errors: Whether to store the index of invalid items in
-            ``self.errors`` when ``many=True``.
-        :param int index: Index of the item being serialized (for storing errors) if
-            serializing a collection, otherwise `None`.
         :return: A dictionary of the marshalled data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        index = index if index_errors else None
         if many and obj is not None:
             self._pending = True
             ret = [
                 self._serialize(
-                    d,
-                    fields_dict,
-                    error_store=error_store,
-                    many=False,
-                    dict_class=dict_class,
-                    accessor=accessor,
-                    index=idx,
-                    index_errors=index_errors,
+                    d, fields_dict, many=False, dict_class=dict_class, accessor=accessor
                 )
-                for idx, d in enumerate(obj)
+                for d in obj
             ]
             self._pending = False
             return ret
@@ -502,17 +480,10 @@ class BaseSchema(base.SchemaABC):
         for attr_name, field_obj in fields_dict.items():
             if getattr(field_obj, "load_only", False):
                 continue
-            key = field_obj.data_key or attr_name
-            getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
-            value = self._call_and_store(
-                getter_func=getter,
-                data=obj,
-                field_name=key,
-                error_store=error_store,
-                index=index,
-            )
+            value = field_obj.serialize(attr_name, obj, accessor=accessor)
             if value is missing:
                 continue
+            key = field_obj.data_key or attr_name
             ret[key] = value
         return ret
 
@@ -532,47 +503,29 @@ class BaseSchema(base.SchemaABC):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
-        error_store = ErrorStore()
-        errors = {}
         many = self.many if many is None else bool(many)
         if many and is_iterable_but_not_string(obj):
             obj = list(obj)
 
         if self._has_processors(PRE_DUMP):
-            try:
-                processed_obj = self._invoke_dump_processors(
-                    PRE_DUMP, obj, many=many, original_data=obj
-                )
-            except ValidationError as error:
-                errors = error.normalized_messages()
-                result = None
+            processed_obj = self._invoke_dump_processors(
+                PRE_DUMP, obj, many=many, original_data=obj
+            )
         else:
             processed_obj = obj
 
-        if not errors:
-            result = self._serialize(
-                processed_obj,
-                fields_dict=self.fields,
-                error_store=error_store,
-                many=many,
-                accessor=self.get_attribute,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-            )
-            errors = error_store.errors
+        result = self._serialize(
+            processed_obj,
+            fields_dict=self.fields,
+            many=many,
+            accessor=self.get_attribute,
+            dict_class=self.dict_class,
+        )
 
-        if not errors and self._has_processors(POST_DUMP):
-            try:
-                result = self._invoke_dump_processors(
-                    POST_DUMP, result, many=many, original_data=obj
-                )
-            except ValidationError as error:
-                errors = error.normalized_messages()
-        if errors:
-            exc = ValidationError(errors, data=obj, valid_data=result)
-            # User-defined error handler
-            self.handle_error(exc, obj, many=many)
-            raise exc
+        if self._has_processors(POST_DUMP):
+            result = self._invoke_dump_processors(
+                POST_DUMP, result, many=many, original_data=obj
+            )
 
         return result
 

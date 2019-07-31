@@ -276,7 +276,6 @@ class Field(FieldABC):
         :param str obj: The object to pull the key from.
         :param callable accessor: Function used to pull values from ``obj``.
         :param dict kwargs': Field-specific keyword arguments.
-        :raise ValidationError: In case of formatting problem
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
@@ -339,7 +338,6 @@ class Field(FieldABC):
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
         :param dict kwargs': Field-specific keyword arguments.
-        :raise ValidationError: In case of formatting or validation failure.
         :return: The serialized value
         """
         return value
@@ -493,12 +491,7 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
-        try:
-            return schema.dump(nested_obj, many=self.many)
-        except ValidationError as error:
-            raise ValidationError(
-                error.messages, valid_data=error.valid_data
-            ) from error
+        return schema.dump(nested_obj, many=self.many)
 
     def _test_collection(self, value):
         if self.many and not utils.is_collection(value):
@@ -794,15 +787,15 @@ class Number(Field):
 
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
-        # (value is True or value is False) is ~5x faster than isinstance(value, bool)
-        if value is True or value is False:
-            raise TypeError("value must be a Number, not a boolean.")
         return self.num_type(value)
 
     def _validated(self, value):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         if value is None:
             return None
+        # (value is True or value is False) is ~5x faster than isinstance(value, bool)
+        if value is True or value is False:
+            self.fail("invalid", input=value)
         try:
             return self._format_num(value)
         except (TypeError, ValueError) as error:
@@ -815,12 +808,10 @@ class Number(Field):
 
     def _serialize(self, value, attr, obj, **kwargs):
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
-        ret = self._validated(value)
-        return (
-            self._to_string(ret)
-            if (self.as_string and ret not in (None, missing_))
-            else ret
-        )
+        if value is None:
+            return None
+        ret = self._format_num(value)
+        return self._to_string(ret) if self.as_string else ret
 
     def _deserialize(self, value, attr, data, **kwargs):
         return self._validated(value)
@@ -835,20 +826,19 @@ class Integer(Number):
     num_type = int
     default_error_messages = {"invalid": "Not a valid integer."}
 
-    # override Number
     def __init__(self, *, strict=False, **kwargs):
         self.strict = strict
         super().__init__(**kwargs)
 
     # override Number
-    def _format_num(self, value):
+    def _validated(self, value):
         if self.strict:
             if isinstance(value, numbers.Number) and isinstance(
                 value, numbers.Integral
             ):
-                return super()._format_num(value)
+                return super()._validated(value)
             self.fail("invalid", input=value)
-        return super()._format_num(value)
+        return super()._validated(value)
 
 
 class Float(Number):
@@ -870,8 +860,8 @@ class Float(Number):
         self.allow_nan = allow_nan
         super().__init__(as_string=as_string, **kwargs)
 
-    def _format_num(self, value):
-        num = super()._format_num(value)
+    def _validated(self, value):
+        num = super()._validated(value)
         if self.allow_nan is False:
             if math.isnan(num) or num == float("inf") or num == float("-inf"):
                 self.fail("special")
@@ -934,25 +924,22 @@ class Decimal(Number):
     # override Number
     def _format_num(self, value):
         num = decimal.Decimal(str(value))
-
         if self.allow_nan:
             if num.is_nan():
                 return decimal.Decimal("NaN")  # avoid sNaN, -sNaN and -NaN
-        else:
-            if num.is_nan() or num.is_infinite():
-                self.fail("special")
-
         if self.places is not None and num.is_finite():
             num = num.quantize(self.places, rounding=self.rounding)
-
         return num
 
     # override Number
     def _validated(self, value):
         try:
-            return super()._validated(value)
+            num = super()._validated(value)
         except decimal.InvalidOperation as error:
             raise self.make_error("invalid") from error
+        if not self.allow_nan and (num.is_nan() or num.is_infinite()):
+            raise self.make_error("special")
+        return num
 
     # override Number
     def _to_string(self, value):
@@ -1101,12 +1088,7 @@ class DateTime(Field):
         data_format = self.format or self.DEFAULT_FORMAT
         format_func = self.SERIALIZATION_FUNCS.get(data_format)
         if format_func:
-            try:
-                return format_func(value)
-            except (TypeError, AttributeError, ValueError) as error:
-                raise self.make_error(
-                    "format", input=value, obj_type=self.OBJ_TYPE
-                ) from error
+            return format_func(value)
         else:
             return value.strftime(data_format)
 
@@ -1208,10 +1190,7 @@ class Time(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        try:
-            ret = value.isoformat()
-        except AttributeError as error:
-            raise self.make_error("format", input=value) from error
+        ret = value.isoformat()
         if value.microsecond:
             return ret[:15]
         return ret
@@ -1306,11 +1285,8 @@ class TimeDelta(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        try:
-            base_unit = dt.timedelta(**{self.precision: 1})
-            return int(value.total_seconds() / base_unit.total_seconds())
-        except AttributeError as error:
-            raise self.make_error("format", input=value) from error
+        base_unit = dt.timedelta(**{self.precision: 1})
+        return int(value.total_seconds() / base_unit.total_seconds())
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
@@ -1387,8 +1363,6 @@ class Mapping(Field):
             return None
         if not self.value_field and not self.key_field:
             return value
-        if not isinstance(value, _Mapping):
-            self.fail("invalid")
 
         #  Serialize keys
         if self.key_field is None:
