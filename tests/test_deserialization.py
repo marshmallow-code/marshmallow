@@ -5,7 +5,7 @@ import math
 
 import pytest
 
-from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, utils, Schema, validate
+from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
 
@@ -438,7 +438,7 @@ class TestFieldDeserialization:
             ),
             (
                 "Sun, 10 Nov 2013 01:23:45 +0000",
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
                 True,
             ),
             (
@@ -471,18 +471,18 @@ class TestFieldDeserialization:
             ("2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45), False),
             (
                 "2013-11-10T01:23:45+00:00",
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
                 True,
             ),
             (
                 # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
                 "2013-11-10T01:23:45.123+00:00",
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123000)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123000, tzinfo=dt.timezone.utc),
                 True,
             ),
             (
                 "2013-11-10T01:23:45.123456+00:00",
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
                 True,
             ),
             (
@@ -514,7 +514,7 @@ class TestFieldDeserialization:
             ("iso", None, "2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),
             (
                 "iso",
-                utils.UTC,
+                dt.timezone.utc,
                 "2013-11-10T01:23:45+00:00",
                 dt.datetime(2013, 11, 10, 1, 23, 45),
             ),
@@ -532,7 +532,7 @@ class TestFieldDeserialization:
             ),
             (
                 "rfc",
-                utils.UTC,
+                dt.timezone.utc,
                 "Sun, 10 Nov 2013 01:23:45 +0000",
                 dt.datetime(2013, 11, 10, 1, 23, 45),
             ),
@@ -548,7 +548,7 @@ class TestFieldDeserialization:
         field = fields.NaiveDateTime(format=fmt, timezone=timezone)
         assert field.deserialize(value) == expected
 
-    @pytest.mark.parametrize("timezone", (utils.UTC, central))
+    @pytest.mark.parametrize("timezone", (dt.timezone.utc, central))
     @pytest.mark.parametrize(
         ("fmt", "value"),
         [("iso", "2013-11-10T01:23:45"), ("rfc", "Sun, 10 Nov 2013 01:23:45")],

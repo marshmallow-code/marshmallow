@@ -80,61 +80,6 @@ def pprint(obj, *args, **kwargs):
         py_pprint(obj, *args, **kwargs)
 
 
-# From pytz: http://pytz.sourceforge.net/
-ZERO = dt.timedelta(0)
-
-
-class UTC(dt.tzinfo):
-    """UTC
-
-    Optimized UTC implementation. It unpickles using the single module global
-    instance defined beneath this class declaration.
-    """
-
-    zone = "UTC"
-
-    _utcoffset = ZERO
-    _dst = ZERO
-    _tzname = zone
-
-    def fromutc(self, datetime):
-        if datetime.tzinfo is None:
-            return self.localize(datetime)
-        return super(utc.__class__, self).fromutc(datetime)
-
-    def utcoffset(self, datetime):
-        return ZERO
-
-    def tzname(self, datetime):
-        return "UTC"
-
-    def dst(self, datetime):
-        return ZERO
-
-    def localize(self, datetime, is_dst=False):
-        """Convert naive time to local time"""
-        if datetime.tzinfo is not None:
-            raise ValueError("Not naive datetime (tzinfo is already set)")
-        return datetime.replace(tzinfo=self)
-
-    def normalize(self, datetime, is_dst=False):
-        """Correct the timezone information on the given datetime"""
-        if datetime.tzinfo is self:
-            return datetime
-        if datetime.tzinfo is None:
-            raise ValueError("Naive time - no tzinfo set")
-        return datetime.astimezone(self)
-
-    def __repr__(self):
-        return "<UTC>"
-
-    def __str__(self):
-        return "UTC"
-
-
-UTC = utc = UTC()  # UTC is a singleton
-
-
 # https://stackoverflow.com/a/27596917
 def is_aware(datetime):
     return (
@@ -198,7 +143,7 @@ def from_iso_datetime(value):
     kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
     tzinfo = kw.pop("tzinfo")
     if tzinfo == "Z":
-        tzinfo = utc
+        tzinfo = dt.timezone.utc
     elif tzinfo is not None:
         offset_mins = int(tzinfo[-2:]) if len(tzinfo) > 3 else 0
         offset = 60 * int(tzinfo[1:3]) + offset_mins

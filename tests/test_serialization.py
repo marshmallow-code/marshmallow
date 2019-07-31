@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 
-from marshmallow import Schema, fields, utils, missing as missing_
+from marshmallow import Schema, fields, missing as missing_
 
 from tests.base import User, ALL_FIELDS, central
 
@@ -414,7 +414,7 @@ class TestFieldSerialization:
         [
             (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
             (
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
                 "Sun, 10 Nov 2013 01:23:45 +0000",
             ),
             (
@@ -433,11 +433,11 @@ class TestFieldSerialization:
         [
             (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
             (
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45, 123456)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
                 "2013-11-10T01:23:45.123456+00:00",
             ),
             (
-                utils.UTC.localize(dt.datetime(2013, 11, 10, 1, 23, 45)),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
                 "2013-11-10T01:23:45+00:00",
             ),
             (
