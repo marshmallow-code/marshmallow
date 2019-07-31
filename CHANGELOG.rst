@@ -6,6 +6,8 @@ Changelog
 
 Features:
 
+- *Backwards-incompatible*: Validation does not occur on serialization (:issue:`1132`).
+  This significantly improves serialization performance.
 - *Backwards-incompatible*: ``DateTime`` does not affect timezone information
   on serialization and deserialization (:issue:`1234`, :pr:`1287`).
 - Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness
