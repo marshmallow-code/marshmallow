@@ -467,15 +467,12 @@ class BaseSchema(base.SchemaABC):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            self._pending = True
-            ret = [
+            return [
                 self._serialize(
                     d, fields_dict, many=False, dict_class=dict_class, accessor=accessor
                 )
                 for d in obj
             ]
-            self._pending = False
-            return ret
         ret = self.dict_class()
         for attr_name, field_obj in fields_dict.items():
             if getattr(field_obj, "load_only", False):
@@ -586,7 +583,6 @@ class BaseSchema(base.SchemaABC):
                 error_store.store_error([self.error_messages["type"]], index=index)
                 ret = []
             else:
-                self._pending = True
                 ret = [
                     self._deserialize(
                         d,
@@ -601,7 +597,6 @@ class BaseSchema(base.SchemaABC):
                     )
                     for idx, d in enumerate(data)
                 ]
-                self._pending = False
             return ret
         ret = dict_class()
         # Check data is a dict
