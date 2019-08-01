@@ -534,15 +534,7 @@ class BaseSchema(base.SchemaABC):
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def _deserialize(
-        self,
-        data,
-        *,
-        error_store,
-        many=False,
-        partial=False,
-        unknown=RAISE,
-        index_errors=True,
-        index=None
+        self, data, *, error_store, many=False, partial=False, unknown=RAISE, index=None
     ):
         """Deserialize ``data``.
 
@@ -555,12 +547,11 @@ class BaseSchema(base.SchemaABC):
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param bool index_errors: Whether to store the index of invalid items in
-            ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
+        index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
             if not is_collection(data):
@@ -575,7 +566,6 @@ class BaseSchema(base.SchemaABC):
                         partial=partial,
                         unknown=unknown,
                         index=idx,
-                        index_errors=index_errors,
                     )
                     for idx, d in enumerate(data)
                 ]
@@ -775,7 +765,6 @@ class BaseSchema(base.SchemaABC):
                 many=many,
                 partial=partial,
                 unknown=unknown,
-                index_errors=self.opts.index_errors,
             )
             # Run field-level validation
             self._invoke_field_validators(
