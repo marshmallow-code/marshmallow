@@ -499,6 +499,8 @@ class BaseSchema(base.SchemaABC):
             This method returns the serialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
+        .. versionchanged:: 3.0.0rc9
+            Validation no longer occurs upon serialization.
         """
         many = self.many if many is None else bool(many)
         if many and is_iterable_but_not_string(obj):
