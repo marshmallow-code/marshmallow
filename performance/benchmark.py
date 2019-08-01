@@ -2,9 +2,6 @@
 
 Uses the `timeit` module to benchmark serializing an object through Marshmallow.
 """
-
-from __future__ import print_function, unicode_literals, division
-
 import argparse
 import cProfile
 import gc
