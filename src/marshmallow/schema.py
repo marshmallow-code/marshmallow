@@ -380,16 +380,15 @@ class BaseSchema(base.SchemaABC):
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
         self.fields = self._init_fields()
-        self.dump_fields = {
-            field_name: field_obj
-            for field_name, field_obj in self.fields.items()
-            if not field_obj.load_only
-        }
-        self.load_fields = {
-            field_name: field_obj
-            for field_name, field_obj in self.fields.items()
-            if not field_obj.dump_only
-        }
+        self.dump_fields, self.load_fields = self.dict_class(), self.dict_class()
+        for field_name, field_obj in self.fields.items():
+            if field_obj.load_only:
+                self.load_fields[field_name] = field_obj
+            elif field_obj.dump_only:
+                self.dump_fields[field_name] = field_obj
+            else:
+                self.load_fields[field_name] = field_obj
+                self.dump_fields[field_name] = field_obj
         messages = {}
         messages.update(self._default_error_messages)
         for cls in reversed(self.__class__.__mro__):
