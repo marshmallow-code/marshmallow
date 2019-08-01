@@ -458,23 +458,21 @@ class BaseSchema(base.SchemaABC):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj, *, many=False, accessor=None):
+    def _serialize(self, obj, *, many=False):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
         :param bool many: `True` if ``data`` should be serialized as a collection.
-        :param callable accessor: Function to use for getting values from ``obj``.
-        :param type dict_class: Dictionary class used to construct the output.
         :return: A dictionary of the serialized data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self._serialize(d, many=False, accessor=accessor) for d in obj]
+            return [self._serialize(d, many=False) for d in obj]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
-            value = field_obj.serialize(attr_name, obj, accessor=accessor)
+            value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
             if value is missing:
                 continue
             key = field_obj.data_key or attr_name
@@ -508,7 +506,7 @@ class BaseSchema(base.SchemaABC):
         else:
             processed_obj = obj
 
-        result = self._serialize(processed_obj, many=many, accessor=self.get_attribute)
+        result = self._serialize(processed_obj, many=many)
 
         if self._has_processors(POST_DUMP):
             result = self._invoke_dump_processors(
