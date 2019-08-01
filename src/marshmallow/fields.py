@@ -1039,6 +1039,9 @@ class DateTime(Field):
     :param str format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
         or a date format string. If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 3.0.0rc9
+        Does not modify timezone information on (de)serialization.
     """
 
     SERIALIZATION_FUNCS = {
@@ -1126,6 +1129,8 @@ class NaiveDateTime(DateTime):
         converted to this timezone before their timezone information is
         removed.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 3.0.0rc9
     """
 
     AWARENESS = "naive"
@@ -1155,6 +1160,8 @@ class AwareDateTime(DateTime):
         datetimes are rejected. If not `None`, naive datetimes are set this
         timezone.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 3.0.0rc9
     """
 
     AWARENESS = "aware"
