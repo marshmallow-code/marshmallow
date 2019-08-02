@@ -54,7 +54,7 @@ along with the valid data from the `ValidationError.valid_data
         errors = err.messages
         valid_data = err.valid_data
 
-:meth:`Schema().validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+:meth:`Schema.validate() <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
 
 .. code-block:: python
 
@@ -79,8 +79,8 @@ will raise a :exc:`TypeError`.
     this change.
 
 
-Decorated methods receive ``many`` and ``partial``
-**************************************************
+Decorated methods and ``handle_error`` receive ``many`` and ``partial``
+***********************************************************************
 
 Methods decorated with
 `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`,
@@ -112,6 +112,58 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
         def slugify_name(self, in_data, **kwargs):
             in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
+
+
+`Schema.handle_error <marshmallow.Schema.handle_error>` also receives ``many`` and ``partial`` as keyword arguments.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data):
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+    # 3.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data, **kwargs):
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+Validation does not occur on serialization
+******************************************
+
+:meth:`Schema.dump() <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
+your data before serializing it.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError
+
+    invalid_data = dict(created_at="invalid")
+
+
+    class WidgetSchema(Schema):
+        created_at = fields.DateTime()
+
+
+    # 2.x
+    WidgetSchema(strict=True).dump(invalid_data)
+    # marshmallow.exceptions.ValidationError: {'created_at': ['"invalid" cannot be formatted as a datetime.']}
+
+    # 3.x
+    WidgetSchema().dump(invalid_data)
+    # AttributeError: 'str' object has no attribute 'isoformat'
+
+    # Instead, validate before dumping
+    schema = WidgetSchema()
+    try:
+        widget = schema.load(invalid_data)
+    except ValidationError:
+        print("handle errors...")
+    else:
+        dumped = schema.dump(widget)
+
 
 Deserializing invalid types raises a ``ValidationError``
 ********************************************************
@@ -725,6 +777,29 @@ In order to serialize attributes on inner objects within a list, use the
     # 3.x
     class FactorySchema(Schema):
         widget_ids = fields.List(fields.Pluck(WidgetSchema, "id"))
+
+
+``List`` does not wrap single values in a list on serialization
+***************************************************************
+
+In marshmallow 2.x, ``List`` serializes a single object as a list with a single
+element. In marshmallow 3.x, the object is assumed to be iterable and passing a
+non-iterable element results in an error.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        numbers = fields.List(fields.Int())
+
+
+    user = {"numbers": 1}
+    UserSchema().dump(user)
+
+    # 2.x
+    # => {'numbers': [1]}
+
+    # 3.x
+    # => TypeError: 'int' object is not iterable
 
 
 ``Float`` field takes a new ``allow_nan`` parameter

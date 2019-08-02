@@ -2,9 +2,6 @@
 
 Uses the `timeit` module to benchmark serializing an object through Marshmallow.
 """
-
-from __future__ import print_function, unicode_literals, division
-
 import argparse
 import cProfile
 import gc
@@ -12,7 +9,6 @@ import timeit
 import datetime
 
 from marshmallow import Schema, fields, ValidationError, post_dump
-from marshmallow.utils import UTC
 
 
 # Custom validator
@@ -140,7 +136,7 @@ def main():
                 i,
                 Author(i, "Foo", "Bar", 42, 66, "123 Fake St"),
                 "Hello World",
-                datetime.datetime(2019, 7, 4, tzinfo=UTC),
+                datetime.datetime(2019, 7, 4, tzinfo=datetime.timezone.utc),
                 "The World",
                 34,
                 3,

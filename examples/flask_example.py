@@ -1,7 +1,7 @@
 import datetime
 
-from flask import Flask, jsonify, request
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask import Flask, request
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from marshmallow import Schema, fields, ValidationError, pre_load
 
@@ -78,7 +78,7 @@ def get_authors():
     authors = Author.query.all()
     # Serialize the queryset
     result = authors_schema.dump(authors)
-    return jsonify({"authors": result})
+    return {"authors": result}
 
 
 @app.route("/authors/<int:pk>")
@@ -86,17 +86,17 @@ def get_author(pk):
     try:
         author = Author.query.get(pk)
     except IntegrityError:
-        return jsonify({"message": "Author could not be found."}), 400
+        return {"message": "Author could not be found."}, 400
     author_result = author_schema.dump(author)
     quotes_result = quotes_schema.dump(author.quotes.all())
-    return jsonify({"author": author_result, "quotes": quotes_result})
+    return {"author": author_result, "quotes": quotes_result}
 
 
 @app.route("/quotes/", methods=["GET"])
 def get_quotes():
     quotes = Quote.query.all()
     result = quotes_schema.dump(quotes, many=True)
-    return jsonify({"quotes": result})
+    return {"quotes": result}
 
 
 @app.route("/quotes/<int:pk>")
@@ -104,21 +104,21 @@ def get_quote(pk):
     try:
         quote = Quote.query.get(pk)
     except IntegrityError:
-        return jsonify({"message": "Quote could not be found."}), 400
+        return {"message": "Quote could not be found."}, 400
     result = quote_schema.dump(quote)
-    return jsonify({"quote": result})
+    return {"quote": result}
 
 
 @app.route("/quotes/", methods=["POST"])
 def new_quote():
     json_data = request.get_json()
     if not json_data:
-        return jsonify({"message": "No input data provided"}), 400
+        return {"message": "No input data provided"}, 400
     # Validate and deserialize input
     try:
         data = quote_schema.load(json_data)
     except ValidationError as err:
-        return jsonify(err.messages), 422
+        return err.messages, 422
     first, last = data["author"]["first"], data["author"]["last"]
     author = Author.query.filter_by(first=first, last=last).first()
     if author is None:
@@ -132,7 +132,7 @@ def new_quote():
     db.session.add(quote)
     db.session.commit()
     result = quote_schema.dump(Quote.query.get(quote.id))
-    return jsonify({"message": "Created new quote.", "quote": result})
+    return {"message": "Created new quote.", "quote": result}
 
 
 if __name__ == "__main__":
