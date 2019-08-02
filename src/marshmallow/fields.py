@@ -205,6 +205,9 @@ class Field(FieldABC):
             )
         )
 
+    def __deepcopy__(self, memo):
+        return copy.copy(self)
+
     def get_value(self, obj, attr, accessor=None, default=missing_):
         """Return the value for a given key from an object.
 
