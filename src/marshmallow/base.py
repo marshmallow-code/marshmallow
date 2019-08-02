@@ -1,6 +1,11 @@
 """Abstract base classes.
 
 These are necessary to avoid circular imports between core.py and fields.py.
+
+.. warning::
+
+    This module is treated as private API.
+    Users should not need to use this module directly.
 """
 
 
