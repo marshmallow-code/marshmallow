@@ -2,7 +2,6 @@
 
 These are necessary to avoid circular imports between core.py and fields.py.
 """
-import copy
 
 
 class FieldABC:
@@ -23,10 +22,6 @@ class FieldABC:
 
     def _deserialize(self, value, attr, data, **kwargs):
         raise NotImplementedError
-
-    def __deepcopy__(self, memo):
-        ret = copy.copy(self)
-        return ret
 
 
 class SchemaABC:
