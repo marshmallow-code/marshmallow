@@ -30,6 +30,8 @@ Decorators
 .. automodule:: marshmallow.decorators
     :members:
 
+.. _api_validators:
+
 Validators
 ==========
 

@@ -26,8 +26,7 @@ blob_schema = BlobSchema()
 @route("/api/v1/analyze", method="POST")
 def analyze():
     blob = TextBlob(request.json["text"])
-    result = blob_schema.dump(blob)
-    return result
+    return blob_schema.dump(blob)
 
 
 run(reloader=True, port=5000)

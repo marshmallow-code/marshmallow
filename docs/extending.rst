@@ -163,7 +163,7 @@ In summary, the processing pipeline for deserialization is as follows:
 4. ``@post_load(pass_many=True)`` methods
 5. ``@post_load(pass_many=False)`` methods
 
-The pipeline for serialization is similar, except that the "pass_many" processors are invoked *after* the "non-raw" processors.
+The pipeline for serialization is similar, except that the ``pass_many=True`` processors are invoked *after* the ``pass_many=False`` processors.
 
 1. ``@pre_dump(pass_many=False)`` methods
 2. ``@pre_dump(pass_many=True)`` methods
@@ -212,35 +212,6 @@ The pipeline for serialization is similar, except that the "pass_many" processor
             def step2(self, data, **kwargs):
                 do_step2(data)
 
-
-Handling Errors
----------------
-
-By default, :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if passed invalid data.
-
-You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original input data to be deserialized.
-
-.. code-block:: python
-
-    import logging
-    from marshmallow import Schema, fields
-
-
-    class AppError(Exception):
-        pass
-
-
-    class UserSchema(Schema):
-        email = fields.Email()
-
-        def handle_error(self, exc, data, **kwargs):
-            """Log and raise our custom exception when (de)serialization fails."""
-            logging.error(exc.messages)
-            raise AppError("An error occurred with input: {0}".format(data))
-
-
-    schema = UserSchema()
-    schema.load({"email": "invalid-email"})  # raises AppError
 
 .. _schemavalidation:
 
@@ -361,7 +332,7 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 Overriding How Attributes Are Accessed
 --------------------------------------
 
-By default, marshmallow uses the `utils.get_value` function to pull attributes from various types of objects for serialization. This will work for *most* use cases.
+By default, marshmallow uses `utils.get_value` to pull attributes from various types of objects for serialization. This will work for *most* use cases.
 
 However, if you want to specify how values are accessed from an object, you can override the :meth:`get_attribute <marshmallow.Schema.get_attribute>` method.
 
@@ -375,6 +346,36 @@ However, if you want to specify how values are accessed from an object, you can 
         # use dict.get for all input objects
         def get_attribute(self, obj, key, default):
             return obj.get(key, default)
+
+Custom Error Handling
+---------------------
+
+By default, :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if passed invalid data.
+
+You can specify a custom error-handling function for a :class:`Schema` by overriding the `handle_error <marshmallow.Schema.handle_error>`  method. The method receives the :exc:`ValidationError <marshmallow.exceptions.ValidationError>` and the original input data to be deserialized.
+
+.. code-block:: python
+
+    import logging
+    from marshmallow import Schema, fields
+
+
+    class AppError(Exception):
+        pass
+
+
+    class UserSchema(Schema):
+        email = fields.Email()
+
+        def handle_error(self, exc, data, **kwargs):
+            """Log and raise our custom exception when (de)serialization fails."""
+            logging.error(exc.messages)
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+    schema = UserSchema()
+    schema.load({"email": "invalid-email"})  # raises AppError
+
 
 Custom "class Meta" Options
 ---------------------------
