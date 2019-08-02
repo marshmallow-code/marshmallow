@@ -7,6 +7,11 @@ Changelog
 Features:
 
 - Optimize ``List(Nested(...))`` (:issue:`779`).
+- Minor performance improvements and cleanup (:pr:`1328`).
+
+Support:
+
+- Various docs improvements (:pr:`1329`).
 
 3.0.0rc9 (2019-07-31)
 +++++++++++++++++++++
