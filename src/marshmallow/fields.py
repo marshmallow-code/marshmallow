@@ -588,6 +588,9 @@ class List(Field):
     .. versionchanged:: 2.0.0
         The ``allow_none`` parameter now applies to deserialization and
         has the same semantics as the other fields.
+
+    .. versionchanged:: 3.0.0rc9
+        Does not serialize scalar values to single-item lists.
     """
 
     default_error_messages = {"invalid": "Not a valid list."}
