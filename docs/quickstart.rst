@@ -471,29 +471,6 @@ If you are consuming and producing data that does not match your schema, you can
     # 'email': 'foo@bar.com'}
 
 
-Specifying Attribute Names
---------------------------
-
-By default, `Schemas` will marshal the object attributes that are identical to the schema's field names.
-If your objects' attributes differ from the corresponding fields' names, pass the ``attribute`` argument.
-
-.. code-block:: python
-
-    class UserSchema(Schema):
-        name = fields.String()
-        email_addr = fields.String(attribute="email")
-        date_created = fields.DateTime(attribute="created_at")
-
-
-    user = User("Keith", email="keith@stones.com")
-    ser = UserSchema()
-    result = ser.dump(user)
-    pprint(result)
-    # {'name': 'Keith',
-    #  'email_addr': 'keith@stones.com',
-    #  'date_created': '2014-08-17T14:58:57.600623+00:00'}
-
-
 .. _meta_options:
 
 Implicit Field Creation
