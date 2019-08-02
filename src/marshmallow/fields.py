@@ -72,10 +72,15 @@ class Field(FieldABC):
     :param default: If set, this value will be used during serialization if the input value
         is missing. If not set, the field will be excluded from the serialized output if the
         input value is missing. May be a value or a callable.
+    :param missing: Default deserialization value for the field if the field is not
+        found in the input data. May be a value or a callable.
+    :param str data_key: The name of the output key in the output of `load` and `dump`.
+        If `None`, the key will match the name of the field.
     :param str attribute: The name of the attribute to get the value from when serializing.
         If `None`, assumes the attribute has the same name as the field.
-    :param str data_key: The name of the key to get the value from when deserializing.
-        If `None`, assumes the key has the same name as the field.
+        Note: This should only be used for very specific use cases such as
+        outputting multiple fields for a single attribute. In most cases,
+        you should use ``data_key`` instead.
     :param callable validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
@@ -90,8 +95,6 @@ class Field(FieldABC):
     :param bool dump_only: If `True` skip this field during deserialization, otherwise
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
-    :param missing: Default deserialization value for the field if the field is not
-        found in the input data. May be a value or a callable.
     :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra arguments to be stored as metadata.
 
@@ -138,14 +141,14 @@ class Field(FieldABC):
         self,
         *,
         default=missing_,
-        attribute=None,
+        missing=missing_,
         data_key=None,
+        attribute=None,
         validate=None,
         required=False,
         allow_none=None,
         load_only=False,
         dump_only=False,
-        missing=missing_,
         error_messages=None,
         **metadata
     ):
