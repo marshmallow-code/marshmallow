@@ -208,7 +208,7 @@ class Field(FieldABC):
     def get_value(self, obj, attr, accessor=None, default=missing_):
         """Return the value for a given key from an object.
 
-        :param object obj: The object to get the value from
+        :param object obj: The object to get the value from.
         :param str attr: The attribute/key in `obj` to get the value from.
         :param callable accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
@@ -272,10 +272,10 @@ class Field(FieldABC):
         """Pulls the value for the given key from the object, applies the
         field's formatting and returns the result.
 
-        :param str attr: The attribute or key to get from the object.
-        :param str obj: The object to pull the key from.
-        :param callable accessor: Function used to pull values from ``obj``.
-        :param dict kwargs': Field-specific keyword arguments.
+        :param str attr: The attribute/key to get from the object.
+        :param str obj: The object to access the attribute/key from.
+        :param callable accessor: Function used to access values from ``obj``.
+        :param dict kwargs: Field-specific keyword arguments.
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
@@ -291,10 +291,10 @@ class Field(FieldABC):
     def deserialize(self, value, attr=None, data=None, **kwargs):
         """Deserialize ``value``.
 
-        :param value: The value to be deserialized.
-        :param str attr: The attribute/key in `data` to be deserialized.
-        :param dict data: The raw input data passed to the `Schema.load`.
-        :param dict kwargs': Field-specific keyword arguments.
+        :param value: The value to deserialize.
+        :param str attr: The attribute/key in `data` to deserialize.
+        :param dict data: The raw input data passed to `Schema.load`.
+        :param dict kwargs: Field-specific keyword arguments.
         :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
         """
@@ -314,7 +314,7 @@ class Field(FieldABC):
 
     def _bind_to_schema(self, field_name, schema):
         """Update field with values from its parent schema. Called by
-            :meth:`_bind_field<marshmallow.Schema._bind_field>`.
+        :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
         :param Schema schema: Parent schema.
@@ -337,7 +337,7 @@ class Field(FieldABC):
         :param value: The value to be serialized.
         :param str attr: The attribute or key on the object to be serialized.
         :param object obj: The object the value was pulled from.
-        :param dict kwargs': Field-specific keyword arguments.
+        :param dict kwargs: Field-specific keyword arguments.
         :return: The serialized value
         """
         return value
@@ -348,15 +348,15 @@ class Field(FieldABC):
         :param value: The value to be deserialized.
         :param str attr: The attribute/key in `data` to be deserialized.
         :param dict data: The raw input data passed to the `Schema.load`.
-        :param dict kwargs': Field-specific keyword arguments.
+        :param dict kwargs: Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The deserialized value.
 
-        .. versionchanged:: 3.0.0
-            Add ``**kwargs`` parameters
-
         .. versionchanged:: 2.0.0
             Added ``attr`` and ``data`` parameters.
+
+        .. versionchanged:: 3.0.0
+            Added ``**kwargs`` to signature.
         """
         return value
 
@@ -444,7 +444,7 @@ class Nested(Field):
         """The nested Schema object.
 
         .. versionchanged:: 1.0.0
-            Renamed from `serializer` to `schema`
+            Renamed from `serializer` to `schema`.
         """
         if not self._schema:
             # Inherit context from parent.
@@ -513,7 +513,7 @@ class Nested(Field):
             parameter passed to `Schema.load`.
 
         .. versionchanged:: 3.0.0
-            Add ``partial`` parameter
+            Add ``partial`` parameter.
         """
         self._test_collection(value)
         return self._load(value, data, partial=partial)
@@ -842,8 +842,7 @@ class Integer(Number):
 
 
 class Float(Number):
-    """
-    A double as IEEE-754 double precision string.
+    """A double as an IEEE-754 double precision string.
 
     :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
         even though they are illegal according to the JSON specification.
@@ -1026,8 +1025,8 @@ class Boolean(Field):
                     return True
                 elif value in self.falsy:
                     return False
-            except TypeError:
-                pass
+            except TypeError as error:
+                raise self.make_error("invalid", input=value) from error
         self.fail("invalid", input=value)
 
 
@@ -1073,7 +1072,7 @@ class DateTime(Field):
     def __init__(self, format=None, **kwargs):
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
-        # or ``_deserialize`` methods This allows a Schema to dynamically set the
+        # or ``_deserialize`` methods. This allows a Schema to dynamically set the
         # format, e.g. from a Meta option
         self.format = format
 
@@ -1512,9 +1511,11 @@ class Method(Field):
 
     .. versionchanged:: 2.0.0
         Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
+
     .. versionchanged:: 2.3.0
         Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
         ``serialize`` to not be passed at all.
+
     .. versionchanged:: 3.0.0
         Removed ``method_name`` parameter.
     """
@@ -1565,6 +1566,7 @@ class Function(Field):
 
     .. versionchanged:: 2.3.0
         Deprecated ``func`` parameter in favor of ``serialize``.
+
     .. versionchanged:: 3.0.0a1
         Removed ``func`` parameter.
     """

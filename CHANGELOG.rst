@@ -45,7 +45,7 @@ Features:
   for parsing  ISO 8601 datetimes, dates and times. Timezone info is now
   correctly deserialized whether or not dateutil is installed. (:pr:`1265`)
 - Improve error messages for ``validate.Range``.
-- Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
+- Use ``raise from error`` for better stack traces (:pr:`1254`). Thanks
   :user:`fuhrysteve`.
 - python-dateutil is no longer used. This resolves the inconsistent behavior
   based on the presence of python-dateutil (:issue:`497`, :issue:`1234`).

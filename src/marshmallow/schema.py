@@ -938,7 +938,7 @@ class BaseSchema(base.SchemaABC):
                 field_obj.dump_only = True
             field_obj._bind_to_schema(field_name, self)
             self.on_bind_field(field_name, field_obj)
-        except TypeError as exc:
+        except TypeError as error:
             # field declared as a class, not an instance
             if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
                 msg = (
@@ -946,7 +946,7 @@ class BaseSchema(base.SchemaABC):
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
                 )
-                raise TypeError(msg) from exc
+                raise TypeError(msg) from error
 
     @lru_cache(maxsize=8)
     def _has_processors(self, tag):
@@ -993,12 +993,12 @@ class BaseSchema(base.SchemaABC):
 
             try:
                 field_obj = self.fields[field_name]
-            except KeyError as exc:
+            except KeyError as error:
                 if field_name in self.declared_fields:
                     continue
                 raise ValueError(
                     '"{}" field does not exist.'.format(field_name)
-                ) from exc
+                ) from error
 
             if many:
                 for idx, item in enumerate(data):
