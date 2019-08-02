@@ -154,6 +154,7 @@ Run the app.
 
 .. code-block:: bash
 
+    $ pip install flask flask-sqlalchemy
     $ python examples/flask_example.py
 
 First we'll POST some quotes.
@@ -170,7 +171,6 @@ If we provide invalid input data, we get 400 error response. Let's omit "author"
 
 .. code-block:: bash
 
-    $ pip install httpie
     $ http POST :5000/quotes/ content="I have no author"
     {
         "author": [
@@ -235,6 +235,13 @@ Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize
     :language: python
 
 **Using the API**
+
+Run the app.
+
+.. code-block:: bash
+
+    $ pip install flask peewee
+    $ python examples/flask_example.py
 
 After registering a user and creating some todo items in the database, here is an example response.
 

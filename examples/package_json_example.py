@@ -1,13 +1,12 @@
 import sys
 import json
 from packaging import version
+
 from marshmallow import Schema, fields, INCLUDE, pprint, ValidationError
 
 
 class Version(fields.Field):
-    """Version field that deserializes to a Version object.
-    Raises a ValidationError if version is invalid.
-    """
+    """Version field that deserializes to a Version object."""
 
     def _deserialize(self, value, *args, **kwargs):
         try:
@@ -36,8 +35,7 @@ class PackageSchema(Schema):
     )
 
     class Meta:
-        # Include unknown fields in the
-        # deserialized output
+        # Include unknown fields in the deserialized output
         unknown = INCLUDE
 
 
