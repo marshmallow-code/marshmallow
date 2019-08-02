@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Optimize ``List(Nested(...))`` (:issue:`779`).
+
 3.0.0rc9 (2019-07-31)
 +++++++++++++++++++++
 
