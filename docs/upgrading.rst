@@ -997,6 +997,40 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
     # No error
 
 
+``Field.fail`` is deprecated in favor of ``Field.make_error``
+*************************************************************
+
+`Field.fail <marshmallow.fields.Field.fail>` is deprecated. 
+Use `Field.make_error <marshmallow.fields.Field.fail>`. This allows you to
+re-raise exceptions using ``raise ... from ...``.
+
+.. code-block:: python
+
+    from marshmallow import fields, ValidationError
+    from packaging import version
+
+    # 2.x
+    class Version(fields.Field):
+        default_error_messages = {"invalid": "Not a valid version."}
+
+        def _deserialize(self, value, *args, **kwargs):
+            try:
+                return version.Version(value)
+            except version.InvalidVersion:
+                self.fail("invalid")
+
+
+    # 3.x
+    class Version(fields.Field):
+        default_error_messages = {"invalid": "Not a valid version."}
+
+        def _deserialize(self, value, *args, **kwargs):
+            try:
+                return version.Version(value)
+            except version.InvalidVersion as error:
+                raise self.make_error("invalid") from error
+
+
 ``python-dateutil`` recommended dependency is removed
 *****************************************************
 

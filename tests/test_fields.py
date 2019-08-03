@@ -189,6 +189,13 @@ class TestErrorMessages:
     class MyField(fields.Field):
         default_error_messages = {"custom": "Custom error message."}
 
+    error_messages = [
+        ("required", "Missing data for required field."),
+        ("null", "Field may not be null."),
+        ("custom", "Custom error message."),
+        ("validator_failed", "Invalid value."),
+    ]
+
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(
         self
     ):
@@ -200,28 +207,26 @@ class TestErrorMessages:
         field = self.MyField(error_messages={"passed": "Passed error message"})
         assert field.error_messages["passed"] == "Passed error message"
 
-    def test_fail(self):
+    @pytest.mark.parametrize(("key", "message"), error_messages)
+    def test_make_error(self, key, message):
         field = self.MyField()
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("required")
-        assert excinfo.value.args[0] == "Missing data for required field."
+        error = field.make_error(key)
+        assert error.args[0] == message
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("null")
-        assert excinfo.value.args[0] == "Field may not be null."
+    @pytest.mark.parametrize(("key", "message"), error_messages)
+    def test_fail(self, key, message):
+        field = self.MyField()
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("custom")
-        assert excinfo.value.args[0] == "Custom error message."
+        with pytest.warns(DeprecationWarning):
+            try:
+                field.fail(key)
+            except ValidationError as error:
+                assert error.args[0] == message
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("validator_failed")
-        assert excinfo.value.args[0] == "Invalid value."
-
+    def test_make_error_key_doesnt_exist(self):
         with pytest.raises(AssertionError) as excinfo:
-            field.fail("doesntexist")
-
+            self.MyField().make_error("doesntexist")
         assert "doesntexist" in excinfo.value.args[0]
         assert "MyField" in excinfo.value.args[0]
 
