@@ -74,7 +74,8 @@ class Field(FieldABC):
         input value is missing. May be a value or a callable.
     :param missing: Default deserialization value for the field if the field is not
         found in the input data. May be a value or a callable.
-    :param str data_key: The name of the output key in the output of `load` and `dump`.
+    :param str data_key: The name of the dict key in the external representation, i.e.
+        the input of `load` and the output of `dump`.
         If `None`, the key will match the name of the field.
     :param str attribute: The name of the attribute to get the value from when serializing.
         If `None`, assumes the attribute has the same name as the field.
