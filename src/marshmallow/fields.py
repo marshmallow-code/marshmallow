@@ -7,6 +7,7 @@ import numbers
 import uuid
 import decimal
 import math
+import warnings
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry
@@ -237,7 +238,7 @@ class Field(FieldABC):
             try:
                 r = validator(value)
                 if not isinstance(validator, Validator) and r is False:
-                    self.fail("validator_failed")
+                    raise self.make_error("validator_failed")
             except ValidationError as err:
                 kwargs.update(err.kwargs)
                 if isinstance(err.messages, dict):
@@ -248,6 +249,9 @@ class Field(FieldABC):
             raise ValidationError(errors, **kwargs)
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
+        """Helper method to make a `ValidationError` with an error message
+        from ``self.error_messages``.
+        """
         try:
             msg = self.error_messages[key]
         except KeyError as error:
@@ -258,10 +262,19 @@ class Field(FieldABC):
             msg = msg.format(**kwargs)
         return ValidationError(msg)
 
-    # Hat tip to django-rest-framework.
     def fail(self, key: str, **kwargs):
-        """A helper method that simply raises a `ValidationError`.
+        """Helper method that raises a `ValidationError` with an error message
+        from ``self.error_messages``.
+
+        .. deprecated:: 3.0.0
+            Use `make_error <marshmallow.fields.Field.make_error>` instead.
         """
+        warnings.warn(
+            '`Field.fail` is deprecated. Use `raise self.make_error("{}", ...)` instead.'.format(
+                key
+            ),
+            DeprecationWarning,
+        )
         raise self.make_error(key=key, **kwargs)
 
     def _validate_missing(self, value):
@@ -270,10 +283,10 @@ class Field(FieldABC):
         """
         if value is missing_:
             if hasattr(self, "required") and self.required:
-                self.fail("required")
+                raise self.make_error("required")
         if value is None:
             if hasattr(self, "allow_none") and self.allow_none is not True:
-                self.fail("null")
+                raise self.make_error("null")
 
     def serialize(self, attr, obj, accessor=None, **kwargs):
         """Pulls the value for the given key from the object, applies the
@@ -503,7 +516,7 @@ class Nested(Field):
     def _test_collection(self, value, many=False):
         many = self.many or many
         if many and not utils.is_collection(value):
-            self.fail("type", input=value, type=value.__class__.__name__)
+            raise self.make_error("type", input=value, type=value.__class__.__name__)
 
     def _load(self, value, data, partial=None, many=False):
         try:
@@ -633,7 +646,7 @@ class List(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
-            self.fail("invalid")
+            raise self.make_error("invalid")
         # Optimize loading a list of Nested objects by calling load(many=True)
         if isinstance(self.inner, Nested) and not self.inner.many:
             return self.inner.deserialize(value, many=True, **kwargs)
@@ -715,7 +728,7 @@ class Tuple(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not utils.is_collection(value):
-            self.fail("invalid")
+            raise self.make_error("invalid")
 
         self.validate_length(value)
 
@@ -753,7 +766,7 @@ class String(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, (str, bytes)):
-            self.fail("invalid")
+            raise self.make_error("invalid")
         try:
             return utils.ensure_text_type(value)
         except UnicodeDecodeError as error:
@@ -814,7 +827,7 @@ class Number(Field):
             return None
         # (value is True or value is False) is ~5x faster than isinstance(value, bool)
         if value is True or value is False:
-            self.fail("invalid", input=value)
+            raise self.make_error("invalid", input=value)
         try:
             return self._format_num(value)
         except (TypeError, ValueError) as error:
@@ -856,7 +869,7 @@ class Integer(Number):
                 value, numbers.Integral
             ):
                 return super()._validated(value)
-            self.fail("invalid", input=value)
+            raise self.make_error("invalid", input=value)
         return super()._validated(value)
 
 
@@ -882,7 +895,7 @@ class Float(Number):
         num = super()._validated(value)
         if self.allow_nan is False:
             if math.isnan(num) or num == float("inf") or num == float("-inf"):
-                self.fail("special")
+                raise self.make_error("special")
         return num
 
 
@@ -1046,7 +1059,7 @@ class Boolean(Field):
                     return False
             except TypeError as error:
                 raise self.make_error("invalid", input=value) from error
-        self.fail("invalid", input=value)
+        raise self.make_error("invalid", input=value)
 
 
 class DateTime(Field):
@@ -1115,7 +1128,7 @@ class DateTime(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not value:  # Falsy values, e.g. '', None, [] are not valid
-            self.fail("invalid", input=value, obj_type=self.OBJ_TYPE)
+            raise self.make_error("invalid", input=value, obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         if func:
@@ -1161,7 +1174,7 @@ class NaiveDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if is_aware(ret):
             if self.timezone is None:
-                self.fail(
+                raise self.make_error(
                     "invalid_awareness",
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
@@ -1192,7 +1205,7 @@ class AwareDateTime(DateTime):
         ret = super()._deserialize(value, attr, data, **kwargs)
         if not is_aware(ret):
             if self.default_timezone is None:
-                self.fail(
+                raise self.make_error(
                     "invalid_awareness",
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
@@ -1223,7 +1236,7 @@ class Time(Field):
     def _deserialize(self, value, attr, data, **kwargs):
         """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
         if not value:  # falsy values are invalid
-            self.fail("invalid")
+            raise self.make_error("invalid")
         try:
             return utils.from_iso_time(value)
         except (AttributeError, TypeError, ValueError) as error:
@@ -1412,7 +1425,7 @@ class Mapping(Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, _Mapping):
-            self.fail("invalid")
+            raise self.make_error("invalid")
         if not self.value_field and not self.key_field:
             return value
 

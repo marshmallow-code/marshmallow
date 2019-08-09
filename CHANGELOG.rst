@@ -9,6 +9,10 @@ Features:
 - Optimize ``List(Nested(...))`` (:issue:`779`).
 - Minor performance improvements and cleanup (:pr:`1328`).
 
+Deprecations/Removals:
+
+- ``Field.fail`` is deprecated. Use ``Field.make_error`` instead.
+
 Support:
 
 - Various docs improvements (:pr:`1329`).
