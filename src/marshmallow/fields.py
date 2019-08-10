@@ -793,8 +793,8 @@ class UUID(String):
             raise self.make_error("invalid_uuid") from error
 
     def _serialize(self, value, attr, obj, **kwargs):
-        validated = str(self._validated(value)) if value is not None else None
-        return super()._serialize(validated, attr, obj, **kwargs)
+        val = str(value) if value is not None else None
+        return super()._serialize(val, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
         return self._validated(value)

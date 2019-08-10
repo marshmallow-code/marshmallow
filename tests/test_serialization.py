@@ -116,16 +116,13 @@ class TestFieldSerialization:
         assert field.serialize("age", user) is None
 
     def test_uuid_field(self, user):
-        user.uuid1 = "{12345678-1234-5678-1234-567812345678}"
-        user.uuid2 = uuid.UUID("12345678123456781234567812345678")
-        user.uuid3 = None
+        user.uuid1 = uuid.UUID("12345678123456781234567812345678")
+        user.uuid2 = None
 
         field = fields.UUID()
         assert isinstance(field.serialize("uuid1", user), str)
         assert field.serialize("uuid1", user) == "12345678-1234-5678-1234-567812345678"
-        assert isinstance(field.serialize("uuid2", user), str)
-        assert field.serialize("uuid2", user) == "12345678-1234-5678-1234-567812345678"
-        assert field.serialize("uuid3", user) is None
+        assert field.serialize("uuid2", user) is None
 
     def test_decimal_field(self, user):
         user.m1 = 12
