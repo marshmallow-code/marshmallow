@@ -585,6 +585,21 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.20.0 (2019-08-10)
+*******************
+
+Bug fixes:
+
+- Fix deprecated functions' compatibility with Python 2 (:issue:`1337`).
+  Thanks :user:`airstandley` for the catch and patch.
+- Fix error message consistency for invalid input types on nested fields (:issue:`1303`).
+  This is a backport of the fix in :pr:`857`. Thanks :user:`cristi23` for the
+  thorough bug report and the PR.
+
+Deprecation/Removal:
+
+- Python 2.6 is no longer officially supported (:issue:`1274`).
+
 2.19.5 (2019-06-18)
 +++++++++++++++++++
 

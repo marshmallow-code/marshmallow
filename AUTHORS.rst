@@ -134,3 +134,4 @@ Contributors (chronological)
 - `@dursk <https://github.com/dursk>`_
 - Ezra MacDonald `@kdop <https://github.com/macdonaldezra>`_
 - Stanislav Rogovskiy `@atmo <https://github.com/atmo>`_
+- Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
