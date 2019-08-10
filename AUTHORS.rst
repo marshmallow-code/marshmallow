@@ -91,3 +91,4 @@ Contributors (chronological)
 - `@miniscruff <https://github.com/miniscruff>`_
 - Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
 - Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
+- Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_

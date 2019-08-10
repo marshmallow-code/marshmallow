@@ -2,7 +2,7 @@
 
 import pytest
 
-from marshmallow import fields
+from marshmallow import fields, Schema
 from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
@@ -260,3 +260,26 @@ class TestUnmarshaller:
         assert 'years' not in result
 
         assert 'always_invalid' not in unmarshal.errors
+
+    def test_deserialize_wrong_type_root_data(self, unmarshal):
+        data = ''
+        fields_dict = {}
+        result = unmarshal.deserialize(data, fields_dict)
+        assert result is None
+        assert '_schema' in unmarshal.errors
+
+    def test_deserialize_wrong_type_nested_data(self, unmarshal):
+        class TestSchema(Schema):
+            pass
+
+        data = {
+            'foo': 'not what we need'
+        }
+        fields_dict = {
+            'foo': fields.Nested(TestSchema, required=True)
+        }
+        with pytest.raises(ValidationError) as excinfo:
+            result = unmarshal.deserialize(data, fields_dict)
+
+            assert result is None
+            assert excinfo.value.messages == {'foo': {'_schema': ['Invalid input type.']}}
