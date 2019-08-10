@@ -4,6 +4,11 @@ Changelog
 2.20.0 (unreleased)
 *******************
 
+Bug fixes:
+
+- Fix deprecated functions' compatibility with Python 2 (:issue:`1337`).
+  Thanks :user:`airstandley` for the catch and patch.
+
 Deprecation/Removal:
 
 - Python 2.6 is no longer officially supported (:issue:`1274`).
