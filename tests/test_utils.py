@@ -7,6 +7,7 @@ from copy import copy, deepcopy
 import pytest
 
 from marshmallow import utils
+from marshmallow import warnings
 from tests.base import (
     assert_datetime_equal,
     central,
@@ -256,3 +257,7 @@ def test_get_func_args():
 
     for func in [f1, f2, f3]:
         assert utils.get_func_args(func) == ['self', 'foo', 'bar']
+
+def test_deprecated_warning():
+    with pytest.warns(warnings.RemovedInMarshmallow3Warning):
+        utils.float_to_decimal(0.1337)
