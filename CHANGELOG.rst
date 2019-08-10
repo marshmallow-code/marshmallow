@@ -8,6 +8,9 @@ Bug fixes:
 
 - Fix deprecated functions' compatibility with Python 2 (:issue:`1337`).
   Thanks :user:`airstandley` for the catch and patch.
+- Fix error message consistency for invalid input types on nested fields (:issue:`1303`).
+  This is a backport of the fix in :pr:`857`. Thanks :user:`cristi23` for the
+  thorough bug report and the PR.
 
 Deprecation/Removal:
 
