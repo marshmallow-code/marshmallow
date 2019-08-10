@@ -248,7 +248,6 @@ class Unmarshaller(ErrorStore):
                     )
             return ret
 
-        partial_is_collection = is_collection(partial)
         ret = dict_class()
 
         if not isinstance(data, collections.Mapping):
@@ -259,6 +258,7 @@ class Unmarshaller(ErrorStore):
             errors.setdefault(SCHEMA, []).append(msg)
             return None
         else:
+            partial_is_collection = is_collection(partial)
             for attr_name, field_obj in iteritems(fields_dict):
                 if field_obj.dump_only:
                     continue

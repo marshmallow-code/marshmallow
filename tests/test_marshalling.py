@@ -263,8 +263,7 @@ class TestUnmarshaller:
 
     def test_deserialize_wrong_type_root_data(self, unmarshal):
         data = ''
-        fields_dict = {
-        }
+        fields_dict = {}
         result = unmarshal.deserialize(data, fields_dict)
         assert result is None
         assert '_schema' in unmarshal.errors
