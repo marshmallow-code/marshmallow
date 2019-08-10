@@ -12,6 +12,7 @@ Features:
 Deprecations/Removals:
 
 - ``Field.fail`` is deprecated. Use ``Field.make_error`` instead.
+- Remove UUID validation from ``fields.UUID``, for consistency with other fields (:issue:`1132`).
 
 Support:
 
