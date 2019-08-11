@@ -41,6 +41,20 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
     For a full reference on the available field classes, see the :ref:`API Docs <api_fields>`.
 
+Creating Schemas From Dictionaries
+----------------------------------
+
+You can create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    UserSchema = Schema.from_dict(
+        {"name": fields.Str(), "email": fields.Email(), "created_at": fields.DateTime()}
+    )
+
+`from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
 
 Serializing Objects ("Dumping")
 -------------------------------
@@ -96,8 +110,8 @@ with a dictionary of validation errors, which we'll :ref:`revisit later <validat
 
     user_data = {
         "created_at": "2014-08-11T05:26:03.869245",
-        "email": u"ken@yahoo.com",
-        "name": u"Ken",
+        "email": "ken@yahoo.com",
+        "name": "Ken",
     }
     schema = UserSchema()
     result = schema.load(user_data)

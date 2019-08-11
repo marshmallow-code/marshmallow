@@ -8,6 +8,7 @@ import decimal
 import copy
 import inspect
 import json
+import typing
 import warnings
 
 from marshmallow import base, fields as ma_fields, class_registry
@@ -408,6 +409,35 @@ class BaseSchema(base.SchemaABC):
     @property
     def set_class(self):
         return OrderedSet if self.ordered else set
+
+    @classmethod
+    def from_dict(
+        cls, fields: typing.Dict[str, ma_fields.Field], *, name: str = "GeneratedSchema"
+    ) -> typing.Type["Schema"]:
+        """Generate a `Schema` class given a dictionary of fields.
+
+        .. code-block:: python
+
+            from marshmallow import Schema, fields
+
+            PersonSchema = Schema.from_dict({"name": fields.Str()})
+            print(PersonSchema().load({"name": "David"}))  # => {'name': 'David'}
+
+        Generated schemas are not added to the class registry and therefore cannot
+        be referred to by name in `Nested` fields.
+
+        :param dict fields: Dictionary mapping field names to field instances.
+        :param str name: Optional name for the class, which will appear in
+            the ``repr`` for the class.
+
+        .. versionadded:: 3.0.0
+        """
+        attrs = fields.copy()
+        attrs["Meta"] = type(
+            "GeneratedMeta", (getattr(cls, "Meta", object),), {"register": False}
+        )
+        schema_cls = type(name, (cls,), attrs)
+        return schema_cls
 
     ##### Override-able methods #####
 

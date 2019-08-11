@@ -8,6 +8,7 @@ Features:
 
 - Optimize ``List(Nested(...))`` (:issue:`779`).
 - Minor performance improvements and cleanup (:pr:`1328`).
+- Add ``Schema.from_dict`` (:issue:`1312`).
 
 Deprecations/Removals:
 

@@ -19,8 +19,13 @@ from marshmallow import (
     EXCLUDE,
     INCLUDE,
     RAISE,
+    class_registry,
 )
-from marshmallow.exceptions import ValidationError, StringNotCollectionError
+from marshmallow.exceptions import (
+    ValidationError,
+    StringNotCollectionError,
+    RegistryError,
+)
 
 from tests.base import (
     UserSchema,
@@ -2644,3 +2649,38 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {"url": "marshmallow://app/discounts"}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
+
+
+class TestFromDict:
+    def test_generates_schema(self):
+        MySchema = Schema.from_dict({"foo": fields.Str()})
+        assert issubclass(MySchema, Schema)
+
+    def test_name(self):
+        MySchema = Schema.from_dict({"foo": fields.Str()})
+        assert "GeneratedSchema" in repr(MySchema)
+        SchemaWithName = Schema.from_dict(
+            {"foo": fields.Int()}, name="MyGeneratedSchema"
+        )
+        assert "MyGeneratedSchema" in repr(SchemaWithName)
+
+    def test_generated_schemas_are_not_registered(self):
+        n_registry_entries = len(class_registry._registry)
+        Schema.from_dict({"foo": fields.Str()})
+        Schema.from_dict({"bar": fields.Str()}, name="MyGeneratedSchema")
+        assert len(class_registry._registry) == n_registry_entries
+        with pytest.raises(RegistryError):
+            class_registry.get_class("GeneratedSchema")
+        with pytest.raises(RegistryError):
+            class_registry.get_class("MyGeneratedSchema")
+
+    def test_meta_options_are_applied(self):
+        class OrderedSchema(Schema):
+            class Meta:
+                ordered = True
+                load_only = ("bar",)
+
+        OSchema = OrderedSchema.from_dict({"foo": fields.Int(), "bar": fields.Int()})
+        dumped = OSchema().dump({"foo": 42, "bar": 24})
+        assert isinstance(dumped, OrderedDict)
+        assert "bar" not in dumped
