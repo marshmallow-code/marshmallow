@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
-    "lint": ["flake8==3.7.8", "flake8-bugbear==19.3.0", "pre-commit~=1.17"],
+    "lint": ["flake8==3.7.8", "flake8-bugbear==19.8.0", "pre-commit~=1.17"],
     "docs": [
         "sphinx==2.1.2",
         "sphinx-issues==1.2.0",
