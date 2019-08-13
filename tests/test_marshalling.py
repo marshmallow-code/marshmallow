@@ -2,7 +2,7 @@
 
 import pytest
 
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, validates
 from marshmallow.marshalling import Marshaller, Unmarshaller, missing
 from marshmallow.exceptions import ValidationError
 
@@ -271,6 +271,27 @@ class TestUnmarshaller:
     def test_deserialize_wrong_type_nested_data(self, unmarshal):
         class TestSchema(Schema):
             pass
+
+        data = {
+            'foo': 'not what we need'
+        }
+        fields_dict = {
+            'foo': fields.Nested(TestSchema, required=True)
+        }
+        with pytest.raises(ValidationError) as excinfo:
+            result = unmarshal.deserialize(data, fields_dict)
+
+            assert result is None
+            assert excinfo.value.messages == {'foo': {'_schema': ['Invalid input type.']}}
+
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1342
+    def test_deserialize_wrong_nested_type_with_validates_method(self, unmarshal):
+        class TestSchema(Schema):
+            value = fields.String()
+
+            @validates('value')
+            def validate_value(self, value):
+                pass
 
         data = {
             'foo': 'not what we need'
