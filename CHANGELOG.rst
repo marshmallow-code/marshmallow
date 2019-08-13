@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.20.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix bug that raised ``TypeError`` when invalid data type is
+  passed to a nested schema with ``@validates`` (:issue:`1342`).
+
 2.20.0 (2019-08-10)
 *******************
 

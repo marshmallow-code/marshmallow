@@ -877,7 +877,7 @@ class BaseSchema(base.SchemaABC):
                 for idx, item in enumerate(data):
                     try:
                         value = item[field_obj.attribute or field_name]
-                    except KeyError:
+                    except (KeyError, TypeError):
                         pass
                     else:
                         validated_value = unmarshal.call_and_store(
@@ -892,7 +892,7 @@ class BaseSchema(base.SchemaABC):
             else:
                 try:
                     value = data[field_obj.attribute or field_name]
-                except KeyError:
+                except (KeyError, TypeError):
                     pass
                 else:
                     validated_value = unmarshal.call_and_store(
