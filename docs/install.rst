@@ -3,7 +3,7 @@
 Installation
 ============
 
-**marshmallow** requires Python >= 3.5. It has no external dependencies other than the Python standard library.
+**marshmallow** requires Python >= 3.5. It has no external dependencies.
 
 Installing/Upgrading from the PyPI
 ----------------------------------
@@ -19,13 +19,6 @@ To install the latest pre-release version from the PyPI:
 ::
 
     $ pip install -U marshmallow --pre
-
-
-To install marshmallow with the recommended soft dependencies:
-
-::
-
-    $ pip install -U marshmallow[reco]
 
 Get the Bleeding Edge Version
 -----------------------------
