@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/asottile/pyupgrade
-  rev: v1.16.3
+  rev: v1.22.1
   hooks:
   - id: pyupgrade
     args: ["--py3-plus"]
@@ -10,12 +10,12 @@ repos:
   - id: black
     language_version: python3
 - repo: https://gitlab.com/pycqa/flake8
-  rev: 3.7.7
+  rev: 3.7.8
   hooks:
   - id: flake8
     additional_dependencies: ['flake8-bugbear==19.8.0']
 - repo: https://github.com/asottile/blacken-docs
-  rev: v1.0.0-1
+  rev: v1.3.0
   hooks:
   - id: blacken-docs
     additional_dependencies: [black==19.3b0]

@@ -583,8 +583,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generators_multiple_values(self):
         def custom_generator():
-            for dtime in [dt.datetime.utcnow(), dt.datetime.now()]:
-                yield dtime
+            yield from [dt.datetime.utcnow(), dt.datetime.now()]
 
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)

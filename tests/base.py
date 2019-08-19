@@ -312,7 +312,7 @@ class BlogSchemaOnlyExclude(BlogSchema):
 class mockjson:  # noqa
     @staticmethod
     def dumps(val):
-        return "{'foo': 42}".encode("utf-8")
+        return b"{'foo': 42}"
 
     @staticmethod
     def loads(val):
