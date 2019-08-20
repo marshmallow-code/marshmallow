@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.20.2 (2019-08-20)
+*******************
+
+Bug fixes:
+
+- Prevent warning about importing from ``collections`` on Python 3.7
+  (:pr:`1354`). Thanks :user:`nicktimko` for the PR.
+
 2.20.1 (2019-08-13)
 *******************
 
