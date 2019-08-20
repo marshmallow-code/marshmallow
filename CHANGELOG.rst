@@ -587,6 +587,22 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.20.2 (2019-08-20)
+*******************
+
+Bug fixes:
+
+- Prevent warning about importing from ``collections`` on Python 3.7
+  (:pr:`1354`). Thanks :user:`nicktimko` for the PR.
+
+2.20.1 (2019-08-13)
+*******************
+
+Bug fixes:
+
+- Fix bug that raised ``TypeError`` when invalid data type is
+  passed to a nested schema with ``@validates`` (:issue:`1342`).
+
 2.20.0 (2019-08-10)
 *******************
 
