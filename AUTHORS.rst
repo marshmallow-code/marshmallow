@@ -135,3 +135,4 @@ Contributors (chronological)
 - Ezra MacDonald `@kdop <https://github.com/macdonaldezra>`_
 - Stanislav Rogovskiy `@atmo <https://github.com/atmo>`_
 - Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
+- Anthony Sottile `@asottile <https://github.com/asottile>`_
