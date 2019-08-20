@@ -10,10 +10,8 @@ and from primitive types.
 
 from __future__ import unicode_literals
 
-import collections
-
 from marshmallow.utils import is_collection, missing, set_value
-from marshmallow.compat import text_type, iteritems
+from marshmallow.compat import text_type, iteritems, Mapping
 from marshmallow.exceptions import (
     ValidationError,
 )
@@ -250,7 +248,7 @@ class Unmarshaller(ErrorStore):
 
         ret = dict_class()
 
-        if not isinstance(data, collections.Mapping):
+        if not isinstance(data, Mapping):
             errors = self.get_errors(index=index)
             msg = 'Invalid input type.'
             self.error_field_names = [SCHEMA]
