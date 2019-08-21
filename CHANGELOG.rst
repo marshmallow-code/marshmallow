@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug when nesting ``fields.DateTime`` within ``fields.List()`` or ``fields.Tuple`` (:issue:`1357`).
+  This bug was introduced in 3.0.0rc9. Thanks :user:`zblz` for reporting.
+
 3.0.0 (2019-08-18)
 ++++++++++++++++++
 
