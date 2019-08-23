@@ -139,7 +139,7 @@ class SchemaMeta(type):
         return dict_cls(inherited_fields + cls_fields)
 
     def __init__(cls, name, bases, attrs):
-        super().__init__(cls, bases, attrs)
+        super().__init__(name, bases, attrs)
         if name and cls.opts.register:
             class_registry.register(name, cls)
         cls._hooks = cls.resolve_hooks()
