@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.0.2 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix incorrect ``super()`` call in ``SchemaMeta.__init__``.
+
 3.0.1 (2019-08-21)
 ++++++++++++++++++
 
