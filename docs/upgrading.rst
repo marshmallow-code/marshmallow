@@ -1041,6 +1041,29 @@ done with no additional dependency.
 ``python-dateutil`` is no longer used by marshmallow.
 
 
+Custom Fields
+*************
+
+To make your custom fields compatible with marshmallow 3, ``_deserialize``
+should accept ``**kwargs``:
+
+.. code-block:: python
+
+    from marshmallow import fields, ValidationError
+    from packaging import version
+
+    # 2.x
+    class MyCustomField(fields.Field):
+        def _deserialize(self, value, attr, obj):
+            ...
+
+
+    # 3.x
+    class MyCustomField(fields.Field):
+        def _deserialize(self, value, attr, obj, **kwargs):
+            ...
+
+
 Upgrading to 2.3
 ++++++++++++++++
 
