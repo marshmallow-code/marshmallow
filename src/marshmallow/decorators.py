@@ -73,9 +73,10 @@ def validates_schema(
 ):
     """Register a schema-level validator.
 
-    By default, receives a single object at a time, regardless of whether ``many=True``
-    is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
-    and the value for ``many`` is passed.
+    By default it receives a single object at a time, transparently handling the ``many``
+    argument passed to the `Schema`'s :func:`~marshmallow.Schema.validate` call.
+    If ``pass_many=True``, the raw data (which may be a collection) is passed
+    to the decorated method, along with a relevant ``many`` value.
 
     If ``pass_original=True``, the original data (before unmarshalling) will be passed as
     an additional argument to the method.
@@ -102,9 +103,12 @@ def pre_dump(fn=None, pass_many=False):
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
 
-    By default, receives a single object at a time, regardless of whether ``many=True``
-    is passed to the `Schema`. If ``pass_many=True``, the raw data (which may be a collection)
-    and the value for ``many`` is passed.
+    See :ref:`examples <decorator_example>` for the method signature.
+
+    By default it receives a single object at a time, transparently handling the ``many``
+    argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
+    If ``pass_many=True``, the raw data (which may be a collection) is passed
+    to the decorated method, along with a relevant ``many`` value.
 
     .. versionchanged:: 3.0.0
         ``many`` is always passed as a keyword arguments to the decorated method.
@@ -116,9 +120,12 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
-    By default, receives a single object at a time, transparently handling the ``many``
-    argument passed to the Schema. If ``pass_many=True``, the raw data
-    (which may be a collection) and the value for ``many`` is passed.
+    See :ref:`examples <decorator_example>` for the method signature.
+
+    By default it receives a single object at a time, transparently handling the ``many``
+    argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
+    If ``pass_many=True``, the raw data (which may be a collection) is passed
+    to the decorated method, along with a relevant ``many`` value.
 
     If ``pass_original=True``, the original data (before serializing) will be passed as
     an additional argument to the method.
@@ -133,9 +140,12 @@ def pre_load(fn=None, pass_many=False):
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
 
-    By default, receives a single datum at a time, transparently handling the ``many``
-    argument passed to the Schema. If ``pass_many=True``, the raw data
-    (which may be a collection) and the value for ``many`` is passed.
+    See :ref:`examples <decorator_example>` for the method signature.
+
+    By default it receives a single object at a time, transparently handling the ``many``
+    argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
+    If ``pass_many=True``, the raw data (which may be a collection) is passed
+    to the decorated method, along with a relevant ``many`` value.
 
     .. versionchanged:: 3.0.0
         ``partial`` and ``many`` are always passed as keyword arguments to
@@ -148,9 +158,12 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
-    By default, receives a single datum at a time, transparently handling the ``many``
-    argument passed to the Schema. If ``pass_many=True``, the raw data
-    (which may be a collection) and the value for ``many`` is passed.
+    See :ref:`examples <decorator_example>` for the method signature.
+
+    By default it receives a single object at a time, transparently handling the ``many``
+    argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
+    If ``pass_many=True``, the raw data (which may be a collection) is passed
+    to the decorated method, along with a relevant ``many`` value.
 
     If ``pass_original=True``, the original data (before deserializing) will be passed as
     an additional argument to the method.
