@@ -1,6 +1,8 @@
 """Decorators for registering schema pre-processing and post-processing methods.
 These should be imported from the top-level `marshmallow` module.
 
+.. _decorator_example:
+
 Example: ::
 
     from marshmallow import (
@@ -14,12 +16,12 @@ Example: ::
         age = fields.Integer(required=True)
 
         @post_load
-        def lowerstrip_email(self, item, **kwargs):
+        def lowerstrip_email(self, item, partial, many, **kwargs):
             item['email'] = item['email'].lower().strip()
             return item
 
         @pre_load(pass_many=True)
-        def remove_envelope(self, data, many, **kwargs):
+        def remove_envelope(self, data, partial, many, **kwargs):
             namespace = 'results' if many else 'result'
             return data[namespace]
 
@@ -29,7 +31,7 @@ Example: ::
             return {namespace: data}
 
         @validates_schema
-        def validate_email(self, data, **kwargs):
+        def validate_email(self, data, partial, many, **kwargs):
             if len(data['email']) < 3:
                 raise ValidationError('Email must be more than 3 characters', 'email')
 
