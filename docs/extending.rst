@@ -32,10 +32,14 @@ Data pre-processing and post-processing methods can be registered using the `pre
 Passing "many"
 ++++++++++++++
 
-By default, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the schema at runtime.
+By default, despite of the ``many`` parameter value, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the ``Schema``'s :func:`~marshmallow.Schema.dump`/:func:`~marshmallow.Schema.load` method at runtime.
 
-In cases where your pre- and post-processing methods need to receive the input collection  when ``many=True``, add ``pass_many=True`` to the method decorators. The method will receive the input data (which may be a single datum or a collection) and the boolean value of ``many``.
+In cases where your pre- and post-processing methods needs to handle the input collection when processing multiple objects, add ``pass_many=True`` to the method decorators.
 
+Your method will then receive the input data (which may be a single datum or a collection, depending ont the dump/load call) along with a relevant ``many`` value
+
+.. versionchanged:: 3.0.0
+    ``many`` is always passed as a keyword arguments to the pre- and post-processing methods.
 
 Example: Enveloping
 +++++++++++++++++++
