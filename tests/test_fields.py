@@ -174,14 +174,18 @@ class TestParentAndName:
         class MySchema(Schema):
             foo = fields.List(fields.DateTime())
             bar = fields.Tuple((fields.DateTime(),))
+            baz = fields.List(fields.Date())
+            qux = fields.Tuple((fields.Date(),))
 
             class Meta:
                 datetimeformat = "iso8601"
                 dateformat = "iso8601"
 
         schema = MySchema()
-        assert schema.fields["foo"].inner.format == "iso8601"
-        assert schema.fields["bar"].tuple_fields[0].format == "iso8601"
+        for field_name in ("foo", "baz"):
+            assert schema.fields[field_name].inner.format == "iso8601"
+        for field_name in ("bar", "qux"):
+            assert schema.fields[field_name].tuple_fields[0].format == "iso8601"
 
 
 class TestMetadata:

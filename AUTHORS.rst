@@ -136,4 +136,5 @@ Contributors (chronological)
 - Stanislav Rogovskiy `@atmo <https://github.com/atmo>`_
 - Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
 - Anthony Sottile `@asottile <https://github.com/asottile>`_
+- Charles-Axel Dein `@charlax <https://github.com/charlax>`_
 - `@phrfpeixoto <https://github.com/phrfpeixoto>`_
