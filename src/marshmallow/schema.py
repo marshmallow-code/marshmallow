@@ -961,13 +961,12 @@ class BaseSchema(base.SchemaABC):
         Also set field load_only and dump_only values if field_name was
         specified in ``class Meta``.
         """
+        if field_name in self.load_only:
+            field_obj.load_only = True
+        if field_name in self.dump_only:
+            field_obj.dump_only = True
         try:
-            if field_name in self.load_only:
-                field_obj.load_only = True
-            if field_name in self.dump_only:
-                field_obj.dump_only = True
             field_obj._bind_to_schema(field_name, self)
-            self.on_bind_field(field_name, field_obj)
         except TypeError as error:
             # field declared as a class, not an instance
             if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
@@ -977,6 +976,9 @@ class BaseSchema(base.SchemaABC):
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
                 )
                 raise TypeError(msg) from error
+            raise error
+        else:
+            self.on_bind_field(field_name, field_obj)
 
     @lru_cache(maxsize=8)
     def _has_processors(self, tag):
