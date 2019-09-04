@@ -7,6 +7,8 @@ Changelog
 Bug fixes:
 
 - Fix incorrect ``super()`` call in ``SchemaMeta.__init__``.
+- Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema``
+  or ``Schema.on_bind_field``.
 
 3.0.1 (2019-08-21)
 ++++++++++++++++++
