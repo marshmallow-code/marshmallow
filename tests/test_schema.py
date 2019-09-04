@@ -552,6 +552,17 @@ def test_fields_must_be_declared_as_instances(user):
     with pytest.raises(TypeError, match='must be declared as a Field instance'):
         BadUserSchema().dump(user)
 
+# regression test
+def test_bind_field_does_not_swallow_typeerror():
+    class MySchema(Schema):
+        name = fields.Str()
+
+        def on_bind_field(self, field_name, field_obj):
+            raise TypeError("boom")
+
+    with pytest.raises(TypeError, match="boom"):
+        MySchema()
+
 @pytest.mark.parametrize('SchemaClass',
     [UserSchema, UserMetaSchema])
 def test_serializing_generator(SchemaClass):

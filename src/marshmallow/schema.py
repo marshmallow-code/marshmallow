@@ -786,14 +786,13 @@ class BaseSchema(base.SchemaABC):
         specified in ``class Meta``.
         """
         for field_name, field_obj in iteritems(fields_dict):
+            if field_name in self.load_only:
+                field_obj.load_only = True
+            if field_name in self.dump_only:
+                field_obj.dump_only = True
             try:
-                if field_name in self.load_only:
-                    field_obj.load_only = True
-                if field_name in self.dump_only:
-                    field_obj.dump_only = True
                 field_obj._add_to_schema(field_name, self)
-                self.on_bind_field(field_name, field_obj)
-            except TypeError:
+            except TypeError as error:
                 # field declared as a class, not an instance
                 if (isinstance(field_obj, type) and
                         issubclass(field_obj, base.FieldABC)):
@@ -802,6 +801,8 @@ class BaseSchema(base.SchemaABC):
                            'Did you mean "fields.{1}()"?'
                            .format(field_name, field_obj.__name__))
                     raise TypeError(msg)
+                raise error
+            self.on_bind_field(field_name, field_obj)
         return fields_dict
 
     def __filter_fields(self, field_names, obj, many=False):
