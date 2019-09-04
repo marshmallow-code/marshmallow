@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.20.3 (unreleased)
+*******************
+
+Bug fixes:
+
+- Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema`` or ``Schema.on_bind_field``.
+
 2.20.2 (2019-08-20)
 *******************
 
