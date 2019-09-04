@@ -1,13 +1,13 @@
 Changelog
 ---------
 
-3.0.2 (unreleased)
+3.0.2 (2019-09-04)
 ++++++++++++++++++
 
 Bug fixes:
 
 - Includes bug fix from 2.20.3 (:pr:`1376`).
-- Fix incorrect ``super()`` call in ``SchemaMeta.__init__``.
+- Fix incorrect ``super()`` call in ``SchemaMeta.__init__`` (:pr:`1362`).
 
 3.0.1 (2019-08-21)
 ++++++++++++++++++
