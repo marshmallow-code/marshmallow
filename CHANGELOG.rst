@@ -6,6 +6,7 @@ Changelog
 
 Bug fixes:
 
+- Includes bug fix from 2.20.3 (:pr:`1376`).
 - Fix incorrect ``super()`` call in ``SchemaMeta.__init__``.
 
 3.0.1 (2019-08-21)
@@ -613,7 +614,7 @@ Deprecation/Removals:
 
 Bug fixes:
 
-- Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema`` or ``Schema.on_bind_field``.
+- Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema`` or ``Schema.on_bind_field`` (:pr:`1376`).
 
 2.20.2 (2019-08-20)
 *******************

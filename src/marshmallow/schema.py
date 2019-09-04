@@ -977,8 +977,7 @@ class BaseSchema(base.SchemaABC):
                 )
                 raise TypeError(msg) from error
             raise error
-        else:
-            self.on_bind_field(field_name, field_obj)
+        self.on_bind_field(field_name, field_obj)
 
     @lru_cache(maxsize=8)
     def _has_processors(self, tag):
