@@ -1285,6 +1285,13 @@ class TestSchemaDeserialization:
         assert result["email"] == "foo@bar.com"
         assert "years" not in result
 
+    def test_deserialize_with_data_key_as_empty_string(self):
+        class MySchema(Schema):
+            name = fields.Field(data_key="")
+
+        schema = MySchema()
+        assert schema.load({"": "Grace"}) == {"name": "Grace"}
+
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
