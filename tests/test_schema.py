@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import datetime as dt
 import decimal
 import random

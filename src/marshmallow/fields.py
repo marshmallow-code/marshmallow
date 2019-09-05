@@ -58,11 +58,6 @@ __all__ = [
     "Pluck",
 ]
 
-MISSING_ERROR_MESSAGE = (
-    "ValidationError raised by `{class_name}`, but error key `{key}` does "
-    "not exist in the `error_messages` dictionary."
-)
-
 
 class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
@@ -256,8 +251,11 @@ class Field(FieldABC):
             msg = self.error_messages[key]
         except KeyError as error:
             class_name = self.__class__.__name__
-            msg = MISSING_ERROR_MESSAGE.format(class_name=class_name, key=key)
-            raise AssertionError(msg) from error
+            message = (
+                "ValidationError raised by `{class_name}`, but error key `{key}` does "
+                "not exist in the `error_messages` dictionary."
+            ).format(class_name=class_name, key=key)
+            raise AssertionError(message) from error
         if isinstance(msg, (str, bytes)):
             msg = msg.format(**kwargs)
         return ValidationError(msg)
