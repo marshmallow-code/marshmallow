@@ -348,8 +348,6 @@ class BaseSchema(base.SchemaABC):
             usage is critical. Defaults to `True`.
         """
 
-        pass
-
     def __init__(
         self,
         *,
