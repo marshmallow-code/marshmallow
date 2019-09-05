@@ -400,9 +400,7 @@ class Field(FieldABC):
 
 
 class Raw(Field):
-    """Field that applies no formatting or validation."""
-
-    pass
+    """Field that applies no formatting."""
 
 
 class Nested(Field):
