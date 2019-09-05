@@ -390,6 +390,13 @@ class TestFieldSerialization:
         result = DumpToSchema().dump(data)
         assert result == {"NamE": "Richard", "YearS": 11}
 
+    def test_serialize_with_data_key_as_empty_string(self):
+        class MySchema(Schema):
+            name = fields.Field(data_key="")
+
+        schema = MySchema()
+        schema.dump({"name": "Grace"}) == {"": "Grace"}
+
     def test_serialize_with_attribute_and_data_key_uses_data_key(self):
         class ConfusedDumpToAndAttributeSerializer(Schema):
             name = fields.String(data_key="FullName")

@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.3 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Handle when ``data_key`` is an empty string (:issue:`1378`).
+  Thanks :user:`jtrakk` for reporting.
+
 3.0.2 (2019-09-04)
 ++++++++++++++++++
 
