@@ -618,14 +618,14 @@ Deprecation/Removals:
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
 2.20.3 (2019-09-04)
-*******************
++++++++++++++++++++
 
 Bug fixes:
 
 - Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema`` or ``Schema.on_bind_field`` (:pr:`1376`).
 
 2.20.2 (2019-08-20)
-*******************
++++++++++++++++++++
 
 Bug fixes:
 
@@ -633,7 +633,7 @@ Bug fixes:
   (:pr:`1354`). Thanks :user:`nicktimko` for the PR.
 
 2.20.1 (2019-08-13)
-*******************
++++++++++++++++++++
 
 Bug fixes:
 
@@ -641,7 +641,7 @@ Bug fixes:
   passed to a nested schema with ``@validates`` (:issue:`1342`).
 
 2.20.0 (2019-08-10)
-*******************
++++++++++++++++++++
 
 Bug fixes:
 
