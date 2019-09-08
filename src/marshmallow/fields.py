@@ -532,8 +532,8 @@ class Nested(Field):
                     schema_class = nested
                 elif not isinstance(nested, (str, bytes)):
                     raise ValueError(
-                        "Nested fields must be passed a "
-                        "Schema, not {}.".format(nested.__class__)
+                        "`Nested` fields must be passed a "
+                        "`Schema`, not {}.".format(nested.__class__)
                     )
                 elif nested == "self":
                     schema_class = self.root.__class__
