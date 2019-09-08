@@ -378,16 +378,10 @@ class BaseSchema(base.SchemaABC):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = self._init_fields()
-        self.dump_fields, self.load_fields = self.dict_class(), self.dict_class()
-        for field_name, field_obj in self.fields.items():
-            if field_obj.load_only:
-                self.load_fields[field_name] = field_obj
-            elif field_obj.dump_only:
-                self.dump_fields[field_name] = field_obj
-            else:
-                self.load_fields[field_name] = field_obj
-                self.dump_fields[field_name] = field_obj
+        self.fields = None
+        self.load_fields = None
+        self.dump_fields = None
+        self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
         for cls in reversed(self.__class__.__mro__):
@@ -757,6 +751,7 @@ class BaseSchema(base.SchemaABC):
         self, data, *, many=None, partial=None, unknown=None, postprocess=True
     ):
         """Deserialize `data`, returning the deserialized result.
+        This method is private API.
 
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
@@ -844,7 +839,9 @@ class BaseSchema(base.SchemaABC):
         return result
 
     def _normalize_nested_options(self):
-        """Apply then flatten nested schema options"""
+        """Apply then flatten nested schema options.
+        This method is private API.
+        """
         if self.only is not None:
             # Apply the only option to nested fields.
             self.__apply_nested_option("only", self.only, "intersection")
@@ -878,7 +875,9 @@ class BaseSchema(base.SchemaABC):
             setattr(self.declared_fields[key], option_name, new_options)
 
     def _init_fields(self):
-        """Update fields based on schema options."""
+        """Update self.fields, self.load_fields, and self.dump_fields based on schema options.
+        This method is private API.
+        """
         if self.opts.fields:
             available_field_names = self.set_class(self.opts.fields)
         else:
@@ -913,10 +912,19 @@ class BaseSchema(base.SchemaABC):
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
+        load_fields, dump_fields = self.dict_class(), self.dict_class()
+        for field_name, field_obj in fields_dict.items():
+            if field_obj.load_only:
+                load_fields[field_name] = field_obj
+            elif field_obj.dump_only:
+                dump_fields[field_name] = field_obj
+            else:
+                load_fields[field_name] = field_obj
+                dump_fields[field_name] = field_obj
+
         dump_data_keys = [
             field_obj.data_key if field_obj.data_key is not None else name
-            for name, field_obj in fields_dict.items()
-            if not field_obj.load_only
+            for name, field_obj in dump_fields.items()
         ]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {
@@ -928,12 +936,7 @@ class BaseSchema(base.SchemaABC):
                 "Check the following field names and "
                 "data_key arguments: {}".format(list(data_keys_duplicates))
             )
-
-        load_attributes = [
-            obj.attribute or name
-            for name, obj in fields_dict.items()
-            if not obj.dump_only
-        ]
+        load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {
                 x for x in load_attributes if load_attributes.count(x) > 1
@@ -945,7 +948,9 @@ class BaseSchema(base.SchemaABC):
                 "attribute arguments: {}".format(list(attributes_duplicates))
             )
 
-        return fields_dict
+        self.fields = fields_dict
+        self.dump_fields = dump_fields
+        self.load_fields = load_fields
 
     def on_bind_field(self, field_name, field_obj):
         """Hook to modify a field when it is bound to the `Schema`.
