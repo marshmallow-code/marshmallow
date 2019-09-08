@@ -536,10 +536,14 @@ class Nested(Field):
                         "Schema, not {}.".format(nested.__class__)
                     )
                 elif nested == "self":
-                    ret = self
-                    while not isinstance(ret, SchemaABC):
-                        ret = ret.parent
-                    schema_class = ret.__class__
+                    schema_class = self.root.__class__
+                    warnings.warn(
+                        "Passing 'self' to `Nested` is deprecated. "
+                        "Use `Nested(lambda: {Class}(...))` instead.".format(
+                            Class=schema_class.__name__
+                        ),
+                        DeprecationWarning,
+                    )
                 else:
                     schema_class = class_registry.get_class(nested)
                 self._schema = schema_class(
