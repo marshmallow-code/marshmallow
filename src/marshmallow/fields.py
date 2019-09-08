@@ -434,6 +434,11 @@ class Nested(Field):
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 3.1.0
+        Deprecated ``only``, ``exclude``, and ``unknown`` parameters.
+        Pass these to the schema instance instead.
+        ``many`` was also deprecated in favor of the ``List(Nested(...))`` usage.
     """
 
     default_error_messages = {"type": "Invalid type."}
@@ -445,23 +450,63 @@ class Nested(Field):
         ],
         *,
         default=missing_,
-        exclude=tuple(),
-        only=None,
         **kwargs
     ):
-        # Raise error if only or exclude is passed as string, not list of strings
-        if only is not None and not is_collection(only):
-            raise StringNotCollectionError('"only" should be a collection of strings.')
-        if exclude is not None and not is_collection(exclude):
-            raise StringNotCollectionError(
-                '"exclude" should be a collection of strings.'
+        # Raise DeprecationWarnings for only, exclude, many, and unknown
+        if "only" in kwargs:
+            only = kwargs.pop("only")
+            if not is_collection(only):
+                raise StringNotCollectionError(
+                    '"only" should be a collection of strings.'
+                )
+            warnings.warn(
+                "Passing `only` to `Nested` is deprecated. "
+                "Pass `only` to the schema instance instead.",
+                DeprecationWarning,
             )
+        else:
+            only = None
+        if "exclude" in kwargs:
+            exclude = kwargs.pop("exclude")
+            if not is_collection(exclude):
+                raise StringNotCollectionError(
+                    '"exclude" should be a collection of strings.'
+                )
+            warnings.warn(
+                "Passing `exclude` to `Nested` is deprecated. "
+                "Pass `only` to the schema instance instead.",
+                DeprecationWarning,
+            )
+        else:
+            exclude = tuple()
+
+        if "many" in kwargs:
+            many = kwargs.pop("many")
+            warnings.warn(
+                "Passing `many` to `Nested` is deprecated. "
+                "Use List(Nested(...)) instead.",
+                DeprecationWarning,
+            )
+        else:
+            many = False
+
+        if "unknown" in kwargs:
+            unknown = kwargs.pop("unknown")
+            warnings.warn(
+                "Passing `unknown` to `Nested` is deprecated. "
+                "Pass `unknown` to the schema instance instead.",
+                DeprecationWarning,
+            )
+        else:
+            unknown = None
+
         self.nested = nested
+        self._schema = None  # Cached Schema instance
+        # Deprecated attributes
         self.only = only
         self.exclude = exclude
-        self.many = kwargs.get("many", False)
-        self.unknown = kwargs.get("unknown")
-        self._schema = None  # Cached Schema instance
+        self.many = many
+        self.unknown = unknown
         super().__init__(default=default, **kwargs)
 
     @property
