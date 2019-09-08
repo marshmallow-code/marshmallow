@@ -134,6 +134,8 @@ class Field(FieldABC):
         "validator_failed": "Invalid value.",
     }
 
+    default_missing_values = tuple()
+
     def __init__(
         self,
         *,
@@ -147,6 +149,7 @@ class Field(FieldABC):
         load_only=False,
         dump_only=False,
         error_messages=None,
+        missing_values=None,
         **metadata
     ):
         self.default = default
@@ -168,9 +171,14 @@ class Field(FieldABC):
                 "or a collection of callables."
             )
 
-        # If missing=None, None should be considered valid by default
+        self.missing_values = (
+            missing_values
+            if missing_values is not None
+            else self.default_missing_values
+        )
+        # If missing=None or None is in missing_values, None should be considered valid by default
         if allow_none is None:
-            if missing is None:
+            if missing is None or self._is_missing_value(None):
                 self.allow_none = True
             else:
                 self.allow_none = False
@@ -222,6 +230,9 @@ class Field(FieldABC):
         accessor_func = accessor or utils.get_value
         check_key = attr if attribute is None else attribute
         return accessor_func(obj, check_key, default)
+
+    def _is_missing_value(self, value):
+        return value is missing_ or value in self.missing_values
 
     def _validate(self, value):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -279,7 +290,7 @@ class Field(FieldABC):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
-        if value is missing_:
+        if self._is_missing_value(value):
             if hasattr(self, "required") and self.required:
                 raise self.make_error("required")
         if value is None:
@@ -319,7 +330,7 @@ class Field(FieldABC):
         # Validate required fields, deserialize, then validate
         # deserialized value
         self._validate_missing(value)
-        if value is missing_:
+        if self._is_missing_value(value):
             _miss = self.missing
             return _miss() if callable(_miss) else _miss
         if getattr(self, "allow_none", False) is True and value is None:
