@@ -7,6 +7,7 @@ import numbers
 import uuid
 import decimal
 import math
+import typing
 import warnings
 from collections.abc import Mapping as _Mapping
 
@@ -407,27 +408,25 @@ class Nested(Field):
 
     Examples: ::
 
-        user = fields.Nested(UserSchema)
-        user2 = fields.Nested('UserSchema')  # Equivalent to above
-        collaborators = fields.Nested(UserSchema, many=True, only=('id',))
-        parent = fields.Nested('self')
+        class ChildSchema(Schema):
+            id = fields.Str()
+            name = fields.Str()
+            # Use lambda functions when you need two-way nesting or self-nesting
+            parent = fields.Nested(lambda: ParentSchema(only=("id",)), dump_only=True)
+            siblings = fields.List(fields.Nested(lambda: ChildSchema(only=("id", "name"))))
+
+        class ParentSchema(Schema):
+            id = fields.Str()
+            children = fields.List(
+                fields.Nested(ChildSchema(only=("id", "parent", "siblings")))
+            )
+            spouse = fields.Nested(lambda: ParentSchema(only=("id",)))
 
     When passing a `Schema <marshmallow.Schema>` instance as the first argument,
     the instance's ``exclude``, ``only``, and ``many`` attributes will be respected.
 
-    Therefore, when passing the ``exclude``, ``only``, or ``many`` arguments to `fields.Nested`,
-    you should pass a `Schema <marshmallow.Schema>` class (not an instance) as the first argument.
-
-    ::
-
-        # Yes
-        author = fields.Nested(UserSchema, only=('id', 'name'))
-
-        # No
-        author = fields.Nested(UserSchema(), only=('id', 'name'))
-
-    :param Schema nested: The Schema class or class name (string)
-        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param Schema nested: A `Schema` class, `Schema` instance, or class name (string)
+        to nest, or a callable that returns a `Schema` instance.
     :param tuple exclude: A list or tuple of fields to exclude.
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
@@ -440,7 +439,15 @@ class Nested(Field):
     default_error_messages = {"type": "Invalid type."}
 
     def __init__(
-        self, nested, *, default=missing_, exclude=tuple(), only=None, **kwargs
+        self,
+        nested: typing.Union[
+            SchemaABC, typing.Type[SchemaABC], str, typing.Callable[[], SchemaABC]
+        ],
+        *,
+        default=missing_,
+        exclude=tuple(),
+        only=None,
+        **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -458,7 +465,7 @@ class Nested(Field):
         super().__init__(default=default, **kwargs)
 
     @property
-    def schema(self):
+    def schema(self) -> SchemaABC:
         """The nested Schema object.
 
         .. versionchanged:: 1.0.0
@@ -467,24 +474,29 @@ class Nested(Field):
         if not self._schema:
             # Inherit context from parent.
             context = getattr(self.parent, "context", {})
-            if isinstance(self.nested, SchemaABC):
-                self._schema = self.nested
+            if callable(self.nested) and not isinstance(self.nested, type):
+                nested = self.nested()
+            else:
+                nested = self.nested
+
+            if isinstance(nested, SchemaABC):
+                self._schema = nested
                 self._schema.context.update(context)
             else:
-                if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
-                    schema_class = self.nested
-                elif not isinstance(self.nested, (str, bytes)):
+                if isinstance(nested, type) and issubclass(nested, SchemaABC):
+                    schema_class = nested
+                elif not isinstance(nested, (str, bytes)):
                     raise ValueError(
                         "Nested fields must be passed a "
-                        "Schema, not {}.".format(self.nested.__class__)
+                        "Schema, not {}.".format(nested.__class__)
                     )
-                elif self.nested == "self":
+                elif nested == "self":
                     ret = self
                     while not isinstance(ret, SchemaABC):
                         ret = ret.parent
                     schema_class = ret.__class__
                 else:
-                    schema_class = class_registry.get_class(self.nested)
+                    schema_class = class_registry.get_class(nested)
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,

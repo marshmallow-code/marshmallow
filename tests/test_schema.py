@@ -1081,11 +1081,9 @@ def test_meta_nested_exclude():
 
 
 def test_nested_custom_set_not_implementing_getitem():
-    """
-    This test checks that Marshmallow can serialize implementations of
-    :mod:`collections.abc.MutableSequence`, with ``__getitem__`` arguments
-    that are not integers.
-    """
+    # This test checks that marshmallow can serialize implementations of
+    # :mod:`collections.abc.MutableSequence`, with ``__getitem__`` arguments
+    # that are not integers.
 
     class ListLikeParent:
         """
@@ -1169,6 +1167,55 @@ def test_deeply_nested_only_and_exclude():
     assert "gah" in grand_child
     assert "goo" not in grand_child
     assert "bah" not in grand_child
+
+
+def test_nested_lambda():
+    class ChildSchema(Schema):
+        id = fields.Str()
+        name = fields.Str()
+        parent = fields.Nested(lambda: ParentSchema(only=("id",)), dump_only=True)
+        siblings = fields.List(fields.Nested(lambda: ChildSchema(only=("id", "name"))))
+
+    class ParentSchema(Schema):
+        id = fields.Str()
+        spouse = fields.Nested(lambda: ParentSchema(only=("id",)))
+        children = fields.List(
+            fields.Nested(lambda: ChildSchema(only=("id", "parent", "siblings")))
+        )
+
+    sch = ParentSchema()
+    data_to_load = {
+        "id": "p1",
+        "spouse": {"id": "p2"},
+        "children": [{"id": "c1", "siblings": [{"id": "c2", "name": "sis"}]}],
+    }
+    loaded = sch.load(data_to_load)
+    assert loaded == data_to_load
+
+    data_to_dump = dict(
+        id="p2",
+        spouse=dict(id="p2"),
+        children=[
+            dict(
+                id="c1",
+                name="bar",
+                parent=dict(id="p2"),
+                siblings=[dict(id="c2", name="sis")],
+            )
+        ],
+    )
+    dumped = sch.dump(data_to_dump)
+    assert dumped == {
+        "id": "p2",
+        "spouse": {"id": "p2"},
+        "children": [
+            {
+                "id": "c1",
+                "parent": {"id": "p2"},
+                "siblings": [{"id": "c2", "name": "sis"}],
+            }
+        ],
+    }
 
 
 @pytest.mark.parametrize("data_key", ("f1", "f5", None))
