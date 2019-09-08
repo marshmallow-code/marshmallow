@@ -470,6 +470,23 @@ class Nested(Field):
             if isinstance(self.nested, SchemaABC):
                 self._schema = self.nested
                 self._schema.context.update(context)
+                all_fields = self._schema.fields.keys()
+                if self.only:
+                    field_names = self.only
+                else:
+                    field_names = all_fields
+                if self.exclude:
+                    field_names = field_names - self.exclude
+                fields_to_exclude = all_fields - field_names
+                for field_name in fields_to_exclude:
+                    try:
+                        del self._schema.fields[field_name]
+                        del self._schema.dump_fields[field_name]
+                        del self._schema.load_fields[field_name]
+                    except KeyError:
+                        pass
+                self._schema.only = self.only
+                self._schema.exclude = self.exclude
             else:
                 if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
                     schema_class = self.nested
@@ -623,8 +640,12 @@ class List(Field):
                 "marshmallow.base.FieldABC."
             ) from error
         if isinstance(self.inner, Nested):
-            self.only = self.inner.only
-            self.exclude = self.inner.exclude
+            if isinstance(self.inner.nested, SchemaABC):
+                self.only = self.inner.nested.only
+                self.exclude = self.inner.nested.exclude
+            else:
+                self.only = self.inner.only
+                self.exclude = self.inner.exclude
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
