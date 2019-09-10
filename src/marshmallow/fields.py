@@ -468,7 +468,7 @@ class Nested(Field):
             # Inherit context from parent.
             context = getattr(self.parent, "context", {})
             if isinstance(self.nested, SchemaABC):
-                self._schema = self.nested
+                self._schema = copy.deepcopy(self.nested)
                 self._schema.context.update(context)
                 # Respect only and exclude passed from parent and re-initialize fields
                 set_class = self._schema.set_class

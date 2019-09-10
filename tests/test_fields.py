@@ -317,6 +317,23 @@ class TestListNested:
         family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
         assert schema.dump(family) == expected_dump
 
+    def test_list_nested_class_multiple_dumps(self):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child, only=("name", "age")))
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert Family(only=("children.age",)).dump(family) == {
+            "children": [{"age": 15}]
+        }
+        assert Family(only=("children.name",)).dump(family) == {
+            "children": [{"name": "Lily"}]
+        }
+
     @pytest.mark.parametrize(
         ("param", "expected_attribute", "expected_dump"),
         (
@@ -342,6 +359,23 @@ class TestListNested:
 
         family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
         assert schema.dump(family) == expected_dump
+
+    def test_list_nested_instance_multiple_dumps(self):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child(only=("name", "age"))))
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert Family(only=("children.age",)).dump(family) == {
+            "children": [{"age": 15}]
+        }
+        assert Family(only=("children.name",)).dump(family) == {
+            "children": [{"name": "Lily"}]
+        }
 
     def test_list_nested_partial_propagated_to_nested(self):
         class Child(Schema):
