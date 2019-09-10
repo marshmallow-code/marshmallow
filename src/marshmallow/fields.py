@@ -473,10 +473,10 @@ class Nested(Field):
                 # Respect only and exclude passed from parent and re-initialize fields
                 set_class = self._schema.set_class
                 if self.only is not None:
-                    original = self._schema.only or set_class()
+                    original = self._schema.only
                     self._schema.only = set_class(self.only).intersection(original)
                 if self.exclude:
-                    original = self._schema.exclude or set_class()
+                    original = self._schema.exclude
                     self._schema.exclude = set_class(self.exclude).union(original)
                 self._schema._init_fields()
             else:
