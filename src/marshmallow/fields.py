@@ -471,8 +471,13 @@ class Nested(Field):
                 self._schema = self.nested
                 self._schema.context.update(context)
                 # Respect only and exclude passed from parent and re-initialize fields
-                self._schema.only = self.only
-                self._schema.exclude = self.exclude
+                set_class = self._schema.set_class
+                if self.only is not None:
+                    original = self._schema.only or set_class()
+                    self._schema.only = set_class(self.only).intersection(original)
+                if self.exclude:
+                    original = self._schema.exclude or set_class()
+                    self._schema.exclude = set_class(self.exclude).union(original)
                 self._schema._init_fields()
             else:
                 if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
@@ -627,12 +632,8 @@ class List(Field):
                 "marshmallow.base.FieldABC."
             ) from error
         if isinstance(self.inner, Nested):
-            if isinstance(self.inner.nested, SchemaABC):
-                self.only = self.inner.nested.only
-                self.exclude = self.inner.nested.exclude
-            else:
-                self.only = self.inner.only
-                self.exclude = self.inner.exclude
+            self.only = self.inner.only
+            self.exclude = self.inner.exclude
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)

@@ -336,7 +336,9 @@ class TestListNested:
             children = fields.List(fields.Nested(Child(**{param: ("name", "surname")})))
 
         schema = Family(**{param: ["children.name", "children.age"]})
-        assert getattr(schema.fields["children"].inner, param) == expected_attribute
+        assert (
+            getattr(schema.fields["children"].inner.schema, param) == expected_attribute
+        )
 
         family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
         assert schema.dump(family) == expected_dump
