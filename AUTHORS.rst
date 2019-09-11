@@ -138,3 +138,4 @@ Contributors (chronological)
 - Anthony Sottile `@asottile <https://github.com/asottile>`_
 - Charles-Axel Dein `@charlax <https://github.com/charlax>`_
 - `@phrfpeixoto <https://github.com/phrfpeixoto>`_
+- `@jceresini <https://github.com/jceresini>`_
