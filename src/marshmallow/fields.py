@@ -850,6 +850,7 @@ class Number(Field):
 class Integer(Number):
     """An integer field.
 
+    :param bool strict: If True, only integer types are valid, otherwise any value castable to `int` is valid.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
