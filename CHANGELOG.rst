@@ -617,6 +617,14 @@ Deprecation/Removals:
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
 
+2.20.4 (2019-09-11)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect the ``many`` value on ``Schema`` instances passed to ``Nested`` (:issue:`1160`).
+  Thanks :user:`Kamforka` for reporting.
+
 2.20.3 (2019-09-04)
 +++++++++++++++++++
 

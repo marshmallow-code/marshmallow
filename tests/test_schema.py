@@ -1041,6 +1041,27 @@ def test_nested_exclude_and_only_inheritance():
     assert "fuu" not in child
 
 
+# https://github.com/marshmallow-code/marshmallow/issues/1160
+def test_nested_instance_many():
+    class BookSchema(Schema):
+        id = fields.Int()
+        title = fields.String()
+
+    class UserSchema(Schema):
+        id = fields.Int()
+        name = fields.String()
+        books = fields.Nested(BookSchema(many=True))
+
+    books = [{"id": 1, "title": "First book"}, {"id": 2, "title": "Second book"}]
+    user = {"id": 1, "name": "Peter", "books": books}
+
+    user_dump = UserSchema().dump(user)
+    assert user_dump["books"] == books
+
+    user_load = UserSchema().load(user_dump)
+    assert user_load == user
+
+
 def test_meta_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Field()

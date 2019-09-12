@@ -509,17 +509,19 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
+        many = schema.many or self.many or many
         return schema.dump(nested_obj, many=self.many or many)
 
     def _test_collection(self, value, many=False):
-        many = self.many or many
+        many = self.schema.many or self.many or many
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
     def _load(self, value, data, partial=None, many=False):
+        many = self.schema.many or self.many or many
         try:
             valid_data = self.schema.load(
-                value, unknown=self.unknown, partial=partial, many=self.many or many
+                value, unknown=self.unknown, partial=partial, many=many
             )
         except ValidationError as error:
             raise ValidationError(
