@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.20.4 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect the ``many`` value on ``Schema`` instances passed to ``Nested`` (:issue:`1160`).
+  Thanks :user:`Kamforka` for reporting.
+
 2.20.3 (2019-09-04)
 +++++++++++++++++++
 
