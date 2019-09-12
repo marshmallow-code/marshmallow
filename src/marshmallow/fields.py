@@ -440,17 +440,18 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
-        if self.many and utils.is_iterable_but_not_string(nested_obj):
+        many = schema.many or self.many
+        if many and utils.is_iterable_but_not_string(nested_obj):
             nested_obj = list(nested_obj)
         if not self.__updated_fields:
-            schema._update_fields(obj=nested_obj, many=self.many)
+            schema._update_fields(obj=nested_obj, many=many)
             self.__updated_fields = True
-        ret, errors = schema.dump(nested_obj, many=self.many,
+        ret, errors = schema.dump(nested_obj, many=many,
                 update_fields=not self.__updated_fields)
         if isinstance(self.only, basestring):  # self.only is a field name
             only_field = self.schema.fields[self.only]
             key = ''.join([self.schema.prefix or '', only_field.dump_to or self.only])
-            if self.many:
+            if many:
                 return utils.pluck(ret, key=key)
             else:
                 return ret[key]
