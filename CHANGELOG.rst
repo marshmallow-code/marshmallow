@@ -7,6 +7,7 @@ Changelog
 Bug fixes:
 
 - Fix propagating dot-delimited `only` and `exclude` parameters to nested schema instances (:issue:`1384`).
+- Includes bug fix from 2.20.4 (:issue:`1160`).
 
 3.0.3 (2019-09-04)
 ++++++++++++++++++
