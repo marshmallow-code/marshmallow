@@ -518,17 +518,19 @@ class Nested(Field):
         schema = self.schema
         if nested_obj is None:
             return None
+        many = schema.many or self.many or many
         return schema.dump(nested_obj, many=self.many or many)
 
     def _test_collection(self, value, many=False):
-        many = self.many or many
+        many = self.schema.many or self.many or many
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
     def _load(self, value, data, partial=None, many=False):
+        many = self.schema.many or self.many or many
         try:
             valid_data = self.schema.load(
-                value, unknown=self.unknown, partial=partial, many=self.many or many
+                value, unknown=self.unknown, partial=partial, many=many
             )
         except ValidationError as error:
             raise ValidationError(
@@ -810,7 +812,7 @@ class UUID(String):
 class Number(Field):
     """Base class for number fields.
 
-    :param bool as_string: If True, format the serialized value as a string.
+    :param bool as_string: If `True`, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -859,6 +861,8 @@ class Number(Field):
 class Integer(Number):
     """An integer field.
 
+    :param bool strict: If `True`, only integer types are valid.
+        Otherwise, any value castable to `int` is valid.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
@@ -885,7 +889,7 @@ class Float(Number):
 
     :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
         even though they are illegal according to the JSON specification.
-    :param bool as_string: If True, format the value as a string.
+    :param bool as_string: If `True`, format the value as a string.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
@@ -932,11 +936,11 @@ class Decimal(Number):
     :param int places: How many decimal places to quantize the value. If `None`, does
         not quantize the value.
     :param rounding: How to round the value during quantize, for example
-        `decimal.ROUND_UP`. If None, uses the rounding value from
+        `decimal.ROUND_UP`. If `None`, uses the rounding value from
         the current thread's context.
     :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
         even though they are illegal according to the JSON specification.
-    :param bool as_string: If True, serialize to a string instead of a Python
+    :param bool as_string: If `True`, serialize to a string instead of a Python
         `decimal.Decimal` type.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
 
