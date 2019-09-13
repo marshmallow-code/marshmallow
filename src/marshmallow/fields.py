@@ -126,7 +126,7 @@ class Field(FieldABC):
     _creation_index = 0  # Used for sorting
 
     #: Default error messages for various kinds of errors. The keys in this dictionary
-    #: are passed to `Field.fail`. The values are error messages passed to
+    #: are passed to `Field.make_error`. The values are error messages passed to
     #: :exc:`marshmallow.exceptions.ValidationError`.
     default_error_messages = {
         "required": "Missing data for required field.",
