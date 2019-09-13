@@ -1,13 +1,13 @@
 Changelog
 ---------
 
-3.0.5 (unreleased)
+3.0.5 (2019-09-12)
 ++++++++++++++++++
 
 Bug fixes:
 
-- Fix bug that raised an uncaught error when passing a an schema instance to ``Pluck`` and ``only`` (:pr:`1395`).
-- Fix behavior of ``Nested(SchemaInstance(), only=('field_a',))`` (:pr:`1395`).
+- Fix bug that raised an uncaught error when passing both a schema instance and ``only`` to ``Nested`` (:pr:`1395`).
+  This bug also affected passing a schema instance to ``fields.Pluck``.
 
 
 3.0.4 (2019-09-11)
