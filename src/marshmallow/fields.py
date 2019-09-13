@@ -449,57 +449,26 @@ class Nested(Field):
             SchemaABC, typing.Type[SchemaABC], str, typing.Callable[[], SchemaABC]
         ],
         *,
+        exclude: typing.Sequence = (),
+        only: typing.Sequence = None,
         default=missing_,
+        many: bool = False,
+        unknown: str = None,
         **kwargs
     ):
-        # Raise DeprecationWarnings for only, exclude, many, and unknown
-        if "only" in kwargs:
-            only = kwargs.pop("only")
-            if not is_collection(only):
-                raise StringNotCollectionError(
-                    '"only" should be a collection of strings.'
-                )
+        # Raise error if only or exclude is passed as string, not list of strings
+        if only is not None and not is_collection(only):
+            raise StringNotCollectionError('"only" should be a collection of strings.')
+        if exclude is not None and not is_collection(exclude):
+            raise StringNotCollectionError(
+                '"exclude" should be a collection of strings.'
+            )
+        if nested == "self":
             warnings.warn(
-                "Passing `only` to `Nested` is deprecated. "
-                "Pass `only` to the schema instance instead.",
+                "Passing 'self' to `Nested` is deprecated. "
+                "Use `Nested(lambda: MySchema(...))` instead.",
                 DeprecationWarning,
             )
-        else:
-            only = None
-        if "exclude" in kwargs:
-            exclude = kwargs.pop("exclude")
-            if not is_collection(exclude):
-                raise StringNotCollectionError(
-                    '"exclude" should be a collection of strings.'
-                )
-            warnings.warn(
-                "Passing `exclude` to `Nested` is deprecated. "
-                "Pass `only` to the schema instance instead.",
-                DeprecationWarning,
-            )
-        else:
-            exclude = ()
-
-        if "many" in kwargs:
-            many = kwargs.pop("many")
-            warnings.warn(
-                "Passing `many` to `Nested` is deprecated. "
-                "Use List(Nested(...)) instead.",
-                DeprecationWarning,
-            )
-        else:
-            many = False
-
-        if "unknown" in kwargs:
-            unknown = kwargs.pop("unknown")
-            warnings.warn(
-                "Passing `unknown` to `Nested` is deprecated. "
-                "Pass `unknown` to the schema instance instead.",
-                DeprecationWarning,
-            )
-        else:
-            unknown = None
-
         self.nested = nested
         self._schema = None  # Cached Schema instance
         # Deprecated attributes
@@ -549,13 +518,6 @@ class Nested(Field):
                     )
                 elif nested == "self":
                     schema_class = self.root.__class__
-                    warnings.warn(
-                        "Passing 'self' to `Nested` is deprecated. "
-                        "Use `Nested(lambda: {Class}(...))` instead.".format(
-                            Class=schema_class.__name__
-                        ),
-                        DeprecationWarning,
-                    )
                 else:
                     schema_class = class_registry.get_class(nested)
                 self._schema = schema_class(

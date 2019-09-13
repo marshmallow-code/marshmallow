@@ -2210,13 +2210,15 @@ class TestSelfReference:
     def user(self, employer):
         return User(name="Tom", employer=employer, age=28)
 
-    def test_nesting_schema_within_itself(self, user, employer):
-        class SelfSchema(Schema):
-            name = fields.String()
-            age = fields.Integer()
-            employer = fields.Nested("self", exclude=("employer",))
+    def test_nesting_schema_by_passing_lambda(self, user, employer):
+        class SelfReferencingSchema(Schema):
+            name = fields.Str()
+            age = fields.Int()
+            employer = fields.Nested(
+                lambda: SelfReferencingSchema(exclude=("employer",))
+            )
 
-        data = SelfSchema().dump(user)
+        data = SelfReferencingSchema().dump(user)
         assert data["name"] == user.name
         assert data["employer"]["name"] == employer.name
         assert data["employer"]["age"] == employer.age
@@ -2232,9 +2234,24 @@ class TestSelfReference:
         assert data["employer"]["name"] == employer.name
         assert data["employer"]["age"] == employer.age
 
+    def test_nesting_schema_self_string(self, user, employer):
+        with pytest.warns(
+            DeprecationWarning, match="Passing 'self' to `Nested` is deprecated"
+        ):
+
+            class SelfSchema(Schema):
+                name = fields.String()
+                age = fields.Integer()
+                employer = fields.Nested("self", exclude=("employer",))
+
+        data = SelfSchema().dump(user)
+        assert data["name"] == user.name
+        assert data["employer"]["name"] == employer.name
+        assert data["employer"]["age"] == employer.age
+
     def test_nesting_within_itself_meta(self, user, employer):
         class SelfSchema(Schema):
-            employer = fields.Nested("self", exclude=("employer",))
+            employer = fields.Nested(lambda: SelfSchema(exclude=("employer",)))
 
             class Meta:
                 additional = ("name", "age")
@@ -2247,7 +2264,7 @@ class TestSelfReference:
 
     def test_nested_self_with_only_param(self, user, employer):
         class SelfSchema(Schema):
-            employer = fields.Nested("self", only=("name",))
+            employer = fields.Nested(lambda: SelfSchema(only=("name",)))
 
             class Meta:
                 fields = ("name", "employer")
@@ -2257,10 +2274,14 @@ class TestSelfReference:
         assert data["employer"]["name"] == employer.name
         assert "age" not in data["employer"]
 
-    def test_multiple_pluck_self_field(self, user):
+    def test_multiple_pluck_self_lambda(self, user):
         class MultipleSelfSchema(Schema):
-            emp = fields.Pluck("self", "name", attribute="employer")
-            rels = fields.Pluck("self", "name", many=True, attribute="relatives")
+            emp = fields.Pluck(
+                lambda: MultipleSelfSchema(), "name", attribute="employer"
+            )
+            rels = fields.Pluck(
+                lambda: MultipleSelfSchema(), "name", many=True, attribute="relatives"
+            )
 
             class Meta:
                 fields = ("name", "emp", "rels")
@@ -2272,9 +2293,28 @@ class TestSelfReference:
         relative = data["rels"][0]
         assert relative == user.relatives[0].name
 
-    def test_nested_self_many(self):
+    def test_multiple_pluck_self_string(self, user):
+        with pytest.warns(
+            DeprecationWarning, match="Passing 'self' to `Nested` is deprecated"
+        ):
+
+            class MultipleSelfSchema(Schema):
+                emp = fields.Pluck("self", "name", attribute="employer")
+                rels = fields.Pluck("self", "name", many=True, attribute="relatives")
+
+                class Meta:
+                    fields = ("name", "emp", "rels")
+
+        schema = MultipleSelfSchema()
+        user.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
+        data = schema.dump(user)
+        assert len(data["rels"]) == len(user.relatives)
+        relative = data["rels"][0]
+        assert relative == user.relatives[0].name
+
+    def test_nested_self_many_lambda(self):
         class SelfManySchema(Schema):
-            relatives = fields.Nested("self", many=True)
+            relatives = fields.Nested(lambda: SelfManySchema(), many=True)
 
             class Meta:
                 additional = ("name", "age")
@@ -2287,12 +2327,50 @@ class TestSelfReference:
         assert data["relatives"][0]["name"] == person.relatives[0].name
         assert data["relatives"][0]["age"] == person.relatives[0].age
 
+    def test_nested_self_many_string(self):
+        with pytest.warns(
+            DeprecationWarning, match="Passing 'self' to `Nested` is deprecated"
+        ):
+
+            class SelfManySchema(Schema):
+                relatives = fields.Nested("self", many=True)
+
+                class Meta:
+                    additional = ("name", "age")
+
+        person = User(name="Foo")
+        person.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
+        data = SelfManySchema().dump(person)
+        assert data["name"] == person.name
+        assert len(data["relatives"]) == len(person.relatives)
+        assert data["relatives"][0]["name"] == person.relatives[0].name
+        assert data["relatives"][0]["age"] == person.relatives[0].age
+
     def test_nested_self_list(self):
         class SelfListSchema(Schema):
-            relatives = fields.List(fields.Nested("self"))
+            relatives = fields.List(fields.Nested(lambda: SelfListSchema()))
 
             class Meta:
                 additional = ("name", "age")
+
+        person = User(name="Foo")
+        person.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
+        data = SelfListSchema().dump(person)
+        assert data["name"] == person.name
+        assert len(data["relatives"]) == len(person.relatives)
+        assert data["relatives"][0]["name"] == person.relatives[0].name
+        assert data["relatives"][0]["age"] == person.relatives[0].age
+
+    def test_nested_self_list_string(self):
+        with pytest.warns(
+            DeprecationWarning, match="Passing 'self' to `Nested` is deprecated"
+        ):
+
+            class SelfListSchema(Schema):
+                relatives = fields.List(fields.Nested("self"))
+
+                class Meta:
+                    additional = ("name", "age")
 
         person = User(name="Foo")
         person.relatives = [User(name="Bar", age=12), User(name="Baz", age=34)]
