@@ -470,12 +470,11 @@ class Nested(Field):
                 DeprecationWarning,
             )
         self.nested = nested
-        self._schema = None  # Cached Schema instance
-        # Deprecated attributes
         self.only = only
         self.exclude = exclude
         self.many = many
         self.unknown = unknown
+        self._schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
 
     @property
