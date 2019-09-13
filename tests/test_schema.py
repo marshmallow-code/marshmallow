@@ -1062,6 +1062,40 @@ def test_nested_instance_many():
     assert user_load == user
 
 
+def test_nested_instance_only():
+    class ArtistSchema(Schema):
+        first = fields.Str()
+        last = fields.Str()
+
+    class AlbumSchema(Schema):
+        title = fields.Str()
+        artist = fields.Nested(ArtistSchema(), only=("last",))
+
+    schema = AlbumSchema()
+    album = {"title": "Hunky Dory", "artist": {"last": "Bowie"}}
+    loaded = schema.load(album)
+    assert loaded == album
+    full_album = {"title": "Hunky Dory", "artist": {"first": "David", "last": "Bowie"}}
+    assert schema.dump(full_album) == album
+
+
+def test_nested_instance_exclude():
+    class ArtistSchema(Schema):
+        first = fields.Str()
+        last = fields.Str()
+
+    class AlbumSchema(Schema):
+        title = fields.Str()
+        artist = fields.Nested(ArtistSchema(), exclude=("first",))
+
+    schema = AlbumSchema()
+    album = {"title": "Hunky Dory", "artist": {"last": "Bowie"}}
+    loaded = schema.load(album)
+    assert loaded == album
+    full_album = {"title": "Hunky Dory", "artist": {"first": "David", "last": "Bowie"}}
+    assert schema.dump(full_album) == album
+
+
 def test_meta_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Field()
@@ -2073,10 +2107,11 @@ class TestNestedSchema:
 
 
 class TestPluckSchema:
-    def test_pluck(self, blog):
+    @pytest.mark.parametrize("user_schema", [UserSchema, UserSchema()])
+    def test_pluck(self, user_schema, blog):
         class FlatBlogSchema(Schema):
-            user = fields.Pluck(UserSchema, "name")
-            collaborators = fields.Pluck(UserSchema, "name", many=True)
+            user = fields.Pluck(user_schema, "name")
+            collaborators = fields.Pluck(user_schema, "name", many=True)
 
         s = FlatBlogSchema()
         data = s.dump(blog)
