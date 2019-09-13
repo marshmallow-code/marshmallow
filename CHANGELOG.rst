@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.0.4 (2019-09-11)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix propagating dot-delimited `only` and `exclude` parameters to nested schema instances (:issue:`1384`).
+- Includes bug fix from 2.20.4 (:issue:`1160`).
+
 3.0.3 (2019-09-04)
 ++++++++++++++++++
 
@@ -616,6 +624,14 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.20.4 (2019-09-11)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect the ``many`` value on ``Schema`` instances passed to ``Nested`` (:issue:`1160`).
+  Thanks :user:`Kamforka` for reporting.
 
 2.20.3 (2019-09-04)
 +++++++++++++++++++
