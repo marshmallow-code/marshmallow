@@ -478,7 +478,7 @@ class Nested(Field):
                 DeprecationWarning,
             )
         else:
-            exclude = tuple()
+            exclude = ()
 
         if "many" in kwargs:
             many = kwargs.pop("many")

@@ -275,21 +275,21 @@ class UserRelativeUrlSchema(UserSchema):
 class BlogSchema(Schema):
     title = fields.String()
     user = fields.Nested(UserSchema)
-    collaborators = fields.Nested(UserSchema, many=True)
+    collaborators = fields.List(fields.Nested(UserSchema()))
     categories = fields.List(fields.String)
     id = fields.String()
 
 
 class BlogUserMetaSchema(Schema):
     user = fields.Nested(UserMetaSchema())
-    collaborators = fields.Nested(UserMetaSchema, many=True)
+    collaborators = fields.List(fields.Nested(UserMetaSchema()))
 
 
 class BlogSchemaMeta(Schema):
     """Same as BlogSerializer but using ``fields`` options."""
 
     user = fields.Nested(UserSchema)
-    collaborators = fields.Nested(UserSchema, many=True)
+    collaborators = fields.List(fields.Nested(UserSchema()))
 
     class Meta:
         fields = ("title", "user", "collaborators", "categories", "id")
@@ -298,7 +298,7 @@ class BlogSchemaMeta(Schema):
 class BlogOnlySchema(Schema):
     title = fields.String()
     user = fields.Nested(UserSchema)
-    collaborators = fields.Nested(UserSchema, only=("id",), many=True)
+    collaborators = fields.List(fields.Nested(UserSchema(only=("id",))))
 
 
 class BlogSchemaExclude(BlogSchema):

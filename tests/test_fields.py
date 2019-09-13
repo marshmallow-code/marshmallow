@@ -377,6 +377,34 @@ class TestListNested:
             "children": [{"name": "Lily"}]
         }
 
+    @pytest.mark.parametrize(
+        ("param", "expected_attribute", "expected_dump"),
+        (
+            ("only", {"name"}, {"children": [{"name": "Lily"}]}),
+            ("exclude", {"name", "surname", "age"}, {"children": [{}]}),
+        ),
+    )
+    def test_list_nested_lambda_only_and_exclude_merged_with_nested(
+        self, param, expected_attribute, expected_dump
+    ):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(
+                fields.Nested(lambda: Child(**{param: ("name", "surname")}))
+            )
+
+        schema = Family(**{param: ["children.name", "children.age"]})
+        assert (
+            getattr(schema.fields["children"].inner.schema, param) == expected_attribute
+        )
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert schema.dump(family) == expected_dump
+
     def test_list_nested_partial_propagated_to_nested(self):
         class Child(Schema):
             name = fields.String(required=True)
