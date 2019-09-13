@@ -771,6 +771,10 @@ class String(Field):
         "invalid_utf8": "Not a valid utf-8 string.",
     }
 
+    def __init__(self, *, strip_whitespace=True, **kwargs):
+        self.strip_whitespace = strip_whitespace
+        super().__init__(**kwargs)
+
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
@@ -780,9 +784,10 @@ class String(Field):
         if not isinstance(value, (str, bytes)):
             raise self.make_error("invalid")
         try:
-            return utils.ensure_text_type(value)
+            ret = utils.ensure_text_type(value)
         except UnicodeDecodeError as error:
             raise self.make_error("invalid_utf8") from error
+        return ret.strip() if self.strip_whitespace else ret
 
 
 class UUID(String):
