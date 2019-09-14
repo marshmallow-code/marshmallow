@@ -81,7 +81,7 @@ class TestFieldSerialization:
         field = fields.Function(deserialize=lambda obj: None)
         assert field.load_only
 
-    def test_function_field_passed_serialize_with_context(self, user, monkeypatch):
+    def test_function_field_passed_serialize_with_context(self, user):
         class Parent(Schema):
             pass
 

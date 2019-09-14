@@ -25,7 +25,7 @@ class TestDeserializingNone:
         with pytest.raises(ValidationError, match="Field may not be null."):
             field.deserialize(None)
 
-    def test_allow_none_is_true_if_missing_is_true(self):
+    def test_allow_none_is_true_if_missing_is_none(self):
         field = fields.Field(missing=None)
         assert field.allow_none is True
         field.deserialize(None) is None
@@ -1337,6 +1337,53 @@ class TestSchemaDeserialization:
         result = AliasingUserSerializer().load(data)
         assert result["name"] == "Mick"
         assert result["years"] is None
+
+    # https://github.com/marshmallow-code/marshmallow/issues/713
+    @pytest.mark.parametrize(
+        ("missing", "missing_values", "input_data", "expected"),
+        [
+            (None, {None}, {"name": None}, {"name": None}),
+            (None, {None}, {"name": ""}, {"name": ""}),
+            (None, {""}, {"name": ""}, {"name": None}),
+            (None, {""}, {}, {"name": None}),
+            ("", {""}, {"name": ""}, {"name": ""}),
+            ("", {None}, {"name": None}, {"name": ""}),
+            ("", {None}, {}, {"name": ""}),
+        ],
+    )
+    def test_deserialize_with_custom_missing_values(
+        self, missing, missing_values, input_data, expected
+    ):
+        class ArtistSchema(Schema):
+            name = fields.String(missing=missing, missing_values=missing_values)
+
+        schema = ArtistSchema()
+        assert schema.load(input_data) == expected
+
+    def test_deserialize_required_field_with_custom_missing_values(self):
+        class ArtistSchema(Schema):
+            album_names = fields.List(
+                fields.Str(), required=True, missing_values=([], ())
+            )
+
+        with pytest.raises(ValidationError, match="required"):
+            ArtistSchema().load({"album_names": []})
+
+    def test_setting_default_missing_values(self, monkeypatch):
+        monkeypatch.setattr(fields.Field, "default_missing_values", ("",))
+        monkeypatch.setattr(fields.List, "default_missing_values", ([], ()))
+
+        class ArtistSchema(Schema):
+            name = fields.String(missing=None)
+            dob = fields.DateTime(missing=None)
+            album_names = fields.List(fields.Str(), required=True)
+
+        schema = ArtistSchema()
+        loaded = schema.load({"name": "", "dob": "", "album_names": ["Hunky Dory"]})
+        assert loaded == {"name": None, "dob": None, "album_names": ["Hunky Dory"]}
+
+        with pytest.raises(ValidationError, match="required"):
+            assert schema.load({"name": "", "dob": "", "album_names": []})
 
     def test_deserialization_raises_with_errors(self):
         bad_data = {"email": "invalid-email", "colors": "burger", "age": -1}
