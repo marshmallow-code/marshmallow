@@ -82,9 +82,8 @@ Contributors
 
 This project exists thanks to all the people who contribute.
 
-You're highly encouraged to participate in marshmallow's development. 
-Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see
-how you can help.
+**You're highly encouraged to participate in marshmallow's development.**
+Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see how you can help.
 
 Thank you to all who have already contributed to marshmallow!
 
@@ -147,6 +146,7 @@ Project Links
 
 - Docs: http://marshmallow.readthedocs.io/
 - Changelog: http://marshmallow.readthedocs.io/en/latest/changelog.html
+- Contributing Guidelines: https://marshmallow.readthedocs.io/en/latest/contributing.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow
