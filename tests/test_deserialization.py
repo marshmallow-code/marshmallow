@@ -475,6 +475,12 @@ class TestFieldDeserialization:
             field.deserialize('/foo/bar')
         assert excinfo.value.args[0][0] == 'Not a valid URL.'
 
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/1400
+    def test_url_field_non_list_validators(self):
+        field = fields.Url(validate=(validate.Length(min=16), ))
+        with pytest.raises(ValidationError, match="Shorter than minimum length"):
+            field.deserialize('https://abc.def')
+
     def test_relative_url_field_deserialization(self):
         field = fields.Url(relative=True)
         assert field.deserialize('/foo/bar') == '/foo/bar'
@@ -493,6 +499,12 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize('invalidemail')
         assert excinfo.value.args[0][0] == 'Not a valid email address.'
+
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/1400
+    def test_email_field_non_list_validators(self):
+        field = fields.Email(validate=(validate.Length(min=9), ))
+        with pytest.raises(ValidationError, match="Shorter than minimum length"):
+            field.deserialize('a@bc.com')
 
     def test_function_field_deserialization_is_noop_by_default(self):
         field = fields.Function(lambda x: None)

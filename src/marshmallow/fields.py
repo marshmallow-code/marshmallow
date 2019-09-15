@@ -1128,13 +1128,14 @@ class Url(ValidatedField, String):
         String.__init__(self, **kwargs)
 
         self.relative = relative
-        # Insert validation into self.validators so that multiple errors can be
-        # stored.
-        self.validators.insert(0, validate.URL(
-            relative=self.relative,
-            schemes=schemes,
-            error=self.error_messages['invalid']
-        ))
+        # Insert validation into self.validators so that multiple errors can be stored.
+        self.validators = (
+            [validate.URL(
+                relative=self.relative,
+                schemes=schemes,
+                error=self.error_messages['invalid']
+            )] + list(self.validators)
+        )
 
     def _validated(self, value):
         if value is None:
@@ -1156,9 +1157,10 @@ class Email(ValidatedField, String):
 
     def __init__(self, *args, **kwargs):
         String.__init__(self, *args, **kwargs)
-        # Insert validation into self.validators so that multiple errors can be
-        # stored.
-        self.validators.insert(0, validate.Email(error=self.error_messages['invalid']))
+        # Insert validation into self.validators so that multiple errors can be stored.
+        self.validators = (
+            [validate.Email(error=self.error_messages['invalid'])] + list(self.validators)
+        )
 
     def _validated(self, value):
         if value is None:

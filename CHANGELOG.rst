@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+2.20.5 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when a non-list collection is passed to the ``validate`` argument of ``fields.Email`` and ``fields.URL`` (:issue:`1400`).
+
 2.20.4 (2019-09-11)
 +++++++++++++++++++
 
