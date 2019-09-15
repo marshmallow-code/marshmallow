@@ -1154,14 +1154,14 @@ class DateTime(Field):
         "iso8601": utils.isoformat,
         "rfc": utils.rfcformat,
         "rfc822": utils.rfcformat,
-    }
+    }  # type: typing.Dict[str, typing.Callable[[typing.Any], str]]
 
     DESERIALIZATION_FUNCS = {
         "iso": utils.from_iso_datetime,
         "iso8601": utils.from_iso_datetime,
         "rfc": utils.from_rfc,
         "rfc822": utils.from_rfc,
-    }
+    }  # type: typing.Dict[str, typing.Callable[[str], typing.Any]]
 
     DEFAULT_FORMAT = "iso"
 

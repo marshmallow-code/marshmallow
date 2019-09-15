@@ -15,12 +15,12 @@ class ValidationError(MarshmallowError):
 
     Validators and custom fields should raise this exception.
 
-    :param str|list|dict message: An error message, list of error messages, or dict of
+    :param message: An error message, list of error messages, or dict of
         error messages. If a dict, the keys are subitems and the values are error messages.
-    :param str field_name: Field name to store the error on.
+    :param field_name: Field name to store the error on.
         If `None`, the error is stored as schema-level error.
-    :param dict data: Raw input data.
-    :param dict|list valid_data: Valid (de)serialized data.
+    :param data: Raw input data.
+    :param valid_data: Valid (de)serialized data.
     """
 
     def __init__(
