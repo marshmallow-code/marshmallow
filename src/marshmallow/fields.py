@@ -1582,17 +1582,15 @@ class Url(String):
 
         self.relative = relative
         self.require_tld = require_tld
-        # Insert validation into self.validators so that multiple errors can be
-        # stored.
-        self.validators.insert(
-            0,
+        # Insert validation into self.validators so that multiple errors can be stored.
+        self.validators = [
             validate.URL(
                 relative=self.relative,
                 schemes=schemes,
                 require_tld=self.require_tld,
                 error=self.error_messages["invalid"],
-            ),
-        )
+            )
+        ] + list(self.validators)
 
 
 class Email(String):
@@ -1607,9 +1605,10 @@ class Email(String):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Insert validation into self.validators so that multiple errors can be
-        # stored.
-        self.validators.insert(0, validate.Email(error=self.error_messages["invalid"]))
+        # Insert validation into self.validators so that multiple errors can be stored.
+        self.validators = [validate.Email(error=self.error_messages["invalid"])] + list(
+            self.validators
+        )
 
 
 class Method(Field):

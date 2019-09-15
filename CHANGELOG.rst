@@ -10,6 +10,10 @@ Features:
   Type information is distributed per `PEP 561 <https://www.python.org/dev/peps/pep-0561/>`_ .
   Thanks :user:`fuhrysteve` for helping with this.
 
+Bug fixes:
+
+- Includes bug fix from 2.20.5.
+
 3.0.5 (2019-09-12)
 ++++++++++++++++++
 
@@ -642,6 +646,13 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.20.5 (2019-09-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix behavior when a non-list collection is passed to the ``validate`` argument of ``fields.Email`` and ``fields.URL`` (:issue:`1400`).
 
 2.20.4 (2019-09-11)
 +++++++++++++++++++
