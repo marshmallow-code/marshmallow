@@ -162,7 +162,9 @@ class Field(FieldABC):
         self.validate = validate
         if utils.is_iterable_but_not_string(validate):
             if not utils.is_generator(validate):
-                self.validators = validate
+                self.validators = typing.cast(
+                    typing.Sequence[typing.Callable[[typing.Any], typing.Any]], validate
+                )
             else:
                 validators = typing.cast(
                     typing.Sequence[typing.Callable[[typing.Any], typing.Any]], validate
@@ -1568,29 +1570,40 @@ class Url(String):
     deserialization.
 
     :param default: Default value for the field if the attribute is not set.
-    :param str attribute: The name of the attribute to get the value from. If
-        `None`, assumes the attribute has the same name as the field.
-    :param bool relative: Whether to allow relative URLs.
-    :param bool require_tld: Whether to reject non-FQDN hostnames.
+    :param relative: Whether to allow relative URLs.
+    :param require_tld: Whether to reject non-FQDN hostnames.
+    :param schemes: Valid schemes. By default, ``http``, ``https``,
+        ``ftp``, and ``ftps`` are allowed.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
     default_error_messages = {"invalid": "Not a valid URL."}
 
-    def __init__(self, *, relative=False, schemes=None, require_tld=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        relative: bool = False,
+        schemes: typing.Union[typing.Sequence, typing.Set] = None,
+        require_tld: bool = True,
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.relative = relative
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be stored.
-        self.validators = [
+        original_validators = list(self.validators)
+        # FIXME: Why doesn't mypy think validate.URL is a callable here?
+        validator = typing.cast(
+            typing.Callable[[typing.Any], typing.Any],
             validate.URL(
                 relative=self.relative,
                 schemes=schemes,
                 require_tld=self.require_tld,
                 error=self.error_messages["invalid"],
-            )
-        ] + list(self.validators)
+            ),
+        )
+        self.validators = [validator] + original_validators
 
 
 class Email(String):
@@ -1606,9 +1619,9 @@ class Email(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
-        self.validators = [validate.Email(error=self.error_messages["invalid"])] + list(
-            self.validators
-        )
+        original_validators = list(self.validators)
+        validator = validate.Email(error=self.error_messages["invalid"])
+        self.validators = [validator] + original_validators
 
 
 class Method(Field):
