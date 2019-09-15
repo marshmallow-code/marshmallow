@@ -3,7 +3,12 @@ from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
-    "lint": ["flake8==3.7.8", "flake8-bugbear==19.8.0", "pre-commit~=1.17"],
+    "lint": [
+        "mypy==0.720",
+        "flake8==3.7.8",
+        "flake8-bugbear==19.8.0",
+        "pre-commit~=1.17",
+    ],
     "docs": [
         "sphinx==2.2.0",
         "sphinx-issues==1.2.0",
@@ -50,6 +55,7 @@ setup(
     url="https://github.com/marshmallow-code/marshmallow",
     packages=find_packages("src", exclude=("test*", "examples")),
     package_dir={"": "src"},
+    package_data={"marshmallow": ["py.typed"]},
     include_package_data=True,
     extras_require=EXTRAS_REQUIRE,
     license="MIT",

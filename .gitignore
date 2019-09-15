@@ -74,3 +74,8 @@ venv
 # Other
 .directory
 *.pprof
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

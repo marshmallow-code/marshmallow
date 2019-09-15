@@ -38,23 +38,23 @@ class _Missing:
 missing = _Missing()
 
 
-def is_generator(obj):
+def is_generator(obj) -> bool:
     """Return True if ``obj`` is a generator
     """
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
-def is_iterable_but_not_string(obj):
+def is_iterable_but_not_string(obj) -> bool:
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
 
-def is_collection(obj):
+def is_collection(obj) -> bool:
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
 
-def is_instance_or_subclass(val, class_):
+def is_instance_or_subclass(val, class_) -> bool:
     """Return True if ``val`` is either a subclass or instance of ``class_``."""
     try:
         return issubclass(val, class_)
@@ -62,14 +62,14 @@ def is_instance_or_subclass(val, class_):
         return isinstance(val, class_)
 
 
-def is_keyed_tuple(obj):
+def is_keyed_tuple(obj) -> bool:
     """Return True if ``obj`` has keyed tuple behavior, such as
     namedtuples or SQLAlchemy's KeyedTuples.
     """
     return isinstance(obj, tuple) and hasattr(obj, "_fields")
 
 
-def pprint(obj, *args, **kwargs):
+def pprint(obj, *args, **kwargs) -> None:
     """Pretty-printing function that can pretty-print OrderedDicts
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
@@ -81,13 +81,13 @@ def pprint(obj, *args, **kwargs):
 
 
 # https://stackoverflow.com/a/27596917
-def is_aware(datetime):
+def is_aware(datetime: dt.datetime) -> bool:
     return (
         datetime.tzinfo is not None and datetime.tzinfo.utcoffset(datetime) is not None
     )
 
 
-def from_rfc(datestring):
+def from_rfc(datestring: str) -> dt.datetime:
     """Parse a RFC822-formatted datetime string and return a datetime object.
 
     https://stackoverflow.com/questions/885015/how-to-parse-a-rfc-2822-date-time-into-a-python-datetime  # noqa: B950
@@ -95,7 +95,7 @@ def from_rfc(datestring):
     return parsedate_to_datetime(datestring)
 
 
-def rfcformat(datetime):
+def rfcformat(datetime: dt.datetime) -> str:
     """Return the RFC822-formatted representation of a datetime object.
 
     :param datetime datetime: The datetime.
@@ -120,7 +120,7 @@ _iso8601_time_re = re.compile(
 )
 
 
-def get_fixed_timezone(offset):
+def get_fixed_timezone(offset: typing.Union[int, float, dt.timedelta]) -> dt.timezone:
     """Return a tzinfo instance with a fixed offset from UTC."""
     if isinstance(offset, dt.timedelta):
         offset = offset.total_seconds() // 60
@@ -178,7 +178,7 @@ def from_iso_date(value):
     return dt.date(**kw)
 
 
-def isoformat(datetime):
+def isoformat(datetime: dt.datetime) -> str:
     """Return the ISO8601-formatted representation of a datetime object.
 
     :param datetime datetime: The datetime.
@@ -186,17 +186,17 @@ def isoformat(datetime):
     return datetime.isoformat()
 
 
-def to_iso_date(date):
+def to_iso_date(date: dt.date) -> str:
     return dt.date.isoformat(date)
 
 
-def ensure_text_type(val):
+def ensure_text_type(val: typing.Union[str, bytes]) -> str:
     if isinstance(val, bytes):
         val = val.decode("utf-8")
     return str(val)
 
 
-def pluck(dictlist, key):
+def pluck(dictlist: typing.List[typing.Dict[str, typing.Any]], key: str):
     """Extracts a list of dictionary values from a list of dictionaries.
     ::
 
@@ -210,7 +210,7 @@ def pluck(dictlist, key):
 # Various utilities for pulling keyed values from objects
 
 
-def get_value(obj, key, default=missing):
+def get_value(obj, key: typing.Union[int, str], default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -246,7 +246,7 @@ def _get_value_for_key(obj, key, default):
         return getattr(obj, key, default)
 
 
-def set_value(dct, key, value):
+def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
     """Set a value in a dict. If `key` contains a '.', it is assumed
     be a path (i.e. dot-delimited string) to the value's location.
 

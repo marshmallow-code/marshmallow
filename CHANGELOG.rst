@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.1.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add more type annotations (:issue:`663`).
+  Type information is distributed per `PEP 561 <https://www.python.org/dev/peps/pep-0561/>`_ .
+  Thanks :user:`fuhrysteve` for helping with this.
+
 3.0.5 (2019-09-12)
 ++++++++++++++++++
 
