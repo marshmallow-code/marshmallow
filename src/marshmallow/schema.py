@@ -299,7 +299,7 @@ class BaseSchema(base.SchemaABC):
         decimal.Decimal: ma_fields.Decimal,
     }
     #: Overrides for default schema-level error messages
-    error_messages = {}
+    error_messages = {}  # type: typing.Dict[str, str]
 
     _default_error_messages = {
         "type": "Invalid input type.",
@@ -404,7 +404,10 @@ class BaseSchema(base.SchemaABC):
 
     @classmethod
     def from_dict(
-        cls, fields: typing.Dict[str, ma_fields.Field], *, name: str = "GeneratedSchema"
+        cls,
+        fields: typing.Dict[str, typing.Union[ma_fields.Field, typing.Type]],
+        *,
+        name: str = "GeneratedSchema"
     ) -> typing.Type["Schema"]:
         """Generate a `Schema` class given a dictionary of fields.
 

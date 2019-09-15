@@ -1,4 +1,5 @@
 """Exception classes for marshmallow-related errors."""
+import typing
 
 
 # Key used for schema-level validation errors
@@ -14,16 +15,23 @@ class ValidationError(MarshmallowError):
 
     Validators and custom fields should raise this exception.
 
-    :param str|list|dict message: An error message, list of error messages, or dict of
+    :param message: An error message, list of error messages, or dict of
         error messages. If a dict, the keys are subitems and the values are error messages.
-    :param str field_name: Field name to store the error on.
+    :param field_name: Field name to store the error on.
         If `None`, the error is stored as schema-level error.
-    :param dict data: Raw input data.
-    :param dict valid_data: Valid (de)serialized data.
+    :param data: Raw input data.
+    :param valid_data: Valid (de)serialized data.
     """
 
     def __init__(
-        self, message, field_name=SCHEMA, data=None, valid_data=None, **kwargs
+        self,
+        message: typing.Union[str, typing.List, typing.Dict],
+        field_name: str = SCHEMA,
+        data: typing.Dict[str, typing.Any] = None,
+        valid_data: typing.Union[
+            typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]
+        ] = None,
+        **kwargs
     ):
         self.messages = [message] if isinstance(message, (str, bytes)) else message
         self.field_name = field_name

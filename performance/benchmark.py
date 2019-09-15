@@ -24,9 +24,9 @@ class AuthorSchema(Schema):
     book_count = fields.Float()
     age = fields.Float()
     address = fields.Str()
-    full_name = fields.Method("full_name")
+    full_name = fields.Method("get_full_name")
 
-    def full_name(self, author):
+    def get_full_name(self, author):
         return "{}, {}".format(author.last, author.first)
 
 

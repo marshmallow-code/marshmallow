@@ -2,6 +2,7 @@
 import re
 from itertools import zip_longest
 from operator import attrgetter
+import typing
 
 from marshmallow.exceptions import ValidationError
 
@@ -32,12 +33,12 @@ class Validator:
 class URL(Validator):
     """Validate a URL.
 
-    :param bool relative: Whether to allow relative URLs.
-    :param str error: Error message to raise in case of a validation error.
+    :param relative: Whether to allow relative URLs.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
-    :param set schemes: Valid schemes. By default, ``http``, ``https``,
+    :param schemes: Valid schemes. By default, ``http``, ``https``,
         ``ftp``, and ``ftps`` are allowed.
-    :param bool require_tld: Whether to reject non-FQDN hostnames.
+    :param require_tld: Whether to reject non-FQDN hostnames.
     """
 
     class RegexMemoizer:
@@ -84,7 +85,14 @@ class URL(Validator):
     default_message = "Not a valid URL."
     default_schemes = {"http", "https", "ftp", "ftps"}
 
-    def __init__(self, *, relative=False, schemes=None, require_tld=True, error=None):
+    def __init__(
+        self,
+        *,
+        relative: bool = False,
+        schemes: typing.Union[typing.Sequence, typing.Set] = None,
+        require_tld: bool = True,
+        error: str = None
+    ):
         self.relative = relative
         self.error = error or self.default_message
         self.schemes = schemes or self.default_schemes

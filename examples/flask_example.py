@@ -12,13 +12,13 @@ db = SQLAlchemy(app)
 ##### MODELS #####
 
 
-class Author(db.Model):
+class Author(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     first = db.Column(db.String(80))
     last = db.Column(db.String(80))
 
 
-class Quote(db.Model):
+class Quote(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String, nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("author.id"))
