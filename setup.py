@@ -55,6 +55,7 @@ setup(
     url="https://github.com/marshmallow-code/marshmallow",
     packages=find_packages("src", exclude=("test*", "examples")),
     package_dir={"": "src"},
+    package_data={"marshmallow": ["py.typed"]},
     include_package_data=True,
     extras_require=EXTRAS_REQUIRE,
     license="MIT",
