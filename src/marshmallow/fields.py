@@ -836,7 +836,7 @@ class _BaseNumber(Field):
         super().__init__(**kwargs)
 
     @property
-    def num_type(self):
+    def num_type(self) -> typing.Type:
         raise NotImplementedError
 
     def _format_num(self, value):
