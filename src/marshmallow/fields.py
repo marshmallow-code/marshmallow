@@ -26,9 +26,6 @@ from marshmallow.exceptions import (
 )
 from marshmallow.validate import Validator, Length
 
-if typing.TYPE_CHECKING:
-    from marshmallow import Schema
-
 __all__ = [
     "Field",
     "Raw",
@@ -445,7 +442,7 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: "Schema",
+        nested: typing.Union[SchemaABC, typing.Type[SchemaABC], str],
         *,
         default: typing.Any = missing_,
         exclude: typing.Union[typing.List, typing.Tuple, typing.Set] = tuple(),
