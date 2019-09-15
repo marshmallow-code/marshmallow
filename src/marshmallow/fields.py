@@ -188,7 +188,7 @@ class Field(FieldABC):
         Field._creation_index += 1
 
         # Collect default error message from self and parent classes
-        messages: typing.Dict[str, str] = {}
+        messages = {}  # type: typing.Dict[str, str]
         for cls in reversed(self.__class__.__mro__):
             messages.update(getattr(cls, "default_error_messages", {}))
         messages.update(error_messages or {})

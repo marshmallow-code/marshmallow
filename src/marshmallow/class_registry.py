@@ -17,7 +17,7 @@ if typing.TYPE_CHECKING:
 #   <class_name>: <list of class objects>
 #   <module_path_to_class>: <list of class objects>
 # }
-_registry: typing.Dict[str, typing.List["Schema"]] = {}
+_registry = {}  # type: typing.Dict[str, typing.List["Schema"]]
 
 
 def register(classname: str, cls: "Schema") -> None:
