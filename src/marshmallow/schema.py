@@ -1,6 +1,7 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
+from functools import lru_cache
 import datetime as dt
 import uuid
 import decimal
@@ -138,7 +139,7 @@ class SchemaMeta(type):
         return dict_cls(inherited_fields + cls_fields)
 
     def __init__(cls, name, bases, attrs):
-        super().__init__(cls, bases, attrs)
+        super().__init__(name, bases, attrs)
         if name and cls.opts.register:
             class_registry.register(name, cls)
         cls._hooks = cls.resolve_hooks()
@@ -347,8 +348,6 @@ class BaseSchema(base.SchemaABC):
             usage is critical. Defaults to `True`.
         """
 
-        pass
-
     def __init__(
         self,
         *,
@@ -379,7 +378,10 @@ class BaseSchema(base.SchemaABC):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = self._init_fields()
+        self.fields = None
+        self.load_fields = None
+        self.dump_fields = None
+        self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
         for cls in reversed(self.__class__.__mro__):
@@ -400,15 +402,49 @@ class BaseSchema(base.SchemaABC):
     def set_class(self):
         return OrderedSet if self.ordered else set
 
+    @classmethod
+    def from_dict(
+        cls, fields: typing.Dict[str, ma_fields.Field], *, name: str = "GeneratedSchema"
+    ) -> typing.Type["Schema"]:
+        """Generate a `Schema` class given a dictionary of fields.
+
+        .. code-block:: python
+
+            from marshmallow import Schema, fields
+
+            PersonSchema = Schema.from_dict({"name": fields.Str()})
+            print(PersonSchema().load({"name": "David"}))  # => {'name': 'David'}
+
+        Generated schemas are not added to the class registry and therefore cannot
+        be referred to by name in `Nested` fields.
+
+        :param dict fields: Dictionary mapping field names to field instances.
+        :param str name: Optional name for the class, which will appear in
+            the ``repr`` for the class.
+
+        .. versionadded:: 3.0.0
+        """
+        attrs = fields.copy()
+        attrs["Meta"] = type(
+            "GeneratedMeta", (getattr(cls, "Meta", object),), {"register": False}
+        )
+        schema_cls = type(name, (cls,), attrs)
+        return schema_cls
+
     ##### Override-able methods #####
 
-    def handle_error(self, error, data):
+    def handle_error(self, error, data, *, many, **kwargs):
         """Custom error handler function for the schema.
 
         :param ValidationError error: The `ValidationError` raised during (de)serialization.
         :param data: The original input data.
+        :param bool many: Value of ``many`` on dump or load.
+        :param bool partial: Value of ``partial`` on load.
 
         .. versionadded:: 2.0.0
+
+        .. versionchanged:: 3.0.0rc9
+            Receives `many` and `partial` (on deserialization) as keyword arguments.
         """
         pass
 
@@ -437,79 +473,32 @@ class BaseSchema(base.SchemaABC):
         """
         try:
             value = getter_func(data)
-        except ValidationError as err:
-            error_store.store_error(err.messages, field_name, index=index)
+        except ValidationError as error:
+            error_store.store_error(error.messages, field_name, index=index)
             # When a Nested field fails validation, the marshalled data is stored
             # on the ValidationError's valid_data attribute
-            return err.valid_data or missing
+            return error.valid_data or missing
         return value
 
-    def _serialize(
-        self,
-        obj,
-        fields_dict,
-        *,
-        error_store,
-        many=False,
-        accessor=None,
-        dict_class=dict,
-        index_errors=True,
-        index=None
-    ):
-        """Takes raw data (a dict, list, or other object) and a dict of
-        fields to output and serializes the data based on those fields.
+    def _serialize(self, obj, *, many=False):
+        """Serialize ``obj``.
 
-        :param obj: The actual object(s) from which the fields are taken from
-        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
-        :param ErrorStore error_store: Structure to store errors.
-        :param bool many: Set to `True` if ``data`` should be serialized as
-            a collection.
-        :param callable accessor: Function to use for getting values from ``obj``.
-        :param type dict_class: Dictionary class used to construct the output.
-        :param bool index_errors: Whether to store the index of invalid items in
-            ``self.errors`` when ``many=True``.
-        :param int index: Index of the item being serialized (for storing errors) if
-            serializing a collection, otherwise `None`.
-        :return: A dictionary of the marshalled data
+        :param obj: The object(s) to serialize.
+        :param bool many: `True` if ``data`` should be serialized as a collection.
+        :return: A dictionary of the serialized data
 
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        index = index if index_errors else None
         if many and obj is not None:
-            self._pending = True
-            ret = [
-                self._serialize(
-                    d,
-                    fields_dict,
-                    error_store=error_store,
-                    many=False,
-                    dict_class=dict_class,
-                    accessor=accessor,
-                    index=idx,
-                    index_errors=index_errors,
-                )
-                for idx, d in enumerate(obj)
-            ]
-            self._pending = False
-            return ret
-        items = []
-        for attr_name, field_obj in fields_dict.items():
-            if getattr(field_obj, "load_only", False):
-                continue
-            key = field_obj.data_key or attr_name
-            getter = lambda d: field_obj.serialize(attr_name, d, accessor=accessor)
-            value = self._call_and_store(
-                getter_func=getter,
-                data=obj,
-                field_name=key,
-                error_store=error_store,
-                index=index,
-            )
+            return [self._serialize(d, many=False) for d in obj]
+        ret = self.dict_class()
+        for attr_name, field_obj in self.dump_fields.items():
+            value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
             if value is missing:
                 continue
-            items.append((key, value))
-        ret = dict_class(items)
+            key = field_obj.data_key if field_obj.data_key is not None else attr_name
+            ret[key] = value
         return ret
 
     def dump(self, obj, *, many=None):
@@ -527,48 +516,26 @@ class BaseSchema(base.SchemaABC):
             This method returns the serialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
+        .. versionchanged:: 3.0.0rc9
+            Validation no longer occurs upon serialization.
         """
-        error_store = ErrorStore()
-        errors = {}
         many = self.many if many is None else bool(many)
         if many and is_iterable_but_not_string(obj):
             obj = list(obj)
 
         if self._has_processors(PRE_DUMP):
-            try:
-                processed_obj = self._invoke_dump_processors(
-                    PRE_DUMP, obj, many=many, original_data=obj
-                )
-            except ValidationError as error:
-                errors = error.normalized_messages()
-                result = None
+            processed_obj = self._invoke_dump_processors(
+                PRE_DUMP, obj, many=many, original_data=obj
+            )
         else:
             processed_obj = obj
 
-        if not errors:
-            result = self._serialize(
-                processed_obj,
-                fields_dict=self.fields,
-                error_store=error_store,
-                many=many,
-                accessor=self.get_attribute,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
-            )
-            errors = error_store.errors
+        result = self._serialize(processed_obj, many=many)
 
-        if not errors and self._has_processors(POST_DUMP):
-            try:
-                result = self._invoke_dump_processors(
-                    POST_DUMP, result, many=many, original_data=obj
-                )
-            except ValidationError as error:
-                errors = error.normalized_messages()
-        if errors:
-            exc = ValidationError(errors, data=obj, valid_data=result)
-            # User-defined error handler
-            self.handle_error(exc, obj)
-            raise exc
+        if self._has_processors(POST_DUMP):
+            result = self._invoke_dump_processors(
+                POST_DUMP, result, many=many, original_data=obj
+            )
 
         return result
 
@@ -591,73 +558,52 @@ class BaseSchema(base.SchemaABC):
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def _deserialize(
-        self,
-        data,
-        fields_dict,
-        *,
-        error_store,
-        many=False,
-        partial=False,
-        unknown=RAISE,
-        dict_class=dict,
-        index_errors=True,
-        index=None
+        self, data, *, error_store, many=False, partial=False, unknown=RAISE, index=None
     ):
-        """Deserialize ``data`` based on the schema defined by ``fields_dict``.
+        """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
-        :param dict fields_dict: Mapping of field names to :class:`Field` objects.
         :param ErrorStore error_store: Structure to store errors.
-        :param bool many: Set to `True` if ``data`` should be deserialized as
-            a collection.
+        :param bool many: `True` if ``data`` should be deserialized as a collection.
         :param bool|tuple partial: Whether to ignore missing fields and not require
             any fields declared. Propagates down to ``Nested`` fields as well. If
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param type dict_class: Dictionary class used to construct the output.
-        :param bool index_errors: Whether to store the index of invalid items in
-            ``self.errors`` when ``many=True``.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
+        index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
                 ret = []
             else:
-                self._pending = True
                 ret = [
                     self._deserialize(
                         d,
-                        fields_dict,
                         error_store=error_store,
                         many=False,
                         partial=partial,
                         unknown=unknown,
-                        dict_class=dict_class,
                         index=idx,
-                        index_errors=index_errors,
                     )
                     for idx, d in enumerate(data)
                 ]
-                self._pending = False
             return ret
-        ret = dict_class()
+        ret = self.dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
             error_store.store_error([self.error_messages["type"]], index=index)
         else:
             partial_is_collection = is_collection(partial)
-            for attr_name, field_obj in fields_dict.items():
-                if field_obj.dump_only:
-                    continue
-                field_name = attr_name
-                if field_obj.data_key:
-                    field_name = field_obj.data_key
+            for attr_name, field_obj in self.load_fields.items():
+                field_name = (
+                    field_obj.data_key if field_obj.data_key is not None else attr_name
+                )
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
@@ -687,13 +633,12 @@ class BaseSchema(base.SchemaABC):
                     index=index,
                 )
                 if value is not missing:
-                    key = fields_dict[attr_name].attribute or attr_name
+                    key = field_obj.attribute or attr_name
                     set_value(ret, key, value)
             if unknown != EXCLUDE:
                 fields = {
-                    field_obj.data_key or field_name
-                    for field_name, field_obj in fields_dict.items()
-                    if not field_obj.dump_only
+                    field_obj.data_key if field_obj.data_key is not None else field_name
+                    for field_name, field_obj in self.load_fields.items()
                 }
                 for key in set(data) - fields:
                     value = data[key]
@@ -764,7 +709,6 @@ class BaseSchema(base.SchemaABC):
         output,
         *,
         original_data,
-        fields_dict,
         error_store,
         many,
         partial,
@@ -807,6 +751,7 @@ class BaseSchema(base.SchemaABC):
         self, data, *, many=None, partial=None, unknown=None, postprocess=True
     ):
         """Deserialize `data`, returning the deserialized result.
+        This method is private API.
 
         :param data: The data to deserialize.
         :param bool many: Whether to deserialize `data` as a collection. If `None`, the
@@ -843,13 +788,10 @@ class BaseSchema(base.SchemaABC):
             # Deserialize data
             result = self._deserialize(
                 processed_data,
-                fields_dict=self.fields,
                 error_store=error_store,
                 many=many,
                 partial=partial,
                 unknown=unknown,
-                dict_class=self.dict_class,
-                index_errors=self.opts.index_errors,
             )
             # Run field-level validation
             self._invoke_field_validators(
@@ -891,13 +833,15 @@ class BaseSchema(base.SchemaABC):
                     errors = err.normalized_messages()
         if errors:
             exc = ValidationError(errors, data=data, valid_data=result)
-            self.handle_error(exc, data)
+            self.handle_error(exc, data, many=many, partial=partial)
             raise exc
 
         return result
 
     def _normalize_nested_options(self):
-        """Apply then flatten nested schema options"""
+        """Apply then flatten nested schema options.
+        This method is private API.
+        """
         if self.only is not None:
             # Apply the only option to nested fields.
             self.__apply_nested_option("only", self.only, "intersection")
@@ -931,7 +875,9 @@ class BaseSchema(base.SchemaABC):
             setattr(self.declared_fields[key], option_name, new_options)
 
     def _init_fields(self):
-        """Update fields based on schema options."""
+        """Update self.fields, self.load_fields, and self.dump_fields based on schema options.
+        This method is private API.
+        """
         if self.opts.fields:
             available_field_names = self.set_class(self.opts.fields)
         else:
@@ -966,10 +912,19 @@ class BaseSchema(base.SchemaABC):
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
+        load_fields, dump_fields = self.dict_class(), self.dict_class()
+        for field_name, field_obj in fields_dict.items():
+            if field_obj.load_only:
+                load_fields[field_name] = field_obj
+            elif field_obj.dump_only:
+                dump_fields[field_name] = field_obj
+            else:
+                load_fields[field_name] = field_obj
+                dump_fields[field_name] = field_obj
+
         dump_data_keys = [
-            obj.data_key or name
-            for name, obj in fields_dict.items()
-            if not obj.load_only
+            field_obj.data_key if field_obj.data_key is not None else name
+            for name, field_obj in dump_fields.items()
         ]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {
@@ -981,12 +936,7 @@ class BaseSchema(base.SchemaABC):
                 "Check the following field names and "
                 "data_key arguments: {}".format(list(data_keys_duplicates))
             )
-
-        load_attributes = [
-            obj.attribute or name
-            for name, obj in fields_dict.items()
-            if not obj.dump_only
-        ]
+        load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {
                 x for x in load_attributes if load_attributes.count(x) > 1
@@ -998,7 +948,9 @@ class BaseSchema(base.SchemaABC):
                 "attribute arguments: {}".format(list(attributes_duplicates))
             )
 
-        return fields_dict
+        self.fields = fields_dict
+        self.dump_fields = dump_fields
+        self.load_fields = load_fields
 
     def on_bind_field(self, field_name, field_obj):
         """Hook to modify a field when it is bound to the `Schema`.
@@ -1014,14 +966,13 @@ class BaseSchema(base.SchemaABC):
         Also set field load_only and dump_only values if field_name was
         specified in ``class Meta``.
         """
+        if field_name in self.load_only:
+            field_obj.load_only = True
+        if field_name in self.dump_only:
+            field_obj.dump_only = True
         try:
-            if field_name in self.load_only:
-                field_obj.load_only = True
-            if field_name in self.dump_only:
-                field_obj.dump_only = True
             field_obj._bind_to_schema(field_name, self)
-            self.on_bind_field(field_name, field_obj)
-        except TypeError as exc:
+        except TypeError as error:
             # field declared as a class, not an instance
             if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
                 msg = (
@@ -1029,8 +980,11 @@ class BaseSchema(base.SchemaABC):
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
                 )
-                raise TypeError(msg) from exc
+                raise TypeError(msg) from error
+            raise error
+        self.on_bind_field(field_name, field_obj)
 
+    @lru_cache(maxsize=8)
     def _has_processors(self, tag):
         return self._hooks[(tag, True)] or self._hooks[(tag, False)]
 
@@ -1075,13 +1029,16 @@ class BaseSchema(base.SchemaABC):
 
             try:
                 field_obj = self.fields[field_name]
-            except KeyError as exc:
+            except KeyError as error:
                 if field_name in self.declared_fields:
                     continue
                 raise ValueError(
                     '"{}" field does not exist.'.format(field_name)
-                ) from exc
+                ) from error
 
+            data_key = (
+                field_obj.data_key if field_obj.data_key is not None else field_name
+            )
             if many:
                 for idx, item in enumerate(data):
                     try:
@@ -1092,7 +1049,7 @@ class BaseSchema(base.SchemaABC):
                         validated_value = self._call_and_store(
                             getter_func=validator,
                             data=value,
-                            field_name=field_obj.data_key or field_name,
+                            field_name=data_key,
                             error_store=error_store,
                             index=(idx if self.opts.index_errors else None),
                         )
@@ -1107,7 +1064,7 @@ class BaseSchema(base.SchemaABC):
                     validated_value = self._call_and_store(
                         getter_func=validator,
                         data=value,
-                        field_name=field_obj.data_key or field_name,
+                        field_name=data_key,
                         error_store=error_store,
                     )
                     if validated_value is missing:
@@ -1139,7 +1096,6 @@ class BaseSchema(base.SchemaABC):
                         validator,
                         item,
                         original_data=orig,
-                        fields_dict=self.fields,
                         error_store=error_store,
                         many=many,
                         partial=partial,
@@ -1151,7 +1107,6 @@ class BaseSchema(base.SchemaABC):
                     validator,
                     data,
                     original_data=original_data,
-                    fields_dict=self.fields,
                     error_store=error_store,
                     many=many,
                     pass_original=pass_original,

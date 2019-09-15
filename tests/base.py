@@ -19,7 +19,6 @@ ALL_FIELDS = [
     fields.Float,
     fields.Number,
     fields.DateTime,
-    fields.LocalDateTime,
     fields.Time,
     fields.Date,
     fields.TimeDelta,
@@ -33,22 +32,10 @@ ALL_FIELDS = [
 ##### Custom asserts #####
 
 
-def assert_almost_equal(a, b, precision=5):
-    assert round(a, precision) == round(b, precision)
-
-
 def assert_date_equal(d1, d2):
     assert d1.year == d2.year
     assert d1.month == d2.month
     assert d1.day == d2.day
-
-
-def assert_datetime_equal(dt1, dt2):
-    assert_date_equal(dt1, dt2)
-    assert dt1.hour == dt2.hour
-    assert dt1.minute == dt2.minute
-    assert dt1.second == dt2.second
-    assert dt1.microsecond == dt2.microsecond
 
 
 def assert_time_equal(t1, t2):
@@ -167,7 +154,6 @@ class UserSchema(Schema):
     )
     created_iso = fields.DateTime(format="iso", attribute="created", dump_only=True)
     updated = fields.DateTime()
-    updated_local = fields.LocalDateTime(attribute="updated", dump_only=True)
     species = fields.String(attribute="SPECIES")
     id = fields.String(default="no-id")
     uppername = Uppercased(attribute="name", dump_only=True)
@@ -215,7 +201,6 @@ class UserMetaSchema(Schema):
     balance = fields.Decimal()
     is_old = fields.Method("get_is_old")
     lowername = fields.Function(get_lowername)
-    updated_local = fields.LocalDateTime(attribute="updated", dump_only=True)
     species = fields.String(attribute="SPECIES")
     homepage = fields.Url()
     email = fields.Email()
@@ -246,7 +231,6 @@ class UserMetaSchema(Schema):
             "balance",
             "is_old",
             "lowername",
-            "updated_local",
             "species",
             "registered",
             "hair_colors",
@@ -328,7 +312,7 @@ class BlogSchemaOnlyExclude(BlogSchema):
 class mockjson:  # noqa
     @staticmethod
     def dumps(val):
-        return "{'foo': 42}".encode("utf-8")
+        return b"{'foo': 42}"
 
     @staticmethod
     def loads(val):

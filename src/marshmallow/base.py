@@ -1,8 +1,12 @@
 """Abstract base classes.
 
 These are necessary to avoid circular imports between core.py and fields.py.
+
+.. warning::
+
+    This module is treated as private API.
+    Users should not need to use this module directly.
 """
-import copy
 
 
 class FieldABC:
@@ -23,10 +27,6 @@ class FieldABC:
 
     def _deserialize(self, value, attr, data, **kwargs):
         raise NotImplementedError
-
-    def __deepcopy__(self, memo):
-        ret = copy.copy(self)
-        return ret
 
 
 class SchemaABC:

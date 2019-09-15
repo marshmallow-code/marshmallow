@@ -54,7 +54,7 @@ along with the valid data from the `ValidationError.valid_data
         errors = err.messages
         valid_data = err.valid_data
 
-:meth:`Schema().validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+:meth:`Schema.validate() <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
 
 .. code-block:: python
 
@@ -79,8 +79,8 @@ will raise a :exc:`TypeError`.
     this change.
 
 
-Decorated methods receive ``many`` and ``partial``
-**************************************************
+Decorated methods and ``handle_error`` receive ``many`` and ``partial``
+***********************************************************************
 
 Methods decorated with
 `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`,
@@ -112,6 +112,58 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
         def slugify_name(self, in_data, **kwargs):
             in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
+
+
+`Schema.handle_error <marshmallow.Schema.handle_error>` also receives ``many`` and ``partial`` as keyword arguments.
+
+.. code-block:: python
+
+    # 2.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data):
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+    # 3.x
+    class UserSchema(Schema):
+        def handle_error(self, exc, data, **kwargs):
+            raise AppError("An error occurred with input: {0}".format(data))
+
+
+Validation does not occur on serialization
+******************************************
+
+:meth:`Schema.dump() <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
+your data before serializing it.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, ValidationError
+
+    invalid_data = dict(created_at="invalid")
+
+
+    class WidgetSchema(Schema):
+        created_at = fields.DateTime()
+
+
+    # 2.x
+    WidgetSchema(strict=True).dump(invalid_data)
+    # marshmallow.exceptions.ValidationError: {'created_at': ['"invalid" cannot be formatted as a datetime.']}
+
+    # 3.x
+    WidgetSchema().dump(invalid_data)
+    # AttributeError: 'str' object has no attribute 'isoformat'
+
+    # Instead, validate before dumping
+    schema = WidgetSchema()
+    try:
+        widget = schema.load(invalid_data)
+    except ValidationError:
+        print("handle errors...")
+    else:
+        dumped = schema.dump(widget)
+
 
 Deserializing invalid types raises a ``ValidationError``
 ********************************************************
@@ -727,6 +779,29 @@ In order to serialize attributes on inner objects within a list, use the
         widget_ids = fields.List(fields.Pluck(WidgetSchema, "id"))
 
 
+``List`` does not wrap single values in a list on serialization
+***************************************************************
+
+In marshmallow 2.x, ``List`` serializes a single object as a list with a single
+element. In marshmallow 3.x, the object is assumed to be iterable and passing a
+non-iterable element results in an error.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        numbers = fields.List(fields.Int())
+
+
+    user = {"numbers": 1}
+    UserSchema().dump(user)
+
+    # 2.x
+    # => {'numbers': [1]}
+
+    # 3.x
+    # => TypeError: 'int' object is not iterable
+
+
 ``Float`` field takes a new ``allow_nan`` parameter
 ***************************************************
 
@@ -787,6 +862,44 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
 
     MySchema().dump({"x": dt.datetime(2017, 9, 19), "y": dt.date(2017, 9, 19)})
     # => {{'x': '2017-09', 'y': '09-19'}}
+
+``DateTime`` leaves timezone information untouched during serialization
+***********************************************************************
+
+``DateTime`` does not convert naive datetimes to UTC on serialization and
+``LocalDateTime`` is removed.
+
+.. code-block:: python
+
+    # 2.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.DateTime()
+        z = fields.LocalDateTime()
+
+
+    MySchema().dump(
+        {
+            "x": dt.datetime(2017, 9, 19),
+            "y": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+            "z": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+        }
+    )
+    # => {{'x': '2017-09-19T00:00:00+00:00', 'y': '2017-09-18T22:00:00+00:00', 'z': '2017-09-19T00:00:00+02:00'}}
+
+    # 3.x
+    class MySchema(Schema):
+        x = fields.DateTime()
+        y = fields.DateTime()
+
+
+    MySchema().dump(
+        {
+            "x": dt.datetime(2017, 9, 19),
+            "y": dt.datetime(2017, 9, 19, tzinfo=dt.timezone(dt.timedelta(hours=2))),
+        }
+    )
+    # => {{'x': '2017-09-19T00:00:00', 'y': '2017-09-19T00:00:00+02:00'}}
 
 The ``prefix`` ``Schema`` parameter is removed
 **********************************************
@@ -882,6 +995,74 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
     MySchema()
     # No error
+
+
+``Field.fail`` is deprecated in favor of ``Field.make_error``
+*************************************************************
+
+`Field.fail <marshmallow.fields.Field.fail>` is deprecated. 
+Use `Field.make_error <marshmallow.fields.Field.fail>`. This allows you to
+re-raise exceptions using ``raise ... from ...``.
+
+.. code-block:: python
+
+    from marshmallow import fields, ValidationError
+    from packaging import version
+
+    # 2.x
+    class Version(fields.Field):
+        default_error_messages = {"invalid": "Not a valid version."}
+
+        def _deserialize(self, value, *args, **kwargs):
+            try:
+                return version.Version(value)
+            except version.InvalidVersion:
+                self.fail("invalid")
+
+
+    # 3.x
+    class Version(fields.Field):
+        default_error_messages = {"invalid": "Not a valid version."}
+
+        def _deserialize(self, value, *args, **kwargs):
+            try:
+                return version.Version(value)
+            except version.InvalidVersion as error:
+                raise self.make_error("invalid") from error
+
+
+``python-dateutil`` recommended dependency is removed
+*****************************************************
+
+In marshmallow 2, ``python-dateutil`` was used to deserialize RFC or ISO 8601
+datetimes if it was installed. In marshmallow 3, datetime deserialization is
+done with no additional dependency.
+
+``python-dateutil`` is no longer used by marshmallow.
+
+
+Custom Fields
+*************
+
+To make your custom fields compatible with marshmallow 3, ``_deserialize``
+should accept ``**kwargs``:
+
+.. code-block:: python
+
+    from marshmallow import fields, ValidationError
+    from packaging import version
+
+    # 2.x
+    class MyCustomField(fields.Field):
+        def _deserialize(self, value, attr, obj):
+            ...
+
+
+    # 3.x
+    class MyCustomField(fields.Field):
+        def _deserialize(self, value, attr, obj, **kwargs):
+            ...
+
 
 Upgrading to 2.3
 ++++++++++++++++
@@ -1192,7 +1373,6 @@ Handle ``ValidationError`` in strict mode
 When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump` and `Schema.load`.
 
 .. code-block:: python
-    :emphasize-lines: 3,14
 
     from marshmallow import exceptions as exc
 
@@ -1217,7 +1397,6 @@ Accessing error messages in strict mode
 In 2.0, `strict` mode was improved so that you can access all error messages for a schema (rather than failing early) by accessing a `ValidationError's` ``messages`` attribute.
 
 .. code-block:: python
-    :emphasize-lines: 6
 
     schema = BandMemberSchema(strict=True)
 

@@ -92,21 +92,13 @@ class TestField:
         result = MySchema().dump({"name": "Monty", "foo": 42})
         assert result == {"_NaMe": "Monty"}
 
-    def test_number_fields_prohbits_boolean(self):
-        strict_field = fields.Float()
-        with pytest.raises(ValidationError) as excinfo:
-            strict_field.serialize("value", {"value": False})
-        assert excinfo.value.args[0] == "Not a valid number."
-        with pytest.raises(ValidationError) as excinfo:
-            strict_field.serialize("value", {"value": True})
-        assert excinfo.value.args[0] == "Not a valid number."
-
 
 class TestParentAndName:
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.List(fields.Str())
         baz = fields.Tuple([fields.Str(), fields.Int()])
+        bax = fields.Mapping(fields.Str(), fields.Int())
 
     @pytest.fixture()
     def schema(self):
@@ -137,6 +129,12 @@ class TestParentAndName:
         for field in schema.fields["baz"].tuple_fields:
             assert field.parent == schema.fields["baz"]
             assert field.name == "baz"
+
+    def test_mapping_field_inner_parent_and_name(self, schema):
+        assert schema.fields["bax"].value_field.parent == schema.fields["bax"]
+        assert schema.fields["bax"].value_field.name == "bax"
+        assert schema.fields["bax"].key_field.parent == schema.fields["bax"]
+        assert schema.fields["bax"].key_field.name == "bax"
 
     def test_simple_field_root(self, schema):
         assert schema.fields["foo"].root == schema
@@ -171,6 +169,24 @@ class TestParentAndName:
         assert schema2.fields["foo"].key_field.root == schema2
         assert schema2.fields["foo"].value_field.root == schema2
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1357
+    def test_datetime_list_inner_format(self, schema):
+        class MySchema(Schema):
+            foo = fields.List(fields.DateTime())
+            bar = fields.Tuple((fields.DateTime(),))
+            baz = fields.List(fields.Date())
+            qux = fields.Tuple((fields.Date(),))
+
+            class Meta:
+                datetimeformat = "iso8601"
+                dateformat = "iso8601"
+
+        schema = MySchema()
+        for field_name in ("foo", "baz"):
+            assert schema.fields[field_name].inner.format == "iso8601"
+        for field_name in ("bar", "qux"):
+            assert schema.fields[field_name].tuple_fields[0].format == "iso8601"
+
 
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
@@ -191,6 +207,13 @@ class TestErrorMessages:
     class MyField(fields.Field):
         default_error_messages = {"custom": "Custom error message."}
 
+    error_messages = [
+        ("required", "Missing data for required field."),
+        ("null", "Field may not be null."),
+        ("custom", "Custom error message."),
+        ("validator_failed", "Invalid value."),
+    ]
+
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(
         self
     ):
@@ -202,28 +225,26 @@ class TestErrorMessages:
         field = self.MyField(error_messages={"passed": "Passed error message"})
         assert field.error_messages["passed"] == "Passed error message"
 
-    def test_fail(self):
+    @pytest.mark.parametrize(("key", "message"), error_messages)
+    def test_make_error(self, key, message):
         field = self.MyField()
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("required")
-        assert excinfo.value.args[0] == "Missing data for required field."
+        error = field.make_error(key)
+        assert error.args[0] == message
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("null")
-        assert excinfo.value.args[0] == "Field may not be null."
+    @pytest.mark.parametrize(("key", "message"), error_messages)
+    def test_fail(self, key, message):
+        field = self.MyField()
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("custom")
-        assert excinfo.value.args[0] == "Custom error message."
+        with pytest.warns(DeprecationWarning):
+            try:
+                field.fail(key)
+            except ValidationError as error:
+                assert error.args[0] == message
 
-        with pytest.raises(ValidationError) as excinfo:
-            field.fail("validator_failed")
-        assert excinfo.value.args[0] == "Invalid value."
-
+    def test_make_error_key_doesnt_exist(self):
         with pytest.raises(AssertionError) as excinfo:
-            field.fail("doesntexist")
-
+            self.MyField().make_error("doesntexist")
         assert "doesntexist" in excinfo.value.args[0]
         assert "MyField" in excinfo.value.args[0]
 
@@ -273,10 +294,15 @@ class TestListNested:
         assert getattr(schema.fields["children"].inner.schema, param) == {"name"}
 
     @pytest.mark.parametrize(
-        ("param", "expected"),
-        (("only", {"name"}), ("exclude", {"name", "surname", "age"})),
+        ("param", "expected_attribute", "expected_dump"),
+        (
+            ("only", {"name"}, {"children": [{"name": "Lily"}]}),
+            ("exclude", {"name", "surname", "age"}, {"children": [{}]}),
+        ),
     )
-    def test_list_nested_only_and_exclude_merged_with_nested(self, param, expected):
+    def test_list_nested_class_only_and_exclude_merged_with_nested(
+        self, param, expected_attribute, expected_dump
+    ):
         class Child(Schema):
             name = fields.String()
             surname = fields.String()
@@ -286,7 +312,70 @@ class TestListNested:
             children = fields.List(fields.Nested(Child, **{param: ("name", "surname")}))
 
         schema = Family(**{param: ["children.name", "children.age"]})
-        assert getattr(schema.fields["children"].inner, param) == expected
+        assert getattr(schema.fields["children"].inner, param) == expected_attribute
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert schema.dump(family) == expected_dump
+
+    def test_list_nested_class_multiple_dumps(self):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child, only=("name", "age")))
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert Family(only=("children.age",)).dump(family) == {
+            "children": [{"age": 15}]
+        }
+        assert Family(only=("children.name",)).dump(family) == {
+            "children": [{"name": "Lily"}]
+        }
+
+    @pytest.mark.parametrize(
+        ("param", "expected_attribute", "expected_dump"),
+        (
+            ("only", {"name"}, {"children": [{"name": "Lily"}]}),
+            ("exclude", {"name", "surname", "age"}, {"children": [{}]}),
+        ),
+    )
+    def test_list_nested_instance_only_and_exclude_merged_with_nested(
+        self, param, expected_attribute, expected_dump
+    ):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child(**{param: ("name", "surname")})))
+
+        schema = Family(**{param: ["children.name", "children.age"]})
+        assert (
+            getattr(schema.fields["children"].inner.schema, param) == expected_attribute
+        )
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert schema.dump(family) == expected_dump
+
+    def test_list_nested_instance_multiple_dumps(self):
+        class Child(Schema):
+            name = fields.String()
+            surname = fields.String()
+            age = fields.Integer()
+
+        class Family(Schema):
+            children = fields.List(fields.Nested(Child(only=("name", "age"))))
+
+        family = {"children": [{"name": "Lily", "surname": "Martinez", "age": 15}]}
+        assert Family(only=("children.age",)).dump(family) == {
+            "children": [{"age": 15}]
+        }
+        assert Family(only=("children.name",)).dump(family) == {
+            "children": [{"name": "Lily"}]
+        }
 
     def test_list_nested_partial_propagated_to_nested(self):
         class Child(Schema):

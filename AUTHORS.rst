@@ -131,3 +131,11 @@ Contributors (chronological)
 - Maciej Urbański `@rooterkyberian <https://github.com/rooterkyberian>`_
 - Kostas Konstantopoulos `@kdop <https://github.com/kdop>`_
 - Stephen J. Fuhry `@fuhrysteve <https://github.com/fuhrysteve>`_
+- `@dursk <https://github.com/dursk>`_
+- Ezra MacDonald `@kdop <https://github.com/macdonaldezra>`_
+- Stanislav Rogovskiy `@atmo <https://github.com/atmo>`_
+- Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
+- Anthony Sottile `@asottile <https://github.com/asottile>`_
+- Charles-Axel Dein `@charlax <https://github.com/charlax>`_
+- `@phrfpeixoto <https://github.com/phrfpeixoto>`_
+- `@jceresini <https://github.com/jceresini>`_

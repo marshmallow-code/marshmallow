@@ -5,13 +5,8 @@ from copy import copy, deepcopy
 
 import pytest
 
-from marshmallow import utils
-from tests.base import (
-    assert_datetime_equal,
-    central,
-    assert_time_equal,
-    assert_date_equal,
-)
+from marshmallow import utils, fields, Schema
+from tests.base import central, assert_time_equal, assert_date_equal
 
 
 def test_missing_singleton_copy():
@@ -120,102 +115,115 @@ def test_is_collection():
     assert utils.is_collection({"foo": "bar"}) is False
 
 
-def test_rfcformat_gmt_naive():
-    d = dt.datetime(2013, 11, 10, 1, 23, 45)
-    assert utils.rfcformat(d) == "Sun, 10 Nov 2013 01:23:45 -0000"
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
+        (
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+            "Sun, 10 Nov 2013 01:23:45 +0000",
+        ),
+        (
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            "Sun, 10 Nov 2013 01:23:45 -0600",
+        ),
+    ],
+)
+def test_rfc_format(value, expected):
+    assert utils.rfcformat(value) == expected
 
 
-def test_rfcformat_central():
-    d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.rfcformat(d) == "Sun, 10 Nov 2013 07:23:45 -0000"
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
+        (
+            dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
+            "2013-11-10T01:23:45.123456+00:00",
+        ),
+        (
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+            "2013-11-10T01:23:45+00:00",
+        ),
+        (
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            "2013-11-10T01:23:45-06:00",
+        ),
+    ],
+)
+def test_isoformat(value, expected):
+    assert utils.isoformat(value) == expected
 
 
-def test_rfcformat_naive_localized():
-    d = dt.datetime(2013, 11, 10, 1, 23, 45)
-    assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 01:23:45 +0000"
-
-
-def test_rfcformat_central_localized():
-    d = central.localize(dt.datetime(2013, 11, 10, 8, 23, 45), is_dst=False)
-    assert utils.rfcformat(d, localtime=True) == "Sun, 10 Nov 2013 08:23:45 -0600"
-
-
-def test_isoformat():
-    d = dt.datetime(2013, 11, 10, 1, 23, 45)
-    assert utils.isoformat(d) == "2013-11-10T01:23:45+00:00"
-
-
-def test_isoformat_tzaware():
-    d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.isoformat(d) == "2013-11-10T07:23:45+00:00"
-
-
-def test_isoformat_localtime():
-    d = central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False)
-    assert utils.isoformat(d, localtime=True) == "2013-11-10T01:23:45-06:00"
-
-
-def test_from_rfc():
-    d = dt.datetime.now().replace(microsecond=0)
-    rfc = utils.rfcformat(d)
-    result = utils.from_rfc(rfc)
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("Sun, 10 Nov 2013 01:23:45 -0000", dt.datetime(2013, 11, 10, 1, 23, 45)),
+        (
+            "Sun, 10 Nov 2013 01:23:45 +0000",
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+        ),
+        (
+            "Sun, 10 Nov 2013 01:23:45 -0600",
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+        ),
+    ],
+)
+def test_from_rfc(value, expected):
+    result = utils.from_rfc(value)
     assert type(result) == dt.datetime
-    assert_datetime_equal(result, d)
+    assert result == expected
 
 
-@pytest.mark.parametrize("use_dateutil", [True, False])
-@pytest.mark.parametrize("timezone", [None, central])
-def test_from_iso_datetime(use_dateutil, timezone):
-    d = dt.datetime.now(tz=timezone)
-    formatted = d.isoformat()
-    result = utils.from_iso_datetime(formatted, use_dateutil=use_dateutil)
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),
+        (
+            "2013-11-10T01:23:45+00:00",
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+        ),
+        (
+            # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
+            "2013-11-10T01:23:45.123+00:00",
+            dt.datetime(2013, 11, 10, 1, 23, 45, 123000, tzinfo=dt.timezone.utc),
+        ),
+        (
+            "2013-11-10T01:23:45.123456+00:00",
+            dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
+        ),
+        (
+            "2013-11-10T01:23:45-06:00",
+            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+        ),
+    ],
+)
+def test_from_iso_datetime(value, expected):
+    result = utils.from_iso_datetime(value)
     assert type(result) == dt.datetime
-    assert_datetime_equal(result, d)
-
-    # Test with 3-digit only microseconds
-    #  Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
-    d = dt.datetime.now(tz=timezone).replace(microsecond=123000)
-    formatted = d.isoformat()
-    formatted = formatted[:23] + formatted[26:]
-    result = utils.from_iso_datetime(formatted, use_dateutil=use_dateutil)
-    assert type(result) == dt.datetime
-    assert_datetime_equal(result, d)
+    assert result == expected
 
 
-def test_from_iso_with_tz():
-    d = central.localize(dt.datetime.now())
-    formatted = d.isoformat()
-    result = utils.from_iso_datetime(formatted)
-    assert_datetime_equal(result, d)
-    if utils.dateutil_available:
-        # Note a naive datetime
-        assert result.tzinfo is not None
-
-
-# Test with and without dateutil
-@pytest.mark.parametrize("use_dateutil", [True, False])
-def test_from_iso_time_with_microseconds(use_dateutil):
+def test_from_iso_time_with_microseconds():
     t = dt.time(1, 23, 45, 6789)
     formatted = t.isoformat()
-    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
+    result = utils.from_iso_time(formatted)
     assert type(result) == dt.time
     assert_time_equal(result, t)
 
 
-@pytest.mark.parametrize("use_dateutil", [True, False])
-def test_from_iso_time_without_microseconds(use_dateutil):
+def test_from_iso_time_without_microseconds():
     t = dt.time(1, 23, 45)
     formatted = t.isoformat()
-    result = utils.from_iso_time(formatted, use_dateutil=use_dateutil)
+    result = utils.from_iso_time(formatted)
     assert type(result) == dt.time
     assert_time_equal(result, t)
 
 
-@pytest.mark.parametrize("use_dateutil", [True, False])
-def test_from_iso_date(use_dateutil):
+def test_from_iso_date():
     d = dt.date(2014, 8, 21)
     iso_date = d.isoformat()
-    result = utils.from_iso_date(iso_date, use_dateutil=use_dateutil)
+    result = utils.from_iso_date(iso_date)
     assert type(result) == dt.date
     assert_date_equal(result, d)
 
@@ -234,3 +242,16 @@ def test_get_func_args():
 
     for func in [f1, f2, f3]:
         assert utils.get_func_args(func) == ["foo", "bar"]
+
+
+# Regression test for https://github.com/marshmallow-code/marshmallow/issues/540
+def test_function_field_using_type_annotation():
+    def get_split_words(value: str):  # noqa
+        return value.split(";")
+
+    class MySchema(Schema):
+        friends = fields.Function(deserialize=get_split_words)
+
+    data = {"friends": "Clark;Alfred;Robin"}
+    result = MySchema().load(data)
+    assert result == {"friends": ["Clark", "Alfred", "Robin"]}

@@ -17,6 +17,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+pip-wheel-metadata
 
 # Installer logs
 pip-log.txt

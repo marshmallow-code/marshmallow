@@ -1,15 +1,22 @@
-#!/usr/bin/env python
 import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "reco": ["python-dateutil>=2.7.0", "simplejson"],
-    "tests": ["pytest", "pytz", "mypy>=0.710"],
-    "lint": ["flake8==3.7.7", "flake8-bugbear==19.3.0", "pre-commit==1.17.0"],
+    "tests": ["pytest", "pytz", "simplejson"],
+    "lint": [
+        "mypy==0.720",
+        "flake8==3.7.8",
+        "flake8-bugbear==19.8.0",
+        "pre-commit~=1.17",
+    ],
+    "docs": [
+        "sphinx==2.2.0",
+        "sphinx-issues==1.2.0",
+        "alabaster==0.7.12",
+        "sphinx-version-warning==1.1.2",
+    ],
 }
-EXTRAS_REQUIRE["dev"] = (
-    EXTRAS_REQUIRE["reco"] + EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
-)
+EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
 
 
 def find_version(fname):

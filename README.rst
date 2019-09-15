@@ -6,9 +6,9 @@ marshmallow: simplified object serialization
     :target: https://pypi.org/project/marshmallow/
     :alt: Latest version
 
-.. image:: https://badgen.net/travis/marshmallow-code/marshmallow/dev
-    :target: https://travis-ci.org/marshmallow-code/marshmallow
-    :alt: Travis-CI
+.. image:: https://dev.azure.com/sloria/sloria/_apis/build/status/marshmallow-code.marshmallow?branchName=dev
+    :target: https://dev.azure.com/sloria/sloria/_build/latest?definitionId=5&branchName=dev
+    :alt: Build status
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
@@ -59,7 +59,7 @@ Get It Now
 
 ::
 
-    $ pip install -U marshmallow --pre
+    $ pip install -U marshmallow
 
 
 Documentation
@@ -71,9 +71,6 @@ Requirements
 ============
 
 - Python >= 3.6
-
-marshmallow has no external dependencies outside of the Python standard library, although `python-dateutil <https://pypi.python.org/pypi/python-dateutil>`_ is recommended for robust datetime deserialization.
-
 
 Ecosystem
 =========
@@ -90,9 +87,8 @@ Contributors
 
 This project exists thanks to all the people who contribute.
 
-You're highly encouraged to participate in marshmallow's development.
-Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see
-how you can help.
+**You're highly encouraged to participate in marshmallow's development.**
+Check out the `Contributing Guidelines <https://marshmallow.readthedocs.io/en/latest/contributing.html>`_ to see how you can help.
 
 Thank you to all who have already contributed to marshmallow!
 
@@ -159,6 +155,7 @@ Project Links
 
 - Docs: https://marshmallow.readthedocs.io/
 - Changelog: https://marshmallow.readthedocs.io/en/latest/changelog.html
+- Contributing Guidelines: https://marshmallow.readthedocs.io/en/latest/contributing.html
 - PyPI: https://pypi.python.org/pypi/marshmallow
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow

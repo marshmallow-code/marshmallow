@@ -1,8 +1,98 @@
 Changelog
 ---------
 
-3.0.0 (unreleased)
+3.0.5 (2019-09-12)
 ++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug that raised an uncaught error when passing both a schema instance and ``only`` to ``Nested`` (:pr:`1395`).
+  This bug also affected passing a schema instance to ``fields.Pluck``.
+
+
+3.0.4 (2019-09-11)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix propagating dot-delimited `only` and `exclude` parameters to nested schema instances (:issue:`1384`).
+- Includes bug fix from 2.20.4 (:issue:`1160`).
+
+3.0.3 (2019-09-04)
+++++++++++++++++++
+
+Bug fixes:
+
+- Handle when ``data_key`` is an empty string (:issue:`1378`).
+  Thanks :user:`jtrakk` for reporting.
+
+3.0.2 (2019-09-04)
+++++++++++++++++++
+
+Bug fixes:
+
+- Includes bug fix from 2.20.3 (:pr:`1376`).
+- Fix incorrect ``super()`` call in ``SchemaMeta.__init__`` (:pr:`1362`).
+
+3.0.1 (2019-08-21)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug when nesting ``fields.DateTime`` within ``fields.List`` or ``fields.Tuple`` (:issue:`1357`).
+  This bug was introduced in 3.0.0rc9. Thanks :user:`zblz` for reporting.
+
+3.0.0 (2019-08-18)
+++++++++++++++++++
+
+Features:
+
+- Optimize ``List(Nested(...))`` (:issue:`779`).
+- Minor performance improvements and cleanup (:pr:`1328`).
+- Add ``Schema.from_dict`` (:issue:`1312`).
+
+Deprecations/Removals:
+
+- ``Field.fail`` is deprecated. Use ``Field.make_error`` instead.
+- Remove UUID validation from ``fields.UUID``, for consistency with other fields (:issue:`1132`).
+
+Support:
+
+- Various docs improvements (:pr:`1329`).
+
+3.0.0rc9 (2019-07-31)
++++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Validation does not occur on serialization (:issue:`1132`).
+  This significantly improves serialization performance.
+- *Backwards-incompatible*: ``DateTime`` does not affect timezone information
+  on serialization and deserialization (:issue:`1234`, :pr:`1287`).
+- Add ``NaiveDateTime`` and ``AwareDateTime`` to enforce timezone awareness
+  (:issue:`1234`, :pr:`1287`).
+- *Backwards-incompatible*: ``List`` does not wrap single values in a list on
+  serialization (:pr:`1307`).
+- *Backwards-incompatible*: ``Schema.handle_error`` receives ``many`` and ``partial`` as keyword arguments (:pr:`1321`).
+- Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
+- Rename ``Nested.__schema`` to ``Nested._schema`` to prevent name mangling (:issue:`1289`).
+- Performance improvements (:pr:`1309`).
+
+Deprecations/Removals:
+
+- ``LocalDateTime`` is removed (:issue:`1234`).
+- ``marshmallow.utils.utc`` is removed. Use ``datetime.timezone.utc`` instead.
+
+Bug fixes:
+
+- Fix behavior of `List(Nested("self"))` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
+
+Support:
+
+- Document usage of  `validate.Regexp`'s usage `re.search` (:issue:`1285`). Thanks :user:`macdonaldezra`.
+
+3.0.0rc8 (2019-07-04)
++++++++++++++++++++++
 
 Features:
 
@@ -10,12 +100,19 @@ Features:
   within ``List`` and ``Dict`` (:issue:`779`, :issue:`946`).
 - Use ``email.utils.parsedate_to_datetime`` instead of conditionally
   using dateutil for parsing RFC dates (:pr:`1246`).
+- Use internal util functions instead of conditionally using dateutil
+  for parsing  ISO 8601 datetimes, dates and times. Timezone info is now
+  correctly deserialized whether or not dateutil is installed. (:pr:`1265`)
 - Improve error messages for ``validate.Range``.
-- Use ``raise from exc`` for better stack traces (:pr:`1254`). Thanks
+- Use ``raise from error`` for better stack traces (:pr:`1254`). Thanks
   :user:`fuhrysteve`.
+- python-dateutil is no longer used. This resolves the inconsistent behavior
+  based on the presence of python-dateutil (:issue:`497`, :issue:`1234`).
 
 Bug fixes:
 
+- Fix method resolution for ``__init__`` method of ``fields.Email`` and
+  ``fields.URL`` (:issue:`1268`). Thanks :user:`dursk` for the catch and patch.
 - Includes bug fixes from 2.19.4 and 2.19.5.
 
 Other changes:
@@ -23,6 +120,7 @@ Other changes:
 - *Backwards-incompatible*: Rename ``fields.List.container`` to ``fields.List.inner``,
   ``fields.Dict.key_container`` to ``fields.Dict.key_field``, and
   ``fields.Dict.value_container`` to ``fields.Dict.value_field``.
+- Switch to Azure Pipelines for CI (:issue:`1261`).
 
 3.0.0rc7 (2019-06-15)
 +++++++++++++++++++++
@@ -177,6 +275,12 @@ Features:
 Bug fixes:
 
 - Restore ``Schema.TYPE_MAPPING``, which was removed in 3.0.0b17 (:issue:`1012`).
+
+Other changes:
+
+- *Backwards-incompatible*: ``_serialize`` and ``_deserialize`` methods of
+all ``fields.Field`` subclasses must accept ``**kwargs`` (:pr:`1007`).
+
 
 3.0.0b18 (2018-10-15)
 +++++++++++++++++++++
@@ -529,6 +633,52 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.20.4 (2019-09-11)
++++++++++++++++++++
+
+Bug fixes:
+
+- Respect the ``many`` value on ``Schema`` instances passed to ``Nested`` (:issue:`1160`).
+  Thanks :user:`Kamforka` for reporting.
+
+2.20.3 (2019-09-04)
++++++++++++++++++++
+
+Bug fixes:
+
+- Don't swallow ``TypeError`` exceptions raised by ``Field._bind_to_schema`` or ``Schema.on_bind_field`` (:pr:`1376`).
+
+2.20.2 (2019-08-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Prevent warning about importing from ``collections`` on Python 3.7
+  (:pr:`1354`). Thanks :user:`nicktimko` for the PR.
+
+2.20.1 (2019-08-13)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug that raised ``TypeError`` when invalid data type is
+  passed to a nested schema with ``@validates`` (:issue:`1342`).
+
+2.20.0 (2019-08-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix deprecated functions' compatibility with Python 2 (:issue:`1337`).
+  Thanks :user:`airstandley` for the catch and patch.
+- Fix error message consistency for invalid input types on nested fields (:issue:`1303`).
+  This is a backport of the fix in :pr:`857`. Thanks :user:`cristi23` for the
+  thorough bug report and the PR.
+
+Deprecation/Removal:
+
+- Python 2.6 is no longer officially supported (:issue:`1274`).
 
 2.19.5 (2019-06-18)
 +++++++++++++++++++

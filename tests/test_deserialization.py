@@ -5,18 +5,11 @@ import math
 
 import pytest
 
-from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, utils, Schema, validate
+from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
 
-from tests.base import (
-    assert_almost_equal,
-    assert_date_equal,
-    assert_datetime_equal,
-    assert_time_equal,
-    central,
-    ALL_FIELDS,
-)
+from tests.base import assert_date_equal, assert_time_equal, central, ALL_FIELDS
 
 
 class TestDeserializingNone:
@@ -29,9 +22,8 @@ class TestDeserializingNone:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
     def test_fields_dont_allow_none_by_default(self, FieldClass):
         field = FieldClass()
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Field may not be null."):
             field.deserialize(None)
-        assert "Field may not be null." in str(excinfo)
 
     def test_allow_none_is_true_if_missing_is_true(self):
         field = fields.Field(missing=None)
@@ -50,10 +42,10 @@ class TestDeserializingNone:
 class TestFieldDeserialization:
     def test_float_field_deserialization(self):
         field = fields.Float()
-        assert_almost_equal(field.deserialize("12.3"), 12.3)
-        assert_almost_equal(field.deserialize(12.3), 12.3)
+        assert math.isclose(field.deserialize("12.3"), 12.3)
+        assert math.isclose(field.deserialize(12.3), 12.3)
 
-    @pytest.mark.parametrize("in_val", ["bad", "", {}])
+    @pytest.mark.parametrize("in_val", ["bad", "", {}, True, False])
     def test_invalid_float_field_deserialization(self, in_val):
         field = fields.Float()
         with pytest.raises(ValidationError) as excinfo:
@@ -401,6 +393,7 @@ class TestFieldDeserialization:
             42,
             "",
             [],
+            "2018",
             "2018-01-01",
             dt.datetime.now().strftime("%H:%M:%S %Y-%m-%d"),
             dt.datetime.now().strftime("%m-%d-%Y %H:%M:%S"),
@@ -408,61 +401,163 @@ class TestFieldDeserialization:
     )
     def test_invalid_datetime_deserialization(self, in_value):
         field = fields.DateTime()
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
-        msg = "Not a valid datetime."
-        assert msg in str(excinfo)
-
-    def test_datetime_passed_year_is_invalid(self):
-        field = fields.DateTime()
-        with pytest.raises(ValidationError):
-            field.deserialize("1916")
-
-    def test_datetime_passed_date_is_invalid(self):
-        field = fields.DateTime()
-        with pytest.raises(ValidationError):
-            field.deserialize("2017-04-13")
 
     def test_custom_date_format_datetime_field_deserialization(self):
+        # Datetime string with format "%H:%M:%S.%f %Y-%m-%d"
+        datestring = "10:11:12.123456 2019-01-02"
 
-        dtime = dt.datetime.now()
-        datestring = dtime.strftime("%H:%M:%S.%f %Y-%m-%d")
-
+        # Deserialization should fail when datestring is not of same format
         field = fields.DateTime(format="%d-%m-%Y %H:%M:%S")
-        # deserialization should fail when datestring is not of same format
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(datestring)
-        msg = "Not a valid datetime."
-        assert msg in str(excinfo)
-        field = fields.DateTime(format="%H:%M:%S.%f %Y-%m-%d")
-        assert_datetime_equal(field.deserialize(datestring), dtime)
 
-        field = fields.DateTime()
-        assert msg in str(excinfo)
+        field = fields.DateTime(format="%H:%M:%S.%f %Y-%m-%d")
+        assert field.deserialize(datestring) == dt.datetime(
+            2019, 1, 2, 10, 11, 12, 123456
+        )
+
+        field = fields.NaiveDateTime(format="%H:%M:%S.%f %Y-%m-%d")
+        assert field.deserialize(datestring) == dt.datetime(
+            2019, 1, 2, 10, 11, 12, 123456
+        )
+
+        field = fields.AwareDateTime(format="%H:%M:%S.%f %Y-%m-%d")
+        with pytest.raises(ValidationError, match="Not a valid aware datetime."):
+            field.deserialize(datestring)
 
     @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
-    def test_rfc_datetime_field_deserialization(self, fmt):
-        dtime = dt.datetime.now().replace(microsecond=0)
-        datestring = utils.rfcformat(dtime)
+    @pytest.mark.parametrize(
+        ("value", "expected", "aware"),
+        [
+            (
+                "Sun, 10 Nov 2013 01:23:45 -0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+                False,
+            ),
+            (
+                "Sun, 10 Nov 2013 01:23:45 +0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+                True,
+            ),
+            (
+                "Sun, 10 Nov 2013 01:23:45 -0600",
+                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                True,
+            ),
+        ],
+    )
+    def test_rfc_datetime_field_deserialization(self, fmt, value, expected, aware):
         field = fields.DateTime(format=fmt)
-        assert_datetime_equal(field.deserialize(datestring), dtime)
+        assert field.deserialize(value) == expected
+        field = fields.NaiveDateTime(format=fmt)
+        if aware:
+            with pytest.raises(ValidationError, match="Not a valid naive datetime."):
+                field.deserialize(value)
+        else:
+            assert field.deserialize(value) == expected
+        field = fields.AwareDateTime(format=fmt)
+        if not aware:
+            with pytest.raises(ValidationError, match="Not a valid aware datetime."):
+                field.deserialize(value)
+        else:
+            assert field.deserialize(value) == expected
 
     @pytest.mark.parametrize("fmt", ["iso", "iso8601"])
-    def test_iso_datetime_field_deserialization(self, fmt):
-        dtime = dt.datetime.now()
-        datestring = dtime.isoformat()
+    @pytest.mark.parametrize(
+        ("value", "expected", "aware"),
+        [
+            ("2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45), False),
+            (
+                "2013-11-10T01:23:45+00:00",
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+                True,
+            ),
+            (
+                # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
+                "2013-11-10T01:23:45.123+00:00",
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123000, tzinfo=dt.timezone.utc),
+                True,
+            ),
+            (
+                "2013-11-10T01:23:45.123456+00:00",
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
+                True,
+            ),
+            (
+                "2013-11-10T01:23:45-06:00",
+                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                True,
+            ),
+        ],
+    )
+    def test_iso_datetime_field_deserialization(self, fmt, value, expected, aware):
         field = fields.DateTime(format=fmt)
-        assert_datetime_equal(field.deserialize(datestring), dtime)
+        assert field.deserialize(value) == expected
+        field = fields.NaiveDateTime(format=fmt)
+        if aware:
+            with pytest.raises(ValidationError, match="Not a valid naive datetime."):
+                field.deserialize(value)
+        else:
+            assert field.deserialize(value) == expected
+        field = fields.AwareDateTime(format=fmt)
+        if not aware:
+            with pytest.raises(ValidationError, match="Not a valid aware datetime."):
+                field.deserialize(value)
+        else:
+            assert field.deserialize(value) == expected
 
-    def test_localdatetime_field_deserialization(self):
-        dtime = dt.datetime.now()
-        localized_dtime = central.localize(dtime)
-        field = fields.DateTime(format="iso")
-        result = field.deserialize(localized_dtime.isoformat())
-        assert_datetime_equal(result, dtime)
-        # If dateutil is used, the datetime will not be naive
-        if utils.dateutil_available:
-            assert result.tzinfo is not None
+    @pytest.mark.parametrize(
+        ("fmt", "timezone", "value", "expected"),
+        [
+            ("iso", None, "2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),
+            (
+                "iso",
+                dt.timezone.utc,
+                "2013-11-10T01:23:45+00:00",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "iso",
+                central,
+                "2013-11-10T01:23:45-03:00",
+                dt.datetime(2013, 11, 9, 22, 23, 45),
+            ),
+            (
+                "rfc",
+                None,
+                "Sun, 10 Nov 2013 01:23:45 -0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "rfc",
+                dt.timezone.utc,
+                "Sun, 10 Nov 2013 01:23:45 +0000",
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+            ),
+            (
+                "rfc",
+                central,
+                "Sun, 10 Nov 2013 01:23:45 -0300",
+                dt.datetime(2013, 11, 9, 22, 23, 45),
+            ),
+        ],
+    )
+    def test_naive_datetime_with_timezone(self, fmt, timezone, value, expected):
+        field = fields.NaiveDateTime(format=fmt, timezone=timezone)
+        assert field.deserialize(value) == expected
+
+    @pytest.mark.parametrize("timezone", (dt.timezone.utc, central))
+    @pytest.mark.parametrize(
+        ("fmt", "value"),
+        [("iso", "2013-11-10T01:23:45"), ("rfc", "Sun, 10 Nov 2013 01:23:45")],
+    )
+    def test_aware_datetime_default_timezone(self, fmt, timezone, value):
+        field = fields.AwareDateTime(format=fmt, default_timezone=timezone)
+        assert field.deserialize(value) == dt.datetime(
+            2013, 11, 10, 1, 23, 45, tzinfo=timezone
+        )
 
     def test_time_field_deserialization(self):
         field = fields.Time()
@@ -485,9 +580,8 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == "Not a valid time."
 
     def test_invalid_timedelta_precision(self):
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match='The precision must be "days",'):
             fields.TimeDelta("invalid")
-        assert 'The precision must be "days",' in str(excinfo)
 
     def test_timedelta_field_deserialization(self):
         field = fields.TimeDelta()
@@ -900,9 +994,8 @@ class TestFieldDeserialization:
 
         field = fields.Field(validate=MyValidator())
         assert field.deserialize("valid") == "valid"
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Invalid value."):
             field.deserialize("invalid")
-        assert "Invalid value." in str(excinfo)
 
     def test_field_deserialization_with_user_validator_that_raises_error_with_list(
         self
@@ -958,18 +1051,16 @@ class TestFieldDeserialization:
 
         for field in m_colletion_type:
             assert field.deserialize("Valid") == "Valid"
-            with pytest.raises(ValidationError) as excinfo:
+            with pytest.raises(ValidationError, match="Invalid value."):
                 field.deserialize("invalid")
-            assert "Invalid value." in str(excinfo)
 
     def test_field_deserialization_with_custom_error_message(self):
         field = fields.String(
             validate=lambda s: s.lower() == "valid",
             error_messages={"validator_failed": "Bad value."},
         )
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Bad value."):
             field.deserialize("invalid")
-        assert "Bad value." in str(excinfo)
 
 
 # No custom deserialization behavior, so a dict is returned
@@ -995,7 +1086,7 @@ class TestSchemaDeserialization:
         user_dict = {"name": "Monty", "age": "42.3"}
         result = SimpleUserSchema().load(user_dict)
         assert result["name"] == "Monty"
-        assert_almost_equal(result["age"], 42.3)
+        assert math.isclose(result["age"], 42.3)
 
     def test_deserialize_with_missing_values(self):
         user_dict = {"name": "Monty"}
@@ -1193,6 +1284,13 @@ class TestSchemaDeserialization:
         assert result["name"] == "Mick"
         assert result["email"] == "foo@bar.com"
         assert "years" not in result
+
+    def test_deserialize_with_data_key_as_empty_string(self):
+        class MySchema(Schema):
+            name = fields.Field(data_key="")
+
+        schema = MySchema()
+        assert schema.load({"": "Grace"}) == {"name": "Grace"}
 
     def test_deserialize_with_dump_only_param(self):
         class AliasingUserSerializer(Schema):
@@ -1413,9 +1511,8 @@ class TestSchemaDeserialization:
         assert data["foo"] == 3
         assert data["bar"]
 
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="foo"):
             MySchema(unknown=INCLUDE).load({"foo": "asd", "bar": 5})
-        assert "foo" in str(excinfo)
 
         data = MySchema(unknown=INCLUDE, many=True).load(
             [{"foo": 1}, {"foo": 3, "bar": 5}]
@@ -1600,10 +1697,8 @@ class TestValidation:
                 return val.upper()
 
         assert MethodSerializer().load({"name": "joe"})
-        with pytest.raises(ValidationError) as excinfo:
+        with pytest.raises(ValidationError, match="Invalid value."):
             MethodSerializer().load({"name": "joseph"})
-
-        assert "Invalid value." in str(excinfo)
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/269
     def test_nested_data_is_stored_when_validation_fails(self):
@@ -1743,8 +1838,7 @@ def test_deserialize_raises_exception_if_input_type_is_incorrect(data, unknown):
         foo = fields.Field()
         bar = fields.Field()
 
-    with pytest.raises(ValidationError) as excinfo:
+    with pytest.raises(ValidationError, match="Invalid input type.") as excinfo:
         MySchema(unknown=unknown).load(data)
-    assert "Invalid input type." in str(excinfo)
     exc = excinfo.value
     assert list(exc.messages.keys()) == ["_schema"]

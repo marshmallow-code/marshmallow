@@ -37,21 +37,8 @@ Ways to Contribute
 Contributing Code
 -----------------
 
-In General
-++++++++++
-
-- `PEP 8`_, when sensible.
-- Test ruthlessly. Write docs for new features.
-- Even more important than Test-Driven Development--*Human-Driven Development*.
-
-.. _`PEP 8`: https://www.python.org/dev/peps/pep-0008/
-
-In Particular
-+++++++++++++
-
-
 Setting Up for Local Development
-********************************
+++++++++++++++++++++++++++++++++
 
 1. Fork marshmallow_ on Github.
 
@@ -77,7 +64,7 @@ Setting Up for Local Development
     $ pre-commit install --allow-missing-config
 
 Git Branch Structure
-********************
+++++++++++++++++++++
 
 Marshmallow abides by the following branching model:
 
@@ -90,7 +77,7 @@ Marshmallow abides by the following branching model:
 **Always make a new branch for your work**, no matter how small. Also, **do not put unrelated changes in the same branch or pull request**. This makes it more difficult to merge your changes.
 
 Pull Requests
-**************
+++++++++++++++
 
 1. Create a new local branch.
 
@@ -114,16 +101,16 @@ Pull Requests
 - If the pull request adds functionality, it is tested and the docs are updated.
 - You've added yourself to ``AUTHORS.rst``.
 
-4. Submit a pull request to ``marshmallow-code:dev`` or the appropriate maintenance branch. The `Travis CI <https://travis-ci.org/marshmallow-code/marshmallow>`_ build must be passing before your pull request is merged.
+4. Submit a pull request to ``marshmallow-code:dev`` or the appropriate maintenance branch. The `CI <https://dev.azure.com/sloria1/sloria/_build/latest?definitionId=5&branchName=dev>`_ build must be passing before your pull request is merged.
 
 Running tests
-*************
++++++++++++++
 
 To run all tests: ::
 
     $ pytest
 
-To run syntax checks: ::
+To run formatting and syntax checks: ::
 
     $ tox -e lint
 
@@ -134,7 +121,7 @@ To run syntax checks: ::
 .. _contributing_documentation:
 
 Documentation
-*************
++++++++++++++
 
 Contributions to the documentation are welcome. Documentation is written in `reStructured Text`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.net/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
@@ -148,7 +135,7 @@ Changes in the `docs/` directory will automatically trigger a rebuild.
 .. _contributing_examples:
 
 Contributing Examples
-*********************
++++++++++++++++++++++
 
 Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.
 
