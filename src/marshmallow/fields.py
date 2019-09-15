@@ -835,6 +835,10 @@ class _BaseNumber(Field):
         self.as_string = as_string
         super().__init__(**kwargs)
 
+    @property
+    def num_type(self):
+        raise NotImplementedError
+
     def _format_num(self, value):
         """Return the number value for value, given this field's `num_type`."""
         return self.num_type(value)
