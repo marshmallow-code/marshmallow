@@ -820,10 +820,8 @@ class UUID(String):
 
 
 class _BaseNumber(Field):
-    """Base class for number fields.
-
-    :param bool as_string: If `True`, format the serialized value as a string.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """Base implementation for all number classes. Users should not use this class directly.
+    This class is considered private.
     """
 
     default_error_messages = {
@@ -872,6 +870,12 @@ class _BaseNumber(Field):
 
 
 class Number(_BaseNumber):
+    """Base class for number fields.
+
+    :param bool as_string: If `True`, format the serialized value as a string.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+    """
+
     num_type = float
 
 
