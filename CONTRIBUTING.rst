@@ -110,7 +110,7 @@ To run all tests: ::
 
     $ pytest
 
-To run syntax checks: ::
+To run formatting and syntax checks: ::
 
     $ tox -e lint
 
