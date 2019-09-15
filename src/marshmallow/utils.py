@@ -296,7 +296,7 @@ def get_func_args(func: typing.Callable) -> typing.List[str]:
     if isinstance(func, functools.partial):
         return _signature(func.func)
     # Callable class
-    return _signature(func.__call__)
+    return _signature(func)
 
 
 def resolve_field_instance(cls_or_instance):
