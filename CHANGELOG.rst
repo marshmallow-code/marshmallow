@@ -6,7 +6,7 @@ Changelog
 
 Bug fixes:
 
-- Restore inheritance hierarchy of ``Number`` fields.
+- Restore inheritance hierarchy of ``Number`` fields (:pr:`1403`).
   ``fields.Integer`` and ``fields.Decimal`` inherit from ``fields.Number``.
 
 3.1.0 (2019-09-15)
