@@ -853,10 +853,14 @@ class UUID(String):
         return self._validated(value)
 
 
-class _BaseNumber(Field):
-    """Base implementation for all number classes. Users should not use this class directly.
-    This class is considered private.
+class Number(Field):
+    """Base class for number fields.
+
+    :param bool as_string: If `True`, format the serialized value as a string.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
+
+    num_type = float  # type: typing.Type
 
     default_error_messages = {
         "invalid": "Not a valid number.",
@@ -866,10 +870,6 @@ class _BaseNumber(Field):
     def __init__(self, *, as_string=False, **kwargs):
         self.as_string = as_string
         super().__init__(**kwargs)
-
-    @property
-    def num_type(self):
-        raise NotImplementedError
 
     def _format_num(self, value) -> _T:
         """Return the number value for value, given this field's `num_type`."""
@@ -905,17 +905,7 @@ class _BaseNumber(Field):
         return self._validated(value)
 
 
-class Number(_BaseNumber):
-    """Base class for number fields.
-
-    :param bool as_string: If `True`, format the serialized value as a string.
-    :param kwargs: The same keyword arguments that :class:`Field` receives.
-    """
-
-    num_type = float
-
-
-class Integer(_BaseNumber):
+class Integer(Number):
     """An integer field.
 
     :param strict: If `True`, only integer types are valid.
@@ -967,7 +957,7 @@ class Float(Number):
         return num
 
 
-class Decimal(_BaseNumber):
+class Decimal(Number):
     """A field that (de)serializes to the Python ``decimal.Decimal`` type.
     It's safe to use when dealing with money values, percentages, ratios
     or other numbers where precision is critical.
