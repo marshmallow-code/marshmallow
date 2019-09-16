@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.1.1 (unreleased)
+++++++++++++++++++
+
+Bug fixes:
+
+- Restore inheritance hierarchy of ``Number`` fields.
+  ``fields.Integer`` and ``fields.Decimal`` inherit from ``fields.Number``.
+
 3.1.0 (2019-09-15)
 ++++++++++++++++++
 
