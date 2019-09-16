@@ -8,6 +8,8 @@ Bug fixes:
 
 - Restore inheritance hierarchy of ``Number`` fields (:pr:`1403`).
   ``fields.Integer`` and ``fields.Decimal`` inherit from ``fields.Number``.
+- Fix bug that raised an uncaught error when a nested schema instance had an unpickleable object in its context (:issue:`1404`).
+  Thanks :user:`metheoryt` for reporting.
 
 3.1.0 (2019-09-15)
 ++++++++++++++++++
