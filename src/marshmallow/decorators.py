@@ -6,7 +6,7 @@ Methods decorated with
 `pre_dump <marshmallow.decorators.pre_dump>`, `post_dump <marshmallow.decorators.post_dump>`,
 and `validates_schema <marshmallow.decorators.validates_schema>` receive
 ``many`` as a keyword argument. In addition, `pre_load <marshmallow.decorators.pre_load>`,
- `post_load <marshmallow.decorators.post_load>`,
+`post_load <marshmallow.decorators.post_load>`,
 and `validates_schema <marshmallow.decorators.validates_schema>` receive
 ``partial``. If you don't need these arguments, add ``**kwargs`` to your method
 signature.
@@ -156,8 +156,6 @@ def pre_load(fn=None, pass_many=False):
 def post_load(fn=None, pass_many=False, pass_original=False):
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
-
-    See :ref:`examples <decorator_example>` for the method signature.
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
