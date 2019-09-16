@@ -853,7 +853,7 @@ class UUID(String):
         return self._validated(value)
 
 
-class Number(typing.Generic[_T], Field):
+class Number(Field):
     """Base class for number fields.
 
     :param bool as_string: If `True`, format the serialized value as a string.
@@ -905,7 +905,7 @@ class Number(typing.Generic[_T], Field):
         return self._validated(value)
 
 
-class Integer(Number[int]):
+class Integer(Number):
     """An integer field.
 
     :param strict: If `True`, only integer types are valid.
@@ -931,7 +931,7 @@ class Integer(Number[int]):
         return super()._validated(value)
 
 
-class Float(Number[float]):
+class Float(Number):
     """A double as an IEEE-754 double precision string.
 
     :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
@@ -957,7 +957,7 @@ class Float(Number[float]):
         return num
 
 
-class Decimal(Number[decimal.Decimal]):
+class Decimal(Number):
     """A field that (de)serializes to the Python ``decimal.Decimal`` type.
     It's safe to use when dealing with money values, percentages, ratios
     or other numbers where precision is critical.
