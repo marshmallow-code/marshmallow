@@ -2428,6 +2428,22 @@ class TestContext:
         outer.context["foo_context"] = "foo"
         assert outer.load({"bars": {"test": {"foo": 42}}})
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1404
+    def test_nested_field_with_unpicklable_object_in_context(self):
+        class Unpicklable:
+            def __deepcopy__(self, _):
+                raise NotImplementedError
+
+        class InnerSchema(Schema):
+            foo = fields.Field()
+
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema(context={"unp": Unpicklable()}))
+
+        outer = OuterSchema()
+        obj = {"inner": {"foo": 42}}
+        assert outer.dump(obj)
+
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
     class BlogUsernameSchema(Schema):
