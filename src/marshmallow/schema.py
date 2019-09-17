@@ -415,10 +415,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: typing.Dict[str, typing.Union[ma_fields.Field, typing.Type]],
+        fields: typing.Dict[str, typing.Union[ma_fields.Field, type]],
         *,
         name: str = "GeneratedSchema"
-    ) -> typing.Type["Schema"]:
+    ) -> type:
         """Generate a `Schema` class given a dictionary of fields.
 
         .. code-block:: python
