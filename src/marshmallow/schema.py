@@ -230,21 +230,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     .. code-block:: python
 
         import datetime as dt
+        from dataclasses import dataclass
+
         from marshmallow import Schema, fields
 
+        @dataclass
         class Album:
-            def __init__(self, title, release_date):
-                self.title = title
-                self.release_date = release_date
+            title: str
+            release_data: dt.date
 
         class AlbumSchema(Schema):
             title = fields.Str()
             release_date = fields.Date()
-
-        # Or, equivalently
-        class AlbumSchema2(Schema):
-            class Meta:
-                fields = ("title", "release_date")
 
         album = Album("Beggars Banquet", dt.date(1968, 12, 6))
         schema = AlbumSchema()
