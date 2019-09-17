@@ -4,6 +4,10 @@ Changelog
 3.2.0 (unreleased)
 ++++++++++++++++++
 
+Features:
+
+- Add type annotations to ``marshmallow.schema`` and ``marshmallow.validate`` (:pr:`1407`, :issue:`663`).
+
 Refactoring:
 
 - Remove unnecessary ``BaseSchema`` superclass (:pr:`1406`).

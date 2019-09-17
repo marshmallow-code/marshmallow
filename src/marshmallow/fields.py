@@ -11,7 +11,7 @@ import typing
 import warnings
 from collections.abc import Mapping as _Mapping
 
-from marshmallow import validate, utils, class_registry
+from marshmallow import validate, utils, class_registry, types
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.utils import (
     is_collection,
@@ -328,7 +328,7 @@ class Field(FieldABC):
         self,
         value: typing.Any,
         attr: str = None,
-        data: typing.Dict[str, typing.Any] = None,
+        data: typing.Mapping[str, typing.Any] = None,
         **kwargs
     ):
         """Deserialize ``value``.
@@ -388,7 +388,7 @@ class Field(FieldABC):
         self,
         value: typing.Any,
         attr: typing.Optional[str],
-        data: typing.Optional[typing.Dict[str, typing.Any]],
+        data: typing.Optional[typing.Mapping[str, typing.Any]],
         **kwargs
     ):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
@@ -474,8 +474,8 @@ class Nested(Field):
         nested: typing.Union[SchemaABC, typing.Type[SchemaABC], str],
         *,
         default: typing.Any = missing_,
-        only: typing.Union[typing.Sequence, typing.Set] = None,
-        exclude: typing.Union[typing.Sequence, typing.Set] = tuple(),
+        only: types.StrSequenceOrSet = None,
+        exclude: types.StrSequenceOrSet = (),
         many: bool = False,
         unknown: str = None,
         **kwargs
@@ -1573,7 +1573,7 @@ class Url(String):
         self,
         *,
         relative: bool = False,
-        schemes: typing.Union[typing.Sequence, typing.Set] = None,
+        schemes: types.StrSequenceOrSet = None,
         require_tld: bool = True,
         **kwargs
     ):

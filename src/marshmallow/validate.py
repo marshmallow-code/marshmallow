@@ -4,6 +4,7 @@ from itertools import zip_longest
 from operator import attrgetter
 import typing
 
+from marshmallow import types
 from marshmallow.exceptions import ValidationError
 
 
@@ -15,7 +16,7 @@ class Validator:
         add a useful `__repr__` implementation for validators.
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = self._repr_args()
         args = "{}, ".format(args) if args else ""
 
@@ -23,7 +24,7 @@ class Validator:
             self=self, args=args
         )
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         """A string representation of the args passed to this validator. Used by
         `__repr__`.
         """
@@ -45,7 +46,7 @@ class URL(Validator):
         def __init__(self):
             self._memoized = {}
 
-        def _regex_generator(self, relative, require_tld):
+        def _regex_generator(self, relative: bool, require_tld: bool):
             return re.compile(
                 r"".join(
                     (
@@ -73,7 +74,7 @@ class URL(Validator):
                 re.IGNORECASE,
             )
 
-        def __call__(self, relative, require_tld):
+        def __call__(self, relative: bool, require_tld: bool) -> typing.Pattern:
             key = (relative, require_tld)
             if key not in self._memoized:
                 self._memoized[key] = self._regex_generator(relative, require_tld)
@@ -89,7 +90,7 @@ class URL(Validator):
         self,
         *,
         relative: bool = False,
-        schemes: typing.Union[typing.Sequence, typing.Set] = None,
+        schemes: types.StrSequenceOrSet = None,
         require_tld: bool = True,
         error: str = None
     ):
@@ -98,13 +99,13 @@ class URL(Validator):
         self.schemes = schemes or self.default_schemes
         self.require_tld = require_tld
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "relative={!r}".format(self.relative)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(input=value)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         message = self._format_error(value)
         if not value:
             raise ValidationError(message)
@@ -126,7 +127,7 @@ class URL(Validator):
 class Email(Validator):
     """Validate an email address.
 
-    :param str error: Error message to raise in case of a validation error. Can be
+    :param error: Error message to raise in case of a validation error. Can be
         interpolated with `{input}`.
     """
 
@@ -151,13 +152,13 @@ class Email(Validator):
 
     default_message = "Not a valid email address."
 
-    def __init__(self, *, error=None):
+    def __init__(self, *, error: str = None):
         self.error = error or self.default_message
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> typing.Any:
         return self.error.format(input=value)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         message = self._format_error(value)
 
         if not value or "@" not in value:
@@ -195,10 +196,10 @@ class Range(Validator):
         value will not be checked.
     :param max: The maximum value (upper bound). If not provided, maximum
         value will not be checked.
-    :param str error: Error message to raise in case of a validation error.
+    :param min_inclusive: Whether the `min` bound is included in the range.
+    :param max_inclusive: Whether the `max` bound is included in the range.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
-    :param bool min_inclusive: Whether the `min` bound is included in the range.
-    :param bool max_inclusive: Whether the `max` bound is included in the range.
     """
 
     message_min = "Must be {min_op} {{min}}."
@@ -211,7 +212,13 @@ class Range(Validator):
     message_lt = "less than"
 
     def __init__(
-        self, min=None, max=None, *, min_inclusive=True, max_inclusive=True, error=None
+        self,
+        min=None,
+        max=None,
+        *,
+        min_inclusive: bool = True,
+        max_inclusive: bool = True,
+        error: str = None
     ):
         self.min = min
         self.max = max
@@ -231,15 +238,15 @@ class Range(Validator):
             max_op=self.message_lte if self.max_inclusive else self.message_lt,
         )
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}".format(
             self.min, self.max, self.min_inclusive, self.max_inclusive
         )
 
-    def _format_error(self, value, message):
+    def _format_error(self, value, message: str) -> str:
         return (self.error or message).format(input=value, min=self.min, max=self.max)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         if self.min is not None and (
             value < self.min if self.min_inclusive else value <= self.min
         ):
@@ -260,13 +267,13 @@ class Length(Validator):
     length between a minimum and maximum. Uses len(), so it
     can work for strings, lists, or anything with length.
 
-    :param int min: The minimum length. If not provided, minimum length
+    :param min: The minimum length. If not provided, minimum length
         will not be checked.
-    :param int max: The maximum length. If not provided, maximum length
+    :param max: The maximum length. If not provided, maximum length
         will not be checked.
-    :param int equal: The exact length. If provided, maximum and minimum
+    :param equal: The exact length. If provided, maximum and minimum
         length will not be checked.
-    :param str error: Error message to raise in case of a validation error.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
 
@@ -275,7 +282,9 @@ class Length(Validator):
     message_all = "Length must be between {min} and {max}."
     message_equal = "Length must be {equal}."
 
-    def __init__(self, min=None, max=None, *, error=None, equal=None):
+    def __init__(
+        self, min: int = None, max: int = None, *, equal: int = None, error: str = None
+    ):
         if equal is not None and any([min, max]):
             raise ValueError(
                 "The `equal` parameter was provided, maximum or "
@@ -287,15 +296,15 @@ class Length(Validator):
         self.error = error
         self.equal = equal
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "min={!r}, max={!r}, equal={!r}".format(self.min, self.max, self.equal)
 
-    def _format_error(self, value, message):
+    def _format_error(self, value, message: str) -> str:
         return (self.error or message).format(
             input=value, min=self.min, max=self.max, equal=self.equal
         )
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         length = len(value)
 
         if self.equal is not None:
@@ -319,23 +328,23 @@ class Equal(Validator):
     equal to ``comparable``.
 
     :param comparable: The object to compare to.
-    :param str error: Error message to raise in case of a validation error.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{other}`.
     """
 
     default_message = "Must be equal to {other}."
 
-    def __init__(self, comparable, *, error=None):
+    def __init__(self, comparable, *, error: str = None):
         self.comparable = comparable
         self.error = error or self.default_message
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "comparable={!r}".format(self.comparable)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(input=value, other=self.comparable)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         if value != self.comparable:
             raise ValidationError(self._format_error(value))
         return value
@@ -352,25 +361,31 @@ class Regexp(Validator):
         regular expression pattern.
     :param flags: The regexp flags to use, for example re.IGNORECASE. Ignored
         if ``regex`` is not a string.
-    :param str error: Error message to raise in case of a validation error.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{regex}`.
     """
 
     default_message = "String does not match expected pattern."
 
-    def __init__(self, regex, flags=0, *, error=None):
+    def __init__(
+        self,
+        regex: typing.Union[str, bytes, typing.Pattern],
+        flags=0,
+        *,
+        error: str = None
+    ):
         self.regex = (
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
         )
         self.error = error or self.default_message
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "regex={!r}".format(self.regex)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(input=value, regex=self.regex.pattern)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         if self.regex.match(value) is None:
             raise ValidationError(self._format_error(value))
 
@@ -383,26 +398,26 @@ class Predicate(Validator):
     evaluates to True in a Boolean context. Any additional keyword
     argument will be passed to the method.
 
-    :param str method: The name of the method to invoke.
-    :param str error: Error message to raise in case of a validation error.
+    :param method: The name of the method to invoke.
+    :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}` and `{method}`.
     :param kwargs: Additional keyword arguments to pass to the method.
     """
 
     default_message = "Invalid input."
 
-    def __init__(self, method, *, error=None, **kwargs):
+    def __init__(self, method: str, *, error: str = None, **kwargs):
         self.method = method
         self.error = error or self.default_message
         self.kwargs = kwargs
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "method={!r}, kwargs={!r}".format(self.method, self.kwargs)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(input=value, method=self.method)
 
-    def __call__(self, value):
+    def __call__(self, value) -> str:
         method = getattr(value, self.method)
 
         if not method(**self.kwargs):
@@ -414,25 +429,25 @@ class Predicate(Validator):
 class NoneOf(Validator):
     """Validator which fails if ``value`` is a member of ``iterable``.
 
-    :param iterable iterable: A sequence of invalid values.
-    :param str error: Error message to raise in case of a validation error. Can be
+    :param iterable: A sequence of invalid values.
+    :param error: Error message to raise in case of a validation error. Can be
         interpolated using `{input}` and `{values}`.
     """
 
     default_message = "Invalid input."
 
-    def __init__(self, iterable, *, error=None):
+    def __init__(self, iterable: typing.Iterable, *, error: str = None):
         self.iterable = iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
         self.error = error or self.default_message
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "iterable={!r}".format(self.iterable)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(input=value, values=self.values_text)
 
-    def __call__(self, value):
+    def __call__(self, value) -> str:
         try:
             if value in self.iterable:
                 raise ValidationError(self._format_error(value))
@@ -445,30 +460,36 @@ class NoneOf(Validator):
 class OneOf(Validator):
     """Validator which succeeds if ``value`` is a member of ``choices``.
 
-    :param iterable choices: A sequence of valid values.
-    :param iterable labels: Optional sequence of labels to pair with the choices.
-    :param str error: Error message to raise in case of a validation error. Can be
+    :param choices: A sequence of valid values.
+    :param labels: Optional sequence of labels to pair with the choices.
+    :param error: Error message to raise in case of a validation error. Can be
         interpolated with `{input}`, `{choices}` and `{labels}`.
     """
 
     default_message = "Must be one of: {choices}."
 
-    def __init__(self, choices, labels=None, *, error=None):
+    def __init__(
+        self,
+        choices: typing.Iterable,
+        labels: typing.Iterable[str] = None,
+        *,
+        error: str = None
+    ):
         self.choices = choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
         self.labels_text = ", ".join(str(label) for label in self.labels)
         self.error = error or self.default_message
 
-    def _repr_args(self):
+    def _repr_args(self) -> str:
         return "choices={!r}, labels={!r}".format(self.choices, self.labels)
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         return self.error.format(
             input=value, choices=self.choices_text, labels=self.labels_text
         )
 
-    def __call__(self, value):
+    def __call__(self, value) -> str:
         try:
             if value not in self.choices:
                 raise ValidationError(self._format_error(value))
@@ -477,7 +498,10 @@ class OneOf(Validator):
 
         return value
 
-    def options(self, valuegetter=str):
+    def options(
+        self,
+        valuegetter: typing.Union[str, typing.Callable[[typing.Any], typing.Any]] = str,
+    ) -> typing.Iterable[typing.Tuple[typing.Any, str]]:
         """Return a generator over the (value, label) pairs, where value
         is a string associated with each choice. This convenience method
         is useful to populate, for instance, a form select field.
@@ -512,11 +536,11 @@ class ContainsOnly(OneOf):
 
     default_message = "One or more of the choices you made was not in: {choices}."
 
-    def _format_error(self, value):
+    def _format_error(self, value) -> str:
         value_text = ", ".join(str(val) for val in value)
         return super()._format_error(value_text)
 
-    def __call__(self, value):
+    def __call__(self, value) -> typing.Any:
         # We can't use set.issubset because does not handle unhashable types
         for val in value:
             if val not in self.choices:

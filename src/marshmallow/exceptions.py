@@ -27,7 +27,7 @@ class ValidationError(MarshmallowError):
         self,
         message: typing.Union[str, typing.List, typing.Dict],
         field_name: str = SCHEMA,
-        data: typing.Dict[str, typing.Any] = None,
+        data: typing.Mapping[str, typing.Any] = None,
         valid_data: typing.Union[
             typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]
         ] = None,

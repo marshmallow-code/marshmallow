@@ -11,7 +11,7 @@ import json
 import typing
 import warnings
 
-from marshmallow import base, fields as ma_fields, class_registry
+from marshmallow import base, fields as ma_fields, class_registry, types
 from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
 from marshmallow.orderedset import OrderedSet
@@ -34,6 +34,8 @@ from marshmallow.utils import (
     is_instance_or_subclass,
     is_iterable_but_not_string,
 )
+
+_T = typing.TypeVar("_T")
 
 
 def _get_fields(attrs, field_class, pop=False, ordered=False):
@@ -124,16 +126,22 @@ class SchemaMeta(type):
         return klass
 
     @classmethod
-    def get_declared_fields(mcs, klass, cls_fields, inherited_fields, dict_cls):
+    def get_declared_fields(
+        mcs,
+        klass: type,
+        cls_fields: typing.List,
+        inherited_fields: typing.List,
+        dict_cls: type,
+    ):
         """Returns a dictionary of field_name => `Field` pairs declard on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
         computed from class Meta options.
 
-        :param type klass: The class object.
-        :param list cls_fields: The fields declared on the class, including those added
+        :param klass: The class object.
+        :param cls_fields: The fields declared on the class, including those added
             by the ``include`` class Meta option.
-        :param list inherited_fields: Inherited fields.
-        :param type dict_class: Either `dict` or `OrderedDict`, depending on the whether
+        :param inherited_fields: Inherited fields.
+        :param dict_class: Either `dict` or `OrderedDict`, depending on the whether
             the user specified `ordered=True`.
         """
         return dict_cls(inherited_fields + cls_fields)
@@ -144,7 +152,7 @@ class SchemaMeta(type):
             class_registry.register(name, cls)
         cls._hooks = cls.resolve_hooks()
 
-    def resolve_hooks(cls):
+    def resolve_hooks(cls) -> typing.Dict[types.Tag, typing.List[str]]:
         """Add in the decorated processors
 
         By doing this after constructing the class, we let standard inheritance
@@ -152,7 +160,7 @@ class SchemaMeta(type):
         """
         mro = inspect.getmro(cls)
 
-        hooks = defaultdict(list)
+        hooks = defaultdict(list)  # type: typing.Dict[types.Tag, typing.List[str]]
 
         for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
@@ -187,7 +195,7 @@ class SchemaMeta(type):
 class SchemaOpts:
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
-    def __init__(self, meta, ordered=False):
+    def __init__(self, meta, ordered: bool = False):
         self.fields = getattr(meta, "fields", ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -248,20 +256,20 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data = schema.dump(album)
         data  # {'release_date': '1968-12-06', 'title': 'Beggars Banquet'}
 
-    :param tuple|list only: Whitelist of the declared fields to select when
+    :param only: Whitelist of the declared fields to select when
         instantiating the Schema. If None, all fields are used. Nested fields
         can be represented with dot delimiters.
-    :param tuple|list exclude: Blacklist of the declared fields to exclude
+    :param exclude: Blacklist of the declared fields to exclude
         when instantiating the Schema. If a field appears in both `only` and
         `exclude`, it is not used. Nested fields can be represented with dot
         delimiters.
-    :param bool many: Should be set to `True` if ``obj`` is a collection
+    :param many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
-    :param dict context: Optional context passed to :class:`fields.Method` and
+    :param context: Optional context passed to :class:`fields.Method` and
         :class:`fields.Function` fields.
-    :param tuple|list load_only: Fields to skip during serialization (write-only fields)
-    :param tuple|list dump_only: Fields to skip during deserialization (read-only fields)
-    :param bool|tuple partial: Whether to ignore missing fields and not require
+    :param load_only: Fields to skip during serialization (write-only fields)
+    :param dump_only: Fields to skip during deserialization (read-only fields)
+    :param partial: Whether to ignore missing fields and not require
         any fields declared. Propagates down to ``Nested`` fields as well. If
         its value is an iterable, only missing fields listed in that iterable
         will be ignored. Use dot delimiters to specify nested fields.
@@ -294,16 +302,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         dt.date: ma_fields.Date,
         dt.timedelta: ma_fields.TimeDelta,
         decimal.Decimal: ma_fields.Decimal,
-    }
+    }  # type: typing.Dict[type, typing.Type[ma_fields.Field]]
     #: Overrides for default schema-level error messages
     error_messages = {}  # type: typing.Dict[str, str]
 
     _default_error_messages = {
         "type": "Invalid input type.",
         "unknown": "Unknown field.",
-    }
+    }  # type: typing.Dict[str, str]
 
-    OPTIONS_CLASS = SchemaOpts
+    OPTIONS_CLASS = SchemaOpts  # type: type
+
+    # These get set by SchemaMeta
+    opts = None  # type: SchemaOpts
+    _declared_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+    _hooks = {}  # type: typing.Dict[types.Tag, typing.List[str]]
 
     class Meta:
         """Options object for a Schema.
@@ -348,14 +361,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def __init__(
         self,
         *,
-        only=None,
-        exclude=(),
-        many=False,
-        context=None,
-        load_only=(),
-        dump_only=(),
-        partial=False,
-        unknown=None
+        only: types.StrSequenceOrSet = None,
+        exclude: types.StrSequenceOrSet = (),
+        many: bool = False,
+        context: typing.Dict = None,
+        load_only: types.StrSequenceOrSet = (),
+        dump_only: types.StrSequenceOrSet = (),
+        partial: typing.Union[bool, types.StrSequenceOrSet] = False,
+        unknown: str = None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -375,9 +388,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = None
-        self.load_fields = None
-        self.dump_fields = None
+        self.fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.load_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.dump_fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -386,17 +399,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         messages.update(self.error_messages or {})
         self.error_messages = messages
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{ClassName}(many={self.many})>".format(
             ClassName=self.__class__.__name__, self=self
         )
 
     @property
-    def dict_class(self):
+    def dict_class(self) -> type:
         return OrderedDict if self.ordered else dict
 
     @property
-    def set_class(self):
+    def set_class(self) -> type:
         return OrderedSet if self.ordered else set
 
     @classmethod
@@ -433,13 +446,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     ##### Override-able methods #####
 
-    def handle_error(self, error, data, *, many, **kwargs):
+    def handle_error(
+        self, error: ValidationError, data: typing.Any, *, many: bool, **kwargs
+    ):
         """Custom error handler function for the schema.
 
-        :param ValidationError error: The `ValidationError` raised during (de)serialization.
+        :param error: The `ValidationError` raised during (de)serialization.
         :param data: The original input data.
-        :param bool many: Value of ``many`` on dump or load.
-        :param bool partial: Value of ``partial`` on load.
+        :param many: Value of ``many`` on dump or load.
+        :param partial: Value of ``partial`` on load.
 
         .. versionadded:: 2.0.0
 
@@ -448,7 +463,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """
         pass
 
-    def get_attribute(self, obj, attr, default):
+    def get_attribute(self, obj: typing.Any, attr: str, default: typing.Any):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
@@ -480,7 +495,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj, *, many=False):
+    def _serialize(
+        self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = False
+    ):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -491,7 +508,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [self._serialize(d, many=False) for d in obj]
+            return [
+                self._serialize(d, many=False)
+                for d in typing.cast(typing.Iterable[_T], obj)
+            ]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
@@ -501,12 +521,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj, *, many=None):
+    def dump(self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
-        :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
+        :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
         :return: A dict of serialized data
         :rtype: dict
@@ -521,7 +541,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """
         many = self.many if many is None else bool(many)
         if many and is_iterable_but_not_string(obj):
-            obj = list(obj)
+            obj = list(typing.cast(typing.Iterable[_T], obj))
 
         if self._has_processors(PRE_DUMP):
             processed_obj = self._invoke_dump_processors(
@@ -539,11 +559,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(self, obj, *args, many=None, **kwargs):
+    def dumps(
+        self,
+        obj: typing.Union[_T, typing.Iterable[_T]],
+        *args,
+        many: bool = None,
+        **kwargs
+    ):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
-        :param bool many: Whether to serialize `obj` as a collection. If `None`, the value
+        :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
         :return: A ``json`` string
         :rtype: str
@@ -558,8 +584,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def _deserialize(
-        self, data, *, error_store, many=False, partial=False, unknown=RAISE, index=None
-    ):
+        self,
+        data: typing.Union[typing.Dict, typing.Iterable],
+        *,
+        error_store: ErrorStore,
+        many: bool = False,
+        partial=False,
+        unknown=RAISE,
+        index=None
+    ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -580,16 +613,19 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret = []
+                ret = []  # type: typing.List[_T]
             else:
                 ret = [
-                    self._deserialize(
-                        d,
-                        error_store=error_store,
-                        many=False,
-                        partial=partial,
-                        unknown=unknown,
-                        index=idx,
+                    typing.cast(
+                        _T,
+                        self._deserialize(
+                            d,
+                            error_store=error_store,
+                            many=False,
+                            partial=partial,
+                            unknown=unknown,
+                            index=idx,
+                        ),
                     )
                     for idx, d in enumerate(data)
                 ]
@@ -634,7 +670,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
                 if value is not missing:
                     key = field_obj.attribute or attr_name
-                    set_value(ret, key, value)
+                    set_value(typing.cast(typing.Dict, ret), key, value)
             if unknown != EXCLUDE:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
@@ -643,7 +679,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
-                        set_value(ret, key, value)
+                        set_value(typing.cast(typing.Dict, ret), key, value)
                     elif unknown == RAISE:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
@@ -652,21 +688,27 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         )
         return ret
 
-    def load(self, data, *, many=None, partial=None, unknown=None):
+    def load(
+        self,
+        data: typing.Mapping,
+        *,
+        many: bool = None,
+        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
+        unknown: str = None
+    ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
-        :param dict data: The data to deserialize.
-        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
+        :param data: The data to deserialize.
+        :param many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields and not require
+        :param partial: Whether to ignore missing fields and not require
             any fields declared. Propagates down to ``Nested`` fields as well. If
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :return: A dict of deserialized data
-        :rtype: dict
+        :return: Deserialized data
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
@@ -678,21 +720,28 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             data, many=many, partial=partial, unknown=unknown, postprocess=True
         )
 
-    def loads(self, json_data, *, many=None, partial=None, unknown=None, **kwargs):
+    def loads(
+        self,
+        json_data: str,
+        *,
+        many: bool = None,
+        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
+        unknown: str = None,
+        **kwargs
+    ):
         """Same as :meth:`load`, except it takes a JSON string as input.
 
-        :param str json_data: A JSON string of the data to deserialize.
-        :param bool many: Whether to deserialize `obj` as a collection. If `None`, the
+        :param json_data: A JSON string of the data to deserialize.
+        :param many: Whether to deserialize `obj` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields and not require
+        :param partial: Whether to ignore missing fields and not require
             any fields declared. Propagates down to ``Nested`` fields as well. If
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :return: A dict of deserialized data
-        :rtype: dict
+        :return: Deserialized data
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
@@ -723,52 +772,62 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         except ValidationError as err:
             error_store.store_error(err.messages, err.field_name, index=index)
 
-    def validate(self, data, *, many=None, partial=None):
+    def validate(
+        self,
+        data: typing.Mapping,
+        *,
+        many: bool = None,
+        partial: typing.Union[bool, types.StrSequenceOrSet] = None
+    ) -> typing.Dict[str, typing.List[str]]:
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
 
-        :param dict data: The data to validate.
-        :param bool many: Whether to validate `data` as a collection. If `None`, the
+        :param data: The data to validate.
+        :param many: Whether to validate `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to ignore missing fields and not require
+        :param partial: Whether to ignore missing fields and not require
             any fields declared. Propagates down to ``Nested`` fields as well. If
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :return: A dictionary of validation errors.
-        :rtype: dict
 
         .. versionadded:: 1.1.0
         """
         try:
             self._do_load(data, many=many, partial=partial, postprocess=False)
         except ValidationError as exc:
-            return exc.messages
+            return typing.cast(typing.Dict[str, typing.List[str]], exc.messages)
         return {}
 
     ##### Private Helpers #####
 
     def _do_load(
-        self, data, *, many=None, partial=None, unknown=None, postprocess=True
+        self,
+        data: typing.Mapping,
+        *,
+        many: bool = None,
+        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
+        unknown: str = None,
+        postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.
         This method is private API.
 
         :param data: The data to deserialize.
-        :param bool many: Whether to deserialize `data` as a collection. If `None`, the
+        :param many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
-        :param bool|tuple partial: Whether to validate required fields. If its
+        :param partial: Whether to validate required fields. If its
             value is an iterable, only fields listed in that iterable will be
             ignored will be allowed missing. If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :param bool postprocess: Whether to run post_load methods..
-        :return: A dict of deserialized data
-        :rtype: dict
+        :param postprocess: Whether to run post_load methods..
+        :return: Deserialized data
         """
         error_store = ErrorStore()
-        errors = {}
+        errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
         unknown = unknown or self.unknown
         if partial is None:
@@ -781,7 +840,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
-                result = None
+                result = (
+                    None
+                )  # type: typing.Optional[typing.Union[typing.List, typing.Dict]]
         else:
             processed_data = data
         if not errors:
@@ -838,7 +899,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def _normalize_nested_options(self):
+    def _normalize_nested_options(self) -> None:
         """Apply then flatten nested schema options.
         This method is private API.
         """
@@ -855,12 +916,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 [field for field in self.exclude if "." not in field]
             )
 
-    def __apply_nested_option(self, option_name, field_names, set_operation):
+    def __apply_nested_option(self, option_name, field_names, set_operation) -> None:
         """Apply nested options to nested fields"""
         # Split nested field names on the first dot.
         nested_fields = [name.split(".", 1) for name in field_names if "." in name]
         # Partition the nested field names by parent field.
-        nested_options = defaultdict(list)
+        nested_options = defaultdict(list)  # type: defaultdict
         for parent, nested_names in nested_fields:
             nested_options[parent].append(nested_names)
         # Apply the nested field options.
@@ -874,7 +935,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     new_options &= self.set_class(original_options)
             setattr(self.declared_fields[key], option_name, new_options)
 
-    def _init_fields(self):
+    def _init_fields(self) -> None:
         """Update self.fields, self.load_fields, and self.dump_fields based on schema options.
         This method is private API.
         """
@@ -952,14 +1013,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.dump_fields = dump_fields
         self.load_fields = load_fields
 
-    def on_bind_field(self, field_name, field_obj):
+    def on_bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
         """Hook to modify a field when it is bound to the `Schema`.
 
         No-op by default.
         """
         return None
 
-    def _bind_field(self, field_name, field_obj):
+    def _bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
         """Bind field to the schema, setting any necessary attributes on the
         field (e.g. parent and name).
 
@@ -985,10 +1046,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.on_bind_field(field_name, field_obj)
 
     @lru_cache(maxsize=8)
-    def _has_processors(self, tag):
-        return self._hooks[(tag, True)] or self._hooks[(tag, False)]
+    def _has_processors(self, tag) -> bool:
+        return bool(self._hooks[(tag, True)] or self._hooks[(tag, False)])
 
-    def _invoke_dump_processors(self, tag, data, *, many, original_data=None):
+    def _invoke_dump_processors(
+        self, tag: str, data, *, many: bool, original_data=None
+    ):
         # The pass_many post-dump processors may do things like add an envelope, so
         # invoke those after invoking the non-pass_many processors which will expect
         # to get a list of items.
@@ -1000,7 +1063,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         )
         return data
 
-    def _invoke_load_processors(self, tag, data, *, many, original_data, partial):
+    def _invoke_load_processors(
+        self,
+        tag: str,
+        data,
+        *,
+        many: bool,
+        original_data,
+        partial: typing.Union[bool, types.StrSequenceOrSet]
+    ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
         data = self._invoke_processors(
@@ -1021,7 +1092,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         )
         return data
 
-    def _invoke_field_validators(self, *, error_store, data, many):
+    def _invoke_field_validators(self, *, error_store: ErrorStore, data, many: bool):
         for attr_name in self._hooks[VALIDATES]:
             validator = getattr(self, attr_name)
             validator_kwargs = validator.__marshmallow_hook__[VALIDATES]
@@ -1073,13 +1144,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def _invoke_schema_validators(
         self,
         *,
-        error_store,
-        pass_many,
+        error_store: ErrorStore,
+        pass_many: bool,
         data,
         original_data,
-        many,
-        partial,
-        field_errors=False
+        many: bool,
+        partial: typing.Union[bool, types.StrSequenceOrSet],
+        field_errors: bool = False
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
             validator = getattr(self, attr_name)
@@ -1114,7 +1185,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
 
     def _invoke_processors(
-        self, tag, *, pass_many, data, many, original_data=None, **kwargs
+        self,
+        tag: str,
+        *,
+        pass_many: bool,
+        data,
+        many: bool,
+        original_data=None,
+        **kwargs
     ):
         key = (tag, pass_many)
         for attr_name in self._hooks[key]:
