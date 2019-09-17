@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.2.0 (unreleased)
+++++++++++++++++++
+
+Refactoring:
+
+- Remove unnecessary ``BaseSchema`` superclass (:pr:`1406`).
+
 3.1.1 (2019-09-16)
 ++++++++++++++++++
 
