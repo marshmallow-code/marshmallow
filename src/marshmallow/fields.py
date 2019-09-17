@@ -471,7 +471,7 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: typing.Union[SchemaABC, typing.Type[SchemaABC], str],
+        nested: typing.Union[SchemaABC, type, str],
         *,
         default: typing.Any = missing_,
         only: types.StrSequenceOrSet = None,
@@ -664,9 +664,7 @@ class List(Field):
 
     default_error_messages = {"invalid": "Not a valid list."}
 
-    def __init__(
-        self, cls_or_instance: typing.Union[Field, typing.Type[Field]], **kwargs
-    ):
+    def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
@@ -1427,8 +1425,8 @@ class Mapping(Field):
 
     def __init__(
         self,
-        keys: typing.Union[Field, typing.Type[Field]] = None,
-        values: typing.Union[Field, typing.Type[Field]] = None,
+        keys: typing.Union[Field, type] = None,
+        values: typing.Union[Field, type] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
