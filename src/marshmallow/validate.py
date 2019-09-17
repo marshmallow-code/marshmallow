@@ -2,8 +2,8 @@
 import re
 from itertools import zip_longest
 from operator import attrgetter
-import typing
 
+from marshmallow import types
 from marshmallow.exceptions import ValidationError
 
 
@@ -89,7 +89,7 @@ class URL(Validator):
         self,
         *,
         relative: bool = False,
-        schemes: typing.Union[typing.Sequence, typing.Set] = None,
+        schemes: types.StrSequenceOrSet = None,
         require_tld: bool = True,
         error: str = None
     ):
