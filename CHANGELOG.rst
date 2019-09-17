@@ -8,6 +8,10 @@ Features:
 
 - Add type annotations to ``marshmallow.schema`` and ``marshmallow.validate`` (:pr:`1407`, :issue:`663`).
 
+Bug fixes:
+
+- Fix compatibility with Python < 3.5.3 (:issue:`1409`). Thanks :user:`lukaszdudek-silvair` for reporting.
+
 Refactoring:
 
 - Remove unnecessary ``BaseSchema`` superclass (:pr:`1406`).
