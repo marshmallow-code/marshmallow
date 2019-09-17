@@ -222,7 +222,7 @@ class SchemaOpts:
         self.register = getattr(meta, "register", True)
 
 
-class BaseSchema(base.SchemaABC):
+class Schema(base.SchemaABC, metaclass=SchemaMeta):
     """Base schema class with which to define custom schemas.
 
     Example usage:
@@ -1148,5 +1148,4 @@ class BaseSchema(base.SchemaABC):
         return data
 
 
-class Schema(BaseSchema, metaclass=SchemaMeta):
-    __doc__ = BaseSchema.__doc__
+BaseSchema = Schema  # for backwards compatibility
