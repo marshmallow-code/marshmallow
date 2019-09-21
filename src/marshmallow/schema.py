@@ -521,7 +521,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = None):
+    def dump(self, obj: typing.Any, *, many: bool = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -541,7 +541,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """
         many = self.many if many is None else bool(many)
         if many and is_iterable_but_not_string(obj):
-            obj = list(typing.cast(typing.Iterable[_T], obj))
+            obj = list(obj)
 
         if self._has_processors(PRE_DUMP):
             processed_obj = self._invoke_dump_processors(
@@ -559,13 +559,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(
-        self,
-        obj: typing.Union[_T, typing.Iterable[_T]],
-        *args,
-        many: bool = None,
-        **kwargs
-    ):
+    def dumps(self, obj: typing.Any, *args, many: bool = None, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
