@@ -245,7 +245,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         @dataclass
         class Album:
             title: str
-            release_data: dt.date
+            release_date: dt.date
 
         class AlbumSchema(Schema):
             title = fields.Str()
