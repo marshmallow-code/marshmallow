@@ -2119,10 +2119,21 @@ class TestPluckSchema:
         for i, name in enumerate(data["collaborators"]):
             assert name == blog.collaborators[i].name
 
-    def test_pluck_none(self, blog):
+    @pytest.mark.parametrize(
+        "field",
+        [
+            fields.Pluck(UserSchema, "name", many=True),
+            fields.List(fields.Pluck(UserSchema, "name")),
+        ],
+        ids=[
+            'Pluck(many=True)',
+            'List(Pluck())'
+        ],
+    )
+    def test_pluck_none(self, blog, field):
         class FlatBlogSchema(Schema):
             user = fields.Pluck(UserSchema, "name")
-            collaborators = fields.Pluck(UserSchema, "name", many=True)
+            collaborators = field
 
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
