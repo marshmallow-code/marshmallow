@@ -630,13 +630,13 @@ class Pluck(Nested):
         ret = super()._serialize(nested_obj, attr, obj, **kwargs)
         if ret is None:
             return None
-        if self.many:
+        if self.many or kwargs.get("many", False):
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
         self._test_collection(value)
-        if self.many:
+        if self.many or kwargs.get("many", False):
             value = [{self._field_data_key: v} for v in value]
         else:
             value = {self._field_data_key: value}
