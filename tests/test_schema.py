@@ -2125,10 +2125,7 @@ class TestPluckSchema:
             fields.Pluck(UserSchema, "name", many=True),
             fields.List(fields.Pluck(UserSchema, "name")),
         ],
-        ids=[
-            'Pluck(many=True)',
-            'List(Pluck())'
-        ],
+        ids=["Pluck(many=True)", "List(Pluck())"],
     )
     def test_pluck_none(self, blog, field):
         class FlatBlogSchema(Schema):
