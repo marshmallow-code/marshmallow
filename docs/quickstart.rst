@@ -427,6 +427,55 @@ or when calling `load <Schema.load>`.
 
 The ``unknown`` option value set in :meth:`load <Schema.load>` will override the value applied at instantiation time, which itself will override the value defined in the *class Meta*.
 
+The ``unknown`` option value set in :meth:`load <Schema.load>` is propagated to nested Schema. It's not the case when the value is applied at instantiation time nor when the value is defined in the *class Meta*.
+
+.. code-block:: python
+
+    from marshmallow import fields, Schema, EXCLUDE, INCLUDE, RAISE
+
+
+    class UserSchema(Schema):
+        class Meta:
+            unknown = RAISE
+
+        name = fields.String()
+
+
+    class BlogSchema(Schema):
+        class Meta:
+            unknown = EXCLUDE
+
+        title = fields.String()
+        author = fields.Nested(UserSchema)
+
+
+    BlogSchema().load(
+        {
+            "title": "Some title",
+            "unknown_field": "value",
+            "author": {"name": "Author name", "unknown_field": "value"},
+        }
+    )  # => ValidationError: {'author': {'unknown_field': ['Unknown field.']}}
+
+    BlogSchema().load(
+        {
+            "title": "Some title",
+            "unknown_field": "value",
+            "author": {"name": "Author name", "unknown_field": "value"},
+        },
+        unknown=EXCLUDE,
+    )  # => {'author': {'name': 'Author name'}, 'title': 'Some title'}
+
+
+    BogSchema.load(
+        {
+            "title": "Some title",
+            "unknown_field": "value",
+            "author": {"name": "Author name", "unknown_field": "value"},
+        },
+        unknown=INCLUDE,
+    )  # => {'author': {'name': 'Author name', 'unknown_field': 'value'}, 'title': 'Some title', 'unknown_field': 'value'}
+
 This order of precedence allows you to change the behavior of a schema for different contexts.
 
 
