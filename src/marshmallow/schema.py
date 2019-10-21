@@ -89,6 +89,7 @@ class SchemaMeta(type):
     names to field objects. Also sets the ``opts`` class attribute, which is
     the Schema class's ``class Meta`` options.
     """
+
     def __new__(mcs, name, bases, attrs, combine_opts=False):
         """
         :param combine_opts: If true, create a new SchemaOpts and Meta subclass from both parents
@@ -116,7 +117,9 @@ class SchemaMeta(type):
         meta = klass.Meta
         if combine_opts and len(bases) > 1:
             # Create a new options class that combines all the base classes
-            combined_opts = type(name + 'Opts', tuple(set([base.OPTIONS_CLASS for base in bases])), {})
+            combined_opts = type(
+                name + "Opts", tuple({base.OPTIONS_CLASS for base in bases}), {}
+            )
             # Instantiate the options class as we normally do
             klass.opts = combined_opts(meta, ordered=ordered)
         else:

@@ -18,7 +18,7 @@ from marshmallow import (
     INCLUDE,
     RAISE,
     class_registry,
-    SchemaOpts
+    SchemaOpts,
 )
 from marshmallow.exceptions import (
     ValidationError,
@@ -2772,8 +2772,10 @@ class TestFromDict:
 class TestCombineOpts:
     def test_basic(self):
         """
-        Create two options classes, each belonging to a schema, then combine the two schemas using inheritance
-        When combine_opts == True, we should have both options being stored in self.opts. Otherwise, we won't get any
+        Create two options classes, each belonging to a schema, then combine the two
+        schemas using inheritance. When combine_opts == True, we should have both options
+        being stored in self.opts. Otherwise, we should only get options defined in the
+        first options class stored in self.opts.
         """
 
         class Opts1(SchemaOpts):
@@ -2804,10 +2806,12 @@ class TestCombineOpts:
                 opt_1 = True
                 opt_2 = True
 
-        # Without using combine_opts, we should only get options defined by the first options class
+        # Without using combine_opts, we should only get options defined by the first
+        # options class
         assert NotCombined().opts.opt_1
-        assert not hasattr(NotCombined().opts, 'opt_2')
+        assert not hasattr(NotCombined().opts, "opt_2")
 
-        # However when we use combine_opts=True, we should get options defined by both options classes
+        # However when we use combine_opts=True, we should get options defined by both
+        # options classes
         assert Combined().opts.opt_1
         assert Combined().opts.opt_2
