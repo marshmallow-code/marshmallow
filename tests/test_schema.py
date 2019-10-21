@@ -45,8 +45,8 @@ from tests.base import (
     Blog,
 )
 
-random.seed(1)
 
+random.seed(1)
 
 # Run tests with both verbose serializer and 'meta' option serializer
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
@@ -638,6 +638,7 @@ def test_invalid_dict_but_okay():
 
 def test_json_module_is_deprecated():
     with pytest.deprecated_call():
+
         class UserJSONSchema(Schema):
             name = fields.String()
 
@@ -780,6 +781,7 @@ def test_load_errors_with_many():
 
 def test_error_raised_if_fields_option_is_not_list():
     with pytest.raises(ValueError):
+
         class BadSchema(Schema):
             name = fields.String()
 
@@ -789,6 +791,7 @@ def test_error_raised_if_fields_option_is_not_list():
 
 def test_error_raised_if_additional_option_is_not_list():
     with pytest.raises(ValueError):
+
         class BadSchema(Schema):
             name = fields.String()
 
@@ -1581,8 +1584,8 @@ def test_meta_fields_mapping(user):
     assert type(s.fields["time_registered"]._field_cache[fields.Time]) == fields.Time
     assert type(s.fields["birthdate"]._field_cache[fields.Date]) == fields.Date
     assert (
-            type(s.fields["since_created"]._field_cache[fields.TimeDelta])
-            == fields.TimeDelta
+        type(s.fields["since_created"]._field_cache[fields.TimeDelta])
+        == fields.TimeDelta
     )
 
 
@@ -1605,6 +1608,7 @@ def test_exclude_fields(user):
 
 def test_fields_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
+
         class BadFields(Schema):
             class Meta:
                 fields = "name"
@@ -1612,6 +1616,7 @@ def test_fields_option_must_be_list_or_tuple():
 
 def test_exclude_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
+
         class BadExclude(Schema):
             class Meta:
                 exclude = "name"
@@ -1693,6 +1698,7 @@ def test_additional(user):
 
 def test_cant_set_both_additional_and_fields(user):
     with pytest.raises(ValueError):
+
         class BadSchema(Schema):
             name = fields.String()
 
@@ -2489,7 +2495,6 @@ class TestFieldInheritance:
                 ("field_d", fields.String()),
             ]
         )
-
         # Diamond inheritance graph
         # MRO: D -> B -> C -> A
 
