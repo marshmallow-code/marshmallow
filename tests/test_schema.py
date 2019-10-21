@@ -2770,7 +2770,7 @@ class TestFromDict:
 
 
 class TestCombineOpts:
-    def test_basic(self):
+    def test_different_opts(self):
         """
         Create two options classes, each belonging to a schema, then combine the two
         schemas using inheritance. When combine_opts == True, we should have both options
@@ -2815,3 +2815,31 @@ class TestCombineOpts:
         # options classes
         assert Combined().opts.opt_1
         assert Combined().opts.opt_2
+
+    def test_same_opts(self):
+        """
+        Ensure this behaviour still works if the two parent schemas have the same opts
+        class
+        """
+
+        class Opts1(SchemaOpts):
+            def __init__(self, meta, **kwargs):
+                super().__init__(meta, **kwargs)
+                self.opt_1 = getattr(meta, "opt_1", None)
+
+        class Schema1(Schema):
+            OPTIONS_CLASS = Opts1
+            Field1 = fields.String()
+
+        class Schema2(Schema):
+            OPTIONS_CLASS = Opts1
+            Field2 = fields.String()
+
+        class Combined(Schema1, Schema2, combine_opts=True):
+            class Meta:
+                opt_1 = True
+                opt_2 = True
+
+        # However when we use combine_opts=True, we should get options defined by both
+        # options classes
+        assert Combined().opts.opt_1
