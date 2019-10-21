@@ -89,8 +89,12 @@ class SchemaMeta(type):
     names to field objects. Also sets the ``opts`` class attribute, which is
     the Schema class's ``class Meta`` options.
     """
+    def __new__(mcs, name, bases, attrs, combine_opts=False):
+        """
+        :param combine_opts: If true, create a new SchemaOpts and Meta subclass from both parents
+        """
 
-    def __new__(mcs, name, bases, attrs):
+        # Collect fields and construct the class
         meta = attrs.get("Meta")
         ordered = getattr(meta, "ordered", False)
         if not ordered:
@@ -108,10 +112,20 @@ class SchemaMeta(type):
         klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
+        # Instantiate the options class using class Meta
         meta = klass.Meta
-        # Set klass.opts in __new__ rather than __init__ so that it is accessible in
-        # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+        if combine_opts and len(bases) > 1:
+            # Create a new class Meta that combines all the base classes
+            # meta = type(name + 'Meta', tuple(set([base.Meta for base in bases])), {})
+            # Create a new options class that combines all the base classes
+            combined_opts = type(name + 'Opts', tuple(set([base.OPTIONS_CLASS for base in bases])), {})
+            # Instantiate the options class as we normally do
+            klass.opts = combined_opts(meta, ordered=ordered)
+        else:
+            # Set klass.opts in __new__ rather than __init__ so that it is accessible in
+            # get_declared_fields
+            klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+
         # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
@@ -146,7 +160,7 @@ class SchemaMeta(type):
         """
         return dict_cls(inherited_fields + cls_fields)
 
-    def __init__(cls, name, bases, attrs):
+    def __init__(cls, name, bases, attrs, combine_opts=False):
         super().__init__(name, bases, attrs)
         if name and cls.opts.register:
             class_registry.register(name, cls)

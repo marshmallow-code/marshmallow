@@ -18,6 +18,7 @@ from marshmallow import (
     INCLUDE,
     RAISE,
     class_registry,
+    SchemaOpts
 )
 from marshmallow.exceptions import (
     ValidationError,
@@ -44,8 +45,8 @@ from tests.base import (
     Blog,
 )
 
-
 random.seed(1)
+
 
 # Run tests with both verbose serializer and 'meta' option serializer
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
@@ -637,7 +638,6 @@ def test_invalid_dict_but_okay():
 
 def test_json_module_is_deprecated():
     with pytest.deprecated_call():
-
         class UserJSONSchema(Schema):
             name = fields.String()
 
@@ -780,7 +780,6 @@ def test_load_errors_with_many():
 
 def test_error_raised_if_fields_option_is_not_list():
     with pytest.raises(ValueError):
-
         class BadSchema(Schema):
             name = fields.String()
 
@@ -790,7 +789,6 @@ def test_error_raised_if_fields_option_is_not_list():
 
 def test_error_raised_if_additional_option_is_not_list():
     with pytest.raises(ValueError):
-
         class BadSchema(Schema):
             name = fields.String()
 
@@ -1583,8 +1581,8 @@ def test_meta_fields_mapping(user):
     assert type(s.fields["time_registered"]._field_cache[fields.Time]) == fields.Time
     assert type(s.fields["birthdate"]._field_cache[fields.Date]) == fields.Date
     assert (
-        type(s.fields["since_created"]._field_cache[fields.TimeDelta])
-        == fields.TimeDelta
+            type(s.fields["since_created"]._field_cache[fields.TimeDelta])
+            == fields.TimeDelta
     )
 
 
@@ -1607,7 +1605,6 @@ def test_exclude_fields(user):
 
 def test_fields_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
-
         class BadFields(Schema):
             class Meta:
                 fields = "name"
@@ -1615,7 +1612,6 @@ def test_fields_option_must_be_list_or_tuple():
 
 def test_exclude_option_must_be_list_or_tuple():
     with pytest.raises(ValueError):
-
         class BadExclude(Schema):
             class Meta:
                 exclude = "name"
@@ -1697,7 +1693,6 @@ def test_additional(user):
 
 def test_cant_set_both_additional_and_fields(user):
     with pytest.raises(ValueError):
-
         class BadSchema(Schema):
             name = fields.String()
 
@@ -2494,6 +2489,7 @@ class TestFieldInheritance:
                 ("field_d", fields.String()),
             ]
         )
+
         # Diamond inheritance graph
         # MRO: D -> B -> C -> A
 
@@ -2766,3 +2762,47 @@ class TestFromDict:
         dumped = OSchema().dump({"foo": 42, "bar": 24})
         assert isinstance(dumped, OrderedDict)
         assert "bar" not in dumped
+
+
+class TestCombineOpts:
+    def test_basic(self):
+        """
+        Create two options classes, each belonging to a schema, then combine the two schemas using inheritance
+        When combine_opts == True, we should have both options being stored in self.opts. Otherwise, we won't get any
+        """
+
+        class Opts1(SchemaOpts):
+            def __init__(self, meta, **kwargs):
+                super().__init__(meta, **kwargs)
+                self.opt_1 = getattr(meta, "opt_1", None)
+
+        class Schema1(Schema):
+            OPTIONS_CLASS = Opts1
+            Field1 = fields.String()
+
+        class Opts2(SchemaOpts):
+            def __init__(self, meta, **kwargs):
+                super().__init__(meta, **kwargs)
+                self.opt_2 = getattr(meta, "opt_2", None)
+
+        class Schema2(Schema):
+            OPTIONS_CLASS = Opts2
+            Field2 = fields.String()
+
+        class NotCombined(Schema1, Schema2, combine_opts=False):
+            class Meta:
+                opt_1 = True
+                opt_2 = True
+
+        class Combined(Schema1, Schema2, combine_opts=True):
+            class Meta:
+                opt_1 = True
+                opt_2 = True
+
+        # Without using combine_opts, we should only get options defined by the first options class
+        assert NotCombined().opts.opt_1
+        assert not hasattr(NotCombined().opts, 'opt_2')
+
+        # However when we use combine_opts=True, we should get options defined by both options classes
+        assert Combined().opts.opt_1
+        assert Combined().opts.opt_2
