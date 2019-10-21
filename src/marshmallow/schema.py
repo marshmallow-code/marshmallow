@@ -115,8 +115,6 @@ class SchemaMeta(type):
         # Instantiate the options class using class Meta
         meta = klass.Meta
         if combine_opts and len(bases) > 1:
-            # Create a new class Meta that combines all the base classes
-            # meta = type(name + 'Meta', tuple(set([base.Meta for base in bases])), {})
             # Create a new options class that combines all the base classes
             combined_opts = type(name + 'Opts', tuple(set([base.OPTIONS_CLASS for base in bases])), {})
             # Instantiate the options class as we normally do
