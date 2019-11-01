@@ -1196,12 +1196,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             processor_kwargs = processor.__marshmallow_hook__[key]
             pass_original = processor_kwargs.get("pass_original", False)
 
-            if pass_many:
-                if pass_original:
-                    data = processor(data, original_data, many=many, **kwargs)
-                else:
-                    data = processor(data, many=many, **kwargs)
-            elif many:
+            if many and not pass_many:
                 if pass_original:
                     data = [
                         processor(item, original, many=many, **kwargs)
