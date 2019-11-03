@@ -16,6 +16,8 @@ class Validator:
         add a useful `__repr__` implementation for validators.
     """
 
+    error = None  # type: typing.Optional[str]
+
     def __repr__(self) -> str:
         args = self._repr_args()
         args = "{}, ".format(args) if args else ""
@@ -95,7 +97,7 @@ class URL(Validator):
         error: str = None
     ):
         self.relative = relative
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
         self.schemes = schemes or self.default_schemes
         self.require_tld = require_tld
 
@@ -153,7 +155,7 @@ class Email(Validator):
     default_message = "Not a valid email address."
 
     def __init__(self, *, error: str = None):
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
 
     def _format_error(self, value) -> typing.Any:
         return self.error.format(input=value)
@@ -336,7 +338,7 @@ class Equal(Validator):
 
     def __init__(self, comparable, *, error: str = None):
         self.comparable = comparable
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
         return "comparable={!r}".format(self.comparable)
@@ -377,7 +379,7 @@ class Regexp(Validator):
         self.regex = (
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
         )
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
         return "regex={!r}".format(self.regex)
@@ -408,7 +410,7 @@ class Predicate(Validator):
 
     def __init__(self, method: str, *, error: str = None, **kwargs):
         self.method = method
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
         self.kwargs = kwargs
 
     def _repr_args(self) -> str:
@@ -439,7 +441,7 @@ class NoneOf(Validator):
     def __init__(self, iterable: typing.Iterable, *, error: str = None):
         self.iterable = iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
         return "iterable={!r}".format(self.iterable)
@@ -479,7 +481,7 @@ class OneOf(Validator):
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
         self.labels_text = ", ".join(str(label) for label in self.labels)
-        self.error = error or self.default_message
+        self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
         return "choices={!r}, labels={!r}".format(self.choices, self.labels)
