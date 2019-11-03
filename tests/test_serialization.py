@@ -598,7 +598,7 @@ class TestFieldSerialization:
         assert len(result) == 2
 
     def test_list_field_work_with_generators_empty_generator_returns_none_for_every_non_returning_yield_statement(  # noqa: B950
-        self
+        self,
     ):
         def custom_generator():
             yield
