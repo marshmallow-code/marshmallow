@@ -1308,12 +1308,19 @@ class TestSchemaDeserialization:
         class AliasingUserSerializer(Schema):
             name = fields.String()
             years = fields.Integer(dump_only=True)
+            size = fields.Integer(dump_only=True, load_only=True)
             nicknames = fields.List(fields.Str(), dump_only=True)
 
-        data = {"name": "Mick", "years": "42", "nicknames": ["Your Majesty", "Brenda"]}
+        data = {
+            "name": "Mick",
+            "years": "42",
+            "size": "12",
+            "nicknames": ["Your Majesty", "Brenda"],
+        }
         result = AliasingUserSerializer(unknown=EXCLUDE).load(data)
         assert result["name"] == "Mick"
         assert "years" not in result
+        assert "size" not in result
         assert "nicknames" not in result
 
     def test_deserialize_with_missing_param_value(self):

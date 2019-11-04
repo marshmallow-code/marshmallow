@@ -969,12 +969,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         load_fields, dump_fields = self.dict_class(), self.dict_class()
         for field_name, field_obj in fields_dict.items():
-            if field_obj.load_only:
+            if not field_obj.dump_only:
                 load_fields[field_name] = field_obj
-            elif field_obj.dump_only:
-                dump_fields[field_name] = field_obj
-            else:
-                load_fields[field_name] = field_obj
+            if not field_obj.load_only:
                 dump_fields[field_name] = field_obj
 
         dump_data_keys = [

@@ -77,6 +77,25 @@ class TestFieldSerialization:
         with pytest.raises(AttributeError):
             field.serialize("key", user)
 
+    def test_serialize_with_load_only_param(self):
+        class AliasingUserSerializer(Schema):
+            name = fields.String()
+            years = fields.Integer(load_only=True)
+            size = fields.Integer(dump_only=True, load_only=True)
+            nicknames = fields.List(fields.Str(), load_only=True)
+
+        data = {
+            "name": "Mick",
+            "years": "42",
+            "size": "12",
+            "nicknames": ["Your Majesty", "Brenda"],
+        }
+        result = AliasingUserSerializer().dump(data)
+        assert result["name"] == "Mick"
+        assert "years" not in result
+        assert "size" not in result
+        assert "nicknames" not in result
+
     def test_function_field_load_only(self):
         field = fields.Function(deserialize=lambda obj: None)
         assert field.load_only
