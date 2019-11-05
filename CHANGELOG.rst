@@ -11,7 +11,7 @@ Bug fixes:
 
 Support:
 
-- Test against Python 3.8 (pr:`1431`).
+- Test against Python 3.8 (:pr:`1431`).
 
 3.2.1 (2019-09-30)
 ++++++++++++++++++
