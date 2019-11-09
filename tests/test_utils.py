@@ -45,6 +45,40 @@ def test_get_value_from_namedtuple_with_default():
     assert utils.get_value(p, "y", default=123) is None
 
 
+class Square:
+
+    def __init__(self, p1: tuple, side_length):
+        self.p1 = p1
+        self.side_length = side_length
+
+    @property
+    def p2_fail(self):
+        return self.p1 + self.non_existent_property
+
+    # # p3 is not defined
+    # @property
+    # def p3_not_defined(self):
+    #     pass
+
+    @property
+    def favorite_food(self):
+        raise Exception
+
+    @property
+    def p4(self):
+        return self.p1[0]+self.side_length, self.p1[1]+self.side_length
+
+
+def test_get_property_value_from_object():
+    sq = Square(p1=(0, 0), side_length=1)
+    assert utils.get_value(sq, "p4") == (1, 1)
+    assert utils.get_value(sq, "p3_not_defined") == utils.missing
+    with pytest.raises(Exception):
+        utils.get_value(sq, "favorite_food")
+    with pytest.raises(AttributeError):
+        utils.get_value(sq, "p2_fail")
+
+
 class Triangle:
     def __init__(self, p1, p2, p3):
         self.p1 = p1
