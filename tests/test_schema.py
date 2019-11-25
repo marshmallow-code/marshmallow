@@ -300,8 +300,14 @@ def test_load_unknown(val):
     class Inner(Schema):
         name = fields.String()
 
+        class Meta:
+            unknown = RAISE
+
     class Outer(Schema):
         inner = fields.Nested(Inner)
+
+        class Meta:
+            unknown = RAISE
 
     assert Outer().load(val, unknown=EXCLUDE) == {"inner": {"name": "name"}}
 
