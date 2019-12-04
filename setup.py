@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "mypy==0.720",
-        "flake8==3.7.8",
+        "mypy==0.750",
+        "flake8==3.7.9",
         "flake8-bugbear==19.8.0",
-        "pre-commit~=1.17",
+        "pre-commit~=1.20",
     ],
     "docs": [
-        "sphinx==2.2.0",
+        "sphinx==2.2.2",
         "sphinx-issues==1.2.0",
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
@@ -80,6 +80,7 @@ setup(
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
     ],
     test_suite="tests",
     project_urls={

@@ -139,3 +139,4 @@ Contributors (chronological)
 - Charles-Axel Dein `@charlax <https://github.com/charlax>`_
 - `@phrfpeixoto <https://github.com/phrfpeixoto>`_
 - `@jceresini <https://github.com/jceresini>`_
+- Nikolay Shebanov `@killthekitten <https://github.com/killthekitten>`_

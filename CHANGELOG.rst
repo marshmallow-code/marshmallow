@@ -1,6 +1,40 @@
 Changelog
 ---------
 
+3.2.2 (2019-11-04)
+******************
+
+Bug fixes:
+
+- Don't load fields for which ``load_only`` and ``dump_only`` are both ``True`` (:pr:`1448`). 
+- Fix types in ``marshmallow.validate`` (:pr:`1446`).
+
+Support:
+
+- Test against Python 3.8 (:pr:`1431`).
+
+3.2.1 (2019-09-30)
+++++++++++++++++++
+
+Bug fixes:
+
+- Fix typing for ``Schema.dump[s]`` (:pr:`1416`).
+
+3.2.0 (2019-09-17)
+++++++++++++++++++
+
+Features:
+
+- Add type annotations to ``marshmallow.schema`` and ``marshmallow.validate`` (:pr:`1407`, :issue:`663`).
+
+Bug fixes:
+
+- Fix compatibility with Python < 3.5.3 (:issue:`1409`). Thanks :user:`lukaszdudek-silvair` for reporting.
+
+Refactoring:
+
+- Remove unnecessary ``BaseSchema`` superclass (:pr:`1406`).
+
 3.1.1 (2019-09-16)
 ++++++++++++++++++
 

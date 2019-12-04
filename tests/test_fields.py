@@ -215,7 +215,7 @@ class TestErrorMessages:
     ]
 
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(
-        self
+        self,
     ):
         field = self.MyField()
         assert field.error_messages["custom"] == "Custom error message."

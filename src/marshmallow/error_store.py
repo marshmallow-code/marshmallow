@@ -54,7 +54,7 @@ def merge_errors(errors1, errors2):
             return errors
         return dict(errors1, **{SCHEMA: merge_errors(errors1.get(SCHEMA), errors2)})
     if isinstance(errors2, list):
-        return [errors1] + errors2 if errors2 else errors1
+        return [errors1] + errors2
     if isinstance(errors2, dict):
         return dict(errors2, **{SCHEMA: merge_errors(errors1, errors2.get(SCHEMA))})
     return [errors1, errors2]

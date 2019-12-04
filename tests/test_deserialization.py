@@ -1010,7 +1010,7 @@ class TestFieldDeserialization:
             field.deserialize("invalid")
 
     def test_field_deserialization_with_user_validator_that_raises_error_with_list(
-        self
+        self,
     ):
         def validator(val):
             raise ValidationError(["err1", "err2"])
@@ -1258,7 +1258,7 @@ class TestSchemaDeserialization:
         assert load_data == {"bar": {"baz": 42}}
 
     def test_deserialize_with_attribute_param_error_returns_field_name_not_attribute_name(
-        self
+        self,
     ):
         class AliasingUserSerializer(Schema):
             username = fields.Email(attribute="email")
@@ -1271,7 +1271,7 @@ class TestSchemaDeserialization:
         assert errors["username"] == ["Not a valid email address."]
 
     def test_deserialize_with_attribute_param_error_returns_data_key_not_attribute_name(
-        self
+        self,
     ):
         class AliasingUserSerializer(Schema):
             name = fields.String(data_key="Name")
@@ -1308,12 +1308,19 @@ class TestSchemaDeserialization:
         class AliasingUserSerializer(Schema):
             name = fields.String()
             years = fields.Integer(dump_only=True)
+            size = fields.Integer(dump_only=True, load_only=True)
             nicknames = fields.List(fields.Str(), dump_only=True)
 
-        data = {"name": "Mick", "years": "42", "nicknames": ["Your Majesty", "Brenda"]}
+        data = {
+            "name": "Mick",
+            "years": "42",
+            "size": "12",
+            "nicknames": ["Your Majesty", "Brenda"],
+        }
         result = AliasingUserSerializer(unknown=EXCLUDE).load(data)
         assert result["name"] == "Mick"
         assert "years" not in result
+        assert "size" not in result
         assert "nicknames" not in result
 
     def test_deserialize_with_missing_param_value(self):
