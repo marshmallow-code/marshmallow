@@ -289,6 +289,29 @@ def test_load_many_in_nested_empty_collection(val):
     assert Outer().load({"list1": val, "list2": val}) == {"list1": [], "list2": []}
 
 
+@pytest.mark.parametrize(
+    "val",
+    (
+        {"inner": {"name": "name"}, "unknown": 1},
+        {"inner": {"name": "name", "unknown_nested": 1}, "unknown": 1},
+    ),
+)
+def test_load_unknown(val):
+    class Inner(Schema):
+        name = fields.String()
+
+        class Meta:
+            unknown = RAISE
+
+    class Outer(Schema):
+        inner = fields.Nested(Inner)
+
+        class Meta:
+            unknown = RAISE
+
+    assert Outer().load(val, unknown=EXCLUDE) == {"inner": {"name": "name"}}
+
+
 def test_loads_returns_a_user():
     s = UserSchema()
     result = s.loads(json.dumps({"name": "Monty"}))

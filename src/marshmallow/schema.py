@@ -652,6 +652,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
+                d_kwargs["unknown"] = unknown
                 getter = lambda val: field_obj.deserialize(
                     val, field_name, data, **d_kwargs
                 )
@@ -665,6 +666,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 if value is not missing:
                     key = field_obj.attribute or attr_name
                     set_value(typing.cast(typing.Dict, ret), key, value)
+            unknown = unknown or self.unknown
             if unknown != EXCLUDE:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
@@ -701,7 +703,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-            If `None`, the value for `self.unknown` is used.
+            If `None`, the value for `self.unknown` is used. When used, provided
+            value is propagated to the loading of nested schemas.
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -709,6 +712,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             This method returns the deserialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
+        .. versionchanged:: 3.2.2
+            The ``unknown`` parameter value is propagated to the loading of nested schemas.
         """
         return self._do_load(
             data, many=many, partial=partial, unknown=unknown, postprocess=True
@@ -823,7 +828,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
-        unknown = unknown or self.unknown
         if partial is None:
             partial = self.partial
         # Run preprocessors
