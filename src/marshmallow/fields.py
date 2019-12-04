@@ -474,11 +474,6 @@ class Nested(Field):
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
-    .. versionchanged:: 3.1.0
-        Deprecated ``only``, ``exclude``, and ``unknown`` parameters.
-        Pass these to the schema instance instead.
-        ``many`` was also deprecated in favor of the ``List(Nested(...))`` usage.
     """
 
     default_error_messages = {"type": "Invalid type."}
