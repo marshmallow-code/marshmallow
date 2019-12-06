@@ -1025,9 +1025,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         try:
             field_obj._bind_to_schema(field_name, self)
         except TypeError as error:
-            # Field declared as a class, not an instance. Type ignore because
-            # we handle unsupported arg types -> this is dead code from
-            # typechecker's perspective.
+            # Field declared as a class, not an instance. Ignore type checking because
+            # we handle unsupported arg types, i.e. this is dead code from
+            # the type checker's perspective.
             if isinstance(field_obj, type) and issubclass(  # type: ignore
                 field_obj, base.FieldABC
             ):
