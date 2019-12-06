@@ -22,7 +22,7 @@ Schemas can be nested to represent relationships between objects (e.g. foreign k
             self.title = title
             self.author = author  # A User object
 
-Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema class.
+Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema.
 
 .. code-block:: python
 
@@ -53,24 +53,24 @@ The serialized blog will have the nested user representation.
     #             'created_at': '2014-08-17T14:58:57.600623+00:00'}}
 
 .. note::
-    If the field is a collection of nested objects, you must set ``many=True``.
+    If the field is a collection of nested objects, pass the `Nested <marshmallow.fields.Nested>` field to `List <marshmallow.fields.List>`.
 
     .. code-block:: python
 
-        collaborators = fields.Nested(UserSchema, many=True)
+        collaborators = fields.List(fields.Nested(UserSchema))
 
 .. _specifying-nested-fields:
 
 Specifying Which Fields to Nest
 -------------------------------
 
-You can explicitly specify which attributes of the nested objects you want to serialize with the ``only`` argument.
+You can explicitly specify which attributes of the nested objects you want to (de)serialize with the ``only`` argument to the schema.
 
 .. code-block:: python
 
     class BlogSchema2(Schema):
         title = fields.String()
-        author = fields.Nested(UserSchema, only=["email"])
+        author = fields.Nested(UserSchema(only=("email",)))
 
 
     schema = BlogSchema2()
@@ -81,7 +81,7 @@ You can explicitly specify which attributes of the nested objects you want to se
     #     'author': {'email': u'monty@python.org'}
     # }
 
-You can represent the attributes of deeply nested objects using dot delimiters.
+Dotted paths may be passed to ``only`` and ``exclude`` to specify nested attributes.
 
 .. code-block:: python
 
@@ -89,7 +89,7 @@ You can represent the attributes of deeply nested objects using dot delimiters.
         blog = fields.Nested(BlogSchema2)
 
 
-    schema = SiteSchema(only=["blog.author.email"])
+    schema = SiteSchema(only=("blog.author.email",))
     result = schema.dump(site)
     pprint(result)
     # {
@@ -124,8 +124,6 @@ You can replace nested data with a single value (or flat list of values if ``man
     #     "friends": [{"name": "Mike"}, {"name": "Joe"}]
     # }
 
-
-You can also exclude fields by passing in an ``exclude`` list. This argument also allows representing the attributes of deeply nested objects using dot delimiters.
 
 .. _partial-loading:
 
@@ -168,27 +166,29 @@ You can specify a subset of the fields to allow partial loading using dot delimi
 Two-way Nesting
 ---------------
 
-If you have two objects that nest each other, you can refer to a nested schema by its class name. This allows you to nest Schemas that have not yet been defined.
+If you have two objects that nest each other, you can pass a callable to `Nested <marshmallow.fields.Nested>`.
+This allows you to resolve order-of-declaration issues, such as when one schema nests a schema that is declared below it.
 
-
-For example, a representation of an ``Author`` model might include the books that have a foreign-key (many-to-one) relationship to it. Correspondingly, a representation of a ``Book`` will include its author representation.
+For example, a representation of an ``Author`` model might include the books that have a many-to-one relationship to it.
+Correspondingly, a representation of a ``Book`` will include its author representation.
 
 .. code-block:: python
 
-    class AuthorSchema(Schema):
-        # Make sure to use the 'only' or 'exclude' params
-        # to avoid infinite recursion
-        books = fields.Nested("BookSchema", many=True, exclude=("author",))
-
-        class Meta:
-            fields = ("id", "name", "books")
-
-
     class BookSchema(Schema):
-        author = fields.Nested(AuthorSchema, only=("id", "name"))
+        id = fields.Int(dump_only=True)
+        title = fields.Str()
 
-        class Meta:
-            fields = ("id", "title", "author")
+        # Make sure to use the 'only' or 'exclude'
+        # to avoid infinite recursion
+        author = fields.Nested(lambda: AuthorSchema(only=("id", "title")))
+
+
+    class AuthorSchema(Schema):
+        id = fields.Int(dump_only=True)
+        title = fields.Str()
+
+        books = fields.List(fields.Nested(BookSchema(exclude=("author",))))
+
 
 .. code-block:: python
 
@@ -221,27 +221,54 @@ For example, a representation of an ``Author`` model might include the books tha
     #   ]
     # }
 
-.. note::
-    If you need to, you can also pass the full, module-qualified path to `fields.Nested`. ::
+You can also pass a class name as a string to `Nested <marshmallow.fields.Nested>`.
+This is useful for avoiding circular imports when your schemas are located in different modules.
 
-        books = fields.Nested('path.to.BookSchema',
-                              many=True, exclude=('author', ))
+.. code-block:: python
+
+    # books.py
+    from marshmallow import Schema, fields
+
+
+    class BookSchema(Schema):
+        id = fields.Int(dump_only=True)
+        title = fields.Str()
+
+        author = fields.Nested("AuthorSchema", only=("id", "title"))
+
+.. code-block:: python
+
+    # authors.py
+    from marshmallow import Schema, fields
+
+
+    class AuthorSchema(Schema):
+        id = fields.Int(dump_only=True)
+        title = fields.Str()
+
+        books = fields.List(fields.Nested("BookSchema", exclude=("author",)))
+
+.. note::
+
+    If you have multiple schemas with the same class name, you must pass the full, module-qualified path. ::
+
+        author = fields.Nested("authors.BookSchema", only=("id", "title"))
 
 .. _self-nesting:
 
 Nesting A Schema Within Itself
 ------------------------------
 
-If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing ``"self"`` (with quotes) to the :class:`Nested <marshmallow.fields.Nested>` constructor.
+If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing a callable that returns an instance of the same schema.
 
 .. code-block:: python
 
     class UserSchema(Schema):
         name = fields.String()
         email = fields.Email()
-        friends = fields.Nested("self", many=True)
         # Use the 'exclude' argument to avoid infinite recursion
-        employer = fields.Nested("self", exclude=("employer",), default=None)
+        employer = fields.Nested(lambda: UserSchema(exclude=("employer",)))
+        friends = fields.List(fields.Nested(lambda: UserSchema()))
 
 
     user = User("Steve", "steve@example.com")
