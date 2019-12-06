@@ -33,8 +33,8 @@ As an example, you might have a JSON endpoint for retrieving all information abo
 
     class GameStateSchema(Schema):
         _id = fields.UUID(required=True)
-        players = fields.Nested(PlayerSchema, many=True)
         score = fields.Nested(ScoreSchema)
+        players = fields.List(fields.Nested(PlayerSchema))
         last_changed = fields.DateTime(format="rfc")
 
         class Meta:

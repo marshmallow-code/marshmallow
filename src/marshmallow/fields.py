@@ -437,10 +437,19 @@ class Nested(Field):
 
     Examples: ::
 
-        user = fields.Nested(UserSchema)
-        user2 = fields.Nested('UserSchema')  # Equivalent to above
-        collaborators = fields.Nested(UserSchema, many=True, only=('id',))
-        parent = fields.Nested('self')
+        class ChildSchema(Schema):
+            id = fields.Str()
+            name = fields.Str()
+            # Use lambda functions when you need two-way nesting or self-nesting
+            parent = fields.Nested(lambda: ParentSchema(only=("id",)), dump_only=True)
+            siblings = fields.List(fields.Nested(lambda: ChildSchema(only=("id", "name"))))
+
+        class ParentSchema(Schema):
+            id = fields.Str()
+            children = fields.List(
+                fields.Nested(ChildSchema(only=("id", "parent", "siblings")))
+            )
+            spouse = fields.Nested(lambda: ParentSchema(only=("id",)))
 
     When passing a `Schema <marshmallow.Schema>` instance as the first argument,
     the instance's ``exclude``, ``only``, and ``many`` attributes will be respected.
@@ -471,7 +480,7 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: typing.Union[SchemaABC, type, str],
+        nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         *,
         default: typing.Any = missing_,
         only: types.StrSequenceOrSet = None,
@@ -486,6 +495,12 @@ class Nested(Field):
         if exclude is not None and not is_collection(exclude):
             raise StringNotCollectionError(
                 '"exclude" should be a collection of strings.'
+            )
+        if nested == "self":
+            warnings.warn(
+                "Passing 'self' to `Nested` is deprecated. "
+                "Use `Nested(lambda: MySchema(...))` instead.",
+                DeprecationWarning,
             )
         self.nested = nested
         self.only = only
@@ -505,8 +520,13 @@ class Nested(Field):
         if not self._schema:
             # Inherit context from parent.
             context = getattr(self.parent, "context", {})
-            if isinstance(self.nested, SchemaABC):
-                self._schema = copy.copy(self.nested)
+            if callable(self.nested) and not isinstance(self.nested, type):
+                nested = self.nested()
+            else:
+                nested = self.nested
+
+            if isinstance(nested, SchemaABC):
+                self._schema = copy.copy(nested)
                 self._schema.context.update(context)
                 # Respect only and exclude passed from parent and re-initialize fields
                 set_class = self._schema.set_class
@@ -521,20 +541,17 @@ class Nested(Field):
                     self._schema.exclude = set_class(self.exclude).union(original)
                 self._schema._init_fields()
             else:
-                if isinstance(self.nested, type) and issubclass(self.nested, SchemaABC):
-                    schema_class = self.nested
-                elif not isinstance(self.nested, (str, bytes)):
+                if isinstance(nested, type) and issubclass(nested, SchemaABC):
+                    schema_class = nested
+                elif not isinstance(nested, (str, bytes)):
                     raise ValueError(
-                        "Nested fields must be passed a "
-                        "Schema, not {}.".format(self.nested.__class__)
+                        "`Nested` fields must be passed a "
+                        "`Schema`, not {}.".format(nested.__class__)
                     )
-                elif self.nested == "self":
-                    ret = self
-                    while not isinstance(ret, SchemaABC):
-                        ret = ret.parent
-                    schema_class = ret.__class__
+                elif nested == "self":
+                    schema_class = self.root.__class__
                 else:
-                    schema_class = class_registry.get_class(self.nested)
+                    schema_class = class_registry.get_class(nested)
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,
