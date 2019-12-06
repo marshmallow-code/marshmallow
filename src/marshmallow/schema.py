@@ -373,7 +373,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
             raise StringNotCollectionError('"only" should be a list of strings')
-        if exclude is not None and not is_collection(exclude):
+        if not is_collection(exclude):
             raise StringNotCollectionError('"exclude" should be a list of strings')
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
@@ -1025,9 +1025,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         try:
             field_obj._bind_to_schema(field_name, self)
         except TypeError as error:
-            # field declared as a class, not an instance
-            if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
-                msg = (
+            # Field declared as a class, not an instance. Ignore type checking because
+            # we handle unsupported arg types, i.e. this is dead code from
+            # the type checker's perspective.
+            if isinstance(field_obj, type) and issubclass(  # type: ignore
+                field_obj, base.FieldABC
+            ):
+                msg = (  # type: ignore
                     'Field for "{}" must be declared as a '
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)

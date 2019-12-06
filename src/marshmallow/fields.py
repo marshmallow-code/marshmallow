@@ -492,7 +492,7 @@ class Nested(Field):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
             raise StringNotCollectionError('"only" should be a collection of strings.')
-        if exclude is not None and not is_collection(exclude):
+        if not is_collection(exclude):
             raise StringNotCollectionError(
                 '"exclude" should be a collection of strings.'
             )
