@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.3.0 (unreleased)
+3.3.0 (2019-12-05)
 ******************
 
 Features:
@@ -54,7 +54,8 @@ Deprecations:
 
 Other changes:
 
-- Make mypy stricter and remove dead code (:pr:`1467`). Thanks :user:`hukkinj1`.
+- Fix typing for ``Number._format_num`` (:pr:`1466`). Thanks :user:`hukkinj1`.
+- Make mypy stricter and remove dead code (:pr:`1467`). Thanks again, :user:`hukkinj1`.
 
 3.2.2 (2019-11-04)
 ******************
