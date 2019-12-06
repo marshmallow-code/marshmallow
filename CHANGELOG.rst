@@ -52,6 +52,10 @@ Deprecations:
         partner = fields.Nested(lambda: PersonSchema(exclude=("partner")))
         friends = fields.List(fields.Nested(lambda: PersonSchema()))
 
+Other changes:
+
+- Make mypy stricter and remove dead code (:pr:`1467`). Thanks :user:`hukkinj1`.
+
 3.2.2 (2019-11-04)
 ******************
 
