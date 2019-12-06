@@ -7,7 +7,7 @@ Changelog
 Features:
 
 - ``fields.Nested`` may take a callable that returns a schema instance.
-  Use this to resolve order-of-declaration issues when schemas nest each other.
+  Use this to resolve order-of-declaration issues when schemas nest each other (:issue:`1146`).
 
 .. code-block:: python
 
