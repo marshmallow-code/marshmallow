@@ -886,7 +886,7 @@ class Number(Field):
         self.as_string = as_string
         super().__init__(**kwargs)
 
-    def _format_num(self, value) -> _T:
+    def _format_num(self, value) -> typing.Any:
         """Return the number value for value, given this field's `num_type`."""
         return self.num_type(value)
 
