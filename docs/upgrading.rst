@@ -3,17 +3,17 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
-Upgrading to 3.1
+Upgrading to 3.3
 ++++++++++++++++
 
-In 3.1, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance. 
+In 3.3, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance. 
 Use this to resolve order-of-declaration issues when schemas nest each other.
 
 .. code-block:: python
 
     from marshmallow import Schema, fields
 
-    # <3.1
+    # <3.3
     class AlbumSchema(Schema):
         title = fields.Str()
         artist = fields.Nested("ArtistSchema", only=("name",))
@@ -24,7 +24,7 @@ Use this to resolve order-of-declaration issues when schemas nest each other.
         albums = fields.List(fields.Nested(AlbumSchema))
 
 
-    # >=3.1
+    # >=3.3
     class AlbumSchema(Schema):
         title = fields.Str()
         artist = fields.Nested(lambda: ArtistSchema(only=("name",)))
@@ -41,13 +41,13 @@ Passing ``"self"`` is deprecated.
 
     from marshmallow import Schema, fields
 
-    # <3.1
+    # <3.3
     class PersonSchema(Schema):
         partner = fields.Nested("self", exclude=("partner",))
         friends = fields.List(fields.Nested("self"))
 
 
-    # >=3.1
+    # >=3.3
     class PersonSchema(Schema):
         partner = fields.Nested(lambda: PersonSchema(exclude=("partner")))
         friends = fields.List(fields.Nested(lambda: PersonSchema()))
