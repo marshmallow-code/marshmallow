@@ -3,6 +3,7 @@ import decimal
 import random
 import math
 from collections import namedtuple, OrderedDict
+import pickle
 
 import simplejson as json
 
@@ -2880,3 +2881,6 @@ class TestFromDict:
         dumped = OSchema().dump({"foo": 42, "bar": 24})
         assert isinstance(dumped, OrderedDict)
         assert "bar" not in dumped
+
+    def test_generated_schema_can_be_pickled(self):
+        pickle.dumps(Schema.from_dict({"foo": fields.Str()}))
