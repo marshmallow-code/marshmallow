@@ -943,6 +943,10 @@ class Integer(Number):
             ):
                 return super()._validated(value)
             raise self.make_error("invalid", input=value)
+
+        if value is True or value is False:
+            value = self._format_num(value)
+
         return super()._validated(value)
 
 
