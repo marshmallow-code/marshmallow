@@ -5,3 +5,4 @@ Validators
 
 .. automodule:: marshmallow.validate
     :members:
+    :autosummary:

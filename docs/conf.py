@@ -15,6 +15,7 @@ extensions = [
     "alabaster",
     "sphinx_issues",
     "versionwarning.extension",
+    "autodocsumm",
 ]
 
 primary_domain = "py"
