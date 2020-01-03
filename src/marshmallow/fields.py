@@ -5,6 +5,7 @@ import copy
 import datetime as dt
 import numbers
 import uuid
+import ipaddress
 import decimal
 import math
 import typing
@@ -50,6 +51,7 @@ __all__ = [
     "Url",
     "URL",
     "Email",
+    "IP",
     "Method",
     "Function",
     "Str",
@@ -1627,6 +1629,42 @@ class Email(String):
         original_validators = list(self.validators)
         validator = validate.Email(error=self.error_messages["invalid"])
         self.validators = [validator] + original_validators
+
+
+class IP(String):
+    """A IP address field."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IP address."}
+
+    def _validated(
+        self, value
+    ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
+        if isinstance(value, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
+            return value
+        try:
+            if isinstance(value, (int, bytes)):
+                # ip_address function is flexible in the terms of input value. In the case of
+                # marshalling, integer and binary address representation parsing may lead to
+                # confusion.
+                raise TypeError(
+                    "Only dot-decimal and hexadecimal groups notations are supported. "
+                    "Got %s."
+                )
+            return ipaddress.ip_address(value)
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip") from error
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        val = str(value) if value is not None else None
+        return super()._serialize(val, attr, obj, **kwargs)
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
+        return self._validated(value)
 
 
 class Method(Field):

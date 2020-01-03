@@ -1,5 +1,6 @@
 import datetime as dt
 import uuid
+import ipaddress
 import decimal
 import math
 
@@ -840,6 +841,38 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
 
         assert excinfo.value.args[0] == "Not a valid UUID."
+
+    def test_ip_field_deserialization(self):
+        field = fields.IP()
+        ipv4_str = "140.82.118.3"
+        result = field.deserialize(ipv4_str)
+        assert isinstance(result, ipaddress.IPv4Address)
+        assert str(result) == ipv4_str
+
+        ipv4 = ipaddress.ip_address("172.217.16.206")
+        result = field.deserialize(ipv4)
+        assert isinstance(result, ipaddress.IPv4Address)
+        assert result == ipv4
+
+        ipv6_str = "2a00:1450:4001:824::200e"
+        result = field.deserialize(ipv6_str)
+        assert isinstance(result, ipaddress.IPv6Address)
+        assert str(result) == ipv6_str
+
+        ipv6 = ipaddress.ip_address("2a00:1450:4001:81d::200e")
+        result = field.deserialize(ipv6)
+        assert isinstance(result, ipaddress.IPv6Address)
+        assert result == ipv6
+
+    @pytest.mark.parametrize(
+        "in_value", ["malformed", 123, b"\x01\x02\03", "192.168", "ff::aa:1::2"]
+    )
+    def test_invalid_ip_deserialization(self, in_value):
+        field = fields.IP()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(in_value)
+
+        assert excinfo.value.args[0] == "Not a valid IP address."
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):
