@@ -1650,8 +1650,7 @@ class IP(String):
                 # marshalling, integer and binary address representation parsing may lead to
                 # confusion.
                 raise TypeError(
-                    "Only dot-decimal and hexadecimal groups notations are supported. "
-                    "Got %s."
+                    "Only dot-decimal and hexadecimal groups notations are supported."
                 )
             return ipaddress.ip_address(value)
         except (ValueError, TypeError) as error:
