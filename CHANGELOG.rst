@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.4.0 (unreleased)
+******************
+
+Features:
+
+- Improve type coverage (:issue:`1479`). Thanks :user:`Reskov`.
+
 3.3.0 (2019-12-05)
 ******************
 
