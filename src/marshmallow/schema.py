@@ -579,7 +579,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def _deserialize(
         self,
-        data: typing.Union[typing.Dict, typing.Iterable],
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
         error_store: ErrorStore,
         many: bool = False,
@@ -613,7 +616,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     typing.cast(
                         _T,
                         self._deserialize(
-                            d,
+                            typing.cast(typing.Mapping[str, typing.Any], d),
                             error_store=error_store,
                             many=False,
                             partial=partial,
@@ -684,7 +687,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def load(
         self,
-        data: typing.Mapping,
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
@@ -797,7 +803,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def _do_load(
         self,
-        data: typing.Mapping,
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
