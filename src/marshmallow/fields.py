@@ -1672,6 +1672,50 @@ class IP(String):
         return self._validated(value)
 
 
+class IPv4(IP):
+    """A IPv4 address field."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
+
+    def _validated(self, value) -> typing.Optional[ipaddress.IPv4Address]:
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
+        try:
+            if isinstance(value, (int, bytes)):
+                raise TypeError("Only dot-decimal notation is supported.")
+            return ipaddress.IPv4Address(value)
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip") from error
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[ipaddress.IPv4Address]:
+        return self._validated(value)
+
+
+class IPv6(IP):
+    """A IPv6 address field."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
+
+    def _validated(self, value) -> typing.Optional[ipaddress.IPv6Address]:
+        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+        if value is None:
+            return None
+        try:
+            if isinstance(value, (int, bytes)):
+                raise TypeError("Only dot-decimal notation is supported.")
+            return ipaddress.IPv6Address(value)
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip") from error
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[ipaddress.IPv6Address]:
+        return self._validated(value)
+
+
 class Method(Field):
     """A field that takes the value returned by a `Schema` method.
 
