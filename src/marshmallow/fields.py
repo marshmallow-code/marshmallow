@@ -1712,7 +1712,7 @@ class IPv6(IP):
             return None
         try:
             if isinstance(value, (int, bytes)):
-                raise TypeError("Only dot-decimal notation is supported.")
+                raise TypeError("Only hexadecimal groups notation is supported.")
             return ipaddress.IPv6Address(value)
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
