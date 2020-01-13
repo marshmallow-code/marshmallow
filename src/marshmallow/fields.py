@@ -52,6 +52,8 @@ __all__ = [
     "URL",
     "Email",
     "IP",
+    "IPv4",
+    "IPv6",
     "Method",
     "Function",
     "Str",
