@@ -1656,10 +1656,6 @@ class IP(String):
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
-    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
-        val = str(value) if value is not None else None
-        return super()._serialize(val, attr, obj, **kwargs)
-
     def _deserialize(
         self, value, attr, data, **kwargs
     ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
