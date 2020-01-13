@@ -1642,8 +1642,6 @@ class IP(String):
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         if value is None:
             return None
-        if isinstance(value, (ipaddress.IPv4Address, ipaddress.IPv6Address)):
-            return value
         try:
             if isinstance(value, (int, bytes)):
                 # ip_address function is flexible in the terms of input value. In the case of
