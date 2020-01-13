@@ -636,7 +636,12 @@ class Pluck(Nested):
     :param kwargs: The same keyword arguments that :class:`Nested` receives.
     """
 
-    def __init__(self, nested, field_name, **kwargs):
+    def __init__(
+        self,
+        nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
+        field_name: str,
+        **kwargs
+    ):
         super().__init__(nested, only=(field_name,), **kwargs)
         self.field_name = field_name
 
@@ -884,7 +889,7 @@ class Number(Field):
         "too_large": "Number too large.",
     }
 
-    def __init__(self, *, as_string=False, **kwargs):
+    def __init__(self, *, as_string: bool = False, **kwargs):
         self.as_string = as_string
         super().__init__(**kwargs)
 
@@ -962,7 +967,7 @@ class Float(Number):
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
 
-    def __init__(self, *, allow_nan=False, as_string=False, **kwargs):
+    def __init__(self, *, allow_nan: bool = False, as_string: bool = False, **kwargs):
         self.allow_nan = allow_nan
         super().__init__(as_string=as_string, **kwargs)
 
@@ -1739,7 +1744,7 @@ class Method(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize=None, deserialize=None, **kwargs):
+    def __init__(self, serialize: str = None, deserialize: str = None, **kwargs):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
         kwargs["load_only"] = bool(deserialize) and not bool(serialize)
@@ -1839,7 +1844,7 @@ class Constant(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, constant, **kwargs):
+    def __init__(self, constant: typing.Any, **kwargs):
         super().__init__(**kwargs)
         self.constant = constant
         self.missing = constant
