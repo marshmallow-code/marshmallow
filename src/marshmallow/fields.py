@@ -1632,9 +1632,16 @@ class Email(String):
 
 
 class IP(String):
-    """A IP address field."""
+    """A IP address field.
+
+    :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
+        consisting entirely of zeros included."""
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
+
+    def __init__(self, *args, exploded=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exploded = exploded
 
     def _validated(
         self, value
@@ -1653,6 +1660,11 @@ class IP(String):
             return ipaddress.ip_address(value)
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is not None and self.exploded:
+            value = value.exploded
+        return super()._serialize(value, attr, obj, **kwargs)
 
     def _deserialize(
         self, value, attr, data, **kwargs
