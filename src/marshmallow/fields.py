@@ -865,10 +865,6 @@ class UUID(String):
         except (ValueError, AttributeError, TypeError) as error:
             raise self.make_error("invalid_uuid") from error
 
-    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
-        val = str(value) if value is not None else None
-        return super()._serialize(val, attr, obj, **kwargs)
-
     def _deserialize(self, value, attr, data, **kwargs) -> typing.Optional[uuid.UUID]:
         return self._validated(value)
 
