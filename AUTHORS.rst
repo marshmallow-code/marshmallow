@@ -142,4 +142,5 @@ Contributors (chronological)
 - Nikolay Shebanov `@killthekitten <https://github.com/killthekitten>`_
 - Taneli Hukkinen `@hukkinj1 <https://github.com/hukkinj1>`_
 - `@Reskov <https://github.com/Reskov>`_
+- Albert Tugushev `@atugushev <https://github.com/atugushev>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_

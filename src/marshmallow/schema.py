@@ -242,14 +242,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         from marshmallow import Schema, fields
 
+
         @dataclass
         class Album:
             title: str
             release_date: dt.date
 
+
         class AlbumSchema(Schema):
             title = fields.Str()
             release_date = fields.Date()
+
 
         album = Album("Beggars Banquet", dt.date(1968, 12, 6))
         schema = AlbumSchema()
