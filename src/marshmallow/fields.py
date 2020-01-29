@@ -1634,7 +1634,7 @@ class Email(String):
         self.validators = [validator] + original_validators
 
 
-class IP(String):
+class IP(Field):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
@@ -1665,9 +1665,11 @@ class IP(String):
             raise self.make_error("invalid_ip") from error
 
     def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
-        if value is not None and self.exploded:
-            value = value.exploded
-        return super()._serialize(value, attr, obj, **kwargs)
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
 
     def _deserialize(
         self, value, attr, data, **kwargs
