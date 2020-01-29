@@ -7,7 +7,7 @@ EXTRAS_REQUIRE = {
         "mypy==0.761",
         "flake8==3.7.9",
         "flake8-bugbear==20.1.3",
-        "pre-commit~=1.20",
+        "pre-commit>=1.20,<3.0",
     ],
     "docs": [
         "sphinx==2.3.1",
