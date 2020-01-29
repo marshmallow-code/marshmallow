@@ -1646,10 +1646,16 @@ class IP(Field):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
 
-    def _validated(
-        self, value
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
     ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
-        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         if value is None:
             return None
         try:
@@ -1664,26 +1670,15 @@ class IP(Field):
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
-    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
-        if value is None:
-            return None
-        if self.exploded:
-            return value.exploded
-        return value.compressed
-
-    def _deserialize(
-        self, value, attr, data, **kwargs
-    ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
-        return self._validated(value)
-
 
 class IPv4(IP):
     """A IPv4 address field."""
 
     default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
 
-    def _validated(self, value) -> typing.Optional[ipaddress.IPv4Address]:
-        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[ipaddress.IPv4Address]:
         if value is None:
             return None
         try:
@@ -1693,19 +1688,15 @@ class IPv4(IP):
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
-    def _deserialize(
-        self, value, attr, data, **kwargs
-    ) -> typing.Optional[ipaddress.IPv4Address]:
-        return self._validated(value)
-
 
 class IPv6(IP):
     """A IPv6 address field."""
 
     default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
 
-    def _validated(self, value) -> typing.Optional[ipaddress.IPv6Address]:
-        """Format the value or raise a :exc:`ValidationError` if an error occurs."""
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[ipaddress.IPv6Address]:
         if value is None:
             return None
         try:
@@ -1714,11 +1705,6 @@ class IPv6(IP):
             return ipaddress.IPv6Address(value)
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
-
-    def _deserialize(
-        self, value, attr, data, **kwargs
-    ) -> typing.Optional[ipaddress.IPv6Address]:
-        return self._validated(value)
 
 
 class Method(Field):
