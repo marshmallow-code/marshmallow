@@ -727,6 +727,16 @@ class TestFieldSerialization:
         res = field.serialize("foo", {"foo": None})
         assert res is None
 
+    def test_list_of_nested_allow_none_serialize_none_to_none(self):
+        field = fields.List(fields.Nested(Schema(), allow_none=True))
+        res = field.serialize("foo", {"foo": [None, {}]})
+        assert res == [None, {}]
+
+    def test_nested_multiple_allow_none_serialize_none_to_none(self):
+        field = fields.Nested(Schema(), allow_none=True, many=True)
+        res = field.serialize("foo", {"foo": [None, {}]})
+        assert res == [None, {}]
+
 
 class TestSchemaSerialization:
     def test_serialize_with_missing_param_value(self):

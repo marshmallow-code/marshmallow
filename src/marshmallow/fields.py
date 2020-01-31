@@ -577,6 +577,13 @@ class Nested(Field):
         if nested_obj is None:
             return None
         many = schema.many or self.many or many
+        if many and self.allow_none:
+            ret = schema.dump(
+                [obj for obj in nested_obj if obj is not None], many=self.many or many
+            )
+            for none_index in (i for i, obj in enumerate(nested_obj) if obj is None):
+                ret.insert(none_index, None)
+            return ret
         return schema.dump(nested_obj, many=self.many or many)
 
     def _test_collection(self, value, many=False):
@@ -587,9 +594,19 @@ class Nested(Field):
     def _load(self, value, data, partial=None, many=False):
         many = self.schema.many or self.many or many
         try:
-            valid_data = self.schema.load(
-                value, unknown=self.unknown, partial=partial, many=many
-            )
+            if many and self.allow_none:
+                valid_data = self.schema.load(
+                    [obj for obj in value if obj is not None],
+                    unknown=self.unknown,
+                    partial=partial,
+                    many=many,
+                )
+                for none_index in (i for i, obj in enumerate(value) if obj is None):
+                    valid_data.insert(none_index, None)
+            else:
+                valid_data = self.schema.load(
+                    value, unknown=self.unknown, partial=partial, many=many
+                )
         except ValidationError as error:
             raise ValidationError(
                 error.messages, valid_data=error.valid_data
