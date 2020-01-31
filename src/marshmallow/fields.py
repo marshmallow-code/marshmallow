@@ -562,17 +562,17 @@ class Nested(Field):
             if field.startswith(nested_field)
         ]
 
-    def _serialize(self, nested_obj, attr, obj, many=False, **kwargs):
+    def _serialize(self, nested_obj, attr, obj, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
         if nested_obj is None:
             return None
-        many = schema.many or self.many or many
-        return schema.dump(nested_obj, many=self.many or many)
+        many = schema.many or self.many
+        return schema.dump(nested_obj, many=many)
 
-    def _test_collection(self, value, many=False):
-        many = self.schema.many or self.many or many
+    def _test_collection(self, value):
+        many = self.schema.many or self.many
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
@@ -704,9 +704,6 @@ class List(Field):
     ) -> typing.Optional[typing.List[typing.Any]]:
         if value is None:
             return None
-        # Optimize dumping a list of Nested objects by calling dump(many=True)
-        if isinstance(self.inner, Nested) and not self.inner.many:
-            return self.inner._serialize(value, attr, obj, many=True, **kwargs)
         return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
