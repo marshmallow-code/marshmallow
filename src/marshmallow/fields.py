@@ -1596,7 +1596,7 @@ class Url(String):
             require_tld=self.require_tld,
             error=self.error_messages["invalid"],
         )
-        self.validators.append(validator)
+        self.validators.insert(0, validator)
 
 
 class Email(String):
@@ -1613,7 +1613,7 @@ class Email(String):
         super().__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
         validator = validate.Email(error=self.error_messages["invalid"])
-        self.validators.append(validator)
+        self.validators.insert(0, validator)
 
 
 class Method(Field):

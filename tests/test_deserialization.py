@@ -1428,7 +1428,7 @@ class TestSchemaDeserialization:
             MySchema().load({"email": "foo"})
         errors = excinfo.value.messages
         assert len(errors["email"]) == 2
-        assert any("Not a valid email address." in e for e in errors["email"])
+        assert "Not a valid email address." in errors["email"][0]
 
     def test_multiple_errors_can_be_stored_for_a_url_field(self):
         def validate_with_bool(val):
@@ -1441,7 +1441,7 @@ class TestSchemaDeserialization:
             MySchema().load({"url": "foo"})
         errors = excinfo.value.messages
         assert len(errors["url"]) == 2
-        assert any("Not a valid URL." in e for e in errors["url"])
+        assert "Not a valid URL." in errors["url"][0]
 
     def test_required_value_only_passed_to_validators_if_provided(self):
         class MySchema(Schema):
