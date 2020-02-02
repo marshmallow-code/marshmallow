@@ -7,6 +7,10 @@ Changelog
 Features:
 
 - Improve type coverage (:issue:`1479`). Thanks :user:`Reskov`.
+
+Other changes:
+
+- Remove unnecessary typecasts (:pr:`1500`). Thanks :user:`hukkinj1`. 
 - Remove useless ``_serialize`` override in ``UUID`` field (:pr:`1489`).
 
 3.3.0 (2019-12-05)
