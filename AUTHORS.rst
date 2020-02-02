@@ -143,3 +143,4 @@ Contributors (chronological)
 - Taneli Hukkinen `@hukkinj1 <https://github.com/hukkinj1>`_
 - `@Reskov <https://github.com/Reskov>`_
 - Albert Tugushev `@atugushev <https://github.com/atugushev>`_
+- `@dfirst <https://github.com/dfirst>`_

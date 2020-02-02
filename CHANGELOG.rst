@@ -8,6 +8,11 @@ Features:
 
 - Improve type coverage (:issue:`1479`). Thanks :user:`Reskov`.
 
+Bug fixes:
+
+- Fix typing for ``data`` param of ``Schema.load`` and ``ValidationError`` (:issue:`1492`).
+  Thanks :user:`mehdigmira` for reporting and thanks :user:`dfirst` for the PR.
+
 Other changes:
 
 - Remove unnecessary typecasts (:pr:`1500`). Thanks :user:`hukkinj1`. 
