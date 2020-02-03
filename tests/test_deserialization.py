@@ -38,6 +38,15 @@ class TestDeserializingNone:
         field = fields.Tuple([fields.String()], allow_none=True)
         assert field.deserialize(None) is None
 
+    def test_list_of_nested_allow_none_deserialize_none_to_none(self):
+        field = fields.List(fields.Nested(Schema(), allow_none=True))
+        assert field.deserialize([None]) == [None]
+
+    def test_list_of_nested_non_allow_none_deserialize_none_to_validation_error(self):
+        field = fields.List(fields.Nested(Schema(), allow_none=False))
+        with pytest.raises(ValidationError):
+            field.deserialize([None])
+
 
 class TestFieldDeserialization:
     def test_float_field_deserialization(self):
