@@ -164,20 +164,12 @@ class Field(FieldABC):
         self.attribute = attribute
         self.data_key = data_key
         self.validate = validate
-        if utils.is_iterable_but_not_string(validate):
-            if not utils.is_generator(validate):
-                self.validators = typing.cast(
-                    typing.Sequence[typing.Callable[[typing.Any], typing.Any]], validate
-                )
-            else:
-                validators = typing.cast(
-                    typing.Sequence[typing.Callable[[typing.Any], typing.Any]], validate
-                )
-                self.validators = list(validators)
+        if validate is None:
+            self.validators = []
         elif callable(validate):
             self.validators = [validate]
-        elif validate is None:
-            self.validators = []
+        elif utils.is_iterable_but_not_string(validate):
+            self.validators = list(validate)
         else:
             raise ValueError(
                 "The 'validate' parameter must be a callable "
@@ -1602,18 +1594,13 @@ class Url(String):
         self.relative = relative
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be stored.
-        original_validators = list(self.validators)
-        # FIXME: Why doesn't mypy think validate.URL is a callable here?
-        validator = typing.cast(
-            typing.Callable[[typing.Any], typing.Any],
-            validate.URL(
-                relative=self.relative,
-                schemes=schemes,
-                require_tld=self.require_tld,
-                error=self.error_messages["invalid"],
-            ),
+        validator = validate.URL(
+            relative=self.relative,
+            schemes=schemes,
+            require_tld=self.require_tld,
+            error=self.error_messages["invalid"],
         )
-        self.validators = [validator] + original_validators
+        self.validators.insert(0, validator)
 
 
 class Email(String):
@@ -1629,9 +1616,8 @@ class Email(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
-        original_validators = list(self.validators)
         validator = validate.Email(error=self.error_messages["invalid"])
-        self.validators = [validator] + original_validators
+        self.validators.insert(0, validator)
 
 
 class IP(Field):
