@@ -849,20 +849,10 @@ class TestFieldDeserialization:
         assert isinstance(result, ipaddress.IPv4Address)
         assert str(result) == ipv4_str
 
-        ipv4 = ipaddress.ip_address("172.217.16.206")
-        result = field.deserialize(ipv4)
-        assert isinstance(result, ipaddress.IPv4Address)
-        assert result == ipv4
-
         ipv6_str = "2a00:1450:4001:824::200e"
         result = field.deserialize(ipv6_str)
         assert isinstance(result, ipaddress.IPv6Address)
         assert str(result) == ipv6_str
-
-        ipv6 = ipaddress.ip_address("2a00:1450:4001:81d::200e")
-        result = field.deserialize(ipv6)
-        assert isinstance(result, ipaddress.IPv6Address)
-        assert result == ipv6
 
     @pytest.mark.parametrize(
         "in_value", ["malformed", 123, b"\x01\x02\03", "192.168", "ff::aa:1::2"]
@@ -881,11 +871,6 @@ class TestFieldDeserialization:
         assert isinstance(result, ipaddress.IPv4Address)
         assert str(result) == ipv4_str
 
-        ipv4 = ipaddress.ip_address("172.217.16.206")
-        result = field.deserialize(ipv4)
-        assert isinstance(result, ipaddress.IPv4Address)
-        assert result == ipv4
-
     @pytest.mark.parametrize(
         "in_value",
         ["malformed", 123, b"\x01\x02\03", "192.168", "2a00:1450:4001:81d::200e"],
@@ -903,11 +888,6 @@ class TestFieldDeserialization:
         result = field.deserialize(ipv6_str)
         assert isinstance(result, ipaddress.IPv6Address)
         assert str(result) == ipv6_str
-
-        ipv6 = ipaddress.ip_address("2a00:1450:4001:81d::200e")
-        result = field.deserialize(ipv6)
-        assert isinstance(result, ipaddress.IPv6Address)
-        assert result == ipv6
 
     @pytest.mark.parametrize(
         "in_value", ["malformed", 123, b"\x01\x02\03", "ff::aa:1::2", "192.168.0.1"]
