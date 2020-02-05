@@ -146,8 +146,7 @@ class Field(FieldABC):
         attribute: str = None,
         validate: typing.Union[
             typing.Callable[[typing.Any], typing.Any],
-            typing.Sequence[typing.Callable[[typing.Any], typing.Any]],
-            typing.Generator[typing.Callable[[typing.Any], typing.Any], None, None],
+            typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
         ] = None,
         required: bool = False,
         allow_none: bool = None,
