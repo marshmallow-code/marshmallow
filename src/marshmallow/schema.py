@@ -133,7 +133,7 @@ class SchemaMeta(type):
         inherited_fields: typing.List,
         dict_cls: type,
     ):
-        """Returns a dictionary of field_name => `Field` pairs declard on the class.
+        """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
         computed from class Meta options.
 
