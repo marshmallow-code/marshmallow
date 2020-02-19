@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.5.0 (2020-02-19)
+******************
+
+Bug fixes:
+
+- Fix list of nullable nested fields ``List(Nested(Field, allow_none=True)``
+  (:issue:`1497`). Because this fix reverts an optimization introduced to
+  speed-up serialization and deserialization of lists of nested fields, a
+  negative impact on performance in this specific case is expected.
+
 3.4.0 (2020-02-02)
 ******************
 
@@ -15,7 +25,7 @@ Bug fixes:
 
 Other changes:
 
-- Remove unnecessary typecasts (:pr:`1500`). Thanks :user:`hukkinj1`. 
+- Remove unnecessary typecasts (:pr:`1500`). Thanks :user:`hukkinj1`.
 - Remove useless ``_serialize`` override in ``UUID`` field (:pr:`1489`).
 
 3.3.0 (2019-12-05)

@@ -144,4 +144,5 @@ Contributors (chronological)
 - `@Reskov <https://github.com/Reskov>`_
 - Albert Tugushev `@atugushev <https://github.com/atugushev>`_
 - `@dfirst <https://github.com/dfirst>`_
+- Tim Gates `@timgates42 <https://github.com/timgates42>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_
