@@ -561,33 +561,30 @@ class Nested(Field):
             if field.startswith(nested_field)
         ]
 
-    def _serialize(self, nested_obj, attr, obj, many=False, **kwargs):
+    def _serialize(self, nested_obj, attr, obj, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
         if nested_obj is None:
             return None
-        many = schema.many or self.many or many
-        return schema.dump(nested_obj, many=self.many or many)
+        many = schema.many or self.many
+        return schema.dump(nested_obj, many=many)
 
-    def _test_collection(self, value, many=False):
-        many = self.schema.many or self.many or many
+    def _test_collection(self, value):
+        many = self.schema.many or self.many
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
-    def _load(self, value, data, partial=None, many=False):
-        many = self.schema.many or self.many or many
+    def _load(self, value, data, partial=None):
         try:
-            valid_data = self.schema.load(
-                value, unknown=self.unknown, partial=partial, many=many
-            )
+            valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
         except ValidationError as error:
             raise ValidationError(
                 error.messages, valid_data=error.valid_data
             ) from error
         return valid_data
 
-    def _deserialize(self, value, attr, data, partial=None, many=False, **kwargs):
+    def _deserialize(self, value, attr, data, partial=None, **kwargs):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
@@ -596,8 +593,8 @@ class Nested(Field):
         .. versionchanged:: 3.0.0
             Add ``partial`` parameter.
         """
-        self._test_collection(value, many=many)
-        return self._load(value, data, partial=partial, many=many)
+        self._test_collection(value)
+        return self._load(value, data, partial=partial)
 
 
 class Pluck(Nested):
@@ -703,17 +700,11 @@ class List(Field):
     ) -> typing.Optional[typing.List[typing.Any]]:
         if value is None:
             return None
-        # Optimize dumping a list of Nested objects by calling dump(many=True)
-        if isinstance(self.inner, Nested) and not self.inner.many:
-            return self.inner._serialize(value, attr, obj, many=True, **kwargs)
         return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
-        # Optimize loading a list of Nested objects by calling load(many=True)
-        if isinstance(self.inner, Nested) and not self.inner.many:
-            return self.inner.deserialize(value, many=True, **kwargs)
 
         result = []
         errors = {}
