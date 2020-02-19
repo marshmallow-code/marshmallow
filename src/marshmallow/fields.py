@@ -1645,7 +1645,7 @@ class IP(Field):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)):
+            if not isinstance(value, str):
                 # ip_address function is flexible in the terms of input value. In the case of
                 # marshalling, integer and binary address representation parsing may lead to
                 # confusion.
@@ -1668,7 +1668,7 @@ class IPv4(IP):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)):
+            if not isinstance(value, str):
                 raise TypeError("Only dot-decimal notation is supported.")
             return ipaddress.IPv4Address(value)
         except (ValueError, TypeError) as error:
@@ -1686,7 +1686,7 @@ class IPv6(IP):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)):
+            if not isinstance(value, str):
                 raise TypeError("Only hexadecimal groups notation is supported.")
             return ipaddress.IPv6Address(value)
         except (ValueError, TypeError) as error:
