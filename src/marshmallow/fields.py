@@ -1624,16 +1624,13 @@ class IP(Field):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
-        consisting entirely of zeros included.
-    :param bool allow_decimal: If `True`, accept decimal IP address representations while
-        deserializing.."""
+        consisting entirely of zeros included."""
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
-    def __init__(self, *args, exploded=False, allow_decimal=False, **kwargs):
+    def __init__(self, *args, exploded=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
-        self.allow_decimal = allow_decimal
 
     def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
         if value is None:
@@ -1648,7 +1645,7 @@ class IP(Field):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)) and not self.allow_decimal:
+            if isinstance(value, (int, bytes)):
                 # ip_address function is flexible in the terms of input value. In the case of
                 # marshalling, integer and binary address representation parsing may lead to
                 # confusion.
@@ -1671,7 +1668,7 @@ class IPv4(IP):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)) and not self.allow_decimal:
+            if isinstance(value, (int, bytes)):
                 raise TypeError("Only dot-decimal notation is supported.")
             return ipaddress.IPv4Address(value)
         except (ValueError, TypeError) as error:
@@ -1689,7 +1686,7 @@ class IPv6(IP):
         if value is None:
             return None
         try:
-            if isinstance(value, (int, bytes)) and not self.allow_decimal:
+            if isinstance(value, (int, bytes)):
                 raise TypeError("Only hexadecimal groups notation is supported.")
             return ipaddress.IPv6Address(value)
         except (ValueError, TypeError) as error:
