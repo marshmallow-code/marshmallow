@@ -92,3 +92,4 @@ Contributors (chronological)
 - Kim Gustyr `@khvn26 <https://github.com/khvn26>`_
 - Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
 - Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
+- Nathan `@nbanmp <https://github.com/nbanmp>`_
