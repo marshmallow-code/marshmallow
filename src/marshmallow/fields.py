@@ -1756,7 +1756,7 @@ class Function(Field):
             typing.Callable[[typing.Any], typing.Any],
             typing.Callable[[typing.Any, typing.Dict], typing.Any],
         ] = None,
-        **kwargs,
+        **kwargs
     ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
