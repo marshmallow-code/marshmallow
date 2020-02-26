@@ -1635,14 +1635,7 @@ class IP(Field):
         if value is None:
             return None
         try:
-            if not isinstance(value, str):
-                # ip_address function is flexible in the terms of input value. In the case of
-                # marshalling, integer and binary address representation parsing may lead to
-                # confusion.
-                raise TypeError(
-                    "Only dot-decimal and hexadecimal groups notations are supported."
-                )
-            return ipaddress.ip_address(value)
+            return ipaddress.ip_address(utils.ensure_text_type(value))
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
@@ -1658,9 +1651,7 @@ class IPv4(IP):
         if value is None:
             return None
         try:
-            if not isinstance(value, str):
-                raise TypeError("Only dot-decimal notation is supported.")
-            return ipaddress.IPv4Address(value)
+            return ipaddress.IPv4Address(utils.ensure_text_type(value))
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
@@ -1676,9 +1667,7 @@ class IPv6(IP):
         if value is None:
             return None
         try:
-            if not isinstance(value, str):
-                raise TypeError("Only hexadecimal groups notation is supported.")
-            return ipaddress.IPv6Address(value)
+            return ipaddress.IPv6Address(utils.ensure_text_type(value))
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
@@ -1767,7 +1756,7 @@ class Function(Field):
             typing.Callable[[typing.Any], typing.Any],
             typing.Callable[[typing.Any, typing.Dict], typing.Any],
         ] = None,
-        **kwargs
+        **kwargs,
     ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
