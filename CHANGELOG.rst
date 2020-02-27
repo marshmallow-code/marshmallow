@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+2.21.0 (unreleased)
++++++++++++++++++++
+
+Other changes:
+
+- Drop support for Python 3.4 (:pr:`1525`).
+
+
 2.20.5 (2019-09-15)
 +++++++++++++++++++
 
