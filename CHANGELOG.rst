@@ -1,8 +1,13 @@
 Changelog
 ---------
 
-2.21.0 (unreleased)
+2.21.0 (2020-03-05)
 +++++++++++++++++++
+
+Bug fixes:
+
+- Don't match string-ending newlines in ``URL`` and ``Email`` fields
+  (:issue:`1522`). Thanks :user:`nbanmp` for the PR.
 
 Other changes:
 
