@@ -65,7 +65,7 @@ class URL(Validator):
                 r'\[?[A-F0-9]*:[A-F0-9:]+\]?)',  # ...or ipv6
                 r'(?::\d+)?',  # optional port
                 r')?' if relative else r'',  # host is optional, allow for relative URLs
-                r'(?:/?|[/?]\S+)$',
+                r'(?:/?|[/?]\S+)\Z',
             )), re.IGNORECASE)
 
         def __call__(self, relative, require_tld):
@@ -120,18 +120,18 @@ class Email(Validator):
     """
 
     USER_REGEX = re.compile(
-        r"(^[-!#$%&'*+/=?^`{}|~\w]+(\.[-!#$%&'*+/=?^`{}|~\w]+)*$"  # dot-atom
+        r"(^[-!#$%&'*+/=?^`{}|~\w]+(\.[-!#$%&'*+/=?^`{}|~\w]+)*\Z"  # dot-atom
         # quoted-string
         r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-        r'|\\[\001-\011\013\014\016-\177])*"$)', re.IGNORECASE | re.UNICODE)
+        r'|\\[\001-\011\013\014\016-\177])*"\Z)', re.IGNORECASE | re.UNICODE)
 
     DOMAIN_REGEX = re.compile(
         # domain
         r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}|[A-Z0-9-]{2,})$'
+        r'(?:[A-Z]{2,6}|[A-Z0-9-]{2,})\Z'
         # literal form, ipv4 address (SMTP 4.1.3)
         r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
-        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE | re.UNICODE)
+        r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]\Z', re.IGNORECASE | re.UNICODE)
 
     DOMAIN_WHITELIST = ('localhost',)
 
