@@ -145,4 +145,5 @@ Contributors (chronological)
 - Albert Tugushev `@atugushev <https://github.com/atugushev>`_
 - `@dfirst <https://github.com/dfirst>`_
 - Tim Gates `@timgates42 <https://github.com/timgates42>`_
+- Nathan `@nbanmp <https://github.com/nbanmp>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_
