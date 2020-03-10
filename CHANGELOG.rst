@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.5.1 (2020-03-05)
+******************
+
+Bug fixes:
+
+- Includes bug fix from 2.21.0.
+
 3.5.0 (2020-02-19)
 ******************
 
@@ -773,6 +780,18 @@ Deprecation/Removals:
 - Remove ``__error_handler__``, ``__accessor__``, ``@Schema.error_handler``, and ``@Schema.accessor``. Override ``Schema.handle_error`` and ``Schema.get_attribute`` instead.
 - Remove ``func`` parameter of ``fields.Function``. Remove ``method_name`` parameter of ``fields.Method`` (issue:`325`). Use the ``serialize`` parameter instead.
 - Remove ``extra`` parameter from ``Schema``. Use a ``@post_dump`` method to add additional data.
+
+2.21.0 (2020-03-05)
++++++++++++++++++++
+
+Bug fixes:
+
+- Don't match string-ending newlines in ``URL`` and ``Email`` fields
+  (:issue:`1522`). Thanks :user:`nbanmp` for the PR.
+
+Other changes:
+
+- Drop support for Python 3.4 (:pr:`1525`).
 
 2.20.5 (2019-09-15)
 +++++++++++++++++++

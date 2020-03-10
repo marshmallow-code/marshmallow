@@ -41,6 +41,7 @@ def test_url_absolute_valid(valid_url):
         "http:///example.com/",
         "https:///example.com/",
         "https://example.org\\",
+        "https://example.org\n",
         "ftp:///example.com/",
         "ftps:///example.com/",
         "http//example.org",
@@ -85,6 +86,7 @@ def test_url_relative_valid(valid_url):
     "invalid_url",
     [
         "http//example.org",
+        "http://example.org\n",
         "suppliers.html",
         "../icons/logo.gif",
         "icons/logo.gif",
@@ -123,6 +125,7 @@ def test_url_dont_require_tld_valid(valid_url):
     "invalid_url",
     [
         "http//example",
+        "http://example\n",
         "http://.example.org",
         "http:///foo/bar",
         "http:// /foo/bar",
@@ -197,6 +200,8 @@ def test_email_valid(valid_email):
 @pytest.mark.parametrize(
     "invalid_email",
     [
+        "niceandsimple\n@example.com",
+        "NiCeAnDsImPlE@eXaMpLe.CoM\n",
         'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
         'just"not"right@example.com',
         'this is"not\allowed@example.com',
