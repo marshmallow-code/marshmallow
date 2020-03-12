@@ -1040,10 +1040,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             # Field declared as a class, not an instance. Ignore type checking because
             # we handle unsupported arg types, i.e. this is dead code from
             # the type checker's perspective.
-            if isinstance(field_obj, type) and issubclass(  # type: ignore
-                field_obj, base.FieldABC
-            ):
-                msg = (  # type: ignore
+            if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
+                msg = (
                     'Field for "{}" must be declared as a '
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
