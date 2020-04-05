@@ -242,7 +242,9 @@ def _get_value_for_key(obj, key, default):
 
     try:
         return obj[key]
-    except (KeyError, IndexError, TypeError, AttributeError):
+    except (KeyError, IndexError, TypeError, AttributeError) as e:
+        if isinstance(e, KeyError) and type(obj) is dict:
+            return default
         return getattr(obj, key, default)
 
 

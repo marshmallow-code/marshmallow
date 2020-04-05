@@ -800,3 +800,23 @@ def test_nested_field_many_serializing_generator():
     data = OtherSchema().dump(obj)
 
     assert data.get("objects") == [{"name": "foo"}, {"name": "bar"}]
+
+
+def test_missing_update_field_in_dict_processed_properly():
+    """
+    Checking case when a schema has 'update' field
+    and the object to be dumped is a dict
+    and the value for this field is missing
+
+    https://github.com/marshmallow-code/marshmallow/pull/1557
+    :return:
+    """
+
+    class MySchema(Schema):
+        update = fields.Boolean(required=False)
+
+    schema = MySchema()
+    data = schema.dump({})
+    assert data == {}
+    data = schema.dump({"update": True})
+    assert data == {"update": True}
