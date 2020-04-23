@@ -570,16 +570,18 @@ class Nested(Field):
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
-    def _load(self, value, data, partial=None):
+    def _load(self, value, data, partial=None, unknown=None):
         try:
-            valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
+            valid_data = self.schema.load(
+                value, unknown=unknown or self.unknown, partial=partial,
+            )
         except ValidationError as error:
             raise ValidationError(
                 error.messages, valid_data=error.valid_data
             ) from error
         return valid_data
 
-    def _deserialize(self, value, attr, data, partial=None, **kwargs):
+    def _deserialize(self, value, attr, data, partial=None, unknown=None, **kwargs):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
@@ -589,7 +591,7 @@ class Nested(Field):
             Add ``partial`` parameter.
         """
         self._test_collection(value)
-        return self._load(value, data, partial=partial)
+        return self._load(value, data, partial=partial, unknown=unknown)
 
 
 class Pluck(Nested):
