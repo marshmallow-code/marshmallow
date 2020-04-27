@@ -2880,3 +2880,13 @@ class TestFromDict:
         dumped = OSchema().dump({"foo": 42, "bar": 24})
         assert isinstance(dumped, OrderedDict)
         assert "bar" not in dumped
+
+
+def test_class_registry_returns_schema_type():
+    class DefinitelyUniqueSchema(Schema):
+        """
+        Just a schema
+        """
+
+    SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
+    assert SchemaClass is DefinitelyUniqueSchema
