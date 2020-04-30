@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.5.2 (unreleased)
+******************
+
+Bug fixes:
+
+- Fix typing in ``class_registry`` (:pr:`1574`). Thanks :user:`mahenzon`.
+
 3.5.1 (2020-03-05)
 ******************
 
