@@ -13,14 +13,16 @@ from marshmallow.exceptions import RegistryError
 if typing.TYPE_CHECKING:
     from marshmallow import Schema
 
+    SchemaType = typing.Type[Schema]
+
 # {
 #   <class_name>: <list of class objects>
 #   <module_path_to_class>: <list of class objects>
 # }
-_registry = {}  # type: typing.Dict[str, typing.List["Schema"]]
+_registry = {}  # type: typing.Dict[str, typing.List["SchemaType"]]
 
 
-def register(classname: str, cls: "Schema") -> None:
+def register(classname: str, cls: "SchemaType") -> None:
     """Add a class to the registry of serializer classes. When a class is
     registered, an entry for both its classname and its full, module-qualified
     path are added to the registry.
@@ -64,7 +66,7 @@ def register(classname: str, cls: "Schema") -> None:
 
 def get_class(
     classname: str, all: bool = False
-) -> typing.Union[typing.List["Schema"], "Schema"]:
+) -> typing.Union[typing.List["SchemaType"], "SchemaType"]:
     """Retrieve a class from the registry.
 
     :raises: marshmallow.exceptions.RegistryError if the class cannot be found
