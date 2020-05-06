@@ -104,6 +104,10 @@ html_sidebars = {
 
 # sphinx-version-warning config
 versionwarning_messages = {
+    'latest': (
+        'This document is for the development version. '
+        'For the stable version documentation, see <a href="/en/stable/">here</a>.'
+    ),
     '2.x-line': (
         'marshmallow 2 will no longer be supported as of 2020-08-18. '
         '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
