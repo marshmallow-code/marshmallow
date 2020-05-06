@@ -2,7 +2,7 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "tests": ["pytest", "pytest-randomly", "pytz", "simplejson"],
+    "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
         "mypy==0.770",
         "flake8==3.7.9",
