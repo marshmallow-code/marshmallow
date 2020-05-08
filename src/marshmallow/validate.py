@@ -559,7 +559,7 @@ class ContainsNoneOf(NoneOf):
     :param str error: Same as :class:`NoneOf`.
     """
 
-    default_message = "One or more of the choices you made was in: {values}"
+    default_message = "One or more of the choices you made was in: {values}."
 
     def _format_error(self, value) -> str:
         value_text = ", ".join(str(val) for val in value)
