@@ -146,3 +146,4 @@ Contributors (chronological)
 - `@dfirst <https://github.com/dfirst>`_
 - Tim Gates `@timgates42 <https://github.com/timgates42>`_
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
+- Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
