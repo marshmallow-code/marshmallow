@@ -127,17 +127,17 @@ class C:
 
 class ASchema(Schema):
     id = fields.Integer()
-    b = fields.Nested("BSchema", exclude=("a",))
+    b = fields.Nested("tests.test_registry.BSchema", exclude=("a",))
 
 
 class BSchema(Schema):
     id = fields.Integer()
-    a = fields.Nested("ASchema")
+    a = fields.Nested("tests.test_registry.ASchema")
 
 
 class CSchema(Schema):
     id = fields.Integer()
-    bs = fields.Nested("BSchema", many=True)
+    bs = fields.Nested("tests.test_registry.BSchema", many=True)
 
 
 def test_two_way_nesting():

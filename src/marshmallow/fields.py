@@ -171,14 +171,9 @@ class Field(FieldABC):
                 "or a collection of callables."
             )
 
-        # If missing=None, None should be considered valid by default
-        if allow_none is None:
-            if missing is None:
-                self.allow_none = True
-            else:
-                self.allow_none = False
-        else:
-            self.allow_none = allow_none
+        # If allow_none is None and missing is None
+        # None should be considered valid by default
+        self.allow_none = missing is None if allow_none is None else allow_none
         self.load_only = load_only
         self.dump_only = dump_only
         if required is True and missing is not missing_:
