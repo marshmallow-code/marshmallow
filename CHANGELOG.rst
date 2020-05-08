@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.6.0 (unreleased)
+******************
+
+Features:
+
+- Add ``validators.ContainsNoneOf`` (:issue:`1528`).
+  Thanks :user:`Resinderate` for the suggestion and the PR.
+
+
 3.5.2 (2020-04-30)
 ******************
 
