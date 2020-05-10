@@ -41,6 +41,7 @@ def test_url_absolute_valid(valid_url):
         "http:///example.com/",
         "https:///example.com/",
         "https://example.org\\",
+        "https://example.org\n",
         "ftp:///example.com/",
         "ftps:///example.com/",
         "http//example.org",
@@ -85,6 +86,7 @@ def test_url_relative_valid(valid_url):
     "invalid_url",
     [
         "http//example.org",
+        "http://example.org\n",
         "suppliers.html",
         "../icons/logo.gif",
         "icons/logo.gif",
@@ -123,6 +125,7 @@ def test_url_dont_require_tld_valid(valid_url):
     "invalid_url",
     [
         "http//example",
+        "http://example\n",
         "http://.example.org",
         "http:///foo/bar",
         "http:// /foo/bar",
@@ -197,6 +200,8 @@ def test_email_valid(valid_email):
 @pytest.mark.parametrize(
     "invalid_email",
     [
+        "niceandsimple\n@example.com",
+        "NiCeAnDsImPlE@eXaMpLe.CoM\n",
         'a"b(c)d,e:f;g<h>i[j\\k]l@example.com',
         'just"not"right@example.com',
         'this is"not\allowed@example.com',
@@ -752,3 +757,136 @@ def test_containsonly_repr():
     ) == "<ContainsOnly(choices=[1, 2, 3], labels={!r}, error={!r})>".format(
         ["a", "b", "c"], "foo"
     )
+
+
+def test_containsnoneof_error_message():
+    with pytest.raises(
+        ValidationError, match="One or more of the choices you made was in: 1"
+    ):
+        validate.ContainsNoneOf([1])([1])
+
+    with pytest.raises(
+        ValidationError, match="One or more of the choices you made was in: 1, 2, 3"
+    ):
+        validate.ContainsNoneOf([1, 2, 3])([1])
+
+    with pytest.raises(
+        ValidationError, match="One or more of the choices you made was in: one, two"
+    ):
+        validate.ContainsNoneOf(["one", "two"])(["one"])
+
+    with pytest.raises(
+        ValidationError, match="One or more of the choices you made was in: @, !, &, ?"
+    ):
+        validate.ContainsNoneOf("@!&?")("@")
+
+
+def test_containsnoneof_in_list():
+    validate.ContainsNoneOf([])([]) == []
+    validate.ContainsNoneOf([])([1, 2, 3]) == [1, 2, 3]
+    validate.ContainsNoneOf([4])([1, 2, 3]) == [1, 2, 3]
+    validate.ContainsNoneOf([2])([1, 3, 4]) == [1, 3, 4]
+    validate.ContainsNoneOf([1, 2, 3])([4]) == [4]
+    validate.ContainsNoneOf([4])([1, 1, 1, 1]) == [1]
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([1])([1, 2, 3])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([1, 1, 1])([1, 2, 3])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([1, 2])([1, 2])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([1])([1, 1, 1, 1])
+
+
+def test_containsnoneof_unhashable_types():
+    assert validate.ContainsNoneOf([[1], [2], [3]])([]) == []
+    assert validate.ContainsNoneOf([[1], [2], [3]])([[4]]) == [[4]]
+    assert validate.ContainsNoneOf([[1], [2], [3]])([[4], [4]]) == [[4], [4]]
+    assert validate.ContainsNoneOf([[1], [2], [3]])([[4], [5]]) == [[4], [5]]
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[1]])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[1], [2]])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[2], [1]])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[1], [2], [3]])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[3], [2], [1]])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([[1], [2], [3]])([[2], [3], [1]])
+
+
+def test_containsnoneof_in_tuple():
+    validate.ContainsNoneOf(())(()) == ()
+    validate.ContainsNoneOf(())((1, 2, 3)) == (1, 2, 3)
+    validate.ContainsNoneOf((4,))((1, 2, 3)) == (1, 2, 3)
+    validate.ContainsNoneOf((2,))((1, 3, 4)) == (1, 3, 4)
+    validate.ContainsNoneOf((1, 2, 3))((4,)) == (4,)
+    validate.ContainsNoneOf((4,))((1, 1, 1, 1)) == (1,)
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf((1,))((1, 2, 3))
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf((1, 1, 1))((1, 2, 3))
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf((1, 2))((1, 2))
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf((1,))((1, 1, 1, 1))
+
+
+def test_containsnoneof_in_string():
+    validate.ContainsNoneOf("")("") == ""
+    validate.ContainsNoneOf("")("abc") == "abc"
+    validate.ContainsNoneOf("d")("abc") == "abc"
+    validate.ContainsNoneOf("b")("acd") == "acd"
+    validate.ContainsNoneOf("abc")("d") == "d"
+    validate.ContainsNoneOf("d")("aaaa") == "a"
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf("a")("abc")
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf("aaa")("abc")
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf("ab")("ab")
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf("a")("aaaa")
+
+
+def test_containsnoneof_custom_message():
+    validator = validate.ContainsNoneOf(
+        [1, 2, 3], error="{input} was in the banned list: {values}"
+    )
+    expected = "1 was in the banned list: 1, 2, 3"
+    with pytest.raises(ValidationError, match=expected):
+        validator([1])
+
+
+def test_containsnoneof_mixing_types():
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf("abc")(["a"])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf(["a", "b", "c"])("a")
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf((1, 2, 3))([1])
+
+    with pytest.raises(ValidationError):
+        validate.ContainsNoneOf([1, 2, 3])((1,))

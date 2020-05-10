@@ -70,7 +70,7 @@ class URL(Validator):
                         r")?"
                         if relative
                         else r"",  # host is optional, allow for relative URLs
-                        r"(?:/?|[/?]\S+)$",
+                        r"(?:/?|[/?]\S+)\Z",
                     )
                 ),
                 re.IGNORECASE,
@@ -134,19 +134,19 @@ class Email(Validator):
     """
 
     USER_REGEX = re.compile(
-        r"(^[-!#$%&'*+/=?^`{}|~\w]+(\.[-!#$%&'*+/=?^`{}|~\w]+)*$"  # dot-atom
+        r"(^[-!#$%&'*+/=?^`{}|~\w]+(\.[-!#$%&'*+/=?^`{}|~\w]+)*\Z"  # dot-atom
         # quoted-string
         r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
-        r'|\\[\001-\011\013\014\016-\177])*"$)',
+        r'|\\[\001-\011\013\014\016-\177])*"\Z)',
         re.IGNORECASE | re.UNICODE,
     )
 
     DOMAIN_REGEX = re.compile(
         # domain
-        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+" r"(?:[A-Z]{2,6}|[A-Z0-9-]{2,})$"
+        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+" r"(?:[A-Z]{2,6}|[A-Z0-9-]{2,})\Z"
         # literal form, ipv4 address (SMTP 4.1.3)
         r"|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)"
-        r"(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$",
+        r"(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]\Z",
         re.IGNORECASE | re.UNICODE,
     )
 
@@ -546,5 +546,27 @@ class ContainsOnly(OneOf):
         # We can't use set.issubset because does not handle unhashable types
         for val in value:
             if val not in self.choices:
+                raise ValidationError(self._format_error(value))
+        return value
+
+
+class ContainsNoneOf(NoneOf):
+    """Validator which fails if ``value`` is a sequence and any element
+    in the sequence is a member of the sequence passed as ``iterable``. Empty input
+    is considered valid.
+
+    :param iterable iterable: Same as :class:`NoneOf`.
+    :param str error: Same as :class:`NoneOf`.
+    """
+
+    default_message = "One or more of the choices you made was in: {values}."
+
+    def _format_error(self, value) -> str:
+        value_text = ", ".join(str(val) for val in value)
+        return super()._format_error(value_text)
+
+    def __call__(self, value) -> typing.Any:
+        for val in value:
+            if val in self.iterable:
                 raise ValidationError(self._format_error(value))
         return value
