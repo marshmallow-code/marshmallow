@@ -17,28 +17,31 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
 
 .. code-block:: python
 
-    from marshmallow import fields
+    from marshmallow import fields, ValidationError
 
 
-    class TitleCased(fields.Field):
-        """Field that serializes to a title case string and deserializes
-        to a lower case string.
+    class PinCode(fields.Field):
+        """Field that serializes to a string of numbers and deserializes
+        to a list of numbers.
         """
 
         def _serialize(self, value, attr, obj, **kwargs):
             if value is None:
                 return ""
-            return value.title()
+            return "".join(str(d) for d in value)
 
         def _deserialize(self, value, attr, data, **kwargs):
-            return value.lower()
+            try:
+                return [int(c) for c in value]
+            except ValueError as error:
+                raise ValidationError("Pin codes must contain only digits.") from error
 
 
     class UserSchema(Schema):
         name = fields.String()
         email = fields.String()
         created_at = fields.DateTime()
-        titlename = TitleCased(attribute="name")
+        pin_code = PinCode()
 
 Method Fields
 -------------
