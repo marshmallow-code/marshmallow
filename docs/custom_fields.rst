@@ -33,8 +33,8 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
         def _deserialize(self, value, attr, data, **kwargs):
             try:
                 return [int(c) for c in value]
-            except ValueError:
-                raise ValidationError("Pin codes must contain only digits")
+            except ValueError as error:
+                raise ValidationError("Pin codes must contain only digits.") from error
 
 
     class UserSchema(Schema):

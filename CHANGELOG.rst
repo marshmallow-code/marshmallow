@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+(unreleased)
+************
+
+Support:
+
+- Documentation: improve custom fields example (:issue:`1538`).
+  Thanks :user:`pablospizzamiglio` for reporting the problem with the
+  old example and thanks :user:`Resinderate` for the PR.
+
 3.5.0 (2020-02-19)
 ******************
 
