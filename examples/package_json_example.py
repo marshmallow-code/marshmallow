@@ -1,8 +1,9 @@
 import sys
 import json
 from packaging import version
+from pprint import pprint
 
-from marshmallow import Schema, fields, INCLUDE, pprint, ValidationError
+from marshmallow import Schema, fields, INCLUDE, ValidationError
 
 
 class Version(fields.Field):

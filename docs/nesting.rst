@@ -26,7 +26,7 @@ Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relatio
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, pprint
+    from marshmallow import Schema, fields
 
 
     class UserSchema(Schema):
@@ -42,6 +42,8 @@ Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relatio
 The serialized blog will have the nested user representation.
 
 .. code-block:: python
+
+    from pprint import pprint
 
     user = User(name="Monty", email="monty@python.org")
     blog = Blog(title="Something Completely Different", author=user)
