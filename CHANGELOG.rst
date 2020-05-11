@@ -32,7 +32,6 @@ Bug fixes:
 Bug fixes:
 
 - Includes bug fix from 2.21.0.
->>>>>>> dev
 
 3.5.0 (2020-02-19)
 ******************
