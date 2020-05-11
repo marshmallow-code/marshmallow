@@ -147,3 +147,4 @@ Contributors (chronological)
 - Tim Gates `@timgates42 <https://github.com/timgates42>`_
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
 - Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
+- Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
