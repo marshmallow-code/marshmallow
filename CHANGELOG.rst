@@ -9,6 +9,8 @@ Support:
 - Documentation: improve custom fields example (:issue:`1538`).
   Thanks :user:`pablospizzamiglio` for reporting the problem with the
   old example and thanks :user:`Resinderate` for the PR.
+- Documentation: Split up API reference into multiple pages and 
+  add summary tables (:pr:`1587`). Thanks :user:`EpicWink` for the PR.
 
 3.6.0 (2020-05-08)
 ******************
