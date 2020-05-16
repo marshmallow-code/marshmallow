@@ -900,7 +900,7 @@ class TestFieldDeserialization:
         dstrings = [each.isoformat() for each in dtimes]
         field = fields.List(fields.DateTime())
         result = field.deserialize(dstrings)
-        assert all([isinstance(each, dt.datetime) for each in result])
+        assert all(isinstance(each, dt.datetime) for each in result)
         for actual, expected in zip(result, dtimes):
             assert_date_equal(actual, expected)
 

@@ -591,7 +591,7 @@ class TestFieldSerialization:
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
         field = fields.List(fields.DateTime)
         result = field.serialize("dtimes", obj)
-        assert all([type(each) == str for each in result])
+        assert all(type(each) == str for each in result)
 
     def test_list_field_serialize_none_returns_none(self):
         obj = DateTimeList(None)
