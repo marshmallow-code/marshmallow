@@ -5,7 +5,7 @@ EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
         "mypy==0.770",
-        "flake8==3.8.1",
+        "flake8==3.8.2",
         "flake8-bugbear==20.1.4",
         "pre-commit~=2.4",
     ],
