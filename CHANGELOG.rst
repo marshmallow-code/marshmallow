@@ -1,8 +1,10 @@
 Changelog
 ---------
 
-(unreleased)
-************
+3.6.1 (2020-06-02)
+******************
+
+No code changes--only docs and contributor-facing updates in this release.
 
 Support:
 
