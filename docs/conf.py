@@ -95,6 +95,11 @@ versionwarning_messages = {
         "This document is for the development version. "
         'For the stable version documentation, see <a href="/en/stable/">here</a>.'
     ),
+    "stable": (
+        "<strong>Black Lives Matter.</strong> "
+        'Support the <a href="https://eji.org/">Equal Justice Initiative</a> and '
+        '<a href="https://colorofchange.org/">Color of Change</a>.'
+    ),
     "2.x-line": (
         "marshmallow 2 will no longer be supported as of 2020-08-18. "
         '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
@@ -103,8 +108,9 @@ versionwarning_messages = {
 }
 # Show warning at top of page
 versionwarning_body_selector = "div.document"
+versionwarning_banner_title = ""
 # For debugging locally
-# versionwarning_project_version = '2.x-line'
+# versionwarning_project_version = "stable"
 
 
 def setup(app):
