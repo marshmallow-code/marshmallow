@@ -25,6 +25,7 @@ from marshmallow.exceptions import (
     FieldInstanceResolutionError,
 )
 from marshmallow.validate import Validator, Length
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 __all__ = [
     "Field",
@@ -269,7 +270,7 @@ class Field(FieldABC):
             '`Field.fail` is deprecated. Use `raise self.make_error("{}", ...)` instead.'.format(
                 key
             ),
-            DeprecationWarning,
+            RemovedInMarshmallow4Warning,
         )
         raise self.make_error(key=key, **kwargs)
 
@@ -486,7 +487,7 @@ class Nested(Field):
             warnings.warn(
                 "Passing 'self' to `Nested` is deprecated. "
                 "Use `Nested(lambda: MySchema(...))` instead.",
-                DeprecationWarning,
+                RemovedInMarshmallow4Warning,
             )
         self.nested = nested
         self.only = only
