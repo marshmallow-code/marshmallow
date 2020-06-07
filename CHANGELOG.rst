@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.7.0 (unreleased)
+******************
+
+Deprecations:
+
+- `marshmallow.pprint` is deprecated and will be removed in marshmallow 4 (:issue:`1588`).
+
 3.6.1 (2020-06-02)
 ******************
 

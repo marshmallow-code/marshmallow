@@ -34,6 +34,7 @@ from marshmallow.utils import (
     is_instance_or_subclass,
     is_iterable_but_not_string,
 )
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 _T = typing.TypeVar("_T")
 
@@ -215,7 +216,7 @@ class SchemaOpts:
         if hasattr(meta, "json_module"):
             warnings.warn(
                 "The json_module class Meta option is deprecated. Use render_module instead.",
-                DeprecationWarning,
+                RemovedInMarshmallow4Warning,
             )
             render_module = getattr(meta, "json_module", json)
         else:

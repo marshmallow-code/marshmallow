@@ -6,12 +6,14 @@ import inspect
 import json
 import re
 import typing
+import warnings
 from collections.abc import Mapping
 from email.utils import format_datetime, parsedate_to_datetime
 from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
 from marshmallow.exceptions import FieldInstanceResolutionError
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 EXCLUDE = "exclude"
 INCLUDE = "include"
@@ -74,6 +76,10 @@ def pprint(obj, *args, **kwargs) -> None:
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
     """
+    warnings.warn(
+        "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",
+        RemovedInMarshmallow4Warning,
+    )
     if isinstance(obj, collections.OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
     else:
