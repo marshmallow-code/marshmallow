@@ -187,7 +187,7 @@ class UserSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(str(te))
+            raise ValidationError(str(te)) from te
 
     @post_load
     def make_user(self, data, **kwargs):
@@ -216,7 +216,7 @@ class UserMetaSchema(Schema):
         try:
             return age > 80
         except TypeError as te:
-            raise ValidationError(str(te))
+            raise ValidationError(str(te)) from te
 
     class Meta:
         fields = (
