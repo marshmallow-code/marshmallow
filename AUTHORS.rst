@@ -148,3 +148,4 @@ Contributors (chronological)
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
 - Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
 - Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
+- Ram Rachum `@cool-RR <https://github.com/cool-RR>`_

@@ -12,8 +12,8 @@ class Version(fields.Field):
     def _deserialize(self, value, *args, **kwargs):
         try:
             return version.Version(value)
-        except version.InvalidVersion:
-            raise ValidationError("Not a valid version.")
+        except version.InvalidVersion as e:
+            raise ValidationError("Not a valid version.") from e
 
     def _serialize(self, value, *args, **kwargs):
         return str(value)
