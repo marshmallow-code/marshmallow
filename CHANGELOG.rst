@@ -8,6 +8,10 @@ Deprecations:
 
 - `marshmallow.pprint` is deprecated and will be removed in marshmallow 4 (:issue:`1588`).
 
+Support:
+
+- Document ``default_error_messages`` on field classes (:pr:`1619`). Thanks :user:`weeix`.
+
 3.6.1 (2020-06-02)
 ******************
 

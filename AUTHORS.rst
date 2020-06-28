@@ -149,3 +149,4 @@ Contributors (chronological)
 - Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
 - Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
 - Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
+- `@weeix <https://github.com/weeix>`_
