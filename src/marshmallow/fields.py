@@ -463,6 +463,7 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"type": "Invalid type."}
 
     def __init__(
@@ -668,6 +669,7 @@ class List(Field):
         Does not serialize scalar values to single-item lists.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid list."}
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
@@ -736,6 +738,7 @@ class Tuple(Field):
     .. versionadded:: 3.0.0rc4
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid tuple."}
 
     def __init__(self, tuple_fields, *args, **kwargs):
@@ -805,6 +808,7 @@ class String(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid string.",
         "invalid_utf8": "Not a valid utf-8 string.",
@@ -827,6 +831,7 @@ class String(Field):
 class UUID(String):
     """A UUID field."""
 
+    #: Default error messages.
     default_error_messages = {"invalid_uuid": "Not a valid UUID."}
 
     def _validated(self, value) -> typing.Optional[uuid.UUID]:
@@ -856,6 +861,7 @@ class Number(Field):
 
     num_type = float  # type: typing.Type
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid number.",
         "too_large": "Number too large.",
@@ -908,6 +914,8 @@ class Integer(Number):
     """
 
     num_type = int
+
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid integer."}
 
     def __init__(self, *, strict: bool = False, **kwargs):
@@ -935,6 +943,8 @@ class Float(Number):
     """
 
     num_type = float
+
+    #: Default error messages.
     default_error_messages = {
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
@@ -990,6 +1000,7 @@ class Decimal(Number):
 
     num_type = decimal.Decimal
 
+    #: Default error messages.
     default_error_messages = {
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
@@ -1086,6 +1097,7 @@ class Boolean(Field):
         False,
     }
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid boolean."}
 
     def __init__(
@@ -1155,6 +1167,7 @@ class DateTime(Field):
 
     SCHEMA_OPTS_VAR_NAME = "datetimeformat"
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid {obj_type}.",
         "invalid_awareness": "Not a valid {awareness} {obj_type}.",
@@ -1282,6 +1295,7 @@ class Time(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid time.",
         "format": '"{input}" cannot be formatted as a time.',
@@ -1313,6 +1327,7 @@ class Date(DateTime):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid date.",
         "format": '"{input}" cannot be formatted as a date.',
@@ -1356,6 +1371,7 @@ class TimeDelta(Field):
     HOURS = "hours"
     WEEKS = "weeks"
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid period of time.",
         "format": "{input!r} cannot be formatted as a timedelta.",
@@ -1417,6 +1433,8 @@ class Mapping(Field):
     """
 
     mapping_type = dict
+
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
 
     def __init__(
@@ -1561,6 +1579,7 @@ class Url(String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid URL."}
 
     def __init__(
@@ -1593,6 +1612,7 @@ class Email(String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid email address."}
 
     def __init__(self, *args, **kwargs):
