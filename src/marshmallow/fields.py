@@ -914,7 +914,7 @@ class Integer(Number):
     """
 
     num_type = int
-    
+
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid integer."}
 
@@ -943,7 +943,7 @@ class Float(Number):
     """
 
     num_type = float
-    
+
     #: Default error messages.
     default_error_messages = {
         "special": "Special numeric values (nan or infinity) are not permitted."
@@ -1433,7 +1433,7 @@ class Mapping(Field):
     """
 
     mapping_type = dict
-    
+
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
 
