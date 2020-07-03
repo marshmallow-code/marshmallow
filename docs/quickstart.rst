@@ -90,7 +90,7 @@ You may not need to output all declared fields every time you use a schema. You 
 
     summary_schema = UserSchema(only=("name", "email"))
     summary_schema.dump(user)
-    # {"name": "Monty Python", "email": "monty@python.org"}
+    # {"name": "Monty", "email": "monty@python.org"}
 
 You can also exclude fields by passing in the ``exclude`` parameter.
 
