@@ -277,7 +277,10 @@ class TestNestedField:
             with pytest.raises(ValidationError):
                 MySchema().load({"nested": {"x": 1}})
 
-    def test_ordered_instanced_nested_schema_only_override(self):
+    @pytest.mark.parametrize(
+        ("param", "fields_list"), [("only", ["foo"]), ("exclude", ["bar"])]
+    )
+    def test_ordered_instanced_nested_schema_only_and_exclude(self, param, fields_list):
         class NestedSchema(Schema):
             foo = fields.String()
             bar = fields.String()
@@ -286,7 +289,7 @@ class TestNestedField:
                 ordered = True
 
         class MySchema(Schema):
-            nested = fields.Nested(NestedSchema(), only=("foo",))
+            nested = fields.Nested(NestedSchema(), **{param: fields_list})
 
         assert MySchema().dump({"nested": {"foo": "baz", "bar": "bax"}}) == {
             "nested": {"foo": "baz"}

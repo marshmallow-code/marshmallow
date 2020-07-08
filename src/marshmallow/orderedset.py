@@ -70,15 +70,6 @@ class OrderedSet(MutableSet):
         self.discard(key)
         return key
 
-    def union(self, other):
-        return self | other
-
-    def intersection(self, other):
-        return self & other
-
-    def difference(self, other):
-        return self - other
-
     def __repr__(self):
         if not self:
             return "{}()".format(self.__class__.__name__)
