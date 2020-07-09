@@ -47,6 +47,7 @@ from tests.base import (
 
 random.seed(1)
 
+
 # Run tests with both verbose serializer and 'meta' option serializer
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
 def test_serializing_basic_object(SchemaClass, user):
