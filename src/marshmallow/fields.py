@@ -522,10 +522,10 @@ class Nested(Field):
                         original = self._schema.only
                     else:  # only=None -> all fields
                         original = self._schema.fields.keys()
-                    self._schema.only = set_class(self.only).intersection(original)
+                    self._schema.only = set_class(self.only) & set_class(original)
                 if self.exclude:
                     original = self._schema.exclude
-                    self._schema.exclude = set_class(self.exclude).union(original)
+                    self._schema.exclude = set_class(self.exclude) | set_class(original)
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, SchemaABC):

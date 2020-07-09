@@ -150,3 +150,4 @@ Contributors (chronological)
 - Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
 - Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
 - `@weeix <https://github.com/weeix>`_
+- Juan Norris `@juannorris <https://github.com/juannorris>`_

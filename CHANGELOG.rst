@@ -12,6 +12,11 @@ Support:
 
 - Document ``default_error_messages`` on field classes (:pr:`1619`). Thanks :user:`weeix`.
 
+Bug fixes:
+
+- Fix passing ``only`` and ``exclude`` to ``Nested`` with an ordered ``Schema`` (:pr:`1627`).
+  Thanks :user:`juannorris` for the PR.
+
 3.6.1 (2020-06-02)
 ******************
 
