@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.7.0 (unreleased)
+3.7.0 (2020-07-08)
 ******************
 
 Deprecations:
