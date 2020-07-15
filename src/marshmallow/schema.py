@@ -38,21 +38,17 @@ from marshmallow.warnings import RemovedInMarshmallow4Warning
 _T = typing.TypeVar("_T")
 
 
-def _get_fields(attrs, field_class, pop=False, ordered=False):
+def _get_fields(attrs, field_class, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
 
     :param attrs: Mapping of class attributes
     :param type field_class: Base field class
-    :param bool pop: Remove matching fields
     """
     fields = [
         (field_name, field_value)
         for field_name, field_value in attrs.items()
         if is_instance_or_subclass(field_value, field_class)
     ]
-    if pop:
-        for field_name, _ in fields:
-            del attrs[field_name]
     if ordered:
         fields.sort(key=lambda pair: pair[1]._creation_index)
     return fields
@@ -104,7 +100,7 @@ class SchemaMeta(type):
                     break
             else:
                 ordered = False
-        cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
+        cls_fields = _get_fields(attrs, base.FieldABC, ordered=ordered)
         klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
 
