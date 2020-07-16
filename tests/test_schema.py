@@ -162,6 +162,16 @@ def test_dump_many():
     assert data[0] == s.dump(u1)
 
 
+@pytest.mark.parametrize("value", [[], {}, [1], {1: 1}])
+def test_boolean_can_dump_unhashable(value):
+    class MySchema(Schema):
+        has_items = fields.Boolean()
+
+    schema = MySchema()
+    data = schema.dump({"has_items": value})
+    assert data["has_items"] is bool(value)
+
+
 def test_multiple_errors_can_be_stored_for_a_given_index():
     class MySchema(Schema):
         foo = fields.Str(validate=lambda x: len(x) > 3)
