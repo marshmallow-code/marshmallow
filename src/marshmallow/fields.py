@@ -1112,10 +1112,14 @@ class Boolean(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        elif value in self.truthy:
-            return True
-        elif value in self.falsy:
-            return False
+
+        try:
+            if value in self.truthy:
+                return True
+            elif value in self.falsy:
+                return False
+        except TypeError:
+            pass
 
         return bool(value)
 
