@@ -474,6 +474,7 @@ class Nested(Field):
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
         unknown: str = None,
+        propagate_unknown: bool = None,
         **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -494,6 +495,7 @@ class Nested(Field):
         self.exclude = exclude
         self.many = many
         self.unknown = unknown
+        self.propagate_unknown = propagate_unknown
         self._schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
 
@@ -571,10 +573,15 @@ class Nested(Field):
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
-    def _load(self, value, data, partial=None, unknown=None):
+    def _load(self, value, data, partial=None, unknown=None, propagate_unknown=None):
         try:
             valid_data = self.schema.load(
-                value, unknown=unknown or self.unknown, partial=partial,
+                value,
+                unknown=unknown or self.unknown,
+                propagate_unknown=propagate_unknown
+                if propagate_unknown is not None
+                else self.propagate_unknown,
+                partial=partial,
             )
         except ValidationError as error:
             raise ValidationError(
@@ -582,7 +589,16 @@ class Nested(Field):
             ) from error
         return valid_data
 
-    def _deserialize(self, value, attr, data, partial=None, unknown=None, **kwargs):
+    def _deserialize(
+        self,
+        value,
+        attr,
+        data,
+        partial=None,
+        unknown=None,
+        propagate_unknown=None,
+        **kwargs
+    ):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
@@ -592,7 +608,13 @@ class Nested(Field):
             Add ``partial`` parameter.
         """
         self._test_collection(value)
-        return self._load(value, data, partial=partial, unknown=unknown)
+        return self._load(
+            value,
+            data,
+            partial=partial,
+            unknown=unknown,
+            propagate_unknown=propagate_unknown,
+        )
 
 
 class Pluck(Nested):

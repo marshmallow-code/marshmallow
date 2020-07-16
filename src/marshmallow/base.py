@@ -38,10 +38,25 @@ class SchemaABC:
     def dumps(self, obj, *, many: bool = None):
         raise NotImplementedError
 
-    def load(self, data, *, many: bool = None, partial=None, unknown=None):
+    def load(
+        self,
+        data,
+        *,
+        many: bool = None,
+        partial=None,
+        unknown=None,
+        propagate_unknown=None
+    ):
         raise NotImplementedError
 
     def loads(
-        self, json_data, *, many: bool = None, partial=None, unknown=None, **kwargs
+        self,
+        json_data,
+        *,
+        many: bool = None,
+        partial=None,
+        unknown=None,
+        propagate_unknown=None,
+        **kwargs
     ):
         raise NotImplementedError

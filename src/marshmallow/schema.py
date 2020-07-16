@@ -228,6 +228,7 @@ class SchemaOpts:
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
         self.unknown = getattr(meta, "unknown", RAISE)
+        self.propagate_unknown = getattr(meta, "propagate_unknown", False)
         self.register = getattr(meta, "register", True)
 
 
@@ -372,7 +373,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
         partial: typing.Union[bool, types.StrSequenceOrSet] = False,
-        unknown: str = None
+        unknown: str = None,
+        propagate_unknown: bool = None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -389,6 +391,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
         self.unknown = unknown or self.opts.unknown
+        self.propagate_unknown = propagate_unknown or self.opts.propagate_unknown
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -592,6 +595,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = False,
         partial=False,
         unknown=RAISE,
+        propagate_unknown=False,
         index=None
     ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
@@ -625,6 +629,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             many=False,
                             partial=partial,
                             unknown=unknown,
+                            propagate_unknown=propagate_unknown,
                             index=idx,
                         ),
                     )
@@ -648,7 +653,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
+                d_kwargs = {}  # type: typing.Dict[str, typing.Any]
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
                     prefix = field_name + "."
@@ -660,11 +665,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 else:
                     d_kwargs["partial"] = partial
 
-                try:
-                    if self.context["propagate_unknown_to_nested"]:
-                        d_kwargs["unknown"] = unknown
-                except KeyError:
-                    pass
+                if propagate_unknown:
+                    d_kwargs["unknown"] = unknown
+                    d_kwargs["propagate_unknown"] = True
 
                 getter = lambda val: field_obj.deserialize(
                     val, field_name, data, **d_kwargs
@@ -705,7 +708,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None
+        unknown: str = None,
+        propagate_unknown: bool = None
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -728,7 +732,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         return self._do_load(
-            data, many=many, partial=partial, unknown=unknown, postprocess=True
+            data,
+            many=many,
+            partial=partial,
+            unknown=unknown,
+            propagate_unknown=propagate_unknown,
+            postprocess=True,
         )
 
     def loads(
@@ -738,6 +747,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
         unknown: str = None,
+        propagate_unknown: bool = None,
         **kwargs
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -761,7 +771,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(data, many=many, partial=partial, unknown=unknown)
+        return self.load(
+            data,
+            many=many,
+            partial=partial,
+            unknown=unknown,
+            propagate_unknown=propagate_unknown,
+        )
 
     def _run_validator(
         self,
@@ -822,6 +838,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
         unknown: str = None,
+        propagate_unknown: bool = None,
         postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -843,8 +860,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
-        self.context["propagate_unknown_to_nested"] = unknown is not None
         unknown = unknown or self.unknown
+        propagate_unknown = propagate_unknown or self.propagate_unknown
         if partial is None:
             partial = self.partial
         # Run preprocessors
@@ -868,6 +885,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 many=many,
                 partial=partial,
                 unknown=unknown,
+                propagate_unknown=propagate_unknown,
             )
             # Run field-level validation
             self._invoke_field_validators(
