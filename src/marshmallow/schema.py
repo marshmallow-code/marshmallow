@@ -287,6 +287,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         will be ignored. Use dot delimiters to specify nested fields.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+    :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+        applied to all ``Nested`` fields. Propagates down and allows
+        ``Nested`` fields to apply their own ``unknown`` value
 
     .. versionchanged:: 3.0.0
         `prefix` parameter removed.
@@ -364,6 +367,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        - ``propagate_unknown`` If ``True``, the value for ``unknown`` will be
+           applied to all ``Nested`` fields. Propagates down, but if a ``Nested``
+           field sets ``unknown``, it will begin to propagate that value, not the
+           where this is set.
         - ``register``: Whether to register the `Schema` with marshmallow's internal
             class registry. Must be `True` if you intend to refer to this `Schema`
             by class name in `Nested` fields. Only set this to `False` when memory
@@ -619,6 +626,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+            applied to all ``Nested`` fields. Propagates down and allows
+            ``Nested`` fields to apply their own ``unknown`` value
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
@@ -733,6 +743,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+            applied to all ``Nested`` fields. Propagates down and allows
+            ``Nested`` fields to apply their own ``unknown`` value
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -772,6 +785,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+            applied to all ``Nested`` fields. Propagates down and allows
+            ``Nested`` fields to apply their own ``unknown`` value
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -864,6 +880,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+            applied to all ``Nested`` fields. Propagates down and allows
+            ``Nested`` fields to apply their own ``unknown`` value
         :param postprocess: Whether to run post_load methods..
         :return: Deserialized data
         """

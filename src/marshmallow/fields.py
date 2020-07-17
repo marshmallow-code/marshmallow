@@ -459,6 +459,10 @@ class Nested(Field):
     :param many: Whether the field is a collection of objects.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+    :param propagate_unknown: If ``True``, the value for ``unknown`` will be
+        applied to any ``Nested`` fields within the nested schema. Propagates down and allows
+        ``Nested`` fields to apply their own ``unknown`` value. Note that this
+        only has an effect when there are multiple layers of nesting
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 

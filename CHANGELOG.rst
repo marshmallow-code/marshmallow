@@ -1,6 +1,34 @@
 Changelog
 ---------
 
+3.8.0 (Unreleased)
+******************
+
+Features:
+
+- The behavior of the ``unknown`` option can be further customized with a
+  second option, ``propagate_unknown``. When set to ``True``, any nested
+  schemas will receive the same ``unknown`` value as their parent if they did
+  not set an ``unknown`` value explicitly.
+  ``propagate_unknown`` itself propagates across any number of layers of
+  nesting and cannot be disabled by a child schema if it enabled in its parent.
+  (:issue:`1490`, :issue:`1428`)
+  Thanks :user:`lmignon` and :user:`mahenzon`.
+
+.. note::
+
+  In order to retain flexibility, when a schema is being loaded with
+  ``propagate_unknown=True``, you can still set ``unknown`` explicitly on child
+  schemas. However, be aware that such a value will be propagated to any of its
+  descendants.
+
+  For example, a schema which specifies ``unknown=EXCLUDE`` will set
+  ``EXCLUDE`` in all of its children. If one of the children specifies
+  ``unknown=IGNORE``, then ``IGNORE`` will be passed to the relevant
+  grandchildren.
+  Other children of the original schema could specify ``unknown=RAISE``, and
+  this would apply to them equally well.
+
 3.7.1 (2020-07-20)
 ******************
 
