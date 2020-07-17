@@ -227,7 +227,14 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        self.unknown = getattr(meta, "unknown", RAISE)
+        # self.unknown defaults to "RAISE", but note whether it was explicit or
+        # not, so that when we're handling propagate_unknown we can decide
+        # whether or not to propagate based on whether or not it was set
+        # explicitly
+        self.unknown = getattr(meta, "unknown", None)
+        self.auto_unknown = self.unknown is None
+        if self.auto_unknown:
+            self.unknown = RAISE
         self.propagate_unknown = getattr(meta, "propagate_unknown", False)
         self.register = getattr(meta, "register", True)
 
@@ -391,6 +398,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
         self.unknown = unknown or self.opts.unknown
+        # if unknown was not set explicitly AND self.opts.auto_unknown is true,
+        # then the value should be considered "automatic"
+        self.auto_unknown = (not unknown) and self.opts.auto_unknown
         self.propagate_unknown = propagate_unknown or self.opts.propagate_unknown
         self.context = context or {}
         self._normalize_nested_options()

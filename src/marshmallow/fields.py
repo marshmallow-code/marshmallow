@@ -608,6 +608,15 @@ class Nested(Field):
             Add ``partial`` parameter.
         """
         self._test_collection(value)
+        # check if self.unknown or self.schema.unknown is set
+        # however, we should only respect `self.schema.unknown` if
+        # `auto_unknown` is False, meaning that it was set explicitly on the
+        # schema class or instance
+        explicit_unknown = self.unknown or (
+            self.schema.unknown if not self.schema.auto_unknown else None
+        )
+        if explicit_unknown:
+            unknown = explicit_unknown
         return self._load(
             value,
             data,

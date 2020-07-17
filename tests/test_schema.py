@@ -2901,3 +2901,66 @@ def test_class_registry_returns_schema_type():
 
     SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
     assert SchemaClass is DefinitelyUniqueSchema
+
+
+def test_propagate_unknown_stops_at_explicit_value_for_nested():
+    # propagate_unknown=True should traverse any "auto_unknown" values and
+    # replace them with the "unknown" value from the parent context (schema or
+    # load arguments)
+    # this test makes sure that it stops when a nested field or schema has
+    # "unknown" set explicitly (so auto_unknown=False)
+
+    class Bottom(Schema):
+        x = fields.Str()
+
+    class Middle(Schema):
+        x = fields.Str()
+        # set unknown explicitly on a nested field, so auto_unknown will be
+        # false going into Bottom
+        child = fields.Nested(Bottom, unknown=EXCLUDE)
+
+    class Top(Schema):
+        x = fields.Str()
+        child = fields.Nested(Middle)
+
+    data = {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
+    result = Top(unknown=INCLUDE, propagate_unknown=True).load(data)
+    assert result == {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi"}},
+    }
+
+
+def test_propagate_unknown_stops_at_explicit_value_for_meta():
+    # this is the same as the above test of propagate_unknown stopping where
+    # auto_unknown=False, but it checks that this applies when `unknown` is set
+    # by means of `Meta`
+
+    class Bottom(Schema):
+        x = fields.Str()
+
+    class Middle(Schema):
+        x = fields.Str()
+        child = fields.Nested(Bottom)
+
+        # set unknown explicitly on a nested field, so auto_unknown will be
+        # false going into Bottom
+        class Meta:
+            unknown = EXCLUDE
+
+    class Top(Schema):
+        x = fields.Str()
+        child = fields.Nested(Middle)
+
+    data = {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
+    result = Top(unknown=INCLUDE, propagate_unknown=True).load(data)
+    assert result == {"x": "hi", "y": "bye", "child": {"x": "hi", "child": {"x": "hi"}}}
