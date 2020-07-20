@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.7.1 (unreleased)
+******************
+
+Bug fixes:
+
+- ``fields.Boolean`` correctly serializes non-hashable types (:pr:`1633`).
+  Thanks :user:`jun0jang` for the PR.
+
 3.7.0 (2020-07-08)
 ******************
 
