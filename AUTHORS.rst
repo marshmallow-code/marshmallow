@@ -151,3 +151,4 @@ Contributors (chronological)
 - Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
 - `@weeix <https://github.com/weeix>`_
 - Juan Norris `@juannorris <https://github.com/juannorris>`_
+- 장준영 `@jun0jang <https://github.com/jun0jang>`_
