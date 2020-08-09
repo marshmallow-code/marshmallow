@@ -97,6 +97,7 @@ class TestParentAndName:
     class MySchema(Schema):
         foo = fields.Field()
         bar = fields.List(fields.Str())
+        bat = fields.Iterable(fields.Str())
         baz = fields.Tuple([fields.Str(), fields.Int()])
         bax = fields.Mapping(fields.Str(), fields.Int())
 
@@ -124,6 +125,10 @@ class TestParentAndName:
     def test_list_field_inner_parent_and_name(self, schema):
         assert schema.fields["bar"].inner.parent == schema.fields["bar"]
         assert schema.fields["bar"].inner.name == "bar"
+
+    def test_iterable_field_inner_parent_and_name(self, schema):
+        assert schema.fields["bat"].inner.parent == schema.fields["bat"]
+        assert schema.fields["bat"].inner.name == "bat"
 
     def test_tuple_field_inner_parent_and_name(self, schema):
         for field in schema.fields["baz"].tuple_fields:

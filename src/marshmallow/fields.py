@@ -33,6 +33,7 @@ __all__ = [
     "Nested",
     "Mapping",
     "Dict",
+    "Iterable",
     "List",
     "Tuple",
     "String",
@@ -649,27 +650,24 @@ class Pluck(Nested):
         return self._load(value, data, partial=partial)
 
 
-class List(Field):
-    """A list field, composed with another `Field` class or
-    instance.
-
-    Example: ::
-
-        numbers = fields.List(fields.Float())
+class Iterable(Field):
+    """An abstract class for iterables.
 
     :param cls_or_instance: A field class or instance.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
-    .. versionchanged:: 2.0.0
-        The ``allow_none`` parameter now applies to deserialization and
-        has the same semantics as the other fields.
+    Example: ::
 
-    .. versionchanged:: 3.0.0rc9
-        Does not serialize scalar values to single-item lists.
+        class FrozenSet(Iterable):
+            iterable_type = frozenset
+
+    .. versionadded:: 3.X.Y
     """
 
+    iterable_type = list
+
     #: Default error messages.
-    default_error_messages = {"invalid": "Not a valid list."}
+    default_error_messages = {"invalid": f"Not a valid {iterable_type.__name__}."}
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
@@ -697,7 +695,9 @@ class List(Field):
     ) -> typing.Optional[typing.List[typing.Any]]:
         if value is None:
             return None
-        return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
+        return self.iterable_type(
+            self.inner._serialize(each, attr, obj, **kwargs) for each in value
+        )
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
@@ -714,7 +714,32 @@ class List(Field):
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)
-        return result
+        return self.iterable_type(result)
+
+
+class List(Iterable):
+    """A list field, composed with another `Field` class or
+    instance.
+
+    Example: ::
+
+        numbers = fields.List(fields.Float())
+
+    :param cls_or_instance: A field class or instance.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 2.0.0
+        The ``allow_none`` parameter now applies to deserialization and
+        has the same semantics as the other fields.
+
+    .. versionchanged:: 3.0.0rc9
+        Does not serialize scalar values to single-item lists.
+
+    .. versionchanged:: 3.X.Y
+        Inherits from Iterable instead of Field.
+    """
+
+    iterable_type = list
 
 
 class Tuple(Field):
