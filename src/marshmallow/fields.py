@@ -661,7 +661,7 @@ class Iterable(Field):
         class FrozenSet(Iterable):
             iterable_type = frozenset
 
-    .. versionadded:: 3.X.Y
+    .. versionadded:: 3.8.0
     """
 
     iterable_type = list
@@ -735,7 +735,7 @@ class List(Iterable):
     .. versionchanged:: 3.0.0rc9
         Does not serialize scalar values to single-item lists.
 
-    .. versionchanged:: 3.X.Y
+    .. versionchanged:: 3.8.0
         Inherits from Iterable instead of Field.
     """
 
