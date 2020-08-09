@@ -667,7 +667,9 @@ class Iterable(Field):
     iterable_type = list
 
     #: Default error messages.
-    default_error_messages = {"invalid": f"Not a valid {iterable_type.__name__}."}
+    default_error_messages = {
+        "invalid": "Not a valid {}.".format(iterable_type.__name__)
+    }
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
