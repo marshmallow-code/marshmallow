@@ -548,3 +548,25 @@ class ContainsOnly(OneOf):
             if val not in self.choices:
                 raise ValidationError(self._format_error(value))
         return value
+
+
+class ContainsNoneOf(NoneOf):
+    """Validator which fails if ``value`` is a sequence and any element
+    in the sequence is a member of the sequence passed as ``iterable``. Empty input
+    is considered valid.
+
+    :param iterable iterable: Same as :class:`NoneOf`.
+    :param str error: Same as :class:`NoneOf`.
+    """
+
+    default_message = "One or more of the choices you made was in: {values}."
+
+    def _format_error(self, value) -> str:
+        value_text = ", ".join(str(val) for val in value)
+        return super()._format_error(value_text)
+
+    def __call__(self, value) -> typing.Any:
+        for val in value:
+            if val in self.iterable:
+                raise ValidationError(self._format_error(value))
+        return value

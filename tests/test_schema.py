@@ -47,6 +47,7 @@ from tests.base import (
 
 random.seed(1)
 
+
 # Run tests with both verbose serializer and 'meta' option serializer
 @pytest.mark.parametrize("SchemaClass", [UserSchema, UserMetaSchema])
 def test_serializing_basic_object(SchemaClass, user):
@@ -159,6 +160,16 @@ def test_dump_many():
     data = s.dump([u1, u2], many=True)
     assert len(data) == 2
     assert data[0] == s.dump(u1)
+
+
+@pytest.mark.parametrize("value", [[], {}, [1], {1: 1}])
+def test_boolean_can_dump_unhashable(value):
+    class MySchema(Schema):
+        has_items = fields.Boolean()
+
+    schema = MySchema()
+    data = schema.dump({"has_items": value})
+    assert data["has_items"] is bool(value)
 
 
 def test_multiple_errors_can_be_stored_for_a_given_index():
@@ -2880,3 +2891,13 @@ class TestFromDict:
         dumped = OSchema().dump({"foo": 42, "bar": 24})
         assert isinstance(dumped, OrderedDict)
         assert "bar" not in dumped
+
+
+def test_class_registry_returns_schema_type():
+    class DefinitelyUniqueSchema(Schema):
+        """
+        Just a schema
+        """
+
+    SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
+    assert SchemaClass is DefinitelyUniqueSchema

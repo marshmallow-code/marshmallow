@@ -1,6 +1,59 @@
 Changelog
 ---------
 
+3.7.1 (2020-07-20)
+******************
+
+Bug fixes:
+
+- ``fields.Boolean`` correctly serializes non-hashable types (:pr:`1633`).
+  Thanks :user:`jun0jang` for the PR.
+
+3.7.0 (2020-07-08)
+******************
+
+Deprecations:
+
+- `marshmallow.pprint` is deprecated and will be removed in marshmallow 4 (:issue:`1588`).
+
+Support:
+
+- Document ``default_error_messages`` on field classes (:pr:`1619`). Thanks :user:`weeix`.
+
+Bug fixes:
+
+- Fix passing ``only`` and ``exclude`` to ``Nested`` with an ordered ``Schema`` (:pr:`1627`).
+  Thanks :user:`juannorris` for the PR.
+
+3.6.1 (2020-06-02)
+******************
+
+No code changes--only docs and contributor-facing updates in this release.
+
+Support:
+
+- Documentation: improve custom fields example (:issue:`1538`).
+  Thanks :user:`pablospizzamiglio` for reporting the problem with the
+  old example and thanks :user:`Resinderate` for the PR.
+- Documentation: Split up API reference into multiple pages and 
+  add summary tables (:pr:`1587`). Thanks :user:`EpicWink` for the PR.
+
+3.6.0 (2020-05-08)
+******************
+
+Features:
+
+- Add ``validators.ContainsNoneOf`` (:issue:`1528`).
+  Thanks :user:`Resinderate` for the suggestion and the PR.
+
+
+3.5.2 (2020-04-30)
+******************
+
+Bug fixes:
+
+- Fix typing in ``class_registry`` (:pr:`1574`). Thanks :user:`mahenzon`.
+
 3.5.1 (2020-03-05)
 ******************
 

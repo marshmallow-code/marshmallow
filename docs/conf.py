@@ -15,6 +15,7 @@ extensions = [
     "alabaster",
     "sphinx_issues",
     "versionwarning.extension",
+    "autodocsumm",
 ]
 
 primary_domain = "py"
@@ -95,18 +96,21 @@ versionwarning_messages = {
         'For the stable version documentation, see <a href="/en/stable/">here</a>.'
     ),
     "stable": (
-        "This document is for the latest 3.x stable release. "
-        'For the 2.x documentation, see <a href="/en/2.x-line/">here</a>.'
+        "<strong>Black Lives Matter.</strong> "
+        'Support the <a href="https://eji.org/">Equal Justice Initiative</a> and '
+        '<a href="https://colorofchange.org/">Color of Change</a>.'
     ),
     "2.x-line": (
-        "This document is for the 2.x release branch. "
-        'For the 3.x documentation, see <a href="/en/stable/">here</a>.'
+        "marshmallow 2 will no longer be supported as of 2020-08-18. "
+        '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
+        "Update your code to use marshmallow 3</a>."
     ),
 }
 # Show warning at top of page
 versionwarning_body_selector = "div.document"
+versionwarning_banner_title = ""
 # For debugging locally
-# versionwarning_project_version = 'latest'
+# versionwarning_project_version = "stable"
 
 
 def setup(app):

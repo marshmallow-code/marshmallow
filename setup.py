@@ -4,16 +4,17 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "mypy==0.761",
-        "flake8==3.7.9",
+        "mypy==0.782",
+        "flake8==3.8.3",
         "flake8-bugbear==20.1.4",
-        "pre-commit>=1.20,<3.0",
+        "pre-commit~=2.4",
     ],
     "docs": [
-        "sphinx==2.4.4",
+        "sphinx==3.2.0",
         "sphinx-issues==1.2.0",
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
+        "autodocsumm==0.1.13",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
@@ -24,7 +25,7 @@ def find_version(fname):
     Raises RuntimeError if not found.
     """
     version = ""
-    with open(fname, "r") as fp:
+    with open(fname) as fp:
         reg = re.compile(r'__version__ = [\'"]([^\'"]*)[\'"]')
         for line in fp:
             m = reg.match(line)

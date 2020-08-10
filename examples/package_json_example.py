@@ -1,8 +1,9 @@
 import sys
 import json
 from packaging import version
+from pprint import pprint
 
-from marshmallow import Schema, fields, INCLUDE, pprint, ValidationError
+from marshmallow import Schema, fields, INCLUDE, ValidationError
 
 
 class Version(fields.Field):
@@ -11,8 +12,8 @@ class Version(fields.Field):
     def _deserialize(self, value, *args, **kwargs):
         try:
             return version.Version(value)
-        except version.InvalidVersion:
-            raise ValidationError("Not a valid version.")
+        except version.InvalidVersion as e:
+            raise ValidationError("Not a valid version.") from e
 
     def _serialize(self, value, *args, **kwargs):
         return str(value)

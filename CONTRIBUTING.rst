@@ -123,7 +123,7 @@ To run formatting and syntax checks: ::
 Documentation
 +++++++++++++
 
-Contributions to the documentation are welcome. Documentation is written in `reStructured Text`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.net/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
+Contributions to the documentation are welcome. Documentation is written in `reStructuredText`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
 To build the docs in "watch" mode: ::
 
@@ -141,5 +141,5 @@ Have a usage example you'd like to share? A custom `Field` that others might fin
 
 
 .. _Sphinx: https://www.sphinx-doc.org/
-.. _`reStructured Text`: http://docutils.sourceforge.net/rst.html
+.. _`reStructuredText`: https://docutils.sourceforge.io/rst.html
 .. _marshmallow: https://github.com/marshmallow-code/marshmallow

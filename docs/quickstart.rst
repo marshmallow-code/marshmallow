@@ -63,7 +63,7 @@ Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Sche
 
 .. code-block:: python
 
-    from marshmallow import pprint
+    from pprint import pprint
 
     user = User(name="Monty", email="monty@python.org")
     schema = UserSchema()
@@ -90,7 +90,7 @@ You may not need to output all declared fields every time you use a schema. You 
 
     summary_schema = UserSchema(only=("name", "email"))
     summary_schema.dump(user)
-    # {"name": "Monty Python", "email": "monty@python.org"}
+    # {"name": "Monty", "email": "monty@python.org"}
 
 You can also exclude fields by passing in the ``exclude`` parameter.
 
@@ -529,8 +529,9 @@ To maintain field ordering, set the ``ordered`` option to `True`. This will inst
 .. code-block:: python
 
     from collections import OrderedDict
+    from pprint import pprint
 
-    from marshmallow import Schema, fields, pprint
+    from marshmallow import Schema, fields
 
 
     class UserSchema(Schema):

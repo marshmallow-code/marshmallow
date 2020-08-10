@@ -24,7 +24,9 @@ marshmallow: simplified object serialization
 .. code-block:: python
 
     from datetime import date
-    from marshmallow import Schema, fields, pprint
+    from pprint import pprint
+
+    from marshmallow import Schema, fields
 
 
     class ArtistSchema(Schema):

@@ -34,6 +34,7 @@ from marshmallow.utils import (
     is_instance_or_subclass,
     is_iterable_but_not_string,
 )
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 _T = typing.TypeVar("_T")
 
@@ -215,7 +216,7 @@ class SchemaOpts:
         if hasattr(meta, "json_module"):
             warnings.warn(
                 "The json_module class Meta option is deprecated. Use render_module instead.",
-                DeprecationWarning,
+                RemovedInMarshmallow4Warning,
             )
             render_module = getattr(meta, "json_module", json)
         else:
@@ -1040,10 +1041,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             # Field declared as a class, not an instance. Ignore type checking because
             # we handle unsupported arg types, i.e. this is dead code from
             # the type checker's perspective.
-            if isinstance(field_obj, type) and issubclass(  # type: ignore
-                field_obj, base.FieldABC
-            ):
-                msg = (  # type: ignore
+            if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
+                msg = (
                     'Field for "{}" must be declared as a '
                     "Field instance, not a class. "
                     'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)

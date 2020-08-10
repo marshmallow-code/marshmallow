@@ -26,6 +26,7 @@ from marshmallow.exceptions import (
     FieldInstanceResolutionError,
 )
 from marshmallow.validate import Validator, Length
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 __all__ = [
     "Field",
@@ -175,14 +176,9 @@ class Field(FieldABC):
                 "or a collection of callables."
             )
 
-        # If missing=None, None should be considered valid by default
-        if allow_none is None:
-            if missing is None:
-                self.allow_none = True
-            else:
-                self.allow_none = False
-        else:
-            self.allow_none = allow_none
+        # If allow_none is None and missing is None
+        # None should be considered valid by default
+        self.allow_none = missing is None if allow_none is None else allow_none
         self.load_only = load_only
         self.dump_only = dump_only
         if required is True and missing is not missing_:
@@ -278,7 +274,7 @@ class Field(FieldABC):
             '`Field.fail` is deprecated. Use `raise self.make_error("{}", ...)` instead.'.format(
                 key
             ),
-            DeprecationWarning,
+            RemovedInMarshmallow4Warning,
         )
         raise self.make_error(key=key, **kwargs)
 
@@ -460,8 +456,7 @@ class Nested(Field):
         # No
         author = fields.Nested(UserSchema(), only=('id', 'name'))
 
-    :param nested: The Schema class or class name (string)
-        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param nested: `Schema` instance, class, class name (string), or callable that returns a `Schema` instance.
     :param exclude: A list or tuple of fields to exclude.
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
@@ -471,6 +466,7 @@ class Nested(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"type": "Invalid type."}
 
     def __init__(
@@ -495,7 +491,7 @@ class Nested(Field):
             warnings.warn(
                 "Passing 'self' to `Nested` is deprecated. "
                 "Use `Nested(lambda: MySchema(...))` instead.",
-                DeprecationWarning,
+                RemovedInMarshmallow4Warning,
             )
         self.nested = nested
         self.only = only
@@ -530,10 +526,10 @@ class Nested(Field):
                         original = self._schema.only
                     else:  # only=None -> all fields
                         original = self._schema.fields.keys()
-                    self._schema.only = set_class(self.only).intersection(original)
+                    self._schema.only = set_class(self.only) & set_class(original)
                 if self.exclude:
                     original = self._schema.exclude
-                    self._schema.exclude = set_class(self.exclude).union(original)
+                    self._schema.exclude = set_class(self.exclude) | set_class(original)
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, SchemaABC):
@@ -676,6 +672,7 @@ class List(Field):
         Does not serialize scalar values to single-item lists.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid list."}
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
@@ -744,6 +741,7 @@ class Tuple(Field):
     .. versionadded:: 3.0.0rc4
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid tuple."}
 
     def __init__(self, tuple_fields, *args, **kwargs):
@@ -813,6 +811,7 @@ class String(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid string.",
         "invalid_utf8": "Not a valid utf-8 string.",
@@ -835,6 +834,7 @@ class String(Field):
 class UUID(String):
     """A UUID field."""
 
+    #: Default error messages.
     default_error_messages = {"invalid_uuid": "Not a valid UUID."}
 
     def _validated(self, value) -> typing.Optional[uuid.UUID]:
@@ -864,6 +864,7 @@ class Number(Field):
 
     num_type = float  # type: typing.Type
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid number.",
         "too_large": "Number too large.",
@@ -916,6 +917,8 @@ class Integer(Number):
     """
 
     num_type = int
+
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid integer."}
 
     def __init__(self, *, strict: bool = False, **kwargs):
@@ -943,6 +946,8 @@ class Float(Number):
     """
 
     num_type = float
+
+    #: Default error messages.
     default_error_messages = {
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
@@ -998,6 +1003,7 @@ class Decimal(Number):
 
     num_type = decimal.Decimal
 
+    #: Default error messages.
     default_error_messages = {
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
@@ -1094,6 +1100,7 @@ class Boolean(Field):
         False,
     }
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid boolean."}
 
     def __init__(
@@ -1109,10 +1116,14 @@ class Boolean(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        elif value in self.truthy:
-            return True
-        elif value in self.falsy:
-            return False
+
+        try:
+            if value in self.truthy:
+                return True
+            elif value in self.falsy:
+                return False
+        except TypeError:
+            pass
 
         return bool(value)
 
@@ -1163,6 +1174,7 @@ class DateTime(Field):
 
     SCHEMA_OPTS_VAR_NAME = "datetimeformat"
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid {obj_type}.",
         "invalid_awareness": "Not a valid {awareness} {obj_type}.",
@@ -1290,6 +1302,7 @@ class Time(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid time.",
         "format": '"{input}" cannot be formatted as a time.',
@@ -1321,6 +1334,7 @@ class Date(DateTime):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid date.",
         "format": '"{input}" cannot be formatted as a date.',
@@ -1364,6 +1378,7 @@ class TimeDelta(Field):
     HOURS = "hours"
     WEEKS = "weeks"
 
+    #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid period of time.",
         "format": "{input!r} cannot be formatted as a timedelta.",
@@ -1425,6 +1440,8 @@ class Mapping(Field):
     """
 
     mapping_type = dict
+
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
 
     def __init__(
@@ -1569,6 +1586,7 @@ class Url(String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid URL."}
 
     def __init__(
@@ -1601,6 +1619,7 @@ class Email(String):
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
+    #: Default error messages.
     default_error_messages = {"invalid": "Not a valid email address."}
 
     def __init__(self, *args, **kwargs):

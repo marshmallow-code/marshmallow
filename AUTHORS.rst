@@ -99,7 +99,7 @@ Contributors (chronological)
 - Harlov Nikita `@harlov <https://github.com/harlov>`_
 - `@stj <https://github.com/stj>`_
 - Tomasz Magulski `@magul <https://github.com/magul>`_
-- Suren Khorenyan `@surik00 <https://github.com/surik00>`_
+- Suren Khorenyan `@mahenzon <https://github.com/mahenzon>`_
 - Jeffrey Berger `@JeffBerger <https://github.com/JeffBerger>`_
 - Felix Yan `@felixonmars <https://github.com/felixonmars>`_
 - Prasanjit Prakash `@ikilledthecat <https://github.com/ikilledthecat>`_
@@ -146,4 +146,11 @@ Contributors (chronological)
 - `@dfirst <https://github.com/dfirst>`_
 - Tim Gates `@timgates42 <https://github.com/timgates42>`_
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
+- Michał Getka `@mgetka <https://github.com/mgetka>`_
+- Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
+- Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
+- Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
+- `@weeix <https://github.com/weeix>`_
+- Juan Norris `@juannorris <https://github.com/juannorris>`_
+- 장준영 `@jun0jang <https://github.com/jun0jang>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_
