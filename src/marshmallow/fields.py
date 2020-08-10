@@ -1637,7 +1637,7 @@ class IP(Field):
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
-    DESERIALIZATION_CLASS: typing.Optional[typing.Type] = None
+    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
 
     def __init__(self, *args, exploded=False, **kwargs):
         super().__init__(*args, **kwargs)
