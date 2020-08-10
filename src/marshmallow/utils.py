@@ -120,10 +120,31 @@ _iso8601_datetime_re = re.compile(
 
 _iso8601_date_re = re.compile(r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$")
 
-_iso8601_time_re = re.compile(
+_iso8601_time_default_re = re.compile(
     r"(?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
     r"(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?"
 )
+
+_iso8601_time_hours_format = r"(?P<hour>\d{1,2})"
+
+_iso8601_time_minutes_format = r"(?P<minute>\d{1,2})"
+
+_iso8601_time_seconds_format = r"(?P<second>\d{1,2})"
+
+_iso8601_time_microseconds_format = r"(?P<microsecond>\d{1,6})"
+
+_iso8601_time_format_re = {
+    "hh": re.compile(fr"{_iso8601_time_hours_format}$"),
+    "hh:mm": re.compile(
+        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}$"
+    ),
+    "hh:mm:ss": re.compile(
+        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}:{_iso8601_time_seconds_format}$"
+    ),
+    "hh:mm:ss.sss": re.compile(
+        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}:{_iso8601_time_seconds_format}.{_iso8601_time_microseconds_format}$"
+    ),
+}  # type: typing.Dict[str, typing.Pattern]
 
 
 def get_fixed_timezone(offset: typing.Union[int, float, dt.timedelta]) -> dt.timezone:
@@ -161,16 +182,21 @@ def from_iso_datetime(value):
     return dt.datetime(**kw)
 
 
-def from_iso_time(value):
+def from_iso_time(value, format: str = ""):
     """Parse a string and return a datetime.time.
 
     This function doesn't support time zone offsets.
     """
-    match = _iso8601_time_re.match(value)
+    regex_exp = _iso8601_time_format_re.get(format) or _iso8601_time_default_re
+    match = regex_exp.match(value)
     if not match:
         raise ValueError("Not a valid ISO8601-formatted time string")
+
+    kw = {}  # type: typing.Dict[str, typing.Any]
     kw = match.groupdict()
-    kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
+    if kw.get("microsecond"):
+        kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
+
     kw = {k: int(v) for k, v in kw.items() if v is not None}
     return dt.time(**kw)
 
@@ -194,6 +220,25 @@ def isoformat(datetime: dt.datetime) -> str:
 
 def to_iso_date(date: dt.date) -> str:
     return dt.date.isoformat(date)
+
+
+def to_iso_time(time: dt.time, format: str = "") -> str:
+    """Return the ISO8601-formatted representation of a time object.
+
+    :param time: The time.
+    :param format: An ISO8601 time format string.
+    """
+    if format:
+        format_exp = {
+            "hh": "%H",
+            "hh:mm": "%H:%M",
+            "hh:mm:ss": "%H:%M:%S",
+            "hh:mm:ss.sss": "%H:%M:%S.%f",
+        }.get(format)
+        if format_exp:
+            return time.strftime(format_exp)
+
+    return time.isoformat()
 
 
 def ensure_text_type(val: typing.Union[str, bytes]) -> str:
