@@ -134,15 +134,24 @@ _iso8601_time_seconds_format = r"(?P<second>\d{1,2})"
 _iso8601_time_microseconds_format = r"(?P<microsecond>\d{1,6})"
 
 _iso8601_time_format_re = {
-    "hh": re.compile(fr"{_iso8601_time_hours_format}$"),
+    "hh": re.compile(r"{}$".format(_iso8601_time_hours_format)),
     "hh:mm": re.compile(
-        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}$"
+        r"{}:{}$".format(_iso8601_time_hours_format, _iso8601_time_minutes_format,)
     ),
     "hh:mm:ss": re.compile(
-        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}:{_iso8601_time_seconds_format}$"
+        r"{}:{}:{}$".format(
+            _iso8601_time_hours_format,
+            _iso8601_time_minutes_format,
+            _iso8601_time_seconds_format,
+        ),
     ),
     "hh:mm:ss.sss": re.compile(
-        fr"{_iso8601_time_hours_format}:{_iso8601_time_minutes_format}:{_iso8601_time_seconds_format}.{_iso8601_time_microseconds_format}$"
+        r"{}:{}:{}.{}$".format(
+            _iso8601_time_hours_format,
+            _iso8601_time_minutes_format,
+            _iso8601_time_seconds_format,
+            _iso8601_time_microseconds_format,
+        ),
     ),
 }  # type: typing.Dict[str, typing.Pattern]
 
