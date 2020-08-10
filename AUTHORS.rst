@@ -146,7 +146,6 @@ Contributors (chronological)
 - `@dfirst <https://github.com/dfirst>`_
 - Tim Gates `@timgates42 <https://github.com/timgates42>`_
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
-- Michał Getka `@mgetka <https://github.com/mgetka>`_
 - Ronan Murphy `@Resinderate <https://github.com/Resinderate>`_
 - Laurie Opperman `@EpicWink <https://github.com/EpicWink>`_
 - Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
