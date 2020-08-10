@@ -1637,6 +1637,8 @@ class IP(Field):
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
+    DESERIALIZATION_CLASS: typing.Optional[typing.Type] = None
+
     def __init__(self, *args, exploded=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
@@ -1654,7 +1656,9 @@ class IP(Field):
         if value is None:
             return None
         try:
-            return ipaddress.ip_address(utils.ensure_text_type(value))
+            return (self.DESERIALIZATION_CLASS or ipaddress.ip_address)(
+                utils.ensure_text_type(value)
+            )
         except (ValueError, TypeError) as error:
             raise self.make_error("invalid_ip") from error
 
@@ -1664,15 +1668,7 @@ class IPv4(IP):
 
     default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
 
-    def _deserialize(
-        self, value, attr, data, **kwargs
-    ) -> typing.Optional[ipaddress.IPv4Address]:
-        if value is None:
-            return None
-        try:
-            return ipaddress.IPv4Address(utils.ensure_text_type(value))
-        except (ValueError, TypeError) as error:
-            raise self.make_error("invalid_ip") from error
+    DESERIALIZATION_CLASS = ipaddress.IPv4Address
 
 
 class IPv6(IP):
@@ -1680,15 +1676,7 @@ class IPv6(IP):
 
     default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
 
-    def _deserialize(
-        self, value, attr, data, **kwargs
-    ) -> typing.Optional[ipaddress.IPv6Address]:
-        if value is None:
-            return None
-        try:
-            return ipaddress.IPv6Address(utils.ensure_text_type(value))
-        except (ValueError, TypeError) as error:
-            raise self.make_error("invalid_ip") from error
+    DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
 class Method(Field):
