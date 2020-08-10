@@ -581,6 +581,26 @@ class TestFieldDeserialization:
         result2 = field.deserialize(t2_formatted)
         assert_time_equal(result2, t2)
 
+    @pytest.mark.parametrize(
+        ("format", "input", "expected"),
+        [
+            ("hh", "09", dt.time(9)),
+            ("hh:mm", "09:26", dt.time(9, 26)),
+            ("hh:mm:ss", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
+            (
+                "hh:mm:ss.sss",
+                dt.time(9, 26, 45, 123456).isoformat(),
+                dt.time(9, 26, 45, 123456),
+            ),
+            ("nonsense", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
+        ],
+    )
+    def test_formatted_time_field_deserialization(self, format, input, expected):
+        field = fields.Time(format=format)
+        result = field.deserialize(input)
+        assert isinstance(result, dt.time)
+        assert_time_equal(result, expected)
+
     @pytest.mark.parametrize("in_data", ["badvalue", "", [], 42])
     def test_invalid_time_field_deserialization(self, in_data):
         field = fields.Time()

@@ -502,6 +502,21 @@ class TestFieldSerialization:
         user.time_registered = None
         assert field.serialize("time_registered", user) is None
 
+    @pytest.mark.parametrize(
+        ("format", "expected"),
+        [
+            ("hh", "08"),
+            ("hh:mm", "08:55"),
+            ("hh:mm:ss", "08:55:31"),
+            ("hh:mm:ss.sss", "08:55:31.123456"),
+            ("nonsense", "08:55:31.123456"),
+        ],
+    )
+    def test_formatted_time_field(self, format, expected):
+        t = dt.time(8, 55, 31, 123456, tzinfo=dt.timezone.utc)
+        field = fields.Time(format=format)
+        assert field.serialize("t", {"t": t}) == expected
+
     def test_date_field(self, user):
         field = fields.Date()
         assert field.serialize("birthdate", user) == user.birthdate.isoformat()
