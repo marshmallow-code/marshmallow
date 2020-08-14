@@ -394,6 +394,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self.load_fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self.dump_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.dump_serializers = (
+            self.dict_class()
+        )  # type: typing.Dict[str, typing.Callable]
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -466,7 +469,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """
         pass
 
-    def get_attribute(self, obj: typing.Any, attr: str, default: typing.Any):
+    def default_get_attribute(self, obj: typing.Any, attr: str, default: typing.Any):
         """Defines how to pull values from an object to serialize.
 
         .. versionadded:: 2.0.0
@@ -475,6 +478,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Changed position of ``obj`` and ``attr``.
         """
         return get_value(obj, attr, default)
+
+    get_attribute = default_get_attribute
 
     ##### Serialization/Deserialization API #####
 
@@ -510,19 +515,41 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         .. versionchanged:: 1.0.0
             Renamed from ``marshal``.
         """
-        if many and obj is not None:
-            return [
-                self._serialize(d, many=False)
-                for d in typing.cast(typing.Iterable[_T], obj)
-            ]
-        ret = self.dict_class()
-        for attr_name, field_obj in self.dump_fields.items():
-            value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
-            if value is missing:
-                continue
-            key = field_obj.data_key if field_obj.data_key is not None else attr_name
-            ret[key] = value
-        return ret
+        if not self.dump_serializers:
+            accessor = (
+                None
+            )  # type: typing.Optional[typing.Callable[[typing.Any, str, typing.Any], typing.Any]]
+            if self.get_attribute != self.default_get_attribute:
+                accessor = self.get_attribute
+
+            for field_name, field_obj in self.dump_fields.items():
+                key = (
+                    field_obj.data_key if field_obj.data_key is not None else field_name
+                )
+                self.dump_serializers[key] = field_obj.get_serializer(
+                    field_name, accessor
+                )
+
+        source_obj = [None]  # typing: typing.List[typing.Any]
+
+        if not many:
+            source_obj = [typing.cast(typing.Any, obj)]
+        elif many and obj is not None:
+            source_obj = typing.cast(typing.List[typing.Any], obj)
+
+        output = []
+        for current_obj in source_obj:
+            ret = self.dict_class()
+            for key, serializer in self.dump_serializers.items():
+                value = serializer(current_obj)
+                if value is missing:
+                    continue
+                ret[key] = value
+            output.append(ret)
+
+        if not many:
+            return output[0]
+        return output
 
     def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
         """Serialize an object to native Python data types according to this
@@ -1015,6 +1042,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.fields = fields_dict
         self.dump_fields = dump_fields
         self.load_fields = load_fields
+        self.dump_serializers = self.dict_class()
 
     def on_bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
         """Hook to modify a field when it is bound to the `Schema`.

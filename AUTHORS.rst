@@ -167,3 +167,4 @@ Contributors (chronological)
 - Ryan Morehart `@traherom <https://github.com/traherom>`_
 - Ben Windsor `@bwindsor <https://github.com/bwindsor>`_
 - Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
+- Dusko Simidzija `@dsimidzija <https://github.com/dsimidzija>`_
