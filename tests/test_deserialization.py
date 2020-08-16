@@ -584,15 +584,14 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize(
         ("format", "input", "expected"),
         [
-            ("hh", "09", dt.time(9)),
-            ("hh:mm", "09:26", dt.time(9, 26)),
-            ("hh:mm:ss", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
+            ("%H", "09", dt.time(9)),
+            ("%H:%M", "09:26", dt.time(9, 26)),
+            ("%H:%M:%S", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
             (
-                "hh:mm:ss.sss",
+                "%H:%M:%S.%f",
                 dt.time(9, 26, 45, 123456).isoformat(),
                 dt.time(9, 26, 45, 123456),
             ),
-            ("nonsense", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
         ],
     )
     def test_formatted_time_field_deserialization(self, format, input, expected):

@@ -158,11 +158,11 @@ def test_isoformat(value, expected):
 @pytest.mark.parametrize(
     ("format", "expected"),
     [
-        ("hh", "08"),
-        ("hh:mm", "08:55"),
-        ("hh:mm:ss", "08:55:31"),
-        ("hh:mm:ss.sss", "08:55:31.240000"),
-        ("nonsense", "08:55:31.240000+00:00"),
+        ("%H", "08"),
+        ("%H:%M", "08:55"),
+        ("%H:%M:%S", "08:55:31"),
+        ("%H:%M:%S.%f", "08:55:31.240000"),
+        (None, "08:55:31.240000+00:00"),
     ],
 )
 def test_to_iso_time(format, expected):
@@ -240,20 +240,19 @@ def test_from_iso_time_without_microseconds():
 @pytest.mark.parametrize(
     ("format", "input", "expected"),
     [
-        ("hh", "09", dt.time(9)),
-        ("hh:mm", "09:26", dt.time(9, 26)),
-        ("hh:mm:ss", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
+        ("%H", "09", dt.time(9)),
+        ("%H:%M", "09:26", dt.time(9, 26)),
+        ("%H:%M:%S", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
         (
-            "hh:mm:ss.sss",
+            "%H:%M:%S.%f",
             dt.time(9, 26, 45, 123456).isoformat(),
             dt.time(9, 26, 45, 123456),
         ),
-        ("nonsense", dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
+        (None, dt.time(9, 26, 45).isoformat(), dt.time(9, 26, 45)),
     ],
 )
 def test_from_iso_time_formatted(format, input, expected):
     result = utils.from_iso_time(input, format)
-    print(result)
     assert type(result) == dt.time
     assert_time_equal(result, expected)
 

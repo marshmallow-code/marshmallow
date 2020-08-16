@@ -187,6 +187,14 @@ class TestParentAndName:
         for field_name in ("bar", "qux"):
             assert schema.fields[field_name].tuple_fields[0].format == "iso8601"
 
+    def test_time_invalid_format(self):
+        with pytest.raises(ValueError) as excinfo:
+
+            class MySchema(Schema):
+                foo = fields.Time(format="%I:%M:%S")
+
+        assert excinfo.value.args[0] == "Not a valid ISO8601 strftime format"
+
 
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)

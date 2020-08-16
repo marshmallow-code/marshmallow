@@ -1295,8 +1295,7 @@ class AwareDateTime(DateTime):
 class Time(Field):
     """ISO8601-formatted time string.
 
-    :param format: ISO8601 string format of the value. Can either be
-        ``"hh"``, ``"hh:mm"``, ``"hh:mm:ss"``, or ``"hh:mm:ss.sss"``.
+    :param format: ISO8601 strftime format of the value.
         If not specified, defaults to built-in ``isoformat`` de/serialization.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
@@ -1304,12 +1303,23 @@ class Time(Field):
     #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid time.",
+        "iso_format": "Not a valid ISO8601 format",
         "format": '"{input}" cannot be formatted as a time.',
     }
 
-    def __init__(self, format: str = "", **kwargs):
+    VALID_ISO_STRFTIME_FORMATS: typing.List[str] = [
+        "%H",
+        "%H:%M",
+        "%H:%M:%S",
+        "%H:%M:%S.%f",
+    ]
+
+    def __init__(self, format: typing.Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.format = format
+
+        if self.format and self.format not in Time.VALID_ISO_STRFTIME_FORMATS:
+            raise ValueError("Not a valid ISO8601 strftime format")
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:

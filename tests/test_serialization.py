@@ -505,11 +505,11 @@ class TestFieldSerialization:
     @pytest.mark.parametrize(
         ("format", "expected"),
         [
-            ("hh", "08"),
-            ("hh:mm", "08:55"),
-            ("hh:mm:ss", "08:55:31"),
-            ("hh:mm:ss.sss", "08:55:31.123456"),
-            ("nonsense", "08:55:31.123456"),
+            ("%H", "08"),
+            ("%H:%M", "08:55"),
+            ("%H:%M:%S", "08:55:31"),
+            ("%H:%M:%S.%f", "08:55:31.123456"),
+            (None, "08:55:31.123456"),
         ],
     )
     def test_formatted_time_field(self, format, expected):
