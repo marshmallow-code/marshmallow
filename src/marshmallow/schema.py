@@ -27,6 +27,7 @@ from marshmallow.utils import (
     RAISE,
     EXCLUDE,
     INCLUDE,
+    UnknownParam,
     missing,
     set_value,
     get_value,
@@ -228,14 +229,14 @@ class SchemaOpts:
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
         # self.unknown defaults to "RAISE", but note whether it was explicit or
-        # not, so that when we're handling propagate_unknown we can decide
+        # not, so that when we're handling "propagate" we can decide
         # whether or not to propagate based on whether or not it was set
         # explicitly
         self.unknown = getattr(meta, "unknown", None)
         self.auto_unknown = self.unknown is None
         if self.auto_unknown:
             self.unknown = RAISE
-        self.propagate_unknown = getattr(meta, "propagate_unknown", False)
+        self.unknown = UnknownParam.parse_if_str(self.unknown)
         self.register = getattr(meta, "register", True)
 
 
@@ -287,9 +288,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         will be ignored. Use dot delimiters to specify nested fields.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-    :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-        applied to all ``Nested`` fields. Propagates down and allows
-        ``Nested`` fields to apply their own ``unknown`` value
 
     .. versionchanged:: 3.0.0
         `prefix` parameter removed.
@@ -367,10 +365,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        - ``propagate_unknown`` If ``True``, the value for ``unknown`` will be
-           applied to all ``Nested`` fields. Propagates down, but if a ``Nested``
-           field sets ``unknown``, it will begin to propagate that value, not the
-           where this is set.
         - ``register``: Whether to register the `Schema` with marshmallow's internal
             class registry. Must be `True` if you intend to refer to this `Schema`
             by class name in `Nested` fields. Only set this to `False` when memory
@@ -387,8 +381,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
         partial: typing.Union[bool, types.StrSequenceOrSet] = False,
-        unknown: str = None,
-        propagate_unknown: bool = None
+        unknown: str = None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -404,11 +397,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown = unknown or self.opts.unknown
+        self.unknown = (
+            UnknownParam.parse_if_str(unknown)
+            if unknown is not None
+            else self.opts.unknown
+        )
         # if unknown was not set explicitly AND self.opts.auto_unknown is true,
         # then the value should be considered "automatic"
         self.auto_unknown = (not unknown) and self.opts.auto_unknown
-        self.propagate_unknown = propagate_unknown or self.opts.propagate_unknown
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -612,7 +608,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = False,
         partial=False,
         unknown=RAISE,
-        propagate_unknown=False,
         index=None
     ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
@@ -626,13 +621,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-            applied to all ``Nested`` fields. Propagates down and allows
-            ``Nested`` fields to apply their own ``unknown`` value
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
+        unknown = UnknownParam.parse_if_str(unknown)
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
@@ -649,7 +642,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             many=False,
                             partial=partial,
                             unknown=unknown,
-                            propagate_unknown=propagate_unknown,
                             index=idx,
                         ),
                     )
@@ -685,9 +677,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 else:
                     d_kwargs["partial"] = partial
 
-                if propagate_unknown:
+                if unknown.propagate:
                     d_kwargs["unknown"] = unknown
-                    d_kwargs["propagate_unknown"] = True
 
                 getter = lambda val: field_obj.deserialize(
                     val, field_name, data, **d_kwargs
@@ -702,16 +693,16 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 if value is not missing:
                     key = field_obj.attribute or attr_name
                     set_value(typing.cast(typing.Dict, ret), key, value)
-            if unknown != EXCLUDE:
+            if unknown.value != EXCLUDE.value:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
                     for field_name, field_obj in self.load_fields.items()
                 }
                 for key in set(data) - fields:
                     value = data[key]
-                    if unknown == INCLUDE:
+                    if unknown.value == INCLUDE.value:
                         set_value(typing.cast(typing.Dict, ret), key, value)
-                    elif unknown == RAISE:
+                    elif unknown.value == RAISE.value:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
@@ -728,8 +719,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None,
-        propagate_unknown: bool = None
+        unknown: str = None
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -743,9 +733,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-            applied to all ``Nested`` fields. Propagates down and allows
-            ``Nested`` fields to apply their own ``unknown`` value
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -755,12 +742,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         return self._do_load(
-            data,
-            many=many,
-            partial=partial,
-            unknown=unknown,
-            propagate_unknown=propagate_unknown,
-            postprocess=True,
+            data, many=many, partial=partial, unknown=unknown, postprocess=True,
         )
 
     def loads(
@@ -770,7 +752,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
         unknown: str = None,
-        propagate_unknown: bool = None,
         **kwargs
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -785,9 +766,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-            applied to all ``Nested`` fields. Propagates down and allows
-            ``Nested`` fields to apply their own ``unknown`` value
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -797,13 +775,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(
-            data,
-            many=many,
-            partial=partial,
-            unknown=unknown,
-            propagate_unknown=propagate_unknown,
-        )
+        return self.load(data, many=many, partial=partial, unknown=unknown,)
 
     def _run_validator(
         self,
@@ -864,7 +836,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = None,
         partial: typing.Union[bool, types.StrSequenceOrSet] = None,
         unknown: str = None,
-        propagate_unknown: bool = None,
         postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -880,17 +851,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-            applied to all ``Nested`` fields. Propagates down and allows
-            ``Nested`` fields to apply their own ``unknown`` value
         :param postprocess: Whether to run post_load methods..
         :return: Deserialized data
         """
         error_store = ErrorStore()
         errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
-        unknown = unknown or self.unknown
-        propagate_unknown = propagate_unknown or self.propagate_unknown
+        unknown = UnknownParam.parse_if_str(
+            unknown if unknown is not None else self.unknown
+        )
         if partial is None:
             partial = self.partial
         # Run preprocessors
@@ -914,7 +883,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 many=many,
                 partial=partial,
                 unknown=unknown,
-                propagate_unknown=propagate_unknown,
             )
             # Run field-level validation
             self._invoke_field_validators(

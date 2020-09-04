@@ -9,7 +9,7 @@ from marshmallow.decorators import (
     validates,
     validates_schema,
 )
-from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
+from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, PROPAGATE, pprint, missing
 from marshmallow.exceptions import ValidationError
 from distutils.version import LooseVersion
 
@@ -19,6 +19,7 @@ __all__ = [
     "EXCLUDE",
     "INCLUDE",
     "RAISE",
+    "PROPAGATE",
     "Schema",
     "SchemaOpts",
     "fields",

@@ -18,6 +18,7 @@ from marshmallow.utils import (
     missing as missing_,
     resolve_field_instance,
     is_aware,
+    UnknownParam,
 )
 from marshmallow.exceptions import (
     ValidationError,
@@ -459,10 +460,6 @@ class Nested(Field):
     :param many: Whether the field is a collection of objects.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-    :param propagate_unknown: If ``True``, the value for ``unknown`` will be
-        applied to any ``Nested`` fields within the nested schema. Propagates down and allows
-        ``Nested`` fields to apply their own ``unknown`` value. Note that this
-        only has an effect when there are multiple layers of nesting
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -477,8 +474,7 @@ class Nested(Field):
         only: types.StrSequenceOrSet = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        unknown: str = None,
-        propagate_unknown: bool = None,
+        unknown: typing.Union[str, UnknownParam] = None,
         **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -498,8 +494,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = many
-        self.unknown = unknown
-        self.propagate_unknown = propagate_unknown
+        self.unknown = UnknownParam.parse_if_str(unknown) if unknown else None
         self._schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
 
@@ -577,15 +572,10 @@ class Nested(Field):
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
-    def _load(self, value, data, partial=None, unknown=None, propagate_unknown=None):
+    def _load(self, value, data, partial=None, unknown=None):
         try:
             valid_data = self.schema.load(
-                value,
-                unknown=unknown or self.unknown,
-                propagate_unknown=propagate_unknown
-                if propagate_unknown is not None
-                else self.propagate_unknown,
-                partial=partial,
+                value, unknown=unknown if unknown else self.unknown, partial=partial,
             )
         except ValidationError as error:
             raise ValidationError(
@@ -593,16 +583,7 @@ class Nested(Field):
             ) from error
         return valid_data
 
-    def _deserialize(
-        self,
-        value,
-        attr,
-        data,
-        partial=None,
-        unknown=None,
-        propagate_unknown=None,
-        **kwargs
-    ):
+    def _deserialize(self, value, attr, data, partial=None, unknown=None, **kwargs):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
 
         :param bool|tuple partial: For nested schemas, the ``partial``
@@ -616,18 +597,14 @@ class Nested(Field):
         # however, we should only respect `self.schema.unknown` if
         # `auto_unknown` is False, meaning that it was set explicitly on the
         # schema class or instance
-        explicit_unknown = self.unknown or (
-            self.schema.unknown if not self.schema.auto_unknown else None
+        explicit_unknown = (
+            self.unknown
+            if self.unknown
+            else (self.schema.unknown if not self.schema.auto_unknown else None)
         )
         if explicit_unknown:
             unknown = explicit_unknown
-        return self._load(
-            value,
-            data,
-            partial=partial,
-            unknown=unknown,
-            propagate_unknown=propagate_unknown,
-        )
+        return self._load(value, data, partial=partial, unknown=unknown,)
 
 
 class Pluck(Nested):

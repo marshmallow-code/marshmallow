@@ -6,6 +6,7 @@ from marshmallow import (
     ValidationError,
     EXCLUDE,
     INCLUDE,
+    PROPAGATE,
     RAISE,
     missing,
 )
@@ -317,10 +318,11 @@ class TestNestedFieldPropagatesUnknown:
     @pytest.mark.parametrize(
         "schema_kwargs,load_kwargs",
         [
-            ({}, {"propagate_unknown": True, "unknown": INCLUDE}),
-            ({"propagate_unknown": True}, {"unknown": INCLUDE}),
-            ({"propagate_unknown": True, "unknown": INCLUDE}, {}),
-            ({"unknown": INCLUDE}, {"propagate_unknown": True}),
+            ({}, {"unknown": INCLUDE | PROPAGATE}),
+            ({}, {"unknown": "INCLUDE | PROPAGATE"}),
+            ({"unknown": RAISE}, {"unknown": INCLUDE | PROPAGATE}),
+            ({"unknown": RAISE}, {"unknown": "include|propagate"}),
+            ({"unknown": INCLUDE | PROPAGATE}, {}),
         ],
     )
     def test_propagate_unknown_include(
@@ -344,10 +346,11 @@ class TestNestedFieldPropagatesUnknown:
     @pytest.mark.parametrize(
         "schema_kwargs,load_kwargs",
         [
-            ({}, {"propagate_unknown": True, "unknown": EXCLUDE}),
-            ({"propagate_unknown": True}, {"unknown": EXCLUDE}),
-            ({"propagate_unknown": True, "unknown": EXCLUDE}, {}),
-            ({"unknown": EXCLUDE}, {"propagate_unknown": True}),
+            ({}, {"unknown": EXCLUDE | PROPAGATE}),
+            ({}, {"unknown": "exclude | propagate"}),
+            ({"unknown": RAISE}, {"unknown": EXCLUDE | PROPAGATE}),
+            ({"unknown": PROPAGATE | EXCLUDE}, {}),
+            ({"unknown": "propagate|exclude"}, {}),
         ],
     )
     def test_propagate_unknown_exclude(
