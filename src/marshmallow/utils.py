@@ -51,7 +51,10 @@ class UnknownParam:
 
     @classmethod
     def parse_if_str(cls, value):
-        """Given a string or UnknownParam, convert to an UnknownParam"""
+        """Given a string or UnknownParam, convert to an UnknownParam
+
+        Preserves None, which is important for making sure that it can be used
+        blindly on `unknown` which may be a user-supplied value or a default"""
         if isinstance(value, str):
             return cls(value)
         return value

@@ -228,15 +228,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        # self.unknown defaults to "RAISE", but note whether it was explicit or
-        # not, so that when we're handling "propagate" we can decide
-        # whether or not to propagate based on whether or not it was set
-        # explicitly
-        self.unknown = getattr(meta, "unknown", None)
-        self.auto_unknown = self.unknown is None
-        if self.auto_unknown:
-            self.unknown = RAISE
-        self.unknown = UnknownParam.parse_if_str(self.unknown)
+        self.unknown = UnknownParam.parse_if_str(getattr(meta, "unknown", RAISE))
         self.register = getattr(meta, "register", True)
 
 
@@ -397,14 +389,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown = (
-            UnknownParam.parse_if_str(unknown)
-            if unknown is not None
-            else self.opts.unknown
-        )
-        # if unknown was not set explicitly AND self.opts.auto_unknown is true,
-        # then the value should be considered "automatic"
-        self.auto_unknown = (not unknown) and self.opts.auto_unknown
+        self.unknown = UnknownParam.parse_if_str(unknown) or self.opts.unknown
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -775,7 +760,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(data, many=many, partial=partial, unknown=unknown,)
+        return self.load(data, many=many, partial=partial, unknown=unknown)
 
     def _run_validator(
         self,
@@ -857,9 +842,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
-        unknown = UnknownParam.parse_if_str(
-            unknown if unknown is not None else self.unknown
-        )
+        unknown = UnknownParam.parse_if_str(unknown or self.unknown)
         if partial is None:
             partial = self.partial
         # Run preprocessors

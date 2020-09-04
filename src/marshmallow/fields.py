@@ -494,7 +494,7 @@ class Nested(Field):
         self.only = only
         self.exclude = exclude
         self.many = many
-        self.unknown = UnknownParam.parse_if_str(unknown) if unknown else None
+        self.unknown = UnknownParam.parse_if_str(unknown)
         self._schema = None  # Cached Schema instance
         super().__init__(default=default, **kwargs)
 
@@ -575,7 +575,7 @@ class Nested(Field):
     def _load(self, value, data, partial=None, unknown=None):
         try:
             valid_data = self.schema.load(
-                value, unknown=unknown if unknown else self.unknown, partial=partial,
+                value, unknown=unknown or self.unknown, partial=partial,
             )
         except ValidationError as error:
             raise ValidationError(
@@ -593,18 +593,7 @@ class Nested(Field):
             Add ``partial`` parameter.
         """
         self._test_collection(value)
-        # check if self.unknown or self.schema.unknown is set
-        # however, we should only respect `self.schema.unknown` if
-        # `auto_unknown` is False, meaning that it was set explicitly on the
-        # schema class or instance
-        explicit_unknown = (
-            self.unknown
-            if self.unknown
-            else (self.schema.unknown if not self.schema.auto_unknown else None)
-        )
-        if explicit_unknown:
-            unknown = explicit_unknown
-        return self._load(value, data, partial=partial, unknown=unknown,)
+        return self._load(value, data, partial=partial, unknown=unknown)
 
 
 class Pluck(Nested):

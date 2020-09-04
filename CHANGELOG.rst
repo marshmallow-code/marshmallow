@@ -8,24 +8,16 @@ Features:
 
 - The behavior of the ``unknown`` option can be further customized with a new
   value, ``PROPAGATE``. If ``unknown=EXCLUDE | PROPAGATE`` is set, then the
-  value of ``unknown=EXCLUDE | PROPAGATE`` will be passed to any nested
-  schemas which do not explicitly set ``unknown`` in ``Nested`` or schema
-  options. This works for ``INCLUDE | PROPAGATE`` and ``RAISE | PROPAGATE`` as
-  well.
+  value of ``unknown=EXCLUDE | PROPAGATE`` will be passed to any nested schemas.
+  This works for ``INCLUDE | PROPAGATE`` and ``RAISE | PROPAGATE`` as well.
   (:issue:`1490`, :issue:`1428`)
-  Thanks :user:`lmignon` and :user:`mahenzon`.
 
 .. note::
 
-  When a schema is being loaded with ``unknown=... | PROPAGATE``, you can still
-  set ``unknown`` explicitly on child schemas. However, be aware that such a
-  value may turn off propagation at that point in the schema hierarchy.
-
-  For example, a schema which specifies ``unknown=EXCLUDE`` will set
-  ``EXCLUDE`` for itself. But because the value is ``EXCLUDE`` rather than
-  ``EXCLUDE | PROPAGATE``, that setting will not be propagated to its
-  children, even if there is a parent schema which sets
-  ``unknown=EXCLUDE | PROPAGATE``.
+  When a schema is being loaded with ``unknown=... | PROPAGATE``, this will
+  override any values set for ``unknown`` in child schemas. Therefore,
+  ``PROPAGATE`` should only be used in cases in which you want to change
+  the behavior of an entire schema heirarchy.
 
 3.7.1 (2020-07-20)
 ******************

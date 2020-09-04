@@ -2904,12 +2904,11 @@ def test_class_registry_returns_schema_type():
     assert SchemaClass is DefinitelyUniqueSchema
 
 
-def test_propagate_unknown_stops_at_explicit_value_for_nested():
-    # PROPAGATE should traverse any "auto_unknown" values and
-    # replace them with the "unknown" value from the parent context (schema or
-    # load arguments)
-    # this test makes sure that it stops when a nested field or schema has
-    # "unknown" set explicitly (so auto_unknown=False)
+def test_propagate_unknown_overrides_explicit_value_for_nested():
+    # PROPAGATE should traverse any schemas and replace them with the
+    # "unknown" value from the parent context (schema or load arguments)
+    # this test makes sure that it takes precedence when a nested field
+    # or schema has "unknown" set explicitly
 
     class Bottom(Schema):
         x = fields.Str()
@@ -2933,14 +2932,13 @@ def test_propagate_unknown_stops_at_explicit_value_for_nested():
     assert result == {
         "x": "hi",
         "y": "bye",
-        "child": {"x": "hi", "y": "bye", "child": {"x": "hi"}},
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
     }
 
 
-def test_propagate_unknown_stops_at_explicit_value_for_meta():
-    # this is the same as the above test of unknown propagation stopping where
-    # auto_unknown=False, but it checks that this applies when `unknown` is set
-    # by means of `Meta`
+def test_propagate_unknown_overrides_explicit_value_for_meta():
+    # this is the same as the above test of unknown propagation, but it checks that
+    # this applies when `unknown` is set by means of `Meta` as well
 
     class Bottom(Schema):
         x = fields.Str()
@@ -2949,20 +2947,12 @@ def test_propagate_unknown_stops_at_explicit_value_for_meta():
         x = fields.Str()
         child = fields.Nested(Bottom)
 
-        # set unknown explicitly here, so auto_unknown will be
-        # false going into Bottom, and also set propagate to make it propagate
-        # in this case
         class Meta:
-            unknown = EXCLUDE | PROPAGATE
+            unknown = EXCLUDE
 
     class Top(Schema):
         x = fields.Str()
         child = fields.Nested(Middle)
-
-    # sanity-check that auto-unknown is being set correctly
-    assert Top().auto_unknown
-    assert not Top(unknown=INCLUDE | PROPAGATE).auto_unknown
-    assert not Middle().auto_unknown
 
     data = {
         "x": "hi",
@@ -2970,4 +2960,8 @@ def test_propagate_unknown_stops_at_explicit_value_for_meta():
         "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
     }
     result = Top(unknown=INCLUDE | PROPAGATE).load(data)
-    assert result == {"x": "hi", "y": "bye", "child": {"x": "hi", "child": {"x": "hi"}}}
+    assert result == {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
