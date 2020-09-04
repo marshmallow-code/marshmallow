@@ -1,7 +1,7 @@
 """Utility methods for marshmallow."""
 import collections
-import functools
 import datetime as dt
+import functools
 import inspect
 import json
 import re
@@ -15,9 +15,55 @@ from marshmallow.base import FieldABC
 from marshmallow.exceptions import FieldInstanceResolutionError
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
-EXCLUDE = "exclude"
-INCLUDE = "include"
-RAISE = "raise"
+
+class UnknownParam:
+    good_values = ("exclude", "include", "raise")
+
+    def __init__(self, stringval=None, *, value=None, propagate=None):
+        self.value = value
+        self.propagate = propagate
+
+        if stringval:
+            for x in stringval.lower().split("|"):
+                x = x.strip()
+                if x in self.good_values and not self.value:
+                    self.value = x
+                if x == "propagate":
+                    self.propagate = True
+
+    def __or__(self, other):
+        return UnknownParam(
+            value=self.value or other.value, propagate=self.propagate or other.propagate
+        )
+
+    def __str__(self):
+        parts = [self.value] if self.value else []
+        if self.propagate:
+            parts.append("propagate")
+        if self.value or self.propagate:
+            return "|".join(parts)
+        return "null"
+
+    def __repr__(self):
+        return "UnknownParam(value={!r}, propagate={!r})".format(
+            self.value, self.propagate
+        )
+
+    @classmethod
+    def parse_if_str(cls, value):
+        """Given a string or UnknownParam, convert to an UnknownParam
+
+        Preserves None, which is important for making sure that it can be used
+        blindly on `unknown` which may be a user-supplied value or a default"""
+        if isinstance(value, str):
+            return cls(value)
+        return value
+
+
+EXCLUDE = UnknownParam("exclude")
+INCLUDE = UnknownParam("include")
+RAISE = UnknownParam("raise")
+PROPAGATE = UnknownParam("propagate")
 
 
 class _Missing:
@@ -41,8 +87,7 @@ missing = _Missing()
 
 
 def is_generator(obj) -> bool:
-    """Return True if ``obj`` is a generator
-    """
+    """Return True if ``obj`` is a generator"""
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
@@ -279,8 +324,7 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
 
 
 def callable_or_raise(obj):
-    """Check that an object is callable, else raise a :exc:`ValueError`.
-    """
+    """Check that an object is callable, else raise a :exc:`ValueError`."""
     if not callable(obj):
         raise ValueError("Object {!r} is not callable.".format(obj))
     return obj

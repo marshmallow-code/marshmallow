@@ -17,6 +17,7 @@ from marshmallow import (
     EXCLUDE,
     INCLUDE,
     RAISE,
+    PROPAGATE,
     class_registry,
 )
 from marshmallow.exceptions import (
@@ -2901,3 +2902,66 @@ def test_class_registry_returns_schema_type():
 
     SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
     assert SchemaClass is DefinitelyUniqueSchema
+
+
+def test_propagate_unknown_overrides_explicit_value_for_nested():
+    # PROPAGATE should traverse any schemas and replace them with the
+    # "unknown" value from the parent context (schema or load arguments)
+    # this test makes sure that it takes precedence when a nested field
+    # or schema has "unknown" set explicitly
+
+    class Bottom(Schema):
+        x = fields.Str()
+
+    class Middle(Schema):
+        x = fields.Str()
+        # set unknown explicitly on a nested field, so auto_unknown will be
+        # false going into Bottom
+        child = fields.Nested(Bottom, unknown=EXCLUDE)
+
+    class Top(Schema):
+        x = fields.Str()
+        child = fields.Nested(Middle)
+
+    data = {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
+    result = Top(unknown=INCLUDE | PROPAGATE).load(data)
+    assert result == {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
+
+
+def test_propagate_unknown_overrides_explicit_value_for_meta():
+    # this is the same as the above test of unknown propagation, but it checks that
+    # this applies when `unknown` is set by means of `Meta` as well
+
+    class Bottom(Schema):
+        x = fields.Str()
+
+    class Middle(Schema):
+        x = fields.Str()
+        child = fields.Nested(Bottom)
+
+        class Meta:
+            unknown = EXCLUDE
+
+    class Top(Schema):
+        x = fields.Str()
+        child = fields.Nested(Middle)
+
+    data = {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }
+    result = Top(unknown=INCLUDE | PROPAGATE).load(data)
+    assert result == {
+        "x": "hi",
+        "y": "bye",
+        "child": {"x": "hi", "y": "bye", "child": {"x": "hi", "y": "bye"}},
+    }

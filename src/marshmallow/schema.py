@@ -27,6 +27,7 @@ from marshmallow.utils import (
     RAISE,
     EXCLUDE,
     INCLUDE,
+    UnknownParam,
     missing,
     set_value,
     get_value,
@@ -227,7 +228,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        self.unknown = getattr(meta, "unknown", RAISE)
+        self.unknown = UnknownParam.parse_if_str(getattr(meta, "unknown", RAISE))
         self.register = getattr(meta, "register", True)
 
 
@@ -388,7 +389,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown = unknown or self.opts.unknown
+        self.unknown = UnknownParam.parse_if_str(unknown) or self.opts.unknown
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -609,6 +610,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             serializing a collection, otherwise `None`.
         :return: A dictionary of the deserialized data.
         """
+        unknown = UnknownParam.parse_if_str(unknown)
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
@@ -648,7 +650,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
+                d_kwargs = {}  # type: typing.Dict[str, typing.Any]
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
                     prefix = field_name + "."
@@ -659,6 +661,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
+
+                if unknown.propagate:
+                    d_kwargs["unknown"] = unknown
+
                 getter = lambda val: field_obj.deserialize(
                     val, field_name, data, **d_kwargs
                 )
@@ -672,16 +678,16 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 if value is not missing:
                     key = field_obj.attribute or attr_name
                     set_value(typing.cast(typing.Dict, ret), key, value)
-            if unknown != EXCLUDE:
+            if unknown.value != EXCLUDE.value:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
                     for field_name, field_obj in self.load_fields.items()
                 }
                 for key in set(data) - fields:
                     value = data[key]
-                    if unknown == INCLUDE:
+                    if unknown.value == INCLUDE.value:
                         set_value(typing.cast(typing.Dict, ret), key, value)
-                    elif unknown == RAISE:
+                    elif unknown.value == RAISE.value:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
@@ -721,7 +727,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         return self._do_load(
-            data, many=many, partial=partial, unknown=unknown, postprocess=True
+            data, many=many, partial=partial, unknown=unknown, postprocess=True,
         )
 
     def loads(
@@ -836,7 +842,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
-        unknown = unknown or self.unknown
+        unknown = UnknownParam.parse_if_str(unknown or self.unknown)
         if partial is None:
             partial = self.partial
         # Run preprocessors

@@ -6,6 +6,7 @@ from marshmallow import (
     ValidationError,
     EXCLUDE,
     INCLUDE,
+    PROPAGATE,
     RAISE,
     missing,
 )
@@ -294,6 +295,86 @@ class TestNestedField:
         assert MySchema().dump({"nested": {"foo": "baz", "bar": "bax"}}) == {
             "nested": {"foo": "baz"}
         }
+
+
+class TestNestedFieldPropagatesUnknown:
+    class SpamSchema(Schema):
+        meat = fields.String()
+
+    class CanSchema(Schema):
+        spam = fields.Nested("SpamSchema")
+
+    class ShelfSchema(Schema):
+        can = fields.Nested("CanSchema")
+
+    @pytest.fixture
+    def data_nested_unknown(self):
+        return {"spam": {"meat": "pork", "add-on": "eggs"}}
+
+    @pytest.fixture
+    def multi_nested_data_with_unknown(self, data_nested_unknown):
+        return {"can": data_nested_unknown, "box": {"foo": "bar"}}
+
+    @pytest.mark.parametrize(
+        "schema_kwargs,load_kwargs",
+        [
+            ({}, {"unknown": INCLUDE | PROPAGATE}),
+            ({}, {"unknown": "INCLUDE | PROPAGATE"}),
+            ({"unknown": RAISE}, {"unknown": INCLUDE | PROPAGATE}),
+            ({"unknown": RAISE}, {"unknown": "include|propagate"}),
+            ({"unknown": INCLUDE | PROPAGATE}, {}),
+        ],
+    )
+    def test_propagate_unknown_include(
+        self,
+        schema_kwargs,
+        load_kwargs,
+        data_nested_unknown,
+        multi_nested_data_with_unknown,
+    ):
+        data = self.ShelfSchema(**schema_kwargs).load(
+            multi_nested_data_with_unknown, **load_kwargs
+        )
+        assert data == {
+            "can": {"spam": {"meat": "pork", "add-on": "eggs"}},
+            "box": {"foo": "bar"},
+        }
+
+        data = self.CanSchema(**schema_kwargs).load(data_nested_unknown, **load_kwargs)
+        assert data == {"spam": {"meat": "pork", "add-on": "eggs"}}
+
+    @pytest.mark.parametrize(
+        "schema_kwargs,load_kwargs",
+        [
+            ({}, {"unknown": EXCLUDE | PROPAGATE}),
+            ({}, {"unknown": "exclude | propagate"}),
+            ({"unknown": RAISE}, {"unknown": EXCLUDE | PROPAGATE}),
+            ({"unknown": PROPAGATE | EXCLUDE}, {}),
+            ({"unknown": "propagate|exclude"}, {}),
+        ],
+    )
+    def test_propagate_unknown_exclude(
+        self,
+        schema_kwargs,
+        load_kwargs,
+        data_nested_unknown,
+        multi_nested_data_with_unknown,
+    ):
+        data = self.ShelfSchema(**schema_kwargs).load(
+            multi_nested_data_with_unknown, **load_kwargs
+        )
+        assert data == {"can": {"spam": {"meat": "pork"}}}
+
+        data = self.CanSchema(**schema_kwargs).load(data_nested_unknown, **load_kwargs)
+        assert data == {"spam": {"meat": "pork"}}
+
+    @pytest.mark.parametrize("schema_kw", ({}, {"unknown": INCLUDE}))
+    def test_raises_when_unknown_passed_to_first_level_nested(
+        self, schema_kw, data_nested_unknown
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            self.CanSchema(**schema_kw).load(data_nested_unknown)
+        assert exc_info.value.messages == {"spam": {"add-on": ["Unknown field."]}}
 
 
 class TestListNested:
