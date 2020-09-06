@@ -31,8 +31,10 @@ source_suffix = ".rst"
 master_doc = "index"
 
 project = "marshmallow"
-copyright = ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
-    dt.datetime.utcfromtimestamp(os.path.getmtime("../CHANGELOG.rst"))
+copyright = (
+    ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
+        dt.datetime.utcfromtimestamp(os.path.getmtime("../CHANGELOG.rst"))
+    )
 )
 
 version = release = marshmallow.__version__
