@@ -103,7 +103,7 @@ versionwarning_messages = {
         '<a href="https://colorofchange.org/">Color of Change</a>.'
     ),
     "2.x-line": (
-        "marshmallow 2 will no longer be supported as of 2020-08-18. "
+        'marshmallow 2 is no longer be supported as of 2020-08-18. '
         '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
         "Update your code to use marshmallow 3</a>."
     ),
