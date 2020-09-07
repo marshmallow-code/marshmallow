@@ -1274,7 +1274,7 @@ class AwareDateTime(DateTime):
     AWARENESS = "aware"
 
     def __init__(
-        self, format: str = None, *, default_timezone: dt.timezone = None, **kwargs
+        self, format: str = None, *, default_timezone: dt.tzinfo = None, **kwargs
     ):
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
