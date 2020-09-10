@@ -58,6 +58,7 @@ __all__ = [
     "Int",
     "Constant",
     "Pluck",
+    "nestedfield",
 ]
 
 _T = typing.TypeVar("_T")
@@ -1787,6 +1788,62 @@ class Inferred(Field):
                 field._bind_to_schema(self.name, self.parent)
                 self._field_cache[field_cls] = field
         return field._serialize(value, attr, obj, **kwargs)
+
+
+def nestedfield(*args, **kwargs):
+    """A decorator to define fields.Nested or fields.List(fields.Nested) using inline classes
+    Other than style, it doesn't offer any functionality that couldn't otherwise be accomplished
+    with fields.List(fields.Nested(Schema.from_dict({}))).
+
+    :param many: When True the resulting field will be a fields.List(fields.Nested), otherwise a fields.Nested
+    :param list_{kwarg}: kwargs prepended with the `list_` are passed into fields.List (assuming many=True)
+    :param kwargs: The same keyword arguments that :class:`Nested` receives.
+
+    Example: ::
+    class APIRequest(Schema):
+        url = fields.Url()
+        method = fields.String(missing='POST', validate=validate.OneOf(('POST', 'GET')))
+
+        @nestedfield()
+        class headers(Schema):
+            Authorization = fields.String()
+            X-attr = fields.String()
+
+        @nestedfield(required=True)
+        class body(Schema):
+            some_foo = fields.String()
+            some_bar = fields.String()
+
+            @nestedfield()
+            class pageSort(Schema):
+                page = fields.Integer(missing=1)
+                size = fields.Integer()
+
+            @nestedfield(required=True, many=True, list_required=True, list_validate=validate.Length(1,100))
+            class someResource(Schema):
+                id = fields.UUID(required=True)
+                name = fields.String()
+    """
+
+    def outer(func):
+        MANY_KWARG_PREFIX = "list_"
+
+        many = kwargs.pop("many", False)
+        list_kwargs = {
+            k.lstrip(MANY_KWARG_PREFIX): v
+            for k, v in kwargs.items()
+            if k.startswith(MANY_KWARG_PREFIX)
+        }
+        nested_kwargs = {
+            k: v for k, v in kwargs.items() if not k.startswith(MANY_KWARG_PREFIX)
+        }
+
+        field = Nested(func, *args, **nested_kwargs)
+        if many:
+            field = List(field, **list_kwargs)
+        return field
+
+    return outer
 
 
 # Aliases

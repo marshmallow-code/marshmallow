@@ -303,6 +303,102 @@ If the object to be marshalled has a relationship to an object of the same type,
     #     }
     # }
 
+.. _inline-nesting:
+
+Nesting Inline Schema Classes With a Decorator
+------------------------------
+
+Nesting can optionally be accomplished with the use of a decorator `nestedfield`. 
+This is useful when the nested `Schema` is only relevant to the `Schema` it's contained in,
+and when there's a strong preference to have all schema delcared in one place.
+.. code-block:: python
+    from marshmallow import Schema, fields
+
+
+    class APIRequest(Schema):
+        url = fields.Url()
+        method = fields.String(missing="POST", validate=validate.OneOf(("POST", "GET")))
+
+        @fields.nestedfield()
+        class headers(Schema):
+            Authorization = fields.String()
+            X - attr = fields.String()
+
+        @fields.nestedfield(required=True)
+        class body(Schema):
+            some_foo = fields.String()
+            some_bar = fields.String()
+
+            @fields.nestedfield()
+            class pageSort(Schema):
+                page = fields.Integer(missing=1)
+                size = fields.Integer()
+
+            @fields.nestedfield(
+                required=True,
+                many=True,
+                list_required=True,
+                list_validate=validate.Length(1, 100),
+            )
+            class someResource(Schema):
+                id = fields.UUID(required=True)
+                name = fields.String()
+
+
+
+This would be a replacement for the following:
+
+.. code-block:: python
+    from marshmallow import Schema, fields
+
+
+    class APIRequest(Schema):
+        url = fields.Url()
+        method = fields.String(missing="POST", validate=validate.OneOf(("POST", "GET")))
+
+        headers = fields.Nested(
+            Schma.from_dict(
+                {
+                    "Authorization": fields.String(),
+                    "X-attr": fields.String(),
+                }
+            )
+        )
+
+        body = fields.Nested(
+            Schema.from_dict(
+                {
+                    "some_foo": fields.String(),
+                    "some_bar": fields.String(),
+                }
+            ),
+            required=True,
+        )
+
+        pageSort = fields.Nested(
+            Schema.from_dict(
+                {
+                    "page": fields.Integer(missing=1),
+                    "size": fields.Integer(),
+                }
+            )
+        )
+
+        someResource = fields.List(
+            fields.Nested(
+                Schema.from_dict(
+                    {
+                        "id": fields.UUID(required=True),
+                        "name": fields.String(),
+                    }
+                ),
+                required=True,
+            ),
+            required=True,
+            validate=validate.Length(1, 100),
+        )
+
+
 Next Steps
 ----------
 
