@@ -152,3 +152,4 @@ Contributors (chronological)
 - `@weeix <https://github.com/weeix>`_
 - Juan Norris `@juannorris <https://github.com/juannorris>`_
 - 장준영 `@jun0jang <https://github.com/jun0jang>`_
+- `@ebargtuo <https://github.com/ebargtuo>`_
