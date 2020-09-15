@@ -365,14 +365,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def __init__(
         self,
         *,
-        only: types.StrSequenceOrSet = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        context: typing.Dict = None,
+        context: typing.Optional[typing.Dict] = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
         partial: typing.Union[bool, types.StrSequenceOrSet] = False,
-        unknown: str = None
+        unknown: typing.Optional[str] = None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -525,7 +525,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Any, *, many: bool = None):
+    def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -563,7 +563,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(self, obj: typing.Any, *args, many: bool = None, **kwargs):
+    def dumps(
+        self, obj: typing.Any, *args, many: typing.Optional[bool] = None, **kwargs
+    ):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
@@ -696,9 +698,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             typing.Iterable[typing.Mapping[str, typing.Any]],
         ],
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -728,9 +730,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         json_data: str,
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         **kwargs
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -780,8 +782,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         data: typing.Mapping,
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None
     ) -> typing.Dict[str, typing.List[str]]:
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
@@ -812,9 +814,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             typing.Iterable[typing.Mapping[str, typing.Any]],
         ],
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.
