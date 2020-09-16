@@ -4,6 +4,7 @@ import datetime as dt
 import itertools
 import decimal
 import uuid
+import ipaddress
 
 import pytest
 
@@ -142,6 +143,56 @@ class TestFieldSerialization:
         assert isinstance(field.serialize("uuid1", user), str)
         assert field.serialize("uuid1", user) == "12345678-1234-5678-1234-567812345678"
         assert field.serialize("uuid2", user) is None
+
+    def test_ip_address_field(self, user):
+
+        ipv4_string = "192.168.0.1"
+        ipv6_string = "ffff::ffff"
+        ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
+
+        user.ipv4 = ipaddress.ip_address(ipv4_string)
+        user.ipv6 = ipaddress.ip_address(ipv6_string)
+        user.empty_ip = None
+
+        field_compressed = fields.IP()
+        assert isinstance(field_compressed.serialize("ipv4", user), str)
+        assert field_compressed.serialize("ipv4", user) == ipv4_string
+        assert isinstance(field_compressed.serialize("ipv6", user), str)
+        assert field_compressed.serialize("ipv6", user) == ipv6_string
+        assert field_compressed.serialize("empty_ip", user) is None
+
+        field_exploded = fields.IP(exploded=True)
+        assert isinstance(field_exploded.serialize("ipv6", user), str)
+        assert field_exploded.serialize("ipv6", user) == ipv6_exploded_string
+
+    def test_ipv4_address_field(self, user):
+
+        ipv4_string = "192.168.0.1"
+
+        user.ipv4 = ipaddress.ip_address(ipv4_string)
+        user.empty_ip = None
+
+        field = fields.IPv4()
+        assert isinstance(field.serialize("ipv4", user), str)
+        assert field.serialize("ipv4", user) == ipv4_string
+        assert field.serialize("empty_ip", user) is None
+
+    def test_ipv6_address_field(self, user):
+
+        ipv6_string = "ffff::ffff"
+        ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
+
+        user.ipv6 = ipaddress.ip_address(ipv6_string)
+        user.empty_ip = None
+
+        field_compressed = fields.IPv6()
+        assert isinstance(field_compressed.serialize("ipv6", user), str)
+        assert field_compressed.serialize("ipv6", user) == ipv6_string
+        assert field_compressed.serialize("empty_ip", user) is None
+
+        field_exploded = fields.IPv6(exploded=True)
+        assert isinstance(field_exploded.serialize("ipv6", user), str)
+        assert field_exploded.serialize("ipv6", user) == ipv6_exploded_string
 
     def test_decimal_field(self, user):
         user.m1 = 12

@@ -5,6 +5,7 @@ import copy
 import datetime as dt
 import numbers
 import uuid
+import ipaddress
 import decimal
 import math
 import typing
@@ -51,6 +52,9 @@ __all__ = [
     "Url",
     "URL",
     "Email",
+    "IP",
+    "IPv4",
+    "IPv6",
     "Method",
     "Function",
     "Str",
@@ -1623,6 +1627,56 @@ class Email(String):
         # Insert validation into self.validators so that multiple errors can be stored.
         validator = validate.Email(error=self.error_messages["invalid"])
         self.validators.insert(0, validator)
+
+
+class IP(Field):
+    """A IP address field.
+
+    :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
+        consisting entirely of zeros included."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IP address."}
+
+    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+
+    def __init__(self, *args, exploded=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exploded = exploded
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
+        if value is None:
+            return None
+        try:
+            return (self.DESERIALIZATION_CLASS or ipaddress.ip_address)(
+                utils.ensure_text_type(value)
+            )
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip") from error
+
+
+class IPv4(IP):
+    """A IPv4 address field."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv4Address
+
+
+class IPv6(IP):
+    """A IPv6 address field."""
+
+    default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
 class Method(Field):
