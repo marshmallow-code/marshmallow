@@ -1,8 +1,13 @@
 Changelog
 ---------
 
-3.7.2 (unreleased)
+3.8.0 (2020-09-16)
 ******************
+
+Features:
+
+- Add ``fields.IP``, ``fields.IPv4`` and ``fields.IPv6`` (:pr:`1485`). Thanks
+  :user:`mgetka` for the PR.
 
 Bug fixes:
 
