@@ -107,8 +107,7 @@ todos_schema = TodoSchema(many=True)
 
 
 def check_auth(email, password):
-    """Check if a username/password combination is valid.
-    """
+    """Check if a username/password combination is valid."""
     try:
         user = User.get(User.email == email)
     except User.DoesNotExist:
