@@ -701,9 +701,8 @@ class Iterable(Field):
     ) -> typing.Optional[typing.List[typing.Any]]:
         if value is None:
             return None
-        return self.iterable_type(
-            self.inner._serialize(each, attr, obj, **kwargs) for each in value
-        )
+        result = [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
+        return result if self.iterable_type == list else self.iterable_type(result)
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
@@ -720,7 +719,7 @@ class Iterable(Field):
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)
-        return self.iterable_type(result)
+        return result if self.iterable_type == list else self.iterable_type(result)
 
 
 class List(Iterable):
