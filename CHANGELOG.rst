@@ -1,13 +1,26 @@
 Changelog
 ---------
 
-3.8.0 (Unreleased)
+3.9.0 (Unreleased)
 ******************
 
 Features:
 
 - Add fields.Iterable as a base class for collection field types (:issue:`1263`).
   Thanks :user:`Fongshway` for the PR.
+
+3.8.0 (2020-09-16)
+******************
+
+Features:
+
+- Add ``fields.IP``, ``fields.IPv4`` and ``fields.IPv6`` (:pr:`1485`). Thanks
+  :user:`mgetka` for the PR.
+
+Bug fixes:
+
+- Fix typing in ``AwareDateTime`` (:pr:`1658`). Thanks :user:`adithyabsk` for
+  reporting.
 
 3.7.1 (2020-07-20)
 ******************
@@ -43,7 +56,7 @@ Support:
 - Documentation: improve custom fields example (:issue:`1538`).
   Thanks :user:`pablospizzamiglio` for reporting the problem with the
   old example and thanks :user:`Resinderate` for the PR.
-- Documentation: Split up API reference into multiple pages and 
+- Documentation: Split up API reference into multiple pages and
   add summary tables (:pr:`1587`). Thanks :user:`EpicWink` for the PR.
 
 3.6.0 (2020-05-08)

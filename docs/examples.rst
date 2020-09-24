@@ -241,7 +241,7 @@ Run the app.
 .. code-block:: bash
 
     $ pip install flask peewee
-    $ python examples/flask_example.py
+    $ python examples/peewee_example.py
 
 After registering a user and creating some todo items in the database, here is an example response.
 
