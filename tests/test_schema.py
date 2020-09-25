@@ -1394,6 +1394,61 @@ class TestDeeplyNestedLoadOnly:
         assert "str_regular" in grand_child
 
 
+def test_deeply_nested_required():
+    class GrandChildSchema(Schema):
+        str_required = fields.String()
+        str_regular = fields.String()
+
+    class ChildSchema(Schema):
+        str_required = fields.String()
+        str_regular = fields.String()
+        grand_child = fields.Nested(GrandChildSchema)
+
+    class ParentSchema(Schema):
+        str_required = fields.String()
+        str_regular = fields.String()
+        child = fields.Nested(ChildSchema)
+
+    schema = ParentSchema(
+        required=(
+            "str_required",
+            "child.str_required",
+            "child.grand_child.str_required",
+        ),
+    )
+
+    valid_data = {
+        "str_required": "Required",
+        "child": {
+            "str_required": "Required",
+            "grand_child": {
+                "str_required": "Required",
+            },
+        },
+    }
+
+    # Assert no exception
+    schema.load(valid_data)
+
+    data = valid_data.copy()
+    del data["str_required"]
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+    assert "str_required" in excinfo.value.messages
+
+    data = valid_data.copy()
+    del data["child"]["str_required"]
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+    assert "str_required" in excinfo.value.messages["child"]
+
+    data = valid_data.copy()
+    del data["child"]["grand_child"]["str_required"]
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+    assert "str_required" in excinfo.value.messages["child"]["grand_child"]
+
+
 class TestDeeplyNestedListLoadOnly:
     @pytest.fixture()
     def schema(self):
@@ -1447,6 +1502,38 @@ class TestDeeplyNestedListLoadOnly:
         assert "str_dump_only" not in child
         assert "str_load_only" in child
         assert "str_regular" in child
+
+
+def test_deeply_nested_list_required():
+    class ChildSchema(Schema):
+        str_required = fields.String()
+        str_regular = fields.String()
+
+    class ParentSchema(Schema):
+        str_required = fields.String()
+        str_regular = fields.String()
+        child = fields.List(fields.Nested(ChildSchema))
+
+    schema = ParentSchema(
+        required=("str_required", "child.str_required"),
+    )
+
+    valid_data = {"str_required": "Required", "child": [{"str_required": "Required"}]}
+
+    # Assert no exception
+    schema.load(valid_data)
+
+    data = valid_data.copy()
+    del data["str_required"]
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+    assert "str_required" in excinfo.value.messages
+
+    data = valid_data.copy()
+    del data["child"][0]["str_required"]
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+    assert "str_required" in excinfo.value.messages["child"][0]
 
 
 def test_nested_constructor_only_and_exclude():
@@ -2856,6 +2943,27 @@ class TestLoadOnly:
         data_with_no_top_level_domain = {"url": "marshmallow://app/discounts"}
         result = schema.load(data_with_no_top_level_domain)
         assert result == data_with_no_top_level_domain
+
+
+def test_required_in_meta():
+    class MySchema(Schema):
+        class Meta:
+            required = "str_required"
+
+        str_required = fields.String()
+        str_regular = fields.String()
+
+    data = {
+        "str_required": None,
+        "str_regular": "Regular String",
+    }
+
+    schema = MySchema()
+
+    with pytest.raises(ValidationError) as excinfo:
+        schema.load(data)
+
+    assert "str_required" in excinfo.value.messages
 
 
 class TestFromDict:

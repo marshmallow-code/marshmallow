@@ -550,6 +550,7 @@ class Nested(Field):
                     context=context,
                     load_only=self._nested_normalized_option("load_only"),
                     dump_only=self._nested_normalized_option("dump_only"),
+                    required=self._nested_normalized_option("required"),
                 )
         return self._schema
 
