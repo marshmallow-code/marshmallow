@@ -1055,7 +1055,7 @@ class TestFieldDeserialization:
             uppername = fields.Method("uppercase_name", deserialize="lowercase_name")
 
         s = BadSchema()
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             s.fields["uppername"].deserialize("STEVE")
 
     def test_method_field_deserialize_only(self):

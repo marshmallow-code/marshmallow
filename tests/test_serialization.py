@@ -470,7 +470,7 @@ class TestFieldSerialization:
             bad_field = fields.Method("invalid")
 
         u = User("Foo")
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             BadSerializer().dump(u)
 
     def test_method_field_passed_serialize_only_is_dump_only(self, user):

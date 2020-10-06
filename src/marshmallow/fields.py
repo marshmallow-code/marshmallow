@@ -1815,14 +1815,14 @@ class Method(Field):
             return missing_
 
         method = utils.callable_or_raise(
-            getattr(self.parent, self.serialize_method_name, None)
+            getattr(self.parent, self.serialize_method_name)
         )
         return method(obj)
 
     def _deserialize(self, value, attr, data, **kwargs):
         if self.deserialize_method_name:
             method = utils.callable_or_raise(
-                getattr(self.parent, self.deserialize_method_name, None)
+                getattr(self.parent, self.deserialize_method_name)
             )
             return method(value)
         return value
