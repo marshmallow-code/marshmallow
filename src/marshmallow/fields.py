@@ -147,17 +147,19 @@ class Field(FieldABC):
         *,
         default: typing.Any = missing_,
         missing: typing.Any = missing_,
-        data_key: str = None,
-        attribute: str = None,
-        validate: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+        data_key: typing.Optional[str] = None,
+        attribute: typing.Optional[str] = None,
+        validate: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+            ]
         ] = None,
         required: bool = False,
-        allow_none: bool = None,
+        allow_none: typing.Optional[bool] = None,
         load_only: bool = False,
         dump_only: bool = False,
-        error_messages: typing.Dict[str, str] = None,
+        error_messages: typing.Optional[typing.Dict[str, str]] = None,
         **metadata
     ) -> None:
         self.default = default
@@ -293,7 +295,9 @@ class Field(FieldABC):
         self,
         attr: str,
         obj: typing.Any,
-        accessor: typing.Callable[[typing.Any, str, typing.Any], typing.Any] = None,
+        accessor: typing.Optional[
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any]
+        ] = None,
         **kwargs
     ):
         """Pulls the value for the given key from the object, applies the
@@ -318,8 +322,8 @@ class Field(FieldABC):
     def deserialize(
         self,
         value: typing.Any,
-        attr: str = None,
-        data: typing.Mapping[str, typing.Any] = None,
+        attr: typing.Optional[str] = None,
+        data: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **kwargs
     ):
         """Deserialize ``value``.
@@ -474,10 +478,10 @@ class Nested(Field):
         nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         *,
         default: typing.Any = missing_,
-        only: types.StrSequenceOrSet = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        unknown: str = None,
+        unknown: typing.Optional[str] = None,
         **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -1010,8 +1014,8 @@ class Decimal(Number):
 
     def __init__(
         self,
-        places: int = None,
-        rounding: str = None,
+        places: typing.Optional[int] = None,
+        rounding: typing.Optional[str] = None,
         *,
         allow_nan: bool = False,
         as_string: bool = False,
@@ -1104,7 +1108,11 @@ class Boolean(Field):
     default_error_messages = {"invalid": "Not a valid boolean."}
 
     def __init__(
-        self, *, truthy: typing.Set = None, falsy: typing.Set = None, **kwargs
+        self,
+        *,
+        truthy: typing.Optional[typing.Set] = None,
+        falsy: typing.Optional[typing.Set] = None,
+        **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -1181,7 +1189,7 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str = None, **kwargs):
+    def __init__(self, format: typing.Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1246,7 +1254,13 @@ class NaiveDateTime(DateTime):
 
     AWARENESS = "naive"
 
-    def __init__(self, format: str = None, *, timezone: dt.timezone = None, **kwargs):
+    def __init__(
+        self,
+        format: typing.Optional[str] = None,
+        *,
+        timezone: typing.Optional[dt.timezone] = None,
+        **kwargs
+    ):
         super().__init__(format=format, **kwargs)
         self.timezone = timezone
 
@@ -1278,7 +1292,11 @@ class AwareDateTime(DateTime):
     AWARENESS = "aware"
 
     def __init__(
-        self, format: str = None, *, default_timezone: dt.tzinfo = None, **kwargs
+        self,
+        format: typing.Optional[str] = None,
+        *,
+        default_timezone: typing.Optional[dt.tzinfo] = None,
+        **kwargs
     ):
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
@@ -1446,8 +1464,8 @@ class Mapping(Field):
 
     def __init__(
         self,
-        keys: typing.Union[Field, type] = None,
-        values: typing.Union[Field, type] = None,
+        keys: typing.Optional[typing.Union[Field, type]] = None,
+        values: typing.Optional[typing.Union[Field, type]] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -1593,7 +1611,7 @@ class Url(String):
         self,
         *,
         relative: bool = False,
-        schemes: types.StrSequenceOrSet = None,
+        schemes: typing.Optional[types.StrSequenceOrSet] = None,
         require_tld: bool = True,
         **kwargs
     ):
@@ -1702,7 +1720,12 @@ class Method(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize: str = None, deserialize: str = None, **kwargs):
+    def __init__(
+        self,
+        serialize: typing.Optional[str] = None,
+        deserialize: typing.Optional[str] = None,
+        **kwargs
+    ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
         kwargs["load_only"] = bool(deserialize) and not bool(serialize)
@@ -1755,13 +1778,17 @@ class Function(Field):
 
     def __init__(
         self,
-        serialize: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Callable[[typing.Any, typing.Dict], typing.Any],
+        serialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
         ] = None,
-        deserialize: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Callable[[typing.Any, typing.Dict], typing.Any],
+        deserialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
         ] = None,
         **kwargs
     ):

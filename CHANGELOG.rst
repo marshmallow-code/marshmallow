@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.9.0 (unreleased)
+******************
+
+Changes:
+
+- Remove usage of implicit ``typing.Optional`` (:issue:`1663`).
+  Thanks :user:`nadega` for the PR.
+
 3.8.0 (2020-09-16)
 ******************
 

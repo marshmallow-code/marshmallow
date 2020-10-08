@@ -92,9 +92,9 @@ class URL(Validator):
         self,
         *,
         relative: bool = False,
-        schemes: types.StrSequenceOrSet = None,
+        schemes: typing.Optional[types.StrSequenceOrSet] = None,
         require_tld: bool = True,
-        error: str = None
+        error: typing.Optional[str] = None
     ):
         self.relative = relative
         self.error = error or self.default_message  # type: str
@@ -154,7 +154,7 @@ class Email(Validator):
 
     default_message = "Not a valid email address."
 
-    def __init__(self, *, error: str = None):
+    def __init__(self, *, error: typing.Optional[str] = None):
         self.error = error or self.default_message  # type: str
 
     def _format_error(self, value) -> typing.Any:
@@ -220,7 +220,7 @@ class Range(Validator):
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
-        error: str = None
+        error: typing.Optional[str] = None
     ):
         self.min = min
         self.max = max
@@ -285,7 +285,12 @@ class Length(Validator):
     message_equal = "Length must be {equal}."
 
     def __init__(
-        self, min: int = None, max: int = None, *, equal: int = None, error: str = None
+        self,
+        min: typing.Optional[int] = None,
+        max: typing.Optional[int] = None,
+        *,
+        equal: typing.Optional[int] = None,
+        error: typing.Optional[str] = None
     ):
         if equal is not None and any([min, max]):
             raise ValueError(
@@ -336,7 +341,7 @@ class Equal(Validator):
 
     default_message = "Must be equal to {other}."
 
-    def __init__(self, comparable, *, error: str = None):
+    def __init__(self, comparable, *, error: typing.Optional[str] = None):
         self.comparable = comparable
         self.error = error or self.default_message  # type: str
 
@@ -374,7 +379,7 @@ class Regexp(Validator):
         regex: typing.Union[str, bytes, typing.Pattern],
         flags=0,
         *,
-        error: str = None
+        error: typing.Optional[str] = None
     ):
         self.regex = (
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
@@ -408,7 +413,7 @@ class Predicate(Validator):
 
     default_message = "Invalid input."
 
-    def __init__(self, method: str, *, error: str = None, **kwargs):
+    def __init__(self, method: str, *, error: typing.Optional[str] = None, **kwargs):
         self.method = method
         self.error = error or self.default_message  # type: str
         self.kwargs = kwargs
@@ -438,7 +443,9 @@ class NoneOf(Validator):
 
     default_message = "Invalid input."
 
-    def __init__(self, iterable: typing.Iterable, *, error: str = None):
+    def __init__(
+        self, iterable: typing.Iterable, *, error: typing.Optional[str] = None
+    ):
         self.iterable = iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
         self.error = error or self.default_message  # type: str
@@ -473,9 +480,9 @@ class OneOf(Validator):
     def __init__(
         self,
         choices: typing.Iterable,
-        labels: typing.Iterable[str] = None,
+        labels: typing.Optional[typing.Iterable[str]] = None,
         *,
-        error: str = None
+        error: typing.Optional[str] = None
     ):
         self.choices = choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
