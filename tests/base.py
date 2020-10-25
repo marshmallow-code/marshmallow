@@ -61,6 +61,7 @@ class User:
         registered=True,
         time_registered=None,
         birthdate=None,
+        birthtime=None,
         balance=100,
         sex="male",
         employer=None,
@@ -85,6 +86,7 @@ class User:
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
+        self.birthtime = birthtime or dt.time(0, 1, 2, 3333)
         self.activation_date = dt.date(2013, 12, 11)
         self.sex = sex
         self.employer = employer
@@ -169,6 +171,7 @@ class UserSchema(Schema):
     uid = fields.UUID()
     time_registered = fields.Time()
     birthdate = fields.Date()
+    birthtime = fields.Time()
     activation_date = fields.Date()
     since_created = fields.TimeDelta()
     sex = fields.Str(validate=validate.OneOf(["male", "female"]))
@@ -239,6 +242,7 @@ class UserMetaSchema(Schema):
             "uid",
             "time_registered",
             "birthdate",
+            "birthtime",
             "since_created",
             "various_data",
         )
