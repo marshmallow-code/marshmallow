@@ -572,7 +572,7 @@ class TestFieldSerialization:
 
     def test_time_field_format(self, user):
         fmt = "%H:%M:%S"
-        field = fields.DateTime(format=fmt)
+        field = fields.Time(format=fmt)
         assert field.serialize("birthtime", user) == user.birthtime.strftime(fmt)
 
     def test_date_field(self, user):
