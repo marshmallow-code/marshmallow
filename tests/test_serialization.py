@@ -565,9 +565,9 @@ class TestFieldSerialization:
     def test_time_field_iso8601(self, fmt, value, expected):
         if fmt is None:
             # Test default is ISO
-            field = fields.DateTime()
+            field = fields.Time()
         else:
-            field = fields.DateTime(format=fmt)
+            field = fields.Time(format=fmt)
         assert field.serialize("d", {"d": value}) == expected
 
     def test_time_field_format(self, user):
