@@ -593,7 +593,7 @@ class TestFieldDeserialization:
         # Time string with format "%f.%S:%M:%H"
         timestring = "123456.12:11:10"
 
-        # Deserialization should fail when datestring is not of same format
+        # Deserialization should fail when timestring is not of same format
         field = fields.Time(format="%S:%M:%H")
         with pytest.raises(ValidationError, match="Not a valid time."):
             field.deserialize(timestring)
