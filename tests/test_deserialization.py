@@ -589,6 +589,35 @@ class TestFieldDeserialization:
             field.deserialize(in_data)
         assert excinfo.value.args[0] == "Not a valid time."
 
+    def test_custom_time_format_time_field_deserialization(self):
+        # Time string with format "%f.%S:%M:%H"
+        timestring = "123456.12:11:10"
+
+        # Deserialization should fail when timestring is not of same format
+        field = fields.Time(format="%S:%M:%H")
+        with pytest.raises(ValidationError, match="Not a valid time."):
+            field.deserialize(timestring)
+
+        field = fields.Time(format="%f.%S:%M:%H")
+        assert field.deserialize(timestring) == dt.time(10, 11, 12, 123456)
+
+    @pytest.mark.parametrize("fmt", ["iso", "iso8601", None])
+    @pytest.mark.parametrize(
+        ("value", "expected"),
+        [
+            ("01:23:45", dt.time(1, 23, 45)),
+            ("01:23:45+01:00", dt.time(1, 23, 45)),
+            ("01:23:45.123", dt.time(1, 23, 45, 123000)),
+            ("01:23:45.123456", dt.time(1, 23, 45, 123456)),
+        ],
+    )
+    def test_iso_time_field_deserialization(self, fmt, value, expected):
+        if fmt is None:
+            field = fields.Time()
+        else:
+            field = fields.Time(format=fmt)
+        assert field.deserialize(value) == expected
+
     def test_invalid_timedelta_precision(self):
         with pytest.raises(ValueError, match='The precision must be "days",'):
             fields.TimeDelta("invalid")

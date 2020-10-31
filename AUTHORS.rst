@@ -155,3 +155,4 @@ Contributors (chronological)
 - `@ebargtuo <https://github.com/ebargtuo>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_
 - Nadège Michel `@nadege <https://github.com/nadege>`_
+- Tamara `@infinityxxx <https://github.com/infinityxxx>`_

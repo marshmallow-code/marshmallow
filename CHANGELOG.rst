@@ -4,7 +4,12 @@ Changelog
 3.9.0 (unreleased)
 ******************
 
-Changes:
+Features:
+
+- Add ``format`` argument to ``fields.Time`` and ``timeformat`` *class Meta* option (:issue:`686`).
+  Thanks :user:`BennyAlex` for the suggestion and thanks :user:`infinityxxx` for the PR.
+
+Other changes:
 
 - Remove usage of implicit ``typing.Optional`` (:issue:`1663`).
   Thanks :user:`nadega` for the PR.

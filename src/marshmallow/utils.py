@@ -191,6 +191,10 @@ def isoformat(datetime: dt.datetime) -> str:
     return datetime.isoformat()
 
 
+def to_iso_time(time: dt.time) -> str:
+    return dt.time.isoformat(time)
+
+
 def to_iso_date(date: dt.date) -> str:
     return dt.date.isoformat(date)
 

@@ -1314,34 +1314,29 @@ class AwareDateTime(DateTime):
         return ret
 
 
-class Time(Field):
-    """ISO8601-formatted time string.
+class Time(DateTime):
+    """A formatted time string.
 
+    Example: ``'03:12:58.019077'``
+
+    :param format: Either ``"iso"`` (for ISO8601) or a date format string.
+        If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    #: Default error messages.
-    default_error_messages = {
-        "invalid": "Not a valid time.",
-        "format": '"{input}" cannot be formatted as a time.',
-    }
+    SERIALIZATION_FUNCS = {"iso": utils.to_iso_time, "iso8601": utils.to_iso_time}
 
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-        ret = value.isoformat()
-        if value.microsecond:
-            return ret[:15]
-        return ret
+    DESERIALIZATION_FUNCS = {"iso": utils.from_iso_time, "iso8601": utils.from_iso_time}
 
-    def _deserialize(self, value, attr, data, **kwargs):
-        """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
-        if not value:  # falsy values are invalid
-            raise self.make_error("invalid")
-        try:
-            return utils.from_iso_time(value)
-        except (AttributeError, TypeError, ValueError) as error:
-            raise self.make_error("invalid") from error
+    DEFAULT_FORMAT = "iso"
+
+    OBJ_TYPE = "time"
+
+    SCHEMA_OPTS_VAR_NAME = "timeformat"
+
+    @staticmethod
+    def _make_object_from_format(value, data_format):
+        return dt.datetime.strptime(value, data_format).time()
 
 
 class Date(DateTime):

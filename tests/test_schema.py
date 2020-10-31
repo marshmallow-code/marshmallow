@@ -1711,6 +1711,22 @@ def test_dateformat_option(user):
     assert serialized["activation_date"] == user.activation_date.strftime(fmt)
 
 
+def test_timeformat_option(user):
+    fmt = "%H:%M:%S"
+    field_fmt = "%H:%M"
+
+    class TimeFormatSchema(Schema):
+        birthtime = fields.Time(field_fmt)
+
+        class Meta:
+            fields = ("birthtime", "time_registered")
+            timeformat = fmt
+
+    serialized = TimeFormatSchema().dump(user)
+    assert serialized["birthtime"] == user.birthtime.strftime(field_fmt)
+    assert serialized["time_registered"] == user.time_registered.strftime(fmt)
+
+
 def test_default_dateformat(user):
     class DateFormatSchema(Schema):
         updated = fields.DateTime(format="%m-%d")

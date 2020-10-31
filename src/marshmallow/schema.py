@@ -213,6 +213,7 @@ class SchemaOpts:
             raise ValueError("`exclude` must be a list or tuple.")
         self.dateformat = getattr(meta, "dateformat", None)
         self.datetimeformat = getattr(meta, "datetimeformat", None)
+        self.timeformat = getattr(meta, "timeformat", None)
         if hasattr(meta, "json_module"):
             warnings.warn(
                 "The json_module class Meta option is deprecated. Use render_module instead.",
@@ -345,6 +346,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Nested fields can be represented with dot delimiters.
         - ``dateformat``: Default format for `Date <fields.Date>` fields.
         - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
+        - ``timeformat``: Default format for `Time <fields.Time>` fields.
         - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
             Defaults to `json` from the standard library.
         - ``ordered``: If `True`, order serialization output according to the
