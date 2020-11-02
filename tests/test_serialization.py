@@ -369,12 +369,6 @@ class TestFieldSerialization:
         field = fields.Dict()
         assert field.serialize("various_data", user) is None
 
-    def test_dict_field_invalid_dict_but_okay(self, user):
-        user.various_data = "okaydict"
-        field = fields.Dict()
-        field.serialize("various_data", user)
-        assert field.serialize("various_data", user) == "okaydict"
-
     def test_dict_field_serialize(self, user):
         user.various_data = {"foo": "bar"}
         field = fields.Dict()
