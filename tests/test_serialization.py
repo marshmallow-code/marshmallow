@@ -378,7 +378,11 @@ class TestFieldSerialization:
     def test_dict_field_serialize(self, user):
         user.various_data = {"foo": "bar"}
         field = fields.Dict()
-        assert field.serialize("various_data", user) == {"foo": "bar"}
+        dump = field.serialize("various_data", user)
+        assert dump == {"foo": "bar"}
+        # Check dump is a distinct object
+        dump["foo"] = "baz"
+        assert user.various_data["foo"] == "bar"
 
     def test_dict_field_serialize_ordereddict(self, user):
         user.various_data = OrderedDict([("foo", "bar"), ("bar", "baz")])
