@@ -108,4 +108,4 @@ versionwarning_messages = {
 versionwarning_body_selector = "div.document"
 versionwarning_banner_title = ""
 # For debugging locally
-versionwarning_project_version = "latest"
+# versionwarning_project_version = "latest"
