@@ -69,7 +69,7 @@ Support:
 
 Features:
 
-- Add ``validators.ContainsNoneOf`` (:issue:`1528`).
+- Add ``validate.ContainsNoneOf`` (:issue:`1528`).
   Thanks :user:`Resinderate` for the suggestion and the PR.
 
 

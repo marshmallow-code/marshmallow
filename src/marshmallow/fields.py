@@ -1646,7 +1646,10 @@ class IP(Field):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
-        consisting entirely of zeros included."""
+        consisting entirely of zeros included.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
@@ -1677,7 +1680,10 @@ class IP(Field):
 
 
 class IPv4(IP):
-    """A IPv4 address field."""
+    """A IPv4 address field.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
 
@@ -1685,7 +1691,10 @@ class IPv4(IP):
 
 
 class IPv6(IP):
-    """A IPv6 address field."""
+    """A IPv6 address field.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
 
