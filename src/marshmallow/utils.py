@@ -74,6 +74,9 @@ def pprint(obj, *args, **kwargs) -> None:
     """Pretty-printing function that can pretty-print OrderedDicts
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
+
+    .. deprecated:: 3.7.0
+        marshmallow.pprint will be removed in marshmallow 4.
     """
     warnings.warn(
         "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",

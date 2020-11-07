@@ -564,6 +564,8 @@ class ContainsNoneOf(NoneOf):
 
     :param iterable iterable: Same as :class:`NoneOf`.
     :param str error: Same as :class:`NoneOf`.
+
+    .. versionadded:: 3.6.0
     """
 
     default_message = "One or more of the choices you made was in: {values}."
