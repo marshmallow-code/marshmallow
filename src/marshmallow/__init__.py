@@ -13,7 +13,7 @@ from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
 from distutils.version import LooseVersion
 
-__version__ = "3.9.0"
+__version__ = "3.9.1"
 __version_info__ = tuple(LooseVersion(__version__).version)
 __all__ = [
     "EXCLUDE",
