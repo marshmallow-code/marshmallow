@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.9.1 (unreleased)
+******************
+
+Bug fixes:
+
+- Cast to mapping type in ``Mapping.serialize`` and ``Mapping.deserialize``
+  (:pr:`1685`).
+- Fix bug letting ``Dict`` pass invalid dict on deserialization when no key or
+  value ``Field`` is specified (:pr:`1685`).
+
 3.9.0 (2020-10-31)
 ******************
 

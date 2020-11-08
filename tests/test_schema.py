@@ -641,11 +641,6 @@ def test_can_serialize_time(user, serialized_user):
     assert serialized_user["time_registered"] == expected
 
 
-def test_invalid_dict_but_okay():
-    u = User("Joe", various_data="baddict")
-    UserSchema().dump(u)
-
-
 def test_json_module_is_deprecated():
     with pytest.deprecated_call():
 

@@ -719,8 +719,13 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == msg
 
     def test_dict_field_deserialization(self):
+        data = {"foo": "bar"}
         field = fields.Dict()
-        assert field.deserialize({"foo": "bar"}) == {"foo": "bar"}
+        load = field.deserialize(data)
+        assert load == {"foo": "bar"}
+        # Check load is a distinct object
+        load["foo"] = "baz"
+        assert data["foo"] == "bar"
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize("baddict")
         assert excinfo.value.args[0] == "Not a valid mapping type."

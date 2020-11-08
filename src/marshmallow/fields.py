@@ -1505,7 +1505,7 @@ class Mapping(Field):
         if value is None:
             return None
         if not self.value_field and not self.key_field:
-            return value
+            return self.mapping_type(value)
 
         #  Serialize keys
         if self.key_field is None:
@@ -1532,7 +1532,7 @@ class Mapping(Field):
         if not isinstance(value, _Mapping):
             raise self.make_error("invalid")
         if not self.value_field and not self.key_field:
-            return value
+            return self.mapping_type(value)
 
         errors = collections.defaultdict(dict)
 
