@@ -189,12 +189,9 @@ class Field(FieldABC):
         self.required = required
         self.missing = missing
 
-        # intentionally shallow-copy so that more data can be added without changing
-        # the original mapping object, but objects can be referenced from field
-        # metadata
-        self.metadata = dict(metadata) if metadata is not None else {}
+        metadata = metadata or {}
+        self.metadata = {**metadata, **additional_metadata}
         if additional_metadata:
-            self.metadata.update(additional_metadata)
             warnings.warn(
                 "Passing field metadata as a keyword arg is deprecated. Use the "
                 "explicit `metadata=...` argument instead.",
