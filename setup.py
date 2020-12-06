@@ -14,7 +14,7 @@ EXTRAS_REQUIRE = {
         "sphinx-issues==1.2.0",
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
-        "autodocsumm==0.2.1",
+        "autodocsumm==0.2.2",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
