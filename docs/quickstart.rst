@@ -535,25 +535,22 @@ To maintain field ordering, set the ``ordered`` option to `True`. This will inst
 
 
     class UserSchema(Schema):
-        uppername = fields.Function(lambda obj: obj.name.upper())
+        first_name = fields.String()
+        last_name = fields.String()
+        email = fields.Email()
 
         class Meta:
-            fields = ("name", "email", "created_at", "uppername")
             ordered = True
 
 
-    u = User("Charlie", "charlie@stones.com")
+    u = User("Charlie", "Stones", "charlie@stones.com")
     schema = UserSchema()
     result = schema.dump(u)
     assert isinstance(result, OrderedDict)
-    # marshmallow's pprint function maintains order
     pprint(result, indent=2)
-    # {
-    #   "name": "Charlie",
-    #   "email": "charlie@stones.com",
-    #   "created_at": "2014-10-30T08:27:48.515735+00:00",
-    #   "uppername": "CHARLIE"
-    # }
+    #  OrderedDict([('first_name', 'Charlie'),
+    #              ('last_name', 'Stones'),
+    #              ('email', 'charlie@stones.com')])
 
 Next Steps
 ----------
