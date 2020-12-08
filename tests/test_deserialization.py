@@ -1024,7 +1024,7 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == "Not a valid IPv6 interface."
 
     def test_deserialization_function_must_be_callable(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             fields.Function(lambda x: None, deserialize="notvalid")
 
     def test_method_field_deserialization_is_noop_by_default(self):

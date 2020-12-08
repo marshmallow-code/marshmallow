@@ -112,7 +112,7 @@ class TestFieldSerialization:
         assert "FOOBAR" == field.serialize("key", user)
 
     def test_function_field_passed_uncallable_object(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             fields.Function("uncallable")
 
     def test_integer_field(self, user):
@@ -416,7 +416,7 @@ class TestFieldSerialization:
         assert field.serialize("none", user) is None
 
     def test_function_with_uncallable_param(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             fields.Function("uncallable")
 
     def test_email_field_serialize_none(self, user):
@@ -489,7 +489,7 @@ class TestFieldSerialization:
             bad_field = fields.Method("foo")
 
         u = User("Foo")
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             BadSerializer().dump(u)
 
     # https://github.com/marshmallow-code/marshmallow/issues/395

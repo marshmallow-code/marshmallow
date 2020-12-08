@@ -287,7 +287,7 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
 def callable_or_raise(obj):
     """Check that an object is callable, else raise a :exc:`ValueError`."""
     if not callable(obj):
-        raise ValueError("Object {!r} is not callable.".format(obj))
+        raise TypeError("Object {!r} is not callable.".format(obj))
     return obj
 
 
