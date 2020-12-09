@@ -415,10 +415,6 @@ class TestFieldSerialization:
         assert field.serialize("falsy", user) is False
         assert field.serialize("none", user) is None
 
-    def test_function_with_uncallable_param(self):
-        with pytest.raises(TypeError):
-            fields.Function("uncallable")
-
     def test_email_field_serialize_none(self, user):
         user.email = None
         field = fields.Email()
@@ -469,9 +465,8 @@ class TestFieldSerialization:
         class BadSerializer(Schema):
             bad_field = fields.Method("invalid")
 
-        u = User("Foo")
         with pytest.raises(AttributeError):
-            BadSerializer().dump(u)
+            BadSerializer()
 
     def test_method_field_passed_serialize_only_is_dump_only(self, user):
         field = fields.Method(serialize="method")
@@ -488,9 +483,8 @@ class TestFieldSerialization:
             foo = "not callable"
             bad_field = fields.Method("foo")
 
-        u = User("Foo")
         with pytest.raises(TypeError):
-            BadSerializer().dump(u)
+            BadSerializer()
 
     # https://github.com/marshmallow-code/marshmallow/issues/395
     def test_method_field_does_not_swallow_attribute_error(self):
