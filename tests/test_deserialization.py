@@ -1059,13 +1059,12 @@ class TestFieldDeserialization:
 
     def test_method_field_deserialize_only(self):
         class MethodDeserializeOnly(Schema):
+            name = fields.Method(deserialize="lowercase_name")
+
             def lowercase_name(self, value):
                 return value.lower()
 
-        m = fields.Method(deserialize="lowercase_name")
-        m.parent = MethodDeserializeOnly()
-
-        assert m.deserialize("ALEC") == "alec"
+        assert MethodDeserializeOnly().load({"name": "ALEC"})["name"] == "alec"
 
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()
