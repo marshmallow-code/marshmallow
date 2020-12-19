@@ -101,7 +101,7 @@ class Field(FieldABC):
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
     :param dict error_messages: Overrides for `Field.default_error_messages`.
-    :param metadata: Extra arguments to be stored as metadata.
+    :param metadata: Extra information to be stored as field metadata.
 
     .. versionchanged:: 2.0.0
         Removed `error` parameter. Use ``error_messages`` instead.
@@ -160,7 +160,8 @@ class Field(FieldABC):
         load_only: bool = False,
         dump_only: bool = False,
         error_messages: typing.Optional[typing.Dict[str, str]] = None,
-        **metadata
+        metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        **additional_metadata
     ) -> None:
         self.default = default
         self.attribute = attribute
@@ -187,7 +188,16 @@ class Field(FieldABC):
             raise ValueError("'missing' must not be set for required fields.")
         self.required = required
         self.missing = missing
-        self.metadata = metadata
+
+        metadata = metadata or {}
+        self.metadata = {**metadata, **additional_metadata}
+        if additional_metadata:
+            warnings.warn(
+                "Passing field metadata as a keyword arg is deprecated. Use the "
+                "explicit `metadata=...` argument instead.",
+                RemovedInMarshmallow4Warning,
+            )
+
         self._creation_index = Field._creation_index
         Field._creation_index += 1
 
