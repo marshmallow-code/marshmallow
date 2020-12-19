@@ -1,14 +1,14 @@
 Changelog
 ---------
 
-3.10.0 (Unreleased)
+3.10.0 (2020-12-19)
 *******************
 
 Deprecations:
 
 - Passing field metadata via keyword arguments is deprecated and will be
   removed in marshmallow 4 (:issue:`1350`). Use the explicit `metadata=...`
-  argument instead.
+  argument instead. Thanks :user:`sirosen`.
 
 3.9.1 (2020-11-07)
 ******************
