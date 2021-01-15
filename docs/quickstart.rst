@@ -299,6 +299,8 @@ It is sometimes convenient to write validators as methods. Use the `validates <m
     class ItemSchema(Schema):
         quantity = fields.Integer()
 
+        # You can use the order parameter to allow validations to be executed first
+        # If the order value is large, execute first, and the default value of order is 0
         @validates("quantity")
         def validate_quantity(self, value):
             if value < 0:

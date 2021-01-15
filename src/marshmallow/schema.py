@@ -161,7 +161,7 @@ class SchemaMeta(type):
         """
         mro = inspect.getmro(cls)
 
-        hooks = defaultdict(list)  # type: typing.Dict[types.Tag, typing.List[str]]
+        hooks = defaultdict(list)  # type: typing.Dict[types.Tag, typing.Any]
 
         for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
@@ -185,12 +185,21 @@ class SchemaMeta(type):
             except AttributeError:
                 pass
             else:
-                for key in hook_config.keys():
+                for key, value in hook_config.items():
                     # Use name here so we can get the bound method later, in
                     # case the processor was a descriptor or something.
-                    hooks[key].append(attr_name)
+                    hooks[key].append(
+                        {"order": value.get("order", 0), "attr_name": attr_name}
+                    )
 
-        return hooks
+        ordered_hooks = {
+            k: [
+                i["attr_name"]
+                for i in sorted(v, key=lambda x: x["order"], reverse=True)
+            ]
+            for k, v in hooks.items()
+        }
+        return defaultdict(list, ordered_hooks)
 
 
 class SchemaOpts:

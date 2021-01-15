@@ -2912,3 +2912,30 @@ def test_class_registry_returns_schema_type():
 
     SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
     assert SchemaClass is DefinitelyUniqueSchema
+
+
+def test_validates_order():
+    class User(Schema):
+        name = fields.Str()
+        age = fields.Int()
+        sex = fields.Int()
+
+        @validates("name", order=1)
+        def validate_name(self, value):
+            self.context["order"] += "1"
+            return value
+
+        @validates("age", order=2)
+        def validate_age(self, value):
+            self.context["order"] += "2"
+            return value
+
+        @validates("sex")
+        def validate_sex(self, value):
+            self.context["order"] += "0"
+            return value
+
+    schema = User()
+    schema.context["order"] = ""
+    schema.load({"name": "name", "age": 24, "sex": 1})
+    assert schema.context["order"] == "210"

@@ -69,12 +69,17 @@ VALIDATES = "validates"
 VALIDATES_SCHEMA = "validates_schema"
 
 
-def validates(field_name: str):
+def validates(field_name: str, order: int = 0):
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.
+    :param int order: In the same schema,the larger value is executed first.
+
+    .. warning::
+
+        The order parameter cannot be used across schema
     """
-    return set_hook(None, VALIDATES, field_name=field_name)
+    return set_hook(None, VALIDATES, field_name=field_name, order=order)
 
 
 def validates_schema(
