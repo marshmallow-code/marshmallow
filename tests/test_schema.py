@@ -2143,7 +2143,7 @@ class TestNestedSchema:
         assert "inner" in errors
         assert "_schema" in errors["inner"]
 
-    @pytest.mark.parametrize("unknown", (None, RAISE, INCLUDE, EXCLUDE))
+    @pytest.mark.parametrize("unknown", (None, RAISE, INCLUDE, EXCLUDE, 'random_string'))
     def test_nested_unknown_validation(self, unknown):
         class ChildSchema(Schema):
             num = fields.Int()
@@ -2156,12 +2156,15 @@ class TestNestedSchema:
             with pytest.raises(ValidationError) as exc:
                 ParentSchema().load(data)
                 assert exc.messages == {"child": {"extra": ["Unknown field."]}}
-        else:
+        elif unknown in (INCLUDE, EXCLUDE):
             output = {
                 INCLUDE: {"child": {"num": 1, "extra": 1}},
                 EXCLUDE: {"child": {"num": 1}},
             }[unknown]
             assert ParentSchema().load(data) == output
+        else:
+            with pytest.raises(Exception):
+                ParentSchema().load(data)
 
 
 class TestPluckSchema:

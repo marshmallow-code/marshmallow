@@ -677,6 +677,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     key = field_obj.attribute or attr_name
                     set_value(typing.cast(typing.Dict, ret), key, value)
             if unknown != EXCLUDE:
+                if unknown not in (INCLUDE, RAISE):
+                    raise Exception("'unknown' must be one of INCLUDE, EXCLUDE, or RAISE.")
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
                     for field_name, field_obj in self.load_fields.items()
