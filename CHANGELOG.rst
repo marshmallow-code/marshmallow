@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.11.0 (Unreleased)
+*******************
+
+Features:
+
+- Add ``extra`` argument to ``Schema.load`` and ``Schema.dump`` as an extension
+  point for libraries built on marshmallow
+
 3.10.0 (2020-12-19)
 *******************
 

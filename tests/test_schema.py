@@ -2912,3 +2912,32 @@ def test_class_registry_returns_schema_type():
 
     SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
     assert SchemaClass is DefinitelyUniqueSchema
+
+
+def test_extra_args_passthrough():
+    class MySchema(Schema):
+        last_deserialize_side_effect = None
+        last_serialize_side_effect = None
+
+        def _deserialize(self, *args, extra, **kwargs):
+            if "side_effect" in extra:
+                MySchema.last_deserialize_side_effect = extra["side_effect"]
+            super()._deserialize(*args, extra=extra, **kwargs)
+
+        def _serialize(self, *args, extra, **kwargs):
+            if "side_effect" in extra:
+                MySchema.last_serialize_side_effect = extra["side_effect"]
+            super()._serialize(*args, extra=extra, **kwargs)
+
+        name = fields.Str()
+        email = fields.Email()
+
+    data = {"name": "Mick", "email": "mick@stones.com"}
+
+    loaded = MySchema().load(data, extra={"side_effect": "foo"})
+    assert MySchema.last_deserialize_side_effect == "foo"
+    assert MySchema.last_serialize_side_effect is None
+
+    MySchema().dump(loaded, extra={"side_effect": "bar"})
+    assert MySchema.last_deserialize_side_effect == "foo"
+    assert MySchema.last_serialize_side_effect == "bar"
