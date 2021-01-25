@@ -502,12 +502,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         return value
 
     def _serialize(
-        self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = False
+        self,
+        obj: typing.Union[_T, typing.Iterable[_T]],
+        *,
+        many: bool = False,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None
     ):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
         :param bool many: `True` if ``data`` should be serialized as a collection.
+        :param extra: Extra data for serialization. Ignored by ``marshmallow``.
         :return: A dictionary of the serialized data
 
         .. versionchanged:: 1.0.0
@@ -527,13 +532,22 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
+    def dump(
+        self,
+        obj: typing.Any,
+        *,
+        many: typing.Optional[bool] = None,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None
+    ):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
+        :param extra: Additional data which will be passed down to
+            _serialize. Libraries built on ``marshmallow`` may use this to
+            customize serialization.
         :return: A dict of serialized data
         :rtype: dict
 
@@ -556,7 +570,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         else:
             processed_obj = obj
 
-        result = self._serialize(processed_obj, many=many)
+        result = self._serialize(processed_obj, many=many, extra=extra)
 
         if self._has_processors(POST_DUMP):
             result = self._invoke_dump_processors(
@@ -566,13 +580,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         return result
 
     def dumps(
-        self, obj: typing.Any, *args, many: typing.Optional[bool] = None, **kwargs
+        self,
+        obj: typing.Any,
+        *args,
+        many: typing.Optional[bool] = None,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        **kwargs
     ):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
+        :param extra: Additional data which will be passed down to
+            _serialize. Libraries built on ``marshmallow`` may use this to
+            customize serialization.
         :return: A ``json`` string
         :rtype: str
 
@@ -582,7 +604,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
-        serialized = self.dump(obj, many=many)
+        serialized = self.dump(obj, many=many, extra=extra)
         return self.opts.render_module.dumps(serialized, *args, **kwargs)
 
     def _deserialize(
@@ -596,6 +618,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: bool = False,
         partial=False,
         unknown=RAISE,
+        extra=None,
         index=None
     ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
@@ -611,6 +634,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
+        :param dict extra: Extra data for deserialization, ignored by ``marshmallow``.
         :return: A dictionary of the deserialized data.
         """
         index_errors = self.opts.index_errors
@@ -702,7 +726,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
-        unknown: typing.Optional[str] = None
+        unknown: typing.Optional[str] = None,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -716,6 +741,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param extra: Additional data which will be passed down to
+            _deserialize. Libraries built on ``marshmallow`` may use this to
+            customize deserialization.
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -725,7 +753,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         return self._do_load(
-            data, many=many, partial=partial, unknown=unknown, postprocess=True
+            data,
+            many=many,
+            partial=partial,
+            unknown=unknown,
+            extra=extra,
+            postprocess=True,
         )
 
     def loads(
@@ -735,6 +768,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
         unknown: typing.Optional[str] = None,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **kwargs
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -749,6 +783,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param extra: Additional data which will be passed down to
+            _deserialize. Libraries built on ``marshmallow`` may use this to
+            customize deserialization.
         :return: Deserialized data
 
         .. versionadded:: 1.0.0
@@ -758,7 +795,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(data, many=many, partial=partial, unknown=unknown)
+        return self.load(data, many=many, partial=partial, unknown=unknown, extra=extra)
 
     def _run_validator(
         self,
@@ -819,6 +856,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
         unknown: typing.Optional[str] = None,
+        extra: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -834,6 +872,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
+        :param extra: Additional data which will be passed down to
+            _deserialize. Libraries built on ``marshmallow`` may use this to
+            customize deserialization.
         :param postprocess: Whether to run post_load methods..
         :return: Deserialized data
         """
@@ -864,6 +905,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 many=many,
                 partial=partial,
                 unknown=unknown,
+                extra=extra,
             )
             # Run field-level validation
             self._invoke_field_validators(
