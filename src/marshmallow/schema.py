@@ -534,8 +534,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param obj: The object to serialize.
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :return: A dict of serialized data
-        :rtype: dict
+        :return: Serialized data
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
@@ -574,7 +573,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
         :return: A ``json`` string
-        :rtype: str
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
