@@ -898,7 +898,8 @@ class TestFieldDeserialization:
         assert str(result) == ipv6_str
 
     @pytest.mark.parametrize(
-        "in_value", ["malformed", 123, b"\x01\x02\03", "192.168", "ff::aa:1::2"]
+        "in_value",
+        ["malformed", 123, b"\x01\x02\03", "192.168", "192.168.0.1/24", "ff::aa:1::2"],
     )
     def test_invalid_ip_deserialization(self, in_value):
         field = fields.IP()
@@ -916,7 +917,14 @@ class TestFieldDeserialization:
 
     @pytest.mark.parametrize(
         "in_value",
-        ["malformed", 123, b"\x01\x02\03", "192.168", "2a00:1450:4001:81d::200e"],
+        [
+            "malformed",
+            123,
+            b"\x01\x02\03",
+            "192.168",
+            "192.168.0.1/24",
+            "2a00:1450:4001:81d::200e",
+        ],
     )
     def test_invalid_ipv4_deserialization(self, in_value):
         field = fields.IPv4()
@@ -932,15 +940,88 @@ class TestFieldDeserialization:
         assert isinstance(result, ipaddress.IPv6Address)
         assert str(result) == ipv6_str
 
+    def test_ipinterface_field_deserialization(self):
+        field = fields.IPInterface()
+        ipv4interface_str = "140.82.118.3/24"
+        result = field.deserialize(ipv4interface_str)
+        assert isinstance(result, ipaddress.IPv4Interface)
+        assert str(result) == ipv4interface_str
+
+        ipv6interface_str = "2a00:1450:4001:824::200e/128"
+        result = field.deserialize(ipv6interface_str)
+        assert isinstance(result, ipaddress.IPv6Interface)
+        assert str(result) == ipv6interface_str
+
     @pytest.mark.parametrize(
-        "in_value", ["malformed", 123, b"\x01\x02\03", "ff::aa:1::2", "192.168.0.1"]
+        "in_value",
+        [
+            "malformed",
+            123,
+            b"\x01\x02\03",
+            "192.168",
+            "192.168.0.1/33",
+            "ff::aa:1::2",
+            "2a00:1450:4001:824::200e/129",
+        ],
     )
-    def test_invalid_ipv6_deserialization(self, in_value):
-        field = fields.IPv6()
+    def test_invalid_ipinterface_deserialization(self, in_value):
+        field = fields.IPInterface()
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
 
-        assert excinfo.value.args[0] == "Not a valid IPv6 address."
+        assert excinfo.value.args[0] == "Not a valid IP interface."
+
+    def test_ipv4interface_field_deserialization(self):
+        field = fields.IPv4Interface()
+        ipv4interface_str = "140.82.118.3/24"
+        result = field.deserialize(ipv4interface_str)
+        assert isinstance(result, ipaddress.IPv4Interface)
+        assert str(result) == ipv4interface_str
+
+    @pytest.mark.parametrize(
+        "in_value",
+        [
+            "malformed",
+            123,
+            b"\x01\x02\03",
+            "192.168",
+            "192.168.0.1/33",
+            "2a00:1450:4001:81d::200e",
+            "2a00:1450:4001:824::200e/129",
+        ],
+    )
+    def test_invalid_ipv4interface_deserialization(self, in_value):
+        field = fields.IPv4Interface()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(in_value)
+
+        assert excinfo.value.args[0] == "Not a valid IPv4 interface."
+
+    def test_ipv6interface_field_deserialization(self):
+        field = fields.IPv6Interface()
+        ipv6interface_str = "2a00:1450:4001:824::200e/128"
+        result = field.deserialize(ipv6interface_str)
+        assert isinstance(result, ipaddress.IPv6Interface)
+        assert str(result) == ipv6interface_str
+
+    @pytest.mark.parametrize(
+        "in_value",
+        [
+            "malformed",
+            123,
+            b"\x01\x02\03",
+            "ff::aa:1::2",
+            "192.168.0.1",
+            "192.168.0.1/24",
+            "2a00:1450:4001:824::200e/129",
+        ],
+    )
+    def test_invalid_ipv6interface_deserialization(self, in_value):
+        field = fields.IPv6Interface()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(in_value)
+
+        assert excinfo.value.args[0] == "Not a valid IPv6 interface."
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(ValueError):

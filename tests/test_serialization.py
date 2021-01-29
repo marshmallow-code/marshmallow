@@ -194,6 +194,66 @@ class TestFieldSerialization:
         assert isinstance(field_exploded.serialize("ipv6", user), str)
         assert field_exploded.serialize("ipv6", user) == ipv6_exploded_string
 
+    def test_ip_interface_field(self, user):
+
+        ipv4interface_string = "192.168.0.1/24"
+        ipv6interface_string = "ffff::ffff/128"
+        ipv6interface_exploded_string = ipaddress.ip_interface(
+            "ffff::ffff/128"
+        ).exploded
+
+        user.ipv4interface = ipaddress.ip_interface(ipv4interface_string)
+        user.ipv6interface = ipaddress.ip_interface(ipv6interface_string)
+        user.empty_ipinterface = None
+
+        field_compressed = fields.IPInterface()
+        assert isinstance(field_compressed.serialize("ipv4interface", user), str)
+        assert field_compressed.serialize("ipv4interface", user) == ipv4interface_string
+        assert isinstance(field_compressed.serialize("ipv6interface", user), str)
+        assert field_compressed.serialize("ipv6interface", user) == ipv6interface_string
+        assert field_compressed.serialize("empty_ipinterface", user) is None
+
+        field_exploded = fields.IPInterface(exploded=True)
+        assert isinstance(field_exploded.serialize("ipv6interface", user), str)
+        assert (
+            field_exploded.serialize("ipv6interface", user)
+            == ipv6interface_exploded_string
+        )
+
+    def test_ipv4_interface_field(self, user):
+
+        ipv4interface_string = "192.168.0.1/24"
+
+        user.ipv4interface = ipaddress.ip_interface(ipv4interface_string)
+        user.empty_ipinterface = None
+
+        field = fields.IPv4Interface()
+        assert isinstance(field.serialize("ipv4interface", user), str)
+        assert field.serialize("ipv4interface", user) == ipv4interface_string
+        assert field.serialize("empty_ipinterface", user) is None
+
+    def test_ipv6_interface_field(self, user):
+
+        ipv6interface_string = "ffff::ffff/128"
+        ipv6interface_exploded_string = ipaddress.ip_interface(
+            "ffff::ffff/128"
+        ).exploded
+
+        user.ipv6interface = ipaddress.ip_interface(ipv6interface_string)
+        user.empty_ipinterface = None
+
+        field_compressed = fields.IPv6Interface()
+        assert isinstance(field_compressed.serialize("ipv6interface", user), str)
+        assert field_compressed.serialize("ipv6interface", user) == ipv6interface_string
+        assert field_compressed.serialize("empty_ipinterface", user) is None
+
+        field_exploded = fields.IPv6Interface(exploded=True)
+        assert isinstance(field_exploded.serialize("ipv6interface", user), str)
+        assert (
+            field_exploded.serialize("ipv6interface", user)
+            == ipv6interface_exploded_string
+        )
+
     def test_decimal_field(self, user):
         user.m1 = 12
         user.m2 = "12.355"
