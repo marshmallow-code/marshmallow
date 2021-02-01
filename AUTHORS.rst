@@ -157,3 +157,4 @@ Contributors (chronological)
 - Nadège Michel `@nadege <https://github.com/nadege>`_
 - Tamara `@infinityxxx <https://github.com/infinityxxx>`_
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
+- Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
