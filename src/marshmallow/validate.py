@@ -600,7 +600,7 @@ class NoDuplicates(Validator):
         self.attribute = attribute
 
     def _repr_args(self) -> str:
-        return f"attribute={self.attribute!r}"
+        return "attribute={!r}".format(self.attribute)
 
     def _format_error(self, value) -> str:
         if self.attribute:
