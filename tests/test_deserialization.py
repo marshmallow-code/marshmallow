@@ -27,7 +27,7 @@ class TestDeserializingNone:
             field.deserialize(None)
 
     def test_allow_none_is_true_if_missing_is_true(self):
-        field = fields.Field(missing=None)
+        field = fields.Field(load_default=None)
         assert field.allow_none is True
         assert field.deserialize(None) is None
 
@@ -1513,7 +1513,7 @@ class TestSchemaDeserialization:
 
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(missing=bdate)
+            birthdate = fields.DateTime(load_default=bdate)
 
         data = {"name": "Mick"}
         result = AliasingUserSerializer().load(data)
@@ -1525,7 +1525,7 @@ class TestSchemaDeserialization:
 
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(missing=lambda: bdate)
+            birthdate = fields.DateTime(load_default=lambda: bdate)
 
         data = {"name": "Mick"}
         result = AliasingUserSerializer().load(data)
@@ -1535,7 +1535,7 @@ class TestSchemaDeserialization:
     def test_deserialize_with_missing_param_none(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            years = fields.Integer(missing=None, allow_none=True)
+            years = fields.Integer(load_default=None, allow_none=True)
 
         data = {"name": "Mick"}
         result = AliasingUserSerializer().load(data)

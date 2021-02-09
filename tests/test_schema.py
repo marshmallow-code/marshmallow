@@ -326,7 +326,7 @@ def test_loads_deserializes_from_json():
 
 def test_serializing_none():
     class MySchema(Schema):
-        id = fields.Str(default="no-id")
+        id = fields.Str(dump_default="no-id")
         num = fields.Int()
         name = fields.Str()
 
@@ -1995,7 +1995,7 @@ class TestNestedSchema:
 
     def test_nested_none(self):
         class BlogDefaultSchema(Schema):
-            user = fields.Nested(UserSchema, default=0)
+            user = fields.Nested(UserSchema, dump_default=0)
 
         b = Blog("Just the default blog", user=None)
         data = BlogDefaultSchema().dump(b)
@@ -2755,8 +2755,8 @@ class TestDefaults:
         list_no_default = fields.List(fields.Str, allow_none=True)
         nested_no_default = fields.Nested(UserSchema, many=True, allow_none=True)
 
-        int_with_default = fields.Int(allow_none=True, default=42)
-        str_with_default = fields.Str(allow_none=True, default="foo")
+        int_with_default = fields.Int(allow_none=True, dump_default=42)
+        str_with_default = fields.Str(allow_none=True, dump_default="foo")
 
     @pytest.fixture()
     def schema(self):

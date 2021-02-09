@@ -125,14 +125,14 @@ class TestFieldSerialization:
 
     def test_integer_field_default(self, user):
         user.age = None
-        field = fields.Integer(default=0)
+        field = fields.Integer(dump_default=0)
         assert field.serialize("age", user) is None
         # missing
         assert field.serialize("age", {}) == 0
 
     def test_integer_field_default_set_to_none(self, user):
         user.age = None
-        field = fields.Integer(default=None)
+        field = fields.Integer(dump_default=None)
         assert field.serialize("age", user) is None
 
     def test_uuid_field(self, user):
@@ -594,7 +594,7 @@ class TestFieldSerialization:
         assert field.serialize("name", user) is None
 
     def test_string_field_default_to_empty_string(self, user):
-        field = fields.String(default="")
+        field = fields.String(dump_default="")
         assert field.serialize("notfound", {}) == ""
 
     def test_time_field(self, user):
@@ -857,7 +857,7 @@ class TestSchemaSerialization:
     def test_serialize_with_missing_param_value(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+            birthdate = fields.DateTime(dump_default=dt.datetime(2017, 9, 29))
 
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
@@ -867,7 +867,7 @@ class TestSchemaSerialization:
     def test_serialize_with_missing_param_callable(self):
         class AliasingUserSerializer(Schema):
             name = fields.String()
-            birthdate = fields.DateTime(default=lambda: dt.datetime(2017, 9, 29))
+            birthdate = fields.DateTime(dump_default=lambda: dt.datetime(2017, 9, 29))
 
         data = {"name": "Mick"}
         result = AliasingUserSerializer().dump(data)
