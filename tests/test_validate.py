@@ -243,11 +243,11 @@ def test_range_min():
     assert validate.Range(min_inclusive=False, max_inclusive=False)(1) == 1
     assert validate.Range(1, 1)(1) == 1
 
-    with pytest.raises(ValidationError, match="Must be greater than or equal to 2"):
+    with pytest.raises(ValidationError, match="1 must be greater than or equal to 2"):
         validate.Range(2, 3)(1)
-    with pytest.raises(ValidationError, match="Must be greater than or equal to 2"):
+    with pytest.raises(ValidationError, match="1 must be greater than or equal to 2"):
         validate.Range(2)(1)
-    with pytest.raises(ValidationError, match="Must be greater than 1"):
+    with pytest.raises(ValidationError, match="1 must be greater than 1"):
         validate.Range(1, 2, min_inclusive=False, max_inclusive=True, error=None)(1)
     with pytest.raises(ValidationError, match="less than 1"):
         validate.Range(1, 1, min_inclusive=True, max_inclusive=False, error=None)(1)
@@ -268,6 +268,45 @@ def test_range_max():
         validate.Range(1, 2, min_inclusive=True, max_inclusive=False, error=None)(2)
     with pytest.raises(ValidationError, match="greater than 2"):
         validate.Range(2, 2, min_inclusive=False, max_inclusive=True, error=None)(2)
+
+
+def test_range_tolerance():
+    assert validate.Range(1, 2, abs_tol=1e-3)(0.9999) == 1
+    assert validate.Range(0, abs_tol=1e-3)(-0.0001) == 0
+    assert validate.Range(abs_tol=1e-3)(1.0001) == 1.0001
+    assert (
+        validate.Range(min_inclusive=False, max_inclusive=False, abs_tol=1e-3)(1) == 1
+    )
+    assert validate.Range(1, 1, abs_tol=1e-3)(1) == 1
+    assert validate.Range(1, 8.450, abs_tol=0.4)(8.005) == 8.005
+    assert validate.Range(1, 8.450, abs_tol=0.4)(8.455) == 8.450
+
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(2, 3, abs_tol=1e-4)(1.999)
+    assert "must be greater than or equal to 2" in str(exc.value)
+    assert "(equality with an absolute tolerance of 1.0e-04)" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(100, 200, rel_tol=1e-2)(95)
+    assert "95 must be greater than or equal to 100 (" in str(exc.value)
+    assert "(equality with a relative tolerance of 1.0e-02)" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(0, 1, rel_tol=1e-5)(1.02)
+    assert "1.02 must be less than or equal to 1" in str(exc.value)
+    assert "(equality with a relative tolerance of 1.0e-05)" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(2, abs_tol=1e-2)(1.9)
+    assert "must be greater than or equal to 2" in str(exc.value)
+    assert "(equality with an absolute tolerance of 1.0e-02)" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(
+            1, 1, min_inclusive=True, max_inclusive=False, error=None, abs_tol=1e-3
+        )(0.99)
+    assert "0.99 must be greater than or equal to 1" in str(exc.value)
+    assert "(equality with an absolute tolerance of 1.0e-03)" in str(exc.value)
+    with pytest.raises(ValidationError) as exc:
+        validate.Range(1, 1, abs_tol=1e-3, rel_tol=1e-3)(0.99)
+    assert "0.99 must be greater than or equal to 1" in str(exc.value)
+    assert "with a relative tolerance of 1.0e-03 and an abs" in str(exc.value)
 
 
 def test_range_custom_message():
@@ -291,14 +330,16 @@ def test_range_repr():
                 min=None, max=None, error=None, min_inclusive=True, max_inclusive=True
             )
         )
-        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"  # noqa: B950
+        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, "
+        "rel_tol=1e-09, abs_tol=0.0, error=None)>"
     )
     assert repr(
         validate.Range(
             min=1, max=3, error="foo", min_inclusive=False, max_inclusive=False
         )
-    ) == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(  # noqa: B950
-        "foo"
+    ) == (
+        "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, "
+        "error={!r})>".format("foo")
     )
 
 

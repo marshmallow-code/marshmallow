@@ -1,4 +1,6 @@
 """Validation classes for various types of data."""
+import inspect
+import math
 import re
 from itertools import zip_longest
 from operator import attrgetter
@@ -189,7 +191,8 @@ class Range(Validator):
     """Validator which succeeds if the value passed to it is within the specified
     range. If ``min`` is not specified, or is specified as `None`,
     no lower bound exists. If ``max`` is not specified, or is specified as `None`,
-    no upper bound exists. The inclusivity of the bounds (if they exist) is configurable.
+    no upper bound exists. The inclusivity of the bounds (if they exist) is
+    configurable.
     If ``min_inclusive`` is not specified, or is specified as `True`, then
     the ``min`` bound is included in the range. If ``max_inclusive`` is not specified,
     or is specified as `True`, then the ``max`` bound is included in the range.
@@ -200,18 +203,13 @@ class Range(Validator):
         value will not be checked.
     :param min_inclusive: Whether the `min` bound is included in the range.
     :param max_inclusive: Whether the `max` bound is included in the range.
+    :param rel_tol: The relative tolerance we have for value being equal (as per the
+        math.is_close function). Equivalent of min_inclusive and max_inclusive == True.
+    :param abs_tol: The absolute tolerance we have for value being equal (as per the
+        math.is_close function). Equivalent of min_inclusive and max_inclusive == True.
     :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`, `{min}` and `{max}`.
     """
-
-    message_min = "Must be {min_op} {{min}}."
-    message_max = "Must be {max_op} {{max}}."
-    message_all = "Must be {min_op} {{min}} and {max_op} {{max}}."
-
-    message_gte = "greater than or equal to"
-    message_gt = "greater than"
-    message_lte = "less than or equal to"
-    message_lt = "less than"
 
     def __init__(
         self,
@@ -220,47 +218,99 @@ class Range(Validator):
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
+        rel_tol: typing.Optional[float] = None,
+        abs_tol: typing.Optional[float] = None
     ):
         self.min = min
         self.max = max
+        self.has_tolerance = rel_tol is not None or abs_tol is not None
+        self.min_inclusive = min_inclusive or self.has_tolerance
+        self.max_inclusive = max_inclusive or self.has_tolerance
+        try:
+            is_close = inspect.signature(math.isclose).parameters
+            self._rel_tol_default = is_close.get("rel_tol").default  # type: ignore
+            self._abs_tol_default = is_close.get("abs_tol").default  # type: ignore
+        except ValueError:
+            self._rel_tol_default, self._abs_tol_default = None, None
+        self.rel_tol = self._rel_tol_default if rel_tol is None else rel_tol
+        self.abs_tol = self._abs_tol_default if abs_tol is None else abs_tol
         self.error = error
-        self.min_inclusive = min_inclusive
-        self.max_inclusive = max_inclusive
 
-        # interpolate messages based on bound inclusivity
-        self.message_min = self.message_min.format(
-            min_op=self.message_gte if self.min_inclusive else self.message_gt
-        )
-        self.message_max = self.message_max.format(
-            max_op=self.message_lte if self.max_inclusive else self.message_lt
-        )
-        self.message_all = self.message_all.format(
-            min_op=self.message_gte if self.min_inclusive else self.message_gt,
-            max_op=self.message_lte if self.max_inclusive else self.message_lt,
-        )
+    @property
+    def tolerance(self) -> str:
+        if not self.min_inclusive and not self.max_inclusive or not self.has_tolerance:
+            # No equality comparison, or default value, tolerance did not matter
+            return ""
+        rel = ""
+        abs = ""
+        if self.rel_tol and self.rel_tol != self._rel_tol_default:
+            rel = f"a relative tolerance of {self.rel_tol:.1e}"
+        if self.abs_tol and self.abs_tol != self._rel_tol_default:
+            abs = f"an absolute tolerance of {self.abs_tol:.1e}"
+        msg = f"{rel} and {abs}" if rel and abs else rel or abs
+        return f" (equality with {msg})"
 
     def _repr_args(self) -> str:
-        return "min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}".format(
-            self.min, self.max, self.min_inclusive, self.max_inclusive
+        msg = "min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}".format(
+            self.min,
+            self.max,
+            self.min_inclusive,
+            self.max_inclusive,
         )
+        if self.max_inclusive or self.min_inclusive:
+            msg += ", rel_tol={!r}, abs_tol={!r}".format(
+                self.rel_tol,
+                self.abs_tol,
+            )
+        return msg
 
-    def _format_error(self, value, message: str) -> str:
-        return (self.error or message).format(input=value, min=self.min, max=self.max)
+    def _format_error(self, value, for_min=True) -> str:
+        if self.error is None and for_min:
+            op = "greater than or equal to" if self.min_inclusive else "greater than"
+            message_min = f"{op} {{min}}"
+            self.error = f"{{input}} must be {message_min}{self.tolerance}."
+        elif self.error is None:
+            op = "less than or equal to" if self.max_inclusive else "less than"
+            message_max = f"{op} {{max}}"
+            self.error = f"{{input}} must be {message_max}{self.tolerance}."
+        return self.error.format(input=value, min=self.min, max=self.max)
+
+    def __should_be_bigger(self, value):
+        # assert self.min is not None
+        if self.has_tolerance:
+            return (
+                not math.isclose(
+                    value, self.min, rel_tol=self.rel_tol, abs_tol=self.abs_tol
+                )
+                and value < self.min
+            )
+        if self.min_inclusive:
+            return value < self.min
+        return value <= self.min
+
+    def __should_be_smaller(self, value):
+        # assert self.max is not None
+        if self.has_tolerance:
+            return (
+                not math.isclose(
+                    value, self.max, rel_tol=self.rel_tol, abs_tol=self.abs_tol
+                )
+                and value > self.max
+            )
+        if self.max_inclusive:
+            return value > self.max
+        return value >= self.max
 
     def __call__(self, value) -> typing.Any:
-        if self.min is not None and (
-            value < self.min if self.min_inclusive else value <= self.min
-        ):
-            message = self.message_min if self.max is None else self.message_all
-            raise ValidationError(self._format_error(value, message))
-
-        if self.max is not None and (
-            value > self.max if self.max_inclusive else value >= self.max
-        ):
-            message = self.message_max if self.min is None else self.message_all
-            raise ValidationError(self._format_error(value, message))
-
+        if self.min is not None:
+            if self.__should_be_bigger(value):
+                raise ValidationError(self._format_error(value, for_min=True))
+            value = max(self.min, value)
+        if self.max is not None:
+            if self.__should_be_smaller(value):
+                raise ValidationError(self._format_error(value, for_min=False))
+            value = min(self.max, value)
         return value
 
 
