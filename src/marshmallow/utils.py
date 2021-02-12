@@ -258,9 +258,15 @@ def _get_value_for_key(obj, key, default):
         return getattr(obj, key, default)
 
 
-def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
+def set_value(
+    dct: typing.Dict[str, typing.Any],
+    key: str,
+    value: typing.Any,
+    allow_dotted: bool = True,
+):
     """Set a value in a dict. If `key` contains a '.', it is assumed
     be a path (i.e. dot-delimited string) to the value's location.
+    `allow_dotted=False` disables this behavior.
 
     ::
 
@@ -269,7 +275,7 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
         >>> d
         {'foo': {'bar': 42}}
     """
-    if "." in key:
+    if "." in key and allow_dotted:
         head, rest = key.split(".", 1)
         target = dct.setdefault(head, {})
         if not isinstance(target, dict):

@@ -682,7 +682,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
-                        set_value(typing.cast(typing.Dict, ret), key, value)
+                        set_value(
+                            typing.cast(typing.Dict, ret),
+                            key,
+                            value,
+                            allow_dotted=False,
+                        )
                     elif unknown == RAISE:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
