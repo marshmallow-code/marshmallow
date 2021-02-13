@@ -583,20 +583,20 @@ class ContainsNoneOf(NoneOf):
 
 class NoDuplicates(Validator):
     """
-    Validator which succeeds if the `value` is an `iterable` and has no duplicate
+    Validator which succeeds if the ``value`` is an ``iterable`` and has no duplicate
     elements. In case of a list of objects, it can easy check an internal
-    attribute by passing the `attribute` parameter.
+    attribute by passing the ``attribute`` parameter.
 
-    Validator which fails if `value` is not a member of `iterable`.
+    Validator which fails if ``value`` is not a member of ``iterable``.
 
-    :param attribute: The name of the attribute of the object you want to check.
+    :param str attribute: The name of the attribute of the object you want to check.
     """
 
     default_message = "Invalid input. Supported lists or str."
     error = "Found a duplicate value: {value}."
     attribute_error = "Found a duplicate object attribute ({attribute}): {value}."
 
-    def __init__(self, *, attribute: typing.Optional[str] = None):
+    def __init__(self, attribute: typing.Optional[str] = None):
         self.attribute = attribute
 
     def _repr_args(self) -> str:
