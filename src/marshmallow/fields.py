@@ -55,6 +55,9 @@ __all__ = [
     "IP",
     "IPv4",
     "IPv6",
+    "IPInterface",
+    "IPv4Interface",
+    "IPv6Interface",
     "Method",
     "Function",
     "Str",
@@ -1709,6 +1712,66 @@ class IPv6(IP):
     default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
 
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
+
+
+class IPInterface(Field):
+    """A IPInterface field.
+
+    IP interface is the non-stict form of the IPNetwork type where arbitrary host
+    addresses are always accepted.
+
+    IPAddress and mask e.g. '192.168.0.2/24' or '192.168.0.2/255.255.255.0'
+
+    see https://python.readthedocs.io/en/latest/library/ipaddress.html#interface-objects
+
+    :parm bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
+        consisting entirely of zeros included.
+    """
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IP interface."}
+
+    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+
+    def __init__(self, *args, exploded=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exploded = exploded
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[
+        typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]
+    ]:
+        if value is None:
+            return None
+        try:
+            return (self.DESERIALIZATION_CLASS or ipaddress.ip_interface)(
+                utils.ensure_text_type(value)
+            )
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip_interface") from error
+
+
+class IPv4Interface(IPInterface):
+    """A IPv4 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv4 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv4Interface
+
+
+class IPv6Interface(IPInterface):
+    """A IPv6 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv6Interface
 
 
 class Method(Field):

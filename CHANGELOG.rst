@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.11.0 (unreleased)
+*******************
+
+Features:
+
+- Add ``fields.IPInterface``, ``fields.IPv4Interface``, and
+  ``IPv6Interface`` (:issue:`1733`). Thanks :user:`madeinoz67`
+  for the suggestion and the PR.
+
 3.10.0 (2020-12-19)
 *******************
 

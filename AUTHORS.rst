@@ -158,3 +158,4 @@ Contributors (chronological)
 - Tamara `@infinityxxx <https://github.com/infinityxxx>`_
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
 - Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
+- Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
