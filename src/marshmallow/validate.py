@@ -245,11 +245,11 @@ class Range(Validator):
         rel = ""
         abs = ""
         if self.rel_tol and self.rel_tol != self._rel_tol_default:
-            rel = f"a relative tolerance of {self.rel_tol:.1e}"
+            rel = "a relative tolerance of {:.1e}".format(self.rel_tol)
         if self.abs_tol and self.abs_tol != self._rel_tol_default:
-            abs = f"an absolute tolerance of {self.abs_tol:.1e}"
-        msg = f"{rel} and {abs}" if rel and abs else rel or abs
-        return f" (equality with {msg})"
+            abs = "an absolute tolerance of {:.1e}".format(self.abs_tol)
+        msg = "{rel} and {abs}".format(rel=rel, abs=abs) if rel and abs else rel or abs
+        return " (equality with {msg})".format(msg=msg)
 
     def _repr_args(self) -> str:
         msg = "min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}".format(
@@ -268,12 +268,16 @@ class Range(Validator):
     def _format_error(self, value, for_min=True) -> str:
         if self.error is None and for_min:
             op = "greater than or equal to" if self.min_inclusive else "greater than"
-            message_min = f"{op} {{min}}"
-            self.error = f"{{input}} must be {message_min}{self.tolerance}."
+            message_min = "{op} {{min}}".format(op=op)
+            self.error = "{{input}} must be {message_min}{tol}.".format(
+                message_min=message_min, tol=self.tolerance
+            )
         elif self.error is None:
             op = "less than or equal to" if self.max_inclusive else "less than"
-            message_max = f"{op} {{max}}"
-            self.error = f"{{input}} must be {message_max}{self.tolerance}."
+            message_max = "{op} {{max}}".format(op=op)
+            self.error = "{{input}} must be {message_max}{tol}.".format(
+                message_max=message_max, tol=self.tolerance
+            )
         return self.error.format(input=value, min=self.min, max=self.max)
 
     def __should_be_bigger(self, value):
