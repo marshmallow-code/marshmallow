@@ -232,7 +232,7 @@ class Range(Validator):
             self._rel_tol_default = is_close.get("rel_tol").default  # type: ignore
             self._abs_tol_default = is_close.get("abs_tol").default  # type: ignore
         except ValueError:
-            self._rel_tol_default, self._abs_tol_default = None, None
+            self._rel_tol_default, self._abs_tol_default = 1e-09, 0.0
         self.rel_tol = self._rel_tol_default if rel_tol is None else rel_tol
         self.abs_tol = self._abs_tol_default if abs_tol is None else abs_tol
         self.error = error
