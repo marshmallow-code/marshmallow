@@ -2783,7 +2783,7 @@ class TestTakeDefaultOn:
         data = dict()
         assert schema.dump(data) == default_values
 
-    def test_default_not_taken(self, schema, _):
+    def test_default_not_taken(self, schema, default_values):
         data = dict(
             int_take_default_on_none=-1,
             int_take_default_on_value=-1,
