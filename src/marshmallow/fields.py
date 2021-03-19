@@ -164,6 +164,7 @@ class Field(FieldABC):
         dump_only: bool = False,
         error_messages: typing.Optional[typing.Dict[str, str]] = None,
         metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        take_default_on=None,
         **additional_metadata
     ) -> None:
         self.default = default
@@ -191,6 +192,7 @@ class Field(FieldABC):
             raise ValueError("'missing' must not be set for required fields.")
         self.required = required
         self.missing = missing
+        self.take_default_on = tuple() if take_default_on is None else take_default_on
 
         metadata = metadata or {}
         self.metadata = {**metadata, **additional_metadata}
@@ -218,7 +220,8 @@ class Field(FieldABC):
             "validate={self.validate}, required={self.required}, "
             "load_only={self.load_only}, dump_only={self.dump_only}, "
             "missing={self.missing}, allow_none={self.allow_none}, "
-            "error_messages={self.error_messages})>".format(
+            "error_messages={self.error_messages}, "
+            "take_default_on={self.take_default_on})>".format(
                 ClassName=self.__class__.__name__, self=self
             )
         )
@@ -323,10 +326,10 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_ and hasattr(self, "default"):
+            if self._should_take_default(value) and hasattr(self, "default"):
                 default = self.default
                 value = default() if callable(default) else default
-            if value is missing_:
+            if self._should_take_default(value):
                 return value
         else:
             value = None
@@ -415,6 +418,9 @@ class Field(FieldABC):
             Added ``**kwargs`` to signature.
         """
         return value
+
+    def _should_take_default(self, value):
+        return value is missing_ or value in self.take_default_on
 
     # Properties
 
