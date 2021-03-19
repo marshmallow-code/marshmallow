@@ -159,3 +159,4 @@ Contributors (chronological)
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
 - Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
 - Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
+- Dor Meiri `@dormeiri <https://github.com/dormeiri>`_
