@@ -267,7 +267,7 @@ class UserAdditionalSchema(Schema):
 
 
 class UserIntSchema(UserSchema):
-    age = fields.Integer()
+    age = fields.Integer()  # type: ignore
 
 
 class UserFloatStringSchema(UserSchema):
@@ -275,7 +275,7 @@ class UserFloatStringSchema(UserSchema):
 
 
 class ExtendedUserSchema(UserSchema):
-    is_old = fields.Boolean()
+    is_old = fields.Boolean()  # type: ignore
 
 
 class UserRelativeUrlSchema(UserSchema):
