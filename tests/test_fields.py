@@ -36,7 +36,7 @@ class TestField:
             "validate=None, required=False, "
             "load_only=False, dump_only=False, "
             "missing={missing}, allow_none=False, "
-            "error_messages={error_messages})>".format(
+            "error_messages={error_messages}, take_default_on=())>".format(
                 default, missing=missing, error_messages=field.error_messages
             )
         )

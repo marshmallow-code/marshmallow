@@ -135,6 +135,17 @@ class TestFieldSerialization:
         field = fields.Integer(default=None)
         assert field.serialize("age", user) is None
 
+    def test_integer_field_take_default_on(self, user):
+        field = fields.Integer(default=0, take_default_on=[None, 1])
+        user.age = 42
+        assert field.serialize("age", user) == 42
+        del user.age
+        assert field.serialize("age", user) == 0
+        user.age = None
+        assert field.serialize("age", user) == 0
+        user.age = 1
+        assert field.serialize("age", user) == 0
+
     def test_uuid_field(self, user):
         user.uuid1 = uuid.UUID("12345678123456781234567812345678")
         user.uuid2 = None

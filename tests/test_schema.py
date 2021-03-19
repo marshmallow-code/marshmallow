@@ -2748,6 +2748,51 @@ class TestRequiredFields:
         assert errors["allow_none_field"][0] == "<custom>"
 
 
+class TestTakeDefaultOn:
+    class MySchema(Schema):
+        int_take_default_on_none = fields.Int(default=42, take_default_on=[None])
+        int_take_default_on_value = fields.Int(default=42, take_default_on=[0, 1])
+        str_take_default_on_none = fields.Str(default="foo", take_default_on=[None])
+        str_take_default_on_value = fields.Str(
+            default="foo", take_default_on=["", "bar"]
+        )
+
+    @pytest.fixture()
+    def schema(self):
+        return self.MySchema()
+
+    @pytest.fixture()
+    def default_values(self):
+        return dict(
+            int_take_default_on_none=42,
+            int_take_default_on_value=42,
+            str_take_default_on_none="foo",
+            str_take_default_on_value="foo",
+        )
+
+    def test_default_taken_not_missing(self, schema, default_values):
+        data = dict(
+            int_take_default_on_none=None,
+            int_take_default_on_value=0,
+            str_take_default_on_none=None,
+            str_take_default_on_value="bar",
+        )
+        assert schema.dump(data) == default_values
+
+    def test_default_taken_missing(self, schema, default_values):
+        data = dict()
+        assert schema.dump(data) == default_values
+
+    def test_default_not_taken(self, schema, _):
+        data = dict(
+            int_take_default_on_none=-1,
+            int_take_default_on_value=-1,
+            str_take_default_on_none="baz",
+            str_take_default_on_value="baz",
+        )
+        assert schema.dump(data) == data
+
+
 class TestDefaults:
     class MySchema(Schema):
         int_no_default = fields.Int(allow_none=True)
