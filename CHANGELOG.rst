@@ -9,6 +9,8 @@ Features:
 - Add ``fields.IPInterface``, ``fields.IPv4Interface``, and
   ``IPv6Interface`` (:issue:`1733`). Thanks :user:`madeinoz67`
   for the suggestion and the PR.
+- Raise ``AttributeError`` for missing methods when using ``fields.Method`` (:pr:`1675`).
+  Thanks :user:`lassandroan`.
 
 3.10.0 (2020-12-19)
 *******************

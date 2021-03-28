@@ -1024,7 +1024,7 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == "Not a valid IPv6 interface."
 
     def test_deserialization_function_must_be_callable(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             fields.Function(lambda x: None, deserialize="notvalid")
 
     def test_method_field_deserialization_is_noop_by_default(self):
@@ -1054,19 +1054,17 @@ class TestFieldDeserialization:
         class BadSchema(Schema):
             uppername = fields.Method("uppercase_name", deserialize="lowercase_name")
 
-        s = BadSchema()
-        with pytest.raises(ValueError):
-            s.fields["uppername"].deserialize("STEVE")
+        with pytest.raises(AttributeError):
+            BadSchema()
 
     def test_method_field_deserialize_only(self):
         class MethodDeserializeOnly(Schema):
+            name = fields.Method(deserialize="lowercase_name")
+
             def lowercase_name(self, value):
                 return value.lower()
 
-        m = fields.Method(deserialize="lowercase_name")
-        m.parent = MethodDeserializeOnly()
-
-        assert m.deserialize("ALEC") == "alec"
+        assert MethodDeserializeOnly().load({"name": "ALEC"})["name"] == "alec"
 
     def test_datetime_list_field_deserialization(self):
         dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.utcnow()

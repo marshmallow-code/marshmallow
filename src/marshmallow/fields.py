@@ -1809,22 +1809,30 @@ class Method(Field):
         super().__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
+        self._serialize_method = None
+        self._deserialize_method = None
+
+    def _bind_to_schema(self, field_name, schema):
+        if self.serialize_method_name:
+            self._serialize_method = utils.callable_or_raise(
+                getattr(schema, self.serialize_method_name)
+            )
+
+        if self.deserialize_method_name:
+            self._deserialize_method = utils.callable_or_raise(
+                getattr(schema, self.deserialize_method_name)
+            )
+
+        super()._bind_to_schema(field_name, schema)
 
     def _serialize(self, value, attr, obj, **kwargs):
-        if not self.serialize_method_name:
-            return missing_
-
-        method = utils.callable_or_raise(
-            getattr(self.parent, self.serialize_method_name, None)
-        )
-        return method(obj)
+        if self._serialize_method is not None:
+            return self._serialize_method(obj)
+        return missing_
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if self.deserialize_method_name:
-            method = utils.callable_or_raise(
-                getattr(self.parent, self.deserialize_method_name, None)
-            )
-            return method(value)
+        if self._deserialize_method is not None:
+            return self._deserialize_method(value)
         return value
 
 
