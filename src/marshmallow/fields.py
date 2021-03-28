@@ -234,11 +234,8 @@ class Field(FieldABC):
         :param callable accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
         """
-        # NOTE: Use getattr instead of direct attribute access here so that
-        # subclasses aren't required to define `attribute` member
-        attribute = getattr(self, "attribute", None)
         accessor_func = accessor or utils.get_value
-        check_key = attr if attribute is None else attribute
+        check_key = attr if self.attribute is None else self.attribute
         return accessor_func(obj, check_key, default)
 
     def _validate(self, value):
@@ -297,12 +294,10 @@ class Field(FieldABC):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
-        if value is missing_:
-            if hasattr(self, "required") and self.required:
-                raise self.make_error("required")
-        if value is None:
-            if hasattr(self, "allow_none") and self.allow_none is not True:
-                raise self.make_error("null")
+        if value is missing_ and self.required:
+            raise self.make_error("required")
+        if value is None and not self.allow_none:
+            raise self.make_error("null")
 
     def serialize(
         self,
@@ -323,7 +318,7 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_ and hasattr(self, "default"):
+            if value is missing_:
                 default = self.default
                 value = default() if callable(default) else default
             if value is missing_:
@@ -354,7 +349,7 @@ class Field(FieldABC):
         if value is missing_:
             _miss = self.missing
             return _miss() if callable(_miss) else _miss
-        if getattr(self, "allow_none", False) is True and value is None:
+        if self.allow_none and value is None:
             return None
         output = self._deserialize(value, attr, data, **kwargs)
         self._validate(output)

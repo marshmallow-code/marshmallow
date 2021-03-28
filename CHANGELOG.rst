@@ -12,6 +12,10 @@ Features:
 - Raise ``AttributeError`` for missing methods when using ``fields.Method`` (:pr:`1675`).
   Thanks :user:`lassandroan`.
 
+Other changes:
+
+- Remove unnecessary ``hasattr`` and ``getattr`` checks in ``Field`` (:pr:`1770`).
+
 3.10.0 (2020-12-19)
 *******************
 
