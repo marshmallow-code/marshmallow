@@ -10,6 +10,10 @@ Features:
   ``IPv6Interface`` (:issue:`1733`). Thanks :user:`madeinoz67`
   for the suggestion and the PR.
 
+Other changes:
+
+- Remove unnecessary ``hasattr`` and ``getattr`` checks in ``Field`` (:pr:`1770`).
+
 3.10.0 (2020-12-19)
 *******************
 
