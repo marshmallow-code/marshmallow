@@ -616,9 +616,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret = []  # type: typing.List[_T]
+                ret_l = []  # type: typing.List[_T]
             else:
-                ret = [
+                ret_l = [
                     typing.cast(
                         _T,
                         self._deserialize(
@@ -632,8 +632,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     )
                     for idx, d in enumerate(data)
                 ]
-            return ret
-        ret = self.dict_class()
+            return ret_l
+        ret_d = self.dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
             error_store.store_error([self.error_messages["type"]], index=index)
@@ -673,7 +673,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
                 if value is not missing:
                     key = field_obj.attribute or attr_name
-                    set_value(typing.cast(typing.Dict, ret), key, value)
+                    set_value(ret_d, key, value)
             if unknown != EXCLUDE:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
@@ -682,14 +682,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
-                        set_value(typing.cast(typing.Dict, ret), key, value)
+                        ret_d[key] = value
                     elif unknown == RAISE:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
                             (index if index_errors else None),
                         )
-        return ret
+        return ret_d
 
     def load(
         self,

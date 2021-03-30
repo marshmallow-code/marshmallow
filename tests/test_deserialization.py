@@ -1808,6 +1808,22 @@ class TestSchemaDeserialization:
         data = MySchema(unknown=INCLUDE).load({"foo": "LOL"})
         assert data["foo"] == "LOL"
 
+    def test_unknown_fields_do_not_unpack_dotted_names(self):
+        class MySchema(Schema):
+            class Meta:
+                unknown = INCLUDE
+
+            foo = fields.Str()
+            bar = fields.Str(data_key="bar.baz")
+
+        # dotted names are still supported
+        data = MySchema().load({"foo": "hi", "bar.baz": "okay"})
+        assert data == {"foo": "hi", "bar": "okay"}
+
+        # but extra keys included via unknown=INCLUDE are not transformed into nested dicts
+        data = MySchema().load({"foo": "hi", "bar.baz": "okay", "alpha.beta": "woah!"})
+        assert data == {"foo": "hi", "bar": "okay", "alpha.beta": "woah!"}
+
 
 validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
 
