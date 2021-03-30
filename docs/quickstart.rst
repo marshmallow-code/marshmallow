@@ -243,7 +243,10 @@ There are a number of built-in validators in the :ref:`marshmallow.validate <api
         #  'permission': ['Must be one of: read, write, admin.']}
 
 
-You may implement your own validation functions.
+You may implement your own validators.
+A validator is a callable that accepts a single argument, the value to validate.
+If validation fails, the callable should raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+with a useful error message or return ``False`` (for a generic error message).
 
 .. code-block:: python
 
