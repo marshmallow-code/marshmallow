@@ -191,7 +191,8 @@ class TestParentAndName:
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
     def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
-        field = FieldClass(description="Just a normal field.")
+        with pytest.warns(DeprecationWarning):
+            field = FieldClass(description="Just a normal field.")
         assert field.metadata["description"] == "Just a normal field."
         field = FieldClass(
             required=True,
