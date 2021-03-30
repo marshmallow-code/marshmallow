@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.11.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix treatment of dotted keys when unknown=INCLUDE (:issue:`1506`).
+  Thanks :user:`rbu` for reporting and thanks :user:`sirosen` for the fix (:pr:`1745`).
+
 3.11.0 (2021-03-28)
 *******************
 
