@@ -903,3 +903,11 @@ def test_and():
         validator(-1)
     errors = excinfo.value.messages
     assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
+
+    validator2 = validate.And([validator, validate.Range(max=6)])
+    assert validator2(4) is None
+    with pytest.raises(ValidationError) as excinfo:
+        validator2(7)
+
+    errors = excinfo.value.messages
+    assert errors == ["Not an even value.", "Must be less than or equal to 6."]
