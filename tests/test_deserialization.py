@@ -823,6 +823,11 @@ class TestFieldDeserialization:
             field.deserialize("invalidemail")
         assert excinfo.value.args[0][0] == "Not a valid email address."
 
+        field = fields.Email(validate=[validate.Length(min=12)])
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize("foo@bar.com")
+        assert excinfo.value.args[0][0] == "Shorter than minimum length 12."
+
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/1400
     def test_email_field_non_list_validators(self):
         field = fields.Email(validate=(validate.Length(min=9),))

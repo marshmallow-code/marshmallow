@@ -890,3 +890,16 @@ def test_containsnoneof_mixing_types():
 
     with pytest.raises(ValidationError):
         validate.ContainsNoneOf([1, 2, 3])((1,))
+
+
+def test_and():
+    def is_even(value):
+        if value % 2 != 0:
+            raise ValidationError("Not an even value.")
+
+    validator = validate.And([validate.Range(min=0), is_even])
+    assert validator(2) is None
+    with pytest.raises(ValidationError) as excinfo:
+        validator(-1)
+    errors = excinfo.value.messages
+    assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
