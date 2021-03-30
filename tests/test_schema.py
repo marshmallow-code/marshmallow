@@ -1592,6 +1592,90 @@ def test_only_and_exclude_as_string(param):
         MySchema(**{param: "foo"})
 
 
+def test_embed_only_in_meta_excludes_field():
+    class MySchema(Schema):
+
+        class Meta:
+            embed_only = ['foo']
+
+        foo = fields.Field()
+
+    sch = MySchema()
+    assert "foo" not in sch.dump({"foo": "bar"})
+
+
+def test_embed_only_in_meta_includes_field():
+    class MySchema(Schema):
+
+        class Meta:
+            embed_only = ['foo']
+
+        foo = fields.Field()
+
+    sch = MySchema(embed=['foo'])
+    assert "foo" in sch.dump({"foo": "bar"})
+
+
+def test_embed_only_on_field_excludes_field():
+    class MySchema(Schema):
+        foo = fields.Field(embed_only=True)
+
+    sch = MySchema()
+    assert "foo" not in sch.dump({"foo": "bar"})
+
+
+def test_embed_only_on_field_includes_field():
+    class MySchema(Schema):
+        foo = fields.Field(embed_only=True)
+
+    sch = MySchema(embed=['foo'])
+    assert "foo" in sch.dump({"foo": "bar"})
+
+def test_embed_only_nested():
+    class ChildSchema(Schema):
+        bar = fields.Field(embed_only=True)
+        baz = fields.Field(embed_only=True)
+
+    class ParentSchema(Schema):
+        foo = fields.Nested(ChildSchema(), embed_only=True)
+
+    sch = ParentSchema(embed=['foo.bar'])
+    dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
+    assert "foo" in dump
+    assert "bar" in dump["foo"]
+    assert "baz" not in dump["foo"]
+
+
+def test_embed_only_nested_child_field():
+    class ChildSchema(Schema):
+        bar = fields.Field(embed_only=True)
+        baz = fields.Field(embed_only=True)
+
+    class ParentSchema(Schema):
+        foo = fields.Nested(ChildSchema(), embed=['bar'], embed_only=True)
+
+    sch = ParentSchema(embed=['foo'])
+    dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
+    assert "foo" in dump
+    assert "bar" in dump["foo"]
+    assert "baz" not in dump["foo"]
+
+
+def test_embed_only_nested_child_schema():
+    class ChildSchema(Schema):
+        bar = fields.Field(embed_only=True)
+        baz = fields.Field(embed_only=True)
+
+    class ParentSchema(Schema):
+        foo = fields.Nested(ChildSchema(embed=['bar']), embed_only=True)
+
+    sch = ParentSchema(embed=['foo'])
+    dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
+    assert "foo" in dump
+    assert "bar" in dump["foo"]
+    assert "baz" not in dump["foo"]
+
+
 def test_nested_with_sets():
     class Inner(Schema):
         foo = fields.Field()

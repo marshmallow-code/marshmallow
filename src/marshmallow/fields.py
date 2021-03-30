@@ -162,6 +162,7 @@ class Field(FieldABC):
         allow_none: typing.Optional[bool] = None,
         load_only: bool = False,
         dump_only: bool = False,
+        embed_only: bool = False,
         error_messages: typing.Optional[typing.Dict[str, str]] = None,
         metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **additional_metadata
@@ -187,6 +188,7 @@ class Field(FieldABC):
         self.allow_none = missing is None if allow_none is None else allow_none
         self.load_only = load_only
         self.dump_only = dump_only
+        self.embed_only = embed_only
         if required is True and missing is not missing_:
             raise ValueError("'missing' must not be set for required fields.")
         self.required = required
@@ -488,6 +490,7 @@ class Nested(Field):
         default: typing.Any = missing_,
         only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
+        embed: types.StrSequenceOrSet = (),
         many: bool = False,
         unknown: typing.Optional[str] = None,
         **kwargs
@@ -508,6 +511,7 @@ class Nested(Field):
         self.nested = nested
         self.only = only
         self.exclude = exclude
+        self.embed = embed
         self.many = many
         self.unknown = unknown
         self._schema = None  # Cached Schema instance
@@ -542,6 +546,9 @@ class Nested(Field):
                 if self.exclude:
                     original = self._schema.exclude
                     self._schema.exclude = set_class(self.exclude) | set_class(original)
+                if self.embed:
+                    original = self._schema.embed
+                    self._schema.embed = set_class(self.embed) | set_class(original)
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, SchemaABC):
@@ -558,6 +565,7 @@ class Nested(Field):
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,
+                    embed=self.embed,
                     exclude=self.exclude,
                     context=context,
                     load_only=self._nested_normalized_option("load_only"),

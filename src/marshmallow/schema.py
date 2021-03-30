@@ -230,6 +230,7 @@ class SchemaOpts:
         self.dump_only = getattr(meta, "dump_only", ())
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
+        self.embed_only = getattr(meta, "embed_only", ())
 
 
 class Schema(base.SchemaABC, metaclass=SchemaMeta):
@@ -369,6 +370,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
+        embed: types.StrSequenceOrSet = (),
         many: bool = False,
         context: typing.Optional[typing.Dict] = None,
         load_only: types.StrSequenceOrSet = (),
@@ -381,14 +383,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             raise StringNotCollectionError('"only" should be a list of strings')
         if not is_collection(exclude):
             raise StringNotCollectionError('"exclude" should be a list of strings')
+        if not is_collection(embed):
+            raise StringNotCollectionError('"embed" should be a list of strings')
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
+        self.embed = set(embed)
         self.exclude = set(self.opts.exclude) | set(exclude)
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
+        self.embed_only = set(self.opts.embed_only)
         self.partial = partial
         self.unknown = unknown or self.opts.unknown
         self.context = context or {}
@@ -924,6 +930,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             self.exclude = self.set_class(
                 [field for field in self.exclude if "." not in field]
             )
+        if self.embed:
+            # Apply the exclude option to nested fields.
+            self.__apply_nested_option("embed", self.embed, "union")
+            # Remove the child field names from the embed option.
+            self.embed = self.set_class(
+                self.set_class([field.split(".", 1)[0] for field in self.embed])
+            )
 
     def __apply_nested_option(self, option_name, field_names, set_operation) -> None:
         """Apply nested options to nested fields"""
@@ -964,6 +977,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             invalid_fields |= field_names - available_field_names
         else:
             field_names = available_field_names
+
+        invalid_fields |= self.embed_only - available_field_names
+        embed_only_fields = {field_name for field_name, field_obj in self.declared_fields.items() if getattr(field_obj, 'embed_only', False)} | self.embed_only
+        non_embedded_fields = embed_only_fields - self.embed
+        field_names = field_names - non_embedded_fields
 
         # If "exclude" option or param is specified, remove those fields.
         if self.exclude:
