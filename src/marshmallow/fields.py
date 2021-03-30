@@ -55,6 +55,9 @@ __all__ = [
     "IP",
     "IPv4",
     "IPv6",
+    "IPInterface",
+    "IPv4Interface",
+    "IPv6Interface",
     "Method",
     "Function",
     "Str",
@@ -231,11 +234,8 @@ class Field(FieldABC):
         :param callable accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
         """
-        # NOTE: Use getattr instead of direct attribute access here so that
-        # subclasses aren't required to define `attribute` member
-        attribute = getattr(self, "attribute", None)
         accessor_func = accessor or utils.get_value
-        check_key = attr if attribute is None else attribute
+        check_key = attr if self.attribute is None else self.attribute
         return accessor_func(obj, check_key, default)
 
     def _validate(self, value):
@@ -294,12 +294,10 @@ class Field(FieldABC):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
-        if value is missing_:
-            if hasattr(self, "required") and self.required:
-                raise self.make_error("required")
-        if value is None:
-            if hasattr(self, "allow_none") and self.allow_none is not True:
-                raise self.make_error("null")
+        if value is missing_ and self.required:
+            raise self.make_error("required")
+        if value is None and not self.allow_none:
+            raise self.make_error("null")
 
     def serialize(
         self,
@@ -320,7 +318,7 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_ and hasattr(self, "default"):
+            if value is missing_:
                 default = self.default
                 value = default() if callable(default) else default
             if value is missing_:
@@ -351,7 +349,7 @@ class Field(FieldABC):
         if value is missing_:
             _miss = self.missing
             return _miss() if callable(_miss) else _miss
-        if getattr(self, "allow_none", False) is True and value is None:
+        if self.allow_none and value is None:
             return None
         output = self._deserialize(value, attr, data, **kwargs)
         self._validate(output)
@@ -1711,6 +1709,66 @@ class IPv6(IP):
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
+class IPInterface(Field):
+    """A IPInterface field.
+
+    IP interface is the non-stict form of the IPNetwork type where arbitrary host
+    addresses are always accepted.
+
+    IPAddress and mask e.g. '192.168.0.2/24' or '192.168.0.2/255.255.255.0'
+
+    see https://python.readthedocs.io/en/latest/library/ipaddress.html#interface-objects
+
+    :parm bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
+        consisting entirely of zeros included.
+    """
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IP interface."}
+
+    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+
+    def __init__(self, *args, exploded=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exploded = exploded
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[
+        typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]
+    ]:
+        if value is None:
+            return None
+        try:
+            return (self.DESERIALIZATION_CLASS or ipaddress.ip_interface)(
+                utils.ensure_text_type(value)
+            )
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip_interface") from error
+
+
+class IPv4Interface(IPInterface):
+    """A IPv4 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv4 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv4Interface
+
+
+class IPv6Interface(IPInterface):
+    """A IPv6 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv6Interface
+
+
 class Method(Field):
     """A field that takes the value returned by a `Schema` method.
 
@@ -1746,22 +1804,30 @@ class Method(Field):
         super().__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
+        self._serialize_method = None
+        self._deserialize_method = None
+
+    def _bind_to_schema(self, field_name, schema):
+        if self.serialize_method_name:
+            self._serialize_method = utils.callable_or_raise(
+                getattr(schema, self.serialize_method_name)
+            )
+
+        if self.deserialize_method_name:
+            self._deserialize_method = utils.callable_or_raise(
+                getattr(schema, self.deserialize_method_name)
+            )
+
+        super()._bind_to_schema(field_name, schema)
 
     def _serialize(self, value, attr, obj, **kwargs):
-        if not self.serialize_method_name:
-            return missing_
-
-        method = utils.callable_or_raise(
-            getattr(self.parent, self.serialize_method_name, None)
-        )
-        return method(obj)
+        if self._serialize_method is not None:
+            return self._serialize_method(obj)
+        return missing_
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if self.deserialize_method_name:
-            method = utils.callable_or_raise(
-                getattr(self.parent, self.deserialize_method_name, None)
-            )
-            return method(value)
+        if self._deserialize_method is not None:
+            return self._deserialize_method(value)
         return value
 
 

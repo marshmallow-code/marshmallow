@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+3.11.0 (2021-03-28)
+*******************
+
+Features:
+
+- Add ``fields.IPInterface``, ``fields.IPv4Interface``, and
+  ``IPv6Interface`` (:issue:`1733`). Thanks :user:`madeinoz67`
+  for the suggestion and the PR.
+- Raise ``AttributeError`` for missing methods when using ``fields.Method`` (:pr:`1675`).
+  Thanks :user:`lassandroan`.
+
+Other changes:
+
+- Remove unnecessary ``hasattr`` and ``getattr`` checks in ``Field`` (:pr:`1770`).
+
 3.10.0 (2020-12-19)
 *******************
 

@@ -27,6 +27,12 @@ ALL_FIELDS = [
     fields.Email,
     fields.UUID,
     fields.Decimal,
+    fields.IP,
+    fields.IPv4,
+    fields.IPv6,
+    fields.IPInterface,
+    fields.IPv4Interface,
+    fields.IPv6Interface,
 ]
 
 ##### Custom asserts #####
