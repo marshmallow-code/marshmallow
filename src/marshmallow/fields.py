@@ -103,6 +103,7 @@ class Field(FieldABC):
     :param dump_only: If `True` skip this field during deserialization, otherwise
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
+    :param embed_only: If `True`, exclude this field from serialization unles explicitly included in the `embed` option of the schema.
     :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra information to be stored as field metadata.
 
@@ -474,6 +475,7 @@ class Nested(Field):
     :param exclude: A list or tuple of fields to exclude.
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
+    :param embed: A list of `embed_only` field names to include in the output of the nested serializer.
     :param many: Whether the field is a collection of objects.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.

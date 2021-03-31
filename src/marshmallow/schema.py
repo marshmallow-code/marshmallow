@@ -269,6 +269,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         when instantiating the Schema. If a field appears in both `only` and
         `exclude`, it is not used. Nested fields can be represented with dot
         delimiters.
+    :param embed: List of `embed_only` field names to include in the serialized
+        output. Nested fields can be represented with dot delimiters.
     :param many: Should be set to `True` if ``obj`` is a collection
         so that the object will be serialized to a list.
     :param context: Optional context passed to :class:`fields.Method` and
@@ -357,6 +359,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``embed_only``: Tuple or list of fields to exclude from serialized results
+            unless explicitly included in the `embed` option of the schema.
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         - ``register``: Whether to register the `Schema` with marshmallow's internal
