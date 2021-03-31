@@ -935,7 +935,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 [field for field in self.exclude if "." not in field]
             )
         if self.embed:
-            # Apply the exclude option to nested fields.
+            # Apply the embed option to nested fields.
             self.__apply_nested_option("embed", self.embed, "union")
             # Remove the child field names from the embed option.
             self.embed = self.set_class(
