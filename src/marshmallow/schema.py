@@ -983,18 +983,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             field_names = available_field_names
 
         invalid_fields |= self.embed_only - available_field_names
-        embed_only_fields = (
-            self.set_class(
-                [
-                    field_name
-                    for field_name, field_obj in self.declared_fields.items()
-                    if getattr(field_obj, "embed_only", False)
-                ]
-            )
-            | self.embed_only
-        )
-        non_embedded_fields = embed_only_fields - self.embed
-        field_names = field_names - non_embedded_fields
 
         # If "exclude" option or param is specified, remove those fields.
         if self.exclude:
@@ -1019,6 +1007,20 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 load_fields[field_name] = field_obj
             if not field_obj.load_only:
                 dump_fields[field_name] = field_obj
+
+        embed_only_fields = (
+            self.set_class(
+                [
+                    field_name
+                    for field_name, field_obj in dump_fields.items()
+                    if getattr(field_obj, "embed_only", False)
+                ]
+            )
+            | self.embed_only
+        )
+        non_embedded_fields = embed_only_fields - self.embed
+        for f in non_embedded_fields:
+            dump_fields.pop(f)
 
         dump_data_keys = [
             field_obj.data_key if field_obj.data_key is not None else name

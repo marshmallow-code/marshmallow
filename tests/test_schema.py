@@ -1675,6 +1675,18 @@ def test_embed_only_nested_child_schema():
     assert "baz" not in dump["foo"]
 
 
+def test_embed_only_with_load():
+    class MySchema(Schema):
+        foo = fields.Field(embed_only=True)
+        bar = fields.Field()
+
+    sch = MySchema()
+    data = {"foo": "val", "bar": "val"}
+    obj = sch.load(data)
+    assert "foo" in obj
+    assert "bar" in obj
+
+
 def test_nested_with_sets():
     class Inner(Schema):
         foo = fields.Field()
