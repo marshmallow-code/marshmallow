@@ -1594,9 +1594,8 @@ def test_only_and_exclude_as_string(param):
 
 def test_embed_only_in_meta_excludes_field():
     class MySchema(Schema):
-
         class Meta:
-            embed_only = ['foo']
+            embed_only = ["foo"]
 
         foo = fields.Field()
 
@@ -1606,13 +1605,12 @@ def test_embed_only_in_meta_excludes_field():
 
 def test_embed_only_in_meta_includes_field():
     class MySchema(Schema):
-
         class Meta:
-            embed_only = ['foo']
+            embed_only = ["foo"]
 
         foo = fields.Field()
 
-    sch = MySchema(embed=['foo'])
+    sch = MySchema(embed=["foo"])
     assert "foo" in sch.dump({"foo": "bar"})
 
 
@@ -1628,8 +1626,9 @@ def test_embed_only_on_field_includes_field():
     class MySchema(Schema):
         foo = fields.Field(embed_only=True)
 
-    sch = MySchema(embed=['foo'])
+    sch = MySchema(embed=["foo"])
     assert "foo" in sch.dump({"foo": "bar"})
+
 
 def test_embed_only_nested():
     class ChildSchema(Schema):
@@ -1639,7 +1638,7 @@ def test_embed_only_nested():
     class ParentSchema(Schema):
         foo = fields.Nested(ChildSchema(), embed_only=True)
 
-    sch = ParentSchema(embed=['foo.bar'])
+    sch = ParentSchema(embed=["foo.bar"])
     dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
     assert "foo" in dump
     assert "bar" in dump["foo"]
@@ -1652,9 +1651,9 @@ def test_embed_only_nested_child_field():
         baz = fields.Field(embed_only=True)
 
     class ParentSchema(Schema):
-        foo = fields.Nested(ChildSchema(), embed=['bar'], embed_only=True)
+        foo = fields.Nested(ChildSchema(), embed=["bar"], embed_only=True)
 
-    sch = ParentSchema(embed=['foo'])
+    sch = ParentSchema(embed=["foo"])
     dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
     assert "foo" in dump
     assert "bar" in dump["foo"]
@@ -1667,9 +1666,9 @@ def test_embed_only_nested_child_schema():
         baz = fields.Field(embed_only=True)
 
     class ParentSchema(Schema):
-        foo = fields.Nested(ChildSchema(embed=['bar']), embed_only=True)
+        foo = fields.Nested(ChildSchema(embed=["bar"]), embed_only=True)
 
-    sch = ParentSchema(embed=['foo'])
+    sch = ParentSchema(embed=["foo"])
     dump = sch.dump({"foo": {"bar": "val", "baz": "val"}})
     assert "foo" in dump
     assert "bar" in dump["foo"]
