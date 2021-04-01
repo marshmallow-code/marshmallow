@@ -160,3 +160,4 @@ Contributors (chronological)
 - Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
 - Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
 - Antonio Lassandro `@lassandroan <https://github.com/lassandroan>`_
+- Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
