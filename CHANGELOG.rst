@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Add ``validate.And`` (:issue:`1768`).
+- Add ``validate.And`` and ``validate.and_`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
 
 3.11.1 (2021-03-29)

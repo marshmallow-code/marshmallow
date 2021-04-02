@@ -59,17 +59,17 @@ class And(Validator):
 
     def __init__(
         self,
-        validators: typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+        validators: typing.Iterable[types.Validator],
         *,
         error: typing.Optional[str] = None
     ):
-        self.validators = validators
+        self.validators = tuple(validators)
         self.error = error or self.default_error_message  # type: str
 
     def _repr_args(self) -> str:
         return "validators={!r}".format(self.validators)
 
-    def __call__(self, value: typing.Any):
+    def __call__(self, value: typing.Any) -> typing.Any:
         errors = []
         kwargs = {}
         for validator in self.validators:
@@ -85,6 +85,14 @@ class And(Validator):
                     errors.extend(err.messages)
         if errors:
             raise ValidationError(errors, **kwargs)
+        return value
+
+
+def and_(*validators: types.Validator, error: typing.Optional[str] = None) -> And:
+    """Shortcut function for constructing a `marshmallow.validate.And` from
+    the validators passed positionally.
+    """
+    return And(validators, error=error)
 
 
 class URL(Validator):

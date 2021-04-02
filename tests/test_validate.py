@@ -892,22 +892,41 @@ def test_containsnoneof_mixing_types():
         validate.ContainsNoneOf([1, 2, 3])((1,))
 
 
-def test_and():
-    def is_even(value):
-        if value % 2 != 0:
-            raise ValidationError("Not an even value.")
+def is_even(value):
+    if value % 2 != 0:
+        raise ValidationError("Not an even value.")
 
+
+def test_And():
     validator = validate.And([validate.Range(min=0), is_even])
-    assert validator(2) is None
+    assert validator(2)
     with pytest.raises(ValidationError) as excinfo:
         validator(-1)
     errors = excinfo.value.messages
     assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
 
-    validator2 = validate.And([validator, validate.Range(max=6)])
-    assert validator2(4) is None
+    validator_with_composition = validate.And([validator, validate.Range(max=6)])
+    assert validator_with_composition(4)
     with pytest.raises(ValidationError) as excinfo:
-        validator2(7)
+        validator_with_composition(7)
 
     errors = excinfo.value.messages
     assert errors == ["Not an even value.", "Must be less than or equal to 6."]
+
+    validator_from_generator = validate.And(v for v in [validate.Range(min=0), is_even])
+    assert validator_from_generator(2)
+    with pytest.raises(ValidationError):
+        validator_from_generator(-1)
+    with pytest.raises(ValidationError) as excinfo:
+        validator_from_generator(-1)
+    errors = excinfo.value.messages
+    assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
+
+
+def test_and_():
+    validator = validate.and_(validate.Range(min=0), is_even)
+    assert validator(2)
+    with pytest.raises(ValidationError) as excinfo:
+        validator(-1)
+    errors = excinfo.value.messages
+    assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
