@@ -32,7 +32,6 @@ from marshmallow.utils import (
     get_value,
     is_collection,
     is_instance_or_subclass,
-    is_iterable_but_not_string,
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
@@ -545,9 +544,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Validation no longer occurs upon serialization.
         """
         many = self.many if many is None else bool(many)
-        if many and is_iterable_but_not_string(obj):
-            obj = list(obj)
-
         if self._has_processors(PRE_DUMP):
             processed_obj = self._invoke_dump_processors(
                 PRE_DUMP, obj, many=many, original_data=obj
