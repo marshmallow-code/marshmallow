@@ -17,7 +17,7 @@ class TestDeserializingNone:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
     def test_fields_allow_none_deserialize_to_none(self, FieldClass):
         field = FieldClass(allow_none=True)
-        field.deserialize(None) is None
+        assert field.deserialize(None) is None
 
     # https://github.com/marshmallow-code/marshmallow/issues/111
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
@@ -29,7 +29,7 @@ class TestDeserializingNone:
     def test_allow_none_is_true_if_missing_is_true(self):
         field = fields.Field(missing=None)
         assert field.allow_none is True
-        field.deserialize(None) is None
+        assert field.deserialize(None) is None
 
     def test_list_field_deserialize_none_to_none(self):
         field = fields.List(fields.String(allow_none=True), allow_none=True)
