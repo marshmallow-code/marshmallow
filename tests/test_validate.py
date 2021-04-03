@@ -787,7 +787,7 @@ def test_containsnoneof_in_list():
     assert validate.ContainsNoneOf([4])([1, 2, 3]) == [1, 2, 3]
     assert validate.ContainsNoneOf([2])([1, 3, 4]) == [1, 3, 4]
     assert validate.ContainsNoneOf([1, 2, 3])([4]) == [4]
-    assert validate.ContainsNoneOf([4])([1, 1, 1, 1]) == [1]
+    assert validate.ContainsNoneOf([4])([1, 1, 1, 1]) == [1, 1, 1, 1]
 
     with pytest.raises(ValidationError):
         validate.ContainsNoneOf([1])([1, 2, 3])
@@ -833,7 +833,7 @@ def test_containsnoneof_in_tuple():
     assert validate.ContainsNoneOf((4,))((1, 2, 3)) == (1, 2, 3)
     assert validate.ContainsNoneOf((2,))((1, 3, 4)) == (1, 3, 4)
     assert validate.ContainsNoneOf((1, 2, 3))((4,)) == (4,)
-    assert validate.ContainsNoneOf((4,))((1, 1, 1, 1)) == (1,)
+    assert validate.ContainsNoneOf((4,))((1, 1, 1, 1)) == (1, 1, 1, 1)
 
     with pytest.raises(ValidationError):
         validate.ContainsNoneOf((1,))((1, 2, 3))
@@ -854,7 +854,7 @@ def test_containsnoneof_in_string():
     assert validate.ContainsNoneOf("d")("abc") == "abc"
     assert validate.ContainsNoneOf("b")("acd") == "acd"
     assert validate.ContainsNoneOf("abc")("d") == "d"
-    assert validate.ContainsNoneOf("d")("aaaa") == "a"
+    assert validate.ContainsNoneOf("d")("aaaa") == "aaaa"
 
     with pytest.raises(ValidationError):
         validate.ContainsNoneOf("a")("abc")
