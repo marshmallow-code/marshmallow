@@ -517,7 +517,7 @@ class TestFieldSerialization:
             name = fields.Field(data_key="")
 
         schema = MySchema()
-        schema.dump({"name": "Grace"}) == {"": "Grace"}
+        assert schema.dump({"name": "Grace"}) == {"": "Grace"}
 
     def test_serialize_with_attribute_and_data_key_uses_data_key(self):
         class ConfusedDumpToAndAttributeSerializer(Schema):

@@ -2806,7 +2806,7 @@ class TestDefaults:
     def test_loading_none(self, schema, data):
         result = schema.load(data)
         for key in data.keys():
-            result[key] is None
+            assert result[key] is None
 
     def test_missing_inputs_are_excluded_from_load_output(self, schema, data):
         for key in [
