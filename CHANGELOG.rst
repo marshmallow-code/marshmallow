@@ -1,13 +1,73 @@
 Changelog
 ---------
 
-3.9.0 (Unreleased)
-******************
+3.12.0 (unreleased)
+*******************
 
 Features:
 
 - Add fields.Iterable as a base class for collection field types (:issue:`1263`).
-  Thanks :user:`Fongshway` for the PR.
+  Thanks :user:`Fongshway` for  (:pr:`1643`).
+
+Other changes:
+
+- Improve types in ``marshmallow.validate``.
+- Make `marshmallow.validate.Validator` an abstract base class.
+
+3.11.1 (2021-03-29)
+*******************
+
+Bug fixes:
+
+- Fix treatment of dotted keys when unknown=INCLUDE (:issue:`1506`).
+  Thanks :user:`rbu` for reporting and thanks :user:`sirosen` for the fix (:pr:`1745`).
+
+3.11.0 (2021-03-28)
+*******************
+
+Features:
+
+- Add ``fields.IPInterface``, ``fields.IPv4Interface``, and
+  ``IPv6Interface`` (:issue:`1733`). Thanks :user:`madeinoz67`
+  for the suggestion and the PR.
+- Raise ``AttributeError`` for missing methods when using ``fields.Method`` (:pr:`1675`).
+  Thanks :user:`lassandroan`.
+
+Other changes:
+
+- Remove unnecessary ``hasattr`` and ``getattr`` checks in ``Field`` (:pr:`1770`).
+
+3.10.0 (2020-12-19)
+*******************
+
+Deprecations:
+
+- Passing field metadata via keyword arguments is deprecated and will be
+  removed in marshmallow 4 (:issue:`1350`). Use the explicit `metadata=...`
+  argument instead. Thanks :user:`sirosen`.
+
+3.9.1 (2020-11-07)
+******************
+
+Bug fixes:
+
+- Cast to mapping type in ``Mapping.serialize`` and ``Mapping.deserialize``
+  (:pr:`1685`).
+- Fix bug letting ``Dict`` pass invalid dict on deserialization when no key or
+  value ``Field`` is specified (:pr:`1685`).
+
+3.9.0 (2020-10-31)
+******************
+
+Features:
+
+- Add ``format`` argument to ``fields.Time`` and ``timeformat`` *class Meta* option (:issue:`686`).
+  Thanks :user:`BennyAlex` for the suggestion and thanks :user:`infinityxxx` for the PR.
+
+Other changes:
+
+- Remove usage of implicit ``typing.Optional`` (:issue:`1663`).
+  Thanks :user:`nadega` for the PR.
 
 3.8.0 (2020-09-16)
 ******************
@@ -64,7 +124,7 @@ Support:
 
 Features:
 
-- Add ``validators.ContainsNoneOf`` (:issue:`1528`).
+- Add ``validate.ContainsNoneOf`` (:issue:`1528`).
   Thanks :user:`Resinderate` for the suggestion and the PR.
 
 

@@ -25,7 +25,7 @@ Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marsh
 Consistency meets flexibility.
 ------------------------------
 
-Marshmallow makes it easy to modify a schema's output at application runtime. A single :class:`Schema <marshmallow.Schema>` can produce multiple outputs formats while keeping the individual field outputs consistent.
+Marshmallow makes it easy to modify a schema's output at application runtime. A single :class:`Schema <marshmallow.Schema>` can produce multiple output formats while keeping the individual field outputs consistent.
 
 As an example, you might have a JSON endpoint for retrieving all information about a video game's state. You then add a low-latency endpoint that only returns a minimal subset of information about game state. Both endpoints can be handled by the same `Schema <marshmallow.Schema>`.
 

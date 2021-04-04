@@ -196,15 +196,32 @@ class TestParentAndName:
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
     def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
-        field = FieldClass(description="Just a normal field.")
+        with pytest.warns(DeprecationWarning):
+            field = FieldClass(description="Just a normal field.")
         assert field.metadata["description"] == "Just a normal field."
         field = FieldClass(
             required=True,
             default=None,
             validate=lambda v: True,
-            description="foo",
-            widget="select",
+            metadata={"description": "foo", "widget": "select"},
         )
+        assert field.metadata == {"description": "foo", "widget": "select"}
+
+    @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
+    def test_field_metadata_added_in_deprecated_style_warns(self, FieldClass):  # noqa
+        # just the old style
+        with pytest.warns(DeprecationWarning):
+            field = FieldClass(description="Just a normal field.")
+            assert field.metadata["description"] == "Just a normal field."
+        # mixed styles
+        with pytest.warns(DeprecationWarning):
+            field = FieldClass(
+                required=True,
+                default=None,
+                validate=lambda v: True,
+                description="foo",
+                metadata={"widget": "select"},
+            )
         assert field.metadata == {"description": "foo", "widget": "select"}
 
 

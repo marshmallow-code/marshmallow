@@ -160,10 +160,12 @@ In summary, the processing pipeline for deserialization is as follows:
 1. ``@pre_load(pass_many=True)`` methods
 2. ``@pre_load(pass_many=False)`` methods
 3. ``load(in_data, many)`` (validation and deserialization)
-4. ``@post_load(pass_many=True)`` methods
-5. ``@post_load(pass_many=False)`` methods
+4. ``@validates`` methods (field validators)
+5. ``@validates_schema`` methods (schema validators)
+6. ``@post_load(pass_many=True)`` methods
+7. ``@post_load(pass_many=False)`` methods
 
-The pipeline for serialization is similar, except that the ``pass_many=True`` processors are invoked *after* the ``pass_many=False`` processors.
+The pipeline for serialization is similar, except that the ``pass_many=True`` processors are invoked *after* the ``pass_many=False`` processors and there are no validators.
 
 1. ``@pre_dump(pass_many=False)`` methods
 2. ``@pre_dump(pass_many=True)`` methods

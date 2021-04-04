@@ -46,6 +46,7 @@ exclude_patterns = ["_build"]
 html_theme_path = [alabaster.get_path()]
 html_theme = "alabaster"
 html_static_path = ["_static"]
+html_css_files = ["css/versionwarning.css"]
 templates_path = ["_templates"]
 html_show_sourcelink = False
 
@@ -97,11 +98,6 @@ versionwarning_messages = {
         "This document is for the development version. "
         'For the stable version documentation, see <a href="/en/stable/">here</a>.'
     ),
-    "stable": (
-        "<strong>Black Lives Matter.</strong> "
-        'Support the <a href="https://eji.org/">Equal Justice Initiative</a> and '
-        '<a href="https://colorofchange.org/">Color of Change</a>.'
-    ),
     "2.x-line": (
         "marshmallow 2 is no longer supported as of 2020-08-18. "
         '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
@@ -112,9 +108,4 @@ versionwarning_messages = {
 versionwarning_body_selector = "div.document"
 versionwarning_banner_title = ""
 # For debugging locally
-# versionwarning_project_version = "stable"
-
-
-def setup(app):
-    # https://docs.readthedocs.io/en/latest/guides/adding-custom-css.html
-    app.add_stylesheet("css/versionwarning.css")
+# versionwarning_project_version = "latest"

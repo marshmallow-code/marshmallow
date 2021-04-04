@@ -15,7 +15,7 @@ resources:
 jobs:
 - template: job--python-tox.yml@sloria
   parameters:
-    toxenvs: [lint, py35, py36, py37, py38]
+    toxenvs: [lint, py35, py36, py37, py38, py39]
     os: linux
 - template: job--pypi-release.yml@sloria
   parameters:

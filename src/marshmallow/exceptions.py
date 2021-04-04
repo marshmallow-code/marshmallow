@@ -27,12 +27,17 @@ class ValidationError(MarshmallowError):
         self,
         message: typing.Union[str, typing.List, typing.Dict],
         field_name: str = SCHEMA,
-        data: typing.Union[
-            typing.Mapping[str, typing.Any],
-            typing.Iterable[typing.Mapping[str, typing.Any]],
+        data: typing.Optional[
+            typing.Union[
+                typing.Mapping[str, typing.Any],
+                typing.Iterable[typing.Mapping[str, typing.Any]],
+            ]
         ] = None,
-        valid_data: typing.Union[
-            typing.List[typing.Dict[str, typing.Any]], typing.Dict[str, typing.Any]
+        valid_data: typing.Optional[
+            typing.Union[
+                typing.List[typing.Dict[str, typing.Any]],
+                typing.Dict[str, typing.Any],
+            ]
         ] = None,
         **kwargs
     ):

@@ -213,6 +213,7 @@ class SchemaOpts:
             raise ValueError("`exclude` must be a list or tuple.")
         self.dateformat = getattr(meta, "dateformat", None)
         self.datetimeformat = getattr(meta, "datetimeformat", None)
+        self.timeformat = getattr(meta, "timeformat", None)
         if hasattr(meta, "json_module"):
             warnings.warn(
                 "The json_module class Meta option is deprecated. Use render_module instead.",
@@ -345,6 +346,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Nested fields can be represented with dot delimiters.
         - ``dateformat``: Default format for `Date <fields.Date>` fields.
         - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
+        - ``timeformat``: Default format for `Time <fields.Time>` fields.
         - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
             Defaults to `json` from the standard library.
         - ``ordered``: If `True`, order serialization output according to the
@@ -365,14 +367,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def __init__(
         self,
         *,
-        only: types.StrSequenceOrSet = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        context: typing.Dict = None,
+        context: typing.Optional[typing.Dict] = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
         partial: typing.Union[bool, types.StrSequenceOrSet] = False,
-        unknown: str = None
+        unknown: typing.Optional[str] = None
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -525,15 +527,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Any, *, many: bool = None):
+    def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
         :param obj: The object to serialize.
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
-        :return: A dict of serialized data
-        :rtype: dict
+        :return: Serialized data
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
@@ -563,14 +564,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(self, obj: typing.Any, *args, many: bool = None, **kwargs):
+    def dumps(
+        self, obj: typing.Any, *args, many: typing.Optional[bool] = None, **kwargs
+    ):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
         :param many: Whether to serialize `obj` as a collection. If `None`, the value
             for `self.many` is used.
         :return: A ``json`` string
-        :rtype: str
 
         .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
@@ -614,9 +616,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret = []  # type: typing.List[_T]
+                ret_l = []  # type: typing.List[_T]
             else:
-                ret = [
+                ret_l = [
                     typing.cast(
                         _T,
                         self._deserialize(
@@ -630,8 +632,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     )
                     for idx, d in enumerate(data)
                 ]
-            return ret
-        ret = self.dict_class()
+            return ret_l
+        ret_d = self.dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
             error_store.store_error([self.error_messages["type"]], index=index)
@@ -671,7 +673,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
                 if value is not missing:
                     key = field_obj.attribute or attr_name
-                    set_value(typing.cast(typing.Dict, ret), key, value)
+                    set_value(ret_d, key, value)
             if unknown != EXCLUDE:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
@@ -680,14 +682,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
-                        set_value(typing.cast(typing.Dict, ret), key, value)
+                        ret_d[key] = value
                     elif unknown == RAISE:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
                             (index if index_errors else None),
                         )
-        return ret
+        return ret_d
 
     def load(
         self,
@@ -696,9 +698,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             typing.Iterable[typing.Mapping[str, typing.Any]],
         ],
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -728,9 +730,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         json_data: str,
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         **kwargs
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -780,8 +782,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         data: typing.Mapping,
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None
     ) -> typing.Dict[str, typing.List[str]]:
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
@@ -812,9 +814,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             typing.Iterable[typing.Mapping[str, typing.Any]],
         ],
         *,
-        many: bool = None,
-        partial: typing.Union[bool, types.StrSequenceOrSet] = None,
-        unknown: str = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         postprocess: bool = True
     ):
         """Deserialize `data`, returning the deserialized result.

@@ -27,6 +27,12 @@ ALL_FIELDS = [
     fields.Email,
     fields.UUID,
     fields.Decimal,
+    fields.IP,
+    fields.IPv4,
+    fields.IPv6,
+    fields.IPInterface,
+    fields.IPv4Interface,
+    fields.IPv6Interface,
 ]
 
 ##### Custom asserts #####
@@ -61,6 +67,7 @@ class User:
         registered=True,
         time_registered=None,
         birthdate=None,
+        birthtime=None,
         balance=100,
         sex="male",
         employer=None,
@@ -85,6 +92,7 @@ class User:
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
         self.birthdate = birthdate or dt.date(2013, 1, 23)
+        self.birthtime = birthtime or dt.time(0, 1, 2, 3333)
         self.activation_date = dt.date(2013, 12, 11)
         self.sex = sex
         self.employer = employer
@@ -147,7 +155,7 @@ def get_lowername(obj):
 
 class UserSchema(Schema):
     name = fields.String()
-    age = fields.Float()
+    age = fields.Float()  # type: fields.Field
     created = fields.DateTime()
     created_formatted = fields.DateTime(
         format="%Y-%m-%d", attribute="created", dump_only=True
@@ -160,7 +168,7 @@ class UserSchema(Schema):
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Decimal()
-    is_old = fields.Method("get_is_old")
+    is_old = fields.Method("get_is_old")  # type: fields.Field
     lowername = fields.Function(get_lowername)
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)
@@ -169,6 +177,7 @@ class UserSchema(Schema):
     uid = fields.UUID()
     time_registered = fields.Time()
     birthdate = fields.Date()
+    birthtime = fields.Time()
     activation_date = fields.Date()
     since_created = fields.TimeDelta()
     sex = fields.Str(validate=validate.OneOf(["male", "female"]))
@@ -239,6 +248,7 @@ class UserMetaSchema(Schema):
             "uid",
             "time_registered",
             "birthdate",
+            "birthtime",
             "since_created",
             "various_data",
         )
@@ -257,7 +267,7 @@ class UserAdditionalSchema(Schema):
 
 
 class UserIntSchema(UserSchema):
-    age = fields.Integer()  # type: ignore
+    age = fields.Integer()
 
 
 class UserFloatStringSchema(UserSchema):
@@ -265,7 +275,7 @@ class UserFloatStringSchema(UserSchema):
 
 
 class ExtendedUserSchema(UserSchema):
-    is_old = fields.Boolean()  # type: ignore
+    is_old = fields.Boolean()
 
 
 class UserRelativeUrlSchema(UserSchema):

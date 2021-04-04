@@ -56,6 +56,9 @@ __all__ = [
     "IP",
     "IPv4",
     "IPv6",
+    "IPInterface",
+    "IPv4Interface",
+    "IPv6Interface",
     "Method",
     "Function",
     "Str",
@@ -102,7 +105,7 @@ class Field(FieldABC):
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
     :param dict error_messages: Overrides for `Field.default_error_messages`.
-    :param metadata: Extra arguments to be stored as metadata.
+    :param metadata: Extra information to be stored as field metadata.
 
     .. versionchanged:: 2.0.0
         Removed `error` parameter. Use ``error_messages`` instead.
@@ -148,18 +151,21 @@ class Field(FieldABC):
         *,
         default: typing.Any = missing_,
         missing: typing.Any = missing_,
-        data_key: str = None,
-        attribute: str = None,
-        validate: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+        data_key: typing.Optional[str] = None,
+        attribute: typing.Optional[str] = None,
+        validate: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+            ]
         ] = None,
         required: bool = False,
-        allow_none: bool = None,
+        allow_none: typing.Optional[bool] = None,
         load_only: bool = False,
         dump_only: bool = False,
-        error_messages: typing.Dict[str, str] = None,
-        **metadata
+        error_messages: typing.Optional[typing.Dict[str, str]] = None,
+        metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        **additional_metadata
     ) -> None:
         self.default = default
         self.attribute = attribute
@@ -186,7 +192,16 @@ class Field(FieldABC):
             raise ValueError("'missing' must not be set for required fields.")
         self.required = required
         self.missing = missing
-        self.metadata = metadata
+
+        metadata = metadata or {}
+        self.metadata = {**metadata, **additional_metadata}
+        if additional_metadata:
+            warnings.warn(
+                "Passing field metadata as a keyword arg is deprecated. Use the "
+                "explicit `metadata=...` argument instead.",
+                RemovedInMarshmallow4Warning,
+            )
+
         self._creation_index = Field._creation_index
         Field._creation_index += 1
 
@@ -220,11 +235,8 @@ class Field(FieldABC):
         :param callable accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
         """
-        # NOTE: Use getattr instead of direct attribute access here so that
-        # subclasses aren't required to define `attribute` member
-        attribute = getattr(self, "attribute", None)
         accessor_func = accessor or utils.get_value
-        check_key = attr if attribute is None else attribute
+        check_key = attr if self.attribute is None else self.attribute
         return accessor_func(obj, check_key, default)
 
     def _validate(self, value):
@@ -283,18 +295,18 @@ class Field(FieldABC):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
         """
-        if value is missing_:
-            if hasattr(self, "required") and self.required:
-                raise self.make_error("required")
-        if value is None:
-            if hasattr(self, "allow_none") and self.allow_none is not True:
-                raise self.make_error("null")
+        if value is missing_ and self.required:
+            raise self.make_error("required")
+        if value is None and not self.allow_none:
+            raise self.make_error("null")
 
     def serialize(
         self,
         attr: str,
         obj: typing.Any,
-        accessor: typing.Callable[[typing.Any, str, typing.Any], typing.Any] = None,
+        accessor: typing.Optional[
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any]
+        ] = None,
         **kwargs
     ):
         """Pulls the value for the given key from the object, applies the
@@ -307,7 +319,7 @@ class Field(FieldABC):
         """
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_ and hasattr(self, "default"):
+            if value is missing_:
                 default = self.default
                 value = default() if callable(default) else default
             if value is missing_:
@@ -319,8 +331,8 @@ class Field(FieldABC):
     def deserialize(
         self,
         value: typing.Any,
-        attr: str = None,
-        data: typing.Mapping[str, typing.Any] = None,
+        attr: typing.Optional[str] = None,
+        data: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **kwargs
     ):
         """Deserialize ``value``.
@@ -338,7 +350,7 @@ class Field(FieldABC):
         if value is missing_:
             _miss = self.missing
             return _miss() if callable(_miss) else _miss
-        if getattr(self, "allow_none", False) is True and value is None:
+        if self.allow_none and value is None:
             return None
         output = self._deserialize(value, attr, data, **kwargs)
         self._validate(output)
@@ -475,10 +487,10 @@ class Nested(Field):
         nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         *,
         default: typing.Any = missing_,
-        only: types.StrSequenceOrSet = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        unknown: str = None,
+        unknown: typing.Optional[str] = None,
         **kwargs
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -1036,8 +1048,8 @@ class Decimal(Number):
 
     def __init__(
         self,
-        places: int = None,
-        rounding: str = None,
+        places: typing.Optional[int] = None,
+        rounding: typing.Optional[str] = None,
         *,
         allow_nan: bool = False,
         as_string: bool = False,
@@ -1130,7 +1142,11 @@ class Boolean(Field):
     default_error_messages = {"invalid": "Not a valid boolean."}
 
     def __init__(
-        self, *, truthy: typing.Set = None, falsy: typing.Set = None, **kwargs
+        self,
+        *,
+        truthy: typing.Optional[typing.Set] = None,
+        falsy: typing.Optional[typing.Set] = None,
+        **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -1207,7 +1223,7 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str = None, **kwargs):
+    def __init__(self, format: typing.Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1272,7 +1288,13 @@ class NaiveDateTime(DateTime):
 
     AWARENESS = "naive"
 
-    def __init__(self, format: str = None, *, timezone: dt.timezone = None, **kwargs):
+    def __init__(
+        self,
+        format: typing.Optional[str] = None,
+        *,
+        timezone: typing.Optional[dt.timezone] = None,
+        **kwargs
+    ):
         super().__init__(format=format, **kwargs)
         self.timezone = timezone
 
@@ -1304,7 +1326,11 @@ class AwareDateTime(DateTime):
     AWARENESS = "aware"
 
     def __init__(
-        self, format: str = None, *, default_timezone: dt.tzinfo = None, **kwargs
+        self,
+        format: typing.Optional[str] = None,
+        *,
+        default_timezone: typing.Optional[dt.tzinfo] = None,
+        **kwargs
     ):
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
@@ -1322,34 +1348,29 @@ class AwareDateTime(DateTime):
         return ret
 
 
-class Time(Field):
-    """ISO8601-formatted time string.
+class Time(DateTime):
+    """A formatted time string.
 
+    Example: ``'03:12:58.019077'``
+
+    :param format: Either ``"iso"`` (for ISO8601) or a date format string.
+        If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    #: Default error messages.
-    default_error_messages = {
-        "invalid": "Not a valid time.",
-        "format": '"{input}" cannot be formatted as a time.',
-    }
+    SERIALIZATION_FUNCS = {"iso": utils.to_iso_time, "iso8601": utils.to_iso_time}
 
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-        ret = value.isoformat()
-        if value.microsecond:
-            return ret[:15]
-        return ret
+    DESERIALIZATION_FUNCS = {"iso": utils.from_iso_time, "iso8601": utils.from_iso_time}
 
-    def _deserialize(self, value, attr, data, **kwargs):
-        """Deserialize an ISO8601-formatted time to a :class:`datetime.time` object."""
-        if not value:  # falsy values are invalid
-            raise self.make_error("invalid")
-        try:
-            return utils.from_iso_time(value)
-        except (AttributeError, TypeError, ValueError) as error:
-            raise self.make_error("invalid") from error
+    DEFAULT_FORMAT = "iso"
+
+    OBJ_TYPE = "time"
+
+    SCHEMA_OPTS_VAR_NAME = "timeformat"
+
+    @staticmethod
+    def _make_object_from_format(value, data_format):
+        return dt.datetime.strptime(value, data_format).time()
 
 
 class Date(DateTime):
@@ -1472,8 +1493,8 @@ class Mapping(Field):
 
     def __init__(
         self,
-        keys: typing.Union[Field, type] = None,
-        values: typing.Union[Field, type] = None,
+        keys: typing.Optional[typing.Union[Field, type]] = None,
+        values: typing.Optional[typing.Union[Field, type]] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -1518,7 +1539,7 @@ class Mapping(Field):
         if value is None:
             return None
         if not self.value_field and not self.key_field:
-            return value
+            return self.mapping_type(value)
 
         #  Serialize keys
         if self.key_field is None:
@@ -1545,7 +1566,7 @@ class Mapping(Field):
         if not isinstance(value, _Mapping):
             raise self.make_error("invalid")
         if not self.value_field and not self.key_field:
-            return value
+            return self.mapping_type(value)
 
         errors = collections.defaultdict(dict)
 
@@ -1619,7 +1640,7 @@ class Url(String):
         self,
         *,
         relative: bool = False,
-        schemes: types.StrSequenceOrSet = None,
+        schemes: typing.Optional[types.StrSequenceOrSet] = None,
         require_tld: bool = True,
         **kwargs
     ):
@@ -1659,7 +1680,10 @@ class IP(Field):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
-        consisting entirely of zeros included."""
+        consisting entirely of zeros included.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
@@ -1690,7 +1714,10 @@ class IP(Field):
 
 
 class IPv4(IP):
-    """A IPv4 address field."""
+    """A IPv4 address field.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IPv4 address."}
 
@@ -1698,11 +1725,74 @@ class IPv4(IP):
 
 
 class IPv6(IP):
-    """A IPv6 address field."""
+    """A IPv6 address field.
+
+    .. versionadded:: 3.8.0
+    """
 
     default_error_messages = {"invalid_ip": "Not a valid IPv6 address."}
 
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
+
+
+class IPInterface(Field):
+    """A IPInterface field.
+
+    IP interface is the non-stict form of the IPNetwork type where arbitrary host
+    addresses are always accepted.
+
+    IPAddress and mask e.g. '192.168.0.2/24' or '192.168.0.2/255.255.255.0'
+
+    see https://python.readthedocs.io/en/latest/library/ipaddress.html#interface-objects
+
+    :parm bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
+        consisting entirely of zeros included.
+    """
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IP interface."}
+
+    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+
+    def __init__(self, *args, exploded=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.exploded = exploded
+
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
+        if value is None:
+            return None
+        if self.exploded:
+            return value.exploded
+        return value.compressed
+
+    def _deserialize(
+        self, value, attr, data, **kwargs
+    ) -> typing.Optional[
+        typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]
+    ]:
+        if value is None:
+            return None
+        try:
+            return (self.DESERIALIZATION_CLASS or ipaddress.ip_interface)(
+                utils.ensure_text_type(value)
+            )
+        except (ValueError, TypeError) as error:
+            raise self.make_error("invalid_ip_interface") from error
+
+
+class IPv4Interface(IPInterface):
+    """A IPv4 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv4 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv4Interface
+
+
+class IPv6Interface(IPInterface):
+    """A IPv6 Network Interface field."""
+
+    default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
+
+    DESERIALIZATION_CLASS = ipaddress.IPv6Interface
 
 
 class Method(Field):
@@ -1728,29 +1818,42 @@ class Method(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, serialize: str = None, deserialize: str = None, **kwargs):
+    def __init__(
+        self,
+        serialize: typing.Optional[str] = None,
+        deserialize: typing.Optional[str] = None,
+        **kwargs
+    ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
         kwargs["load_only"] = bool(deserialize) and not bool(serialize)
         super().__init__(**kwargs)
         self.serialize_method_name = serialize
         self.deserialize_method_name = deserialize
+        self._serialize_method = None
+        self._deserialize_method = None
+
+    def _bind_to_schema(self, field_name, schema):
+        if self.serialize_method_name:
+            self._serialize_method = utils.callable_or_raise(
+                getattr(schema, self.serialize_method_name)
+            )
+
+        if self.deserialize_method_name:
+            self._deserialize_method = utils.callable_or_raise(
+                getattr(schema, self.deserialize_method_name)
+            )
+
+        super()._bind_to_schema(field_name, schema)
 
     def _serialize(self, value, attr, obj, **kwargs):
-        if not self.serialize_method_name:
-            return missing_
-
-        method = utils.callable_or_raise(
-            getattr(self.parent, self.serialize_method_name, None)
-        )
-        return method(obj)
+        if self._serialize_method is not None:
+            return self._serialize_method(obj)
+        return missing_
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if self.deserialize_method_name:
-            method = utils.callable_or_raise(
-                getattr(self.parent, self.deserialize_method_name, None)
-            )
-            return method(value)
+        if self._deserialize_method is not None:
+            return self._deserialize_method(value)
         return value
 
 
@@ -1781,13 +1884,17 @@ class Function(Field):
 
     def __init__(
         self,
-        serialize: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Callable[[typing.Any, typing.Dict], typing.Any],
+        serialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
         ] = None,
-        deserialize: typing.Union[
-            typing.Callable[[typing.Any], typing.Any],
-            typing.Callable[[typing.Any, typing.Dict], typing.Any],
+        deserialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
         ] = None,
         **kwargs
     ):

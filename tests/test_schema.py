@@ -641,11 +641,6 @@ def test_can_serialize_time(user, serialized_user):
     assert serialized_user["time_registered"] == expected
 
 
-def test_invalid_dict_but_okay():
-    u = User("Joe", various_data="baddict")
-    UserSchema().dump(u)
-
-
 def test_json_module_is_deprecated():
     with pytest.deprecated_call():
 
@@ -1709,6 +1704,22 @@ def test_dateformat_option(user):
     serialized = DateFormatSchema().dump(user)
     assert serialized["birthdate"] == user.birthdate.strftime(field_fmt)
     assert serialized["activation_date"] == user.activation_date.strftime(fmt)
+
+
+def test_timeformat_option(user):
+    fmt = "%H:%M:%S"
+    field_fmt = "%H:%M"
+
+    class TimeFormatSchema(Schema):
+        birthtime = fields.Time(field_fmt)
+
+        class Meta:
+            fields = ("birthtime", "time_registered")
+            timeformat = fmt
+
+    serialized = TimeFormatSchema().dump(user)
+    assert serialized["birthtime"] == user.birthtime.strftime(field_fmt)
+    assert serialized["time_registered"] == user.time_registered.strftime(fmt)
 
 
 def test_default_dateformat(user):
@@ -2795,7 +2806,7 @@ class TestDefaults:
     def test_loading_none(self, schema, data):
         result = schema.load(data)
         for key in data.keys():
-            result[key] is None
+            assert result[key] is None
 
     def test_missing_inputs_are_excluded_from_load_output(self, schema, data):
         for key in [

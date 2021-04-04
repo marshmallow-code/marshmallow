@@ -154,4 +154,11 @@ Contributors (chronological)
 - 장준영 `@jun0jang <https://github.com/jun0jang>`_
 - `@ebargtuo <https://github.com/ebargtuo>`_
 - Michał Getka `@mgetka <https://github.com/mgetka>`_
-- Kevin Fong `@Fongshway <https://github.com/Fongshway>`_
+- Nadège Michel `@nadege <https://github.com/nadege>`_
+- Tamara `@infinityxxx <https://github.com/infinityxxx>`_
+- Stephen Rosen `@sirosen <https://github.com/sirosen>`_
+- Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
+- Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
+- Antonio Lassandro `@lassandroan <https://github.com/lassandroan>`_
+- Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
+- `@Fongshway <https://github.com/Fongshway>`_

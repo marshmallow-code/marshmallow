@@ -74,6 +74,9 @@ def pprint(obj, *args, **kwargs) -> None:
     """Pretty-printing function that can pretty-print OrderedDicts
     like regular dictionaries. Useful for printing the output of
     :meth:`marshmallow.Schema.dump`.
+
+    .. deprecated:: 3.7.0
+        marshmallow.pprint will be removed in marshmallow 4.
     """
     warnings.warn(
         "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",
@@ -191,6 +194,10 @@ def isoformat(datetime: dt.datetime) -> str:
     return datetime.isoformat()
 
 
+def to_iso_time(time: dt.time) -> str:
+    return dt.time.isoformat(time)
+
+
 def to_iso_date(date: dt.date) -> str:
     return dt.date.isoformat(date)
 
@@ -278,9 +285,9 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
 
 
 def callable_or_raise(obj):
-    """Check that an object is callable, else raise a :exc:`ValueError`."""
+    """Check that an object is callable, else raise a :exc:`TypeError`."""
     if not callable(obj):
-        raise ValueError("Object {!r} is not callable.".format(obj))
+        raise TypeError("Object {!r} is not callable.".format(obj))
     return obj
 
 
