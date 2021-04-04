@@ -49,7 +49,24 @@ class TestDeserializingNone:
             field.deserialize([None])
 
 
+class FrozenSet(fields.Iterable):
+    serialization_type = frozenset
+    deserialization_type = frozenset
+
+
 class TestFieldDeserialization:
+    @pytest.mark.parametrize(
+        ("field_type", "value", "expected"),
+        [
+            (fields.String(), ["1", "2", "3"], frozenset(["1", "2", "3"])),
+            (fields.Integer(), ["1", 2, "3"], frozenset([1, 2, 3])),
+            (fields.Float(), [1, "2", 3.0], frozenset([1.0, 2.0, 3.0])),
+        ],
+    )
+    def test_frozenset_field_deserialization(self, field_type, value, expected):
+        field = FrozenSet(field_type)
+        assert field.deserialize(value) == expected
+
     def test_float_field_deserialization(self):
         field = fields.Float()
         assert math.isclose(field.deserialize("12.3"), 12.3)

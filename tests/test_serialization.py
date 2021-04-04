@@ -28,10 +28,20 @@ class DateTimeIntegerTuple:
         self.dtime_int = dtime_int
 
 
+class FrozenSet(fields.Iterable):
+    serialization_type = frozenset
+    deserialization_type = frozenset
+
+
 class TestFieldSerialization:
     @pytest.fixture
     def user(self):
         return User("Foo", email="foo@bar.com", age=42)
+
+    def test_frozenset_field_deserialization(self, user):
+        field = FrozenSet(fields.String())
+        user.aliases = ["bar", "baz", "bat"]
+        assert field.serialize("aliases", user) == frozenset(user.aliases)
 
     @pytest.mark.parametrize(
         ("value", "expected"), [(42, float(42)), (0, float(0)), (None, None)]
