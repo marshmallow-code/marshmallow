@@ -681,8 +681,8 @@ class Iterable(Field):
     .. versionadded:: 3.12.0
     """
 
-    serialization_type = list
-    deserialization_type = list
+    serialization_type: typing.Type[typing.Iterable] = list
+    deserialization_type: typing.Type[typing.Iterable] = list
 
     #: Default error messages.
     default_error_messages = {
@@ -712,17 +712,17 @@ class Iterable(Field):
 
     def _serialize(
         self, value, attr, obj, **kwargs
-    ) -> typing.Optional[typing.List[typing.Any]]:
+    ) -> typing.Optional[typing.Iterable[typing.Any]]:
         if value is None:
             return None
         result = [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
         return (
             result
             if self.serialization_type is list
-            else self.serialization_type(result)
+            else self.serialization_type(result)  # type: ignore
         )
 
-    def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.Iterable[typing.Any]:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
 
@@ -740,7 +740,7 @@ class Iterable(Field):
         return (
             result
             if self.deserialization_type is list
-            else self.deserialization_type(result)
+            else self.deserialization_type(result)  # type: ignore
         )
 
 
