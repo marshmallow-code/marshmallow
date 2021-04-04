@@ -14,7 +14,7 @@ def test_missing_singleton_copy():
     assert deepcopy(utils.missing) is utils.missing
 
 
-PointNT = namedtuple("Point", ["x", "y"])
+PointNT = namedtuple("PointNT", ["x", "y"])
 
 
 class PointClass:

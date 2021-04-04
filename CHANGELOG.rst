@@ -9,6 +9,11 @@ Features:
 - Add ``validate.And`` and ``validate.and_`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
 
+Other changes:
+
+- Improve types in ``marshmallow.validate``.
+- Make `marshmallow.validate.Validator` an abstract base class.
+
 3.11.1 (2021-03-29)
 *******************
 
