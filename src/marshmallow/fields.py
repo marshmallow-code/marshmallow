@@ -675,16 +675,18 @@ class Iterable(Field):
     Example: ::
 
         class FrozenSet(Iterable):
-            iterable_type = frozenset
+            serialization_type = frozenset
+            deserialization_type = frozenset
 
     .. versionadded:: 3.12.0
     """
 
-    iterable_type = list
+    serialization_type = list
+    deserialization_type = list
 
     #: Default error messages.
     default_error_messages = {
-        "invalid": "Not a valid {}.".format(iterable_type.__name__)
+        "invalid": "Not a valid {}.".format(deserialization_type.__name__)
     }
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
@@ -714,7 +716,11 @@ class Iterable(Field):
         if value is None:
             return None
         result = [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
-        return result if self.iterable_type == list else self.iterable_type(result)
+        return (
+            result
+            if self.serialization_type is list
+            else self.serialization_type(result)
+        )
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
@@ -731,7 +737,11 @@ class Iterable(Field):
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)
-        return result if self.iterable_type == list else self.iterable_type(result)
+        return (
+            result
+            if self.deserialization_type is list
+            else self.deserialization_type(result)
+        )
 
 
 class List(Iterable):
@@ -756,7 +766,8 @@ class List(Iterable):
         Inherits from Iterable instead of Field.
     """
 
-    iterable_type = list
+    serialization_type = list
+    deserialization_type = list
 
 
 class Tuple(Field):
