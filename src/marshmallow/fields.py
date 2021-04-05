@@ -684,8 +684,8 @@ class Iterable(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid iterable."}
 
-    serialization_type: typing.Type[typing.Iterable[typing.Any]] = list
-    deserialization_type: typing.Type[typing.Iterable[typing.Any]] = list
+    serialization_type = list  # type: typing.Type[typing.Iterable[typing.Any]]
+    deserialization_type = list  # type: typing.Type[typing.Iterable[typing.Any]]
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
