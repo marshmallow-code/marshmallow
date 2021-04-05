@@ -684,6 +684,9 @@ class Iterable(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid iterable."}
 
+    serialization_type: typing.Type[typing.Iterable[typing.Any]] = list
+    deserialization_type: typing.Type[typing.Iterable[typing.Any]] = list
+
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
         try:
@@ -711,8 +714,9 @@ class Iterable(Field):
         if value is None:
             return None
         result = [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
-        serialization_type = getattr(self, "serialization_type", list)
-        return result if serialization_type is list else serialization_type(result)
+        if self.serialization_type is list:
+            return result
+        return self.serialization_type(result)  # type: ignore
 
     def _deserialize(self, value, attr, data, **kwargs) -> typing.Iterable[typing.Any]:
         if not utils.is_collection(value):
@@ -729,8 +733,9 @@ class Iterable(Field):
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)
-        deserialization_type = getattr(self, "deserialization_type", list)
-        return result if deserialization_type is list else deserialization_type(result)
+        if self.deserialization_type is list:
+            return result
+        return self.deserialization_type(result)  # type: ignore
 
 
 class List(Iterable):
