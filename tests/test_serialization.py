@@ -34,7 +34,7 @@ class TestFieldSerialization:
     def user(self):
         return User("Foo", email="foo@bar.com", age=42)
 
-    def test_frozenset_field_deserialization(self, user):
+    def test_frozenset_field_serialization(self, user):
         field = FrozenSet(fields.String())
         user.aliases = ["bar", "baz", "bat"]
         assert field.serialize("aliases", user) == frozenset(user.aliases)
