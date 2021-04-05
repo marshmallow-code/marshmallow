@@ -52,6 +52,7 @@ class TestDeserializingNone:
 class FrozenSet(fields.Iterable):
     serialization_type = frozenset
     deserialization_type = frozenset
+    default_error_messages = {"invalid": "Not a valid frozenset."}
 
 
 class TestFieldDeserialization:
@@ -66,6 +67,11 @@ class TestFieldDeserialization:
     def test_frozenset_field_deserialization(self, field_type, value, expected):
         field = FrozenSet(field_type)
         assert field.deserialize(value) == expected
+
+    def test_invalid_frozenset_field_deserialization(self):
+        field = FrozenSet(fields.String())
+        with pytest.raises(ValidationError, match="Not a valid frozenset."):
+            field.deserialize(100)
 
     def test_float_field_deserialization(self):
         field = fields.Float()

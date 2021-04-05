@@ -685,9 +685,7 @@ class Iterable(Field):
     deserialization_type: typing.Type[typing.Iterable] = list
 
     #: Default error messages.
-    default_error_messages = {
-        "invalid": "Not a valid {}.".format(deserialization_type.__name__)
-    }
+    default_error_messages = {"invalid": "Not a valid iterable."}
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
@@ -765,6 +763,9 @@ class List(Iterable):
     .. versionchanged:: 3.12.0
         Inherits from Iterable instead of Field.
     """
+
+    #: Default error messages.
+    default_error_messages = {"invalid": "Not a valid list."}
 
     serialization_type = list
     deserialization_type = list
