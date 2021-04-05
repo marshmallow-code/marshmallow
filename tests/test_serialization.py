@@ -11,6 +11,7 @@ import pytest
 from marshmallow import Schema, fields, missing as missing_
 
 from tests.base import User, ALL_FIELDS, central
+from tests.frozenset_field import FrozenSet
 
 
 class DateTimeList:
@@ -26,11 +27,6 @@ class IntegerList:
 class DateTimeIntegerTuple:
     def __init__(self, dtime_int):
         self.dtime_int = dtime_int
-
-
-class FrozenSet(fields.Iterable):
-    serialization_type = frozenset
-    deserialization_type = frozenset
 
 
 class TestFieldSerialization:

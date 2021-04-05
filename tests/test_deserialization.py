@@ -11,6 +11,7 @@ from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
 
 from tests.base import assert_date_equal, assert_time_equal, central, ALL_FIELDS
+from tests.frozenset_field import FrozenSet
 
 
 class TestDeserializingNone:
@@ -47,12 +48,6 @@ class TestDeserializingNone:
         field = fields.List(fields.Nested(Schema(), allow_none=False))
         with pytest.raises(ValidationError):
             field.deserialize([None])
-
-
-class FrozenSet(fields.Iterable):
-    serialization_type = frozenset
-    deserialization_type = frozenset
-    default_error_messages = {"invalid": "Not a valid frozenset."}
 
 
 class TestFieldDeserialization:
