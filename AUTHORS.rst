@@ -161,3 +161,4 @@ Contributors (chronological)
 - Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
 - Antonio Lassandro `@lassandroan <https://github.com/lassandroan>`_
 - Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
+- Felix Claessen `@flix6x <https://github.com/flix6x>`_
