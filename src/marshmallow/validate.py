@@ -51,7 +51,7 @@ class And(Validator):
             if value % 2 != 0:
                 raise ValidationError("Not an even value.")
 
-        validator = validate.And([validate.Range(min=0), is_even])
+        validator = validate.And(validate.Range(min=0), is_even)
         validator(-1)
         # ValidationError: ['Must be greater than or equal to 0.', 'Not an even value.']
 
@@ -62,10 +62,7 @@ class And(Validator):
     default_error_message = "Invalid value."
 
     def __init__(
-        self,
-        validators: typing.Iterable[types.Validator],
-        *,
-        error: typing.Optional[str] = None
+        self, *validators: types.Validator, error: typing.Optional[str] = None
     ):
         self.validators = tuple(validators)
         self.error = error or self.default_error_message  # type: str
@@ -91,13 +88,6 @@ class And(Validator):
         if errors:
             raise ValidationError(errors, **kwargs)
         return value
-
-
-def and_(*validators: types.Validator, error: typing.Optional[str] = None) -> And:
-    """Shortcut function for constructing a `marshmallow.validate.And` from
-    the validators passed positionally.
-    """
-    return And(validators, error=error)
 
 
 class URL(Validator):

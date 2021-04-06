@@ -897,36 +897,18 @@ def is_even(value):
         raise ValidationError("Not an even value.")
 
 
-def test_And():
-    validator = validate.And([validate.Range(min=0), is_even])
+def test_and():
+    validator = validate.And(validate.Range(min=0), is_even)
     assert validator(2)
     with pytest.raises(ValidationError) as excinfo:
         validator(-1)
     errors = excinfo.value.messages
     assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
 
-    validator_with_composition = validate.And([validator, validate.Range(max=6)])
+    validator_with_composition = validate.And(validator, validate.Range(max=6))
     assert validator_with_composition(4)
     with pytest.raises(ValidationError) as excinfo:
         validator_with_composition(7)
 
     errors = excinfo.value.messages
     assert errors == ["Not an even value.", "Must be less than or equal to 6."]
-
-    validator_from_generator = validate.And(v for v in [validate.Range(min=0), is_even])
-    assert validator_from_generator(2)
-    with pytest.raises(ValidationError):
-        validator_from_generator(-1)
-    with pytest.raises(ValidationError) as excinfo:
-        validator_from_generator(-1)
-    errors = excinfo.value.messages
-    assert errors == ["Must be greater than or equal to 0.", "Not an even value."]
-
-
-def test_and_():
-    validator = validate.and_(validate.Range(min=0), is_even)
-    assert validator(2)
-    with pytest.raises(ValidationError) as excinfo:
-        validator(-1)
-    errors = excinfo.value.messages
-    assert errors == ["Must be greater than or equal to 0.", "Not an even value."]

@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Add ``validate.And`` and ``validate.and_`` (:issue:`1768`).
+- Add ``validate.And`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
 
 Other changes:
