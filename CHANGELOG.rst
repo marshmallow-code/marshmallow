@@ -8,6 +8,7 @@ Other changes:
 
 - Improve types in ``marshmallow.validate``.
 - Make `marshmallow.validate.Validator` an abstract base class.
+- Remove unnecessary list cast (:pr:`1785`).
 
 3.11.1 (2021-03-29)
 *******************
