@@ -4,10 +4,14 @@ Changelog
 3.12.0 (unreleased)
 *******************
 
+Features:
+
+- Let ``Field``s be accessed by name as ``Schema`` attributes (:pr:`1631`).
+
 Other changes:
 
-- Improve types in ``marshmallow.validate``.
-- Make `marshmallow.validate.Validator` an abstract base class.
+- Improve types in ``marshmallow.validate`` (:pr:`1786`).
+- Make `marshmallow.validate.Validator` an abstract base class (:pr:`1786`).
 - Remove unnecessary list cast (:pr:`1785`).
 
 3.11.1 (2021-03-29)
