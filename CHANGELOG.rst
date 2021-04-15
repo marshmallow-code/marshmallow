@@ -9,6 +9,7 @@ Features:
 - Add ``validate.And`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
 - Let ``Field``s be accessed by name as ``Schema`` attributes (:pr:`1631`).
+- Add a `NoDuplicates` validator in ``marshmallow.validate`` (:pr:`1793`).
 
 Other changes:
 
