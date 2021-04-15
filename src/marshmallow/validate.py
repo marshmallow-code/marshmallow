@@ -644,3 +644,47 @@ class ContainsNoneOf(NoneOf):
             if val in self.iterable:
                 raise ValidationError(self._format_error(value))
         return value
+
+
+class NoDuplicates(Validator):
+    """Validator which succeeds if the ``value`` is an ``iterable`` and has no duplicate
+    elements. In case of a list of objects, it can easy check an internal
+    attribute by passing the ``attribute`` parameter.
+    Validator which fails if ``value`` is not a member of ``iterable``.
+
+    :param str attribute: The name of the attribute of the object you want to check.
+    """
+
+    default_message = "Invalid input. Supported lists or str."
+    error = "Found a duplicate value: {value}."
+    attribute_error = "Found a duplicate object attribute ({attribute}): {value}."
+
+    def __init__(self, attribute: typing.Optional[str] = None):
+        self.attribute = attribute
+
+    def _repr_args(self) -> str:
+        return "attribute={!r}".format(self.attribute)
+
+    def _format_error(self, value) -> str:
+        if self.attribute:
+            return self.attribute_error.format(attribute=self.attribute, value=value)
+        return self.error.format(value=value)
+
+    def __call__(self, value):
+        set_item = set()
+        try:
+            for item in value:
+                if self.attribute:
+                    attribute = getattr(item, self.attribute)
+                    if attribute in set_item:
+                        raise ValidationError(self._format_error(attribute))
+                    set_item.add(attribute)
+                else:
+                    if item in set_item:
+                        raise ValidationError(self._format_error(item))
+                    set_item.add(item)
+
+        except TypeError as error:
+            raise ValidationError(self.default_message) from error
+
+        return value
