@@ -25,7 +25,7 @@ from marshmallow.exceptions import (
     StringNotCollectionError,
     FieldInstanceResolutionError,
 )
-from marshmallow.validate import Validator, Length
+from marshmallow.validate import And, Length
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 __all__ = [
@@ -242,21 +242,11 @@ class Field(FieldABC):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
         does not succeed.
         """
-        errors = []
-        kwargs = {}
-        for validator in self.validators:
-            try:
-                r = validator(value)
-                if not isinstance(validator, Validator) and r is False:
-                    raise self.make_error("validator_failed")
-            except ValidationError as err:
-                kwargs.update(err.kwargs)
-                if isinstance(err.messages, dict):
-                    errors.append(err.messages)
-                else:
-                    errors.extend(err.messages)
-        if errors:
-            raise ValidationError(errors, **kwargs)
+        self._validate_all(value)
+
+    @property
+    def _validate_all(self):
+        return And(*self.validators, error=self.error_messages["validator_failed"])
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
         """Helper method to make a `ValidationError` with an error message
