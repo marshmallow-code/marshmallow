@@ -646,8 +646,8 @@ class ContainsNoneOf(NoneOf):
         return value
 
 
-class NoDuplicates(Validator):
-    """Validator which succeeds if the ``value`` is an ``iterable`` and has no duplicate
+class Unique(Validator):
+    """Validator which succeeds if the ``value`` is an ``iterable`` and has unique
     elements. In case of a list of objects, it can easy check an internal
     attribute by passing the ``attribute`` parameter.
     Validator which fails if ``value`` is not a member of ``iterable``.

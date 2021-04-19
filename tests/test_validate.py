@@ -914,7 +914,7 @@ def test_and():
     assert errors == ["Not an even value.", "Must be less than or equal to 6."]
 
 
-def test_noduplicates():
+def test_contains_unique():
     class Mock:
         def __init__(self, name):
             self.name = name
@@ -922,29 +922,30 @@ def test_noduplicates():
     mock_object_1 = Mock("a")
     mock_object_2 = Mock("b")
 
-    assert validate.NoDuplicates()("d") == "d"
-    assert validate.NoDuplicates()([]) == []
-    assert validate.NoDuplicates()({}) == {}
-    assert validate.NoDuplicates()(["a", "b"]) == ["a", "b"]
-    assert validate.NoDuplicates()([1, 2]) == [1, 2]
-    assert validate.NoDuplicates(attribute="name")([mock_object_1, mock_object_2]) == [
+    assert validate.Unique()("d") == "d"
+    assert validate.Unique()([]) == []
+    assert validate.Unique()({}) == {}
+    assert validate.Unique()(["a", "b"]) == ["a", "b"]
+    assert validate.Unique()([1, 2]) == [1, 2]
+    assert validate.Unique(attribute="name")([mock_object_1, mock_object_2]) == [
         mock_object_1,
         mock_object_2,
     ]
 
     with pytest.raises(ValidationError, match="Invalid input."):
-        validate.NoDuplicates()(3)
+        validate.Unique()(3)
     with pytest.raises(ValidationError, match="Invalid input."):
-        validate.NoDuplicates()(1.1)
+        validate.Unique()(1.1)
     with pytest.raises(ValidationError, match="Invalid input."):
-        validate.NoDuplicates()(True)
+        validate.Unique()(True)
     with pytest.raises(ValidationError, match="Invalid input."):
-        validate.NoDuplicates()(None)
+        validate.Unique()(None)
     with pytest.raises(ValidationError, match="Found a duplicate value: 1."):
-        validate.NoDuplicates()([1, 1, 2])
+        validate.Unique()([1, 1, 2])
     with pytest.raises(ValidationError, match="Found a duplicate value: a."):
-        validate.NoDuplicates()("aab")
+        validate.Unique()("aab")
     with pytest.raises(ValidationError, match="Found a duplicate value: a."):
-        validate.NoDuplicates()(["a", "a", "b"])
+        validate.Unique()(["a", "a", "b"])
     with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
-        validate.NoDuplicates(attribute="name")([mock_object_1, mock_object_1])
+        validate.Unique(attribute="name")([mock_object_1, mock_object_1])
+
