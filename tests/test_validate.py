@@ -948,4 +948,3 @@ def test_contains_unique():
         validate.Unique()(["a", "a", "b"])
     with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
         validate.Unique(attribute="name")([mock_object_1, mock_object_1])
-

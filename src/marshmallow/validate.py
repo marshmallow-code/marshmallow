@@ -671,18 +671,13 @@ class Unique(Validator):
         return self.error.format(value=value)
 
     def __call__(self, value):
-        set_item = set()
+        used = set()
         try:
             for item in value:
-                if self.attribute:
-                    attribute = getattr(item, self.attribute)
-                    if attribute in set_item:
-                        raise ValidationError(self._format_error(attribute))
-                    set_item.add(attribute)
-                else:
-                    if item in set_item:
-                        raise ValidationError(self._format_error(item))
-                    set_item.add(item)
+                _id = getattr(item, self.attribute) if self.attribute else item
+                if _id in used:
+                    raise ValidationError(self._format_error(_id))
+                used.add(_id)
 
         except TypeError as error:
             raise ValidationError(self.default_message) from error
