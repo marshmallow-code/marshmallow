@@ -1586,8 +1586,7 @@ class Dict(Mapping):
 
 
 class Url(String):
-    """A validated URL field. Validation occurs during both serialization and
-    deserialization.
+    """An URL field.
 
     :param default: Default value for the field if the attribute is not set.
     :param relative: Whether to allow relative URLs.
@@ -1623,8 +1622,7 @@ class Url(String):
 
 
 class Email(String):
-    """A validated email field. Validation occurs during both serialization and
-    deserialization.
+    """An email field.
 
     :param args: The same positional arguments that :class:`String` receives.
     :param kwargs: The same keyword arguments that :class:`String` receives.
