@@ -2,7 +2,6 @@
 import re
 import typing
 from abc import ABC, abstractmethod
-from collections import Iterable
 from itertools import zip_longest
 from operator import attrgetter
 
@@ -672,8 +671,8 @@ class Unique(Validator):
             return self.attribute_error.format(attribute=self.attribute, value=value)
         return self.error.format(value=value)
 
-    def __call__(self, value):
-        if not isinstance(value, Iterable):
+    def __call__(self, value: typing.Iterable) -> typing.Iterable:
+        if not isinstance(value, typing.Iterable):
             raise ValidationError(self.default_message)
         ids = [
             utils.get_value(item, self.attribute) if self.attribute else item for item in value
@@ -685,14 +684,14 @@ class Unique(Validator):
 
         return value
 
-    def _duplicate_hash(self, ids):
+    def _duplicate_hash(self, ids: typing.List) -> None:
         used = set()
         for _id in ids:
             if _id in used:
                 raise ValidationError(self._format_error(_id))
             used.add(_id)
 
-    def _duplicate_equal(self, ids):
+    def _duplicate_equal(self, ids: typing.List) -> None:
         used = []
         for _id in ids:
             if _id in used:
