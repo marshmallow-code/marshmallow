@@ -931,6 +931,9 @@ def test_contains_unique():
         mock_object_1,
         mock_object_2,
     ]
+    assert validate.Unique()([[1, 2], [3, 4]]) == [[1, 2], [3, 4]]
+    assert validate.Unique()([{1, 2}, {3, 4}]) == [{1, 2}, {3, 4}]
+    assert validate.Unique()([{"a": 1}, {"b": 2}]) == [{"a": 1}, {"b": 2}]
 
     with pytest.raises(ValidationError, match="Invalid input."):
         validate.Unique()(3)
@@ -940,11 +943,18 @@ def test_contains_unique():
         validate.Unique()(True)
     with pytest.raises(ValidationError, match="Invalid input."):
         validate.Unique()(None)
-    with pytest.raises(ValidationError, match="Found a duplicate value: 1."):
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()([1, 1, 2])
-    with pytest.raises(ValidationError, match="Found a duplicate value: a."):
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()("aab")
-    with pytest.raises(ValidationError, match="Found a duplicate value: a."):
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()(["a", "a", "b"])
     with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
         validate.Unique(attribute="name")([mock_object_1, mock_object_1])
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
+        validate.Unique()([[1, 2], [1, 2]])
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
+        validate.Unique()([{1, 2}, {1, 2}])
+    with pytest.raises(ValidationError, match="Found a duplicate value"):
+        validate.Unique()([{"a": 1, "b": 2}, {"a": 1, "b": 2}])
+
