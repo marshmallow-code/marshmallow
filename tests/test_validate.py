@@ -957,4 +957,3 @@ def test_contains_unique():
         validate.Unique()([{1, 2}, {1, 2}])
     with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()([{"a": 1, "b": 2}, {"a": 1, "b": 2}])
-

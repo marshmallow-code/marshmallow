@@ -675,7 +675,8 @@ class Unique(Validator):
         if not isinstance(value, typing.Iterable):
             raise ValidationError(self.default_message)
         ids = [
-            utils.get_value(item, self.attribute) if self.attribute else item for item in value
+            utils.get_value(item, self.attribute) if self.attribute else item
+            for item in value
         ]
         try:
             self._duplicate_hash(ids)
