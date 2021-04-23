@@ -7,6 +7,7 @@ from itertools import zip_longest
 from operator import attrgetter
 
 from marshmallow import types
+from marshmallow import utils
 from marshmallow.exceptions import ValidationError
 
 _T = typing.TypeVar("_T")
@@ -675,7 +676,7 @@ class Unique(Validator):
         if not isinstance(value, Iterable):
             raise ValidationError(self.default_message)
         ids = [
-            getattr(item, self.attribute) if self.attribute else item for item in value
+            utils.get_value(item, self.attribute) if self.attribute else item for item in value
         ]
         try:
             self._duplicate_hash(ids)
