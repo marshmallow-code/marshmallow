@@ -914,7 +914,7 @@ def test_and():
     assert errors == ["Not an even value.", "Must be less than or equal to 6."]
 
 
-def test_contains_unique():
+def test_unique():
     class Bar:
         def __init__(self, num):
             self.num = num
