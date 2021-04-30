@@ -915,21 +915,42 @@ def test_and():
 
 
 def test_contains_unique():
-    class Mock:
-        def __init__(self, name):
-            self.name = name
+    class Bar:
+        def __init__(self, num):
+            self.num = num
 
-    mock_object_1 = Mock("a")
-    mock_object_2 = Mock("b")
+    class Mock:
+        def __init__(self, name, bar):
+            self.name = name
+            self.bar = bar
+
+    mock_object_a_1 = Mock("a", Bar(1))
+    mock_object_a_2 = Mock("a", Bar(2))
+    mock_object_b_1 = Mock("b", Bar(1))
+    mock_dict_a_1 = {"name": "a", "bar": {"num": 1}}
+    mock_dict_a_2 = {"name": "a", "bar": {"num": 2}}
+    mock_dict_b_1 = {"name": "b", "bar": {"num": 1}}
 
     assert validate.Unique()("d") == "d"
     assert validate.Unique()([]) == []
     assert validate.Unique()({}) == {}
     assert validate.Unique()(["a", "b"]) == ["a", "b"]
     assert validate.Unique()([1, 2]) == [1, 2]
-    assert validate.Unique(attribute="name")([mock_object_1, mock_object_2]) == [
-        mock_object_1,
-        mock_object_2,
+    assert validate.Unique(attribute="name")([mock_object_a_1, mock_object_b_1]) == [
+        mock_object_a_1,
+        mock_object_b_1,
+    ]
+    assert validate.Unique(attribute="bar.num")([mock_object_a_1, mock_object_a_2]) == [
+        mock_object_a_1,
+        mock_object_a_2,
+    ]
+    assert validate.Unique(attribute="name")([mock_dict_a_1, mock_dict_b_1]) == [
+        mock_dict_a_1,
+        mock_dict_b_1,
+    ]
+    assert validate.Unique(attribute="bar.num")([mock_dict_a_1, mock_dict_a_2]) == [
+        mock_dict_a_1,
+        mock_dict_a_2,
     ]
     assert validate.Unique()([[1, 2], [3, 4]]) == [[1, 2], [3, 4]]
     assert validate.Unique()([{1, 2}, {3, 4}]) == [{1, 2}, {3, 4}]
@@ -950,7 +971,13 @@ def test_contains_unique():
     with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()(["a", "a", "b"])
     with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
-        validate.Unique(attribute="name")([mock_object_1, mock_object_1])
+        validate.Unique(attribute="name")([mock_object_a_1, mock_object_a_2])
+    with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
+        validate.Unique(attribute="bar.num")([mock_object_a_1, mock_object_b_1])
+    with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
+        validate.Unique(attribute="name")([mock_dict_a_1, mock_dict_a_2])
+    with pytest.raises(ValidationError, match="Found a duplicate object attribute"):
+        validate.Unique(attribute="bar.num")([mock_dict_a_1, mock_dict_b_1])
     with pytest.raises(ValidationError, match="Found a duplicate value"):
         validate.Unique()([[1, 2], [1, 2]])
     with pytest.raises(ValidationError, match="Found a duplicate value"):
