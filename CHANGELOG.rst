@@ -8,12 +8,12 @@ Features:
 
 - Add ``validate.And`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
-- Let ``Field``s be accessed by name as ``Schema`` attributes (:pr:`1631`).
+- Let ``Field``\s be accessed by name as ``Schema`` attributes (:pr:`1631`).
 
 Other changes:
 
 - Improve types in ``marshmallow.validate`` (:pr:`1786`).
-- Make `marshmallow.validate.Validator` an abstract base class (:pr:`1786`).
+- Make ``marshmallow.validate.Validator`` an abstract base class (:pr:`1786`).
 - Remove unnecessary list cast (:pr:`1785`).
 
 3.11.1 (2021-03-29)
@@ -21,7 +21,7 @@ Other changes:
 
 Bug fixes:
 
-- Fix treatment of dotted keys when unknown=INCLUDE (:issue:`1506`).
+- Fix treatment of dotted keys when ``unknown=INCLUDE`` (:issue:`1506`).
   Thanks :user:`rbu` for reporting and thanks :user:`sirosen` for the fix (:pr:`1745`).
 
 3.11.0 (2021-03-28)
@@ -45,7 +45,7 @@ Other changes:
 Deprecations:
 
 - Passing field metadata via keyword arguments is deprecated and will be
-  removed in marshmallow 4 (:issue:`1350`). Use the explicit `metadata=...`
+  removed in marshmallow 4 (:issue:`1350`). Use the explicit ``metadata=...``
   argument instead. Thanks :user:`sirosen`.
 
 3.9.1 (2020-11-07)
@@ -63,7 +63,7 @@ Bug fixes:
 
 Features:
 
-- Add ``format`` argument to ``fields.Time`` and ``timeformat`` *class Meta* option (:issue:`686`).
+- Add ``format`` argument to ``fields.Time`` and ``timeformat`` ``class Meta`` option (:issue:`686`).
   Thanks :user:`BennyAlex` for the suggestion and thanks :user:`infinityxxx` for the PR.
 
 Other changes:
@@ -97,7 +97,7 @@ Bug fixes:
 
 Deprecations:
 
-- `marshmallow.pprint` is deprecated and will be removed in marshmallow 4 (:issue:`1588`).
+- ``marshmallow.pprint`` is deprecated and will be removed in marshmallow 4 (:issue:`1588`).
 
 Support:
 
@@ -298,7 +298,7 @@ Bug fixes:
 
 Bug fixes:
 
-- Fix propagating dot-delimited `only` and `exclude` parameters to nested schema instances (:issue:`1384`).
+- Fix propagating dot-delimited ``only`` and ``exclude`` parameters to nested schema instances (:issue:`1384`).
 - Includes bug fix from 2.20.4 (:issue:`1160`).
 
 3.0.3 (2019-09-04)
@@ -357,7 +357,7 @@ Features:
 - *Backwards-incompatible*: ``List`` does not wrap single values in a list on
   serialization (:pr:`1307`).
 - *Backwards-incompatible*: ``Schema.handle_error`` receives ``many`` and ``partial`` as keyword arguments (:pr:`1321`).
-- Use `raise from` more uniformly to improve stack traces (:pr:`1313`).
+- Use ``raise from`` more uniformly to improve stack traces (:pr:`1313`).
 - Rename ``Nested.__schema`` to ``Nested._schema`` to prevent name mangling (:issue:`1289`).
 - Performance improvements (:pr:`1309`).
 
@@ -368,11 +368,11 @@ Deprecations/Removals:
 
 Bug fixes:
 
-- Fix behavior of `List(Nested("self"))` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
+- Fix behavior of ``List(Nested("self"))`` (`#779 (comment) <https://github.com/marshmallow-code/marshmallow/issues/779#issuecomment-396354987>`_).
 
 Support:
 
-- Document usage of  `validate.Regexp`'s usage `re.search` (:issue:`1285`). Thanks :user:`macdonaldezra`.
+- Document usage of ``validate.Regexp``'s usage ``re.search`` (:issue:`1285`). Thanks :user:`macdonaldezra`.
 
 3.0.0rc8 (2019-07-04)
 +++++++++++++++++++++
@@ -420,7 +420,7 @@ Features:
 
 Bug fixes:
 
-- Fix propagation of "partial" to Nested containers (part of :issue:`779`).
+- Fix propagation of ``partial`` to ``Nested`` containers (part of :issue:`779`).
 - Includes bug fix from 2.19.3.
 
 Other changes:
@@ -487,7 +487,7 @@ Other changes:
 
 - *Backwards-incompatible with previous 3.x versions*: Change ordering
   of ``keys`` and ``values`` arguments to ``fields.Dict``.
-- Remove unused code in `marshmallow.utils`: ``is_indexable_but_not_string``,
+- Remove unused code in ``marshmallow.utils``: ``is_indexable_but_not_string``,
   ``float_to_decimal``, ``decimal_to_fixed``, ``from_iso`` (:pr:`1088`).
 - Remove unused ``marshmallow.compat.string_types``.
 
@@ -637,7 +637,7 @@ Features:
 - *Backwards-incompatible*: Passing a string argument as ``only`` to
   ``fields.Nested`` is no longer supported. Use ``fields.Pluck`` instead
   (:issue:`800`).
-- Raise a `StringNotCollectionError` if ``only`` or ``exclude`` is
+- Raise a ``StringNotCollectionError`` if ``only`` or ``exclude`` is
   passed as a string to ``fields.Nested`` (:pr:`931`).
 - *Backwards-incompatible*: ``Float`` takes an ``allow_nan`` parameter to
   explicitly allow serializing and deserializing special values (``nan``,
@@ -753,16 +753,16 @@ Features:
   specifying the key in the input and output data dict. This
   parameter replaces both ``load_from`` and ``dump_to`` (:issue:`717`).
   Thanks :user:`lafrech`.
-- *Backwards-incompatible*: When `pass_original=True` is passed to one
+- *Backwards-incompatible*: When ``pass_original=True`` is passed to one
   of the decorators and a collection is being (de)serialized, the
-  `original_data` argument will be a single object unless
-  `pass_many=True` is also passed to the decorator (:issue:`315`,
+  ``original_data`` argument will be a single object unless
+  ``pass_many=True`` is also passed to the decorator (:issue:`315`,
   :issue:`743`). Thanks :user:`stj` for the PR.
 - *Backwards-incompatible*: Don't recursively check nested required
-  fields when the Nested field's key is missing (:issue:`319`). This
+  fields when the ``Nested`` field's key is missing (:issue:`319`). This
   reverts :pr:`235`. Thanks :user:`chekunkov` reporting and thanks
   :user:`lafrech` for the PR.
-- *Backwards-incompatible*: Change error message collection for `Dict` field (:issue:`730`). Note:
+- *Backwards-incompatible*: Change error message collection for ``Dict`` field (:issue:`730`). Note:
   this is backwards-incompatible with previous 3.0.0bX versions.
   Thanks :user:`shabble` for the report and thanks :user:`lafrech` for the PR.
 
@@ -773,10 +773,10 @@ Features:
 
 - *Backwards-incompatible*: Schemas are always strict (:issue:`377`).
   The ``strict`` parameter is removed.
-- *Backwards-incompatible*: `Schema().load` and `Schema().dump` return ``data`` instead of a
+- *Backwards-incompatible*: ``Schema().load`` and ``Schema().dump`` return ``data`` instead of a
   ``(data, errors)`` tuple (:issue:`598`).
-- *Backwards-incomaptible*: `Schema().load(None)` raises a
-  `ValidationError` (:issue:`511`).
+- *Backwards-incomaptible*: ``Schema().load(None)`` raises a
+  ``ValidationError`` (:issue:`511`).
 
 See :ref:`upgrading_3_0` for a guide on updating your code.
 
@@ -800,7 +800,7 @@ Support:
 
 Bug fixes:
 
-- Fixes `ValidationError.valid_data` when a nested field contains errors
+- Fixes ``ValidationError.valid_data`` when a nested field contains errors
   (:issue:`710`). This bug was introduced in 3.0.0b3. Thanks
   :user:`lafrech`.
 
@@ -838,7 +838,7 @@ Features:
 
 Support:
 
-- Copyright year in docs uses CHANGELOG.rst's modified date for
+- Copyright year in docs uses ``CHANGELOG.rst``'s modified date for
   reproducible builds (:issue:`679`). Thanks :user:`bmwiedemann`.
 - Test against Python 3.6 in tox. Thanks :user:`Fedalto`.
 - Fix typo in exception message (:issue:`659`). Thanks :user:`wonderbeyond`
@@ -860,7 +860,7 @@ Deprecations/Removals:
 Bug fixes:
 
 - Includes bug fixes from releases 2.13.5 and 2.13.6.
-- *Backwards-incompatible* : ``Number`` fields don't accept booleans as valid input (:issue:`623`). Thanks :user:`tuukkamustonen` for the suggestion and thanks :user:`rowillia` for the PR.
+- *Backwards-incompatible*: ``Number`` fields don't accept booleans as valid input (:issue:`623`). Thanks :user:`tuukkamustonen` for the suggestion and thanks :user:`rowillia` for the PR.
 
 Support:
 
@@ -1029,8 +1029,8 @@ Bug fixes:
 
 Deprecation/Removal:
 
-- A `RemovedInMarshmallow3` warning is raised when using
-  `fields.FormattedString`. Use `fields.Method` or `fields.Function`
+- A ``RemovedInMarshmallow3`` warning is raised when using
+  ``fields.FormattedString``. Use ``fields.Method`` or ``fields.Function``
   instead (:issue:`1141`).
 
 2.18.1 (2019-02-15)
@@ -1389,7 +1389,7 @@ Other changes:
 
 Bug fixes:
 
-- Respect `load_from` when reporting errors for nested required fields (:issue:`414`). Thanks :user:`yumike`.
+- Respect ``load_from`` when reporting errors for nested required fields (:issue:`414`). Thanks :user:`yumike`.
 
 2.6.0 (2016-02-01)
 ++++++++++++++++++
@@ -1480,7 +1480,7 @@ Support:
 
 Bug fixes:
 
-- Fix serialization of collections for which `iter` will modify position, e.g. Pymongo cursors (:issue:`303`). Thanks :user:`Mise` for the catch and patch.
+- Fix serialization of collections for which ``iter`` will modify position, e.g. Pymongo cursors (:issue:`303`). Thanks :user:`Mise` for the catch and patch.
 
 2.1.2 (2015-10-14)
 ++++++++++++++++++
@@ -1600,13 +1600,13 @@ Support:
 Features:
 
 - If a field corresponds to a callable attribute, it will be called upon serialization. Thanks :user:`alexmorken`.
-- Add ``load_only`` and ``dump_only`` class Meta options. Thanks :user:`kelvinhammond`.
+- Add ``load_only`` and ``dump_only`` ``class Meta`` options. Thanks :user:`kelvinhammond`.
 - If a ``Nested`` field is required, recursively validate any required fields in the nested schema (:issue:`235`). Thanks :user:`max-orhai`.
 - Improve error message if a list of dicts is not passed to a ``Nested`` field for which ``many=True``. Thanks again :user:`max-orhai`.
 
 Bug fixes:
 
-- `make_object` is only called after all validators and postprocessors have finished (:issue:`253`). Thanks :user:`sunsongxp` for reporting.
+- ``make_object`` is only called after all validators and postprocessors have finished (:issue:`253`). Thanks :user:`sunsongxp` for reporting.
 - If an invalid type is passed to ``Schema`` and ``strict=False``, store a ``_schema`` error in the errors dict rather than raise an exception (:issue:`261`). Thanks :user:`density` for reporting.
 
 Other changes:
@@ -1682,7 +1682,7 @@ Features:
 
 Changes from 2.0.0b1:
 
-- Fix serialization of ``None`` for `Time`, `TimeDelta`, and `Date` fields (a regression introduced in 2.0.0a1).
+- Fix serialization of ``None`` for ``Time``, ``TimeDelta``, and ``Date`` fields (a regression introduced in 2.0.0a1).
 
 Includes bug fixes from 1.2.6.
 
@@ -1733,7 +1733,7 @@ Deprecation/Removals:
 - ``context`` argument passed to Method fields is deprecated. Use ``self.context`` instead (:issue:`184`).
 - Remove ``ForcedError``.
 - Remove support for generator functions that yield validators (:issue:`74`). Plain generators of validators are still supported.
-- The ``Select/Enum`` field is deprecated in favor of using `validate.OneOf` validator (:issue:`135`).
+- The ``Select/Enum`` field is deprecated in favor of using ``validate.OneOf`` validator (:issue:`135`).
 - Remove legacy, pre-1.0 API (``Schema.data`` and ``Schema.errors`` properties) (:issue:`73`).
 - Remove ``null`` value.
 
@@ -1850,7 +1850,7 @@ Bug fixes:
 - Fix behavior of ``many`` argument passed to ``dump`` and ``load``. Thanks :user:`svenstaro` for reporting and helping with this.
 - Fix ``skip_missing`` behavior for ``String`` and ``List`` fields. Thanks :user:`malexer` for reporting.
 - Fix compatibility with python-dateutil 2.3.
-- More consistent error messages across DateTime, TimeDelta, Date, and Time fields.
+- More consistent error messages across ``DateTime``, ``TimeDelta``, ``Date``, and ``Time`` fields.
 
 Support:
 
@@ -1861,7 +1861,7 @@ Support:
 
 Hotfix release.
 
-- Ensure that errors dictionary is correctly cleared on each call to Schema.dump and Schema.load.
+- Ensure that errors dictionary is correctly cleared on each call to ``Schema.dump`` and ``Schema.load``.
 
 1.0.0 (2014-11-16)
 ++++++++++++++++++
@@ -1878,7 +1878,7 @@ Adds new features, speed improvements, better error handling, and updated docume
 - If a field's default is ``fields.missing`` and its serialized value is ``None``, it will not be included in the final serialized result.
 - Schema.dumps no longer coerces its result to a binary string on Python 3.
 - *Backwards-incompatible*: Schema output is no longer an ``OrderedDict`` by default. If you want ordered field output, you must explicitly set the ``ordered`` option to ``True``.
-- *Backwards-incompatible*: `error` parameter of the `Field` constructor is deprecated. Raise a `ValidationError` instead.
+- *Backwards-incompatible*: ``error`` parameter of the ``Field`` constructor is deprecated. Raise a ``ValidationError`` instead.
 - Expanded test coverage.
 - Updated docs.
 
@@ -1928,7 +1928,7 @@ Major reworking and simplification of the public API, centered around support fo
 
 * Fix bug in serializing keyed tuple types, e.g. ``namedtuple`` and ``KeyedTuple``.
 * Nested field can load a serializer by its class name as a string. This makes it easier to implement 2-way nesting.
-* Make Serializer.data override-able.
+* Make ``Serializer.data`` override-able.
 
 0.5.5 (2014-05-02)
 ++++++++++++++++++
@@ -2014,11 +2014,11 @@ Major reworking and simplification of the public API, centered around support fo
 0.3.0 (2013-11-14)
 ++++++++++++++++++
 
-* Declaring Serializers just got easier. The *class Meta* paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
+* Declaring Serializers just got easier. The ``class Meta`` paradigm allows you to specify fields more concisely. Can specify ``fields`` and ``exclude`` options.
 * Allow date formats to be changed by passing ``format`` parameter to ``DateTime`` field constructor. Can either be ``"rfc"`` (default), ``"iso"``, or a date format string.
 * More useful error message when declaring fields as classes (instead of an instance, which is the correct usage).
-* Rename MarshallingException -> MarshallingError.
-* Rename marshmallow.core -> marshmallow.serializer.
+* Rename ``MarshallingException`` -> ``MarshallingError``.
+* Rename ``marshmallow.core`` -> ``marshmallow.serializer``.
 
 0.2.1 (2013-11-12)
 ++++++++++++++++++
