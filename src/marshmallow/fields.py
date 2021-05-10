@@ -417,7 +417,9 @@ class Field(FieldABC):
         ret = self
         while hasattr(ret, "parent"):
             ret = ret.parent
-        return ret if isinstance(ret, SchemaABC) else None
+            if isinstance(ret, SchemaABC):
+                return ret
+        return None
 
 
 class Raw(Field):
