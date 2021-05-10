@@ -352,7 +352,7 @@ class Field(FieldABC):
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
-        :param Schema schema: Parent schema.
+        :param Schema|Field parent: Parent object.
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
