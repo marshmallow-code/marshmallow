@@ -187,6 +187,14 @@ class TestParentAndName:
         for field_name in ("bar", "qux"):
             assert schema.fields[field_name].tuple_fields[0].format == "iso8601"
 
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1808
+    def test_field_named_parent_has_root(self, schema):
+        class MySchema(Schema):
+            parent = fields.Field()
+
+        schema = MySchema()
+        assert schema.fields["parent"].root == schema
+
 
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
