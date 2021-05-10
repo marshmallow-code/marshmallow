@@ -4,6 +4,11 @@ Changelog
 3.12.0 (unreleased)
 *******************
 
+Features:
+
+- Add type annotations to ``marshmallow.decorators`` (:pr:`1789`).
+  Thanks :user:`michaeldimchuk` for the PR.
+
 Other changes:
 
 - Improve types in ``marshmallow.validate``.
