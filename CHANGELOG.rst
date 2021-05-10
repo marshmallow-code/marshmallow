@@ -8,6 +8,8 @@ Features:
 
 - Add ``validate.And`` (:issue:`1768`).
   Thanks :user:`rugleb` for the suggestion.
+- Add type annotations to ``marshmallow.decorators`` (:issue:`1788`, :pr:`1789`).
+  Thanks :user:`michaeldimchuk` for the PR.
 - Let ``Field``\s be accessed by name as ``Schema`` attributes (:pr:`1631`).
 
 Other changes:

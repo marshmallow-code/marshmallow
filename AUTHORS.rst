@@ -161,4 +161,5 @@ Contributors (chronological)
 - Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
 - Antonio Lassandro `@lassandroan <https://github.com/lassandroan>`_
 - Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
+- Michael Dimchuk  `@michaeldimchuk <https://github.com/michaeldimchuk>`_
 - Jochen Kupperschmidt  `@homeworkprod <https://github.com/homeworkprod>`_
