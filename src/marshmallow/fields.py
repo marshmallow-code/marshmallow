@@ -352,10 +352,13 @@ class Field(FieldABC):
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
-        :param Schema schema: Parent schema.
+        :param Schema|Field schema: Parent object.
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
+        self.root = self.root or (
+            self.parent.root if isinstance(self.parent, FieldABC) else self.parent
+        )
 
     def _serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
@@ -407,17 +410,6 @@ class Field(FieldABC):
     def context(self):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
-
-    @property
-    def root(self):
-        """Reference to the `Schema` that this field belongs to even if it is buried in a
-        container field (e.g. `List`).
-        Return `None` for unbound fields.
-        """
-        ret = self
-        while hasattr(ret, "parent"):
-            ret = ret.parent
-        return ret if isinstance(ret, SchemaABC) else None
 
 
 class Raw(Field):
