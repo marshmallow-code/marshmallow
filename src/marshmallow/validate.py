@@ -40,6 +40,56 @@ class Validator(ABC):
         ...
 
 
+class And(Validator):
+    """Compose multiple validators and combine their error messages.
+
+    Example: ::
+
+        from marshmallow import validate, ValidationError
+
+        def is_even(value):
+            if value % 2 != 0:
+                raise ValidationError("Not an even value.")
+
+        validator = validate.And(validate.Range(min=0), is_even)
+        validator(-1)
+        # ValidationError: ['Must be greater than or equal to 0.', 'Not an even value.']
+
+    :param validators: Validators to combine.
+    :param error: Error message to use when a validator returns ``False``.
+    """
+
+    default_error_message = "Invalid value."
+
+    def __init__(
+        self, *validators: types.Validator, error: typing.Optional[str] = None
+    ):
+        self.validators = tuple(validators)
+        self.error = error or self.default_error_message  # type: str
+
+    def _repr_args(self) -> str:
+        return "validators={!r}".format(self.validators)
+
+    def __call__(self, value: typing.Any) -> typing.Any:
+        errors = []
+        kwargs = {}
+        for validator in self.validators:
+            try:
+                r = validator(value)
+                if not isinstance(validator, Validator) and r is False:
+                    raise ValidationError(self.error)
+            except ValidationError as err:
+                kwargs.update(err.kwargs)
+                if isinstance(err.messages, dict):
+                    errors.append(err.messages)
+                else:
+                    # FIXME : Get rid of cast
+                    errors.extend(typing.cast(list, err.messages))
+        if errors:
+            raise ValidationError(errors, **kwargs)
+        return value
+
+
 class URL(Validator):
     """Validate a URL.
 
