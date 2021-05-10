@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.12.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix bug that raised an ``AttributeError`` when instantiating a
+  ``Schema`` with a field named ``parent`` (:issue:`1808`).
+  Thanks :user:`flying-sheep` for reporting and helping with the fix.
+
 3.12.0 (2021-05-09)
 *******************
 
