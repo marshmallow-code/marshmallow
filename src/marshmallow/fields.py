@@ -169,20 +169,22 @@ class Field(FieldABC):
         **additional_metadata
     ) -> None:
         # handle deprecated `default` and `missing` parameters
-        if dump_default is missing_ and default is not missing_:
+        if default is not missing_:
             warnings.warn(
                 "The 'default' argument to fields is deprecated. "
                 "Use 'dump_default' instead.",
                 RemovedInMarshmallow4Warning,
             )
-            dump_default = default
-        if load_default is missing_ and missing is not missing_:
+            if dump_default is missing_:
+                dump_default = default
+        if missing is not missing_:
             warnings.warn(
                 "The 'missing' argument to fields is deprecated. "
                 "Use 'load_default' instead.",
                 RemovedInMarshmallow4Warning,
             )
-            load_default = missing
+            if load_default is missing_:
+                load_default = missing
         self.dump_default = dump_default
         self.load_default = load_default
 
