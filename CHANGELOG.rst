@@ -6,7 +6,8 @@ Changelog
 
 Features:
 
-- Add a `Unique` validator in ``marshmallow.validate`` (:pr:`1793`).
+- Add ``validate.Unique`` (:pr:`1793`).
+  Thanks :user:`bonastreyair` for the PR.
 
 3.12.1 (2021-05-10)
 *******************
