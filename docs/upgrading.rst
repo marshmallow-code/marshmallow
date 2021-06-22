@@ -379,6 +379,7 @@ attribute to get the object.
 
     from marshmallow import Schema, fields
 
+
     class User:
         def __init__(self, foo, bar):
             self.foo = foo
@@ -387,6 +388,7 @@ attribute to get the object.
         def __repr__(self):
             return f"foo:{self.foo} bar:{self.bar}"
 
+
     class MyUserSchema(Schema):
         foo = fields.Int()
         bar = fields.String()
@@ -394,6 +396,7 @@ attribute to get the object.
         @post_load
         def make_user(self, data, **kwargs):
             return User(**data)
+
 
     # 2.x
     user = MyUserSchema().load({"foo": 42, "bar": "whatever"})
