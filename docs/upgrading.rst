@@ -368,6 +368,43 @@ or at load time.
     #  Value passed on load overrides instance attribute
     schema.load({"foo": 42, "bar": "whatever"}, unknown=RAISE)  # => ValidationError
 
+Accessing a deserialized object is no longer done via ``.data``
+****************************
+
+Marshmallow 3.x no longer returns an ``UnmarshalResult`` as a result of returning an object via ``@post_load``.  It now
+returns just the object itself.  The object is now accessed directly, instead of having to query the the `data`
+attribute to get the object.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    class User:
+        def __init__(self, foo, bar):
+            self.foo = foo
+            self.bar = bar
+
+        def __repr__(self):
+            return f"foo:{self.foo} bar:{self.bar}"
+
+    class MyUserSchema(Schema):
+        foo = fields.Int()
+        bar = fields.String()
+
+        @post_load
+        def make_user(self, data, **kwargs):
+            return User(**data)
+
+    # 2.x
+    user = MyUserSchema().load({"foo": 42, "bar": "whatever"})
+    user.data  # => "foo:42 bar:whatever"
+    user.data.foo  # => 42
+
+    # 3.x
+    user = MyUserSchema().load({"foo": 42, "bar": "whatever"})
+    user  # => "foo:42 bar:whatever"
+    user.foo  # => 42
+
 Overriding ``get_attribute``
 ****************************
 
@@ -375,7 +412,7 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
 
 .. code-block:: python
 
-    from marshmallow import Schema
+    from marshmallow import Schema, fields
 
     # 2.x
     class MySchema(Schema):
