@@ -2580,6 +2580,25 @@ class TestContext:
         obj = {"inner": {"foo": 42}}
         assert outer.dump(obj)
 
+    def test_context_thread_safe(self):
+        class InnerSchema(Schema):
+            i = fields.Integer()
+
+        class OuterSchema(Schema):
+            inner = fields.Nested(InnerSchema)
+
+        outer_1 = OuterSchema()
+        outer_1.context = {1: 1}
+        outer_1.dump({"inner": {"i": 1}})
+        outer_2 = OuterSchema()
+        outer_2.context = {2: 2}
+        outer_2.dump({"inner": {"i": 1}})
+
+        assert outer_1.context == {1: 1}
+        assert outer_2.context == {2: 2}
+        assert outer_1.fields["inner"].context == {1: 1}
+        assert outer_2.fields["inner"].context == {2: 2}
+
 
 def test_serializer_can_specify_nested_object_as_attribute(blog):
     class BlogUsernameSchema(Schema):
