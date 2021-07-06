@@ -42,6 +42,7 @@ def _get_fields(attrs, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
 
     :param attrs: Mapping of class attributes
+    :param bool ordered: Sort fields by creation index
     """
     fields = [
         (field_name, field_value)
@@ -98,6 +99,10 @@ class SchemaMeta(type):
             else:
                 ordered = False
         cls_fields = _get_fields(attrs, ordered=ordered)
+        # Remove fields from list of class attributes to avoid shadowing
+        # Schema attributes/methods in case of name conflict
+        for field_name, _ in cls_fields:
+            del attrs[field_name]
         klass = super().__new__(mcs, name, bases, attrs)
         inherited_fields = _get_fields_by_mro(klass, ordered=ordered)
 
