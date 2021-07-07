@@ -9,6 +9,16 @@ Features:
 - Add ``validate.Unique`` (:pr:`1793`).
   Thanks :user:`bonastreyair` for the PR.
 
+3.12.2 (2021-07-06)
+*******************
+
+Bug fixes:
+
+- Don't expose ``Field``\s as ``Schema`` attributes. This reverts a change
+  introduced in 3.12.0 that causes issues when field names conflict with
+  ``Schema`` attributes or methods. ``Fields``\s are still accessible on a
+   ``Schema`` instance throught the ``fields`` attribute. (:pr:`1843`)
+
 3.12.1 (2021-05-10)
 *******************
 
