@@ -128,7 +128,7 @@ class Email(Validator):
     DOMAIN_REGEX = re.compile(
         # domain
         r'(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
-        r'(?:[A-Z]{2,6}|[A-Z0-9-]{2,})\Z'
+        r'(?:[A-Z]{1,6}|[A-Z0-9-]+)\Z'
         # literal form, ipv4 address (SMTP 4.1.3)
         r'|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
         r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]\Z', re.IGNORECASE | re.UNICODE)

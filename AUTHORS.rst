@@ -93,3 +93,4 @@ Contributors (chronological)
 - Bryce Drennan `@brycedrennan <https://github.com/brycedrennan>`_
 - Cristi Scoarta `@cristi23 <https://github.com/cristi23>`_
 - Nathan `@nbanmp <https://github.com/nbanmp>`_
+- Gautam Krishna R `@gautamkrishnar <https://github.com/gautamkrishnar>`_

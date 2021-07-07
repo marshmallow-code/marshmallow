@@ -502,6 +502,13 @@ def test_email_field(SchemaClass):
     s = SchemaClass().dump(u)
     assert s.data['email'] == "john@example.com"
 
+@pytest.mark.parametrize('SchemaClass',
+    [UserSchema, UserMetaSchema])
+def test_email_single_character_tld(SchemaClass):
+    u = User("John", email="john@a.a")
+    s = SchemaClass().dump(u)
+    assert s.data['email'] == "john@a.a"
+
 def test_stored_invalid_email():
     u = {'name': 'John', 'email': 'johnexample.com'}
     s = UserSchema().load(u)
