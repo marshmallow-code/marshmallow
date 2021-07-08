@@ -4,17 +4,17 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "mypy==0.812",
-        "flake8==3.9.0",
+        "mypy==0.910",
+        "flake8==3.9.2",
         "flake8-bugbear==21.4.3",
         "pre-commit~=2.4",
     ],
     "docs": [
-        "sphinx==3.4.3",
+        "sphinx==4.0.3",
         "sphinx-issues==1.2.0",
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
-        "autodocsumm==0.2.2",
+        "autodocsumm==0.2.6",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]

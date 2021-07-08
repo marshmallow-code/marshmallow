@@ -25,7 +25,7 @@ from marshmallow.exceptions import (
     StringNotCollectionError,
     FieldInstanceResolutionError,
 )
-from marshmallow.validate import Validator, Length
+from marshmallow.validate import And, Length
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 __all__ = [
@@ -243,21 +243,11 @@ class Field(FieldABC):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
         does not succeed.
         """
-        errors = []
-        kwargs = {}
-        for validator in self.validators:
-            try:
-                r = validator(value)
-                if not isinstance(validator, Validator) and r is False:
-                    raise self.make_error("validator_failed")
-            except ValidationError as err:
-                kwargs.update(err.kwargs)
-                if isinstance(err.messages, dict):
-                    errors.append(err.messages)
-                else:
-                    errors.extend(err.messages)
-        if errors:
-            raise ValidationError(errors, **kwargs)
+        self._validate_all(value)
+
+    @property
+    def _validate_all(self):
+        return And(*self.validators, error=self.error_messages["validator_failed"])
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
         """Helper method to make a `ValidationError` with an error message
@@ -363,10 +353,13 @@ class Field(FieldABC):
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
-        :param Schema schema: Parent schema.
+        :param Schema|Field schema: Parent object.
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
+        self.root = self.root or (
+            self.parent.root if isinstance(self.parent, FieldABC) else self.parent
+        )
 
     def _serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
@@ -418,17 +411,6 @@ class Field(FieldABC):
     def context(self):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
-
-    @property
-    def root(self):
-        """Reference to the `Schema` that this field belongs to even if it is buried in a
-        container field (e.g. `List`).
-        Return `None` for unbound fields.
-        """
-        ret = self
-        while hasattr(ret, "parent"):
-            ret = ret.parent
-        return ret if isinstance(ret, SchemaABC) else None
 
 
 class Raw(Field):
@@ -1630,8 +1612,7 @@ class Dict(Mapping):
 
 
 class Url(String):
-    """A validated URL field. Validation occurs during both serialization and
-    deserialization.
+    """An URL field.
 
     :param default: Default value for the field if the attribute is not set.
     :param relative: Whether to allow relative URLs.
@@ -1667,8 +1648,7 @@ class Url(String):
 
 
 class Email(String):
-    """A validated email field. Validation occurs during both serialization and
-    deserialization.
+    """An email field.
 
     :param args: The same positional arguments that :class:`String` receives.
     :param kwargs: The same keyword arguments that :class:`String` receives.

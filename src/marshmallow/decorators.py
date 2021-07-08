@@ -59,7 +59,7 @@ Example: ::
     them in the same processing method.
 """
 import functools
-
+from typing import Any, Callable, Dict, Optional, Tuple, Union, cast
 
 PRE_DUMP = "pre_dump"
 POST_DUMP = "post_dump"
@@ -69,7 +69,13 @@ VALIDATES = "validates"
 VALIDATES_SCHEMA = "validates_schema"
 
 
-def validates(field_name: str):
+class MarshmallowHook:
+    __marshmallow_hook__ = (
+        None
+    )  # type: Optional[Dict[Union[Tuple[str, bool], str], Any]]
+
+
+def validates(field_name: str) -> Callable[..., Any]:
     """Register a field validator.
 
     :param str field_name: Name of the field that the method validates.
@@ -78,8 +84,11 @@ def validates(field_name: str):
 
 
 def validates_schema(
-    fn=None, pass_many=False, pass_original=False, skip_on_field_errors=True
-):
+    fn: Optional[Callable[..., Any]] = None,
+    pass_many: bool = False,
+    pass_original: bool = False,
+    skip_on_field_errors: bool = True,
+) -> Callable[..., Any]:
     """Register a schema-level validator.
 
     By default it receives a single object at a time, transparently handling the ``many``
@@ -107,7 +116,9 @@ def validates_schema(
     )
 
 
-def pre_dump(fn=None, pass_many=False):
+def pre_dump(
+    fn: Optional[Callable[..., Any]] = None, pass_many: bool = False
+) -> Callable[..., Any]:
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
 
@@ -121,7 +132,11 @@ def pre_dump(fn=None, pass_many=False):
     return set_hook(fn, (PRE_DUMP, pass_many))
 
 
-def post_dump(fn=None, pass_many=False, pass_original=False):
+def post_dump(
+    fn: Optional[Callable[..., Any]] = None,
+    pass_many: bool = False,
+    pass_original: bool = False,
+) -> Callable[..., Any]:
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
@@ -138,7 +153,9 @@ def post_dump(fn=None, pass_many=False, pass_original=False):
     return set_hook(fn, (POST_DUMP, pass_many), pass_original=pass_original)
 
 
-def pre_load(fn=None, pass_many=False):
+def pre_load(
+    fn: Optional[Callable[..., Any]] = None, pass_many: bool = False
+) -> Callable[..., Any]:
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
 
@@ -153,7 +170,11 @@ def pre_load(fn=None, pass_many=False):
     return set_hook(fn, (PRE_LOAD, pass_many))
 
 
-def post_load(fn=None, pass_many=False, pass_original=False):
+def post_load(
+    fn: Optional[Callable[..., Any]] = None,
+    pass_many: bool = False,
+    pass_original: bool = False,
+) -> Callable[..., Any]:
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
@@ -171,7 +192,9 @@ def post_load(fn=None, pass_many=False, pass_original=False):
     return set_hook(fn, (POST_LOAD, pass_many), pass_original=pass_original)
 
 
-def set_hook(fn, key, **kwargs):
+def set_hook(
+    fn: Optional[Callable[..., Any]], key: Union[Tuple[str, bool], str], **kwargs: Any
+) -> Callable[..., Any]:
     """Mark decorated function as a hook to be picked up later.
     You should not need to use this method directly.
 
@@ -188,12 +211,14 @@ def set_hook(fn, key, **kwargs):
 
     # Set a __marshmallow_hook__ attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
+    function = cast(MarshmallowHook, fn)
     try:
-        hook_config = fn.__marshmallow_hook__
+        hook_config = function.__marshmallow_hook__
     except AttributeError:
-        fn.__marshmallow_hook__ = hook_config = {}
+        function.__marshmallow_hook__ = hook_config = {}
     # Also save the kwargs for the tagged function on
     # __marshmallow_hook__, keyed by (<tag>, <pass_many>)
-    hook_config[key] = kwargs
+    if hook_config is not None:
+        hook_config[key] = kwargs
 
     return fn

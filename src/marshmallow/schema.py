@@ -32,28 +32,23 @@ from marshmallow.utils import (
     get_value,
     is_collection,
     is_instance_or_subclass,
-    is_iterable_but_not_string,
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 _T = typing.TypeVar("_T")
 
 
-def _get_fields(attrs, field_class, pop=False, ordered=False):
+def _get_fields(attrs, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
 
     :param attrs: Mapping of class attributes
-    :param type field_class: Base field class
-    :param bool pop: Remove matching fields
+    :param bool ordered: Sort fields by creation index
     """
     fields = [
         (field_name, field_value)
         for field_name, field_value in attrs.items()
-        if is_instance_or_subclass(field_value, field_class)
+        if is_instance_or_subclass(field_value, base.FieldABC)
     ]
-    if pop:
-        for field_name, _ in fields:
-            del attrs[field_name]
     if ordered:
         fields.sort(key=lambda pair: pair[1]._creation_index)
     return fields
@@ -61,13 +56,12 @@ def _get_fields(attrs, field_class, pop=False, ordered=False):
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
-def _get_fields_by_mro(klass, field_class, ordered=False):
+def _get_fields_by_mro(klass, ordered=False):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
 
     :param type klass: Class whose fields to retrieve
-    :param type field_class: Base field class
     """
     mro = inspect.getmro(klass)
     # Loop over mro in reverse to maintain correct order of fields
@@ -75,7 +69,6 @@ def _get_fields_by_mro(klass, field_class, ordered=False):
         (
             _get_fields(
                 getattr(base, "_declared_fields", base.__dict__),
-                field_class,
                 ordered=ordered,
             )
             for base in mro[:0:-1]
@@ -105,9 +98,13 @@ class SchemaMeta(type):
                     break
             else:
                 ordered = False
-        cls_fields = _get_fields(attrs, base.FieldABC, pop=True, ordered=ordered)
+        cls_fields = _get_fields(attrs, ordered=ordered)
+        # Remove fields from list of class attributes to avoid shadowing
+        # Schema attributes/methods in case of name conflict
+        for field_name, _ in cls_fields:
+            del attrs[field_name]
         klass = super().__new__(mcs, name, bases, attrs)
-        inherited_fields = _get_fields_by_mro(klass, base.FieldABC, ordered=ordered)
+        inherited_fields = _get_fields_by_mro(klass, ordered=ordered)
 
         meta = klass.Meta
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
@@ -545,9 +542,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Validation no longer occurs upon serialization.
         """
         many = self.many if many is None else bool(many)
-        if many and is_iterable_but_not_string(obj):
-            obj = list(obj)
-
         if self._has_processors(PRE_DUMP):
             processed_obj = self._invoke_dump_processors(
                 PRE_DUMP, obj, many=many, original_data=obj

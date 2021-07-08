@@ -15,6 +15,7 @@ class FieldABC:
 
     parent = None
     name = None
+    root = None
 
     def serialize(self, attr, obj, accessor=None):
         raise NotImplementedError
