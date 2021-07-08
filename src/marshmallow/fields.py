@@ -737,9 +737,6 @@ class List(Iterable):
 
     .. versionchanged:: 3.0.0rc9
         Does not serialize scalar values to single-item lists.
-
-    .. versionchanged:: 3.12.0
-        Inherits from Iterable instead of Field.
     """
 
     #: Default error messages.
