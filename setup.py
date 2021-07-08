@@ -2,7 +2,7 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "tests": ["pytest", "pytz", "simplejson"],
+    "tests": ["pytest", "pytz", "simplejson", "typing-extensions"],
     "lint": [
         "mypy==0.910",
         "flake8==3.9.2",
@@ -15,6 +15,7 @@ EXTRAS_REQUIRE = {
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
         "autodocsumm==0.2.6",
+        "typing-extensions==3.10.0.0",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
