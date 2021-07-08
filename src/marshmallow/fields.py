@@ -11,6 +11,7 @@ import math
 import typing
 import warnings
 from collections.abc import Mapping as _Mapping
+from typing_extensions import Protocol
 
 from marshmallow import validate, utils, class_registry, types
 from marshmallow.base import FieldABC, SchemaABC
@@ -69,12 +70,6 @@ __all__ = [
 ]
 
 _T = typing.TypeVar("_T")
-IterableType = typing.Union[
-    typing.Type[typing.FrozenSet],
-    typing.Type[typing.List],
-    typing.Type[typing.Set],
-    typing.Type[typing.Tuple],
-]
 
 
 class Field(FieldABC):
@@ -654,6 +649,16 @@ class Pluck(Nested):
         return self._load(value, data, partial=partial)
 
 
+class _SerializationType(Protocol):
+    def __call__(self, value: typing.List) -> typing.Iterable:
+        pass
+
+
+class _DeserializationType(Protocol):
+    def __call__(self, value: typing.List) -> typing.Iterable:
+        pass
+
+
 class Iterable(Field):
     """An abstract class for iterables.
 
@@ -672,8 +677,8 @@ class Iterable(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid iterable."}
 
-    serialization_type = list  # type: IterableType
-    deserialization_type = list  # type: IterableType
+    serialization_type = list  # type: typing.ClassVar[_SerializationType]
+    deserialization_type = list  # type: typing.ClassVar[_DeserializationType]
 
     def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
