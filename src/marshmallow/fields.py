@@ -660,7 +660,7 @@ class Iterable(Field):
             serialization_type = frozenset
             deserialization_type = frozenset
 
-    .. versionadded:: 3.12.0
+    .. versionadded:: 3.13.0
     """
 
     #: Default error messages.
