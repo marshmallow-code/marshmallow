@@ -10,8 +10,7 @@ import pytest
 
 from marshmallow import Schema, fields, missing as missing_
 
-from tests.base import User, ALL_FIELDS, central
-from tests.frozenset_field import FrozenSet
+from tests.base import User, ALL_FIELDS, central, FrozenSet
 
 
 class DateTimeList:
