@@ -163,3 +163,4 @@ Contributors (chronological)
 - Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
 - Michael Dimchuk  `@michaeldimchuk <https://github.com/michaeldimchuk>`_
 - Jochen Kupperschmidt  `@homeworkprod <https://github.com/homeworkprod>`_
+- Midokura `@midokura <https://github.com/midokura>`_

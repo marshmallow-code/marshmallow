@@ -6,6 +6,7 @@ from itertools import zip_longest
 from operator import attrgetter
 
 from marshmallow import types
+from marshmallow import utils
 from marshmallow.exceptions import ValidationError
 
 _T = typing.TypeVar("_T")
@@ -644,3 +645,56 @@ class ContainsNoneOf(NoneOf):
             if val in self.iterable:
                 raise ValidationError(self._format_error(value))
         return value
+
+
+class Unique(Validator):
+    """Validator which succeeds if the ``value`` is an ``iterable`` and has unique
+    elements. In case of a list of objects, it can easy check an internal
+    attribute by passing the ``attribute`` parameter.
+    Validator which fails if ``value`` is not a member of ``iterable``.
+
+    :param str attribute: The name of the attribute of the object you want to check.
+    """
+
+    default_message = "Invalid input. Supported lists or str."
+    error = "Found a duplicate value: {value}."
+    attribute_error = "Found a duplicate object attribute ({attribute}): {value}."
+
+    def __init__(self, attribute: typing.Optional[str] = None):
+        self.attribute = attribute
+
+    def _repr_args(self) -> str:
+        return "attribute={!r}".format(self.attribute)
+
+    def _format_error(self, value) -> str:
+        if self.attribute:
+            return self.attribute_error.format(attribute=self.attribute, value=value)
+        return self.error.format(value=value)
+
+    def __call__(self, value: typing.Iterable) -> typing.Iterable:
+        if not isinstance(value, typing.Iterable):
+            raise ValidationError(self.default_message)
+        ids = [
+            utils.get_value(item, self.attribute) if self.attribute else item
+            for item in value
+        ]
+        try:
+            self._duplicate_hash(ids)
+        except TypeError:
+            self._duplicate_equal(ids)
+
+        return value
+
+    def _duplicate_hash(self, ids: typing.List) -> None:
+        used = set()
+        for _id in ids:
+            if _id in used:
+                raise ValidationError(self._format_error(_id))
+            used.add(_id)
+
+    def _duplicate_equal(self, ids: typing.List) -> None:
+        used = []
+        for _id in ids:
+            if _id in used:
+                raise ValidationError(self._format_error(_id))
+            used.append(_id)

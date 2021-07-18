@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.13.0 (unreleased)
+*******************
+
+Features:
+
+- Add ``validate.Unique`` (:pr:`1793`).
+  Thanks :user:`bonastreyair` for the PR.
+
 3.12.2 (2021-07-06)
 *******************
 
