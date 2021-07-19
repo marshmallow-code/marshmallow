@@ -400,10 +400,10 @@ By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marsh
 
 This behavior can be modified with the ``unknown`` option, which accepts one of the following:
 
-- `RAISE <marshmallow.utils.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+- :data:`RAISE <marshmallow.utils.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
   if there are any unknown fields
-- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
-- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
+- :data:`EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
+- :data:`INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
 
 You can specify ``unknown`` in the *class Meta* of your `Schema`,
 
@@ -422,7 +422,7 @@ at instantiation time,
 
     schema = UserSchema(unknown=INCLUDE)
 
-or when calling `load <Schema.load>`.
+or when calling :meth:`load <Schema.load>`.
 
 .. code-block:: python
 
@@ -432,6 +432,14 @@ The ``unknown`` option value set in :meth:`load <Schema.load>` will override the
 
 This order of precedence allows you to change the behavior of a schema for different contexts.
 
+.. warning::
+
+    This does not apply to :doc:`nested schemas <nesting>` which default to :data:`RAISE <marshmallow.utils.RAISE>`.
+    To override behavior for nested fields, pass the ``unknown`` parameter to the initializer:
+
+    .. code-block:: python
+
+       nested_field = Nested(UserSchema, unknown=EXCLUDE)
 
 Validation Without Deserialization
 ----------------------------------
