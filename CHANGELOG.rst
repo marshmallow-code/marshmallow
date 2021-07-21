@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+3.13.0 (2021-07-21)
+*******************
+
+Features:
+
+- Replace ``missing``/``default`` field parameters with
+  ``load_default``/``dump_default`` (:pr:`1742`).
+  Thanks :user:`sirosen` for the PR.
+
+Deprecations:
+
+- The use of ``missing``/``default`` field parameters is deprecated and will be
+  removed in marshmallow 4. ``load_default``/``dump_default`` should be used
+  instead.
+
 3.12.2 (2021-07-06)
 *******************
 
