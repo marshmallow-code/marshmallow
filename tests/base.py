@@ -163,7 +163,7 @@ class UserSchema(Schema):
     created_iso = fields.DateTime(format="iso", attribute="created", dump_only=True)
     updated = fields.DateTime()
     species = fields.String(attribute="SPECIES")
-    id = fields.String(default="no-id")
+    id = fields.String(dump_default="no-id")
     uppername = Uppercased(attribute="name", dump_only=True)
     homepage = fields.Url()
     email = fields.Email()

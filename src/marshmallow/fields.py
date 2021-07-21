@@ -76,10 +76,10 @@ class Field(FieldABC):
     data does not need to be formatted before being serialized or deserialized.
     On error, the name of the field will be returned.
 
-    :param default: If set, this value will be used during serialization if the input value
-        is missing. If not set, the field will be excluded from the serialized output if the
-        input value is missing. May be a value or a callable.
-    :param missing: Default deserialization value for the field if the field is not
+    :param dump_default: If set, this value will be used during serialization if the
+        input value is missing. If not set, the field will be excluded from the
+        serialized output if the input value is missing. May be a value or a callable.
+    :param load_default: Default deserialization value for the field if the field is not
         found in the input data. May be a value or a callable.
     :param data_key: The name of the dict key in the external representation, i.e.
         the input of `load` and the output of `dump`.
@@ -148,8 +148,10 @@ class Field(FieldABC):
     def __init__(
         self,
         *,
-        default: typing.Any = missing_,
+        load_default: typing.Any = missing_,
         missing: typing.Any = missing_,
+        dump_default: typing.Any = missing_,
+        default: typing.Any = missing_,
         data_key: typing.Optional[str] = None,
         attribute: typing.Optional[str] = None,
         validate: typing.Optional[
@@ -166,7 +168,26 @@ class Field(FieldABC):
         metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **additional_metadata
     ) -> None:
-        self.default = default
+        # handle deprecated `default` and `missing` parameters
+        if default is not missing_:
+            warnings.warn(
+                "The 'default' argument to fields is deprecated. "
+                "Use 'dump_default' instead.",
+                RemovedInMarshmallow4Warning,
+            )
+            if dump_default is missing_:
+                dump_default = default
+        if missing is not missing_:
+            warnings.warn(
+                "The 'missing' argument to fields is deprecated. "
+                "Use 'load_default' instead.",
+                RemovedInMarshmallow4Warning,
+            )
+            if load_default is missing_:
+                load_default = missing
+        self.dump_default = dump_default
+        self.load_default = load_default
+
         self.attribute = attribute
         self.data_key = data_key
         self.validate = validate
@@ -182,15 +203,14 @@ class Field(FieldABC):
                 "or a collection of callables."
             )
 
-        # If allow_none is None and missing is None
+        # If allow_none is None and load_default is None
         # None should be considered valid by default
-        self.allow_none = missing is None if allow_none is None else allow_none
+        self.allow_none = load_default is None if allow_none is None else allow_none
         self.load_only = load_only
         self.dump_only = dump_only
-        if required is True and missing is not missing_:
-            raise ValueError("'missing' must not be set for required fields.")
+        if required is True and load_default is not missing_:
+            raise ValueError("'load_default' must not be set for required fields.")
         self.required = required
-        self.missing = missing
 
         metadata = metadata or {}
         self.metadata = {**metadata, **additional_metadata}
@@ -213,11 +233,11 @@ class Field(FieldABC):
 
     def __repr__(self) -> str:
         return (
-            "<fields.{ClassName}(default={self.default!r}, "
+            "<fields.{ClassName}(dump_default={self.dump_default!r}, "
             "attribute={self.attribute!r}, "
             "validate={self.validate}, required={self.required}, "
             "load_only={self.load_only}, dump_only={self.dump_only}, "
-            "missing={self.missing}, allow_none={self.allow_none}, "
+            "load_default={self.load_default}, allow_none={self.allow_none}, "
             "error_messages={self.error_messages})>".format(
                 ClassName=self.__class__.__name__, self=self
             )
@@ -309,7 +329,7 @@ class Field(FieldABC):
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(obj, attr, accessor=accessor)
             if value is missing_:
-                default = self.default
+                default = self.dump_default
                 value = default() if callable(default) else default
             if value is missing_:
                 return value
@@ -337,7 +357,7 @@ class Field(FieldABC):
         # deserialized value
         self._validate_missing(value)
         if value is missing_:
-            _miss = self.missing
+            _miss = self.load_default
             return _miss() if callable(_miss) else _miss
         if self.allow_none and value is None:
             return None
@@ -411,6 +431,44 @@ class Field(FieldABC):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
 
+    # the default and missing properties are provided for compatibility and
+    # emit warnings when they are accessed and set
+    @property
+    def default(self):
+        warnings.warn(
+            "The 'default' attribute of fields is deprecated. "
+            "Use 'dump_default' instead.",
+            RemovedInMarshmallow4Warning,
+        )
+        return self.dump_default
+
+    @default.setter
+    def default(self, value):
+        warnings.warn(
+            "The 'default' attribute of fields is deprecated. "
+            "Use 'dump_default' instead.",
+            RemovedInMarshmallow4Warning,
+        )
+        self.dump_default = value
+
+    @property
+    def missing(self):
+        warnings.warn(
+            "The 'missing' attribute of fields is deprecated. "
+            "Use 'load_default' instead.",
+            RemovedInMarshmallow4Warning,
+        )
+        return self.load_default
+
+    @missing.setter
+    def missing(self, value):
+        warnings.warn(
+            "The 'missing' attribute of fields is deprecated. "
+            "Use 'load_default' instead.",
+            RemovedInMarshmallow4Warning,
+        )
+        self.load_default = value
+
 
 class Raw(Field):
     """Field that applies no formatting."""
@@ -467,6 +525,7 @@ class Nested(Field):
         self,
         nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         *,
+        dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
         only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
@@ -493,7 +552,7 @@ class Nested(Field):
         self.many = many
         self.unknown = unknown
         self._schema = None  # Cached Schema instance
-        super().__init__(default=default, **kwargs)
+        super().__init__(default=default, dump_default=dump_default, **kwargs)
 
     @property
     def schema(self):
@@ -1892,8 +1951,8 @@ class Constant(Field):
     def __init__(self, constant: typing.Any, **kwargs):
         super().__init__(**kwargs)
         self.constant = constant
-        self.missing = constant
-        self.default = constant
+        self.load_default = constant
+        self.dump_default = constant
 
     def _serialize(self, value, *args, **kwargs):
         return self.constant
