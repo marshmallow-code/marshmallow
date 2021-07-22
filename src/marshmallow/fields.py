@@ -954,6 +954,7 @@ class Number(Field):
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
         if value is None:
             return None
+        value = self._validated(value)
         ret = self._format_num(value)  # type: _T
         return self._to_string(ret) if self.as_string else ret
 

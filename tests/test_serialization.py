@@ -9,6 +9,7 @@ import ipaddress
 import pytest
 
 from marshmallow import Schema, fields, missing as missing_
+from marshmallow.exceptions import ValidationError
 
 from tests.base import User, ALL_FIELDS, central
 
@@ -118,6 +119,17 @@ class TestFieldSerialization:
     def test_integer_field(self, user):
         field = fields.Integer()
         assert field.serialize("age", user) == 42
+
+    def test_strict_integer_field(self, user):
+        field = fields.Integer(strict=True)
+        assert field.serialize("age", user) == 42
+
+    def test_strict_integer_field_validation_error(self, user):
+        user.age = 42.1
+        field = fields.Integer(strict=True)
+        with pytest.raises(ValidationError) as excinfo:
+            field.serialize("age", user)
+        assert excinfo.value.args[0] == "Not a valid integer."
 
     def test_integer_as_string_field(self, user):
         field = fields.Integer(as_string=True)
