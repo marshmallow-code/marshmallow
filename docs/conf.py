@@ -1,6 +1,7 @@
 from collections import OrderedDict
 import sys
 import os
+import time
 import datetime as dt
 
 import alabaster
@@ -27,13 +28,18 @@ issues_github_path = "marshmallow-code/marshmallow"
 
 templates_path = ["_templates"]
 
+
+build_date = dt.datetime.utcfromtimestamp(
+    int(os.environ.get("SOURCE_DATE_EPOCH", time.time()))
+)
+
 source_suffix = ".rst"
 master_doc = "index"
 
 project = "marshmallow"
 copyright = (
     ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
-        dt.datetime.utcfromtimestamp(os.path.getmtime("../CHANGELOG.rst"))
+        build_date
     )
 )
 
