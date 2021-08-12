@@ -51,6 +51,6 @@ class SchemaABC:
         many: typing.Optional[bool] = None,
         partial=None,
         unknown=None,
-        **kwargs
+        **kwargs,
     ):
         raise NotImplementedError

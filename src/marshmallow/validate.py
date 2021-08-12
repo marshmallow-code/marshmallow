@@ -151,7 +151,7 @@ class URL(Validator):
         relative: bool = False,
         schemes: typing.Optional[types.StrSequenceOrSet] = None,
         require_tld: bool = True,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
     ):
         self.relative = relative
         self.error = error or self.default_message  # type: str
@@ -277,7 +277,7 @@ class Range(Validator):
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
     ):
         self.min = min
         self.max = max
@@ -347,7 +347,7 @@ class Length(Validator):
         max: typing.Optional[int] = None,
         *,
         equal: typing.Optional[int] = None,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
     ):
         if equal is not None and any([min, max]):
             raise ValueError(
@@ -436,7 +436,7 @@ class Regexp(Validator):
         regex: typing.Union[str, bytes, typing.Pattern],
         flags: int = 0,
         *,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
     ):
         self.regex = (
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
@@ -547,7 +547,7 @@ class OneOf(Validator):
         choices: typing.Iterable,
         labels: typing.Optional[typing.Iterable[str]] = None,
         *,
-        error: typing.Optional[str] = None
+        error: typing.Optional[str] = None,
     ):
         self.choices = choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
