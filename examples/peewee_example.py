@@ -159,7 +159,7 @@ def register():
         user = User.create(
             email=data["email"], joined_on=dt.datetime.now(), password=data["password"]
         )
-        message = "Successfully created user: {}".format(user.email)
+        message = f"Successfully created user: {user.email}"
     else:
         return {"errors": "That email address is already in the database"}, 400
 

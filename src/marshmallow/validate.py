@@ -23,7 +23,7 @@ class Validator(ABC):
 
     def __repr__(self) -> str:
         args = self._repr_args()
-        args = "{}, ".format(args) if args else ""
+        args = f"{args}, " if args else ""
 
         return "<{self.__class__.__name__}({args}error={self.error!r})>".format(
             self=self, args=args
@@ -68,7 +68,7 @@ class And(Validator):
         self.error = error or self.default_error_message  # type: str
 
     def _repr_args(self) -> str:
-        return "validators={!r}".format(self.validators)
+        return f"validators={self.validators!r}"
 
     def __call__(self, value: typing.Any) -> typing.Any:
         errors = []
@@ -159,7 +159,7 @@ class URL(Validator):
         self.require_tld = require_tld
 
     def _repr_args(self) -> str:
-        return "relative={!r}".format(self.relative)
+        return f"relative={self.relative!r}"
 
     def _format_error(self, value) -> str:
         return self.error.format(input=value)
@@ -361,7 +361,7 @@ class Length(Validator):
         self.equal = equal
 
     def _repr_args(self) -> str:
-        return "min={!r}, max={!r}, equal={!r}".format(self.min, self.max, self.equal)
+        return f"min={self.min!r}, max={self.max!r}, equal={self.equal!r}"
 
     def _format_error(self, value: typing.Sized, message: str) -> str:
         return (self.error or message).format(
@@ -403,7 +403,7 @@ class Equal(Validator):
         self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
-        return "comparable={!r}".format(self.comparable)
+        return f"comparable={self.comparable!r}"
 
     def _format_error(self, value: _T) -> str:
         return self.error.format(input=value, other=self.comparable)
@@ -444,7 +444,7 @@ class Regexp(Validator):
         self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
-        return "regex={!r}".format(self.regex)
+        return f"regex={self.regex!r}"
 
     def _format_error(self, value: typing.Union[str, bytes]) -> str:
         return self.error.format(input=value, regex=self.regex.pattern)
@@ -484,7 +484,7 @@ class Predicate(Validator):
         self.kwargs = kwargs
 
     def _repr_args(self) -> str:
-        return "method={!r}, kwargs={!r}".format(self.method, self.kwargs)
+        return f"method={self.method!r}, kwargs={self.kwargs!r}"
 
     def _format_error(self, value: typing.Any) -> str:
         return self.error.format(input=value, method=self.method)
@@ -516,7 +516,7 @@ class NoneOf(Validator):
         self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
-        return "iterable={!r}".format(self.iterable)
+        return f"iterable={self.iterable!r}"
 
     def _format_error(self, value) -> str:
         return self.error.format(input=value, values=self.values_text)
@@ -556,7 +556,7 @@ class OneOf(Validator):
         self.error = error or self.default_message  # type: str
 
     def _repr_args(self) -> str:
-        return "choices={!r}, labels={!r}".format(self.choices, self.labels)
+        return f"choices={self.choices!r}, labels={self.labels!r}"
 
     def _format_error(self, value) -> str:
         return self.error.format(

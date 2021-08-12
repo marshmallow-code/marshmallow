@@ -27,7 +27,7 @@ class AuthorSchema(Schema):
     full_name = fields.Method("get_full_name")
 
     def get_full_name(self, author):
-        return "{}, {}".format(author.last, author.first)
+        return f"{author.last}, {author.first}"
 
 
 class QuoteSchema(Schema):

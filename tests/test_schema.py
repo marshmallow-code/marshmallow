@@ -2793,7 +2793,7 @@ class TestDefaults:
         assert errors == {}
         result = schema.dump(data)
         for key in data.keys():
-            msg = "result[{!r}] should be None".format(key)
+            msg = f"result[{key!r}] should be None"
             assert result[key] is None, msg
 
     def test_default_and_value_missing(self, schema, data):
