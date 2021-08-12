@@ -28,7 +28,7 @@ issues_github_path = "marshmallow-code/marshmallow"
 
 templates_path = ["_templates"]
 
-
+# Use SOURCE_DATE_EPOCH for reproducible build output https://reproducible-builds.org/docs/source-date-epoch/
 build_date = dt.datetime.utcfromtimestamp(
     int(os.environ.get("SOURCE_DATE_EPOCH", time.time()))
 )
