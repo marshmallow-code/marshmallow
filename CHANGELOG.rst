@@ -8,6 +8,7 @@ Other changes:
 
 - Don't build universal wheels. We don't support Python 2 anymore.
   (:issue:`1860`) Thanks :user:`YKdvd` for reporting.
+- Make the build reproducible (:pr:`#1862`).
 
 3.13.0 (2021-07-21)
 *******************
