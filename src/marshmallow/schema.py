@@ -839,7 +839,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if self._has_processors(PRE_LOAD):
             try:
                 processed_data = self._invoke_load_processors(
-                    PRE_LOAD, data, many=many, original_data=data, partial=partial
+                    PRE_LOAD,
+                    data,
+                    many=many,
+                    original_data=data,
+                    partial=partial,
+                    unknown=unknown,
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
@@ -892,6 +897,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         many=many,
                         original_data=data,
                         partial=partial,
+                        unknown=unknown,
                     )
                 except ValidationError as err:
                     errors = err.normalized_messages()
@@ -1072,7 +1078,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool,
         original_data,
-        partial: typing.Union[bool, types.StrSequenceOrSet]
+        partial: typing.Union[bool, types.StrSequenceOrSet],
+        unknown: str
     ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
@@ -1083,6 +1090,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             many=many,
             original_data=original_data,
             partial=partial,
+            unknown=unknown,
         )
         data = self._invoke_processors(
             tag,
@@ -1091,6 +1099,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             many=many,
             original_data=original_data,
             partial=partial,
+            unknown=unknown,
         )
         return data
 
