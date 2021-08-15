@@ -1333,6 +1333,8 @@ class AwareDateTime(DateTime):
     :param default_timezone: Used on deserialization. If `None`, naive
         datetimes are rejected. If not `None`, naive datetimes are set this
         timezone.
+    :param bool use_serialization: If `True`, naive datetimes are set to
+        `default_timezone` on serialization. If `False`, datetimes are not changed.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionadded:: 3.0.0rc9
@@ -1345,10 +1347,12 @@ class AwareDateTime(DateTime):
         format: typing.Optional[str] = None,
         *,
         default_timezone: typing.Optional[dt.tzinfo] = None,
+        use_serialization: bool = False,
         **kwargs
     ):
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
+        self.use_serialization = use_serialization
 
     def _deserialize(self, value, attr, data, **kwargs):
         ret = super()._deserialize(value, attr, data, **kwargs)
@@ -1361,6 +1365,12 @@ class AwareDateTime(DateTime):
                 )
             ret = ret.replace(tzinfo=self.default_timezone)
         return ret
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if self.use_serialization:
+            if value is not None and not is_aware(value):
+                value = value.replace(tzinfo=self.default_timezone)
+        return super()._serialize(value, attr, obj, **kwargs)
 
 
 class Time(DateTime):

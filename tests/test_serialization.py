@@ -585,6 +585,26 @@ class TestFieldSerialization:
         field = fields.DateTime(format=format)
         assert field.serialize("created", user) == user.created.strftime(format)
 
+    @pytest.mark.parametrize(
+        ("timezone", "value", "expected"),
+        [
+            (None, dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
+            (
+                dt.timezone.utc,
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+                "2013-11-10T01:23:45+00:00",
+            ),
+            (
+                dt.timezone(offset=dt.timedelta(hours=3)),
+                dt.datetime(2013, 11, 10, 1, 23, 45),
+                "2013-11-10T01:23:45+03:00",
+            ),
+        ],
+    )
+    def test_aware_datetime_use_serialization(self, timezone, value, expected):
+        field = fields.AwareDateTime(default_timezone=timezone, use_serialization=True)
+        assert field.serialize("d", {"d": value}) == expected
+
     def test_string_field(self):
         field = fields.String()
         user = User(name=b"foo")
