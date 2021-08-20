@@ -712,6 +712,15 @@ class TestFieldSerialization:
         user.d7 = None
         assert field.serialize("d7", user) is None
 
+        # https://github.com/marshmallow-code/marshmallow/issues/1856
+        user.d8 = dt.timedelta(milliseconds=345)
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
+        assert field.serialize("d8", user) == 345
+
+        user.d9 = dt.timedelta(milliseconds=1999)
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
+        assert field.serialize("d9", user) == 1
+
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
         field = fields.List(fields.DateTime)
