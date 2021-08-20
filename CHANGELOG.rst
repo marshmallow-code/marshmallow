@@ -18,6 +18,9 @@ Features:
 - Replace ``missing``/``default`` field parameters with
   ``load_default``/``dump_default`` (:pr:`1742`).
   Thanks :user:`sirosen` for the PR.
+- Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
+  list of dictionaries (:issue:`1790`, :pr:`1868`).
+  Thanks  :user:`yourun-proger` for PR
 
 Deprecations:
 
