@@ -39,7 +39,7 @@ class ValidationError(MarshmallowError):
                 typing.Dict[str, typing.Any],
             ]
         ] = None,
-        **kwargs
+        **kwargs,
     ):
         self.messages = [message] if isinstance(message, (str, bytes)) else message
         self.field_name = field_name

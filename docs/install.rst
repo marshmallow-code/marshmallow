@@ -3,7 +3,7 @@
 Installation
 ============
 
-**marshmallow** requires Python >= 3.5. It has no external dependencies.
+**marshmallow** requires Python >= 3.6. It has no external dependencies.
 
 Installing/Upgrading from the PyPI
 ----------------------------------
