@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.13.1 (unreleased)
+3.14.0 (unreleased)
 *******************
 
 Other changes:
@@ -9,6 +9,8 @@ Other changes:
 - Don't build universal wheels. We don't support Python 2 anymore.
   (:issue:`1860`) Thanks :user:`YKdvd` for reporting.
 - Make the build reproducible (:pr:`#1862`).
+
+- Drop support for Python 3.5.
 
 3.13.0 (2021-07-21)
 *******************
