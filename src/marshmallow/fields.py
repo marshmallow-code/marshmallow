@@ -1758,7 +1758,7 @@ class IPInterface(Field):
 
     see https://python.readthedocs.io/en/latest/library/ipaddress.html#interface-objects
 
-    :parm bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
+    :param bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
         consisting entirely of zeros included.
     """
 
