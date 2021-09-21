@@ -217,7 +217,8 @@ class Field(FieldABC):
         if additional_metadata:
             warnings.warn(
                 "Passing field metadata as a keyword arg is deprecated. Use the "
-                "explicit `metadata=...` argument instead.",
+                "explicit `metadata=...` argument instead. Affect metadata "
+                "includes {}".format(additional_metadata),
                 RemovedInMarshmallow4Warning,
             )
 
