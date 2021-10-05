@@ -1990,11 +1990,11 @@ class Inferred(Field):
         return field._serialize(value, attr, obj, **kwargs)
 
     
-class EnumString(fields.String):
+class EnumString(String):
     def __init__(self, enum_cls, **kwargs):
         if not issubclass(enum_cls, enum.Enum):
             raise ValueError("enum_cls must be a subclass of Enum")
-        super(EnumString, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.enum_cls = enum_cls
 
     def _serialize(self, value, attr, obj, **kwargs):
