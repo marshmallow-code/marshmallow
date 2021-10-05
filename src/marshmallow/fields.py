@@ -65,6 +65,7 @@ __all__ = [
     "Int",
     "Constant",
     "Pluck",
+    "EnumString",
 ]
 
 _T = typing.TypeVar("_T")
@@ -1993,18 +1994,18 @@ class EnumString(fields.String):
     def __init__(self, enum_cls, **kwargs):
         if not issubclass(enum_cls, enum.Enum):
             raise ValueError("enum_cls must be a subclass of Enum")
-        super().__init__(validate=validate.OneOf(enum_cls._member_names_), **kwargs)
+        super(EnumString, self).__init__(**kwargs)
         self.enum_cls = enum_cls
 
     def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-        return self._enum_cls[value]
-
-    def _deserialize(self, value, attr, data, **kwargs):
         if not isinstance(value, self.enum_cls):
             raise self.make_error("invalid")
         return value.name
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if value is None:
+            return None
+        return self.enum_cls[value]
 
 # Aliases
 URL = Url
