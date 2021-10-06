@@ -10,6 +10,7 @@ import decimal
 import math
 import typing
 import warnings
+import enum
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry, types
