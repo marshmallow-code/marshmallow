@@ -1989,7 +1989,7 @@ class Inferred(Field):
                 self._field_cache[field_cls] = field
         return field._serialize(value, attr, obj, **kwargs)
 
-    
+
 class EnumString(String):
     def __init__(self, enum_cls, **kwargs):
         if not issubclass(enum_cls, enum.Enum):
