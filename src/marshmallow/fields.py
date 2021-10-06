@@ -2007,6 +2007,7 @@ class EnumString(String):
             return None
         return self.enum_cls[value]
 
+
 # Aliases
 URL = Url
 Str = String
