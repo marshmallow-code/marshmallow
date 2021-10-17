@@ -36,7 +36,7 @@ class AuthorSchema(Schema):
     formatted_name = fields.Method("format_name", dump_only=True)
 
     def format_name(self, author):
-        return "{}, {}".format(author.last, author.first)
+        return f"{author.last}, {author.first}"
 
 
 # Custom validator

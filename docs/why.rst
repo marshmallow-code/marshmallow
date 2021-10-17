@@ -15,7 +15,7 @@ Marshmallow makes no assumption about web frameworks or database layers. It will
 Concise, familiar syntax.
 -------------------------
 
-If you have used `Django REST Framework`_ or  `WTForms <https://wtforms.readthedocs.io/en/stable/>`_, marshmallow's :class:`Schema <marshmallow.Schema>` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the ``class Meta`` paradigm. Configuration options can be overriden at application runtime by passing arguments to the `Schema <marshmallow.Schema>` constructor. The :meth:`dump <marshmallow.Schema.dump>` and :meth:`load <marshmallow.Schema.load>` methods are used for serialization and deserialization (of course!).
+If you have used `Django REST Framework`_ or  `WTForms <https://wtforms.readthedocs.io/en/stable/>`_, marshmallow's :class:`Schema <marshmallow.Schema>` syntax will feel familiar to you. Class-level field attributes define the schema for formatting your data. Configuration is added using the ``class Meta`` paradigm. Configuration options can be overridden at application runtime by passing arguments to the `Schema <marshmallow.Schema>` constructor. The :meth:`dump <marshmallow.Schema.dump>` and :meth:`load <marshmallow.Schema.load>` methods are used for serialization and deserialization (of course!).
 
 Class-based schemas allow for code reuse and configuration.
 -----------------------------------------------------------
