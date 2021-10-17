@@ -8,7 +8,9 @@ Other changes:
 
 - Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
   list of dictionaries (:issue:`1790`, :pr:`1868`).
-  Thanks  :user:`yourun-proger` for PR
+  Thanks  :user:`yourun-proger` for PR.
+- Improve warning when passing metadata as keyword arguments (:pr:`1882`).
+  Thanks :user:`traherom` for the PR.
 - Don't build universal wheels. We don't support Python 2 anymore.
   (:issue:`1860`) Thanks :user:`YKdvd` for reporting.
 - Make the build reproducible (:pr:`1862`).
