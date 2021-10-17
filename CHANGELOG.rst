@@ -4,6 +4,11 @@ Changelog
 3.14.0 (unreleased)
 *******************
 
+Bug fixes:
+
+- Fix ``fields.TimeDelta`` serialization precision (:issue:`1865`).
+  Thanks :user:`yarsanich` for reporting.
+
 Other changes:
 
 - Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
