@@ -5,16 +5,16 @@ EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
         "mypy==0.910",
-        "flake8==3.9.2",
-        "flake8-bugbear==21.4.3",
+        "flake8==4.0.1",
+        "flake8-bugbear==21.9.2",
         "pre-commit~=2.4",
     ],
     "docs": [
-        "sphinx==4.1.2",
+        "sphinx==4.2.0",
         "sphinx-issues==1.2.0",
         "alabaster==0.7.12",
         "sphinx-version-warning==1.1.2",
-        "autodocsumm==0.2.6",
+        "autodocsumm==0.2.7",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"] + ["tox"]
@@ -72,17 +72,17 @@ setup(
         "validation",
         "schema",
     ],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     test_suite="tests",
     project_urls={

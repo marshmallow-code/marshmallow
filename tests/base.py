@@ -107,7 +107,7 @@ class User:
         return dt.datetime(2013, 11, 24) - self.created
 
     def __repr__(self):
-        return "<User {}>".format(self.name)
+        return f"<User {self.name}>"
 
 
 class Blog:
@@ -130,7 +130,7 @@ class DummyModel:
         return self.foo == other.foo
 
     def __str__(self):
-        return "bar {}".format(self.foo)
+        return f"bar {self.foo}"
 
 
 ###### Schemas #####
