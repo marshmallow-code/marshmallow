@@ -6,10 +6,12 @@ Changelog
 
 Other changes:
 
+- Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
+  list of dictionaries (:issue:`1790`, :pr:`1868`).
+  Thanks  :user:`yourun-proger` for PR
 - Don't build universal wheels. We don't support Python 2 anymore.
   (:issue:`1860`) Thanks :user:`YKdvd` for reporting.
 - Make the build reproducible (:pr:`1862`).
-
 - Drop support for Python 3.5 (:pr:`1863`).
 - Test against Python 3.10 (:pr:`1888`).
 
@@ -21,9 +23,6 @@ Features:
 - Replace ``missing``/``default`` field parameters with
   ``load_default``/``dump_default`` (:pr:`1742`).
   Thanks :user:`sirosen` for the PR.
-- Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
-  list of dictionaries (:issue:`1790`, :pr:`1868`).
-  Thanks  :user:`yourun-proger` for PR
 
 Deprecations:
 
