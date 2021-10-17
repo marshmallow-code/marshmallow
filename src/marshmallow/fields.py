@@ -1472,7 +1472,9 @@ class TimeDelta(Field):
         if value is None:
             return None
         base_unit = dt.timedelta(**{self.precision: 1})
-        return int(value.total_seconds() / base_unit.total_seconds())
+        delta = utils.timedelta_to_microseconds(value)
+        unit = utils.timedelta_to_microseconds(base_unit)
+        return delta // unit
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
