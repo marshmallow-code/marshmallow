@@ -5,8 +5,8 @@ EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
         "mypy==0.910",
-        "flake8==3.9.2",
-        "flake8-bugbear==21.9.1",
+        "flake8==4.0.1",
+        "flake8-bugbear==21.9.2",
         "pre-commit~=2.4",
     ],
     "docs": [
@@ -82,6 +82,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
     test_suite="tests",
     project_urls={

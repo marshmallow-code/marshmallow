@@ -774,7 +774,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def validate(
         self,
-        data: typing.Mapping,
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
