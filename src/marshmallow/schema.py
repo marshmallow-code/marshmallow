@@ -14,7 +14,7 @@ import warnings
 from marshmallow import base, fields as ma_fields, class_registry, types
 from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import ValidationError, StringNotCollectionError
-from marshmallow.orderedset import OrderedSet
+from ordered_set import OrderedSet
 from marshmallow.decorators import (
     POST_DUMP,
     POST_LOAD,

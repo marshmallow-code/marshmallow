@@ -2,7 +2,7 @@ import re
 from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
-    "tests": ["pytest", "pytz", "simplejson"],
+    "tests": ["ordered-set", "pytest", "pytz", "simplejson"],
     "lint": [
         "mypy==0.910",
         "flake8==4.0.1",
@@ -73,6 +73,9 @@ setup(
         "schema",
     ],
     python_requires=">=3.6",
+    install_requires=[
+        "ordered-set",
+    ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
