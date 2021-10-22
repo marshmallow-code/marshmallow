@@ -38,25 +38,21 @@ from marshmallow.warnings import RemovedInMarshmallow4Warning
 _T = typing.TypeVar("_T")
 
 
-def _get_fields(attrs, ordered=False):
-    """Get fields from a class. If ordered=True, fields will sorted by creation index.
+def _get_fields(attrs):
+    """Get fields from a class.
 
     :param attrs: Mapping of class attributes
-    :param bool ordered: Sort fields by creation index
     """
-    fields = [
+    return [
         (field_name, field_value)
         for field_name, field_value in attrs.items()
         if is_instance_or_subclass(field_value, base.FieldABC)
     ]
-    if ordered:
-        fields.sort(key=lambda pair: pair[1]._creation_index)
-    return fields
 
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
-def _get_fields_by_mro(klass, ordered=False):
+def _get_fields_by_mro(klass):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
@@ -67,10 +63,7 @@ def _get_fields_by_mro(klass, ordered=False):
     # Loop over mro in reverse to maintain correct order of fields
     return sum(
         (
-            _get_fields(
-                getattr(base, "_declared_fields", base.__dict__),
-                ordered=ordered,
-            )
+            _get_fields(getattr(base, "_declared_fields", base.__dict__))
             for base in mro[:0:-1]
         ),
         [],
@@ -98,13 +91,13 @@ class SchemaMeta(type):
                     break
             else:
                 ordered = False
-        cls_fields = _get_fields(attrs, ordered=ordered)
+        cls_fields = _get_fields(attrs)
         # Remove fields from list of class attributes to avoid shadowing
         # Schema attributes/methods in case of name conflict
         for field_name, _ in cls_fields:
             del attrs[field_name]
         klass = super().__new__(mcs, name, bases, attrs)
-        inherited_fields = _get_fields_by_mro(klass, ordered=ordered)
+        inherited_fields = _get_fields_by_mro(klass)
 
         meta = klass.Meta
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
