@@ -633,7 +633,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
-                field_name = field_obj.data_key
+                field_name = typing.cast(str, field_obj.data_key)
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
