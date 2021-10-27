@@ -520,8 +520,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
             if value is missing:
                 continue
-            key = field_obj.data_key if field_obj.data_key is not None else attr_name
-            ret[key] = value
+            ret[field_obj.data_key] = value
         return ret
 
     def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
@@ -634,9 +633,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
-                field_name = (
-                    field_obj.data_key if field_obj.data_key is not None else attr_name
-                )
+                field_name = field_obj.data_key
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
@@ -669,10 +666,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     key = field_obj.attribute or attr_name
                     set_value(ret_d, key, value)
             if unknown != EXCLUDE:
-                fields = {
-                    field_obj.data_key if field_obj.data_key is not None else field_name
-                    for field_name, field_obj in self.load_fields.items()
-                }
+                fields = {field_obj.data_key for field_obj in self.load_fields.values()}
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
@@ -986,10 +980,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if not field_obj.load_only:
                 dump_fields[field_name] = field_obj
 
-        dump_data_keys = [
-            field_obj.data_key if field_obj.data_key is not None else name
-            for name, field_obj in dump_fields.items()
-        ]
+        dump_data_keys = [field_obj.data_key for field_obj in dump_fields.values()]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {
                 x for x in dump_data_keys if dump_data_keys.count(x) > 1
@@ -1110,9 +1101,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     continue
                 raise ValueError(f'"{field_name}" field does not exist.') from error
 
-            data_key = (
-                field_obj.data_key if field_obj.data_key is not None else field_name
-            )
+            data_key = field_obj.data_key
             if many:
                 for idx, item in enumerate(data):
                     try:

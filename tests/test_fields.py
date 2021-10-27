@@ -92,6 +92,15 @@ class TestField:
         result = MySchema().dump({"name": "Monty", "foo": 42})
         assert result == {"_NaMe": "Monty"}
 
+    def test_data_key_defaults_to_field_name(self):
+        class MySchema(Schema):
+            field_1 = fields.String(data_key="field_one")
+            field_2 = fields.String()
+
+        schema_fields = MySchema().fields
+        assert schema_fields["field_1"].data_key == "field_one"
+        assert schema_fields["field_2"].data_key == "field_2"
+
 
 class TestParentAndName:
     class MySchema(Schema):
