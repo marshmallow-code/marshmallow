@@ -319,6 +319,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     OPTIONS_CLASS = SchemaOpts  # type: type
 
+    set_class = OrderedSet
+
     # These get set by SchemaMeta
     opts = None  # type: SchemaOpts
     _declared_fields = {}  # type: typing.Dict[str, ma_fields.Field]
@@ -418,10 +420,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @property
     def dict_class(self) -> type:
         return OrderedDict if self.ordered else dict
-
-    @property
-    def set_class(self) -> type:
-        return OrderedSet if self.ordered else set
 
     @classmethod
     def from_dict(
