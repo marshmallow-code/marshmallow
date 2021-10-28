@@ -663,7 +663,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     index=index,
                 )
                 if value is not missing:
-                    key = field_obj.attribute
+                    key = typing.cast(str, field_obj.attribute)
                     set_value(ret_d, key, value)
             if unknown != EXCLUDE:
                 fields = {field_obj.data_key for field_obj in self.load_fields.values()}
