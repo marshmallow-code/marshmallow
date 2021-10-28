@@ -663,7 +663,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     index=index,
                 )
                 if value is not missing:
-                    key = field_obj.attribute or attr_name
+                    key = field_obj.attribute
                     set_value(ret_d, key, value)
             if unknown != EXCLUDE:
                 fields = {field_obj.data_key for field_obj in self.load_fields.values()}
@@ -991,7 +991,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 "Check the following field names and "
                 "data_key arguments: {}".format(list(data_keys_duplicates))
             )
-        load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
+        load_attributes = [obj.attribute for obj in load_fields.values()]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {
                 x for x in load_attributes if load_attributes.count(x) > 1
@@ -1105,7 +1105,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if many:
                 for idx, item in enumerate(data):
                     try:
-                        value = item[field_obj.attribute or field_name]
+                        value = item[field_obj.attribute]
                     except KeyError:
                         pass
                     else:
@@ -1120,7 +1120,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             data[idx].pop(field_name, None)
             else:
                 try:
-                    value = data[field_obj.attribute or field_name]
+                    value = data[field_obj.attribute]
                 except KeyError:
                     pass
                 else:

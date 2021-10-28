@@ -378,6 +378,7 @@ class Field(FieldABC):
         self.parent = self.parent or schema
         self.name = self.name or field_name
         self.data_key = self.data_key if self.data_key is not None else field_name
+        self.attribute = self.attribute if self.attribute is not None else field_name
         self.root = self.root or (
             self.parent.root if isinstance(self.parent, FieldABC) else self.parent
         )
