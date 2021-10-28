@@ -633,8 +633,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
-                field_name = typing.cast(str, field_obj.data_key)
-                raw_value = data.get(field_name, missing)
+                data_key = typing.cast(str, field_obj.data_key)
+                raw_value = data.get(data_key, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
@@ -644,7 +644,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 d_kwargs = {}
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
-                    prefix = field_name + "."
+                    prefix = data_key + "."
                     len_prefix = len(prefix)
                     sub_partial = [
                         f[len_prefix:] for f in partial if f.startswith(prefix)
@@ -653,18 +653,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 else:
                     d_kwargs["partial"] = partial
                 getter = lambda val: field_obj.deserialize(
-                    val, field_name, data, **d_kwargs
+                    val, data_key, data, **d_kwargs
                 )
                 value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
-                    field_name=field_name,
+                    field_name=data_key,
                     error_store=error_store,
                     index=index,
                 )
                 if value is not missing:
-                    key = typing.cast(str, field_obj.attribute)
-                    set_value(ret_d, key, value)
+                    attribute = typing.cast(str, field_obj.attribute)
+                    set_value(ret_d, attribute, value)
             if unknown != EXCLUDE:
                 fields = {field_obj.data_key for field_obj in self.load_fields.values()}
                 for key in set(data) - fields:
