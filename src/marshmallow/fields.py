@@ -235,7 +235,7 @@ class Field(FieldABC):
     def __repr__(self) -> str:
         return (
             "<fields.{ClassName}(dump_default={self.dump_default!r}, "
-            "attribute={self.attribute!r}, "
+            "attribute={self.attribute!r}, data_key={self.data_key!r}, "
             "validate={self.validate}, required={self.required}, "
             "load_only={self.load_only}, dump_only={self.dump_only}, "
             "load_default={self.load_default}, allow_none={self.allow_none}, "

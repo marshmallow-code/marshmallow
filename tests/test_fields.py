@@ -32,7 +32,7 @@ class TestField:
         default = "œ∑´"
         field = fields.Field(dump_default=default, attribute=None)
         assert repr(field) == (
-            "<fields.Field(dump_default={0!r}, attribute=None, "
+            "<fields.Field(dump_default={0!r}, attribute=None, data_key=None, "
             "validate=None, required=False, "
             "load_only=False, dump_only=False, "
             "load_default={missing}, allow_none=False, "
