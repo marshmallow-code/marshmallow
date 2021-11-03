@@ -1,5 +1,6 @@
 include LICENSE
 include *.rst NOTICE
+include src/marshmallow/py.typed
 recursive-include tests *
 recursive-include examples *
 recursive-include docs *
