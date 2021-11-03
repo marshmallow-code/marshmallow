@@ -11,10 +11,10 @@ from marshmallow.decorators import (
 )
 from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 __version__ = "3.14.0"
-__version_info__ = tuple(LooseVersion(__version__).version)
+__version_info__ = Version(__version__).release
 __all__ = [
     "EXCLUDE",
     "INCLUDE",
