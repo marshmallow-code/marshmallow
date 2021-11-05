@@ -58,6 +58,7 @@ setup(
     package_dir={"": "src"},
     package_data={"marshmallow": ["py.typed"]},
     include_package_data=True,
+    install_requires=["packaging"],
     extras_require=EXTRAS_REQUIRE,
     license="MIT",
     zip_safe=False,
