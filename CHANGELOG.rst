@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.14.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix publishing type hints per `PEP-561 <https://www.python.org/dev/peps/pep-0561/>`_.
+  Thanks :user:`bwindsor` for the catch and patch.
+
 3.14.0 (2021-10-17)
 *******************
 
