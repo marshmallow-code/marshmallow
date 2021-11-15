@@ -11,14 +11,14 @@ Data pre-processing and post-processing methods can be registered using the `pre
 
 .. code-block:: python
 
-    from marshmallow import Schema, fields, pre_load
+    from marshmallow import Schema, fields, post_load
 
 
     class UserSchema(Schema):
         name = fields.Str()
         slug = fields.Str()
 
-        @pre_load
+        @post_load
         def slugify_name(self, in_data, **kwargs):
             in_data["slug"] = in_data["slug"].lower().strip().replace(" ", "-")
             return in_data
