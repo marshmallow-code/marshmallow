@@ -13,7 +13,7 @@ from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
 from packaging.version import Version
 
-__version__ = "3.14.0"
+__version__ = "3.14.1"
 __parsed_version__ = Version(__version__)
 __version_info__ = __parsed_version__.release
 if __parsed_version__.pre:

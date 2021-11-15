@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+3.15.0 (unreleased)
+*******************
+
+* Address distutils deprecation warning in Python 3.10 (:pr:`1903`).
+  Thanks :user:`kkirsche` for the PR.
+
+3.14.1 (2021-11-13)
+*******************
+
+Bug fixes:
+
+- Fix publishing type hints per `PEP-561 <https://www.python.org/dev/peps/pep-0561/>`_.
+  Thanks :user:`bwindsor` for the catch and patch.
+
 3.14.0 (2021-10-17)
 *******************
 
