@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+3.15.0 (unreleased)
+*******************
+
+* Address distutils deprecation warning in Python 3.10 (:pr:`1903`).
+  Thanks :user:`kkirsche` for the PR.
+
 3.14.1 (2021-11-13)
 *******************
 
