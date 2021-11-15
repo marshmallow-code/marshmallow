@@ -164,6 +164,6 @@ Contributors (chronological)
 - Michael Dimchuk  `@michaeldimchuk <https://github.com/michaeldimchuk>`_
 - Jochen Kupperschmidt  `@homeworkprod <https://github.com/homeworkprod>`_
 - `@yourun-proger <https://github.com/yourun-proger>`_
-- Ryan Morehart '@traherom <https://github.com/traherom>`_
-- Ben Windsor  '@bwindsor <https://github.com/bwindsor>`_
-- Kevin Kirsche  '@kkirsche <https://github.com/kkirsche>`_
+- Ryan Morehart `@traherom <https://github.com/traherom>`_
+- Ben Windsor `@bwindsor <https://github.com/bwindsor>`_
+- Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
