@@ -61,7 +61,7 @@ Bug fixes:
 - Don't expose ``Field``\s as ``Schema`` attributes. This reverts a change
   introduced in 3.12.0 that causes issues when field names conflict with
   ``Schema`` attributes or methods. ``Fields``\s are still accessible on a
-   ``Schema`` instance throught the ``fields`` attribute. (:pr:`1843`)
+   ``Schema`` instance through the ``fields`` attribute. (:pr:`1843`)
 
 3.12.1 (2021-05-10)
 *******************
@@ -1336,7 +1336,7 @@ Features:
 
 Bug fixes:
 
-- Allow ``strict`` class Meta option to be overriden by constructor (:issue:`550`). Thanks :user:`douglas-treadwell` for reporting and thanks :user:`podhmo` for the PR.
+- Allow ``strict`` class Meta option to be overridden by constructor (:issue:`550`). Thanks :user:`douglas-treadwell` for reporting and thanks :user:`podhmo` for the PR.
 
 2.11.0 (2017-01-08)
 +++++++++++++++++++
@@ -2107,7 +2107,7 @@ Major reworking and simplification of the public API, centered around support fo
 * Add ``fields.Method``.
 * Add ``fields.Function``.
 * Allow binding of extra data to a serialized object by passing the ``extra`` param when initializing a ``Serializer``.
-* Add ``relative`` paramater to ``fields.Url`` that allows for relative URLs.
+* Add ``relative`` parameter to ``fields.Url`` that allows for relative URLs.
 
 0.1.0 (2013-11-10)
 ++++++++++++++++++
