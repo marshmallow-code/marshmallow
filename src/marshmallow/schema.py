@@ -589,6 +589,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         partial=False,
         unknown=RAISE,
         index=None,
+        skip_data_validate: typing.Optional[bool] = False
     ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
 
@@ -622,6 +623,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             partial=partial,
                             unknown=unknown,
                             index=idx,
+                            skip_data_validate=skip_data_validate,
                         ),
                     )
                     for idx, d in enumerate(data)
@@ -656,7 +658,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 else:
                     d_kwargs["partial"] = partial
                 getter = lambda val: field_obj.deserialize(
-                    val, field_name, data, **d_kwargs
+                    val, field_name, data, skip_data_validate=skip_data_validate, **d_kwargs
                 )
                 value = self._call_and_store(
                     getter_func=getter,
@@ -695,6 +697,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
         unknown: typing.Optional[str] = None,
+        skip_data_validate: typing.Optional[bool] = False
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -717,7 +720,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         return self._do_load(
-            data, many=many, partial=partial, unknown=unknown, postprocess=True
+            data, many=many, partial=partial, unknown=unknown, postprocess=True, skip_data_validate=skip_data_validate
         )
 
     def loads(
@@ -727,6 +730,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         many: typing.Optional[bool] = None,
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
         unknown: typing.Optional[str] = None,
+        skip_data_validate: typing.Optional[bool] = False,
         **kwargs,
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -750,7 +754,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if invalid data are passed.
         """
         data = self.opts.render_module.loads(json_data, **kwargs)
-        return self.load(data, many=many, partial=partial, unknown=unknown)
+        return self.load(data, many=many, partial=partial, unknown=unknown, skip_data_validate=skip_data_validate)
 
     def _run_validator(
         self,
@@ -815,6 +819,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
         unknown: typing.Optional[str] = None,
         postprocess: bool = True,
+        skip_data_validate: typing.Optional[bool] = False
     ):
         """Deserialize `data`, returning the deserialized result.
         This method is private API.

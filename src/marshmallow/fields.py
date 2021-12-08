@@ -160,6 +160,12 @@ class Field(FieldABC):
                 typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
             ]
         ] = None,
+        data_validate: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
+            ]
+        ] = None,
         required: bool = False,
         allow_none: typing.Optional[bool] = None,
         load_only: bool = False,
@@ -200,6 +206,18 @@ class Field(FieldABC):
         else:
             raise ValueError(
                 "The 'validate' parameter must be a callable "
+                "or a collection of callables."
+            )
+
+        if data_validate is None:
+            self.data_validators = []
+        elif callable(data_validate):
+            self.data_validators = [data_validate]
+        elif utils.is_iterable_but_not_string(data_validate):
+            self.data_validators = list(data_validate)
+        else:
+            raise ValueError(
+                "The 'data_validate' parameter must be a callable "
                 "or a collection of callables."
             )
 
@@ -264,10 +282,17 @@ class Field(FieldABC):
         does not succeed.
         """
         self._validate_all(value)
+    
+    def _data_validate(self, value):
+        self._data_validate_all(value)
 
     @property
     def _validate_all(self):
         return And(*self.validators, error=self.error_messages["validator_failed"])
+    
+    @property
+    def _data_validate_all(self, value):
+        return And(*self.data_validators, error=self.error_messages['validator_failed'])
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
         """Helper method to make a `ValidationError` with an error message
@@ -343,6 +368,7 @@ class Field(FieldABC):
         value: typing.Any,
         attr: typing.Optional[str] = None,
         data: typing.Optional[typing.Mapping[str, typing.Any]] = None,
+        skip_data_validate: typing.Optional[bool] = False,
         **kwargs,
     ):
         """Deserialize ``value``.
@@ -364,6 +390,8 @@ class Field(FieldABC):
             return None
         output = self._deserialize(value, attr, data, **kwargs)
         self._validate(output)
+        if not skip_data_validate:
+            self._data_validate(output)
         return output
 
     # Methods for concrete classes to override.
