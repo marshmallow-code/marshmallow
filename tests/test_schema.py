@@ -2592,9 +2592,10 @@ def test_serializer_can_specify_nested_object_as_attribute(blog):
 
 class TestFieldInheritance:
     def test_inherit_fields_from_schema_subclass(self):
-        expected = OrderedDict(
-            [("field_a", fields.Number()), ("field_b", fields.Number())]
-        )
+        expected = {
+            "field_a": fields.Number(),
+            "field_b": fields.Number(),
+        }
 
         class SerializerA(Schema):
             field_a = expected["field_a"]
@@ -2605,9 +2606,10 @@ class TestFieldInheritance:
         assert SerializerB._declared_fields == expected
 
     def test_inherit_fields_from_non_schema_subclass(self):
-        expected = OrderedDict(
-            [("field_a", fields.Number()), ("field_b", fields.Number())]
-        )
+        expected = {
+            "field_a": fields.Number(),
+            "field_b": fields.Number(),
+        }
 
         class PlainBaseClass:
             field_a = expected["field_a"]
@@ -2622,14 +2624,12 @@ class TestFieldInheritance:
         assert SerializerB2._declared_fields == expected
 
     def test_inheritance_follows_mro(self):
-        expected = OrderedDict(
-            [
-                ("field_a", fields.String()),
-                ("field_c", fields.String()),
-                ("field_b", fields.String()),
-                ("field_d", fields.String()),
-            ]
-        )
+        expected = {
+            "field_a": fields.String(),
+            "field_b": fields.String(),
+            "field_c": fields.String(),
+            "field_d": fields.String(),
+        }
         # Diamond inheritance graph
         # MRO: D -> B -> C -> A
 

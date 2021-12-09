@@ -237,13 +237,11 @@ class TestIncludeOption:
             email = fields.Str()
 
             class Meta:
-                include = OrderedDict(
-                    [
-                        ("from", fields.Str()),
-                        ("in", fields.Str()),
-                        ("@at", fields.Str()),
-                    ]
-                )
+                include = {
+                    "from": fields.Str(),
+                    "in": fields.Str(),
+                    "@at": fields.Str(),
+                }
                 ordered = True
 
         s = AddFieldsOrdered()
