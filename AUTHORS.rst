@@ -167,3 +167,4 @@ Contributors (chronological)
 - Ryan Morehart `@traherom <https://github.com/traherom>`_
 - Ben Windsor `@bwindsor <https://github.com/bwindsor>`_
 - Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
+- Isira Seneviratne `@Isira-Seneviratne <https://github.com/Isira-Seneviratne>`_
