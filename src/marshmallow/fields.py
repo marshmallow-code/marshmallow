@@ -871,6 +871,14 @@ class String(Field):
         "invalid_utf8": "Not a valid utf-8 string.",
     }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Insert validation into self.validators so that multiple errors can be stored.
+        validator = validate.ProhibitNullCharactersValidator(
+            error=self.error_messages["invalid"]
+        )
+        self.validators.insert(0, validator)
+
     def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
         if value is None:
             return None

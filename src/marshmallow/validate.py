@@ -242,6 +242,34 @@ class Email(Validator):
         return value
 
 
+class ProhibitNullCharactersValidator(Validator):
+    """Validate string not having Null Character
+
+    :param error: Error message to raise in case of a validation error. Can be
+        interpolated with `{input}`.
+    """
+
+    default_message = "String contains null character"
+
+    NULL_REGEX = re.compile(
+        r"\0",
+    )
+
+    def __init__(self, *, error: typing.Optional[str] = None):
+        self.error = error or self.default_message  # type: str
+
+    def _format_error(self, value) -> typing.Any:
+        return self.error.format(input=value)
+
+    def __call__(self, value) -> typing.Any:
+        message = self._format_error(value)
+
+        if value and self.NULL_REGEX.search(str(value)):
+            raise ValidationError(message)
+
+        return value
+
+
 class Range(Validator):
     """Validator which succeeds if the value passed to it is within the specified
     range. If ``min`` is not specified, or is specified as `None`,

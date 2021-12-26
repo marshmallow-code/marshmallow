@@ -92,6 +92,13 @@ class TestField:
         result = MySchema().dump({"name": "Monty", "foo": 42})
         assert result == {"_NaMe": "Monty"}
 
+    def test_string_field_null_char(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        with pytest.raises(ValidationError):
+            MySchema().load({"name": "a\0b"})
+
 
 class TestParentAndName:
     class MySchema(Schema):
