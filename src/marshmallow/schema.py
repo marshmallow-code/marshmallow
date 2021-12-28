@@ -225,6 +225,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
+        self.required = getattr(meta, "required", ())
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
 
@@ -271,6 +272,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :class:`fields.Function` fields.
     :param load_only: Fields to skip during serialization (write-only fields)
     :param dump_only: Fields to skip during deserialization (read-only fields)
+    :param required: Fields to be considered required.
     :param partial: Whether to ignore missing fields and not require
         any fields declared. Propagates down to ``Nested`` fields as well. If
         its value is an iterable, only missing fields listed in that iterable
@@ -353,6 +355,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
+        - ``required``: Tuple or list of fields to be considered required.
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         - ``register``: Whether to register the `Schema` with marshmallow's internal
@@ -370,6 +373,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         context: typing.Optional[typing.Dict] = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
+        required: types.StrSequenceOrSet = (),
         partial: typing.Union[bool, types.StrSequenceOrSet] = False,
         unknown: typing.Optional[str] = None,
     ):
@@ -386,6 +390,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
+        self.required = set(required) or set(self.opts.required)
         self.partial = partial
         self.unknown = unknown or self.opts.unknown
         self.context = context or {}
@@ -1027,13 +1032,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """Bind field to the schema, setting any necessary attributes on the
         field (e.g. parent and name).
 
-        Also set field load_only and dump_only values if field_name was
+        Also set field load_only, dump_only and required values if field_name was
         specified in ``class Meta``.
         """
         if field_name in self.load_only:
             field_obj.load_only = True
         if field_name in self.dump_only:
             field_obj.dump_only = True
+        if field_name in self.required:
+            field_obj.required = True
         try:
             field_obj._bind_to_schema(field_name, self)
         except TypeError as error:
