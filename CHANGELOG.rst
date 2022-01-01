@@ -9,6 +9,7 @@ Other changes:
 - Address distutils deprecation warning in Python 3.10 (:pr:`1903`).
   Thanks :user:`kkirsche` for the PR.
 - Add py310 to black target-version (:pr:`1921`).
+- Drop support for Python 3.6 (:pr:`1923`).
 
 3.14.1 (2021-11-13)
 *******************
