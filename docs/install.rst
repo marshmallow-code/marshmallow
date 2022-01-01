@@ -3,7 +3,7 @@
 Installation
 ============
 
-**marshmallow** requires Python >= 3.6. It has no external dependencies other than the `packaging` library.
+**marshmallow** requires Python >= 3.7. It has no external dependencies other than the `packaging` library.
 
 Installing/Upgrading from the PyPI
 ----------------------------------

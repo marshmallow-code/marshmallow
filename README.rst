@@ -72,7 +72,7 @@ Full documentation is available at https://marshmallow.readthedocs.io/ .
 Requirements
 ============
 
-- Python >= 3.6
+- Python >= 3.7
 
 Ecosystem
 =========
