@@ -1,4 +1,6 @@
 """Validation classes for various types of data."""
+from __future__ import annotations
+
 import re
 import typing
 from abc import ABC, abstractmethod
@@ -19,7 +21,7 @@ class Validator(ABC):
         add a useful `__repr__` implementation for validators.
     """
 
-    error = None  # type: typing.Optional[str]
+    error = None  # type: str | None
 
     def __repr__(self) -> str:
         args = self._repr_args()
@@ -61,9 +63,7 @@ class And(Validator):
 
     default_error_message = "Invalid value."
 
-    def __init__(
-        self, *validators: types.Validator, error: typing.Optional[str] = None
-    ):
+    def __init__(self, *validators: types.Validator, error: str | None = None):
         self.validators = tuple(validators)
         self.error = error or self.default_error_message  # type: str
 
@@ -149,9 +149,9 @@ class URL(Validator):
         self,
         *,
         relative: bool = False,
-        schemes: typing.Optional[types.StrSequenceOrSet] = None,
+        schemes: types.StrSequenceOrSet | None = None,
         require_tld: bool = True,
-        error: typing.Optional[str] = None,
+        error: str | None = None,
     ):
         self.relative = relative
         self.error = error or self.default_message  # type: str
@@ -211,7 +211,7 @@ class Email(Validator):
 
     default_message = "Not a valid email address."
 
-    def __init__(self, *, error: typing.Optional[str] = None):
+    def __init__(self, *, error: str | None = None):
         self.error = error or self.default_message  # type: str
 
     def _format_error(self, value: str) -> str:
@@ -277,7 +277,7 @@ class Range(Validator):
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
-        error: typing.Optional[str] = None,
+        error: str | None = None,
     ):
         self.min = min
         self.max = max
@@ -343,11 +343,11 @@ class Length(Validator):
 
     def __init__(
         self,
-        min: typing.Optional[int] = None,
-        max: typing.Optional[int] = None,
+        min: int | None = None,
+        max: int | None = None,
         *,
-        equal: typing.Optional[int] = None,
-        error: typing.Optional[str] = None,
+        equal: int | None = None,
+        error: str | None = None,
     ):
         if equal is not None and any([min, max]):
             raise ValueError(
@@ -398,7 +398,7 @@ class Equal(Validator):
 
     default_message = "Must be equal to {other}."
 
-    def __init__(self, comparable, *, error: typing.Optional[str] = None):
+    def __init__(self, comparable, *, error: str | None = None):
         self.comparable = comparable
         self.error = error or self.default_message  # type: str
 
@@ -433,10 +433,10 @@ class Regexp(Validator):
 
     def __init__(
         self,
-        regex: typing.Union[str, bytes, typing.Pattern],
+        regex: str | bytes | typing.Pattern,
         flags: int = 0,
         *,
-        error: typing.Optional[str] = None,
+        error: str | None = None,
     ):
         self.regex = (
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
@@ -446,7 +446,7 @@ class Regexp(Validator):
     def _repr_args(self) -> str:
         return f"regex={self.regex!r}"
 
-    def _format_error(self, value: typing.Union[str, bytes]) -> str:
+    def _format_error(self, value: str | bytes) -> str:
         return self.error.format(input=value, regex=self.regex.pattern)
 
     @typing.overload
@@ -478,7 +478,7 @@ class Predicate(Validator):
 
     default_message = "Invalid input."
 
-    def __init__(self, method: str, *, error: typing.Optional[str] = None, **kwargs):
+    def __init__(self, method: str, *, error: str | None = None, **kwargs):
         self.method = method
         self.error = error or self.default_message  # type: str
         self.kwargs = kwargs
@@ -508,9 +508,7 @@ class NoneOf(Validator):
 
     default_message = "Invalid input."
 
-    def __init__(
-        self, iterable: typing.Iterable, *, error: typing.Optional[str] = None
-    ):
+    def __init__(self, iterable: typing.Iterable, *, error: str | None = None):
         self.iterable = iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
         self.error = error or self.default_message  # type: str
@@ -545,9 +543,9 @@ class OneOf(Validator):
     def __init__(
         self,
         choices: typing.Iterable,
-        labels: typing.Optional[typing.Iterable[str]] = None,
+        labels: typing.Iterable[str] | None = None,
         *,
-        error: typing.Optional[str] = None,
+        error: str | None = None,
     ):
         self.choices = choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
@@ -574,8 +572,8 @@ class OneOf(Validator):
 
     def options(
         self,
-        valuegetter: typing.Union[str, typing.Callable[[typing.Any], typing.Any]] = str,
-    ) -> typing.Iterable[typing.Tuple[typing.Any, str]]:
+        valuegetter: str | typing.Callable[[typing.Any], typing.Any] = str,
+    ) -> typing.Iterable[tuple[typing.Any, str]]:
         """Return a generator over the (value, label) pairs, where value
         is a string associated with each choice. This convenience method
         is useful to populate, for instance, a form select field.

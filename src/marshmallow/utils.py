@@ -1,4 +1,6 @@
 """Utility methods for marshmallow."""
+from __future__ import annotations
+
 import collections
 import functools
 import datetime as dt
@@ -128,7 +130,7 @@ _iso8601_time_re = re.compile(
 )
 
 
-def get_fixed_timezone(offset: typing.Union[int, float, dt.timedelta]) -> dt.timezone:
+def get_fixed_timezone(offset: int | float | dt.timedelta) -> dt.timezone:
     """Return a tzinfo instance with a fixed offset from UTC."""
     if isinstance(offset, dt.timedelta):
         offset = offset.total_seconds() // 60
@@ -202,13 +204,13 @@ def to_iso_date(date: dt.date) -> str:
     return dt.date.isoformat(date)
 
 
-def ensure_text_type(val: typing.Union[str, bytes]) -> str:
+def ensure_text_type(val: str | bytes) -> str:
     if isinstance(val, bytes):
         val = val.decode("utf-8")
     return str(val)
 
 
-def pluck(dictlist: typing.List[typing.Dict[str, typing.Any]], key: str):
+def pluck(dictlist: list[dict[str, typing.Any]], key: str):
     """Extracts a list of dictionary values from a list of dictionaries.
     ::
 
@@ -222,7 +224,7 @@ def pluck(dictlist: typing.List[typing.Dict[str, typing.Any]], key: str):
 # Various utilities for pulling keyed values from objects
 
 
-def get_value(obj, key: typing.Union[int, str], default=missing):
+def get_value(obj, key: int | str, default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -258,7 +260,7 @@ def _get_value_for_key(obj, key, default):
         return getattr(obj, key, default)
 
 
-def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
+def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
     """Set a value in a dict. If `key` contains a '.', it is assumed
     be a path (i.e. dot-delimited string) to the value's location.
 
@@ -291,11 +293,11 @@ def callable_or_raise(obj):
     return obj
 
 
-def _signature(func: typing.Callable) -> typing.List[str]:
+def _signature(func: typing.Callable) -> list[str]:
     return list(inspect.signature(func).parameters.keys())
 
 
-def get_func_args(func: typing.Callable) -> typing.List[str]:
+def get_func_args(func: typing.Callable) -> list[str]:
     """Given a callable, return a list of argument names. Handles
     `functools.partial` objects and class-based callables.
 
