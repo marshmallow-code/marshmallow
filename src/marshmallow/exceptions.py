@@ -1,6 +1,4 @@
 """Exception classes for marshmallow-related errors."""
-from __future__ import annotations
-
 import typing
 
 
@@ -27,12 +25,20 @@ class ValidationError(MarshmallowError):
 
     def __init__(
         self,
-        message: str | list | dict,
+        message: typing.Union[str, typing.List, typing.Dict],
         field_name: str = SCHEMA,
-        data: typing.Mapping[str, typing.Any]
-        | typing.Iterable[typing.Mapping[str, typing.Any]]
-        | None = None,
-        valid_data: list[dict[str, typing.Any]] | dict[str, typing.Any] | None = None,
+        data: typing.Optional[
+            typing.Union[
+                typing.Mapping[str, typing.Any],
+                typing.Iterable[typing.Mapping[str, typing.Any]],
+            ]
+        ] = None,
+        valid_data: typing.Optional[
+            typing.Union[
+                typing.List[typing.Dict[str, typing.Any]],
+                typing.Dict[str, typing.Any],
+            ]
+        ] = None,
         **kwargs,
     ):
         self.messages = [message] if isinstance(message, (str, bytes)) else message

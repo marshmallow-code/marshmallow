@@ -1,5 +1,4 @@
 """Field classes for various types of data."""
-from __future__ import annotations
 
 import collections
 import copy
@@ -153,17 +152,20 @@ class Field(FieldABC):
         missing: typing.Any = missing_,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
-        data_key: str | None = None,
-        attribute: str | None = None,
-        validate: typing.Callable[[typing.Any], typing.Any]
-        | typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
-        | None = None,
+        data_key: typing.Optional[str] = None,
+        attribute: typing.Optional[str] = None,
+        validate: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
+            ]
+        ] = None,
         required: bool = False,
-        allow_none: bool | None = None,
+        allow_none: typing.Optional[bool] = None,
         load_only: bool = False,
         dump_only: bool = False,
-        error_messages: dict[str, str] | None = None,
-        metadata: typing.Mapping[str, typing.Any] | None = None,
+        error_messages: typing.Optional[typing.Dict[str, str]] = None,
+        metadata: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **additional_metadata,
     ) -> None:
         # handle deprecated `default` and `missing` parameters
@@ -312,8 +314,9 @@ class Field(FieldABC):
         self,
         attr: str,
         obj: typing.Any,
-        accessor: typing.Callable[[typing.Any, str, typing.Any], typing.Any]
-        | None = None,
+        accessor: typing.Optional[
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any]
+        ] = None,
         **kwargs,
     ):
         """Pulls the value for the given key from the object, applies the
@@ -338,8 +341,8 @@ class Field(FieldABC):
     def deserialize(
         self,
         value: typing.Any,
-        attr: str | None = None,
-        data: typing.Mapping[str, typing.Any] | None = None,
+        attr: typing.Optional[str] = None,
+        data: typing.Optional[typing.Mapping[str, typing.Any]] = None,
         **kwargs,
     ):
         """Deserialize ``value``.
@@ -401,8 +404,8 @@ class Field(FieldABC):
     def _deserialize(
         self,
         value: typing.Any,
-        attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None,
+        attr: typing.Optional[str],
+        data: typing.Optional[typing.Mapping[str, typing.Any]],
         **kwargs,
     ):
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
@@ -521,14 +524,14 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: SchemaABC | type | str | typing.Callable[[], SchemaABC],
+        nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         *,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
-        only: types.StrSequenceOrSet | None = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        unknown: str | None = None,
+        unknown: typing.Optional[str] = None,
         **kwargs,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -604,7 +607,7 @@ class Nested(Field):
                 )
         return self._schema
 
-    def _nested_normalized_option(self, option_name: str) -> list[str]:
+    def _nested_normalized_option(self, option_name: str) -> typing.List[str]:
         nested_field = "%s." % self.name
         return [
             field.split(nested_field, 1)[1]
@@ -675,7 +678,7 @@ class Pluck(Nested):
 
     def __init__(
         self,
-        nested: SchemaABC | type | str | typing.Callable[[], SchemaABC],
+        nested: typing.Union[SchemaABC, type, str, typing.Callable[[], SchemaABC]],
         field_name: str,
         **kwargs,
     ):
@@ -726,7 +729,7 @@ class List(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid list."}
 
-    def __init__(self, cls_or_instance: Field | type, **kwargs):
+    def __init__(self, cls_or_instance: typing.Union[Field, type], **kwargs):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
@@ -747,12 +750,14 @@ class List(Field):
             self.inner.only = self.only
             self.inner.exclude = self.exclude
 
-    def _serialize(self, value, attr, obj, **kwargs) -> list[typing.Any] | None:
+    def _serialize(
+        self, value, attr, obj, **kwargs
+    ) -> typing.Optional[typing.List[typing.Any]]:
         if value is None:
             return None
         return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
-    def _deserialize(self, value, attr, data, **kwargs) -> list[typing.Any]:
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.List[typing.Any]:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
 
@@ -823,7 +828,7 @@ class Tuple(Field):
 
         self.tuple_fields = new_tuple_fields
 
-    def _serialize(self, value, attr, obj, **kwargs) -> tuple | None:
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[typing.Tuple]:
         if value is None:
             return None
 
@@ -832,7 +837,7 @@ class Tuple(Field):
             for field, each in zip(self.tuple_fields, value)
         )
 
-    def _deserialize(self, value, attr, data, **kwargs) -> tuple:
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.Tuple:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
 
@@ -866,7 +871,7 @@ class String(Field):
         "invalid_utf8": "Not a valid utf-8 string.",
     }
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
         if value is None:
             return None
         return utils.ensure_text_type(value)
@@ -886,7 +891,7 @@ class UUID(String):
     #: Default error messages.
     default_error_messages = {"invalid_uuid": "Not a valid UUID."}
 
-    def _validated(self, value) -> uuid.UUID | None:
+    def _validated(self, value) -> typing.Optional[uuid.UUID]:
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         if value is None:
             return None
@@ -900,7 +905,7 @@ class UUID(String):
         except (ValueError, AttributeError, TypeError) as error:
             raise self.make_error("invalid_uuid") from error
 
-    def _deserialize(self, value, attr, data, **kwargs) -> uuid.UUID | None:
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.Optional[uuid.UUID]:
         return self._validated(value)
 
 
@@ -927,7 +932,7 @@ class Number(Field):
         """Return the number value for value, given this field's `num_type`."""
         return self.num_type(value)
 
-    def _validated(self, value) -> _T | None:
+    def _validated(self, value) -> typing.Optional[_T]:
         """Format the value or raise a :exc:`ValidationError` if an error occurs."""
         if value is None:
             return None
@@ -944,14 +949,16 @@ class Number(Field):
     def _to_string(self, value) -> str:
         return str(value)
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | _T | None:
+    def _serialize(
+        self, value, attr, obj, **kwargs
+    ) -> typing.Optional[typing.Union[str, _T]]:
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
         if value is None:
             return None
         ret = self._format_num(value)  # type: _T
         return self._to_string(ret) if self.as_string else ret
 
-    def _deserialize(self, value, attr, data, **kwargs) -> _T | None:
+    def _deserialize(self, value, attr, data, **kwargs) -> typing.Optional[_T]:
         return self._validated(value)
 
 
@@ -1057,8 +1064,8 @@ class Decimal(Number):
 
     def __init__(
         self,
-        places: int | None = None,
-        rounding: str | None = None,
+        places: typing.Optional[int] = None,
+        rounding: typing.Optional[str] = None,
         *,
         allow_nan: bool = False,
         as_string: bool = False,
@@ -1153,8 +1160,8 @@ class Boolean(Field):
     def __init__(
         self,
         *,
-        truthy: set | None = None,
-        falsy: set | None = None,
+        truthy: typing.Optional[typing.Set] = None,
+        falsy: typing.Optional[typing.Set] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -1232,7 +1239,7 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str | None = None, **kwargs):
+    def __init__(self, format: typing.Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1299,9 +1306,9 @@ class NaiveDateTime(DateTime):
 
     def __init__(
         self,
-        format: str | None = None,
+        format: typing.Optional[str] = None,
         *,
-        timezone: dt.timezone | None = None,
+        timezone: typing.Optional[dt.timezone] = None,
         **kwargs,
     ):
         super().__init__(format=format, **kwargs)
@@ -1336,9 +1343,9 @@ class AwareDateTime(DateTime):
 
     def __init__(
         self,
-        format: str | None = None,
+        format: typing.Optional[str] = None,
         *,
-        default_timezone: dt.tzinfo | None = None,
+        default_timezone: typing.Optional[dt.tzinfo] = None,
         **kwargs,
     ):
         super().__init__(format=format, **kwargs)
@@ -1504,8 +1511,8 @@ class Mapping(Field):
 
     def __init__(
         self,
-        keys: Field | type | None = None,
-        values: Field | type | None = None,
+        keys: typing.Optional[typing.Union[Field, type]] = None,
+        values: typing.Optional[typing.Union[Field, type]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -1650,7 +1657,7 @@ class Url(String):
         self,
         *,
         relative: bool = False,
-        schemes: types.StrSequenceOrSet | None = None,
+        schemes: typing.Optional[types.StrSequenceOrSet] = None,
         require_tld: bool = True,
         **kwargs,
     ):
@@ -1702,7 +1709,7 @@ class IP(Field):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
         if value is None:
             return None
         if self.exploded:
@@ -1711,7 +1718,7 @@ class IP(Field):
 
     def _deserialize(
         self, value, attr, data, **kwargs
-    ) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    ) -> typing.Optional[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]:
         if value is None:
             return None
         try:
@@ -1766,7 +1773,7 @@ class IPInterface(Field):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, attr, obj, **kwargs) -> typing.Optional[str]:
         if value is None:
             return None
         if self.exploded:
@@ -1775,7 +1782,9 @@ class IPInterface(Field):
 
     def _deserialize(
         self, value, attr, data, **kwargs
-    ) -> None | (ipaddress.IPv4Interface | ipaddress.IPv6Interface):
+    ) -> typing.Optional[
+        typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]
+    ]:
         if value is None:
             return None
         try:
@@ -1827,8 +1836,8 @@ class Method(Field):
 
     def __init__(
         self,
-        serialize: str | None = None,
-        deserialize: str | None = None,
+        serialize: typing.Optional[str] = None,
+        deserialize: typing.Optional[str] = None,
         **kwargs,
     ):
         # Set dump_only and load_only based on arguments
@@ -1891,16 +1900,18 @@ class Function(Field):
 
     def __init__(
         self,
-        serialize: (
-            typing.Callable[[typing.Any], typing.Any]
-            | typing.Callable[[typing.Any, dict], typing.Any]
-        )
-        | None = None,
-        deserialize: (
-            typing.Callable[[typing.Any], typing.Any]
-            | typing.Callable[[typing.Any, dict], typing.Any]
-        )
-        | None = None,
+        serialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
+        ] = None,
+        deserialize: typing.Optional[
+            typing.Union[
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Callable[[typing.Any, typing.Dict], typing.Any],
+            ]
+        ] = None,
         **kwargs,
     ):
         # Set dump_only and load_only based on arguments

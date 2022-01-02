@@ -1,6 +1,4 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
-from __future__ import annotations
-
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
 from functools import lru_cache
@@ -129,8 +127,8 @@ class SchemaMeta(type):
     def get_declared_fields(
         mcs,
         klass: type,
-        cls_fields: list,
-        inherited_fields: list,
+        cls_fields: typing.List,
+        inherited_fields: typing.List,
         dict_cls: type,
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
@@ -152,7 +150,7 @@ class SchemaMeta(type):
             class_registry.register(name, cls)
         cls._hooks = cls.resolve_hooks()
 
-    def resolve_hooks(cls) -> dict[types.Tag, list[str]]:
+    def resolve_hooks(cls) -> typing.Dict[types.Tag, typing.List[str]]:
         """Add in the decorated processors
 
         By doing this after constructing the class, we let standard inheritance
@@ -160,7 +158,7 @@ class SchemaMeta(type):
         """
         mro = inspect.getmro(cls)
 
-        hooks = defaultdict(list)  # type: dict[types.Tag, list[str]]
+        hooks = defaultdict(list)  # type: typing.Dict[types.Tag, typing.List[str]]
 
         for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
@@ -306,21 +304,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         dt.date: ma_fields.Date,
         dt.timedelta: ma_fields.TimeDelta,
         decimal.Decimal: ma_fields.Decimal,
-    }  # type: dict[type, typing.Type[ma_fields.Field]]
+    }  # type: typing.Dict[type, typing.Type[ma_fields.Field]]
     #: Overrides for default schema-level error messages
-    error_messages = {}  # type: dict[str, str]
+    error_messages = {}  # type: typing.Dict[str, str]
 
     _default_error_messages = {
         "type": "Invalid input type.",
         "unknown": "Unknown field.",
-    }  # type: dict[str, str]
+    }  # type: typing.Dict[str, str]
 
     OPTIONS_CLASS = SchemaOpts  # type: type
 
     # These get set by SchemaMeta
     opts = None  # type: SchemaOpts
-    _declared_fields = {}  # type: dict[str, ma_fields.Field]
-    _hooks = {}  # type: dict[types.Tag, list[str]]
+    _declared_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+    _hooks = {}  # type: typing.Dict[types.Tag, typing.List[str]]
 
     class Meta:
         """Options object for a Schema.
@@ -366,14 +364,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def __init__(
         self,
         *,
-        only: types.StrSequenceOrSet | None = None,
+        only: typing.Optional[types.StrSequenceOrSet] = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        context: dict | None = None,
+        context: typing.Optional[typing.Dict] = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
-        partial: bool | types.StrSequenceOrSet = False,
-        unknown: str | None = None,
+        partial: typing.Union[bool, types.StrSequenceOrSet] = False,
+        unknown: typing.Optional[str] = None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -393,9 +391,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = {}  # type: dict[str, ma_fields.Field]
-        self.load_fields = {}  # type: dict[str, ma_fields.Field]
-        self.dump_fields = {}  # type: dict[str, ma_fields.Field]
+        self.fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.load_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.dump_fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -420,7 +418,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: dict[str, ma_fields.Field | type],
+        fields: typing.Dict[str, typing.Union[ma_fields.Field, type]],
         *,
         name: str = "GeneratedSchema",
     ) -> type:
@@ -500,7 +498,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj: _T | typing.Iterable[_T], *, many: bool = False):
+    def _serialize(
+        self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = False
+    ):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -524,7 +524,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Any, *, many: bool | None = None):
+    def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -558,7 +558,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(self, obj: typing.Any, *args, many: bool | None = None, **kwargs):
+    def dumps(
+        self, obj: typing.Any, *args, many: typing.Optional[bool] = None, **kwargs
+    ):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
@@ -577,15 +579,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def _deserialize(
         self,
-        data: typing.Mapping[str, typing.Any]
-        | typing.Iterable[typing.Mapping[str, typing.Any]],
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
         error_store: ErrorStore,
         many: bool = False,
         partial=False,
         unknown=RAISE,
         index=None,
-    ) -> _T | list[_T]:
+    ) -> typing.Union[_T, typing.List[_T]]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -606,7 +610,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret_l = []  # type: list[_T]
+                ret_l = []  # type: typing.List[_T]
             else:
                 ret_l = [
                     typing.cast(
@@ -683,12 +687,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def load(
         self,
-        data: typing.Mapping[str, typing.Any]
-        | typing.Iterable[typing.Mapping[str, typing.Any]],
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
-        many: bool | None = None,
-        partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -718,9 +724,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         json_data: str,
         *,
-        many: bool | None = None,
-        partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         **kwargs,
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -768,12 +774,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def validate(
         self,
-        data: typing.Mapping[str, typing.Any]
-        | typing.Iterable[typing.Mapping[str, typing.Any]],
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
-        many: bool | None = None,
-        partial: bool | types.StrSequenceOrSet | None = None,
-    ) -> dict[str, list[str]]:
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+    ) -> typing.Dict[str, typing.List[str]]:
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
 
@@ -791,19 +799,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         try:
             self._do_load(data, many=many, partial=partial, postprocess=False)
         except ValidationError as exc:
-            return typing.cast(dict[str, list[str]], exc.messages)
+            return typing.cast(typing.Dict[str, typing.List[str]], exc.messages)
         return {}
 
     ##### Private Helpers #####
 
     def _do_load(
         self,
-        data: typing.Mapping[str, typing.Any]
-        | typing.Iterable[typing.Mapping[str, typing.Any]],
+        data: typing.Union[
+            typing.Mapping[str, typing.Any],
+            typing.Iterable[typing.Mapping[str, typing.Any]],
+        ],
         *,
-        many: bool | None = None,
-        partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        many: typing.Optional[bool] = None,
+        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
+        unknown: typing.Optional[str] = None,
         postprocess: bool = True,
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -823,7 +833,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :return: Deserialized data
         """
         error_store = ErrorStore()
-        errors = {}  # type: dict[str, list[str]]
+        errors = {}  # type: typing.Dict[str, typing.List[str]]
         many = self.many if many is None else bool(many)
         unknown = unknown or self.unknown
         if partial is None:
@@ -836,7 +846,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
-                result = None  # type: list | dict | None
+                result = (
+                    None
+                )  # type: typing.Optional[typing.Union[typing.List, typing.Dict]]
         else:
             processed_data = data
         if not errors:
@@ -1063,7 +1075,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool,
         original_data,
-        partial: bool | types.StrSequenceOrSet,
+        partial: typing.Union[bool, types.StrSequenceOrSet],
     ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
@@ -1140,7 +1152,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data,
         original_data,
         many: bool,
-        partial: bool | types.StrSequenceOrSet,
+        partial: typing.Union[bool, types.StrSequenceOrSet],
         field_errors: bool = False,
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
