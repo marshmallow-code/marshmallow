@@ -18,7 +18,7 @@ repos:
   rev: v0.910-1
   hooks:
   - id: mypy
-    additional_dependencies: [types-simplejson, types-pytz]
+    additional_dependencies: [types-simplejson, types-pytz, packaging]
 - repo: https://github.com/asottile/blacken-docs
   rev: v1.12.0
   hooks:
