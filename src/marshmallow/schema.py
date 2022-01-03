@@ -1,4 +1,6 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
+from __future__ import annotations
+
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
 from functools import lru_cache
@@ -127,8 +129,8 @@ class SchemaMeta(type):
     def get_declared_fields(
         mcs,
         klass: type,
-        cls_fields: typing.List,
-        inherited_fields: typing.List,
+        cls_fields: list,
+        inherited_fields: list,
         dict_cls: type,
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
@@ -150,7 +152,7 @@ class SchemaMeta(type):
             class_registry.register(name, cls)
         cls._hooks = cls.resolve_hooks()
 
-    def resolve_hooks(cls) -> typing.Dict[types.Tag, typing.List[str]]:
+    def resolve_hooks(cls) -> dict[types.Tag, list[str]]:
         """Add in the decorated processors
 
         By doing this after constructing the class, we let standard inheritance
@@ -364,14 +366,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def __init__(
         self,
         *,
-        only: typing.Optional[types.StrSequenceOrSet] = None,
+        only: types.StrSequenceOrSet | None = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
-        context: typing.Optional[typing.Dict] = None,
+        context: dict | None = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
-        partial: typing.Union[bool, types.StrSequenceOrSet] = False,
-        unknown: typing.Optional[str] = None,
+        partial: bool | types.StrSequenceOrSet = False,
+        unknown: str | None = None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -418,7 +420,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: typing.Dict[str, typing.Union[ma_fields.Field, type]],
+        fields: dict[str, ma_fields.Field | type],
         *,
         name: str = "GeneratedSchema",
     ) -> type:
@@ -498,9 +500,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(
-        self, obj: typing.Union[_T, typing.Iterable[_T]], *, many: bool = False
-    ):
+    def _serialize(self, obj: _T | typing.Iterable[_T], *, many: bool = False):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -524,7 +524,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             ret[key] = value
         return ret
 
-    def dump(self, obj: typing.Any, *, many: typing.Optional[bool] = None):
+    def dump(self, obj: typing.Any, *, many: bool | None = None):
         """Serialize an object to native Python data types according to this
         Schema's fields.
 
@@ -558,9 +558,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         return result
 
-    def dumps(
-        self, obj: typing.Any, *args, many: typing.Optional[bool] = None, **kwargs
-    ):
+    def dumps(self, obj: typing.Any, *args, many: bool | None = None, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
 
         :param obj: The object to serialize.
@@ -579,17 +577,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def _deserialize(
         self,
-        data: typing.Union[
-            typing.Mapping[str, typing.Any],
-            typing.Iterable[typing.Mapping[str, typing.Any]],
-        ],
+        data: (
+            typing.Mapping[str, typing.Any]
+            | typing.Iterable[typing.Mapping[str, typing.Any]]
+        ),
         *,
         error_store: ErrorStore,
         many: bool = False,
         partial=False,
         unknown=RAISE,
         index=None,
-    ) -> typing.Union[_T, typing.List[_T]]:
+    ) -> _T | list[_T]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -687,14 +685,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def load(
         self,
-        data: typing.Union[
-            typing.Mapping[str, typing.Any],
-            typing.Iterable[typing.Mapping[str, typing.Any]],
-        ],
+        data: (
+            typing.Mapping[str, typing.Any]
+            | typing.Iterable[typing.Mapping[str, typing.Any]]
+        ),
         *,
-        many: typing.Optional[bool] = None,
-        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
-        unknown: typing.Optional[str] = None,
+        many: bool | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,
+        unknown: str | None = None,
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -724,9 +722,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         json_data: str,
         *,
-        many: typing.Optional[bool] = None,
-        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
-        unknown: typing.Optional[str] = None,
+        many: bool | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,
+        unknown: str | None = None,
         **kwargs,
     ):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -774,14 +772,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def validate(
         self,
-        data: typing.Union[
-            typing.Mapping[str, typing.Any],
-            typing.Iterable[typing.Mapping[str, typing.Any]],
-        ],
+        data: (
+            typing.Mapping[str, typing.Any]
+            | typing.Iterable[typing.Mapping[str, typing.Any]]
+        ),
         *,
-        many: typing.Optional[bool] = None,
-        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
-    ) -> typing.Dict[str, typing.List[str]]:
+        many: bool | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,
+    ) -> dict[str, list[str]]:
         """Validate `data` against the schema, returning a dictionary of
         validation errors.
 
@@ -806,14 +804,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def _do_load(
         self,
-        data: typing.Union[
-            typing.Mapping[str, typing.Any],
-            typing.Iterable[typing.Mapping[str, typing.Any]],
-        ],
+        data: (
+            typing.Mapping[str, typing.Any]
+            | typing.Iterable[typing.Mapping[str, typing.Any]]
+        ),
         *,
-        many: typing.Optional[bool] = None,
-        partial: typing.Optional[typing.Union[bool, types.StrSequenceOrSet]] = None,
-        unknown: typing.Optional[str] = None,
+        many: bool | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,
+        unknown: str | None = None,
         postprocess: bool = True,
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -833,7 +831,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :return: Deserialized data
         """
         error_store = ErrorStore()
-        errors = {}  # type: typing.Dict[str, typing.List[str]]
+        errors = {}  # type: dict[str, list[str]]
         many = self.many if many is None else bool(many)
         unknown = unknown or self.unknown
         if partial is None:
@@ -846,9 +844,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
-                result = (
-                    None
-                )  # type: typing.Optional[typing.Union[typing.List, typing.Dict]]
+                result = None  # type: list | dict | None
         else:
             processed_data = data
         if not errors:
@@ -1075,7 +1071,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool,
         original_data,
-        partial: typing.Union[bool, types.StrSequenceOrSet],
+        partial: bool | types.StrSequenceOrSet,
     ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
@@ -1152,7 +1148,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data,
         original_data,
         many: bool,
-        partial: typing.Union[bool, types.StrSequenceOrSet],
+        partial: bool | types.StrSequenceOrSet,
         field_errors: bool = False,
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
