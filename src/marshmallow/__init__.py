@@ -1,3 +1,6 @@
+from __future__ import annotations
+import typing
+
 from marshmallow.schema import Schema, SchemaOpts
 
 from . import fields
@@ -15,9 +18,11 @@ from packaging.version import Version
 
 __version__ = "3.14.1"
 __parsed_version__ = Version(__version__)
-__version_info__ = __parsed_version__.release
+__version_info__: tuple[int, int, int] | tuple[int, int, int, str, int] = typing.cast(
+    tuple[int, int, int], __parsed_version__.release
+)
 if __parsed_version__.pre:
-    __version_info__ += __parsed_version__.pre
+    __version_info__ += __parsed_version__.pre  # type: ignore
 __all__ = [
     "EXCLUDE",
     "INCLUDE",
