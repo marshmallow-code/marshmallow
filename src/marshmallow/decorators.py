@@ -58,6 +58,8 @@ Example: ::
     If you need to guarantee order of different processing steps, you should put
     them in the same processing method.
 """
+from __future__ import annotations
+
 import functools
 from typing import Any, Callable, Dict, Optional, Tuple, Union, cast
 
@@ -84,7 +86,7 @@ def validates(field_name: str) -> Callable[..., Any]:
 
 
 def validates_schema(
-    fn: Optional[Callable[..., Any]] = None,
+    fn: Callable[..., Any] | None = None,
     pass_many: bool = False,
     pass_original: bool = False,
     skip_on_field_errors: bool = True,
@@ -117,7 +119,7 @@ def validates_schema(
 
 
 def pre_dump(
-    fn: Optional[Callable[..., Any]] = None, pass_many: bool = False
+    fn: Callable[..., Any] | None = None, pass_many: bool = False
 ) -> Callable[..., Any]:
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
@@ -133,7 +135,7 @@ def pre_dump(
 
 
 def post_dump(
-    fn: Optional[Callable[..., Any]] = None,
+    fn: Callable[..., Any] | None = None,
     pass_many: bool = False,
     pass_original: bool = False,
 ) -> Callable[..., Any]:
@@ -154,7 +156,7 @@ def post_dump(
 
 
 def pre_load(
-    fn: Optional[Callable[..., Any]] = None, pass_many: bool = False
+    fn: Callable[..., Any] | None = None, pass_many: bool = False
 ) -> Callable[..., Any]:
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
@@ -171,7 +173,7 @@ def pre_load(
 
 
 def post_load(
-    fn: Optional[Callable[..., Any]] = None,
+    fn: Callable[..., Any] | None = None,
     pass_many: bool = False,
     pass_original: bool = False,
 ) -> Callable[..., Any]:
@@ -193,7 +195,7 @@ def post_load(
 
 
 def set_hook(
-    fn: Optional[Callable[..., Any]], key: Union[Tuple[str, bool], str], **kwargs: Any
+    fn: Callable[..., Any] | None, key: tuple[str, bool] | str, **kwargs: Any
 ) -> Callable[..., Any]:
     """Mark decorated function as a hook to be picked up later.
     You should not need to use this method directly.
