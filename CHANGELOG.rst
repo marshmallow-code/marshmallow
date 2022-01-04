@@ -10,6 +10,8 @@ Other changes:
   Thanks :user:`kkirsche` for the PR.
 - Add py310 to black target-version (:pr:`1921`).
 - Drop support for Python 3.6 (:pr:`1923`).
+- Use postponed evaluation of annotations (:pr:`1932`).
+  Thanks :user:`Isira-Seneviratne` for the PR.
 
 3.14.1 (2021-11-13)
 *******************
