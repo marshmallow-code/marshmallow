@@ -508,7 +508,8 @@ class Nested(Field):
         # No
         author = fields.Nested(UserSchema(), only=('id', 'name'))
 
-    :param nested: `Schema` instance, class, class name (string), or callable that returns a `Schema` instance.
+    :param nested: `Schema` instance, class, class name (string), dictionary, or callable that
+        returns a `Schema` or dictionary. Dictionaries are converted with `Schema.from_dict`.
     :param exclude: A list or tuple of fields to exclude.
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
@@ -523,7 +524,11 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: SchemaABC | type | str | typing.Callable[[], SchemaABC],
+        nested: SchemaABC
+        | type
+        | str
+        | dict[str, Field | type]
+        | typing.Callable[[], SchemaABC | dict[str, Field | type]],
         *,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
@@ -568,6 +573,8 @@ class Nested(Field):
                 nested = self.nested()
             else:
                 nested = self.nested
+            if isinstance(nested, dict):
+                nested = self._nested_from_dict(nested)
 
             if isinstance(nested, SchemaABC):
                 self._schema = copy.copy(nested)
@@ -613,6 +620,13 @@ class Nested(Field):
             for field in getattr(self.root, option_name, set())
             if field.startswith(nested_field)
         ]
+
+    # this helper defers the import of `marshmallow.schema` to avoid circular imports
+    # however, it otherwise aliases Schema.from_dict
+    def _nested_from_dict(self, fields: dict[str, Field | type]) -> type:
+        from marshmallow.schema import Schema
+
+        return Schema.from_dict(fields)
 
     def _serialize(self, nested_obj, attr, obj, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised

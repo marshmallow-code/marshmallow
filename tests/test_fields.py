@@ -336,6 +336,25 @@ class TestNestedField:
         with pytest.raises(StringNotCollectionError):
             fields.Nested(Schema, **{param: "foo"})
 
+    @pytest.mark.parametrize(
+        "nested_value",
+        [
+            {"hello": fields.String()},
+            lambda: {"hello": fields.String()},
+        ],
+    )
+    def test_nested_instantiation_from_dict(self, nested_value):
+        class MySchema(Schema):
+            nested = fields.Nested(nested_value)
+
+        schema = MySchema()
+
+        ret = schema.load({"nested": {"hello": "world"}})
+        assert ret == {"nested": {"hello": "world"}}
+
+        with pytest.raises(ValidationError):
+            schema.load({"nested": {"x": 1}})
+
     @pytest.mark.parametrize("schema_unknown", (EXCLUDE, INCLUDE, RAISE))
     @pytest.mark.parametrize("field_unknown", (None, EXCLUDE, INCLUDE, RAISE))
     def test_nested_unknown_override(self, schema_unknown, field_unknown):
