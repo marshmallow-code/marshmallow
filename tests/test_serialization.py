@@ -707,7 +707,7 @@ class TestFieldSerialization:
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
         assert field.serialize("d6", user) == d6_seconds * 1000 + 1
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize("d6", user) == d6_seconds * 10 ** 6 + 1000 + 1
+        assert field.serialize("d6", user) == d6_seconds * 10**6 + 1000 + 1
 
         user.d7 = None
         assert field.serialize("d7", user) is None

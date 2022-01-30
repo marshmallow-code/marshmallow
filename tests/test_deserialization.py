@@ -65,7 +65,7 @@ class TestFieldDeserialization:
     def test_float_field_overflow(self):
         field = fields.Float()
         with pytest.raises(ValidationError) as excinfo:
-            field.deserialize(2 ** 1024)
+            field.deserialize(2**1024)
         assert excinfo.value.args[0] == "Number too large."
 
     def test_integer_field_deserialization(self):
@@ -644,14 +644,14 @@ class TestFieldDeserialization:
         assert result.microseconds == 0
 
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        result = field.deserialize(10 ** 6 + 1)
+        result = field.deserialize(10**6 + 1)
         assert isinstance(result, dt.timedelta)
         assert result.days == 0
         assert result.seconds == 1
         assert result.microseconds == 1
 
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        result = field.deserialize(86400 * 10 ** 6 + 1)
+        result = field.deserialize(86400 * 10**6 + 1)
         assert isinstance(result, dt.timedelta)
         assert result.days == 1
         assert result.seconds == 0
