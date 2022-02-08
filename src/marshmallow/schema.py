@@ -404,6 +404,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         messages.update(self.error_messages or {})
         self.error_messages = messages
 
+    def __del__(self):
+        self.fields = None
+        self.load_fields = None
+        self.dump_fields = None
+
     def __repr__(self) -> str:
         return "<{ClassName}(many={self.many})>".format(
             ClassName=self.__class__.__name__, self=self

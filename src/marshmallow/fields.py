@@ -247,6 +247,10 @@ class Field(FieldABC):
     def __deepcopy__(self, memo):
         return copy.copy(self)
 
+    def __del__(self):
+        self.parent = None
+        self.root = None
+
     def get_value(self, obj, attr, accessor=None, default=missing_):
         """Return the value for a given key from an object.
 
