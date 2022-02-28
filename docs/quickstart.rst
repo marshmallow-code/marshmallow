@@ -376,14 +376,14 @@ You can ignore missing fields entirely by setting ``partial=True``.
 Specifying Defaults
 -------------------
 
-`missing` specifies the default deserialization value for a field.
-Likewise, `default` specifies the default serialization value.
+`load_default` specifies the default deserialization value for a field.
+Likewise, `dump_default` specifies the default serialization value.
 
 .. code-block:: python
 
     class UserSchema(Schema):
-        id = fields.UUID(missing=uuid.uuid1)
-        birthdate = fields.DateTime(default=dt.datetime(2017, 9, 29))
+        id = fields.UUID(load_default=uuid.uuid1)
+        birthdate = fields.DateTime(dump_default=dt.datetime(2017, 9, 29))
 
 
     UserSchema().load({})
