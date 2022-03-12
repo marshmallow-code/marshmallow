@@ -508,7 +508,8 @@ class Nested(Field):
         # No
         author = fields.Nested(UserSchema(), only=('id', 'name'))
 
-    :param nested: `Schema` instance, class, class name (string), or callable that returns a `Schema` instance.
+    :param nested: `Schema` instance, class, class name (string), dictionary, or callable that
+        returns a `Schema` or dictionary. Dictionaries are converted with `Schema.from_dict`.
     :param exclude: A list or tuple of fields to exclude.
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
@@ -523,7 +524,11 @@ class Nested(Field):
 
     def __init__(
         self,
-        nested: SchemaABC | type | str | typing.Callable[[], SchemaABC],
+        nested: SchemaABC
+        | type
+        | str
+        | dict[str, Field | type]
+        | typing.Callable[[], SchemaABC | dict[str, Field | type]],
         *,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
@@ -568,6 +573,11 @@ class Nested(Field):
                 nested = self.nested()
             else:
                 nested = self.nested
+            if isinstance(nested, dict):
+                # defer the import of `marshmallow.schema` to avoid circular imports
+                from marshmallow.schema import Schema
+
+                nested = Schema.from_dict(nested)
 
             if isinstance(nested, SchemaABC):
                 self._schema = copy.copy(nested)
