@@ -15,7 +15,7 @@ from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
 from packaging.version import Version
 
-__version__ = "3.14.1"
+__version__ = "3.15.0"
 __parsed_version__ = Version(__version__)
 __version_info__: tuple[int, int, int] | tuple[
     int, int, int, str, int
