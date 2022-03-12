@@ -4,6 +4,11 @@ Changelog
 3.15.0 (unreleased)
 *******************
 
+Features:
+
+- Allow passing a `dict` to `fields.Nested` (:pr:`1935`).
+  Thanks :user:`sirosen` for the PR.
+
 Other changes:
 
 - Address distutils deprecation warning in Python 3.10 (:pr:`1903`).
