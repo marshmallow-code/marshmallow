@@ -109,9 +109,15 @@ class SchemaMeta(type):
         inherited_fields = _get_fields_by_mro(klass, ordered=ordered)
 
         meta = klass.Meta
+
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+        try:
+            klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+        except TypeError as e:
+            # user error: TypeError: __init__() got an unexpected keyword argument 'ordered'
+            raise TypeError(str(e) + " in OPTIONS_CLASS = " + str(klass.OPTIONS_CLASS))
+
         # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
