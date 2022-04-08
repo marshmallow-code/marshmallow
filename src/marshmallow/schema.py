@@ -318,7 +318,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     OPTIONS_CLASS = SchemaOpts  # type: type
 
     # These get set by SchemaMeta
-    opts = None  # type: SchemaOpts
+    opts = None  # type: OPTIONS_CLASS
     _declared_fields = {}  # type: typing.Dict[str, ma_fields.Field]
     _hooks = {}  # type: typing.Dict[types.Tag, typing.List[str]]
 
