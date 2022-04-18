@@ -47,6 +47,15 @@ class ValidationError(MarshmallowError):
             return self.messages
         return {self.field_name: self.messages}
 
+    @property
+    def messages_dict(self) -> dict[str, typing.Any]:
+        if not isinstance(self.messages, dict):
+            raise TypeError(
+                "cannot access 'messages_dict' when 'messages' is of type "
+                + type(self.messages).__name__
+            )
+        return self.messages
+
 
 class RegistryError(NameError):
     """Raised when an invalid operation is performed on the serializer
