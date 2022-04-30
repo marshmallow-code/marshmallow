@@ -653,6 +653,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
+
+                try:
+                    if self.context["propagate_unknown_to_nested"]:
+                        d_kwargs["unknown"] = unknown
+                except KeyError:
+                    pass
+
                 getter = lambda val: field_obj.deserialize(
                     val, field_name, data, **d_kwargs
                 )
@@ -833,6 +840,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: dict[str, list[str]]
         many = self.many if many is None else bool(many)
+        self.context["propagate_unknown_to_nested"] = unknown is not None
         unknown = unknown or self.unknown
         if partial is None:
             partial = self.partial

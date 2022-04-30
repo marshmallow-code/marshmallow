@@ -396,6 +396,70 @@ class TestNestedField:
         }
 
 
+class TestNestedFieldPropagatesUnknown:
+    class SpamSchema(Schema):
+        meat = fields.String()
+
+    class CanSchema(Schema):
+        spam = fields.Nested("SpamSchema")
+
+    class ShelfSchema(Schema):
+        can = fields.Nested("CanSchema")
+
+    @pytest.fixture
+    def data_nested_unknown(self):
+        return {
+            "spam": {"meat": "pork", "add-on": "eggs"},
+        }
+
+    @pytest.fixture
+    def multi_nested_data_with_unknown(self, data_nested_unknown):
+        return {
+            "can": data_nested_unknown,
+            "box": {"foo": "bar"},
+        }
+
+    @pytest.mark.parametrize("schema_kw", ({}, {"unknown": INCLUDE}))
+    def test_raises_when_unknown_passed_to_first_level_nested(
+        self, schema_kw, data_nested_unknown,
+    ):
+        with pytest.raises(ValidationError) as exc_info:
+            self.CanSchema(**schema_kw).load(data_nested_unknown)
+        assert exc_info.value.messages == {"spam": {"add-on": ["Unknown field."]}}
+
+    @pytest.mark.parametrize(
+        "load_kw,expected_data",
+        (
+            ({"unknown": INCLUDE}, {"spam": {"meat": "pork", "add-on": "eggs"}}),
+            ({"unknown": EXCLUDE}, {"spam": {"meat": "pork"}}),
+        ),
+    )
+    def test_processes_when_unknown_stated_directly(
+        self, load_kw, data_nested_unknown, expected_data,
+    ):
+        data = self.CanSchema().load(data_nested_unknown, **load_kw)
+        assert data == expected_data
+
+    @pytest.mark.parametrize(
+        "load_kw,expected_data",
+        (
+            (
+                {"unknown": INCLUDE},
+                {
+                    "can": {"spam": {"meat": "pork", "add-on": "eggs"}},
+                    "box": {"foo": "bar"},
+                },
+            ),
+            ({"unknown": EXCLUDE}, {"can": {"spam": {"meat": "pork"}}}),
+        ),
+    )
+    def test_propagates_unknown_to_multi_nested_fields(
+        self, load_kw, expected_data, multi_nested_data_with_unknown,
+    ):
+        data = self.ShelfSchema().load(multi_nested_data_with_unknown, **load_kw)
+        assert data == expected_data
+
+
 class TestListNested:
     @pytest.mark.parametrize("param", ("only", "exclude", "dump_only", "load_only"))
     def test_list_nested_only_exclude_dump_only_load_only_propagated_to_nested(
