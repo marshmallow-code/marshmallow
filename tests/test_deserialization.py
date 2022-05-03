@@ -1354,7 +1354,7 @@ class TestSchemaDeserialization:
             name = fields.Str()
 
         class StoreSchema(Schema):
-            pets = fields.Nested(PetSchema(), allow_none=False, many=True)
+            pets = fields.Nested(PetSchema, allow_none=False, many=True)
 
         sch = StoreSchema()
         errors = sch.validate({"pets": None})
@@ -1378,7 +1378,7 @@ class TestSchemaDeserialization:
             name = fields.Str()
 
         class StoreSchema(Schema):
-            pets = fields.Nested(PetSchema(), required=True, many=True)
+            pets = fields.Nested(PetSchema, required=True, many=True)
 
         sch = StoreSchema()
         errors = sch.validate({})

@@ -9,7 +9,8 @@ from marshmallow import (
     RAISE,
     missing,
 )
-from marshmallow.exceptions import StringNotCollectionError
+from marshmallow.exceptions import StringNotCollectionError, FieldConfigurationError
+from marshmallow.warnings import FieldConfigurationWarning
 
 from tests.base import ALL_FIELDS
 
@@ -394,6 +395,20 @@ class TestNestedField:
         assert MySchema().dump({"nested": {"foo": "baz", "bar": "bax"}}) == {
             "nested": {"foo": "baz"}
         }
+
+    def test_load_instanced_nested_schema_with_many(self):
+        class NestedSchema(Schema):
+            foo = fields.String()
+            bar = fields.String()
+
+        with pytest.warns(FieldConfigurationWarning):
+
+            class MySchema(Schema):
+                nested = fields.Nested(NestedSchema(), many=True)
+
+        schema = MySchema()
+        with pytest.raises(FieldConfigurationError):
+            schema.load({"nested": [{"foo": "123", "bar": "456"}]})
 
 
 class TestListNested:

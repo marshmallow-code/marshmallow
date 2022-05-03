@@ -54,9 +54,13 @@ class RegistryError(NameError):
     """
 
 
-class StringNotCollectionError(MarshmallowError, TypeError):
+class FieldConfigurationError(MarshmallowError):
+    """Raised when trying to configure a field with bad options."""
+
+
+class StringNotCollectionError(FieldConfigurationError, TypeError):
     """Raised when a string is passed when a list of strings is expected."""
 
 
-class FieldInstanceResolutionError(MarshmallowError, TypeError):
+class FieldInstanceResolutionError(FieldConfigurationError, TypeError):
     """Raised when schema to instantiate is neither a Schema class nor an instance."""
