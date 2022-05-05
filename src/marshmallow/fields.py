@@ -155,10 +155,11 @@ class Field(FieldABC):
         default: typing.Any = missing_,
         data_key: str | None = None,
         attribute: str | None = None,
-        validate: None
-        | (
-            typing.Callable[[typing.Any], typing.Any]
-            | typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
+        validate: typing.Optional(
+            typing.Union(
+                typing.Callable[[typing.Any], typing.Any],
+                typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
+            )
         ) = None,
         required: bool = False,
         allow_none: bool | None = None,
