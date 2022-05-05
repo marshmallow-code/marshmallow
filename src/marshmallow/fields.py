@@ -158,7 +158,7 @@ class Field(FieldABC):
         validate: typing.Union[
             None,
             typing.Callable[[typing.Any], typing.Any],
-            typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
+            typing.Iterable[typing.Callable[[typing.Any], typing.Any]],
         ] = None,
         required: bool = False,
         allow_none: bool | None = None,
