@@ -20,6 +20,7 @@ from marshmallow.warnings import RemovedInMarshmallow4Warning
 EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
+_UNKNOWN_VALUES = {EXCLUDE, INCLUDE, RAISE}
 
 
 class _Missing:
@@ -336,7 +337,7 @@ def timedelta_to_microseconds(value: dt.timedelta) -> int:
 
 
 def validate_unknown_parameter_value(obj: typing.Any) -> str:
-    if obj not in (INCLUDE, EXCLUDE, RAISE):
+    if obj not in _UNKNOWN_VALUES:
         raise ValueError(
             f"Object {obj!r} is not a valid value for the 'unknown' parameter"
         )
