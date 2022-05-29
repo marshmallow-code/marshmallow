@@ -168,3 +168,4 @@ Contributors (chronological)
 - Ben Windsor `@bwindsor <https://github.com/bwindsor>`_
 - Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
 - Isira Seneviratne `@Isira-Seneviratne <https://github.com/Isira-Seneviratne>`_
+- Karthikeyan Singaravelan `@tirkarthi  <https://github.com/tirkarthi>`_

@@ -84,6 +84,7 @@ def pprint(obj, *args, **kwargs) -> None:
     warnings.warn(
         "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",
         RemovedInMarshmallow4Warning,
+        stacklevel=2,
     )
     if isinstance(obj, collections.OrderedDict):
         print(json.dumps(obj, *args, **kwargs))
