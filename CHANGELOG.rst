@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+(unreleased)
+************
+
+Other changes:
+
+- Set lower bound for `packaging` requirement (:issue:`1957`).
+  Thanks :user:`MatthewNicolTR` for reporting and thanks :user:`sirosen` for the PR.
+
 3.15.0 (2022-03-12)
 *******************
 
