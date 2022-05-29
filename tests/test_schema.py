@@ -1,49 +1,46 @@
 import datetime as dt
 import decimal
-import random
 import math
-from collections import namedtuple, OrderedDict
-
-import simplejson as json
+import random
+from collections import OrderedDict, namedtuple
 
 import pytest
-
+import simplejson as json
 from marshmallow import (
+    EXCLUDE,
+    INCLUDE,
+    RAISE,
     Schema,
+    class_registry,
     fields,
     utils,
     validates,
     validates_schema,
-    EXCLUDE,
-    INCLUDE,
-    RAISE,
-    class_registry,
 )
 from marshmallow.exceptions import (
-    ValidationError,
-    StringNotCollectionError,
     RegistryError,
+    StringNotCollectionError,
+    ValidationError,
 )
 
 from tests.base import (
-    UserSchema,
-    UserMetaSchema,
-    UserRelativeUrlSchema,
-    ExtendedUserSchema,
-    UserIntSchema,
-    UserFloatStringSchema,
-    BlogSchema,
-    BlogUserMetaSchema,
+    Blog,
     BlogOnlySchema,
-    UserExcludeSchema,
-    UserAdditionalSchema,
+    BlogSchema,
     BlogSchemaExclude,
     BlogSchemaMeta,
+    BlogUserMetaSchema,
+    ExtendedUserSchema,
     User,
+    UserAdditionalSchema,
+    UserExcludeSchema,
+    UserFloatStringSchema,
+    UserIntSchema,
+    UserMetaSchema,
+    UserRelativeUrlSchema,
+    UserSchema,
     mockjson,
-    Blog,
 )
-
 
 random.seed(1)
 
@@ -2912,3 +2909,27 @@ def test_class_registry_returns_schema_type():
 
     SchemaClass = class_registry.get_class(DefinitelyUniqueSchema.__name__)
     assert SchemaClass is DefinitelyUniqueSchema
+
+
+@pytest.mark.parametrize("usage_location", ["meta", "init", "load"])
+def test_unknown_parameter_value_is_validated(usage_location):
+    class MySchema(Schema):
+        foo = fields.String()
+
+    with pytest.raises(
+        ValueError,
+        match="Object 'badval' is not a valid value for the 'unknown' parameter",
+    ):
+        # Meta.unknown setting gets caught at class creation time, since that's when
+        # metaclass __new__ runs
+        if usage_location == "meta":
+
+            class SubSchema(MySchema):
+                class Meta:
+                    unknown = "badval"
+
+        # usages in init and load are caught at call time, as expected
+        elif usage_location == "init":
+            MySchema(unknown="badval")
+        else:
+            MySchema().load({"foo": "bar"}, unknown="badval")

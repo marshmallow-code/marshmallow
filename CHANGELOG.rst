@@ -4,6 +4,11 @@ Changelog
 (unreleased)
 ************
 
+Features:
+
+- Raise `ValueError` if an invalid value is passed to the ``unknown`` argument (:issue:`1721`, :issue:`1732`).
+  Thanks :user:`sirosen` for the PR.
+
 Other changes:
 
 - Set lower bound for `packaging` requirement (:issue:`1957`).

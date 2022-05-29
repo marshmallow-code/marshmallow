@@ -20,6 +20,7 @@ from marshmallow.warnings import RemovedInMarshmallow4Warning
 EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
+_UNKNOWN_VALUES = {EXCLUDE, INCLUDE, RAISE}
 
 
 class _Missing:
@@ -333,3 +334,11 @@ def timedelta_to_microseconds(value: dt.timedelta) -> int:
     https://github.com/python/cpython/blob/bb3e0c240bc60fe08d332ff5955d54197f79751c/Lib/datetime.py#L665-L667  # noqa: B950
     """
     return (value.days * (24 * 3600) + value.seconds) * 1000000 + value.microseconds
+
+
+def validate_unknown_parameter_value(obj: typing.Any) -> str:
+    if obj not in _UNKNOWN_VALUES:
+        raise ValueError(
+            f"Object {obj!r} is not a valid value for the 'unknown' parameter"
+        )
+    return obj

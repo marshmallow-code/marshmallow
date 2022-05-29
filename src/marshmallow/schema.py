@@ -34,6 +34,7 @@ from marshmallow.utils import (
     get_value,
     is_collection,
     is_instance_or_subclass,
+    validate_unknown_parameter_value,
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
@@ -227,7 +228,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        self.unknown = getattr(meta, "unknown", RAISE)
+        self.unknown = validate_unknown_parameter_value(getattr(meta, "unknown", RAISE))
         self.register = getattr(meta, "register", True)
 
 
@@ -389,7 +390,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown = unknown or self.opts.unknown
+        self.unknown = (
+            self.opts.unknown
+            if unknown is None
+            else validate_unknown_parameter_value(unknown)
+        )
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -833,7 +838,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors = {}  # type: dict[str, list[str]]
         many = self.many if many is None else bool(many)
-        unknown = unknown or self.unknown
+        unknown = (
+            self.unknown
+            if unknown is None
+            else validate_unknown_parameter_value(unknown)
+        )
         if partial is None:
             partial = self.partial
         # Run preprocessors
