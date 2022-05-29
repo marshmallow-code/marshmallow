@@ -665,3 +665,16 @@ class TestDictNested:
                     "daughter": {"value": {"age": ["Missing data for required field."]}}
                 }
             }
+
+
+class TestMethodSerializationOfListItems:
+    def test_method_serialization_of_list_items(self):
+        class ExampleSchema(Schema):
+            dummy_list = fields.List(fields.Method(serialize="serialize_me"))
+
+            def serialize_me(self, obj):
+                return [str(value) for value in obj["dummy_list"]]
+
+        obj = {"dummy_list": ["hello", "world"]}
+        dumped = ExampleSchema().dump(obj)
+        assert dumped == {"dummy_list": [["hello", "world"], ["hello", "world"]]}
