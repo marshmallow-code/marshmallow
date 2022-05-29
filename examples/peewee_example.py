@@ -38,9 +38,6 @@ class Todo(BaseModel):
     user = pw.ForeignKeyField(User)
     posted_on = pw.DateTimeField()
 
-    class Meta:
-        order_by = ("-posted_on",)
-
 
 def create_tables():
     db.connect()
