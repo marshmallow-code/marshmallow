@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "mypy==0.950",
+        "mypy==0.960",
         "flake8==4.0.1",
         "flake8-bugbear==22.4.25",
         "pre-commit~=2.4",
@@ -58,7 +58,7 @@ setup(
     package_dir={"": "src"},
     package_data={"marshmallow": ["py.typed"]},
     include_package_data=True,
-    install_requires=["packaging"],
+    install_requires=["packaging>=17.0"],
     extras_require=EXTRAS_REQUIRE,
     license="MIT",
     zip_safe=False,
