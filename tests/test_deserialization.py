@@ -692,6 +692,12 @@ class TestFieldDeserialization:
         assert result.seconds == 123
         assert result.microseconds == 456000
 
+        total_seconds_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        result = field.deserialize(total_seconds_value)
+        assert isinstance(result, dt.timedelta)
+        assert result.total_seconds() == total_seconds_value
+
     @pytest.mark.parametrize("in_value", ["", "badvalue", [], 9999999999])
     def test_invalid_timedelta_field_deserialization(self, in_value):
         field = fields.TimeDelta(fields.TimeDelta.DAYS)

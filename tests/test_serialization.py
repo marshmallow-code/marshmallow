@@ -658,6 +658,8 @@ class TestFieldSerialization:
         assert field.serialize("d1", user) == 86401000001
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
         assert field.serialize("d1", user) == 24
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d1", user) == user.d1.total_seconds()
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         assert field.serialize("d2", user) == 1
@@ -665,6 +667,8 @@ class TestFieldSerialization:
         assert field.serialize("d2", user) == 86401
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d2", user) == 86401000001
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d2", user) == user.d2.total_seconds()
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         assert field.serialize("d3", user) == 1
@@ -672,6 +676,8 @@ class TestFieldSerialization:
         assert field.serialize("d3", user) == 86401
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d3", user) == 86401000001
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d3", user) == user.d3.total_seconds()
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         assert field.serialize("d4", user) == 0
@@ -679,6 +685,8 @@ class TestFieldSerialization:
         assert field.serialize("d4", user) == 0
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d4", user) == 0
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d4", user) == user.d4.total_seconds()
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         assert field.serialize("d5", user) == -1
@@ -686,6 +694,8 @@ class TestFieldSerialization:
         assert field.serialize("d5", user) == -86400
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d5", user) == -86400000000
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d5", user) == user.d5.total_seconds()
 
         field = fields.TimeDelta(fields.TimeDelta.WEEKS)
         assert field.serialize("d6", user) == 1
@@ -708,6 +718,8 @@ class TestFieldSerialization:
         assert field.serialize("d6", user) == d6_seconds * 1000 + 1
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d6", user) == d6_seconds * 10**6 + 1000 + 1
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        assert field.serialize("d6", user) == user.d6.total_seconds()
 
         user.d7 = None
         assert field.serialize("d7", user) is None
@@ -720,6 +732,19 @@ class TestFieldSerialization:
         user.d9 = dt.timedelta(milliseconds=1999)
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
         assert field.serialize("d9", user) == 1
+
+        user.d10 = dt.timedelta(
+            weeks=1,
+            days=6,
+            hours=2,
+            minutes=5,
+            seconds=51,
+            milliseconds=10,
+            microseconds=742,
+        )
+        field = fields.TimeDelta(fields.TimeDelta.TOTAL_SECONDS)
+        # Test for reasonable approximate equality. No guarantees are made about accuracy.
+        assert abs(field.serialize("d10", user) - 1130751.010742) < 0.1
 
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])

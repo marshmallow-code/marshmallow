@@ -1434,17 +1434,24 @@ class Date(DateTime):
 
 class TimeDelta(Field):
     """A field that (de)serializes a :class:`datetime.timedelta` object to an
-    integer and vice versa. The integer can represent the number of days,
-    seconds or microseconds.
+    integer or float and vice versa. The integer or float can represent the
+    number of days, seconds or microseconds (for integers) or the total seconds
+    (for floats).
 
-    :param precision: Influences how the integer is interpreted during
+    :param precision: Influences how the integer or float is interpreted during
         (de)serialization. Must be 'days', 'seconds', 'microseconds',
-        'milliseconds', 'minutes', 'hours' or 'weeks'.
+        'milliseconds', 'minutes', 'hours', 'weeks' or 'total_seconds'.
+        The 'total_seconds' precision interprets values as floats.
+        Other precisions will be interpreted as integers.
+        When using the `total_seconds` precision mode, data precision loss
+        may occur.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionchanged:: 2.0.0
         Always serializes to an integer value to avoid rounding errors.
         Add `precision` parameter.
+    .. versionchanged:: 3.17.0
+        Allow (de)serialization to float as the value of total seconds.
     """
 
     DAYS = "days"
@@ -1454,6 +1461,7 @@ class TimeDelta(Field):
     MINUTES = "minutes"
     HOURS = "hours"
     WEEKS = "weeks"
+    TOTAL_SECONDS = "total_seconds"
 
     #: Default error messages.
     default_error_messages = {
@@ -1471,6 +1479,7 @@ class TimeDelta(Field):
             self.MINUTES,
             self.HOURS,
             self.WEEKS,
+            self.TOTAL_SECONDS,
         )
 
         if precision not in units:
@@ -1485,18 +1494,28 @@ class TimeDelta(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
+        if self.precision == self.TOTAL_SECONDS:
+            return value.total_seconds()
         base_unit = dt.timedelta(**{self.precision: 1})
         delta = utils.timedelta_to_microseconds(value)
         unit = utils.timedelta_to_microseconds(base_unit)
         return delta // unit
 
     def _deserialize(self, value, attr, data, **kwargs):
+        if self.precision == self.TOTAL_SECONDS:
+            deser_type = float
+        else:
+            deser_type = int
+
         try:
-            value = int(value)
+            value = deser_type(value)
         except (TypeError, ValueError) as error:
             raise self.make_error("invalid") from error
 
-        kwargs = {self.precision: value}
+        if self.precision == self.TOTAL_SECONDS:
+            kwargs = {"seconds": value}
+        else:
+            kwargs = {self.precision: value}
 
         try:
             return dt.timedelta(**kwargs)

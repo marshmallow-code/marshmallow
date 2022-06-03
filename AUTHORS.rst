@@ -169,3 +169,4 @@ Contributors (chronological)
 - Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
 - Isira Seneviratne `@Isira-Seneviratne <https://github.com/Isira-Seneviratne>`_
 - Karthikeyan Singaravelan `@tirkarthi  <https://github.com/tirkarthi>`_
+- Marco Satti `@marcosatti  <https://github.com/marcosatti>`_
