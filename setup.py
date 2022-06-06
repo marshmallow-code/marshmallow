@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "mypy==0.960",
+        "mypy==0.961",
         "flake8==4.0.1",
         "flake8-bugbear==22.4.25",
         "pre-commit~=2.4",
