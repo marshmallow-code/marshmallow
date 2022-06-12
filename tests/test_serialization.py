@@ -771,6 +771,9 @@ class TestFieldSerialization:
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
+        with pytest.raises(ValueError):
+            fields.TimeDelta(fields.TimeDelta.SECONDS, str)
+
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
         field = fields.List(fields.DateTime)

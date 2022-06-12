@@ -1481,7 +1481,10 @@ class TimeDelta(Field):
     }
 
     def __init__(
-        self, precision: str = SECONDS, serde_type: type[int | float] = int, **kwargs
+        self,
+        precision: str = SECONDS,
+        serialization_type: type[int | float] = int,
+        **kwargs,
     ):
         precision = precision.lower()
         units = (
@@ -1500,17 +1503,11 @@ class TimeDelta(Field):
             )
             raise ValueError(msg)
 
-        serde_types = (
-            int,
-            float,
-        )
-
-        if serde_type not in serde_types:
-            msg = f"The (de)serialization must be one of {serde_types}"
-            raise ValueError(msg)
+        if serialization_type not in (int, float):
+            raise ValueError("The serialization type must be one of int or float")
 
         self.precision = precision
-        self.serde_type = serde_type
+        self.serialization_type = serialization_type
         super().__init__(**kwargs)
 
     def _serialize(self, value, attr, obj, **kwargs):
@@ -1519,17 +1516,17 @@ class TimeDelta(Field):
 
         base_unit = dt.timedelta(**{self.precision: 1})
 
-        if self.serde_type is int:
+        if self.serialization_type is int:
             delta = utils.timedelta_to_microseconds(value)
             unit = utils.timedelta_to_microseconds(base_unit)
             return delta // unit
         else:
-            assert self.serde_type is float
+            assert self.serialization_type is float
             return value.total_seconds() / base_unit.total_seconds()
 
     def _deserialize(self, value, attr, data, **kwargs):
         try:
-            value = self.serde_type(value)
+            value = self.serialization_type(value)
         except (TypeError, ValueError) as error:
             raise self.make_error("invalid") from error
 
