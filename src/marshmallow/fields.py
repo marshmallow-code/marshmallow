@@ -1440,7 +1440,7 @@ class TimeDelta(Field):
     :param precision: Influences how the integer or float is interpreted during
         (de)serialization. Must be 'days', 'seconds', 'microseconds',
         'milliseconds', 'minutes', 'hours' or 'weeks'.
-    :param serde_type: Whether to (de)serialize to a `int` or `float`.
+    :param serialization_type: Whether to (de)serialize to a `int` or `float`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     Integer Caveats
@@ -1453,16 +1453,15 @@ class TimeDelta(Field):
     Use of `float` when (de)serializing may result in data precision loss due
     to the way machines handle floating point values.
 
-    Microseconds is the smallest unit able to be represented wholly.
-    Smaller units than microseconds cannot be properly deserialized and will result
-    in the truncation of any fractional data. This is only possible when using `float`.
-    For example, 1.12345 interpreted as microseconds will result in `timedelta(microseconds=1)`.
+    Regardless of the precision chosen, the fractional part when using `float`
+    will always be truncated to microseconds.
+    For example, `1.12345` interpreted as microseconds will result in `timedelta(microseconds=1)`.
 
     .. versionchanged:: 2.0.0
         Always serializes to an integer value to avoid rounding errors.
         Add `precision` parameter.
     .. versionchanged:: 3.17.0
-        Allow (de)serialization to `float` through use of a new `serde_type` parameter.
+        Allow (de)serialization to `float` through use of a new `serialization_type` parameter.
         `int` is the default to retain previous behaviour.
     """
 
