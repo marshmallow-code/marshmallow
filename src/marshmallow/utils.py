@@ -6,6 +6,7 @@ import functools
 import datetime as dt
 import inspect
 import json
+import logging
 import re
 import typing
 import warnings
@@ -258,7 +259,8 @@ def _get_value_for_key(obj, key, default):
 
     try:
         return obj[key]
-    except (KeyError, IndexError, TypeError, AttributeError):
+    except (KeyError, IndexError, TypeError, AttributeError) as e:
+        logging.error(e, exc_info=True)
         return getattr(obj, key, default)
 
 
