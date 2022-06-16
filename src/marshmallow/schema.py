@@ -142,7 +142,7 @@ class SchemaMeta(type):
         :param cls_fields: The fields declared on the class, including those added
             by the ``include`` class Meta option.
         :param inherited_fields: Inherited fields.
-        :param dict_class: Either `dict` or `OrderedDict`, depending on the whether
+        :param dict_cls: Either `dict` or `OrderedDict`, depending on whether
             the user specified `ordered=True`.
         """
         return dict_cls(inherited_fields + cls_fields)
