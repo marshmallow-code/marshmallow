@@ -763,7 +763,8 @@ class List(Field):
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         self.inner = copy.deepcopy(self.inner)
-        self.inner._bind_to_schema(field_name, self)
+        self.inner.parent = self
+        self.inner._bind_to_schema(field_name, schema)
         if isinstance(self.inner, Nested):
             self.inner.only = self.only
             self.inner.exclude = self.exclude
