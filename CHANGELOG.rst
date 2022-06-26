@@ -1,19 +1,31 @@
 Changelog
 ---------
 
+3.17.0 (2022-06-26)
+*******************
+
+Features:
+
+- Support serialization as float in ``TimeDelta`` field (:pr:`1998`).
+  Thanks :user:`marcosatti` for the PR.
+- Add ``messages_dict`` property to ``ValidationError`` to facilitate type checking
+  (:pr:`1976`).
+  Thanks :user:`sirosen` for the PR.
+
 3.16.0 (2022-05-29)
 *******************
 
 Features:
 
-- Raise `ValueError` if an invalid value is passed to the ``unknown`` argument (:issue:`1721`, :issue:`1732`).
+- Raise ``ValueError`` if an invalid value is passed to the ``unknown``
+  argument (:issue:`1721`, :issue:`1732`).
   Thanks :user:`sirosen` for the PR.
 
 Other changes:
 
-- Set lower bound for `packaging` requirement (:issue:`1957`).
+- Set lower bound for ``packaging`` requirement (:issue:`1957`).
   Thanks :user:`MatthewNicolTR` for reporting and thanks :user:`sirosen` for the PR.
-- Improve warning messages by passing `stacklevel` (:pr:`1986`).
+- Improve warning messages by passing ``stacklevel`` (:pr:`1986`).
   Thanks :user:`tirkarthi` for the PR.
 
 3.15.0 (2022-03-12)
@@ -21,7 +33,7 @@ Other changes:
 
 Features:
 
-- Allow passing a `dict` to `fields.Nested` (:pr:`1935`).
+- Allow passing a ``dict`` to ``fields.Nested`` (:pr:`1935`).
   Thanks :user:`sirosen` for the PR.
 
 Other changes:
