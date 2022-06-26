@@ -19,6 +19,8 @@ repos:
   hooks:
   - id: mypy
     additional_dependencies: [types-simplejson, types-pytz, packaging]
+    # these files are checked under `tox -e mypy-test`
+    exclude: ^tests/mypy_test_cases/.*$
 - repo: https://github.com/asottile/blacken-docs
   rev: v1.12.1
   hooks:
