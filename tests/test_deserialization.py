@@ -692,6 +692,67 @@ class TestFieldDeserialization:
         assert result.seconds == 123
         assert result.microseconds == 456000
 
+        total_microseconds_value = 322.0
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS, float)
+        result = field.deserialize(total_microseconds_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(microseconds=1).total_seconds()
+        assert math.isclose(
+            result.total_seconds() / unit_value, total_microseconds_value
+        )
+
+        total_microseconds_value = 322.12345
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS, float)
+        result = field.deserialize(total_microseconds_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(microseconds=1).total_seconds()
+        assert math.isclose(
+            result.total_seconds() / unit_value, math.floor(total_microseconds_value)
+        )
+
+        total_milliseconds_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS, float)
+        result = field.deserialize(total_milliseconds_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(milliseconds=1).total_seconds()
+        assert math.isclose(
+            result.total_seconds() / unit_value, total_milliseconds_value
+        )
+
+        total_seconds_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS, float)
+        result = field.deserialize(total_seconds_value)
+        assert isinstance(result, dt.timedelta)
+        assert math.isclose(result.total_seconds(), total_seconds_value)
+
+        total_minutes_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.MINUTES, float)
+        result = field.deserialize(total_minutes_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(minutes=1).total_seconds()
+        assert math.isclose(result.total_seconds() / unit_value, total_minutes_value)
+
+        total_hours_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.HOURS, float)
+        result = field.deserialize(total_hours_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(hours=1).total_seconds()
+        assert math.isclose(result.total_seconds() / unit_value, total_hours_value)
+
+        total_days_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.DAYS, float)
+        result = field.deserialize(total_days_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(days=1).total_seconds()
+        assert math.isclose(result.total_seconds() / unit_value, total_days_value)
+
+        total_weeks_value = 322.223
+        field = fields.TimeDelta(fields.TimeDelta.WEEKS, float)
+        result = field.deserialize(total_weeks_value)
+        assert isinstance(result, dt.timedelta)
+        unit_value = dt.timedelta(weeks=1).total_seconds()
+        assert math.isclose(result.total_seconds() / unit_value, total_weeks_value)
+
     @pytest.mark.parametrize("in_value", ["", "badvalue", [], 9999999999])
     def test_invalid_timedelta_field_deserialization(self, in_value):
         field = fields.TimeDelta(fields.TimeDelta.DAYS)

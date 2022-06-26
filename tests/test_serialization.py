@@ -5,6 +5,7 @@ import itertools
 import decimal
 import uuid
 import ipaddress
+import math
 
 import pytest
 
@@ -720,6 +721,58 @@ class TestFieldSerialization:
         user.d9 = dt.timedelta(milliseconds=1999)
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
         assert field.serialize("d9", user) == 1
+
+        user.d10 = dt.timedelta(
+            weeks=1,
+            days=6,
+            hours=2,
+            minutes=5,
+            seconds=51,
+            milliseconds=10,
+            microseconds=742,
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS, float)
+        unit_value = dt.timedelta(microseconds=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS, float)
+        unit_value = dt.timedelta(milliseconds=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS, float)
+        assert math.isclose(field.serialize("d10", user), user.d10.total_seconds())
+
+        field = fields.TimeDelta(fields.TimeDelta.MINUTES, float)
+        unit_value = dt.timedelta(minutes=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.HOURS, float)
+        unit_value = dt.timedelta(hours=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.DAYS, float)
+        unit_value = dt.timedelta(days=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        field = fields.TimeDelta(fields.TimeDelta.WEEKS, float)
+        unit_value = dt.timedelta(weeks=1).total_seconds()
+        assert math.isclose(
+            field.serialize("d10", user), user.d10.total_seconds() / unit_value
+        )
+
+        with pytest.raises(ValueError):
+            fields.TimeDelta(fields.TimeDelta.SECONDS, str)
 
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
