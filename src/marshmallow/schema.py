@@ -995,26 +995,28 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             field_obj.data_key if field_obj.data_key is not None else name
             for name, field_obj in dump_fields.items()
         ]
-        if len(dump_data_keys) != len(set(dump_data_keys)):
-            data_keys_duplicates = {
-                x for x in dump_data_keys if dump_data_keys.count(x) > 1
-            }
+        data_keys_without_duplicates = set(dump_data_keys)
+        if len(dump_data_keys) != len(data_keys_without_duplicates):
+            data_keys_duplicates = [
+                x for x in data_keys_without_duplicates if dump_data_keys.count(x) > 1
+            ]
             raise ValueError(
                 "The data_key argument for one or more fields collides "
                 "with another field's name or data_key argument. "
                 "Check the following field names and "
-                "data_key arguments: {}".format(list(data_keys_duplicates))
+                "data_key arguments: {}".format(data_keys_duplicates)
             )
         load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
-        if len(load_attributes) != len(set(load_attributes)):
-            attributes_duplicates = {
-                x for x in load_attributes if load_attributes.count(x) > 1
-            }
+        attributes_without_duplicates = set(load_attributes)
+        if len(load_attributes) != len(attributes_without_duplicates):
+            attributes_duplicates = [
+                x for x in attributes_without_duplicates if load_attributes.count(x) > 1
+            ]
             raise ValueError(
                 "The attribute argument for one or more fields collides "
                 "with another field's name or attribute argument. "
                 "Check the following field names and "
-                "attribute arguments: {}".format(list(attributes_duplicates))
+                "attribute arguments: {}".format(attributes_duplicates)
             )
 
         self.fields = fields_dict
