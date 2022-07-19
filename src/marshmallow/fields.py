@@ -1801,7 +1801,7 @@ class IPv6(IP):
 class IPInterface(Field):
     """A IPInterface field.
 
-    IP interface is the non-stict form of the IPNetwork type where arbitrary host
+    IP interface is the non-strict form of the IPNetwork type where arbitrary host
     addresses are always accepted.
 
     IPAddress and mask e.g. '192.168.0.2/24' or '192.168.0.2/255.255.255.0'
