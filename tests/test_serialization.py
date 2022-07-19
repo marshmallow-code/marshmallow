@@ -11,7 +11,7 @@ import pytest
 
 from marshmallow import Schema, fields, missing as missing_
 
-from tests.base import User, ALL_FIELDS, central
+from tests.base import User, ALL_FIELDS, central, GenderEnum
 
 
 class DateTimeList:
@@ -254,6 +254,12 @@ class TestFieldSerialization:
             field_exploded.serialize("ipv6interface", user)
             == ipv6interface_exploded_string
         )
+
+    @pytest.mark.parametrize("by_value,value", ((True, 1), (False, "male")))
+    def test_enum_field_serialization(self, user, by_value, value):
+        user.sex = GenderEnum.male
+        field = fields.Enum(GenderEnum, by_value=by_value)
+        assert field.serialize("sex", user) == value
 
     def test_decimal_field(self, user):
         user.m1 = 12

@@ -1,6 +1,7 @@
 """Test utilities and fixtures."""
 import datetime as dt
 import uuid
+from enum import IntEnum
 
 import simplejson
 
@@ -10,6 +11,12 @@ from marshmallow import Schema, fields, post_load, validate, missing
 from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone("US/Central")
+
+
+class GenderEnum(IntEnum):
+    male = 1
+    female = 2
+    non_binary = 3
 
 
 ALL_FIELDS = [
@@ -33,7 +40,9 @@ ALL_FIELDS = [
     fields.IPInterface,
     fields.IPv4Interface,
     fields.IPv6Interface,
+    lambda **x: fields.Enum(GenderEnum, **x),
 ]
+
 
 ##### Custom asserts #####
 
@@ -69,7 +78,7 @@ class User:
         birthdate=None,
         birthtime=None,
         balance=100,
-        sex="male",
+        sex=GenderEnum.male,
         employer=None,
         various_data=None,
     ):
@@ -87,7 +96,7 @@ class User:
         self.balance = balance
         self.registered = registered
         self.hair_colors = ["black", "brown", "blond", "redhead"]
-        self.sex_choices = ("male", "female")
+        self.sex_choices = list(GenderEnum.__members__)
         self.finger_count = 10
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
@@ -180,7 +189,7 @@ class UserSchema(Schema):
     birthtime = fields.Time()
     activation_date = fields.Date()
     since_created = fields.TimeDelta()
-    sex = fields.Str(validate=validate.OneOf(["male", "female"]))
+    sex = fields.Str(validate=validate.OneOf(list(GenderEnum.__members__)))
     various_data = fields.Dict()
 
     class Meta:

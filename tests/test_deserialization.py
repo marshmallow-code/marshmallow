@@ -10,7 +10,13 @@ from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, Schema, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
 
-from tests.base import assert_date_equal, assert_time_equal, central, ALL_FIELDS
+from tests.base import (
+    assert_date_equal,
+    assert_time_equal,
+    central,
+    ALL_FIELDS,
+    GenderEnum,
+)
 
 
 class TestDeserializingNone:
@@ -1088,6 +1094,28 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
 
         assert excinfo.value.args[0] == "Not a valid IPv6 interface."
+
+    @pytest.mark.parametrize("by_value,value", ((True, 1), (False, "male")))
+    def test_enum_field_deserialization(self, by_value, value):
+        field = fields.Enum(GenderEnum, by_value=by_value)
+        assert field.deserialize(value) == GenderEnum.male
+
+    @pytest.mark.parametrize(
+        "by_value,exc_str",
+        (
+            (True, "Must be one of: 1, 2, 3"),
+            (False, "Must be one of: male, female, non_binary"),
+        ),
+    )
+    def test_enum_field_invalid_value(self, by_value, exc_str):
+        field = fields.Enum(GenderEnum, by_value=by_value)
+        with pytest.raises(ValidationError, match=exc_str):
+            field.deserialize("dummy")
+
+    def test_enum_field_by_name_not_string(self):
+        field = fields.Enum(GenderEnum)
+        with pytest.raises(ValidationError, match="Not a valid string."):
+            field.deserialize(12)
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(TypeError):

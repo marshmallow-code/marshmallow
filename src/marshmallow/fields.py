@@ -59,6 +59,7 @@ __all__ = [
     "IPInterface",
     "IPv4Interface",
     "IPv6Interface",
+    "Enum",
     "Method",
     "Function",
     "Str",
@@ -1853,6 +1854,51 @@ class IPv6Interface(IPInterface):
     default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
 
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
+
+
+class Enum(Field):
+
+    default_error_messages = {
+        "invalid": "Not a valid string.",
+        "unknown": "Must be one of: {choices}",
+    }
+
+    def __init__(
+        self,
+        enum,
+        by_value=False,
+        *args,
+        **kwargs,
+    ):
+        self.enum = enum
+        self.by_value = by_value
+        self.choices = ", ".join([str(e.value if by_value else e.name) for e in enum])
+        super().__init__(*args, **kwargs)
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return value.value if self.by_value else value.name
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if self.by_value:
+            return self._deserialize_by_value(value, attr, data)
+        else:
+            return self._deserialize_by_name(value, attr, data)
+
+    def _deserialize_by_value(self, value, attr, data):
+        try:
+            return self.enum(value)
+        except ValueError as exc:
+            raise self.make_error("unknown", choices=self.choices) from exc
+
+    def _deserialize_by_name(self, value, attr, data):
+        if not isinstance(value, (str, bytes)):
+            raise self.make_error("invalid")
+        try:
+            return getattr(self.enum, value)
+        except AttributeError as exc:
+            raise self.make_error("unknown", choices=self.choices) from exc
 
 
 class Method(Field):
