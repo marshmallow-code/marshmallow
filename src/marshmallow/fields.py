@@ -60,6 +60,8 @@ __all__ = [
     "IPv4Interface",
     "IPv6Interface",
     "Enum",
+    "StringEnum",
+    "IntegerEnum",
     "Method",
     "Function",
     "Str",
@@ -1856,49 +1858,71 @@ class IPv6Interface(IPInterface):
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
 
 
-class Enum(Field):
+class Enum(String):
 
     default_error_messages = {
-        "invalid": "Not a valid string.",
-        "unknown": "Must be one of: {choices}",
+        "unknown": "Must be one of: {choices}.",
     }
 
     def __init__(
         self,
         enum,
-        by_value=False,
         *args,
         **kwargs,
     ):
         self.enum = enum
-        self.by_value = by_value
-        self.choices = ", ".join([str(e.value if by_value else e.name) for e in enum])
+        self.choices = ", ".join(enum.__members__)
         super().__init__(*args, **kwargs)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        return value.value if self.by_value else value.name
+        return value.name
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if self.by_value:
-            return self._deserialize_by_value(value, attr, data)
-        else:
-            return self._deserialize_by_name(value, attr, data)
+        value = super()._deserialize(value, attr, data, **kwargs)
+        try:
+            return getattr(self.enum, value)
+        except AttributeError as exc:
+            raise self.make_error("unknown", choices=self.choices) from exc
 
-    def _deserialize_by_value(self, value, attr, data):
+
+class TypedEnum:
+    """Base class for typed Enum fields"""
+
+    default_error_messages = {
+        "unknown": "Must be one of: {choices}.",
+    }
+
+    def __init__(
+        self,
+        enum,
+        *args,
+        **kwargs,
+    ):
+        self.enum = enum
+        self.choices = ", ".join([str(m.value) for m in enum])
+        super().__init__(*args, **kwargs)
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return value.value
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        value = super()._deserialize(value, attr, data, **kwargs)
         try:
             return self.enum(value)
         except ValueError as exc:
             raise self.make_error("unknown", choices=self.choices) from exc
 
-    def _deserialize_by_name(self, value, attr, data):
-        if not isinstance(value, (str, bytes)):
-            raise self.make_error("invalid")
-        try:
-            return getattr(self.enum, value)
-        except AttributeError as exc:
-            raise self.make_error("unknown", choices=self.choices) from exc
+
+class StringEnum(TypedEnum, String):
+    """String Enum"""
+
+
+class IntegerEnum(TypedEnum, Integer):
+    """Integer Enum"""
 
 
 class Method(Field):

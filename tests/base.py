@@ -1,7 +1,7 @@
 """Test utilities and fixtures."""
 import datetime as dt
 import uuid
-from enum import IntEnum
+from enum import Enum, IntEnum
 
 import simplejson
 
@@ -17,6 +17,13 @@ class GenderEnum(IntEnum):
     male = 1
     female = 2
     non_binary = 3
+
+
+class HairColorEnum(Enum):
+    black = "black hair"
+    brown = "brown hair"
+    blond = "blond hair"
+    red = "red hair"
 
 
 ALL_FIELDS = [
@@ -41,6 +48,8 @@ ALL_FIELDS = [
     fields.IPv4Interface,
     fields.IPv6Interface,
     lambda **x: fields.Enum(GenderEnum, **x),
+    lambda **x: fields.StringEnum(HairColorEnum, **x),
+    lambda **x: fields.IntegerEnum(GenderEnum, **x),
 ]
 
 
@@ -79,6 +88,7 @@ class User:
         birthtime=None,
         balance=100,
         sex=GenderEnum.male,
+        hair_color=HairColorEnum.black,
         employer=None,
         various_data=None,
     ):
@@ -95,7 +105,7 @@ class User:
         self.email = email
         self.balance = balance
         self.registered = registered
-        self.hair_colors = ["black", "brown", "blond", "redhead"]
+        self.hair_colors = list(HairColorEnum.__members__)
         self.sex_choices = list(GenderEnum.__members__)
         self.finger_count = 10
         self.uid = uuid.uuid1()
@@ -104,6 +114,7 @@ class User:
         self.birthtime = birthtime or dt.time(0, 1, 2, 3333)
         self.activation_date = dt.date(2013, 12, 11)
         self.sex = sex
+        self.hair_color = hair_color
         self.employer = employer
         self.relatives = []
         self.various_data = various_data or {
