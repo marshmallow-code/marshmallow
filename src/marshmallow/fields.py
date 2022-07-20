@@ -1192,7 +1192,7 @@ class Boolean(Field):
         try:
             if value in self.truthy:
                 return True
-            elif value in self.falsy:
+            if value in self.falsy:
                 return False
         except TypeError:
             pass
@@ -1202,14 +1202,13 @@ class Boolean(Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if not self.truthy:
             return bool(value)
-        else:
-            try:
-                if value in self.truthy:
-                    return True
-                elif value in self.falsy:
-                    return False
-            except TypeError as error:
-                raise self.make_error("invalid", input=value) from error
+        try:
+            if value in self.truthy:
+                return True
+            if value in self.falsy:
+                return False
+        except TypeError as error:
+            raise self.make_error("invalid", input=value) from error
         raise self.make_error("invalid", input=value)
 
 
