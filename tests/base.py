@@ -85,7 +85,7 @@ class User:
         self.homepage = homepage
         self.email = email
         self.balance = balance
-        self.registered = True
+        self.registered = registered
         self.hair_colors = ["black", "brown", "blond", "redhead"]
         self.sex_choices = ("male", "female")
         self.finger_count = 10
