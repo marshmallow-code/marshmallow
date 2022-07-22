@@ -1,4 +1,5 @@
 """Test utilities and fixtures."""
+import functools
 import datetime as dt
 import uuid
 from enum import Enum, IntEnum
@@ -47,9 +48,9 @@ ALL_FIELDS = [
     fields.IPInterface,
     fields.IPv4Interface,
     fields.IPv6Interface,
-    lambda **x: fields.Enum(GenderEnum, **x),
-    lambda **x: fields.StringEnum(HairColorEnum, **x),
-    lambda **x: fields.IntegerEnum(GenderEnum, **x),
+    functools.partial(fields.Enum, GenderEnum),
+    functools.partial(fields.StringEnum, HairColorEnum),
+    functools.partial(fields.IntegerEnum, GenderEnum),
 ]
 
 
