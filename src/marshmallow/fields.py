@@ -59,9 +59,9 @@ __all__ = [
     "IPInterface",
     "IPv4Interface",
     "IPv6Interface",
-    "Enum",
-    "StringEnum",
-    "IntegerEnum",
+    "EnumSymbol",
+    "StringEnumValue",
+    "IntegerEnumValue",
     "Method",
     "Function",
     "Str",
@@ -1858,7 +1858,7 @@ class IPv6Interface(IPInterface):
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
 
 
-class Enum(String):
+class EnumSymbol(String):
 
     default_error_messages = {
         "unknown": "Must be one of: {choices}.",
@@ -1887,7 +1887,7 @@ class Enum(String):
             raise self.make_error("unknown", choices=self.choices) from exc
 
 
-class TypedEnum:
+class EnumValue:
     """Base class for typed Enum fields"""
 
     default_error_messages = {
@@ -1917,11 +1917,11 @@ class TypedEnum:
             raise self.make_error("unknown", choices=self.choices) from exc
 
 
-class StringEnum(TypedEnum, String):
+class StringEnumValue(EnumValue, String):
     """String Enum"""
 
 
-class IntegerEnum(TypedEnum, Integer):
+class IntegerEnumValue(EnumValue, Integer):
     """Integer Enum"""
 
 

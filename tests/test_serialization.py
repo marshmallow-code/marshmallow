@@ -257,17 +257,17 @@ class TestFieldSerialization:
 
     def test_enum_field_serialization(self, user):
         user.sex = GenderEnum.male
-        field = fields.Enum(GenderEnum)
+        field = fields.EnumSymbol(GenderEnum)
         assert field.serialize("sex", user) == "male"
 
     def test_stringenum_field_serialization(self, user):
         user.hair_color = HairColorEnum.black
-        field = fields.StringEnum(HairColorEnum)
+        field = fields.StringEnumValue(HairColorEnum)
         assert field.serialize("hair_color", user) == "black hair"
 
     def test_integerenum_field_serialization(self, user):
         user.sex = GenderEnum.male
-        field = fields.IntegerEnum(GenderEnum)
+        field = fields.IntegerEnumValue(GenderEnum)
         assert field.serialize("sex", user) == 1
 
     def test_decimal_field(self, user):
