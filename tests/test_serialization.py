@@ -554,6 +554,38 @@ class TestFieldSerialization:
         field = fields.DateTime(format=fmt)
         assert field.serialize("d", {"d": value}) == expected
 
+    @pytest.mark.parametrize(
+        ("fmt", "value", "expected"),
+        [
+            ("timestamp", dt.datetime(1970, 1, 1), 0),
+            ("timestamp", dt.datetime(2013, 11, 10, 0, 23, 45), 1384043025),
+            (
+                "timestamp",
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.timezone.utc),
+                1384043025,
+            ),
+            (
+                "timestamp",
+                central.localize(dt.datetime(2013, 11, 10, 0, 23, 45), is_dst=False),
+                1384064625,
+            ),
+            ("timestamp_ms", dt.datetime(2013, 11, 10, 0, 23, 45), 1384043025000),
+            (
+                "timestamp_ms",
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.timezone.utc),
+                1384043025000,
+            ),
+            (
+                "timestamp_ms",
+                central.localize(dt.datetime(2013, 11, 10, 0, 23, 45), is_dst=False),
+                1384064625000,
+            ),
+        ],
+    )
+    def test_datetime_field_timestamp(self, fmt, value, expected):
+        field = fields.DateTime(format=fmt)
+        assert field.serialize("d", {"d": value}) == expected
+
     @pytest.mark.parametrize("fmt", ["iso", "iso8601", None])
     @pytest.mark.parametrize(
         ("value", "expected"),
