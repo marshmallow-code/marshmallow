@@ -521,18 +521,18 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize(
         ("fmt", "value", "expected"),
         [
-            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 1, 23, 45)),
-            ("timestamp", "1384043025", dt.datetime(2013, 11, 10, 1, 23, 45)),
-            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 1, 23, 45)),
-            ("timestamp", 1384043025.12, dt.datetime(2013, 11, 10, 1, 23, 45, 120000)),
+            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", "1384043025", dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", 1384043025.12, dt.datetime(2013, 11, 10, 0, 23, 45, 120000)),
             (
                 "timestamp",
                 1384043025.123456,
-                dt.datetime(2013, 11, 10, 1, 23, 45, 123456),
+                dt.datetime(2013, 11, 10, 0, 23, 45, 123456),
             ),
-            ("timestamp", 1, dt.datetime(1970, 1, 1, 1, 0, 1)),
-            ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 1, 23, 45)),
-            ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 1, 0, 1)),
+            ("timestamp", 1, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
         ],
     )
     def test_timestamp_field_deserialization(self, fmt, value, expected):

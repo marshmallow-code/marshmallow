@@ -194,7 +194,10 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
     value = float(value)
     if value < 0:
         raise ValueError("Not a valid POSIX timestamp")
-    return dt.datetime.fromtimestamp(value)
+
+    # Load a timestamp with utc as timezone to prevent using system timezone.
+    # Then set timezone to None, to let the Field handle adding timezone info.
+    return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
 
 
 def from_timestamp_ms(value: typing.Any) -> dt.datetime:
