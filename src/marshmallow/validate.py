@@ -121,9 +121,15 @@ class URL(Validator):
                             if not require_tld
                             else r""
                         ),  # allow dotless hostnames
-                        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|",  # ...or ipv4
+                        r"(?:(?:25[0-5]|2[0-4][0-9]|1([0-9]?){2}",
+                        r"|[1-9][0-9]?|0)\.){3}",
+                        r"(?:25[0-5]|2[0-4][0-9]|1([0-9]?){2}",
+                        r"|[1-9][0-9]?|0)|",  # ...or ipv4
                         r"\[[A-F0-9]*:[A-F0-9:]+\])",  # ...or ipv6
-                        r"(?::\d+)?",  # optional port
+                        r"(?::(0|6553[0-5]|655[0-2][0-9]|",
+                        r"65[0-4][0-9]{2}|6[0-4][0-9]{3}",
+                        r"|[1-5]([0-9]){4}|",
+                        r"[1-9]([0-9]?){3}))?",  # optional port
                         r")?"
                         if relative
                         else r"",  # host is optional, allow for relative URLs
