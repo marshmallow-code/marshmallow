@@ -17,6 +17,7 @@ from tests.base import (
     ALL_FIELDS,
     GenderEnum,
     HairColorEnum,
+    DateEnum,
 )
 
 
@@ -1096,52 +1097,56 @@ class TestFieldDeserialization:
 
         assert excinfo.value.args[0] == "Not a valid IPv6 interface."
 
-    def test_enum_field_deserialization(self):
+    def test_enumsymbol_field_deserialization(self):
         field = fields.EnumSymbol(GenderEnum)
         assert field.deserialize("male") == GenderEnum.male
 
-    def test_enum_field_invalid_value(self):
+    def test_enumsymbol_field_invalid_value(self):
         field = fields.EnumSymbol(GenderEnum)
         with pytest.raises(
             ValidationError, match="Must be one of: male, female, non_binary."
         ):
             field.deserialize("dummy")
 
-    def test_enum_field_not_string(self):
+    def test_enumsymbol_field_not_string(self):
         field = fields.EnumSymbol(GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid string."):
             field.deserialize(12)
 
-    def test_stringenum_field_deserialization(self):
+    def test_enumvalue_field_deserialization(self):
         field = fields.EnumValue(fields.String, HairColorEnum)
         assert field.deserialize("black hair") == HairColorEnum.black
+        field = fields.EnumValue(fields.Integer, GenderEnum)
+        assert field.deserialize(1) == GenderEnum.male
+        field = fields.EnumValue(fields.Date, DateEnum)
+        assert field.deserialize("2004-02-29") == DateEnum.date_1
 
-    def test_stringenum_field_invalid_value(self):
+    def test_enumvalue_field_invalid_value(self):
         field = fields.EnumValue(fields.String, HairColorEnum)
         with pytest.raises(
             ValidationError,
             match="Must be one of: black hair, brown hair, blond hair, red hair.",
         ):
             field.deserialize("dummy")
-
-    def test_stringenum_field_not_string(self):
-        field = fields.EnumValue(fields.String, HairColorEnum)
-        with pytest.raises(ValidationError, match="Not a valid string."):
-            field.deserialize(12)
-
-    def test_integerenum_field_deserialization(self):
-        field = fields.EnumValue(fields.Integer, GenderEnum)
-        assert field.deserialize(1) == GenderEnum.male
-
-    def test_integerenum_field_invalid_value(self):
         field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
             field.deserialize(12)
+        field = fields.EnumValue(fields.Date, DateEnum)
+        with pytest.raises(
+            ValidationError, match="Must be one of: 2004-02-29, 2008-02-29, 2012-02-29."
+        ):
+            field.deserialize("2004-02-28")
 
-    def test_integerenum_field_not_integer(self):
+    def test_enumvalue_field_wrong_type(self):
+        field = fields.EnumValue(fields.String, HairColorEnum)
+        with pytest.raises(ValidationError, match="Not a valid string."):
+            field.deserialize(12)
         field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid integer."):
             field.deserialize("dummy")
+        field = fields.EnumValue(fields.Date, DateEnum)
+        with pytest.raises(ValidationError, match="Not a valid date."):
+            field.deserialize("2004-02-30")
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(TypeError):

@@ -27,6 +27,12 @@ class HairColorEnum(Enum):
     red = "red hair"
 
 
+class DateEnum(Enum):
+    date_1 = dt.date(2004, 2, 29)
+    date_2 = dt.date(2008, 2, 29)
+    date_3 = dt.date(2012, 2, 29)
+
+
 ALL_FIELDS = [
     fields.String,
     fields.Integer,
