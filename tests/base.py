@@ -49,8 +49,8 @@ ALL_FIELDS = [
     fields.IPv4Interface,
     fields.IPv6Interface,
     functools.partial(fields.EnumSymbol, GenderEnum),
-    functools.partial(fields.StringEnumValue, HairColorEnum),
-    functools.partial(fields.IntegerEnumValue, GenderEnum),
+    functools.partial(fields.EnumValue, fields.String, HairColorEnum),
+    functools.partial(fields.EnumValue, fields.Integer, GenderEnum),
 ]
 
 

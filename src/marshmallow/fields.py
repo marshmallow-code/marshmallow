@@ -11,6 +11,7 @@ import decimal
 import math
 import typing
 import warnings
+from enum import Enum
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry, types
@@ -60,8 +61,7 @@ __all__ = [
     "IPv4Interface",
     "IPv6Interface",
     "EnumSymbol",
-    "StringEnumValue",
-    "IntegerEnumValue",
+    "EnumValue",
     "Method",
     "Function",
     "Str",
@@ -1887,42 +1887,36 @@ class EnumSymbol(String):
             raise self.make_error("unknown", choices=self.choices) from exc
 
 
-class EnumValue:
+class EnumValue(Field):
     """Base class for typed Enum fields"""
 
     default_error_messages = {
         "unknown": "Must be one of: {choices}.",
     }
 
-    def __init__(
-        self,
-        enum,
-        *args,
-        **kwargs,
-    ):
+    def __init__(self, cls_or_instance: Field | type, enum: type[Enum], **kwargs):
+        super().__init__(**kwargs)
         self.enum = enum
         self.choices = ", ".join([str(m.value) for m in enum])
-        super().__init__(*args, **kwargs)
+        try:
+            self.field = resolve_field_instance(cls_or_instance)
+        except FieldInstanceResolutionError as error:
+            raise ValueError(
+                "The enum field must be a subclass or instance of "
+                "marshmallow.base.FieldABC."
+            ) from error
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        return value.value
+        return self.field._serialize(value.value, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
-        value = super()._deserialize(value, attr, data, **kwargs)
+        value = self.field._deserialize(value, attr, data, **kwargs)
         try:
             return self.enum(value)
         except ValueError as exc:
             raise self.make_error("unknown", choices=self.choices) from exc
-
-
-class StringEnumValue(EnumValue, String):
-    """String Enum"""
-
-
-class IntegerEnumValue(EnumValue, Integer):
-    """Integer Enum"""
 
 
 class Method(Field):

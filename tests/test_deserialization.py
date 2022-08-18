@@ -1113,11 +1113,11 @@ class TestFieldDeserialization:
             field.deserialize(12)
 
     def test_stringenum_field_deserialization(self):
-        field = fields.StringEnumValue(HairColorEnum)
+        field = fields.EnumValue(fields.String, HairColorEnum)
         assert field.deserialize("black hair") == HairColorEnum.black
 
     def test_stringenum_field_invalid_value(self):
-        field = fields.StringEnumValue(HairColorEnum)
+        field = fields.EnumValue(fields.String, HairColorEnum)
         with pytest.raises(
             ValidationError,
             match="Must be one of: black hair, brown hair, blond hair, red hair.",
@@ -1125,21 +1125,21 @@ class TestFieldDeserialization:
             field.deserialize("dummy")
 
     def test_stringenum_field_not_string(self):
-        field = fields.StringEnumValue(HairColorEnum)
+        field = fields.EnumValue(fields.String, HairColorEnum)
         with pytest.raises(ValidationError, match="Not a valid string."):
             field.deserialize(12)
 
     def test_integerenum_field_deserialization(self):
-        field = fields.IntegerEnumValue(GenderEnum)
+        field = fields.EnumValue(fields.Integer, GenderEnum)
         assert field.deserialize(1) == GenderEnum.male
 
     def test_integerenum_field_invalid_value(self):
-        field = fields.IntegerEnumValue(GenderEnum)
+        field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
             field.deserialize(12)
 
     def test_integerenum_field_not_integer(self):
-        field = fields.IntegerEnumValue(GenderEnum)
+        field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid integer."):
             field.deserialize("dummy")
 
