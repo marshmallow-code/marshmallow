@@ -1864,15 +1864,10 @@ class EnumSymbol(String):
         "unknown": "Must be one of: {choices}.",
     }
 
-    def __init__(
-        self,
-        enum,
-        *args,
-        **kwargs,
-    ):
+    def __init__(self, enum: type[Enum], **kwargs):
         self.enum = enum
         self.choices = ", ".join(enum.__members__)
-        super().__init__(*args, **kwargs)
+        super().__init__(**kwargs)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
