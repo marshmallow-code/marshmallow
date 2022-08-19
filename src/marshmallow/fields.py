@@ -1859,6 +1859,12 @@ class IPv6Interface(IPInterface):
 
 
 class EnumSymbol(String):
+    """An Enum field (de)serializing enum members by symbol (name) as string.
+
+    :param enum Enum: Enum class
+
+    .. versionadded:: 3.18.0
+    """
 
     default_error_messages = {
         "unknown": "Must be one of: {choices}.",
@@ -1883,7 +1889,15 @@ class EnumSymbol(String):
 
 
 class EnumValue(Field):
-    """Base class for typed Enum fields"""
+    """An Enum field (de)serializing enum members by value.
+
+    A Field must be provided to (de)serialize the value.
+
+    :param cls_or_instance: Field class or instance.
+    :param enum Enum: Enum class
+
+    .. versionadded:: 3.18.0
+    """
 
     default_error_messages = {
         "unknown": "Must be one of: {choices}.",
