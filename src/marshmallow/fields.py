@@ -1815,7 +1815,7 @@ class IPInterface(Field):
 
     DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
 
-    def __init__(self, *args, exploded=False, **kwargs):
+    def __init__(self, *args, exploded: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
 
