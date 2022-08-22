@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.17.1 (2022-08-22)
+*******************
+
+Bug fixes:
+
+- Add return type to `fields.Email.__init__` (:pr:`2018`).
+  Thanks :user:`kkirsche` for the PR.
+- Add missing type hint to IPInterface __init__ (:pr:`2036`).
+
 3.17.0 (2022-06-26)
 *******************
 
