@@ -1905,8 +1905,6 @@ class EnumValue(Field):
 
     def __init__(self, cls_or_instance: Field | type, enum: type[Enum], **kwargs):
         super().__init__(**kwargs)
-        self.enum = enum
-        self.choices = ", ".join([str(m.value) for m in enum])
         try:
             self.field = resolve_field_instance(cls_or_instance)
         except FieldInstanceResolutionError as error:
@@ -1914,6 +1912,10 @@ class EnumValue(Field):
                 "The enum field must be a subclass or instance of "
                 "marshmallow.base.FieldABC."
             ) from error
+        self.enum = enum
+        self.choices = ", ".join(
+            [str(self.field._serialize(m.value, None, None)) for m in enum]
+        )
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:

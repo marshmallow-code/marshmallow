@@ -1118,8 +1118,8 @@ class TestFieldDeserialization:
         assert field.deserialize("black hair") == HairColorEnum.black
         field = fields.EnumValue(fields.Integer, GenderEnum)
         assert field.deserialize(1) == GenderEnum.male
-        field = fields.EnumValue(fields.Date, DateEnum)
-        assert field.deserialize("2004-02-29") == DateEnum.date_1
+        field = fields.EnumValue(fields.Date(format="%d/%m/%Y"), DateEnum)
+        assert field.deserialize("29/02/2004") == DateEnum.date_1
 
     def test_enumvalue_field_invalid_value(self):
         field = fields.EnumValue(fields.String, HairColorEnum)
@@ -1131,11 +1131,11 @@ class TestFieldDeserialization:
         field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
             field.deserialize(12)
-        field = fields.EnumValue(fields.Date, DateEnum)
+        field = fields.EnumValue(fields.Date(format="%d/%m/%Y"), DateEnum)
         with pytest.raises(
-            ValidationError, match="Must be one of: 2004-02-29, 2008-02-29, 2012-02-29."
+            ValidationError, match="Must be one of: 29/02/2004, 29/02/2008, 29/02/2012."
         ):
-            field.deserialize("2004-02-28")
+            field.deserialize("28/02/2004")
 
     def test_enumvalue_field_wrong_type(self):
         field = fields.EnumValue(fields.String, HairColorEnum)
@@ -1144,9 +1144,9 @@ class TestFieldDeserialization:
         field = fields.EnumValue(fields.Integer, GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid integer."):
             field.deserialize("dummy")
-        field = fields.EnumValue(fields.Date, DateEnum)
+        field = fields.EnumValue(fields.Date(format="%d/%m/%Y"), DateEnum)
         with pytest.raises(ValidationError, match="Not a valid date."):
-            field.deserialize("2004-02-30")
+            field.deserialize("30/02/2004")
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(TypeError):

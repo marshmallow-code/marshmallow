@@ -268,8 +268,8 @@ class TestFieldSerialization:
         field = fields.EnumValue(fields.Integer, GenderEnum)
         assert field.serialize("sex", user) == 1
         user.some_date = DateEnum.date_1
-        field = fields.EnumValue(fields.Date, DateEnum)
-        assert field.serialize("some_date", user) == "2004-02-29"
+        field = fields.EnumValue(fields.Date(format="%d/%m/%Y"), DateEnum)
+        assert field.serialize("some_date", user) == "29/02/2004"
 
     def test_decimal_field(self, user):
         user.m1 = 12
