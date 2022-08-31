@@ -647,15 +647,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
+                d_kwargs = {}  # type: typing.Dict[str, typing.Any]
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
-                    prefix = f"{attr_name}."
-                    len_prefix = len(prefix)
-                    sub_partial = [
-                        f[len_prefix:] for f in partial if f.startswith(prefix)
-                    ]
-                    d_kwargs["partial"] = sub_partial
+                    if attr_name in partial:
+                        d_kwargs["partial"] = True
+                    else:
+                        prefix = f"{attr_name}."
+                        len_prefix = len(prefix)
+                        sub_partial = [
+                            f[len_prefix:] for f in partial if f.startswith(prefix)
+                        ]
+                        d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
                 getter = lambda val: field_obj.deserialize(
