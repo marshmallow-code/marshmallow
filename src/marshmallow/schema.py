@@ -650,7 +650,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 d_kwargs = {}
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
-                    prefix = field_name + "."
+                    prefix = f"{attr_name}."
                     len_prefix = len(prefix)
                     sub_partial = [
                         f[len_prefix:] for f in partial if f.startswith(prefix)
