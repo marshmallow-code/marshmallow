@@ -2019,17 +2019,18 @@ class TestValidation:
         assert "equal" in errors
         assert errors["equal"] == ["Must be equal to False."]
 
-    def test_nested_partial_using_bool(self):
+    @pytest.mark.parametrize("partial", (True, {"z.x"}, {"z"}))
+    def test_nested_partial(self, partial):
         class SchemaA(Schema):
             x = fields.Integer(required=True)
-            y = fields.Integer()
+            y = fields.Integer(required=True)
 
         class SchemaB(Schema):
             z = fields.Nested(SchemaA)
 
         b_dict = {"z": {"y": 42}}
         # Partial loading shouldn't generate any errors.
-        result = SchemaB().load(b_dict, partial=True)
+        result = SchemaB().load(b_dict, partial=partial)
         assert result["z"]["y"] == 42
         # Non partial loading should complain about missing values.
         with pytest.raises(ValidationError) as excinfo:
@@ -2039,10 +2040,11 @@ class TestValidation:
         assert "z" in errors
         assert "x" in errors["z"]
 
-    def test_deeply_nested_partial_using_bool(self):
+    @pytest.mark.parametrize("partial", (True, {"b.c.x"}, {"b.c"}, {"b"}))
+    def test_deeply_nested_partial(self, partial):
         class SchemaC(Schema):
             x = fields.Integer(required=True)
-            y = fields.Integer()
+            y = fields.Integer(required=True)
 
         class SchemaB(Schema):
             c = fields.Nested(SchemaC)
@@ -2052,7 +2054,7 @@ class TestValidation:
 
         a_dict = {"b": {"c": {"y": 42}}}
         # Partial loading shouldn't generate any errors.
-        result = SchemaA().load(a_dict, partial=True)
+        result = SchemaA().load(a_dict, partial=partial)
         assert result["b"]["c"]["y"] == 42
         # Non partial loading should complain about missing values.
         with pytest.raises(ValidationError) as excinfo:
@@ -2063,45 +2065,14 @@ class TestValidation:
         assert "c" in errors["b"]
         assert "x" in errors["b"]["c"]
 
-    def test_nested_partial_using_tuple(self):
+    @pytest.mark.parametrize("partial", (True, {"x"}))
+    def test_nested_partial_from_schema_init(self, partial):
         class SchemaA(Schema):
             x = fields.Integer(required=True)
             y = fields.Integer(required=True)
 
         class SchemaB(Schema):
-            z = fields.Nested(SchemaA)
-
-        b_dict = {"z": {"y": 42}}
-        # If we ignore the missing z.x, z.y should still load.
-        result = SchemaB().load(b_dict, partial=("z.x",))
-        assert result["z"]["y"] == 42
-        # If we ignore a missing z.y we should get a validation error.
-        with pytest.raises(ValidationError):
-            SchemaB().load(b_dict, partial=("z.y",))
-
-    def test_nested_fully_partial_using_tuple(self):
-        class SchemaA(Schema):
-            x = fields.Integer(required=True)
-            y = fields.Integer(required=True)
-
-        class SchemaB(Schema):
-            z = fields.Nested(SchemaA)
-
-        b_dict = {"z": {"y": 42}}
-
-        result = SchemaB().load(b_dict, partial=("z",))
-        assert "z" in result
-        assert "y" in result["z"]
-        assert "x" not in result["z"]
-        assert result["z"]["y"] == 42
-
-    def test_nested_partial_by_init(self):
-        class SchemaA(Schema):
-            x = fields.Integer(required=True)
-            y = fields.Integer(required=True)
-
-        class SchemaB(Schema):
-            z = fields.Nested(SchemaA(partial=True))
+            z = fields.Nested(SchemaA(partial=partial))
 
         b_dict = {"z": {"y": 42}}
 
@@ -2111,7 +2082,7 @@ class TestValidation:
         assert "x" not in result["z"]
         assert result["z"]["y"] == 42
 
-    def test_nested_partial_using_tuple_with_data_keys(self):
+    def test_nested_with_data_keys_partial_using_tuple(self):
         class SchemaA(Schema):
             x = fields.Integer(required=True, data_key="x_key")
             y = fields.Integer(required=True, data_key="y_key")
