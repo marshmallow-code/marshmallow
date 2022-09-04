@@ -255,20 +255,20 @@ class TestFieldSerialization:
             == ipv6interface_exploded_string
         )
 
-    def test_enumsymbol_field_serialization(self, user):
+    def test_enum_by_symbol_field_serialization(self, user):
         user.sex = GenderEnum.male
-        field = fields.EnumSymbol(GenderEnum)
+        field = fields.Enum(GenderEnum)
         assert field.serialize("sex", user) == "male"
 
-    def test_enumvalue_field_serialization(self, user):
+    def test_enum_by_value_field_serialization(self, user):
         user.hair_color = HairColorEnum.black
-        field = fields.EnumValue(fields.String, HairColorEnum)
+        field = fields.Enum(HairColorEnum, fields.String)
         assert field.serialize("hair_color", user) == "black hair"
         user.sex = GenderEnum.male
-        field = fields.EnumValue(fields.Integer, GenderEnum)
+        field = fields.Enum(GenderEnum, fields.Integer)
         assert field.serialize("sex", user) == 1
         user.some_date = DateEnum.date_1
-        field = fields.EnumValue(fields.Date(format="%d/%m/%Y"), DateEnum)
+        field = fields.Enum(DateEnum, fields.Date(format="%d/%m/%Y"))
         assert field.serialize("some_date", user) == "29/02/2004"
 
     def test_decimal_field(self, user):

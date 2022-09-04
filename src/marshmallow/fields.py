@@ -11,7 +11,7 @@ import decimal
 import math
 import typing
 import warnings
-from enum import Enum
+from enum import Enum as EnumType
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry, types
@@ -60,8 +60,7 @@ __all__ = [
     "IPInterface",
     "IPv4Interface",
     "IPv6Interface",
-    "EnumSymbol",
-    "EnumValue",
+    "Enum",
     "Method",
     "Function",
     "Str",
@@ -1856,10 +1855,14 @@ class IPv6Interface(IPInterface):
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
 
 
-class EnumSymbol(String):
-    """An Enum field (de)serializing enum members by symbol (name) as string.
+class Enum(Field):
+    """An Enum field (de)serializing enum members by symbol (name) as string or by value.
 
     :param enum Enum: Enum class
+    :param cls_or_instance: Field class or instance.
+
+    If a field is provided as ``cls_or_instance`` argument, the Enum is (de)serialized by
+    value using this field. Otherwise, it is (de)serialized by symbol (name) as string.
 
     .. versionadded:: 3.18.0
     """
@@ -1868,63 +1871,49 @@ class EnumSymbol(String):
         "unknown": "Must be one of: {choices}.",
     }
 
-    def __init__(self, enum: type[Enum], **kwargs):
-        self.enum = enum
-        self.choices = ", ".join(enum.__members__)
+    def __init__(
+        self,
+        enum: type[EnumType],
+        cls_or_instance: Field | type | None = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
+        self.enum = enum
+        if cls_or_instance is not None:
+            try:
+                self.field = resolve_field_instance(cls_or_instance)
+            except FieldInstanceResolutionError as error:
+                raise ValueError(
+                    "The enum field must be a subclass or instance of "
+                    "marshmallow.base.FieldABC."
+                ) from error
+            self.by_symbol_or_value = "value"
+            self.choices = ", ".join(
+                [str(self.field._serialize(m.value, None, None)) for m in enum]
+            )
+        else:
+            self.field = String()
+            self.by_symbol_or_value = "symbol"
+            self.choices = ", ".join(enum.__members__)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
+        if self.by_symbol_or_value == "value":
+            return self.field._serialize(value.value, attr, obj, **kwargs)
         return value.name
 
     def _deserialize(self, value, attr, data, **kwargs):
-        value = super()._deserialize(value, attr, data, **kwargs)
+        if self.by_symbol_or_value == "value":
+            value = self.field._deserialize(value, attr, data, **kwargs)
+            try:
+                return self.enum(value)
+            except ValueError as exc:
+                raise self.make_error("unknown", choices=self.choices) from exc
+        value = self.field._deserialize(value, attr, data, **kwargs)
         try:
             return getattr(self.enum, value)
         except AttributeError as exc:
-            raise self.make_error("unknown", choices=self.choices) from exc
-
-
-class EnumValue(Field):
-    """An Enum field (de)serializing enum members by value.
-
-    A Field must be provided to (de)serialize the value.
-
-    :param cls_or_instance: Field class or instance.
-    :param enum Enum: Enum class
-
-    .. versionadded:: 3.18.0
-    """
-
-    default_error_messages = {
-        "unknown": "Must be one of: {choices}.",
-    }
-
-    def __init__(self, cls_or_instance: Field | type, enum: type[Enum], **kwargs):
-        super().__init__(**kwargs)
-        try:
-            self.field = resolve_field_instance(cls_or_instance)
-        except FieldInstanceResolutionError as error:
-            raise ValueError(
-                "The enum field must be a subclass or instance of "
-                "marshmallow.base.FieldABC."
-            ) from error
-        self.enum = enum
-        self.choices = ", ".join(
-            [str(self.field._serialize(m.value, None, None)) for m in enum]
-        )
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return None
-        return self.field._serialize(value.value, attr, obj, **kwargs)
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        value = self.field._deserialize(value, attr, data, **kwargs)
-        try:
-            return self.enum(value)
-        except ValueError as exc:
             raise self.make_error("unknown", choices=self.choices) from exc
 
 
