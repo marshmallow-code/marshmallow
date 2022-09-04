@@ -1,6 +1,8 @@
 """Test utilities and fixtures."""
+import functools
 import datetime as dt
 import uuid
+from enum import Enum, IntEnum
 
 import simplejson
 
@@ -10,6 +12,25 @@ from marshmallow import Schema, fields, post_load, validate, missing
 from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone("US/Central")
+
+
+class GenderEnum(IntEnum):
+    male = 1
+    female = 2
+    non_binary = 3
+
+
+class HairColorEnum(Enum):
+    black = "black hair"
+    brown = "brown hair"
+    blond = "blond hair"
+    red = "red hair"
+
+
+class DateEnum(Enum):
+    date_1 = dt.date(2004, 2, 29)
+    date_2 = dt.date(2008, 2, 29)
+    date_3 = dt.date(2012, 2, 29)
 
 
 ALL_FIELDS = [
@@ -33,7 +54,11 @@ ALL_FIELDS = [
     fields.IPInterface,
     fields.IPv4Interface,
     fields.IPv6Interface,
+    functools.partial(fields.EnumSymbol, GenderEnum),
+    functools.partial(fields.EnumValue, fields.String, HairColorEnum),
+    functools.partial(fields.EnumValue, fields.Integer, GenderEnum),
 ]
+
 
 ##### Custom asserts #####
 
@@ -69,7 +94,8 @@ class User:
         birthdate=None,
         birthtime=None,
         balance=100,
-        sex="male",
+        sex=GenderEnum.male,
+        hair_color=HairColorEnum.black,
         employer=None,
         various_data=None,
     ):
@@ -86,8 +112,8 @@ class User:
         self.email = email
         self.balance = balance
         self.registered = registered
-        self.hair_colors = ["black", "brown", "blond", "redhead"]
-        self.sex_choices = ("male", "female")
+        self.hair_colors = list(HairColorEnum.__members__)
+        self.sex_choices = list(GenderEnum.__members__)
         self.finger_count = 10
         self.uid = uuid.uuid1()
         self.time_registered = time_registered or dt.time(1, 23, 45, 6789)
@@ -95,6 +121,7 @@ class User:
         self.birthtime = birthtime or dt.time(0, 1, 2, 3333)
         self.activation_date = dt.date(2013, 12, 11)
         self.sex = sex
+        self.hair_color = hair_color
         self.employer = employer
         self.relatives = []
         self.various_data = various_data or {
@@ -180,7 +207,7 @@ class UserSchema(Schema):
     birthtime = fields.Time()
     activation_date = fields.Date()
     since_created = fields.TimeDelta()
-    sex = fields.Str(validate=validate.OneOf(["male", "female"]))
+    sex = fields.Str(validate=validate.OneOf(list(GenderEnum.__members__)))
     various_data = fields.Dict()
 
     class Meta:

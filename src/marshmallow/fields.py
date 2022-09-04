@@ -11,6 +11,7 @@ import decimal
 import math
 import typing
 import warnings
+from enum import Enum
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry, types
@@ -59,6 +60,8 @@ __all__ = [
     "IPInterface",
     "IPv4Interface",
     "IPv6Interface",
+    "EnumSymbol",
+    "EnumValue",
     "Method",
     "Function",
     "Str",
@@ -1853,6 +1856,78 @@ class IPv6Interface(IPInterface):
     default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
 
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
+
+
+class EnumSymbol(String):
+    """An Enum field (de)serializing enum members by symbol (name) as string.
+
+    :param enum Enum: Enum class
+
+    .. versionadded:: 3.18.0
+    """
+
+    default_error_messages = {
+        "unknown": "Must be one of: {choices}.",
+    }
+
+    def __init__(self, enum: type[Enum], **kwargs):
+        self.enum = enum
+        self.choices = ", ".join(enum.__members__)
+        super().__init__(**kwargs)
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return value.name
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        value = super()._deserialize(value, attr, data, **kwargs)
+        try:
+            return getattr(self.enum, value)
+        except AttributeError as exc:
+            raise self.make_error("unknown", choices=self.choices) from exc
+
+
+class EnumValue(Field):
+    """An Enum field (de)serializing enum members by value.
+
+    A Field must be provided to (de)serialize the value.
+
+    :param cls_or_instance: Field class or instance.
+    :param enum Enum: Enum class
+
+    .. versionadded:: 3.18.0
+    """
+
+    default_error_messages = {
+        "unknown": "Must be one of: {choices}.",
+    }
+
+    def __init__(self, cls_or_instance: Field | type, enum: type[Enum], **kwargs):
+        super().__init__(**kwargs)
+        try:
+            self.field = resolve_field_instance(cls_or_instance)
+        except FieldInstanceResolutionError as error:
+            raise ValueError(
+                "The enum field must be a subclass or instance of "
+                "marshmallow.base.FieldABC."
+            ) from error
+        self.enum = enum
+        self.choices = ", ".join(
+            [str(self.field._serialize(m.value, None, None)) for m in enum]
+        )
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        return self.field._serialize(value.value, attr, obj, **kwargs)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        value = self.field._deserialize(value, attr, data, **kwargs)
+        try:
+            return self.enum(value)
+        except ValueError as exc:
+            raise self.make_error("unknown", choices=self.choices) from exc
 
 
 class Method(Field):
