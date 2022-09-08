@@ -1856,13 +1856,15 @@ class IPv6Interface(IPInterface):
 
 
 class Enum(Field):
-    """An Enum field (de)serializing enum members by symbol (name) as string or by value.
+    """An Enum field (de)serializing enum members by symbol (name) or by value.
 
     :param enum Enum: Enum class
-    :param boolean by_value: Whether to (de)serialize by value or by name. Defaults to False.
-    :param field: Field class or instance to use if (de)serializing by value. Defaults to Field.
+    :param boolean|Schema|Field by_value: Whether to (de)serialize by value or by name,
+        or Field class or instance to use to (de)serialize by value. Defaults to False.
 
-    ``field`` argument may only be passed if (de)serializing by value.
+    If `by_value` is `False` (default), enum members are (de)serialized by symbol (name).
+    If it is `True`, they are (de)serialized by value using :class:`Field`.
+    If it is a field instance or class, they are (de)serialized by value using this field.
 
     .. versionadded:: 3.18.0
     """
@@ -1874,8 +1876,8 @@ class Enum(Field):
     def __init__(
         self,
         enum: type[EnumType],
-        by_value: bool = False,
-        field: Field | type | None = None,
+        *,
+        by_value: bool | Field | type = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -1883,48 +1885,47 @@ class Enum(Field):
         self.by_value = by_value
 
         # Serialization by name
-        if self.by_value is False:
-            if field is not None:
-                raise ValueError('"field" can not be passed when serializing by name.')
+        if by_value is False:
             self.field: Field = String()
-            self.choices = ", ".join(
-                [str(self.field._serialize(m, None, None)) for m in enum.__members__]
+            self.choices_text = ", ".join(
+                str(self.field._serialize(m, None, None)) for m in enum.__members__
             )
         # Serialization by value
         else:
-            if field is not None:
+            if by_value is True:
+                self.field = Field()
+            else:
                 try:
-                    self.field = resolve_field_instance(field)
+                    self.field = resolve_field_instance(by_value)
                 except FieldInstanceResolutionError as error:
                     raise ValueError(
-                        '"field" must be a subclass or instance of '
+                        '"by_value" must be either a bool or a subclass or instance of '
                         "marshmallow.base.FieldABC."
                     ) from error
-            else:
-                self.field = Field()
-            self.choices = ", ".join(
-                [str(self.field._serialize(m.value, None, None)) for m in enum]
+            self.choices_text = ", ".join(
+                str(self.field._serialize(m.value, None, None)) for m in enum
             )
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
         if self.by_value:
-            return self.field._serialize(value.value, attr, obj, **kwargs)
-        return value.name
+            val = value.value
+        else:
+            val = value.name
+        return self.field._serialize(val, attr, obj, **kwargs)
 
     def _deserialize(self, value, attr, data, **kwargs):
+        val = self.field._deserialize(value, attr, data, **kwargs)
         if self.by_value:
-            value = self.field._deserialize(value, attr, data, **kwargs)
             try:
-                return self.enum(value)
-            except ValueError as exc:
-                raise self.make_error("unknown", choices=self.choices) from exc
-        value = self.field._deserialize(value, attr, data, **kwargs)
+                return self.enum(val)
+            except ValueError as error:
+                raise self.make_error("unknown", choices=self.choices_text) from error
         try:
-            return getattr(self.enum, value)
-        except AttributeError as exc:
-            raise self.make_error("unknown", choices=self.choices) from exc
+            return getattr(self.enum, val)
+        except AttributeError as error:
+            raise self.make_error("unknown", choices=self.choices_text) from error
 
 
 class Method(Field):

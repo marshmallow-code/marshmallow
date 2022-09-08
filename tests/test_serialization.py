@@ -255,22 +255,29 @@ class TestFieldSerialization:
             == ipv6interface_exploded_string
         )
 
-    def test_enum_by_symbol_field_serialization(self, user):
+    def test_enum_field_by_symbol_serialization(self, user):
         user.sex = GenderEnum.male
         field = fields.Enum(GenderEnum)
         assert field.serialize("sex", user) == "male"
 
-    def test_enum_by_value_field_serialization(self, user):
+    def test_enum_field_by_value_true_serialization(self, user):
         user.hair_color = HairColorEnum.black
-        field = fields.Enum(HairColorEnum, by_value=True, field=fields.String)
+        field = fields.Enum(HairColorEnum, by_value=True)
         assert field.serialize("hair_color", user) == "black hair"
         user.sex = GenderEnum.male
-        field = fields.Enum(GenderEnum, by_value=True, field=fields.Integer)
+        field = fields.Enum(GenderEnum, by_value=True)
         assert field.serialize("sex", user) == 1
         user.some_date = DateEnum.date_1
-        field = fields.Enum(
-            DateEnum, by_value=True, field=fields.Date(format="%d/%m/%Y")
-        )
+
+    def test_enum_field_by_value_field_serialization(self, user):
+        user.hair_color = HairColorEnum.black
+        field = fields.Enum(HairColorEnum, by_value=fields.String)
+        assert field.serialize("hair_color", user) == "black hair"
+        user.sex = GenderEnum.male
+        field = fields.Enum(GenderEnum, by_value=fields.Integer)
+        assert field.serialize("sex", user) == 1
+        user.some_date = DateEnum.date_1
+        field = fields.Enum(DateEnum, by_value=fields.Date(format="%d/%m/%Y"))
         assert field.serialize("some_date", user) == "29/02/2004"
 
     def test_decimal_field(self, user):
