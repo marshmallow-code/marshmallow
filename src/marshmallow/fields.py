@@ -998,11 +998,7 @@ class Integer(Number):
 
     # override Number
     def _validated(self, value):
-        if self.strict:
-            if isinstance(value, numbers.Number) and isinstance(
-                value, numbers.Integral
-            ):
-                return super()._validated(value)
+        if self.strict and not isinstance(value, numbers.Integral):
             raise self.make_error("invalid", input=value)
         return super()._validated(value)
 
