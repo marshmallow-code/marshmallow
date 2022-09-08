@@ -1859,10 +1859,10 @@ class Enum(Field):
     """An Enum field (de)serializing enum members by symbol (name) as string or by value.
 
     :param enum Enum: Enum class
-    :param cls_or_instance: Field class or instance.
+    :param boolean by_value: Whether to (de)serialize by value or by name. Defaults to False.
+    :param field: Field class or instance to use if (de)serializing by value. Defaults to Field.
 
-    If a field is provided as ``cls_or_instance`` argument, the Enum is (de)serialized by
-    value using this field. Otherwise, it is (de)serialized by symbol (name) as string.
+    ``field`` argument may only be passed if (de)serializing by value.
 
     .. versionadded:: 3.18.0
     """
@@ -1874,37 +1874,47 @@ class Enum(Field):
     def __init__(
         self,
         enum: type[EnumType],
-        cls_or_instance: Field | type | None = None,
+        by_value: bool = False,
+        field: Field | type | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.enum = enum
-        if cls_or_instance is not None:
-            try:
-                self.field = resolve_field_instance(cls_or_instance)
-            except FieldInstanceResolutionError as error:
-                raise ValueError(
-                    "The enum field must be a subclass or instance of "
-                    "marshmallow.base.FieldABC."
-                ) from error
-            self.by_symbol_or_value = "value"
+        self.by_value = by_value
+
+        # Serialization by name
+        if self.by_value is False:
+            if field is not None:
+                raise ValueError('"field" can not be passed when serializing by name.')
+            self.field: Field = String()
+            self.choices = ", ".join(
+                [str(self.field._serialize(m, None, None)) for m in enum.__members__]
+            )
+        # Serialization by value
+        else:
+            if field is not None:
+                try:
+                    self.field = resolve_field_instance(field)
+                except FieldInstanceResolutionError as error:
+                    raise ValueError(
+                        '"field" must be a subclass or instance of '
+                        "marshmallow.base.FieldABC."
+                    ) from error
+            else:
+                self.field = Field()
             self.choices = ", ".join(
                 [str(self.field._serialize(m.value, None, None)) for m in enum]
             )
-        else:
-            self.field = String()
-            self.by_symbol_or_value = "symbol"
-            self.choices = ", ".join(enum.__members__)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
-        if self.by_symbol_or_value == "value":
+        if self.by_value:
             return self.field._serialize(value.value, attr, obj, **kwargs)
         return value.name
 
     def _deserialize(self, value, attr, data, **kwargs):
-        if self.by_symbol_or_value == "value":
+        if self.by_value:
             value = self.field._deserialize(value, attr, data, **kwargs)
             try:
                 return self.enum(value)

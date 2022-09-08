@@ -1114,37 +1114,43 @@ class TestFieldDeserialization:
             field.deserialize(12)
 
     def test_enum_by_value_field_deserialization(self):
-        field = fields.Enum(HairColorEnum, fields.String)
+        field = fields.Enum(HairColorEnum, by_value=True, field=fields.String)
         assert field.deserialize("black hair") == HairColorEnum.black
-        field = fields.Enum(GenderEnum, fields.Integer)
+        field = fields.Enum(GenderEnum, by_value=True, field=fields.Integer)
         assert field.deserialize(1) == GenderEnum.male
-        field = fields.Enum(DateEnum, fields.Date(format="%d/%m/%Y"))
+        field = fields.Enum(
+            DateEnum, by_value=True, field=fields.Date(format="%d/%m/%Y")
+        )
         assert field.deserialize("29/02/2004") == DateEnum.date_1
 
     def test_enum_by_value_field_invalid_value(self):
-        field = fields.Enum(HairColorEnum, fields.String)
+        field = fields.Enum(HairColorEnum, by_value=True, field=fields.String)
         with pytest.raises(
             ValidationError,
             match="Must be one of: black hair, brown hair, blond hair, red hair.",
         ):
             field.deserialize("dummy")
-        field = fields.Enum(GenderEnum, fields.Integer)
+        field = fields.Enum(GenderEnum, by_value=True, field=fields.Integer)
         with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
             field.deserialize(12)
-        field = fields.Enum(DateEnum, fields.Date(format="%d/%m/%Y"))
+        field = fields.Enum(
+            DateEnum, by_value=True, field=fields.Date(format="%d/%m/%Y")
+        )
         with pytest.raises(
             ValidationError, match="Must be one of: 29/02/2004, 29/02/2008, 29/02/2012."
         ):
             field.deserialize("28/02/2004")
 
     def test_enum_by_value_field_wrong_type(self):
-        field = fields.Enum(HairColorEnum, fields.String)
+        field = fields.Enum(HairColorEnum, by_value=True, field=fields.String)
         with pytest.raises(ValidationError, match="Not a valid string."):
             field.deserialize(12)
-        field = fields.Enum(GenderEnum, fields.Integer)
+        field = fields.Enum(GenderEnum, by_value=True, field=fields.Integer)
         with pytest.raises(ValidationError, match="Not a valid integer."):
             field.deserialize("dummy")
-        field = fields.Enum(DateEnum, fields.Date(format="%d/%m/%Y"))
+        field = fields.Enum(
+            DateEnum, by_value=True, field=fields.Date(format="%d/%m/%Y")
+        )
         with pytest.raises(ValidationError, match="Not a valid date."):
             field.deserialize("30/02/2004")
 

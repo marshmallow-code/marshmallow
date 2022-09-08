@@ -262,13 +262,15 @@ class TestFieldSerialization:
 
     def test_enum_by_value_field_serialization(self, user):
         user.hair_color = HairColorEnum.black
-        field = fields.Enum(HairColorEnum, fields.String)
+        field = fields.Enum(HairColorEnum, by_value=True, field=fields.String)
         assert field.serialize("hair_color", user) == "black hair"
         user.sex = GenderEnum.male
-        field = fields.Enum(GenderEnum, fields.Integer)
+        field = fields.Enum(GenderEnum, by_value=True, field=fields.Integer)
         assert field.serialize("sex", user) == 1
         user.some_date = DateEnum.date_1
-        field = fields.Enum(DateEnum, fields.Date(format="%d/%m/%Y"))
+        field = fields.Enum(
+            DateEnum, by_value=True, field=fields.Date(format="%d/%m/%Y")
+        )
         assert field.serialize("some_date", user) == "29/02/2004"
 
     def test_decimal_field(self, user):
