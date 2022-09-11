@@ -145,12 +145,6 @@ while seamlessly integrating with existing tools. [`Get professional support`_]
     :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
     :alt: Get supported marshmallow with Tidelift
 
-Security Contact Information
-============================
-
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.
 
 Project Links
 =============
