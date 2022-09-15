@@ -1,12 +1,23 @@
 Changelog
 ---------
 
+3.18.0 (2022-09-15)
+*******************
+
+Features:
+
+- Add ``Enum`` field (:pr:`2017`) and (:pr:`2044`).
+
+Bug fixes:
+
+- Fix typing in ``Field._serialize`` signature (:pr:`2046`).
+
 3.17.1 (2022-08-22)
 *******************
 
 Bug fixes:
 
-- Add return type to `fields.Email.__init__` (:pr:`2018`).
+- Add return type to ``fields.Email.__init__`` (:pr:`2018`).
   Thanks :user:`kkirsche` for the PR.
 - Add missing type hint to IPInterface __init__ (:pr:`2036`).
 
