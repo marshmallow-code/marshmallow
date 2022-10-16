@@ -641,6 +641,15 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     field_obj.data_key if field_obj.data_key is not None else attr_name
                 )
                 raw_value = data.get(field_name, missing)
+                if raw_value is missing and field_obj.alternative is not None:
+                    raw_value = data.get(field_obj.alternative, missing)
+                    field_name = (
+                        field_name if raw_value is missing else field_obj.alternative
+                    )
+
+                field_obj._deserialized_key = (
+                    field_name if raw_value is not missing else None
+                )
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
@@ -672,9 +681,16 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     key = field_obj.attribute or attr_name
                     set_value(ret_d, key, value)
             if unknown != EXCLUDE:
+                """
+                collect all field names:
+                  If data_key is None and alternative is None use field_name
+                  If the data_key is present use that as the field name instead.
+                  If the data_key and the alternative are present use data_key
+                  If the alternative key is present and data_key is None or not in the data use alternative
+                """
                 fields = {
-                    field_obj.data_key if field_obj.data_key is not None else field_name
-                    for field_name, field_obj in self.load_fields.items()
+                    field_obj._deserialized_key
+                    for field_obj in self.load_fields.values()
                 }
                 for key in set(data) - fields:
                     value = data[key]
@@ -1114,10 +1130,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 if field_name in self.declared_fields:
                     continue
                 raise ValueError(f'"{field_name}" field does not exist.') from error
-
-            data_key = (
-                field_obj.data_key if field_obj.data_key is not None else field_name
-            )
+            data_key = field_obj._deserialized_key
             if many:
                 for idx, item in enumerate(data):
                     try:
