@@ -658,14 +658,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
-                # lambda function does not bind loop variables
-                # but we don't mind since we call getter in this iteration
-                getter = lambda val: field_obj.deserialize(  # noqa: B023
-                    val,
-                    field_name,  # noqa: B023
-                    data,
-                    **d_kwargs,  # noqa: B023
-                )
+
+                def getter(
+                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
+                ):
+                    return field_obj.deserialize(
+                        val,
+                        field_name,
+                        data,
+                        **d_kwargs,
+                    )
+
                 value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
