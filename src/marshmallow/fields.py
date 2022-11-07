@@ -1224,7 +1224,7 @@ class DateTime(Field):
 
     .. versionchanged:: 3.0.0rc9
         Does not modify timezone information on (de)serialization.
-    .. versionchanged:: 3.18
+    .. versionchanged:: 3.19
         Add timestamp as a format.
     """
 
