@@ -11,6 +11,7 @@ import decimal
 import math
 import typing
 import warnings
+from enum import Enum as EnumType
 from collections.abc import Mapping as _Mapping
 
 from marshmallow import validate, utils, class_registry, types
@@ -59,6 +60,7 @@ __all__ = [
     "IPInterface",
     "IPv4Interface",
     "IPv6Interface",
+    "Enum",
     "Method",
     "Function",
     "Str",
@@ -384,7 +386,9 @@ class Field(FieldABC):
             self.parent.root if isinstance(self.parent, FieldABC) else self.parent
         )
 
-    def _serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
+    def _serialize(
+        self, value: typing.Any, attr: str | None, obj: typing.Any, **kwargs
+    ):
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
 
@@ -995,11 +999,7 @@ class Integer(Number):
 
     # override Number
     def _validated(self, value):
-        if self.strict:
-            if isinstance(value, numbers.Number) and isinstance(
-                value, numbers.Integral
-            ):
-                return super()._validated(value)
+        if self.strict and not isinstance(value, numbers.Integral):
             raise self.make_error("invalid", input=value)
         return super()._validated(value)
 
@@ -1738,7 +1738,7 @@ class Email(String):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid email address."}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
         validator = validate.Email(error=self.error_messages["invalid"])
@@ -1822,7 +1822,7 @@ class IPInterface(Field):
 
     DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
 
-    def __init__(self, *args, exploded=False, **kwargs):
+    def __init__(self, *args, exploded: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
         self.exploded = exploded
 
@@ -1860,6 +1860,79 @@ class IPv6Interface(IPInterface):
     default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
 
     DESERIALIZATION_CLASS = ipaddress.IPv6Interface
+
+
+class Enum(Field):
+    """An Enum field (de)serializing enum members by symbol (name) or by value.
+
+    :param enum Enum: Enum class
+    :param boolean|Schema|Field by_value: Whether to (de)serialize by value or by name,
+        or Field class or instance to use to (de)serialize by value. Defaults to False.
+
+    If `by_value` is `False` (default), enum members are (de)serialized by symbol (name).
+    If it is `True`, they are (de)serialized by value using :class:`Field`.
+    If it is a field instance or class, they are (de)serialized by value using this field.
+
+    .. versionadded:: 3.18.0
+    """
+
+    default_error_messages = {
+        "unknown": "Must be one of: {choices}.",
+    }
+
+    def __init__(
+        self,
+        enum: type[EnumType],
+        *,
+        by_value: bool | Field | type = False,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.enum = enum
+        self.by_value = by_value
+
+        # Serialization by name
+        if by_value is False:
+            self.field: Field = String()
+            self.choices_text = ", ".join(
+                str(self.field._serialize(m, None, None)) for m in enum.__members__
+            )
+        # Serialization by value
+        else:
+            if by_value is True:
+                self.field = Field()
+            else:
+                try:
+                    self.field = resolve_field_instance(by_value)
+                except FieldInstanceResolutionError as error:
+                    raise ValueError(
+                        '"by_value" must be either a bool or a subclass or instance of '
+                        "marshmallow.base.FieldABC."
+                    ) from error
+            self.choices_text = ", ".join(
+                str(self.field._serialize(m.value, None, None)) for m in enum
+            )
+
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        if self.by_value:
+            val = value.value
+        else:
+            val = value.name
+        return self.field._serialize(val, attr, obj, **kwargs)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        val = self.field._deserialize(value, attr, data, **kwargs)
+        if self.by_value:
+            try:
+                return self.enum(val)
+            except ValueError as error:
+                raise self.make_error("unknown", choices=self.choices_text) from error
+        try:
+            return getattr(self.enum, val)
+        except AttributeError as error:
+            raise self.make_error("unknown", choices=self.choices_text) from error
 
 
 class Method(Field):
