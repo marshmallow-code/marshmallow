@@ -170,3 +170,4 @@ Contributors (chronological)
 - Isira Seneviratne `@Isira-Seneviratne <https://github.com/Isira-Seneviratne>`_
 - Karthikeyan Singaravelan `@tirkarthi  <https://github.com/tirkarthi>`_
 - Marco Satti `@marcosatti  <https://github.com/marcosatti>`_
+- Ivo Reumkens `@vanHoi <https://github.com/vanHoi>`_

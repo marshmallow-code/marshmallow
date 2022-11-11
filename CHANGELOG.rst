@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.19.0 (unreleased)
+*******************
+
+Features:
+
+- Add ``timestamp`` and ``timestamp_ms`` formats to `fields.DateTime`
+  (:issue:`612`).
+  Thanks :user:`vgavro` for the suggestion and thanks :user:`vanHoi` for
+  the PR.
+
 3.18.0 (2022-09-15)
 *******************
 

@@ -190,6 +190,34 @@ def from_iso_date(value):
     return dt.date(**kw)
 
 
+def from_timestamp(value: typing.Any) -> dt.datetime:
+    value = float(value)
+    if value < 0:
+        raise ValueError("Not a valid POSIX timestamp")
+
+    # Load a timestamp with utc as timezone to prevent using system timezone.
+    # Then set timezone to None, to let the Field handle adding timezone info.
+    return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
+
+
+def from_timestamp_ms(value: typing.Any) -> dt.datetime:
+    value = float(value)
+    return from_timestamp(value / 1000)
+
+
+def timestamp(
+    value: dt.datetime,
+) -> float:
+    if not is_aware(value):
+        # When a date is naive, use UTC as zone info to prevent using system timezone.
+        value = value.replace(tzinfo=dt.timezone.utc)
+    return value.timestamp()
+
+
+def timestamp_ms(value: dt.datetime) -> float:
+    return timestamp(value) * 1000
+
+
 def isoformat(datetime: dt.datetime) -> str:
     """Return the ISO8601-formatted representation of a datetime object.
 
