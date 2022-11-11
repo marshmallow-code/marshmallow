@@ -1218,11 +1218,14 @@ class DateTime(Field):
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
 
     :param format: Either ``"rfc"`` (for RFC822), ``"iso"`` (for ISO8601),
-        or a date format string. If `None`, defaults to "iso".
+        ``"timestamp"``, ``"timestamp_ms"`` (for a POSIX timestamp) or a date format string.
+        If `None`, defaults to "iso".
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     .. versionchanged:: 3.0.0rc9
         Does not modify timezone information on (de)serialization.
+    .. versionchanged:: 3.19
+        Add timestamp as a format.
     """
 
     SERIALIZATION_FUNCS = {
@@ -1230,13 +1233,17 @@ class DateTime(Field):
         "iso8601": utils.isoformat,
         "rfc": utils.rfcformat,
         "rfc822": utils.rfcformat,
-    }  # type: typing.Dict[str, typing.Callable[[typing.Any], str]]
+        "timestamp": utils.timestamp,
+        "timestamp_ms": utils.timestamp_ms,
+    }  # type: typing.Dict[str, typing.Callable[[typing.Any], str | float]]
 
     DESERIALIZATION_FUNCS = {
         "iso": utils.from_iso_datetime,
         "iso8601": utils.from_iso_datetime,
         "rfc": utils.from_rfc,
         "rfc822": utils.from_rfc,
+        "timestamp": utils.from_timestamp,
+        "timestamp_ms": utils.from_timestamp_ms,
     }  # type: typing.Dict[str, typing.Callable[[str], typing.Any]]
 
     DEFAULT_FORMAT = "iso"
@@ -1252,7 +1259,7 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str | None = None, **kwargs):
+    def __init__(self, format: str | None = None, **kwargs) -> None:
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1267,7 +1274,7 @@ class DateTime(Field):
             or self.DEFAULT_FORMAT
         )
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, attr, obj, **kwargs) -> str | float | None:
         if value is None:
             return None
         data_format = self.format or self.DEFAULT_FORMAT
@@ -1277,7 +1284,7 @@ class DateTime(Field):
         else:
             return value.strftime(data_format)
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         if not value:  # Falsy values, e.g. '', None, [] are not valid
             raise self.make_error("invalid", input=value, obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
@@ -1298,7 +1305,7 @@ class DateTime(Field):
                 ) from error
 
     @staticmethod
-    def _make_object_from_format(value, data_format):
+    def _make_object_from_format(value, data_format) -> dt.datetime:
         return dt.datetime.strptime(value, data_format)
 
 
@@ -1323,11 +1330,11 @@ class NaiveDateTime(DateTime):
         *,
         timezone: dt.timezone | None = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(format=format, **kwargs)
         self.timezone = timezone
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         ret = super()._deserialize(value, attr, data, **kwargs)
         if is_aware(ret):
             if self.timezone is None:
@@ -1360,11 +1367,11 @@ class AwareDateTime(DateTime):
         *,
         default_timezone: dt.tzinfo | None = None,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         ret = super()._deserialize(value, attr, data, **kwargs)
         if not is_aware(ret):
             if self.default_timezone is None:

@@ -527,6 +527,50 @@ class TestFieldDeserialization:
             assert field.deserialize(value) == expected
 
     @pytest.mark.parametrize(
+        ("fmt", "value", "expected"),
+        [
+            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", "1384043025", dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp", 1384043025.12, dt.datetime(2013, 11, 10, 0, 23, 45, 120000)),
+            (
+                "timestamp",
+                1384043025.123456,
+                dt.datetime(2013, 11, 10, 0, 23, 45, 123456),
+            ),
+            ("timestamp", 1, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 0, 23, 45)),
+            ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+        ],
+    )
+    def test_timestamp_field_deserialization(self, fmt, value, expected):
+        field = fields.DateTime(format=fmt)
+        assert field.deserialize(value) == expected
+
+        # By default, a datetime from a timestamp is never aware.
+        field = fields.NaiveDateTime(format=fmt)
+        assert field.deserialize(value) == expected
+
+        field = fields.AwareDateTime(format=fmt)
+        with pytest.raises(ValidationError, match="Not a valid aware datetime."):
+            field.deserialize(value)
+
+        # But it can be added by providing a default.
+        field = fields.AwareDateTime(format=fmt, default_timezone=central)
+        expected_aware = expected.replace(tzinfo=central)
+        assert field.deserialize(value) == expected_aware
+
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    @pytest.mark.parametrize(
+        "in_value",
+        ["", "!@#", 0, -1, dt.datetime(2013, 11, 10, 1, 23, 45)],
+    )
+    def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
+        field = fields.DateTime(format="timestamp")
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
+            field.deserialize(in_value)
+
+    @pytest.mark.parametrize(
         ("fmt", "timezone", "value", "expected"),
         [
             ("iso", None, "2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),

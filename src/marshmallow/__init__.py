@@ -16,7 +16,7 @@ from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, missing, pprint
 
 from . import fields
 
-__version__ = "3.18.0"
+__version__ = "3.19.0"
 __parsed_version__ = Version(__version__)
 __version_info__: tuple[int, int, int] | tuple[
     int, int, int, str, int
