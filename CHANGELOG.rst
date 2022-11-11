@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.20.0 (unreleased)
+*******************
+
+Other changes:
+
+- Officially support Python 3.11 (:pr:`2067`).
+
 3.19.0 (2022-11-11)
 *******************
 
