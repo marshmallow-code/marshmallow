@@ -157,9 +157,9 @@ class Field(FieldABC):
         default: typing.Any = missing_,
         data_key: str | None = None,
         attribute: str | None = None,
-        validate: None
-        | (
-            typing.Callable[[typing.Any], typing.Any]
+        validate: (
+            None
+            | typing.Callable[[typing.Any], typing.Any]
             | typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
         ) = None,
         required: bool = False,
@@ -2024,14 +2024,14 @@ class Function(Field):
 
     def __init__(
         self,
-        serialize: None
-        | (
-            typing.Callable[[typing.Any], typing.Any]
+        serialize: (
+            None
+            | typing.Callable[[typing.Any], typing.Any]
             | typing.Callable[[typing.Any, dict], typing.Any]
         ) = None,
-        deserialize: None
-        | (
-            typing.Callable[[typing.Any], typing.Any]
+        deserialize: (
+            None
+            | typing.Callable[[typing.Any], typing.Any]
             | typing.Callable[[typing.Any, dict], typing.Any]
         ) = None,
         **kwargs,
