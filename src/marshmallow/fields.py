@@ -240,7 +240,7 @@ class Field(FieldABC):
     def __repr__(self) -> str:
         return (
             "<fields.{ClassName}(dump_default={self.dump_default!r}, "
-            "attribute={self.attribute!r}, "
+            "attribute={self.attribute!r}, data_key={self.data_key!r}, "
             "validate={self.validate}, required={self.required}, "
             "load_only={self.load_only}, dump_only={self.dump_only}, "
             "load_default={self.load_default}, allow_none={self.allow_none}, "
@@ -373,6 +373,11 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
+    def _set_name(self, field_name):
+        self.name = self.name or field_name
+        self.data_key = self.data_key if self.data_key is not None else field_name
+        self.attribute = self.attribute if self.attribute is not None else field_name
+
     def _bind_to_schema(self, field_name, schema):
         """Update field with values from its parent schema. Called by
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
@@ -381,7 +386,6 @@ class Field(FieldABC):
         :param Schema|Field schema: Parent object.
         """
         self.parent = self.parent or schema
-        self.name = self.name or field_name
         self.root = self.root or (
             self.parent.root if isinstance(self.parent, FieldABC) else self.parent
         )
@@ -710,7 +714,7 @@ class Pluck(Nested):
     @property
     def _field_data_key(self):
         only_field = self.schema.fields[self.field_name]
-        return only_field.data_key or self.field_name
+        return only_field.data_key
 
     def _serialize(self, nested_obj, attr, obj, **kwargs):
         ret = super()._serialize(nested_obj, attr, obj, **kwargs)
@@ -763,6 +767,10 @@ class List(Field):
         if isinstance(self.inner, Nested):
             self.only = self.inner.only
             self.exclude = self.inner.exclude
+
+    def _set_name(self, field_name):
+        super()._set_name(field_name)
+        self.inner._set_name(field_name)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -837,6 +845,11 @@ class Tuple(Field):
             ) from error
 
         self.validate_length = Length(equal=len(self.tuple_fields))
+
+    def _set_name(self, field_name):
+        super()._set_name(field_name)
+        for field in self.tuple_fields:
+            field._set_name(field_name)
 
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
@@ -1594,6 +1607,13 @@ class Mapping(Field):
                 self.only = self.value_field.only
                 self.exclude = self.value_field.exclude
 
+    def _set_name(self, field_name):
+        super()._set_name(field_name)
+        if self.value_field:
+            self.value_field._set_name(field_name)
+        if self.key_field:
+            self.key_field._set_name(field_name)
+
     def _bind_to_schema(self, field_name, schema):
         super()._bind_to_schema(field_name, schema)
         if self.value_field:
@@ -2095,8 +2115,8 @@ class Inferred(Field):
         Users should not need to use this class directly.
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # We memoize the fields to avoid creating and binding new fields
         # every time on serialization.
         self._field_cache = {}

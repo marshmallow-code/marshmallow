@@ -550,11 +550,10 @@ def test_function_field(serialized_user, user):
 
 
 def test_fields_must_be_declared_as_instances(user):
-    class BadUserSchema(Schema):
-        name = fields.String
-
     with pytest.raises(TypeError, match="must be declared as a Field instance"):
-        BadUserSchema().dump(user)
+
+        class BadUserSchema(Schema):
+            name = fields.String
 
 
 # regression test

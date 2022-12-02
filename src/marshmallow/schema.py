@@ -41,6 +41,23 @@ from marshmallow.warnings import RemovedInMarshmallow4Warning
 _T = typing.TypeVar("_T")
 
 
+def _set_field_name(field_obj, field_name):
+    try:
+        field_obj._set_name(field_name)
+    except TypeError as error:
+        # Field declared as a class, not an instance. Ignore type checking because
+        # we handle unsupported arg types, i.e. this is dead code from
+        # the type checker's perspective.
+        if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
+            msg = (
+                'Field for "{}" must be declared as a '
+                "Field instance, not a class. "
+                'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
+            )
+            raise TypeError(msg) from error
+        raise error
+
+
 def _get_fields(attrs, ordered=False):
     """Get fields from a class. If ordered=True, fields will sorted by creation index.
 
@@ -54,6 +71,9 @@ def _get_fields(attrs, ordered=False):
     ]
     if ordered:
         fields.sort(key=lambda pair: pair[1]._creation_index)
+    # Set field name on each field
+    for field_name, field_value in fields:
+        _set_field_name(field_value, field_name)
     return fields
 
 
@@ -114,6 +134,8 @@ class SchemaMeta(type):
         # get_declared_fields
         klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
         # Add fields specified in the `include` class Meta option
+        for field_name, field_obj in klass.opts.include.items():
+            _set_field_name(field_obj, field_name)
         cls_fields += list(klass.opts.include.items())
 
         dict_cls = OrderedDict if ordered else dict
@@ -525,8 +547,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
             if value is missing:
                 continue
-            key = field_obj.data_key if field_obj.data_key is not None else attr_name
-            ret[key] = value
+            ret[field_obj.data_key] = value
         return ret
 
     def dump(self, obj: typing.Any, *, many: bool | None = None):
@@ -637,10 +658,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
-                field_name = (
-                    field_obj.data_key if field_obj.data_key is not None else attr_name
-                )
-                raw_value = data.get(field_name, missing)
+                data_key = typing.cast(str, field_obj.data_key)
+                raw_value = data.get(data_key, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
@@ -650,7 +669,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 d_kwargs = {}
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
-                    prefix = field_name + "."
+                    prefix = data_key + "."
                     len_prefix = len(prefix)
                     sub_partial = [
                         f[len_prefix:] for f in partial if f.startswith(prefix)
@@ -659,23 +678,20 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 else:
                     d_kwargs["partial"] = partial
                 getter = lambda val: field_obj.deserialize(
-                    val, field_name, data, **d_kwargs
+                    val, data_key, data, **d_kwargs
                 )
                 value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
-                    field_name=field_name,
+                    field_name=data_key,
                     error_store=error_store,
                     index=index,
                 )
                 if value is not missing:
-                    key = field_obj.attribute or attr_name
-                    set_value(ret_d, key, value)
+                    attribute = typing.cast(str, field_obj.attribute)
+                    set_value(ret_d, attribute, value)
             if unknown != EXCLUDE:
-                fields = {
-                    field_obj.data_key if field_obj.data_key is not None else field_name
-                    for field_name, field_obj in self.load_fields.items()
-                }
+                fields = {field_obj.data_key for field_obj in self.load_fields.values()}
                 for key in set(data) - fields:
                     value = data[key]
                     if unknown == INCLUDE:
@@ -980,7 +996,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, ma_fields.Inferred())
+            field_obj = self.declared_fields.get(
+                field_name,
+                ma_fields.Inferred(attribute=field_name, data_key=field_name),
+            )
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
@@ -991,10 +1010,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             if not field_obj.load_only:
                 dump_fields[field_name] = field_obj
 
-        dump_data_keys = [
-            field_obj.data_key if field_obj.data_key is not None else name
-            for name, field_obj in dump_fields.items()
-        ]
+        dump_data_keys = [field_obj.data_key for field_obj in dump_fields.values()]
         if len(dump_data_keys) != len(set(dump_data_keys)):
             data_keys_duplicates = {
                 x for x in dump_data_keys if dump_data_keys.count(x) > 1
@@ -1005,7 +1021,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 "Check the following field names and "
                 "data_key arguments: {}".format(list(data_keys_duplicates))
             )
-        load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
+        load_attributes = [obj.attribute for obj in load_fields.values()]
         if len(load_attributes) != len(set(load_attributes)):
             attributes_duplicates = {
                 x for x in load_attributes if load_attributes.count(x) > 1
@@ -1039,20 +1055,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             field_obj.load_only = True
         if field_name in self.dump_only:
             field_obj.dump_only = True
-        try:
-            field_obj._bind_to_schema(field_name, self)
-        except TypeError as error:
-            # Field declared as a class, not an instance. Ignore type checking because
-            # we handle unsupported arg types, i.e. this is dead code from
-            # the type checker's perspective.
-            if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
-                msg = (
-                    'Field for "{}" must be declared as a '
-                    "Field instance, not a class. "
-                    'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
-                )
-                raise TypeError(msg) from error
-            raise error
+        field_obj._bind_to_schema(field_name, self)
         self.on_bind_field(field_name, field_obj)
 
     @lru_cache(maxsize=8)
@@ -1115,13 +1118,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     continue
                 raise ValueError(f'"{field_name}" field does not exist.') from error
 
-            data_key = (
-                field_obj.data_key if field_obj.data_key is not None else field_name
-            )
+            data_key = field_obj.data_key
             if many:
                 for idx, item in enumerate(data):
                     try:
-                        value = item[field_obj.attribute or field_name]
+                        value = item[field_obj.attribute]
                     except KeyError:
                         pass
                     else:
@@ -1136,7 +1137,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             data[idx].pop(field_name, None)
             else:
                 try:
-                    value = data[field_obj.attribute or field_name]
+                    value = data[field_obj.attribute]
                 except KeyError:
                     pass
                 else:
