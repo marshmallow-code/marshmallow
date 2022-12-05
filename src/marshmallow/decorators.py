@@ -61,7 +61,7 @@ Example: ::
 from __future__ import annotations
 
 import functools
-from typing import Any, Callable, Dict, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Tuple, cast
 
 PRE_DUMP = "pre_dump"
 POST_DUMP = "post_dump"
@@ -72,9 +72,7 @@ VALIDATES_SCHEMA = "validates_schema"
 
 
 class MarshmallowHook:
-    __marshmallow_hook__ = (
-        None
-    )  # type: Optional[Dict[Union[Tuple[str, bool], str], Any]]
+    __marshmallow_hook__ = None  # type: Dict[Tuple[str, bool] | str, Any] | None
 
 
 def validates(field_name: str) -> Callable[..., Any]:
