@@ -81,14 +81,14 @@ html_theme_options = {
 }
 
 html_sidebars = {
-    "index": ["about.html", "donate.html", "useful-links.html", "searchbox.html"],
+    "index": ["about.html", "searchbox.html", "donate.html", "useful-links.html"],
     "**": [
         "about.html",
+        "searchbox.html",
         "donate.html",
         "useful-links.html",
         "localtoc.html",
         "relations.html",
-        "searchbox.html",
     ],
 }
 
