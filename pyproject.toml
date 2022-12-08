@@ -22,7 +22,10 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.9"
-dependencies = ["packaging>=17.0"]
+dependencies = [
+    "packaging>=17.0",
+    "backports-datetime-fromisoformat; python_version < '3.11'",
+]
 
 [project.urls]
 Changelog = "https://marshmallow.readthedocs.io/en/latest/changelog.html"

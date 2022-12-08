@@ -428,7 +428,7 @@ class TestFieldDeserialization:
             "",
             [],
             "2018",
-            "2018-01-01",
+            "2018-01",
             dt.datetime.now().strftime("%H:%M:%S %Y-%m-%d"),
             dt.datetime.now().strftime("%m-%d-%Y %H:%M:%S"),
         ],
@@ -685,9 +685,12 @@ class TestFieldDeserialization:
         ("value", "expected"),
         [
             ("01:23:45", dt.time(1, 23, 45)),
-            ("01:23:45+01:00", dt.time(1, 23, 45)),
             ("01:23:45.123", dt.time(1, 23, 45, 123000)),
             ("01:23:45.123456", dt.time(1, 23, 45, 123456)),
+            (
+                "01:23:45+01:00",
+                dt.time(1, 23, 45, tzinfo=dt.timezone(dt.timedelta(seconds=3600))),
+            ),
         ],
     )
     def test_iso_time_field_deserialization(self, fmt, value, expected):
