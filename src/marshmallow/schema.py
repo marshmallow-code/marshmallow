@@ -658,9 +658,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
-                getter = lambda val: field_obj.deserialize(
-                    val, field_name, data, **d_kwargs
-                )
+
+                def getter(
+                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
+                ):
+                    return field_obj.deserialize(
+                        val,
+                        field_name,
+                        data,
+                        **d_kwargs,
+                    )
+
                 value = self._call_and_store(
                     getter_func=getter,
                     data=raw_value,
@@ -1055,7 +1063,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             raise error
         self.on_bind_field(field_name, field_obj)
 
-    @lru_cache(maxsize=8)
+    @lru_cache(maxsize=8)  # noqa (https://github.com/PyCQA/flake8-bugbear/issues/310)
     def _has_processors(self, tag) -> bool:
         return bool(self._hooks[(tag, True)] or self._hooks[(tag, False)])
 
