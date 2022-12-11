@@ -10,6 +10,10 @@ marshmallow: simplified object serialization
     :target: https://dev.azure.com/sloria/sloria/_build/latest?definitionId=5&branchName=dev
     :alt: Build status
 
+.. image:: https://results.pre-commit.ci/badge/github/marshmallow-code/marshmallow/dev.svg
+   :target: https://results.pre-commit.ci/latest/github/marshmallow-code/marshmallow/dev
+   :alt: pre-commit.ci status
+
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
