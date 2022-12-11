@@ -1063,7 +1063,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             raise error
         self.on_bind_field(field_name, field_obj)
 
-    @lru_cache(maxsize=8)
+    @lru_cache(maxsize=8)  # noqa (https://github.com/PyCQA/flake8-bugbear/issues/310)
     def _has_processors(self, tag) -> bool:
         return bool(self._hooks[(tag, True)] or self._hooks[(tag, False)])
 
