@@ -1055,9 +1055,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             # the type checker's perspective.
             if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
                 msg = (
-                    'Field for "{}" must be declared as a '
+                    'Field for "{field_name}" must be declared as a '
                     "Field instance, not a class. "
-                    'Did you mean "fields.{}()"?'.format(field_name, field_obj.__name__)
+                    'Did you mean "fields.{field_obj.__name__}()"?'
                 )
                 raise TypeError(msg) from error
             raise error
