@@ -524,37 +524,6 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
                 # No need to include 'uppername'
                 additional = ("name", "email", "created_at")
 
-Ordering Output
----------------
-
-To maintain field ordering, set the ``ordered`` option to `True`. This will instruct marshmallow to serialize data to a `collections.OrderedDict`.
-
-.. code-block:: python
-
-    from collections import OrderedDict
-    from pprint import pprint
-
-    from marshmallow import Schema, fields
-
-
-    class UserSchema(Schema):
-        first_name = fields.String()
-        last_name = fields.String()
-        email = fields.Email()
-
-        class Meta:
-            ordered = True
-
-
-    u = User("Charlie", "Stones", "charlie@stones.com")
-    schema = UserSchema()
-    result = schema.dump(u)
-    assert isinstance(result, OrderedDict)
-    pprint(result, indent=2)
-    #  OrderedDict([('first_name', 'Charlie'),
-    #              ('last_name', 'Stones'),
-    #              ('email', 'charlie@stones.com')])
-
 Next Steps
 ----------
 
