@@ -388,7 +388,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.declared_fields = copy.deepcopy(self._declared_fields)
         self.many = many
         self.only = only
-        self.exclude = set(self.opts.exclude) | set(exclude)
+        self.exclude: set[typing.Any] | typing.MutableSet[typing.Any] = set(
+            self.opts.exclude
+        ) | set(exclude)
         self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
@@ -968,7 +970,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         if self.only is not None:
             # Return only fields specified in only option
-            field_names = self.set_class(self.only)
+            field_names: typing.AbstractSet[typing.Any] = self.set_class(self.only)
 
             invalid_fields |= field_names - available_field_names
         else:
