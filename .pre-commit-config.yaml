@@ -22,7 +22,7 @@ repos:
     # these files are checked under `tox -e mypy-test`
     exclude: ^tests/mypy_test_cases/.*$
 - repo: https://github.com/asottile/blacken-docs
-  rev: v1.12.1
+  rev: 1.13.0
   hooks:
   - id: blacken-docs
     additional_dependencies: [black==22.1.0]
