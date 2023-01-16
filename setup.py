@@ -12,7 +12,7 @@ EXTRAS_REQUIRE = {
     "docs": [
         "sphinx==5.3.0",
         "sphinx-issues==3.0.1",
-        "alabaster==0.7.12",
+        "alabaster==0.7.13",
         "sphinx-version-warning==1.1.2",
         "autodocsumm==0.2.10",
     ],
