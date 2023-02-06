@@ -258,7 +258,6 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize("allow_nan", (None, False, True))
     @pytest.mark.parametrize("value", ("nan", "-nan", "inf", "-inf"))
     def test_float_field_allow_nan(self, value, allow_nan):
-
         if allow_nan is None:
             # Test default case is False
             field = fields.Float()
