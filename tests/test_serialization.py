@@ -146,7 +146,6 @@ class TestFieldSerialization:
         assert field.serialize("uuid2", user) is None
 
     def test_ip_address_field(self, user):
-
         ipv4_string = "192.168.0.1"
         ipv6_string = "ffff::ffff"
         ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
@@ -167,7 +166,6 @@ class TestFieldSerialization:
         assert field_exploded.serialize("ipv6", user) == ipv6_exploded_string
 
     def test_ipv4_address_field(self, user):
-
         ipv4_string = "192.168.0.1"
 
         user.ipv4 = ipaddress.ip_address(ipv4_string)
@@ -179,7 +177,6 @@ class TestFieldSerialization:
         assert field.serialize("empty_ip", user) is None
 
     def test_ipv6_address_field(self, user):
-
         ipv6_string = "ffff::ffff"
         ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
 
@@ -196,7 +193,6 @@ class TestFieldSerialization:
         assert field_exploded.serialize("ipv6", user) == ipv6_exploded_string
 
     def test_ip_interface_field(self, user):
-
         ipv4interface_string = "192.168.0.1/24"
         ipv6interface_string = "ffff::ffff/128"
         ipv6interface_exploded_string = ipaddress.ip_interface(
@@ -222,7 +218,6 @@ class TestFieldSerialization:
         )
 
     def test_ipv4_interface_field(self, user):
-
         ipv4interface_string = "192.168.0.1/24"
 
         user.ipv4interface = ipaddress.ip_interface(ipv4interface_string)
@@ -234,7 +229,6 @@ class TestFieldSerialization:
         assert field.serialize("empty_ipinterface", user) is None
 
     def test_ipv6_interface_field(self, user):
-
         ipv6interface_string = "ffff::ffff/128"
         ipv6interface_exploded_string = ipaddress.ip_interface(
             "ffff::ffff/128"

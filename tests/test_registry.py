@@ -52,7 +52,6 @@ def test_register_class_meta_option():
 
 
 def test_serializer_class_registry_register_same_classname_different_module():
-
     reglen = len(class_registry._registry)
 
     type("MyTestRegSchema", (Schema,), {"__module__": "modA"})
@@ -83,7 +82,6 @@ def test_serializer_class_registry_register_same_classname_different_module():
 
 
 def test_serializer_class_registry_override_if_same_classname_same_module():
-
     reglen = len(class_registry._registry)
 
     type("MyTestReg2Schema", (Schema,), {"__module__": "SameModulePath"})
