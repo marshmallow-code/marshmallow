@@ -1953,6 +1953,27 @@ class TestSchemaDeserialization:
         with pytest.raises(ValidationError):
             MySchema(unknown=EXCLUDE).load({"foo": 3, "bar": 5}, unknown=RAISE)
 
+    def test_unknown_fields_deserialization_with_alternative(self):
+        class MySchema(Schema):
+            foo = fields.Integer(alternative="Foo")
+
+        data = MySchema().load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
+        data = MySchema(unknown=RAISE).load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
+        # since it's an alternative "foo" is also an acceptable key
+        data = MySchema(unknown=RAISE).load({"foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
+        data = MySchema(unknown=INCLUDE).load({"Foo": 1})
+        assert data["foo"] == 1
+        assert "Foo" not in data
+
     def test_unknown_fields_deserialization_with_data_key(self):
         class MySchema(Schema):
             foo = fields.Integer(data_key="Foo")

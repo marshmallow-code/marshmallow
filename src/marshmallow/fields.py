@@ -138,6 +138,7 @@ class Field(FieldABC):
     #  for those fields
     _CHECK_ATTRIBUTE = True
     _creation_index = 0  # Used for sorting
+    _deserialized_key: str | None = None
 
     #: Default error messages for various kinds of errors. The keys in this dictionary
     #: are passed to `Field.make_error`. The values are error messages passed to
@@ -156,6 +157,7 @@ class Field(FieldABC):
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
         data_key: str | None = None,
+        alternative: str | None = None,
         attribute: str | None = None,
         validate: (
             None
@@ -194,6 +196,7 @@ class Field(FieldABC):
 
         self.attribute = attribute
         self.data_key = data_key
+        self.alternative = alternative
         self.validate = validate
         if validate is None:
             self.validators = []
