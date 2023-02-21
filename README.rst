@@ -6,8 +6,8 @@ marshmallow: simplified object serialization
     :target: https://pypi.org/project/marshmallow/
     :alt: Latest version
 
-.. image:: https://dev.azure.com/sloria/sloria/_apis/build/status/marshmallow-code.marshmallow?branchName=dev
-    :target: https://dev.azure.com/sloria/sloria/_build/latest?definitionId=5&branchName=dev
+.. image:: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml/badge.svg
+    :target: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml
     :alt: Build status
 
 .. image:: https://readthedocs.org/projects/marshmallow/badge/
