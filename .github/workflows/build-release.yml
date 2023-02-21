@@ -6,17 +6,6 @@ on:
   pull_request:
 
 jobs:
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
-        with:
-          python-version: '3.11'
-      - run: python -m pip install --upgrade pip wheel
-      - run: pip install tox
-      - run: tox -elint
   mypy:
     name: mypy
     runs-on: ubuntu-latest
@@ -25,9 +14,9 @@ jobs:
       - uses: actions/setup-python@v4.3.0
         with:
           python-version: '3.11'
-      - run: python -m pip install --upgrade pip wheel
-      - run: pip install tox
-      - run: tox -emypy-test
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install tox
+      - run: python -m tox -e mypy-test
   docs:
     name: docs
     runs-on: ubuntu-latest
@@ -53,12 +42,25 @@ jobs:
       - uses: actions/setup-python@v4.3.0
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install --upgrade pip wheel
-      - run: pip install tox codecov
-      - run: tox -e${{ matrix.tox }}
-      - run: codecov
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install tox
+      - run: python -m tox -e ${{ matrix.tox }}
+  # this duplicates pre-commit.ci, so only run it on tags
+  # it guarantees that linting is passing prior to a release
+  lint-pre-release:
+    name: lint
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install tox
+      - run: python -m tox -e lint
   release:
-    needs: [lint, tests]
+    needs: [mypy, tests, lint-pre-release]
     name: PyPI release
     if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
