@@ -1,0 +1,75 @@
+name: build
+on:
+  push:
+    branches: ["dev"]
+    tags: ["*"]
+  pull_request:
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip wheel
+      - run: pip install tox
+      - run: tox -elint
+  mypy:
+    name: mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip wheel
+      - run: pip install tox
+      - run: tox -emypy-test
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --upgrade pip wheel
+      - run: pip install tox
+      - run: tox -edocs
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {name: '3.7', python: '3.7', tox: py37}
+          - {name: '3.11', python: '3.11', tox: py311}
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install --upgrade pip wheel
+      - run: pip install tox codecov
+      - run: tox -e${{ matrix.tox }}
+      - run: codecov
+  release:
+    needs: [lint, tests]
+    name: PyPI release
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
+      - name: install requirements
+        run: python -m pip install build twine
+      - name: build dists
+        run: python -m build
+      - name: check package metadata
+        run: twine check dist/*
+      - name: publish
+        run: twine upload -u __token__ -p ${{ secrets.PYPI_API_TOKEN }} dist/*
