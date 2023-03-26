@@ -228,6 +228,31 @@ def test_from_iso_date():
     assert_date_equal(result, d)
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (1676386740, dt.datetime(2023, 2, 14, 14, 59, 00)),
+        (1676386740.58, dt.datetime(2023, 2, 14, 14, 59, 00, 580000)),
+    ],
+)
+def test_from_timestamp(value, expected):
+    result = utils.from_timestamp(value)
+    assert type(result) == dt.datetime
+    assert result == expected
+
+
+def test_from_timestamp_with_negative_value():
+    value = -10
+    with pytest.raises(ValueError, match=r"Not a valid POSIX timestamp"):
+        utils.from_timestamp(value)
+
+
+def test_from_timestamp_with_overflow_value():
+    value = 9223372036854775
+    with pytest.raises(ValueError):
+        utils.from_timestamp(value)
+
+
 def test_get_func_args():
     def f1(foo, bar):
         pass
