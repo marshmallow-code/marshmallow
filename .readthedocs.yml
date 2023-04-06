@@ -1,9 +1,10 @@
 version: 2
 sphinx:
   configuration: docs/conf.py
-formats: []
+formats:
+  - pdf
 python:
-  version: 3.8
+  version: 3.11
   install:
     - method: pip
       path: .
