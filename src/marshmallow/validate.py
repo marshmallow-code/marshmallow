@@ -94,6 +94,7 @@ class URL(Validator):
     """Validate a URL.
 
     :param relative: Whether to allow relative URLs.
+    :param absolute: Whether to allow absolute URLs.
     :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
     :param schemes: Valid schemes. By default, ``http``, ``https``,
@@ -105,38 +106,54 @@ class URL(Validator):
         def __init__(self):
             self._memoized = {}
 
-        def _regex_generator(self, relative: bool, require_tld: bool) -> typing.Pattern:
-            return re.compile(
-                r"".join(
+        def _regex_generator(
+            self, relative: bool, absolute: bool, require_tld: bool
+        ) -> typing.Pattern:
+            _absolute_part = "".join(
+                (
+                    # scheme
+                    r"(?:[a-z0-9\.\-\+]*)://",  # scheme is validated separately
+                    # basic_auth
+                    r"(?:[^:@]+?(:[^:@]*?)?@|)",  # basic auth
+                    # netloc
+                    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+",
+                    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|",  # domain...
+                    r"localhost|",  # localhost...
                     (
-                        r"^",
-                        r"(" if relative else r"",
-                        r"(?:[a-z0-9\.\-\+]*)://",  # scheme is validated separately
-                        r"(?:[^:@]+?(:[^:@]*?)?@|)",  # basic auth
-                        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+",
-                        r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|",  # domain...
-                        r"localhost|",  # localhost...
-                        (
-                            r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)|"
-                            if not require_tld
-                            else r""
-                        ),  # allow dotless hostnames
-                        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|",  # ...or ipv4
-                        r"\[[A-F0-9]*:[A-F0-9:]+\])",  # ...or ipv6
-                        r"(?::\d+)?",  # optional port
-                        r")?"
-                        if relative
-                        else r"",  # host is optional, allow for relative URLs
-                        r"(?:/?|[/?]\S+)\Z",
-                    )
-                ),
-                re.IGNORECASE,
+                        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)|"
+                        if not require_tld
+                        else r""
+                    ),  # allow dotless hostnames
+                    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|",  # ...or ipv4
+                    r"\[[A-F0-9]*:[A-F0-9:]+\])",  # ...or ipv6
+                    r"(?::\d+)?",  # optional port
+                )
             )
+            _relative_part = r"(?:/?|[/?]\S+)\Z"
 
-        def __call__(self, relative: bool, require_tld: bool) -> typing.Pattern:
-            key = (relative, require_tld)
+            if relative:
+                if absolute:
+                    parts: tuple[str, ...] = (
+                        r"^(",
+                        _absolute_part,
+                        r")?",
+                        _relative_part,
+                    )
+                else:
+                    parts = (r"^", _relative_part)
+            else:
+                parts = (r"^", _absolute_part, _relative_part)
+
+            return re.compile("".join(parts), re.IGNORECASE)
+
+        def __call__(
+            self, relative: bool, absolute: bool, require_tld: bool
+        ) -> typing.Pattern:
+            key = (relative, absolute, require_tld)
             if key not in self._memoized:
-                self._memoized[key] = self._regex_generator(relative, require_tld)
+                self._memoized[key] = self._regex_generator(
+                    relative, absolute, require_tld
+                )
 
             return self._memoized[key]
 
@@ -149,11 +166,17 @@ class URL(Validator):
         self,
         *,
         relative: bool = False,
+        absolute: bool = True,
         schemes: types.StrSequenceOrSet | None = None,
         require_tld: bool = True,
         error: str | None = None,
     ):
+        if not relative and not absolute:
+            raise ValueError(
+                "URL validation cannot set both relative and absolute to False."
+            )
         self.relative = relative
+        self.absolute = absolute
         self.error = error or self.default_message  # type: str
         self.schemes = schemes or self.default_schemes
         self.require_tld = require_tld
@@ -175,7 +198,7 @@ class URL(Validator):
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
-        regex = self._regex(self.relative, self.require_tld)
+        regex = self._regex(self.relative, self.absolute, self.require_tld)
 
         if not regex.search(value):
             raise ValidationError(message)

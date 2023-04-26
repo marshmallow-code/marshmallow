@@ -1710,6 +1710,7 @@ class Url(String):
         self,
         *,
         relative: bool = False,
+        absolute: bool = True,
         schemes: types.StrSequenceOrSet | None = None,
         require_tld: bool = True,
         **kwargs,
@@ -1717,10 +1718,12 @@ class Url(String):
         super().__init__(**kwargs)
 
         self.relative = relative
+        self.absolute = absolute
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be stored.
         validator = validate.URL(
             relative=self.relative,
+            absolute=self.absolute,
             schemes=schemes,
             require_tld=self.require_tld,
             error=self.error_messages["invalid"],
