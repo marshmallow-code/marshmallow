@@ -215,10 +215,21 @@ def test_url_custom_message():
 def test_url_repr():
     assert repr(
         validate.URL(relative=False, error=None)
-    ) == "<URL(relative=False, error={!r})>".format("Not a valid URL.")
+    ) == "<URL(relative=False, absolute=True, error={!r})>".format("Not a valid URL.")
     assert repr(
         validate.URL(relative=True, error="foo")
-    ) == "<URL(relative=True, error={!r})>".format("foo")
+    ) == "<URL(relative=True, absolute=True, error={!r})>".format("foo")
+    assert repr(
+        validate.URL(relative=True, absolute=False, error="foo")
+    ) == "<URL(relative=True, absolute=False, error={!r})>".format("foo")
+
+
+def test_url_rejects_invalid_relative_usage():
+    with pytest.raises(
+        ValueError,
+        match="URL validation cannot set both relative and absolute to False",
+    ):
+        validate.URL(relative=False, absolute=False)
 
 
 @pytest.mark.parametrize(

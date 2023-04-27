@@ -109,40 +109,54 @@ class URL(Validator):
         def _regex_generator(
             self, relative: bool, absolute: bool, require_tld: bool
         ) -> typing.Pattern:
-            _absolute_part = "".join(
+            hostname_variants = [
+                # a normal domain name, expressed in [A-Z0-9] chars with hyphens allowed only in the middle
+                # note that the regex will be compiled with IGNORECASE, so these are upper and lowercase chars
                 (
-                    # scheme
-                    r"(?:[a-z0-9\.\-\+]*)://",  # scheme is validated separately
-                    # basic_auth
-                    r"(?:[^:@]+?(:[^:@]*?)?@|)",  # basic auth
-                    # netloc
-                    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+",
-                    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|",  # domain...
-                    r"localhost|",  # localhost...
-                    (
-                        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)|"
-                        if not require_tld
-                        else r""
-                    ),  # allow dotless hostnames
-                    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|",  # ...or ipv4
-                    r"\[[A-F0-9]*:[A-F0-9:]+\])",  # ...or ipv6
-                    r"(?::\d+)?",  # optional port
+                    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+                    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)"
+                ),
+                # or the special string 'localhost'
+                r"localhost",
+                # or IPv4
+                r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
+                # or IPv6
+                r"\[[A-F0-9]*:[A-F0-9:]+\]",
+            ]
+            if not require_tld:
+                # allow dotless hostnames
+                hostname_variants.append(r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)")
+
+            absolute_part = "".join(
+                (
+                    # scheme (e.g. 'https://', 'ftp://', etc)
+                    # this is validated separately against allowed schemes, so in the regex
+                    # we simply want to capture its existence
+                    r"(?:[a-z0-9\.\-\+]*)://",
+                    # basic_auth, for URLs encoding a username:password
+                    # e.g. 'ftp://foo:bar@ftp.example.org/'
+                    r"(?:[^:@]+?(:[^:@]*?)?@|)",
+                    # netloc, the hostname/domain part of the URL plus the optional port
+                    r"(?:",
+                    "|".join(hostname_variants),
+                    r")",
+                    r"(?::\d+)?",
                 )
             )
-            _relative_part = r"(?:/?|[/?]\S+)\Z"
+            relative_part = r"(?:/?|[/?]\S+)\Z"
 
             if relative:
                 if absolute:
                     parts: tuple[str, ...] = (
                         r"^(",
-                        _absolute_part,
+                        absolute_part,
                         r")?",
-                        _relative_part,
+                        relative_part,
                     )
                 else:
-                    parts = (r"^", _relative_part)
+                    parts = (r"^", relative_part)
             else:
-                parts = (r"^", _absolute_part, _relative_part)
+                parts = (r"^", absolute_part, relative_part)
 
             return re.compile("".join(parts), re.IGNORECASE)
 
@@ -182,7 +196,7 @@ class URL(Validator):
         self.require_tld = require_tld
 
     def _repr_args(self) -> str:
-        return f"relative={self.relative!r}"
+        return f"relative={self.relative!r}, absolute={self.absolute!r}"
 
     def _format_error(self, value) -> str:
         return self.error.format(input=value)
