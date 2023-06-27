@@ -1,5 +1,6 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import annotations
+from abc import ABCMeta
 
 from collections import defaultdict, OrderedDict
 from collections.abc import Mapping
@@ -80,7 +81,7 @@ def _get_fields_by_mro(klass, ordered=False):
     )
 
 
-class SchemaMeta(type):
+class SchemaMeta(ABCMeta):
     """Metaclass for the Schema class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field objects. Also sets the ``opts`` class attribute, which is
