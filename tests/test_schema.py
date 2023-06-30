@@ -22,6 +22,7 @@ from marshmallow.exceptions import (
     StringNotCollectionError,
     ValidationError,
 )
+from marshmallow.warnings import FieldConfigurationWarning
 
 from tests.base import (
     Blog,
@@ -2162,17 +2163,45 @@ class TestNestedSchema:
 
 
 class TestPluckSchema:
-    @pytest.mark.parametrize("user_schema", [UserSchema, UserSchema()])
-    def test_pluck(self, user_schema, blog):
+    def test_dump_cls_pluck(self, blog):
         class FlatBlogSchema(Schema):
-            user = fields.Pluck(user_schema, "name")
-            collaborators = fields.Pluck(user_schema, "name", many=True)
+            user = fields.Pluck(UserSchema, "name")
+            collaborators = fields.Pluck(UserSchema, "name", many=True)
 
         s = FlatBlogSchema()
         data = s.dump(blog)
         assert data["user"] == blog.user.name
         for i, name in enumerate(data["collaborators"]):
             assert name == blog.collaborators[i].name
+
+    def test_dump_instanced_pluck(self, blog):
+        with pytest.warns(FieldConfigurationWarning):
+
+            class FlatBlogSchema(Schema):
+                user = fields.Pluck(UserSchema(), "name")
+                collaborators = fields.Pluck(UserSchema(), "name", many=True)
+
+        s = FlatBlogSchema()
+        data = s.dump(blog)
+        assert data["user"] == blog.user.name
+        for i, name in enumerate(data["collaborators"]):
+            assert name == blog.collaborators[i].name
+
+    def test_load_pluck(self):
+        in_data = {
+            "user": "Doris",
+            "collaborators": ["Mick", "Keith"],
+        }
+
+        class FlatBlogSchema(Schema):
+            user = fields.Pluck(UserSchema, "name")
+            collaborators = fields.Pluck(UserSchema, "name", many=True)
+
+        s = FlatBlogSchema()
+        blog = s.load(in_data)
+        assert in_data["user"] == blog["user"].name
+        for i, collab in enumerate(blog["collaborators"]):
+            assert in_data["collaborators"][i] == collab.name
 
     def test_pluck_none(self, blog):
         class FlatBlogSchema(Schema):

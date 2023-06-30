@@ -26,9 +26,10 @@ from marshmallow.exceptions import (
     ValidationError,
     StringNotCollectionError,
     FieldInstanceResolutionError,
+    FieldConfigurationError,
 )
 from marshmallow.validate import And, Length
-from marshmallow.warnings import RemovedInMarshmallow4Warning
+from marshmallow.warnings import RemovedInMarshmallow4Warning, FieldConfigurationWarning
 
 __all__ = [
     "Field",
@@ -564,6 +565,11 @@ class Nested(Field):
                 RemovedInMarshmallow4Warning,
                 stacklevel=2,
             )
+        if isinstance(nested, SchemaABC) and many:
+            warnings.warn(
+                'Passing "many" is ignored if using an instance of a schema. Consider fields.List(fields.Nested(...)) instead.',
+                FieldConfigurationWarning,
+            )
         self.nested = nested
         self.only = only
         self.exclude = exclude
@@ -647,9 +653,14 @@ class Nested(Field):
         return schema.dump(nested_obj, many=many)
 
     def _test_collection(self, value):
+        if self.many and not self.schema.many:
+            raise FieldConfigurationError(
+                '"many" may not be used in conjunction with an instance in a nested field.'
+            )
         many = self.schema.many or self.many
         if many and not utils.is_collection(value):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
+        # Check whether many on the nested field and the schema are in conflict.
 
     def _load(self, value, data, partial=None):
         try:
