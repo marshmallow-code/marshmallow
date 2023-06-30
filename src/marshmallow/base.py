@@ -1,6 +1,6 @@
 """Abstract base classes.
 
-These are necessary to avoid circular imports between core.py and fields.py.
+These are necessary to avoid circular imports between schema.py and fields.py.
 
 .. warning::
 
