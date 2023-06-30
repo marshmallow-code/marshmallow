@@ -374,7 +374,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         context: dict | None = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
-        partial: bool | types.StrSequenceOrSet = False,
+        partial: bool | types.StrSequenceOrSet | None = None,
         unknown: str | None = None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -648,15 +648,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
+                d_kwargs = {}  # type: typing.Dict[str, typing.Any]
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
-                    prefix = field_name + "."
-                    len_prefix = len(prefix)
-                    sub_partial = [
-                        f[len_prefix:] for f in partial if f.startswith(prefix)
-                    ]
-                    d_kwargs["partial"] = sub_partial
+                    if attr_name in partial:
+                        d_kwargs["partial"] = True
+                    else:
+                        prefix = f"{attr_name}."
+                        len_prefix = len(prefix)
+                        sub_partial = [
+                            f[len_prefix:] for f in partial if f.startswith(prefix)
+                        ]
+                        d_kwargs["partial"] = sub_partial
                 else:
                     d_kwargs["partial"] = partial
 
@@ -1089,7 +1092,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool,
         original_data,
-        partial: bool | types.StrSequenceOrSet,
+        partial: bool | types.StrSequenceOrSet | None,
     ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
@@ -1166,7 +1169,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data,
         original_data,
         many: bool,
-        partial: bool | types.StrSequenceOrSet,
+        partial: bool | types.StrSequenceOrSet | None,
         field_errors: bool = False,
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
