@@ -6,6 +6,8 @@ Changelog
 
 Features:
 
+- Add ``absolute`` parameter to ``URL`` validator and ``Url`` field (:pr:`2123`).
+  Thanks :user:`sirosen` for the PR.
 - Use Abstract Base Classes to define ``FieldABC`` and ``SchemaABC``
   (:issue:`1449`). Thanks :user:`aditkumar72` for the PR.
 
