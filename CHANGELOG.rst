@@ -4,16 +4,22 @@ Changelog
 3.20.0 (unreleased)
 *******************
 
+Features:
+
+- Use Abstract Base Classes to define ``FieldABC`` and ``SchemaABC``
+  (:issue:`1449`). Thanks :user:`aditkumar72` for the PR.
+
 Other changes:
 
 - Officially support Python 3.11 (:pr:`2067`).
+- Drop support for Python 3.7 (:pr:`2135`).
 
 3.19.0 (2022-11-11)
 *******************
 
 Features:
 
-- Add ``timestamp`` and ``timestamp_ms`` formats to `fields.DateTime`
+- Add ``timestamp`` and ``timestamp_ms`` formats to ``fields.DateTime``
   (:issue:`612`).
   Thanks :user:`vgavro` for the suggestion and thanks :user:`vanHoi` for
   the PR.
@@ -100,7 +106,7 @@ Bug fixes:
 
 Other changes:
 
-- Fix type-hints for ```data``` arg in ```Schema.validate``` to accept
+- Fix type-hints for ``data`` arg in ``Schema.validate`` to accept
   list of dictionaries (:issue:`1790`, :pr:`1868`).
   Thanks  :user:`yourun-proger` for PR.
 - Improve warning when passing metadata as keyword arguments (:pr:`1882`).
