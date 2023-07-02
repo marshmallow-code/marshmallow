@@ -112,13 +112,11 @@ class SchemaMeta(ABCMeta):
         # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
-        dict_cls = OrderedDict if ordered else dict
         # Assign _declared_fields on class
         klass._declared_fields = mcs.get_declared_fields(
             klass=klass,
             cls_fields=cls_fields,
             inherited_fields=inherited_fields,
-            dict_cls=dict_cls,
         )
         return klass
 
@@ -128,7 +126,7 @@ class SchemaMeta(ABCMeta):
         klass: type,
         cls_fields: list,
         inherited_fields: list,
-        dict_cls: type,
+        dict_cls: type = dict,
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
@@ -138,8 +136,7 @@ class SchemaMeta(ABCMeta):
         :param cls_fields: The fields declared on the class, including those added
             by the ``include`` class Meta option.
         :param inherited_fields: Inherited fields.
-        :param dict_cls: Either `dict` or `OrderedDict`, depending on whether
-            the user specified `ordered=True`.
+        :param dict_cls: dict-like class to use for dict output Default to ``dict``.
         """
         return dict_cls(inherited_fields + cls_fields)
 
