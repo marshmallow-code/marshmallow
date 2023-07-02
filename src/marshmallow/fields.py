@@ -137,7 +137,6 @@ class Field(FieldABC):
     #  to exist as attributes on the objects to serialize. Set this to False
     #  for those fields
     _CHECK_ATTRIBUTE = True
-    _creation_index = 0  # Used for sorting
 
     #: Default error messages for various kinds of errors. The keys in this dictionary
     #: are passed to `Field.make_error`. The values are error messages passed to
@@ -226,9 +225,6 @@ class Field(FieldABC):
                 RemovedInMarshmallow4Warning,
                 stacklevel=2,
             )
-
-        self._creation_index = Field._creation_index
-        Field._creation_index += 1
 
         # Collect default error message from self and parent classes
         messages = {}  # type: dict[str, str]
