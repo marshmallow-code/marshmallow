@@ -11,6 +11,11 @@ Features:
 - Use Abstract Base Classes to define ``FieldABC`` and ``SchemaABC``
   (:issue:`1449`). Thanks :user:`aditkumar72` for the PR.
 
+Bug fixes:
+
+- Handle ``OSError`` and ``OverflowError`` in ``utils.from_timestamp`` (:pr:`2102`).
+  Thanks :user:`TheBigRoomXXL` for the PR.
+
 Other changes:
 
 - Officially support Python 3.11 (:pr:`2067`).
