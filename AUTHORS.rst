@@ -172,3 +172,4 @@ Contributors (chronological)
 - Marco Satti `@marcosatti  <https://github.com/marcosatti>`_
 - Ivo Reumkens `@vanHoi <https://github.com/vanHoi>`_
 - Aditya Tewary `@aditkumar72 <https://github.com/aditkumar72>`_
+- Sebastien Lovergne `@TheBigRoomXXL <https://github.com/TheBigRoomXXL>`_

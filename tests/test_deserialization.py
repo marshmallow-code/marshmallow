@@ -4,6 +4,8 @@ import ipaddress
 import decimal
 import math
 
+from unittest.mock import patch
+
 import pytest
 
 from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, Schema, validate
@@ -19,6 +21,20 @@ from tests.base import (
     HairColorEnum,
     DateEnum,
 )
+
+
+class MockDateTimeOverflowError(dt.datetime):
+    """Used to simulate the possible OverflowError of datetime.fromtimestamp"""
+
+    def fromtimestamp(self, *args, **kwargs):
+        raise OverflowError()
+
+
+class MockDateTimeOSError(dt.datetime):
+    """Used to simulate the possible OSError of datetime.fromtimestamp"""
+
+    def fromtimestamp(self, *args, **kwargs):
+        raise OSError()
 
 
 class TestDeserializingNone:
@@ -565,9 +581,20 @@ class TestFieldDeserialization:
         ["", "!@#", 0, -1, dt.datetime(2013, 11, 10, 1, 23, 45)],
     )
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
-        field = fields.DateTime(format="timestamp")
+        field = fields.DateTime(format=fmt)
         with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
+
+    #  Regression test for https://github.com/marshmallow-code/marshmallow/pull/2102
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    @pytest.mark.parametrize(
+        "mock_fromtimestamp", [MockDateTimeOSError, MockDateTimeOverflowError]
+    )
+    def test_oversized_timestamp_field_deserialization(self, fmt, mock_fromtimestamp):
+        with patch("datetime.datetime", mock_fromtimestamp):
+            field = fields.DateTime(format=fmt)
+            with pytest.raises(ValidationError, match="Not a valid datetime."):
+                field.deserialize(99999999999999999)
 
     @pytest.mark.parametrize(
         ("fmt", "timezone", "value", "expected"),
