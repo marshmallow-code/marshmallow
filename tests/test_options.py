@@ -178,9 +178,6 @@ class TestFieldOrdering:
 
     def test_nested_field_order_with_exclude_arg_is_maintained(self, user):
         class HasNestedExclude(Schema):
-            class Meta:
-                ordered = True
-
             user = fields.Nested(KeepOrder, exclude=("birthdate",))
 
         ser = HasNestedExclude()
@@ -231,7 +228,7 @@ class TestIncludeOption:
         result = s.load({"name": "Steve", "from": "Oskosh"})
         assert result == in_data
 
-    def test_ordered_included(self):
+    def test_included_fields_ordered_after_declared_fields(self):
         class AddFieldsOrdered(Schema):
             name = fields.Str()
             email = fields.Str()
@@ -242,7 +239,6 @@ class TestIncludeOption:
                     "in": fields.Str(),
                     "@at": fields.Str(),
                 }
-                ordered = True
 
         s = AddFieldsOrdered()
         in_data = {

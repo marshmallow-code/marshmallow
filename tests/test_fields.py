@@ -9,6 +9,7 @@ from marshmallow import (
     RAISE,
     missing,
 )
+from marshmallow.orderedset import OrderedSet
 from marshmallow.exceptions import StringNotCollectionError
 
 from tests.base import ALL_FIELDS
@@ -380,13 +381,13 @@ class TestNestedField:
     @pytest.mark.parametrize(
         ("param", "fields_list"), [("only", ["foo"]), ("exclude", ["bar"])]
     )
-    def test_ordered_instanced_nested_schema_only_and_exclude(self, param, fields_list):
+    def test_nested_schema_only_and_exclude(self, param, fields_list):
         class NestedSchema(Schema):
+            # We mean to test the use of OrderedSet to specify it explicitly
+            # even if it is default
+            set_class = OrderedSet
             foo = fields.String()
             bar = fields.String()
-
-            class Meta:
-                ordered = True
 
         class MySchema(Schema):
             nested = fields.Nested(NestedSchema(), **{param: fields_list})
