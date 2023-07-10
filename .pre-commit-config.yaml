@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.8.0
+  rev: v3.9.0
   hooks:
   - id: pyupgrade
     args: [--py38-plus]
@@ -22,7 +22,7 @@ repos:
     # these files are checked under `tox -e mypy-test`
     exclude: ^tests/mypy_test_cases/.*$
 - repo: https://github.com/asottile/blacken-docs
-  rev: 1.14.0
+  rev: 1.15.0
   hooks:
   - id: blacken-docs
     additional_dependencies: [black==22.1.0]
