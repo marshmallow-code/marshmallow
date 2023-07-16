@@ -2933,3 +2933,16 @@ def test_unknown_parameter_value_is_validated(usage_location):
             MySchema(unknown="badval")
         else:
             MySchema().load({"foo": "bar"}, unknown="badval")
+
+
+@pytest.mark.parametrize("dict_cls", (dict, OrderedDict))
+def test_set_dict_class(dict_cls):
+    """Demonstrate how to specify dict_class as class attribute"""
+
+    class MySchema(Schema):
+        dict_class = dict_cls
+        foo = fields.String()
+
+    result = MySchema().dump({"foo": "bar"})
+    assert result == {"foo": "bar"}
+    assert isinstance(result, dict_cls)
