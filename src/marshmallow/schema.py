@@ -657,7 +657,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         f[len_prefix:] for f in partial if f.startswith(prefix)
                     ]
                     d_kwargs["partial"] = sub_partial
-                else:
+                elif partial is not None:
                     d_kwargs["partial"] = partial
 
                 def getter(
