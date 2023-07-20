@@ -117,6 +117,7 @@ class SchemaMeta(ABCMeta):
             klass=klass,
             cls_fields=cls_fields,
             inherited_fields=inherited_fields,
+            dict_cls=dict,
         )
         return klass
 
