@@ -374,7 +374,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         context: dict | None = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
-        partial: bool | types.StrSequenceOrSet = False,
+        partial: bool | types.StrSequenceOrSet | None = None,
         unknown: str | None = None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
@@ -590,7 +590,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         error_store: ErrorStore,
         many: bool = False,
-        partial=False,
+        partial=None,
         unknown=RAISE,
         index=None,
     ) -> _T | list[_T]:
@@ -657,7 +657,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                         f[len_prefix:] for f in partial if f.startswith(prefix)
                     ]
                     d_kwargs["partial"] = sub_partial
-                else:
+                elif partial is not None:
                     d_kwargs["partial"] = partial
 
                 def getter(
@@ -1089,7 +1089,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         many: bool,
         original_data,
-        partial: bool | types.StrSequenceOrSet,
+        partial: bool | types.StrSequenceOrSet | None,
     ):
         # This has to invert the order of the dump processors, so run the pass_many
         # processors first.
@@ -1166,7 +1166,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data,
         original_data,
         many: bool,
-        partial: bool | types.StrSequenceOrSet,
+        partial: bool | types.StrSequenceOrSet | None,
         field_errors: bool = False,
     ):
         for attr_name in self._hooks[(VALIDATES_SCHEMA, pass_many)]:
