@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.20.1 (2023-07-20)
+*******************
+
+Bug fixes:
+
+- Fix call to ``get_declared_fields``: pass ``dict_cls`` again (:issue:`2152`).
+  Thanks :user:`Cheaterman` for reporting.
+
 3.20.0 (2023-07-20)
 *******************
 
