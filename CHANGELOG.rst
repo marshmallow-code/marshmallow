@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-3.20.0 (unreleased)
+3.20.0 (2023-07-20)
 *******************
 
 Features:
@@ -10,11 +10,15 @@ Features:
   Thanks :user:`sirosen` for the PR.
 - Use Abstract Base Classes to define ``FieldABC`` and ``SchemaABC``
   (:issue:`1449`). Thanks :user:`aditkumar72` for the PR.
+- Use `OrderedSet` as default `set_class`. Schemas are now ordered by default.
+  (:issue:`1744`)
 
 Bug fixes:
 
 - Handle ``OSError`` and ``OverflowError`` in ``utils.from_timestamp`` (:pr:`2102`).
   Thanks :user:`TheBigRoomXXL` for the PR.
+- Fix the default inheritance of nested partial schemas (:issue:`2149`).
+  Thanks :user:`matejsp` for reporting.
 
 Other changes:
 
