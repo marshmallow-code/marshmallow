@@ -8,7 +8,7 @@ class User:
         self.created_at = dt.datetime.now()
 
     def __repr__(self):
-        return "<User(name={self.name!r})>".format(self=self)
+        return f"<User(name={self.name!r})>"
 
 
 from marshmallow import Schema, fields
