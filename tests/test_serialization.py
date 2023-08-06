@@ -829,7 +829,7 @@ class TestFieldSerialization:
         obj = DateTimeList([dt.datetime.utcnow(), dt.datetime.now()])
         field = fields.List(fields.DateTime)
         result = field.serialize("dtimes", obj)
-        assert all(type(each) == str for each in result)
+        assert all(type(each) is str for each in result)
 
     def test_list_field_serialize_none_returns_none(self):
         obj = DateTimeList(None)
@@ -912,8 +912,8 @@ class TestFieldSerialization:
         obj = DateTimeIntegerTuple((dt.datetime.utcnow(), 42))
         field = fields.Tuple([fields.DateTime, fields.Integer])
         result = field.serialize("dtime_int", obj)
-        assert type(result[0]) == str
-        assert type(result[1]) == int
+        assert type(result[0]) is str
+        assert type(result[1]) is int
 
     def test_tuple_field_serialize_none_returns_none(self):
         obj = DateTimeIntegerTuple(None)

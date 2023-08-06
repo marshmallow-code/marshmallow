@@ -171,7 +171,7 @@ def test_isoformat(value, expected):
 )
 def test_from_rfc(value, expected):
     result = utils.from_rfc(value)
-    assert type(result) == dt.datetime
+    assert type(result) is dt.datetime
     assert result == expected
 
 
@@ -200,7 +200,7 @@ def test_from_rfc(value, expected):
 )
 def test_from_iso_datetime(value, expected):
     result = utils.from_iso_datetime(value)
-    assert type(result) == dt.datetime
+    assert type(result) is dt.datetime
     assert result == expected
 
 
@@ -208,7 +208,7 @@ def test_from_iso_time_with_microseconds():
     t = dt.time(1, 23, 45, 6789)
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted)
-    assert type(result) == dt.time
+    assert type(result) is dt.time
     assert_time_equal(result, t)
 
 
@@ -216,7 +216,7 @@ def test_from_iso_time_without_microseconds():
     t = dt.time(1, 23, 45)
     formatted = t.isoformat()
     result = utils.from_iso_time(formatted)
-    assert type(result) == dt.time
+    assert type(result) is dt.time
     assert_time_equal(result, t)
 
 
@@ -224,7 +224,7 @@ def test_from_iso_date():
     d = dt.date(2014, 8, 21)
     iso_date = d.isoformat()
     result = utils.from_iso_date(iso_date)
-    assert type(result) == dt.date
+    assert type(result) is dt.date
     assert_date_equal(result, d)
 
 
@@ -237,7 +237,7 @@ def test_from_iso_date():
 )
 def test_from_timestamp(value, expected):
     result = utils.from_timestamp(value)
-    assert type(result) == dt.datetime
+    assert type(result) is dt.datetime
     assert result == expected
 
 

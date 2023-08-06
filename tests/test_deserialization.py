@@ -844,7 +844,7 @@ class TestFieldDeserialization:
         d = dt.date(2014, 8, 21)
         iso_date = d.isoformat()
         result = field.deserialize(iso_date)
-        assert type(result) == dt.date
+        assert type(result) is dt.date
         assert_date_equal(result, d)
 
     @pytest.mark.parametrize(
@@ -1398,7 +1398,7 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize("invalid")
         assert excinfo.value.args[0][0] == "Invalid value."
-        assert type(excinfo.value) == ValidationError
+        assert type(excinfo.value) is ValidationError
 
     def test_field_deserialization_with_user_validator_class_that_returns_bool(self):
         class MyValidator:
@@ -1437,7 +1437,7 @@ class TestFieldDeserialization:
         field = fields.String(validate=lambda s: False)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize("привет")
-        assert type(excinfo.value) == ValidationError
+        assert type(excinfo.value) is ValidationError
 
     def test_field_deserialization_with_user_validators(self):
         validators_gen = (
@@ -1817,7 +1817,7 @@ class TestSchemaDeserialization:
             MySchema().load({"foo": "bar"})
         errors = excinfo.value.messages
 
-        assert type(errors["foo"]) == list
+        assert type(errors["foo"]) is list
         assert len(errors["foo"]) == 2
 
     def test_multiple_errors_can_be_stored_for_an_email_field(self):
