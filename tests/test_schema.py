@@ -188,19 +188,19 @@ def test_multiple_errors_can_be_stored_for_a_given_index():
 def test_dump_returns_a_dict(user):
     s = UserSchema()
     result = s.dump(user)
-    assert type(result) == dict
+    assert type(result) is dict
 
 
 def test_dumps_returns_a_string(user):
     s = UserSchema()
     result = s.dumps(user)
-    assert type(result) == str
+    assert type(result) is str
 
 
 def test_dumping_single_object_with_collection_schema(user):
     s = UserSchema(many=True)
     result = s.dump(user, many=False)
-    assert type(result) == dict
+    assert type(result) is dict
     assert result == UserSchema().dump(user)
 
 
@@ -208,7 +208,7 @@ def test_loading_single_object_with_collection_schema():
     s = UserSchema(many=True)
     in_data = {"name": "Mick", "email": "mick@stones.com"}
     result = s.load(in_data, many=False)
-    assert type(result) == User
+    assert type(result) is User
     assert result.name == UserSchema().load(in_data).name
 
 
@@ -224,15 +224,15 @@ def test_dumps_many():
 def test_load_returns_an_object():
     s = UserSchema()
     result = s.load({"name": "Monty"})
-    assert type(result) == User
+    assert type(result) is User
 
 
 def test_load_many():
     s = UserSchema()
     in_data = [{"name": "Mick"}, {"name": "Keith"}]
     result = s.load(in_data, many=True)
-    assert type(result) == list
-    assert type(result[0]) == User
+    assert type(result) is list
+    assert type(result[0]) is User
     assert result[0].name == "Mick"
 
 
@@ -300,7 +300,7 @@ def test_load_many_in_nested_empty_collection(val):
 def test_loads_returns_a_user():
     s = UserSchema()
     result = s.loads(json.dumps({"name": "Monty"}))
-    assert type(result) == User
+    assert type(result) is User
 
 
 def test_loads_many():
@@ -308,7 +308,7 @@ def test_loads_many():
     in_data = [{"name": "Mick"}, {"name": "Keith"}]
     in_json_data = json.dumps(in_data)
     result = s.loads(in_json_data, many=True)
-    assert type(result) == list
+    assert type(result) is list
     assert result[0].name == "Mick"
 
 
@@ -435,7 +435,7 @@ def test_dumps_returns_json(user):
     ser = UserSchema()
     serialized = ser.dump(user)
     json_data = ser.dumps(user)
-    assert type(json_data) == str
+    assert type(json_data) is str
     expected = json.dumps(serialized)
     assert json_data == expected
 
@@ -527,14 +527,14 @@ def test_stored_invalid_email():
 def test_integer_field():
     u = User("John", age=42.3)
     serialized = UserIntSchema().dump(u)
-    assert type(serialized["age"]) == int
+    assert type(serialized["age"]) is int
     assert serialized["age"] == 42
 
 
 def test_as_string():
     u = User("John", age=42.3)
     serialized = UserFloatStringSchema().dump(u)
-    assert type(serialized["age"]) == str
+    assert type(serialized["age"]) is str
     assert math.isclose(float(serialized["age"]), 42.3)
 
 
@@ -1619,22 +1619,22 @@ def test_meta_serializer_fields():
 def test_meta_fields_mapping(user):
     s = UserMetaSchema()
     s.dump(user)  # need to call dump to update fields
-    assert type(s.fields["balance"]) == fields.Decimal
+    assert type(s.fields["balance"]) is fields.Decimal
     # Inferred fields
-    assert type(s.fields["name"]._field_cache[fields.String]) == fields.String
-    assert type(s.fields["created"]._field_cache[fields.DateTime]) == fields.DateTime
-    assert type(s.fields["updated"]._field_cache[fields.DateTime]) == fields.DateTime
-    assert type(s.fields["age"]._field_cache[fields.Float]) == fields.Float
-    assert type(s.fields["registered"]._field_cache[fields.Boolean]) == fields.Boolean
-    assert type(s.fields["sex_choices"]._field_cache[fields.Raw]) == fields.Raw
-    assert type(s.fields["hair_colors"]._field_cache[fields.Raw]) == fields.Raw
-    assert type(s.fields["finger_count"]._field_cache[fields.Integer]) == fields.Integer
-    assert type(s.fields["uid"]._field_cache[fields.UUID]) == fields.UUID
-    assert type(s.fields["time_registered"]._field_cache[fields.Time]) == fields.Time
-    assert type(s.fields["birthdate"]._field_cache[fields.Date]) == fields.Date
+    assert type(s.fields["name"]._field_cache[fields.String]) is fields.String
+    assert type(s.fields["created"]._field_cache[fields.DateTime]) is fields.DateTime
+    assert type(s.fields["updated"]._field_cache[fields.DateTime]) is fields.DateTime
+    assert type(s.fields["age"]._field_cache[fields.Float]) is fields.Float
+    assert type(s.fields["registered"]._field_cache[fields.Boolean]) is fields.Boolean
+    assert type(s.fields["sex_choices"]._field_cache[fields.Raw]) is fields.Raw
+    assert type(s.fields["hair_colors"]._field_cache[fields.Raw]) is fields.Raw
+    assert type(s.fields["finger_count"]._field_cache[fields.Integer]) is fields.Integer
+    assert type(s.fields["uid"]._field_cache[fields.UUID]) is fields.UUID
+    assert type(s.fields["time_registered"]._field_cache[fields.Time]) is fields.Time
+    assert type(s.fields["birthdate"]._field_cache[fields.Date]) is fields.Date
     assert (
         type(s.fields["since_created"]._field_cache[fields.TimeDelta])
-        == fields.TimeDelta
+        is fields.TimeDelta
     )
 
 
@@ -2047,7 +2047,7 @@ class TestNestedSchema:
         data = BlogSchema().load(in_data)
         collabs = data["collaborators"]
         assert len(collabs) == 2
-        assert all(type(each) == User for each in collabs)
+        assert all(type(each) is User for each in collabs)
         assert collabs[0].name == in_data["collaborators"][0]["name"]
 
     def test_nested_errors(self):
