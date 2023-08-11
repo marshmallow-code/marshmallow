@@ -536,7 +536,7 @@ class Nested(Field):
         | type
         | str
         | dict[str, Field | type]
-        | typing.Callable[[], SchemaABC | dict[str, Field | type]],
+        | typing.Callable[[], SchemaABC | type | dict[str, Field | type]],
         *,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
