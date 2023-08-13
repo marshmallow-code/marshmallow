@@ -87,7 +87,7 @@ class Field(FieldABC):
     :param data_key: The name of the dict key in the external representation, i.e.
         the input of `load` and the output of `dump`.
         If `None`, the key will match the name of the field.
-    :param attribute: The name of the attribute to get the value from when serializing.
+    :param attribute: The name of the attribute to get the value from when (de)serializing.
         If `None`, assumes the attribute has the same name as the field.
         Note: This should only be used for very specific use cases such as
         outputting multiple fields for a single attribute. In most cases,
