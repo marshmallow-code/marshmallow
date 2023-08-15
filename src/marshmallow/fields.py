@@ -87,10 +87,12 @@ class Field(FieldABC):
     :param data_key: The name of the dict key in the external representation, i.e.
         the input of `load` and the output of `dump`.
         If `None`, the key will match the name of the field.
-    :param attribute: The name of the attribute to get the value from when serializing.
-        If `None`, assumes the attribute has the same name as the field.
+    :param attribute: The name of the key/attribute in the internal representation, i.e.
+        the output of `load` and the input of `dump`.
+        If `None`, the key/attribute will match the name of the field.
         Note: This should only be used for very specific use cases such as
-        outputting multiple fields for a single attribute. In most cases,
+        outputting multiple fields for a single attribute, or using keys/attributes
+        that are invalid variable names, unsuitable for field names. In most cases,
         you should use ``data_key`` instead.
     :param validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
