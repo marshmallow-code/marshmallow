@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.20.2 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix ``Nested`` field type hint for lambda ``Schema`` types (:pr:`2164`).
+  Thanks :user:`somethingnew2-0` for the PR.
+
 3.20.1 (2023-07-20)
 *******************
 
