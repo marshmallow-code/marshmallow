@@ -40,8 +40,6 @@ from marshmallow.utils import (
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
-_T = typing.TypeVar("_T")
-
 
 def _get_fields(attrs):
     """Get fields from a class
@@ -128,7 +126,7 @@ class SchemaMeta(ABCMeta):
         klass: SchemaMeta,
         cls_fields: list,
         inherited_fields: list,
-        dict_cls: type = dict,
+        dict_cls: type[dict] = dict,
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
@@ -415,8 +413,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         return f"<{self.__class__.__name__}(many={self.many})>"
 
     @property
-    def dict_class(self) -> type:
-        return OrderedDict if self.ordered else dict
+    def dict_class(self) -> type[dict]:
+        if self.ordered:
+            return OrderedDict
+        else:
+            return dict
 
     @classmethod
     def from_dict(
@@ -424,7 +425,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         fields: dict[str, ma_fields.Field | type[ma_fields.Field]],
         *,
         name: str = "GeneratedSchema",
-    ) -> type:
+    ) -> type[Schema]:
         """Generate a `Schema` class given a dictionary of fields.
 
         .. code-block:: python
@@ -501,7 +502,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj: _T | typing.Iterable[_T], *, many: bool = False):
+    def _serialize(self, obj: dict | typing.Iterable[dict], *, many: bool = False):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -514,7 +515,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many and obj is not None:
             return [
                 self._serialize(d, many=False)
-                for d in typing.cast(typing.Iterable[_T], obj)
+                for d in typing.cast(typing.Iterable[dict], obj)
             ]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
@@ -588,7 +589,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         partial=None,
         unknown=RAISE,
         index=None,
-    ) -> _T | list[_T]:
+    ) -> dict | list[dict]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -609,13 +610,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret_l = []  # type: typing.List[_T]
+                ret_l = []  # type: typing.List[dict]
             else:
                 ret_l = [
                     typing.cast(
-                        _T,
+                        dict,
                         self._deserialize(
-                            typing.cast(typing.Mapping[str, typing.Any], d),
+                            typing.cast(dict, d),
                             error_store=error_store,
                             many=False,
                             partial=partial,
