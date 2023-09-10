@@ -33,6 +33,10 @@ from marshmallow.utils import (
 from marshmallow.validate import And, Length
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
+if typing.TYPE_CHECKING:
+    from marshmallow.schema import SchemaMeta
+
+
 __all__ = [
     "Field",
     "Raw",
@@ -535,10 +539,10 @@ class Nested(Field):
     def __init__(
         self,
         nested: SchemaABC
-        | type
+        | SchemaMeta
         | str
-        | dict[str, Field | type]
-        | typing.Callable[[], SchemaABC | type | dict[str, Field | type]],
+        | dict[str, Field | type[Field]]
+        | typing.Callable[[], SchemaABC | SchemaMeta | dict[str, Field | type[Field]]],
         *,
         dump_default: typing.Any = missing_,
         default: typing.Any = missing_,
@@ -700,7 +704,7 @@ class Pluck(Nested):
 
     def __init__(
         self,
-        nested: SchemaABC | type | str | typing.Callable[[], SchemaABC],
+        nested: SchemaABC | SchemaMeta | str | typing.Callable[[], SchemaABC],
         field_name: str,
         **kwargs,
     ):
@@ -751,7 +755,7 @@ class List(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid list."}
 
-    def __init__(self, cls_or_instance: Field | type, **kwargs):
+    def __init__(self, cls_or_instance: Field | type[Field], **kwargs):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
@@ -1555,8 +1559,8 @@ class Mapping(Field):
 
     def __init__(
         self,
-        keys: Field | type | None = None,
-        values: Field | type | None = None,
+        keys: Field | type[Field] | None = None,
+        values: Field | type[Field] | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -1878,7 +1882,7 @@ class Enum(Field):
         self,
         enum: type[EnumType],
         *,
-        by_value: bool | Field | type = False,
+        by_value: bool | Field | type[Field] = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
