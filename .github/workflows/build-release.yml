@@ -36,7 +36,6 @@ jobs:
       matrix:
         include:
           - {name: '3.8', python: '3.8', tox: py38}
-          - {name: '3.11', python: '3.11', tox: py311}
           - {name: '3.12', python: '3.12', tox: py312}
     steps:
       - uses: actions/checkout@v4.0.0
