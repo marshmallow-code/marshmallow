@@ -11,7 +11,7 @@ import pytz
 from marshmallow import Schema, fields, post_load, validate, missing
 from marshmallow.exceptions import ValidationError
 
-central = pytz.timezone("US/Central")
+central = pytz.timezone("America/Chicago")
 
 
 class GenderEnum(IntEnum):
