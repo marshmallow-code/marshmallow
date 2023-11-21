@@ -9,6 +9,11 @@ Bug fixes:
 - Fix ``Nested`` field type hint for lambda ``Schema`` types (:pr:`2164`).
   Thanks :user:`somethingnew2-0` for the PR.
 
+Other changes:
+
+- Officially support Python 3.11 (:pr:`2188`).
+  Thanks :user:`hugovk` for the PR.
+
 3.20.1 (2023-07-20)
 *******************
 
