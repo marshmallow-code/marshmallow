@@ -1142,7 +1142,8 @@ class Boolean(Field):
         "YES",
         "1",
         1,
-        True,
+        # Equal to 1
+        # True,
     }
     #: Default falsy values.
     falsy = {
@@ -1161,8 +1162,9 @@ class Boolean(Field):
         "NO",
         "0",
         0,
-        0.0,
-        False,
+        # Equal to 0
+        # 0.0,
+        # False,
     }
 
     #: Default error messages.
