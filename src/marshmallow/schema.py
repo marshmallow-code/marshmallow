@@ -212,6 +212,7 @@ class SchemaOpts:
             warnings.warn(
                 "The json_module class Meta option is deprecated. Use render_module instead.",
                 RemovedInMarshmallow4Warning,
+                stacklevel=2,
             )
             render_module = getattr(meta, "json_module", json)
         else:
