@@ -13,6 +13,7 @@ Use this to resolve order-of-declaration issues when schemas nest each other.
 
     from marshmallow import Schema, fields
 
+
     # <3.3
     class AlbumSchema(Schema):
         title = fields.Str()
@@ -40,6 +41,7 @@ Passing ``"self"`` is deprecated.
 .. code-block:: python
 
     from marshmallow import Schema, fields
+
 
     # <3.3
     class PersonSchema(Schema):
@@ -377,6 +379,7 @@ If your `Schema <marshmallow.Schema>` overrides `get_attribute <marshmallow.Sche
 
     from marshmallow import Schema
 
+
     # 2.x
     class MySchema(Schema):
         def get_attribute(self, attr, obj, default):
@@ -458,6 +461,7 @@ The `Method <marshmallow.fields.Method>` and `Function <marshmallow.fields.Funct
 
     from marshmallow import Schema, fields, missing
 
+
     # 2.x
     class ShapeSchema(Schema):
         area = fields.Method("get_area")
@@ -498,6 +502,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
 
     from marshmallow import Schema, fields, post_dump
 
+
     # 2.x
     class MySchema(Schema):
         x = fields.Int()
@@ -507,6 +512,7 @@ Use a `post_dump <marshmallow.decorators.post_dump>` to add additional data on s
     schema = MySchema(extra={"z": 123})
     schema.dump({"x": 1, "y": 2})
     # => {'z': 123, 'y': 2, 'x': 1}
+
 
     # 3.x
     class MySchema(Schema):
@@ -587,6 +593,7 @@ Subclasses of `SchemaOpts <marshmallow.SchemaOpts>` receive an additional argume
 
     from marshmallow import SchemaOpts
 
+
     # 2.x
     class CustomOpts(SchemaOpts):
         def __init__(self, meta):
@@ -660,6 +667,7 @@ The ``json_module`` class Meta option is deprecated in favor of ``render_module`
 .. code-block:: python
 
     import ujson
+
 
     # 2.x
     class MySchema(Schema):
@@ -736,6 +744,7 @@ This use case is covered by using two different `Schema`.
 .. code-block:: python
 
     from marshmallow import Schema, fields
+
 
     # 2.x
     class UserSchema(Schema):
@@ -867,6 +876,7 @@ In marshmallow 2.x, ``Float`` field would serialize and deserialize special valu
     MySchema().load({"x": "nan"})
     # => {{'x': nan}}
 
+
     # 3.x
     class MySchema(Schema):
         x = fields.Float()
@@ -898,6 +908,7 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
 
     MySchema().dump({"x": dt.datetime(2017, 9, 19)})
     # => {{'x': '2017-09'}}
+
 
     # 3.x
     class MySchema(Schema):
@@ -936,6 +947,7 @@ The ``Meta`` option ``dateformat`` used to pass format to `DateTime <marshmallow
     )
     # => {{'x': '2017-09-19T00:00:00+00:00', 'y': '2017-09-18T22:00:00+00:00', 'z': '2017-09-19T00:00:00+02:00'}}
 
+
     # 3.x
     class MySchema(Schema):
         x = fields.DateTime()
@@ -966,6 +978,7 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
 
     MySchema(prefix="pre_").dump({"f1": "one", "f2": "two"})
     # {'pre_f1': 'one', '_pre_f2': 'two'}
+
 
     # 3.x
     class MySchema(Schema):
@@ -1023,6 +1036,7 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
     MySchema()
     #  No error
 
+
     # 3.x
     class MySchema(Schema):
         f1 = fields.Field()
@@ -1057,6 +1071,7 @@ re-raise exceptions using ``raise ... from ...``.
 
     from marshmallow import fields, ValidationError
     from packaging import version
+
 
     # 2.x
     class Version(fields.Field):
@@ -1100,6 +1115,7 @@ should accept ``**kwargs``:
 
     from marshmallow import fields, ValidationError
     from packaging import version
+
 
     # 2.x
     class MyCustomField(fields.Field):
@@ -1318,6 +1334,7 @@ Custom accessors and error handlers are now defined as methods. `Schema.accessor
 
     from marshmallow import Schema, fields
 
+
     # 1.0 Deprecated API
     class ExampleSchema(Schema):
         field_a = fields.Int()
@@ -1471,6 +1488,7 @@ Two changes must be made to make your custom fields compatible with version 2.0.
 
     from marshmallow import fields, ValidationError
     from marshmallow.exceptions import UnmarshallingError
+
 
     # In 1.0, an UnmarshallingError was raised
     class PasswordField(fields.Field):

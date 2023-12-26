@@ -183,6 +183,7 @@ The pipeline for serialization is similar, except that the ``pass_many=True`` pr
 
         from marshmallow import Schema, fields, pre_load
 
+
         # YES
         class MySchema(Schema):
             field_a = fields.Field()
