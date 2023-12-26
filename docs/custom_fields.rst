@@ -155,7 +155,6 @@ Error messages can also be passed to a `Field's` constructor.
 
 
     class UserSchema(Schema):
-
         name = fields.Str(
             required=True, error_messages={"required": "Please provide a name."}
         )

@@ -395,6 +395,7 @@ Deprecations:
 
     from marshmallow import Schema, fields
 
+
     # <3.3
     class PersonSchema(Schema):
         partner = fields.Nested("self", exclude=("partner",))
