@@ -11,7 +11,7 @@ Bug fixes:
 
 Other changes:
 
-- Officially support Python 3.11 (:pr:`2188`).
+- Officially support Python 3.12 (:pr:`2188`).
   Thanks :user:`hugovk` for the PR.
 
 3.20.1 (2023-07-20)
