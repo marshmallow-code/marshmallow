@@ -62,9 +62,7 @@ Upgrading to 3.0
 Python compatibility
 ********************
 
-The marshmallow 3.x series supports Python >= 3.5.
-
-Python 2.6, 2.7, 3.3, and 3.4 are no longer supported.
+The marshmallow 3.x series supports Python >= 3.8.
 
 
 Schemas are always strict
