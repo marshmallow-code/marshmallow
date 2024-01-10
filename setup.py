@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
-        "pre-commit>=2.4,<4.0",
+        "pre-commit~=3.5",
     ],
     "docs": [
         "sphinx==7.2.6",
