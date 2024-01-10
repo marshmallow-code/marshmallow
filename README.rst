@@ -156,7 +156,7 @@ Project Links
 - Docs: https://marshmallow.readthedocs.io/
 - Changelog: https://marshmallow.readthedocs.io/en/latest/changelog.html
 - Contributing Guidelines: https://marshmallow.readthedocs.io/en/latest/contributing.html
-- PyPI: https://pypi.python.org/pypi/marshmallow
+- PyPI: https://pypi.org/project/marshmallow/
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow
 

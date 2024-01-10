@@ -74,7 +74,7 @@ html_theme_options = {
     "warn_border": "#EEE",
     # Used to populate the useful-links.html template
     "extra_nav_links": {
-        "marshmallow @ PyPI": "https://pypi.python.org/pypi/marshmallow",
+        "marshmallow @ PyPI": "https://pypi.org/project/marshmallow/",
         "marshmallow @ GitHub": "https://github.com/marshmallow-code/marshmallow",
         "Issue Tracker": "https://github.com/marshmallow-code/marshmallow/issues",
         "Ecosystem": "https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem",
