@@ -565,9 +565,9 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        deserialized, errors = self.dump(obj, many=many, update_fields=update_fields)
+        deserialized = self.dump(obj, many=many, update_fields=update_fields)
         ret = self.opts.json_module.dumps(deserialized, *args, **kwargs)
-        return MarshalResult(ret, errors)
+        return ret
 
     def load(self, data, many=None, partial=None):
         """Deserialize a data structure to an object defined by this Schema's
