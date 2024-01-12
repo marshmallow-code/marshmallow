@@ -547,10 +547,9 @@ class BaseSchema(base.SchemaABC):
                 **marshal.error_kwargs
             )
             self.handle_error(exc, obj)
-            if self.strict:
-                raise exc
+            raise exc
 
-        return MarshalResult(result, errors)
+        return result
 
     def dumps(self, obj, many=None, update_fields=True, *args, **kwargs):
         """Same as :meth:`dump`, except return a JSON-encoded string.
@@ -585,8 +584,7 @@ class BaseSchema(base.SchemaABC):
 
         .. versionadded:: 1.0.0
         """
-        result, errors = self._do_load(data, many, partial=partial, postprocess=True)
-        return UnmarshalResult(data=result, errors=errors)
+        return self._do_load(data, many, partial=partial, postprocess=True)
 
     def loads(self, json_data, many=None, *args, **kwargs):
         """Same as :meth:`load`, except it takes a JSON string as input.
@@ -707,10 +705,9 @@ class BaseSchema(base.SchemaABC):
                 **unmarshal.error_kwargs
             )
             self.handle_error(exc, data)
-            if self.strict:
-                raise exc
+            raise exc
 
-        return result, errors
+        return result
 
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
