@@ -1,5 +1,6 @@
-from bottle import route, request, run
+from bottle import request, route, run
 from textblob import TextBlob
+
 from marshmallow import Schema, fields
 
 

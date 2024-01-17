@@ -1,6 +1,6 @@
 import pytest
 
-from marshmallow import Schema, fields, class_registry
+from marshmallow import Schema, class_registry, fields
 from marshmallow.exceptions import RegistryError
 
 

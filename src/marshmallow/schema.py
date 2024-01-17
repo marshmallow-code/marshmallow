@@ -1,23 +1,21 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
 from __future__ import annotations
-from abc import ABCMeta
 
-from collections import defaultdict, OrderedDict
-from collections.abc import Mapping
-from functools import lru_cache
-import datetime as dt
-import uuid
-import decimal
 import copy
+import datetime as dt
+import decimal
 import inspect
 import json
 import typing
+import uuid
 import warnings
+from abc import ABCMeta
+from collections import OrderedDict, defaultdict
+from collections.abc import Mapping
+from functools import lru_cache
 
-from marshmallow import base, fields as ma_fields, class_registry, types
-from marshmallow.error_store import ErrorStore
-from marshmallow.exceptions import ValidationError, StringNotCollectionError
-from marshmallow.orderedset import OrderedSet
+from marshmallow import base, class_registry, types
+from marshmallow import fields as ma_fields
 from marshmallow.decorators import (
     POST_DUMP,
     POST_LOAD,
@@ -26,15 +24,18 @@ from marshmallow.decorators import (
     VALIDATES,
     VALIDATES_SCHEMA,
 )
+from marshmallow.error_store import ErrorStore
+from marshmallow.exceptions import StringNotCollectionError, ValidationError
+from marshmallow.orderedset import OrderedSet
 from marshmallow.utils import (
-    RAISE,
     EXCLUDE,
     INCLUDE,
-    missing,
-    set_value,
+    RAISE,
     get_value,
     is_collection,
     is_instance_or_subclass,
+    missing,
+    set_value,
     validate_unknown_parameter_value,
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
@@ -407,9 +408,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.error_messages = messages
 
     def __repr__(self) -> str:
-        return "<{ClassName}(many={self.many})>".format(
-            ClassName=self.__class__.__name__, self=self
-        )
+        return f"<{self.__class__.__name__}(many={self.many})>"
 
     @property
     def dict_class(self) -> type:
@@ -1004,7 +1003,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 "The data_key argument for one or more fields collides "
                 "with another field's name or data_key argument. "
                 "Check the following field names and "
-                "data_key arguments: {}".format(list(data_keys_duplicates))
+                f"data_key arguments: {list(data_keys_duplicates)}"
             )
         load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
         if len(load_attributes) != len(set(load_attributes)):
@@ -1015,7 +1014,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 "The attribute argument for one or more fields collides "
                 "with another field's name or attribute argument. "
                 "Check the following field names and "
-                "attribute arguments: {}".format(list(attributes_duplicates))
+                f"attribute arguments: {list(attributes_duplicates)}"
             )
 
         self.fields = fields_dict

@@ -36,7 +36,7 @@ class TestValidationError:
     def test_messages_dict_type_error_on_badval(self):
         err = ValidationError("foo")
         with pytest.raises(TypeError) as excinfo:
-            err.messages_dict
+            err.messages_dict  # noqa: B018
         assert "cannot access 'messages_dict' when 'messages' is of type list" in str(
             excinfo.value
         )

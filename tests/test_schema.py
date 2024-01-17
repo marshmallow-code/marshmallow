@@ -6,6 +6,7 @@ from collections import OrderedDict, namedtuple
 
 import pytest
 import simplejson as json
+
 from marshmallow import (
     EXCLUDE,
     INCLUDE,
@@ -22,7 +23,6 @@ from marshmallow.exceptions import (
     StringNotCollectionError,
     ValidationError,
 )
-
 from tests.base import (
     Blog,
     BlogOnlySchema,

@@ -1,7 +1,7 @@
-import sys
-import os
-import time
 import datetime as dt
+import os
+import sys
+import time
 
 import alabaster
 

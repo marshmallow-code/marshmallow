@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import typing
 
-
 # Key used for schema-level validation errors
 SCHEMA = "_schema"
 

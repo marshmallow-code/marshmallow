@@ -1,9 +1,10 @@
 """Tests for marshmallow.validate"""
 
 import re
+
 import pytest
 
-from marshmallow import validate, ValidationError
+from marshmallow import ValidationError, validate
 
 
 @pytest.mark.parametrize(
@@ -349,12 +350,15 @@ def test_range_repr():
         )
         == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"  # noqa: B950
     )
-    assert repr(
-        validate.Range(
-            min=1, max=3, error="foo", min_inclusive=False, max_inclusive=False
+    assert (
+        repr(
+            validate.Range(
+                min=1, max=3, error="foo", min_inclusive=False, max_inclusive=False
+            )
         )
-    ) == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(  # noqa: B950
-        "foo"
+        == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(  # noqa: B950
+            "foo"
+        )
     )
 
 

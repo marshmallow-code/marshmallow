@@ -1,17 +1,17 @@
 """Tests for field serialization."""
-from collections import namedtuple, OrderedDict
 import datetime as dt
-import itertools
 import decimal
-import uuid
 import ipaddress
+import itertools
 import math
+import uuid
+from collections import OrderedDict, namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, missing as missing_
-
-from tests.base import User, ALL_FIELDS, central, GenderEnum, HairColorEnum, DateEnum
+from marshmallow import Schema, fields
+from marshmallow import missing as missing_
+from tests.base import ALL_FIELDS, DateEnum, GenderEnum, HairColorEnum, User, central
 
 
 class DateTimeList:

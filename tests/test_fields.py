@@ -1,17 +1,16 @@
 import pytest
 
 from marshmallow import (
-    fields,
-    Schema,
-    ValidationError,
     EXCLUDE,
     INCLUDE,
     RAISE,
+    Schema,
+    ValidationError,
+    fields,
     missing,
 )
-from marshmallow.orderedset import OrderedSet
 from marshmallow.exceptions import StringNotCollectionError
-
+from marshmallow.orderedset import OrderedSet
 from tests.base import ALL_FIELDS
 
 
@@ -33,13 +32,11 @@ class TestField:
         default = "œ∑´"
         field = fields.Field(dump_default=default, attribute=None)
         assert repr(field) == (
-            "<fields.Field(dump_default={0!r}, attribute=None, "
+            f"<fields.Field(dump_default={default!r}, attribute=None, "
             "validate=None, required=False, "
             "load_only=False, dump_only=False, "
-            "load_default={missing}, allow_none=False, "
-            "error_messages={error_messages})>".format(
-                default, missing=missing, error_messages=field.error_messages
-            )
+            f"load_default={missing}, allow_none=False, "
+            f"error_messages={field.error_messages})>"
         )
         int_field = fields.Integer(validate=lambda x: True)
         assert "<fields.Integer" in repr(int_field)

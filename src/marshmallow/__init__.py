@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.metadata
+
 from packaging.version import Version
 
 from marshmallow.decorators import (

@@ -1,18 +1,18 @@
 import pytest
 
 from marshmallow import (
-    Schema,
-    fields,
-    pre_dump,
-    post_dump,
-    pre_load,
-    post_load,
-    validates,
-    validates_schema,
-    ValidationError,
     EXCLUDE,
     INCLUDE,
     RAISE,
+    Schema,
+    ValidationError,
+    fields,
+    post_dump,
+    post_load,
+    pre_dump,
+    pre_load,
+    validates,
+    validates_schema,
 )
 
 

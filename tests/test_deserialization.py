@@ -1,25 +1,23 @@
 import datetime as dt
-import uuid
-import ipaddress
 import decimal
+import ipaddress
 import math
-
+import uuid
 from unittest.mock import patch
 
 import pytest
 
-from marshmallow import EXCLUDE, INCLUDE, RAISE, fields, Schema, validate
+from marshmallow import EXCLUDE, INCLUDE, RAISE, Schema, fields, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
-
 from tests.base import (
+    ALL_FIELDS,
+    DateEnum,
+    GenderEnum,
+    HairColorEnum,
     assert_date_equal,
     assert_time_equal,
     central,
-    ALL_FIELDS,
-    GenderEnum,
-    HairColorEnum,
-    DateEnum,
 )
 
 
