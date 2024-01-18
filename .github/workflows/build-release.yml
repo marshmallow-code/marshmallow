@@ -69,8 +69,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4.0.0
+      - uses: actions/setup-python@v4.7.0
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
@@ -79,7 +79,7 @@ jobs:
   publish-to-pypi:
     name: PyPI release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [build, tests, lint-pre-release]
+    needs: [mypy, build, tests, lint-pre-release]
     runs-on: ubuntu-latest
     environment:
       name: pypi
