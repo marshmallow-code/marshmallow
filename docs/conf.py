@@ -57,7 +57,6 @@ html_show_sourcelink = False
 
 html_theme_options = {
     "logo": "marshmallow-logo.png",
-    "logo_name": None,
     "description": "Object serialization and deserialization, lightweight and fluffy.",
     "description_font_style": "italic",
     "github_user": "marshmallow-code",
