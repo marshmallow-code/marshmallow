@@ -4,11 +4,11 @@ Uses the `timeit` module to benchmark serializing an object through Marshmallow.
 """
 import argparse
 import cProfile
+import datetime
 import gc
 import timeit
-import datetime
 
-from marshmallow import Schema, fields, ValidationError, post_dump
+from marshmallow import Schema, ValidationError, fields, post_dump
 
 
 # Custom validator

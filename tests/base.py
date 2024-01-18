@@ -1,14 +1,13 @@
 """Test utilities and fixtures."""
-import functools
 import datetime as dt
+import functools
 import uuid
 from enum import Enum, IntEnum
 
+import pytz
 import simplejson
 
-import pytz
-
-from marshmallow import Schema, fields, post_load, validate, missing
+from marshmallow import Schema, fields, missing, post_load, validate
 from marshmallow.exceptions import ValidationError
 
 central = pytz.timezone("America/Chicago")

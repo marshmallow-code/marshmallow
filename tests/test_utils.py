@@ -1,12 +1,12 @@
 import datetime as dt
 from collections import namedtuple
-from functools import partial
 from copy import copy, deepcopy
+from functools import partial
 
 import pytest
 
-from marshmallow import utils, fields, Schema
-from tests.base import central, assert_time_equal, assert_date_equal
+from marshmallow import Schema, fields, utils
+from tests.base import assert_date_equal, assert_time_equal, central
 
 
 def test_missing_singleton_copy():

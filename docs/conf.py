@@ -1,12 +1,9 @@
-import sys
+import datetime as dt
+import importlib.metadata
 import os
 import time
-import datetime as dt
 
 import alabaster
-
-sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
-import marshmallow  # noqa: E402
 
 extensions = [
     "sphinx.ext.autodoc",
@@ -42,7 +39,7 @@ copyright = (
     )
 )
 
-version = release = marshmallow.__version__
+version = release = importlib.metadata.version("marshmallow")
 
 exclude_patterns = ["_build"]
 

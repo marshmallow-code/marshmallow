@@ -10,6 +10,7 @@ class:`fields.Nested <marshmallow.fields.Nested>`.
 from __future__ import annotations
 
 import typing
+
 from marshmallow.exceptions import RegistryError
 
 if typing.TYPE_CHECKING:
@@ -76,16 +77,16 @@ def get_class(classname: str, all: bool = False) -> list[SchemaType] | SchemaTyp
         classes = _registry[classname]
     except KeyError as error:
         raise RegistryError(
-            "Class with name {!r} was not found. You may need "
-            "to import the class.".format(classname)
+            f"Class with name {classname!r} was not found. You may need "
+            "to import the class."
         ) from error
     if len(classes) > 1:
         if all:
             return _registry[classname]
         raise RegistryError(
-            "Multiple classes with name {!r} "
+            f"Multiple classes with name {classname!r} "
             "were found. Please use the full, "
-            "module-qualified path.".format(classname)
+            "module-qualified path."
         )
     else:
         return _registry[classname][0]

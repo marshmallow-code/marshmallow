@@ -27,9 +27,7 @@ class Validator(ABC):
         args = self._repr_args()
         args = f"{args}, " if args else ""
 
-        return "<{self.__class__.__name__}({args}error={self.error!r})>".format(
-            self=self, args=args
-        )
+        return f"<{self.__class__.__name__}({args}error={self.error!r})>"
 
     def _repr_args(self) -> str:
         """A string representation of the args passed to this validator. Used by
@@ -237,7 +235,8 @@ class Email(Validator):
 
     DOMAIN_REGEX = re.compile(
         # domain
-        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+" r"(?:[A-Z]{2,6}|[A-Z0-9-]{2,})\Z"
+        r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
+        r"(?:[A-Z]{2,6}|[A-Z0-9-]{2,})\Z"
         # literal form, ipv4 address (SMTP 4.1.3)
         r"|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)"
         r"(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]\Z",

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib.metadata
+
 from packaging.version import Version
 
 from marshmallow.decorators import (
@@ -16,7 +18,8 @@ from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, missing, pprint
 
 from . import fields
 
-__version__ = "3.20.2"
+# TODO: Deprecate __version__?
+__version__ = importlib.metadata.version("marshmallow")
 __parsed_version__ = Version(__version__)
 __version_info__: tuple[int, int, int] | tuple[
     int, int, int, str, int

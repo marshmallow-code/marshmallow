@@ -1,3 +1,90 @@
-[tool.black]
-line-length = 88
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+[project]
+name = "marshmallow"
+version = "3.20.2"
+description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
+readme = "README.rst"
+license = { file = "LICENSE" }
+authors = [{ name = "Steven Loria", email = "sloria1@gmail.com" }]
+maintainers = [
+  { name = "Steven Loria", email = "sloria1@gmail.com" },
+  { name = "Jérôme Lafréchoux", email = "jerome@jolimont.fr" },
+  { name = "Jared Deckard", email = "jared@shademaps.com" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dependencies = ["packaging>=17.0"]
+
+[project.urls]
+Changelog = "https://marshmallow.readthedocs.io/en/latest/changelog.html"
+Funding = "https://opencollective.com/marshmallow"
+Issues = "https://github.com/marshmallow-code/marshmallow/issues"
+Source = "https://github.com/marshmallow-code/marshmallow"
+Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi"
+
+[project.optional-dependencies]
+docs = [
+  "sphinx==7.2.6",
+  "sphinx-issues==3.0.1",
+  "alabaster==0.7.16",
+  "sphinx-version-warning==1.1.2",
+  "autodocsumm==0.2.12",
+]
+tests = ["pytest", "pytz", "simplejson"]
+dev = ["marshmallow[tests]", "tox", "pre-commit~=3.5"]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.sdist]
+include = [
+  "docs/",
+  "tests/",
+  "CHANGELOG.rst",
+  "CONTRIBUTING.rst",
+  "SECURITY.md",
+  "NOTICE",
+  "tox.ini",
+]
+exclude = ["docs/_build/"]
+
+[tool.ruff]
+src = ["src"]
+fix = true
+show-fixes = true
+show-source = true
+
+[tool.ruff.lint]
+ignore = ["E203", "E266", "E501", "E731"]
+select = [
+  "B",  # flake8-bugbear
+  "E",  # pycodestyle error
+  "F",  # pyflakes
+  "I",  # isort
+  "UP", # pyupgrade
+  "W",  # pycodestyle warning
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["E721"]
+
+[tool.mypy]
+ignore_missing_imports = true
+warn_unreachable = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+
+[tool.pytest.ini_options]
+norecursedirs = ".git .ropeproject .tox docs env venv tests/mypy_test_cases"
+addopts = "-v --tb=short"

@@ -3,7 +3,8 @@ import datetime
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import NoResultFound
-from marshmallow import Schema, fields, ValidationError, pre_load
+
+from marshmallow import Schema, ValidationError, fields, pre_load
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/quotes.db"
