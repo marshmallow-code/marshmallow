@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+3.21.0 (unreleased)
+*******************
+
+Other changes:
+
+- *Backwards-incomaptible*: ``__version__``, ``__parsed_version__``, and ``__version_info__``
+  attributes are deprecated (:issue:`2227`). Use feature detection or
+  ``importlib.metadata.version("marshmallow")`` instead.
+
 3.20.2 (2024-01-09)
 *******************
 
