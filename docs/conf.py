@@ -1,7 +1,4 @@
-import datetime as dt
 import importlib.metadata
-import os
-import time
 
 import alabaster
 
@@ -24,20 +21,11 @@ issues_github_path = "marshmallow-code/marshmallow"
 
 templates_path = ["_templates"]
 
-# Use SOURCE_DATE_EPOCH for reproducible build output https://reproducible-builds.org/docs/source-date-epoch/
-build_date = dt.datetime.utcfromtimestamp(
-    int(os.environ.get("SOURCE_DATE_EPOCH", time.time()))
-)
-
 source_suffix = ".rst"
 master_doc = "index"
 
 project = "marshmallow"
-copyright = (
-    ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
-        build_date
-    )
-)
+copyright = '<a href="https://stevenloria.com">Steven Loria</a> and contributors'
 
 version = release = importlib.metadata.version("marshmallow")
 
