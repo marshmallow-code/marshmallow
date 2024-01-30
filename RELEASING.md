@@ -6,4 +6,3 @@
 3. Tag the commit: `git tag x.y.z`
 4. Push: `git push --tags origin dev`. CI will take care of the
    PyPI release.
-5. Add release notes on Tidelift.
