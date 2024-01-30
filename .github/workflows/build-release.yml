@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.0.0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.0.0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install tox
@@ -38,7 +38,7 @@ jobs:
           - { name: "3.12", python: "3.12", tox: py312 }
     steps:
       - uses: actions/checkout@v4.0.0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install pypa/build
@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.0.0
-      - uses: actions/setup-python@v4.7.0
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: python -m pip install tox
