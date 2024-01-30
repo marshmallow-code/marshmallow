@@ -47,7 +47,7 @@ jobs:
       - run: python -m pip install tox
       - run: python -m tox -e ${{ matrix.tox }}
   build:
-    if: startsWith(github.ref, 'refs/tags')
+    name: Build package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,9 +55,13 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install pypa/build
-        run: python3 -m pip install build --user
+        run: python -m pip install build
       - name: Build a binary wheel and a source tarball
-        run: python3 -m build
+        run: python -m build
+      - name: Install twine
+        run: python -m pip install twine
+      - name: Check build
+        run: python -m twine check --strict dist/*
       - name: Store the distribution packages
         uses: actions/upload-artifact@v3
         with:
