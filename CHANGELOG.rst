@@ -6,7 +6,7 @@ Changelog
 
 Other changes:
 
-- *Backwards-incomaptible*: ``__version__``, ``__parsed_version__``, and ``__version_info__``
+- *Backwards-incompatible*: ``__version__``, ``__parsed_version__``, and ``__version_info__``
   attributes are deprecated (:issue:`2227`). Use feature detection or
   ``importlib.metadata.version("marshmallow")`` instead.
 
