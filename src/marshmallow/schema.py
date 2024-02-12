@@ -707,7 +707,7 @@ class BaseSchema(base.SchemaABC):
             self.handle_error(exc, data)
             raise exc
 
-        return result
+        return result, errors
 
     def _normalize_nested_options(self):
         """Apply then flatten nested schema options"""
