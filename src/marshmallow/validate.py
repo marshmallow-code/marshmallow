@@ -131,9 +131,9 @@ class URL(Validator):
                     # this is validated separately against allowed schemes, so in the regex
                     # we simply want to capture its existence
                     r"(?:[a-z0-9\.\-\+]*)://",
-                    # basic_auth, for URLs encoding a username:password
+                    # userinfo, for URLs encoding authentication
                     # e.g. 'ftp://foo:bar@ftp.example.org/'
-                    r"(?:[^:@]+?(:[^:@]*?)?@|)",
+                    r"(?:(?:[a-z0-9\-._~!$&'()*+,;=:]|%[0-9a-f]{2})*@)?",
                     # netloc, the hostname/domain part of the URL plus the optional port
                     r"(?:",
                     "|".join(hostname_variants),
