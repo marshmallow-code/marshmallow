@@ -29,6 +29,9 @@ from marshmallow import ValidationError, validate
         "http://www.example.com:8000/foo",
         "http://user@example.com",
         "http://user:pass@example.com",
+        "http://:pass@example.com",
+        "http://@example.com",
+        "http://AZaz09-._~%2A!$&'()*+,;=:@example.com",
     ],
 )
 def test_url_absolute_valid(valid_url):
@@ -58,6 +61,12 @@ def test_url_absolute_valid(valid_url):
         " ",
         "",
         None,
+        "http://user@pass@example.com",
+        "http://@pass@example.com",
+        "http://@@example.com",
+        "http://^@example.com",
+        "http://%0G@example.com",
+        "http://%@example.com",
     ],
 )
 def test_url_absolute_invalid(invalid_url):
