@@ -4,6 +4,12 @@ Changelog
 3.21.0 (unreleased)
 *******************
 
+Bug fixes:
+
+- Fix validation of ``URL`` fields to allow missing user field,
+  per NWG RFC 3986 (:issue:`2232`). Thanks :user:`ddennerline3` for reporting
+  and :user:`deckar01` for the PR.
+
 Other changes:
 
 - *Backwards-incompatible*: ``__version__``, ``__parsed_version__``, and ``__version_info__``
