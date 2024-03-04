@@ -1,6 +1,6 @@
 [project]
 name = "marshmallow"
-version = "3.21.0"
+version = "3.21.1"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 readme = "README.rst"
 license = { file = "LICENSE" }
