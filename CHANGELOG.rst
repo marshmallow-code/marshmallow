@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.21.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix error message when field is declared as a class and not an instance (:issue:`2245`).
+  Thanks :user:`travnick` for reporting.
+
 3.21.0 (2024-02-26)
 *******************
 
