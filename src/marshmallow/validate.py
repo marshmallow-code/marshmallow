@@ -1,4 +1,5 @@
 """Validation classes for various types of data."""
+
 from __future__ import annotations
 
 import re
@@ -36,8 +37,7 @@ class Validator(ABC):
         return ""
 
     @abstractmethod
-    def __call__(self, value: typing.Any) -> typing.Any:
-        ...
+    def __call__(self, value: typing.Any) -> typing.Any: ...
 
 
 class And(Validator):
@@ -334,9 +334,7 @@ class Range(Validator):
         )
 
     def _repr_args(self) -> str:
-        return "min={!r}, max={!r}, min_inclusive={!r}, max_inclusive={!r}".format(
-            self.min, self.max, self.min_inclusive, self.max_inclusive
-        )
+        return f"min={self.min!r}, max={self.max!r}, min_inclusive={self.min_inclusive!r}, max_inclusive={self.max_inclusive!r}"
 
     def _format_error(self, value: _T, message: str) -> str:
         return (self.error or message).format(input=value, min=self.min, max=self.max)
@@ -486,12 +484,10 @@ class Regexp(Validator):
         return self.error.format(input=value, regex=self.regex.pattern)
 
     @typing.overload
-    def __call__(self, value: str) -> str:
-        ...
+    def __call__(self, value: str) -> str: ...
 
     @typing.overload
-    def __call__(self, value: bytes) -> bytes:
-        ...
+    def __call__(self, value: bytes) -> bytes: ...
 
     def __call__(self, value):
         if self.regex.match(value) is None:

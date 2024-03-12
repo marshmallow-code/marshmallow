@@ -1,4 +1,5 @@
 """Tests for field serialization."""
+
 import datetime as dt
 import decimal
 import ipaddress

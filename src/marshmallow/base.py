@@ -7,6 +7,7 @@ These are necessary to avoid circular imports between schema.py and fields.py.
     This module is treated as private API.
     Users should not need to use this module directly.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

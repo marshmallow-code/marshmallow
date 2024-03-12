@@ -52,9 +52,9 @@ def __getattr__(name: str) -> typing.Any:
             stacklevel=2,
         )
         __parsed_version__ = Version(importlib.metadata.version("marshmallow"))
-        __version_info__: tuple[int, int, int] | tuple[
-            int, int, int, str, int
-        ] = __parsed_version__.release  # type: ignore[assignment]
+        __version_info__: tuple[int, int, int] | tuple[int, int, int, str, int] = (
+            __parsed_version__.release
+        )  # type: ignore[assignment]
         if __parsed_version__.pre:
             __version_info__ += __parsed_version__.pre  # type: ignore[assignment]
         return __version_info__

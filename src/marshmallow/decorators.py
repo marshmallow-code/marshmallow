@@ -58,6 +58,7 @@ Example: ::
     If you need to guarantee order of different processing steps, you should put
     them in the same processing method.
 """
+
 from __future__ import annotations
 
 import functools
