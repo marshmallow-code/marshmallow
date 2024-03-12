@@ -2,6 +2,7 @@
 
 Uses the `timeit` module to benchmark serializing an object through Marshmallow.
 """
+
 import argparse
 import cProfile
 import datetime
@@ -145,9 +146,7 @@ def main():
         )
 
     print(
-        "Benchmark Result: {:.2f} usec/dump".format(
-            run_timeit(quotes, args.iterations, args.repeat, profile=args.profile)
-        )
+        f"Benchmark Result: {run_timeit(quotes, args.iterations, args.repeat, profile=args.profile):.2f} usec/dump"
     )
 
 

@@ -1,4 +1,5 @@
 """Pytest fixtures that are available in all test modules."""
+
 import pytest
 
 from tests.base import Blog, User, UserSchema

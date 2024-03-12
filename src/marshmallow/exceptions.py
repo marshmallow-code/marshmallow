@@ -1,4 +1,5 @@
 """Exception classes for marshmallow-related errors."""
+
 from __future__ import annotations
 
 import typing

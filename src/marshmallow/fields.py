@@ -1,4 +1,5 @@
 """Field classes for various types of data."""
+
 from __future__ import annotations
 
 import collections

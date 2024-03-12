@@ -1,4 +1,5 @@
 """The :class:`Schema` class, including its metaclass and options (class Meta)."""
+
 from __future__ import annotations
 
 import copy
