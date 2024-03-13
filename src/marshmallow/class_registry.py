@@ -36,7 +36,8 @@ def register(classname: str, cls: SchemaType) -> None:
         class MyClass:
             pass
 
-        register('MyClass', MyClass)
+
+        register("MyClass", MyClass)
         # Registry:
         # {
         #   'MyClass': [path.to.MyClass],

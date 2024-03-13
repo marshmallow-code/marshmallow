@@ -394,7 +394,7 @@ class Field(FieldABC):
             class TitleCase(Field):
                 def _serialize(self, value, attr, obj, **kwargs):
                     if not value:
-                        return ''
+                        return ""
                     return str(value).title()
 
         :param value: The value to be serialized.
@@ -496,6 +496,7 @@ class Nested(Field):
             parent = fields.Nested(lambda: ParentSchema(only=("id",)), dump_only=True)
             siblings = fields.List(fields.Nested(lambda: ChildSchema(only=("id", "name"))))
 
+
         class ParentSchema(Schema):
             id = fields.Str()
             children = fields.List(
@@ -512,10 +513,10 @@ class Nested(Field):
     ::
 
         # Yes
-        author = fields.Nested(UserSchema, only=('id', 'name'))
+        author = fields.Nested(UserSchema, only=("id", "name"))
 
         # No
-        author = fields.Nested(UserSchema(), only=('id', 'name'))
+        author = fields.Nested(UserSchema(), only=("id", "name"))
 
     :param nested: `Schema` instance, class, class name (string), dictionary, or callable that
         returns a `Schema` or dictionary. Dictionaries are converted with `Schema.from_dict`.
@@ -677,16 +678,18 @@ class Pluck(Nested):
 
         from marshmallow import Schema, fields
 
+
         class ArtistSchema(Schema):
             id = fields.Int()
             name = fields.Str()
 
+
         class AlbumSchema(Schema):
-            artist = fields.Pluck(ArtistSchema, 'id')
+            artist = fields.Pluck(ArtistSchema, "id")
 
 
-        in_data = {'artist': 42}
-        loaded = AlbumSchema().load(in_data) # => {'artist': {'id': 42}}
+        in_data = {"artist": 42}
+        loaded = AlbumSchema().load(in_data)  # => {'artist': {'id': 42}}
         dumped = AlbumSchema().dump(loaded)  # => {'artist': 42}
 
     :param Schema nested: The Schema class or class name (string)
