@@ -64,6 +64,9 @@ fix = true
 show-fixes = true
 show-source = true
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint]
 ignore = ["E203", "E266", "E501", "E731"]
 select = [
@@ -75,7 +78,7 @@ select = [
   "W",  # pycodestyle warning
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["E721"]
 
 [tool.mypy]
