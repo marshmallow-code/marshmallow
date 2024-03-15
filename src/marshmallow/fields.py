@@ -1741,7 +1741,7 @@ class Email(String):
         self.validators.insert(0, validator)
 
 
-class IP(Field):
+class IP(String):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
@@ -1800,7 +1800,7 @@ class IPv6(IP):
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
-class IPInterface(Field):
+class IPInterface(String):
     """A IPInterface field.
 
     IP interface is the non-strict form of the IPNetwork type where arbitrary host
