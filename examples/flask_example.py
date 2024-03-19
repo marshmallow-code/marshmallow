@@ -128,7 +128,9 @@ def new_quote():
         db.session.add(author)
     # Create new quote
     quote = Quote(
-        content=data["content"], author=author, posted_at=datetime.datetime.utcnow()
+        content=data["content"],
+        author=author,
+        posted_at=datetime.datetime.now(datetime.UTC),
     )
     db.session.add(quote)
     db.session.commit()

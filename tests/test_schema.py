@@ -85,7 +85,7 @@ def test_load_validation_error_stores_input_data_and_valid_data():
 
     schema = MySchema()
     input_data = {
-        "always_valid": dt.datetime.utcnow().isoformat(),
+        "always_valid": dt.datetime.now(dt.timezone.utc).isoformat(),
         "always_invalid": 24,
     }
     try:
