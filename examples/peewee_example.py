@@ -93,7 +93,7 @@ class TodoSchema(Schema):
         return Todo(
             content=data["content"],
             is_done=data["is_done"],
-            posted_on=dt.datetime.now(dt.UTC),
+            posted_on=dt.datetime.now(dt.timezone.utc),
         )
 
 

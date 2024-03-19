@@ -1288,7 +1288,7 @@ class TestFieldDeserialization:
         assert MethodDeserializeOnly().load({"name": "ALEC"})["name"] == "alec"
 
     def test_datetime_list_field_deserialization(self):
-        dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.now(dt.UTC)
+        dtimes = dt.datetime.now(), dt.datetime.now(), dt.datetime.now(dt.timezone.utc)
         dstrings = [each.isoformat() for each in dtimes]
         field = fields.List(fields.DateTime())
         result = field.deserialize(dstrings)

@@ -827,7 +827,7 @@ class TestFieldSerialization:
             fields.TimeDelta(fields.TimeDelta.SECONDS, str)
 
     def test_datetime_list_field(self):
-        obj = DateTimeList([dt.datetime.now(dt.UTC), dt.datetime.now()])
+        obj = DateTimeList([dt.datetime.now(dt.timezone.utc), dt.datetime.now()])
         field = fields.List(fields.DateTime)
         result = field.serialize("dtimes", obj)
         assert all(type(each) is str for each in result)
@@ -839,7 +839,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generator_single_value(self):
         def custom_generator():
-            yield dt.datetime.now(dt.UTC)
+            yield dt.datetime.now(dt.timezone.utc)
 
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)
@@ -848,7 +848,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generators_multiple_values(self):
         def custom_generator():
-            yield from [dt.datetime.now(dt.UTC), dt.datetime.now()]
+            yield from [dt.datetime.now(dt.timezone.utc), dt.datetime.now()]
 
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)
@@ -910,7 +910,7 @@ class TestFieldSerialization:
             fields.List(ASchema)
 
     def test_datetime_integer_tuple_field(self):
-        obj = DateTimeIntegerTuple((dt.datetime.now(dt.UTC), 42))
+        obj = DateTimeIntegerTuple((dt.datetime.now(dt.timezone.utc), 42))
         field = fields.Tuple([fields.DateTime, fields.Integer])
         result = field.serialize("dtime_int", obj)
         assert type(result[0]) is str
