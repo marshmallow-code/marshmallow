@@ -33,7 +33,7 @@ Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=py
 
 [project.optional-dependencies]
 docs = [
-  "sphinx==7.3.6",
+  "sphinx==7.3.7",
   "sphinx-issues==4.1.0",
   "alabaster==0.7.16",
   "sphinx-version-warning==1.1.2",
