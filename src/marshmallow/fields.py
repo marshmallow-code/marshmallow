@@ -1285,6 +1285,8 @@ class DateTime(Field):
         return value.strftime(data_format)
 
     def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
+        if value is True or value is False:
+            raise self.make_error("invalid", input=value, obj_type=self.OBJ_TYPE)
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
         try:

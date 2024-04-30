@@ -422,6 +422,8 @@ class TestFieldDeserialization:
         [
             "not-a-datetime",
             42,
+            True,
+            False,
             0,
             "",
             [],
