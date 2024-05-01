@@ -422,6 +422,9 @@ class TestFieldDeserialization:
         [
             "not-a-datetime",
             42,
+            True,
+            False,
+            0,
             "",
             [],
             "2018",
@@ -576,7 +579,7 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "in_value",
-        ["", "!@#", 0, -1, dt.datetime(2013, 11, 10, 1, 23, 45)],
+        ["", "!@#", -1, dt.datetime(2013, 11, 10, 1, 23, 45)],
     )
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
         field = fields.DateTime(format=fmt)
