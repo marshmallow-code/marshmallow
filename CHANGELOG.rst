@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.21.2 (2024-05-01)
+*******************
+
+Bug fixes:
+
+- Allow timestamp 0 in ``fields.DateTime`` (:issue:`2133`).
+  Thanks :user:`flydzen` for reporting.
+
 3.21.1 (2024-03-04)
 *******************
 
