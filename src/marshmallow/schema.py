@@ -502,7 +502,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj: dict | typing.Iterable[dict], *, many: bool = False):
+    def _serialize(
+        self, obj: typing.Any | typing.Iterable[dict], *, many: bool = False
+    ):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -513,10 +515,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [
-                self._serialize(d, many=False)
-                for d in typing.cast(typing.Iterable[dict], obj)
-            ]
+            return [self._serialize(d, many=False) for d in obj]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
