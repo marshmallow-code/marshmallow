@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.21.3 (unreleased)
+*******************
+
+Bug fixes:
+
+- Fix memory leak that prevented schema instances from getting GC'd (:pr:`2277`).
+  Thanks :user:`mrcljx` for the PR.
+
 3.21.2 (2024-05-01)
 *******************
 
