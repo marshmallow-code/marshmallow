@@ -2,19 +2,21 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badgen.net/pypi/v/marshmallow
+|pypi| |build-status| |pre-commit| |docs|
+
+.. |pypi| image:: https://badgen.net/pypi/v/marshmallow
     :target: https://pypi.org/project/marshmallow/
     :alt: Latest version
 
-.. image:: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml/badge.svg
+.. |build-status| image:: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml/badge.svg
     :target: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml
     :alt: Build status
 
-.. image:: https://results.pre-commit.ci/badge/github/marshmallow-code/marshmallow/dev.svg
+.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/marshmallow-code/marshmallow/dev.svg
    :target: https://results.pre-commit.ci/latest/github/marshmallow-code/marshmallow/dev
    :alt: pre-commit.ci status
 
-.. image:: https://readthedocs.org/projects/marshmallow/badge/
+.. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
 
