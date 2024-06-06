@@ -100,7 +100,7 @@ def run_timeit(quotes, iterations, repeat, profile=False):
         profile.disable()
         profile.dump_stats("marshmallow.pprof")
 
-    usec = best * 1e6 / iterations
+    usec = best * 1e6 / iterations / len(quotes)
     return usec
 
 
