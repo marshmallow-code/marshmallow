@@ -174,3 +174,4 @@ Contributors (chronological)
 - Aditya Tewary `@aditkumar72 <https://github.com/aditkumar72>`_
 - Sebastien Lovergne `@TheBigRoomXXL <https://github.com/TheBigRoomXXL>`_
 - Peter C `@somethingnew2-0 <https://github.com/somethingnew2-0>`_
+- Marcel Jackwerth `@mrcljx` <https://github.com/mrcljx>`_
