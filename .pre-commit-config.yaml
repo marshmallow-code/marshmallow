@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.4.10
+  rev: v0.5.0
   hooks:
     - id: ruff
     - id: ruff-format
@@ -11,12 +11,12 @@ repos:
     - id: check-readthedocs
 # TODO: Remove blacken-docs when https://github.com/astral-sh/ruff/issues/8237 is implemented
 - repo: https://github.com/asottile/blacken-docs
-  rev: 1.16.0
+  rev: 1.18.0
   hooks:
   - id: blacken-docs
     additional_dependencies: [black==23.12.1]
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.10.0
+  rev: v1.10.1
   hooks:
   - id: mypy
     additional_dependencies: [types-simplejson, types-pytz, packaging]
