@@ -116,15 +116,18 @@ Thank you to all our backers! [`Become a backer`_]
 Sponsors
 --------
 
+marshmallow is sponsored by `Route4Me <https://route4me.com>`_.
+
 Support this project by becoming a sponsor (or ask your company to support this project by becoming a sponsor).
-Your logo will show up here with a link to your website. [`Become a sponsor`_]
+Your logo will be displayed here with a link to your website. [`Become a sponsor`_]
 
 .. _`Become a sponsor`: https://opencollective.com/marshmallow#sponsor
 
-.. image:: https://opencollective.com/static/images/become_sponsor.svg
-    :target: https://opencollective.com/marshmallow#sponsor
-    :alt: Become a sponsor
+.. raw:: html
 
+    <a href="https://route4me.com">
+        <img width="100" src="https://github.com/user-attachments/assets/224c9a94-0858-45a6-8b06-05ebacdbbf00" alt="Route Planner">
+    <a/>
 
 Professional Support
 ====================
