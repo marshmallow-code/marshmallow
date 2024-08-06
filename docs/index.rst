@@ -18,6 +18,19 @@ Why another library?
 
 See :doc:`this document <why>` to learn about what makes marshmallow unique.
 
+Sponsors
+========
+
+marshmallow is sponsored by `Route4Me <https://route4me.com>`_.
+
+.. image:: https://github.com/user-attachments/assets/018c2e23-032e-4a11-98da-8b6dc25b9054
+    :target: https://route4me.com
+    :alt: Routing Planner
+
+Support this project by becoming a sponsor (or ask your company to support this project by becoming a sponsor).
+Your logo will be displayed here with a link to your website. [`Become a sponsor`_]
+
+.. _`Become a sponsor`: https://opencollective.com/marshmallow#sponsor
 
 Guide
 =====
