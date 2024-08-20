@@ -228,6 +228,7 @@ class SchemaOpts:
         self.dump_only = getattr(meta, "dump_only", ())
         self.unknown = validate_unknown_parameter_value(getattr(meta, "unknown", RAISE))
         self.register = getattr(meta, "register", True)
+        self.many = getattr(meta, "many", False)
 
 
 class Schema(base.SchemaABC, metaclass=SchemaMeta):
@@ -344,6 +345,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             `OrderedDict`.
         - ``exclude``: Tuple or list of fields to exclude in the serialized result.
             Nested fields can be represented with dot delimiters.
+        - ``many``: Whether the data is a collection by default.
         - ``dateformat``: Default format for `Date <fields.Date>` fields.
         - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
         - ``timeformat``: Default format for `Time <fields.Time>` fields.
@@ -367,7 +369,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         *,
         only: types.StrSequenceOrSet | None = None,
         exclude: types.StrSequenceOrSet = (),
-        many: bool = False,
+        many: bool | None = None,
         context: dict | None = None,
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
@@ -381,7 +383,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             raise StringNotCollectionError('"exclude" should be a list of strings')
         # copy declared fields from metaclass
         self.declared_fields = copy.deepcopy(self._declared_fields)
-        self.many = many
+        self.many = self.opts.many if many is None else many
         self.only = only
         self.exclude: set[typing.Any] | typing.MutableSet[typing.Any] = set(
             self.opts.exclude

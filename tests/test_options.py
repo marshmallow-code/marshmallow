@@ -262,3 +262,19 @@ class TestIncludeOption:
         assert "email" in s._declared_fields.keys()
         assert "from" in s._declared_fields.keys()
         assert isinstance(s._declared_fields["from"], fields.Str)
+
+
+class TestManyOption:
+    class ManySchema(Schema):
+        foo = fields.Str()
+
+        class Meta:
+            many = True
+
+    def test_many_by_default(self):
+        test = self.ManySchema()
+        assert test.load([{"foo": "bar"}]) == [{"foo": "bar"}]
+
+    def test_explicit_single(self):
+        test = self.ManySchema(many=False)
+        assert test.load({"foo": "bar"}) == {"foo": "bar"}
