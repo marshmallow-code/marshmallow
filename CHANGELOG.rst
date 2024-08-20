@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+3.22.0 (2024-08-20)
+*******************
+
+Features:
+
+- Add ``many`` Meta option to ``Schema`` so it expects a collection by default (:issue:`2270`).
+  Thanks :user:`himalczyk` for reporting and :user:`deckar01` for the PR.
+- Refactor hooks (:pr:`2279`).
+  Thanks :user:`deckar01` for the PR.
+
 3.21.3 (2024-06-05)
 *******************
 
