@@ -502,9 +502,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(
-        self, obj: typing.Any | typing.Iterable[dict], *, many: bool = False
-    ):
+    def _serialize(self, obj: typing.Any, *, many: bool = False):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -588,7 +586,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         partial=None,
         unknown=RAISE,
         index=None,
-    ) -> dict | list[dict]:
+    ) -> typing.Any | list[typing.Any]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -602,26 +600,24 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
-        :return: A dictionary of the deserialized data.
+        :return: The deserialized data as `dict_class` instance or list of `dict_class`
+        instances if `many` is `True`.
         """
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret_l = []  # type: typing.List[dict]
+                ret_l = []
             else:
                 ret_l = [
-                    typing.cast(
-                        dict,
-                        self._deserialize(
-                            typing.cast(dict, d),
-                            error_store=error_store,
-                            many=False,
-                            partial=partial,
-                            unknown=unknown,
-                            index=idx,
-                        ),
+                    self._deserialize(
+                        typing.cast(dict, d),
+                        error_store=error_store,
+                        many=False,
+                        partial=partial,
+                        unknown=unknown,
+                        index=idx,
                     )
                     for idx, d in enumerate(data)
                 ]
