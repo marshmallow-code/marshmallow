@@ -36,7 +36,7 @@ exclude_patterns = ["_build"]
 html_theme_path = [alabaster.get_path()]
 html_theme = "alabaster"
 html_static_path = ["_static"]
-html_css_files = ["css/versionwarning.css"]
+html_css_files = ["css/versionwarning.css", "css/sponsor-message.css"]
 templates_path = ["_templates"]
 html_show_sourcelink = False
 

@@ -1,0 +1,15 @@
+/* Override alabaster's admonition styling, which we used for sponsored messages */
+
+div.admonition-sponsor-message p.admonition-title {
+  font-size: 18px;
+  font-style: normal;
+}
+
+p.admonition-title::after  {
+  content: "";
+}
+
+div.admonition-sponsor-message p {
+  font-size: 14px;
+  font-style: italic;
+}

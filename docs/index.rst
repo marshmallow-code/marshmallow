@@ -6,6 +6,15 @@ marshmallow: simplified object serialization
 
 Release v\ |version|. (:doc:`Changelog <changelog>`)
 
+.. admonition:: Sponsor Message
+
+    Input an OpenAPI spec to generate API docs that look as good as Stripe's. Request a preview of your docs on Fern `here <https://form.typeform.com/to/bShdJw7z>`_.
+
+    .. image:: https://github.com/user-attachments/assets/551997da-6d0c-4d73-85f3-6fb1240e9635
+        :target: https://form.typeform.com/to/bShdJw7z
+        :align: center
+        :alt: Fern logo
+
 .. include:: about.rst.inc
 
 Upgrading from an older version?

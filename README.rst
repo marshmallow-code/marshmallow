@@ -22,6 +22,19 @@ marshmallow: simplified object serialization
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
+Sponsor Message
+===============
+
+*Input an OpenAPI spec to generate API docs that look as good as Stripe's. Request a preview of your docs on Fern* `here <https://form.typeform.com/to/bShdJw7z>`_.
+
+.. image:: https://github.com/user-attachments/assets/551997da-6d0c-4d73-85f3-6fb1240e9635
+    :target: https://form.typeform.com/to/bShdJw7z
+    :align: center
+    :alt: Fern logo
+
+Example
+=======
+
 .. code-block:: python
 
     from datetime import date
