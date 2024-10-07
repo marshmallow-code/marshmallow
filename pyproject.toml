@@ -40,7 +40,7 @@ docs = [
   "autodocsumm==0.2.13",
 ]
 tests = ["pytest", "pytz", "simplejson"]
-dev = ["marshmallow[tests]", "tox", "pre-commit~=3.5"]
+dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
 
 [build-system]
 requires = ["flit_core<4"]
