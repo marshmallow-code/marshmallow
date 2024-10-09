@@ -154,7 +154,7 @@ class SchemaMeta(ABCMeta):
         """
         mro = inspect.getmro(cls)
 
-        hooks = defaultdict(list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, bool, dict]]]
+        hooks = defaultdict(list)  # type: dict[str, list[tuple[str, bool, dict]]]
 
         for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
@@ -174,7 +174,7 @@ class SchemaMeta(ABCMeta):
                 continue
 
             try:
-                hook_config = attr.__marshmallow_hook__  # type: typing.Dict[str, typing.List[typing.Tuple[bool, dict]]]
+                hook_config = attr.__marshmallow_hook__  # type: dict[str, list[tuple[bool, dict]]]
             except AttributeError:
                 pass
             else:
@@ -304,14 +304,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         dt.date: ma_fields.Date,
         dt.timedelta: ma_fields.TimeDelta,
         decimal.Decimal: ma_fields.Decimal,
-    }  # type: typing.Dict[type, typing.Type[ma_fields.Field]]
+    }  # type: dict[type, typing.Type[ma_fields.Field]]
     #: Overrides for default schema-level error messages
-    error_messages = {}  # type: typing.Dict[str, str]
+    error_messages = {}  # type: dict[str, str]
 
     _default_error_messages = {
         "type": "Invalid input type.",
         "unknown": "Unknown field.",
-    }  # type: typing.Dict[str, str]
+    }  # type: dict[str, str]
 
     OPTIONS_CLASS = SchemaOpts  # type: type
 
@@ -319,8 +319,8 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     # These get set by SchemaMeta
     opts = None  # type: SchemaOpts
-    _declared_fields = {}  # type: typing.Dict[str, ma_fields.Field]
-    _hooks = {}  # type: typing.Dict[str, typing.List[typing.Tuple[str, bool, dict]]]
+    _declared_fields = {}  # type: dict[str, ma_fields.Field]
+    _hooks = {}  # type: dict[str, list[tuple[str, bool, dict]]]
 
     class Meta:
         """Options object for a Schema.
@@ -398,9 +398,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = {}  # type: typing.Dict[str, ma_fields.Field]
-        self.load_fields = {}  # type: typing.Dict[str, ma_fields.Field]
-        self.dump_fields = {}  # type: typing.Dict[str, ma_fields.Field]
+        self.fields = {}  # type: dict[str, ma_fields.Field]
+        self.load_fields = {}  # type: dict[str, ma_fields.Field]
+        self.dump_fields = {}  # type: dict[str, ma_fields.Field]
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -802,7 +802,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         try:
             self._do_load(data, many=many, partial=partial, postprocess=False)
         except ValidationError as exc:
-            return typing.cast(typing.Dict[str, typing.List[str]], exc.messages)
+            return typing.cast(dict[str, list[str]], exc.messages)
         return {}
 
     ##### Private Helpers #####

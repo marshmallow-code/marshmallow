@@ -1240,7 +1240,7 @@ class DateTime(Field):
         "rfc822": utils.rfcformat,
         "timestamp": utils.timestamp,
         "timestamp_ms": utils.timestamp_ms,
-    }  # type: typing.Dict[str, typing.Callable[[typing.Any], str | float]]
+    }  # type: dict[str, typing.Callable[[typing.Any], str | float]]
 
     DESERIALIZATION_FUNCS = {
         "iso": utils.from_iso_datetime,
@@ -1249,7 +1249,7 @@ class DateTime(Field):
         "rfc822": utils.from_rfc,
         "timestamp": utils.from_timestamp,
         "timestamp_ms": utils.from_timestamp_ms,
-    }  # type: typing.Dict[str, typing.Callable[[str], typing.Any]]
+    }  # type: dict[str, typing.Callable[[str], typing.Any]]
 
     DEFAULT_FORMAT = "iso"
 
