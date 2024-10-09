@@ -565,7 +565,7 @@ class TestFieldSerialization:
                 "Sun, 10 Nov 2013 01:23:45 +0000",
             ),
             (
-                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
                 "Sun, 10 Nov 2013 01:23:45 -0600",
             ),
         ],
@@ -586,7 +586,7 @@ class TestFieldSerialization:
             ),
             (
                 "timestamp",
-                central.localize(dt.datetime(2013, 11, 10, 0, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=central),
                 1384064625,
             ),
             ("timestamp_ms", dt.datetime(2013, 11, 10, 0, 23, 45), 1384043025000),
@@ -597,7 +597,7 @@ class TestFieldSerialization:
             ),
             (
                 "timestamp_ms",
-                central.localize(dt.datetime(2013, 11, 10, 0, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=central),
                 1384064625000,
             ),
         ],
@@ -620,7 +620,7 @@ class TestFieldSerialization:
                 "2013-11-10T01:23:45+00:00",
             ),
             (
-                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
                 "2013-11-10T01:23:45-06:00",
             ),
         ],

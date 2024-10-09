@@ -477,7 +477,7 @@ class TestFieldDeserialization:
             ),
             (
                 "Sun, 10 Nov 2013 01:23:45 -0600",
-                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
                 True,
             ),
         ],
@@ -521,7 +521,7 @@ class TestFieldDeserialization:
             ),
             (
                 "2013-11-10T01:23:45-06:00",
-                central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
                 True,
             ),
         ],

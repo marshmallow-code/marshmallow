@@ -4,14 +4,14 @@ import datetime as dt
 import functools
 import uuid
 from enum import Enum, IntEnum
+from zoneinfo import ZoneInfo
 
-import pytz
 import simplejson
 
 from marshmallow import Schema, fields, missing, post_load, validate
 from marshmallow.exceptions import ValidationError
 
-central = pytz.timezone("America/Chicago")
+central = ZoneInfo("America/Chicago")
 
 
 class GenderEnum(IntEnum):
@@ -104,9 +104,7 @@ class User:
         # A naive datetime
         self.created = dt.datetime(2013, 11, 10, 14, 20, 58)
         # A TZ-aware datetime
-        self.updated = central.localize(
-            dt.datetime(2013, 11, 10, 14, 20, 58), is_dst=False
-        )
+        self.updated = dt.datetime(2013, 11, 10, 14, 20, 58, tzinfo=central)
         self.id = id_
         self.homepage = homepage
         self.email = email
