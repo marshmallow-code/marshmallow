@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+3.23.0 (unreleased)
+*******************
+
+Features:
+
+- Typing: replace "type" with specific metaclass for ``Schema`` and ``Field``.
+
+Other changes:
+
+- Officially support Python 3.13 (:pr:`2319`).
+- Drop support for Python 3.8 (:pr:`2318`).
+
 3.22.0 (2024-08-20)
 *******************
 
