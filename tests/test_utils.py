@@ -124,7 +124,7 @@ def test_is_collection():
             "Sun, 10 Nov 2013 01:23:45 +0000",
         ),
         (
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
             "Sun, 10 Nov 2013 01:23:45 -0600",
         ),
     ],
@@ -146,7 +146,7 @@ def test_rfc_format(value, expected):
             "2013-11-10T01:23:45+00:00",
         ),
         (
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
             "2013-11-10T01:23:45-06:00",
         ),
     ],
@@ -165,7 +165,7 @@ def test_isoformat(value, expected):
         ),
         (
             "Sun, 10 Nov 2013 01:23:45 -0600",
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
         ),
     ],
 )
@@ -194,7 +194,7 @@ def test_from_rfc(value, expected):
         ),
         (
             "2013-11-10T01:23:45-06:00",
-            central.localize(dt.datetime(2013, 11, 10, 1, 23, 45), is_dst=False),
+            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
         ),
     ],
 )

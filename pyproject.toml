@@ -15,13 +15,12 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = ["packaging>=17.0"]
 
 [project.urls]
@@ -39,7 +38,7 @@ docs = [
   "sphinx-version-warning==1.1.2",
   "autodocsumm==0.2.13",
 ]
-tests = ["pytest", "pytz", "simplejson"]
+tests = ["pytest", "simplejson"]
 dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
 
 [build-system]

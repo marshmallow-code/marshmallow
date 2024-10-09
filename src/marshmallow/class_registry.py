@@ -17,7 +17,7 @@ from marshmallow.exceptions import RegistryError
 if typing.TYPE_CHECKING:
     from marshmallow import Schema
 
-    SchemaType = typing.Type[Schema]
+    SchemaType = type[Schema]
 
 # {
 #   <class_name>: <list of class objects>
