@@ -40,8 +40,6 @@ from marshmallow.utils import (
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
-_T = typing.TypeVar("_T")
-
 
 def _get_fields(attrs):
     """Get fields from a class
@@ -57,7 +55,7 @@ def _get_fields(attrs):
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
 #   inheritance according to the MRO
-def _get_fields_by_mro(klass):
+def _get_fields_by_mro(klass: SchemaMeta):
     """Collect fields from a class, following its method resolution order. The
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
@@ -125,10 +123,10 @@ class SchemaMeta(ABCMeta):
     @classmethod
     def get_declared_fields(
         mcs,
-        klass: type,
+        klass: SchemaMeta,
         cls_fields: list,
         inherited_fields: list,
-        dict_cls: type = dict,
+        dict_cls: type[dict] = dict,
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
@@ -415,16 +413,19 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         return f"<{self.__class__.__name__}(many={self.many})>"
 
     @property
-    def dict_class(self) -> type:
-        return OrderedDict if self.ordered else dict
+    def dict_class(self) -> type[dict]:
+        if self.ordered:
+            return OrderedDict
+        else:
+            return dict
 
     @classmethod
     def from_dict(
         cls,
-        fields: dict[str, ma_fields.Field | type],
+        fields: dict[str, ma_fields.Field | type[ma_fields.Field]],
         *,
         name: str = "GeneratedSchema",
-    ) -> type:
+    ) -> type[Schema]:
         """Generate a `Schema` class given a dictionary of fields.
 
         .. code-block:: python
@@ -501,7 +502,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
-    def _serialize(self, obj: _T | typing.Iterable[_T], *, many: bool = False):
+    def _serialize(self, obj: typing.Any, *, many: bool = False):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
@@ -512,10 +513,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             Renamed from ``marshal``.
         """
         if many and obj is not None:
-            return [
-                self._serialize(d, many=False)
-                for d in typing.cast(typing.Iterable[_T], obj)
-            ]
+            return [self._serialize(d, many=False) for d in obj]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
@@ -588,7 +586,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         partial=None,
         unknown=RAISE,
         index=None,
-    ) -> _T | list[_T]:
+    ) -> typing.Any | list[typing.Any]:
         """Deserialize ``data``.
 
         :param dict data: The data to deserialize.
@@ -602,26 +600,24 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         :param int index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
-        :return: A dictionary of the deserialized data.
+        :return: The deserialized data as `dict_class` instance or list of `dict_class`
+        instances if `many` is `True`.
         """
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
             if not is_collection(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret_l = []  # type: typing.List[_T]
+                ret_l = []
             else:
                 ret_l = [
-                    typing.cast(
-                        _T,
-                        self._deserialize(
-                            typing.cast(typing.Mapping[str, typing.Any], d),
-                            error_store=error_store,
-                            many=False,
-                            partial=partial,
-                            unknown=unknown,
-                            index=idx,
-                        ),
+                    self._deserialize(
+                        typing.cast(dict, d),
+                        error_store=error_store,
+                        many=False,
+                        partial=partial,
+                        unknown=unknown,
+                        index=idx,
                     )
                     for idx, d in enumerate(data)
                 ]
