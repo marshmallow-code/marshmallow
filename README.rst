@@ -77,16 +77,10 @@ Get It Now
 
     $ pip install -U marshmallow
 
-
 Documentation
 =============
 
 Full documentation is available at https://marshmallow.readthedocs.io/ .
-
-Requirements
-============
-
-- Python >= 3.9
 
 Ecosystem
 =========
