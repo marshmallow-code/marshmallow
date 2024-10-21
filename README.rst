@@ -84,7 +84,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at https://marshmallow.readthedocs.io/ . You can also [Ask marshmallow Guru](https://gurubase.io/g/marshmallow), it is a marshmallow-focused AI to answer your questions.
+Full documentation is available at https://marshmallow.readthedocs.io/ . You can also `Ask marshmallow Guru <https://gurubase.io/g/marshmallow>`_, it is a marshmallow-focused AI to answer your questions.
 
 Ecosystem
 =========
