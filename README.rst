@@ -2,7 +2,7 @@
 marshmallow: simplified object serialization
 ********************************************
 
-|pypi| |build-status| |pre-commit| |docs|
+|pypi| |build-status| |pre-commit| |docs| |gurubase|
 
 .. |pypi| image:: https://badgen.net/pypi/v/marshmallow
     :target: https://pypi.org/project/marshmallow/
@@ -19,6 +19,10 @@ marshmallow: simplified object serialization
 .. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
+
+.. |gurubase| image:: https://img.shields.io/badge/Gurubase-Ask%20marshmallow%20Guru-006BFF
+   :target: https://gurubase.io/g/marshmallow
+   :alt: marshmallow Guru
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
@@ -80,7 +84,7 @@ Get It Now
 Documentation
 =============
 
-Full documentation is available at https://marshmallow.readthedocs.io/ .
+Full documentation is available at https://marshmallow.readthedocs.io/ . You can also [Ask marshmallow Guru](https://gurubase.io/g/marshmallow), it is a marshmallow-focused AI to answer your questions.
 
 Ecosystem
 =========
