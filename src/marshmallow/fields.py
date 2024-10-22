@@ -1004,6 +1004,10 @@ class Integer(Number):
     def _validated(self, value):
         if self.strict and not isinstance(value, numbers.Integral):
             raise self.make_error("invalid", input=value)
+
+        if value is True or value is False:
+            value = self._format_num(value)
+
         return super()._validated(value)
 
 
