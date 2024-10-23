@@ -37,7 +37,7 @@ docs = [
   "sphinx-issues==5.0.0",
   "alabaster==1.0.0",
   "sphinx-version-warning==1.1.2",
-  "autodocsumm==0.2.13",
+  "autodocsumm==0.2.14",
 ]
 tests = ["pytest", "simplejson"]
 dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
