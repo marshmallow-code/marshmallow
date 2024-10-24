@@ -1692,6 +1692,7 @@ class Url(String):
 
     :param default: Default value for the field if the attribute is not set.
     :param relative: Whether to allow relative URLs.
+    :param absolute: Whether to allow absolute URLs.
     :param require_tld: Whether to reject non-FQDN hostnames.
     :param schemes: Valid schemes. By default, ``http``, ``https``,
         ``ftp``, and ``ftps`` are allowed.
