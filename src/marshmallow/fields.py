@@ -596,7 +596,7 @@ class Nested(Field):
 
             if isinstance(nested, SchemaABC):
                 self._schema = copy.copy(nested)
-                self._schema.context.update(context)
+                self._schema.context = context
                 # Respect only and exclude passed from parent and re-initialize fields
                 set_class = self._schema.set_class
                 if self.only is not None:
