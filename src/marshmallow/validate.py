@@ -7,6 +7,7 @@ import typing
 from abc import ABC, abstractmethod
 from itertools import zip_longest
 from operator import attrgetter
+from urllib.parse import urlparse
 
 from marshmallow import types
 from marshmallow.exceptions import ValidationError
@@ -210,11 +211,32 @@ class URL(Validator):
         if "://" in value:
             scheme = value.split("://")[0].lower()
             if scheme not in self.schemes:
-                raise ValidationError(message)
+                raise ValidationError(
+                    f"Invalid URL scheme '{scheme}'. "
+                    f"Allowed schemes are: {', '.join(self.schemes)}."
+                )
 
         regex = self._regex(self.relative, self.absolute, self.require_tld)
 
         if not regex.search(value):
+            if self.require_tld:
+                try:
+                    # Extract the netloc (hostname and port)
+                    parsed_url = urlparse(value)
+                    hostname = parsed_url.hostname
+                except (ValueError, TypeError, AttributeError):
+                    hostname = None
+
+                if hostname:
+                    # Check if hostname is an IP address
+                    is_ip = re.match(r"\d+\.\d+\.\d+\.\d+", hostname)
+                    # Check if hostname contains a dot (.)
+                    has_tld = "." in hostname
+                    if not is_ip and not has_tld:
+                        raise ValidationError(
+                            "URL must include a top-level domain (e.g., '.com', '.org')."
+                        )
+            # Default error message for other failures
             raise ValidationError(message)
 
         return value
