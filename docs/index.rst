@@ -8,10 +8,10 @@ Release v\ |version|. (:doc:`Changelog <changelog>`)
 
 .. admonition:: Sponsor Message
 
-    Input an OpenAPI spec to generate API docs that look as good as Stripe's. `Request a preview <https://form.typeform.com/to/bShdJw7z>`_ of your docs on Fern.
+    Input an OpenAPI spec to generate API docs that look as good as Stripe's. `Request a preview <https://form.typeform.com/to/uc55zY0F>`_ of your docs on Fern.
 
     .. image:: https://github.com/user-attachments/assets/69916225-0d61-4bd7-b3b9-e378557673cb
-        :target: https://form.typeform.com/to/bShdJw7z
+        :target: https://form.typeform.com/to/uc55zY0F
         :align: center
         :alt: Fern logo
 
