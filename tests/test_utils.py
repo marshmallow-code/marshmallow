@@ -6,7 +6,7 @@ from functools import partial
 import pytest
 
 from marshmallow import Schema, fields, utils
-from tests.base import assert_date_equal, assert_time_equal, central
+from tests.base import central
 
 
 def test_missing_singleton_copy():
@@ -173,59 +173,6 @@ def test_from_rfc(value, expected):
     result = utils.from_rfc(value)
     assert type(result) is dt.datetime
     assert result == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("2013-11-10T01:23:45", dt.datetime(2013, 11, 10, 1, 23, 45)),
-        (
-            "2013-11-10T01:23:45+00:00",
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
-        ),
-        (
-            # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1251
-            "2013-11-10T01:23:45.123+00:00",
-            dt.datetime(2013, 11, 10, 1, 23, 45, 123000, tzinfo=dt.timezone.utc),
-        ),
-        (
-            "2013-11-10T01:23:45.123456+00:00",
-            dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
-        ),
-        (
-            "2013-11-10T01:23:45-06:00",
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
-        ),
-    ],
-)
-def test_from_iso_datetime(value, expected):
-    result = utils.from_iso_datetime(value)
-    assert type(result) is dt.datetime
-    assert result == expected
-
-
-def test_from_iso_time_with_microseconds():
-    t = dt.time(1, 23, 45, 6789)
-    formatted = t.isoformat()
-    result = utils.from_iso_time(formatted)
-    assert type(result) is dt.time
-    assert_time_equal(result, t)
-
-
-def test_from_iso_time_without_microseconds():
-    t = dt.time(1, 23, 45)
-    formatted = t.isoformat()
-    result = utils.from_iso_time(formatted)
-    assert type(result) is dt.time
-    assert_time_equal(result, t)
-
-
-def test_from_iso_date():
-    d = dt.date(2014, 8, 21)
-    iso_date = d.isoformat()
-    result = utils.from_iso_date(iso_date)
-    assert type(result) is dt.date
-    assert_date_equal(result, d)
 
 
 @pytest.mark.parametrize(

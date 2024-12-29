@@ -15,6 +15,14 @@ import warnings
 from collections.abc import Mapping as _Mapping
 from enum import Enum as EnumType
 
+# Remove this when dropping Python 3.10
+try:
+    from backports.datetime_fromisoformat import MonkeyPatch
+except ImportError:
+    pass
+else:
+    MonkeyPatch.patch_fromisoformat()
+
 from marshmallow import class_registry, types, utils, validate
 from marshmallow.base import FieldABC, SchemaABC
 from marshmallow.exceptions import (
@@ -1248,8 +1256,8 @@ class DateTime(Field):
     }  # type: dict[str, typing.Callable[[typing.Any], str | float]]
 
     DESERIALIZATION_FUNCS = {
-        "iso": utils.from_iso_datetime,
-        "iso8601": utils.from_iso_datetime,
+        "iso": dt.datetime.fromisoformat,
+        "iso8601": dt.datetime.fromisoformat,
         "rfc": utils.from_rfc,
         "rfc822": utils.from_rfc,
         "timestamp": utils.from_timestamp,
@@ -1397,7 +1405,10 @@ class Time(DateTime):
 
     SERIALIZATION_FUNCS = {"iso": utils.to_iso_time, "iso8601": utils.to_iso_time}
 
-    DESERIALIZATION_FUNCS = {"iso": utils.from_iso_time, "iso8601": utils.from_iso_time}
+    DESERIALIZATION_FUNCS = {
+        "iso": dt.time.fromisoformat,
+        "iso8601": dt.time.fromisoformat,
+    }
 
     DEFAULT_FORMAT = "iso"
 
@@ -1426,7 +1437,10 @@ class Date(DateTime):
 
     SERIALIZATION_FUNCS = {"iso": utils.to_iso_date, "iso8601": utils.to_iso_date}
 
-    DESERIALIZATION_FUNCS = {"iso": utils.from_iso_date, "iso8601": utils.from_iso_date}
+    DESERIALIZATION_FUNCS = {
+        "iso": dt.date.fromisoformat,
+        "iso8601": dt.date.fromisoformat,
+    }
 
     DEFAULT_FORMAT = "iso"
 

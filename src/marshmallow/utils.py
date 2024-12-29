@@ -13,14 +13,6 @@ from collections.abc import Mapping
 from email.utils import format_datetime, parsedate_to_datetime
 from pprint import pprint as py_pprint
 
-# Remove this when dropping Python 3.10
-try:
-    from backports.datetime_fromisoformat import MonkeyPatch
-except ImportError:
-    pass
-else:
-    MonkeyPatch.patch_fromisoformat()
-
 from marshmallow.base import FieldABC
 from marshmallow.exceptions import FieldInstanceResolutionError
 from marshmallow.warnings import RemovedInMarshmallow4Warning
@@ -131,28 +123,6 @@ def get_fixed_timezone(offset: int | float | dt.timedelta) -> dt.timezone:
     hhmm = "%02d%02d".format(*divmod(abs(offset), 60))
     name = sign + hhmm
     return dt.timezone(dt.timedelta(minutes=offset), name)
-
-
-def from_iso_datetime(value):
-    """Parse a string and return a datetime.datetime.
-
-    This function supports time zone offsets. When the input contains one,
-    the output uses a timezone with a fixed offset from UTC.
-    """
-    return dt.datetime.fromisoformat(value)
-
-
-def from_iso_time(value):
-    """Parse a string and return a datetime.time.
-
-    This function doesn't support time zone offsets.
-    """
-    return dt.time.fromisoformat(value)
-
-
-def from_iso_date(value):
-    """Parse a string and return a datetime.date."""
-    return dt.date.fromisoformat(value)
 
 
 def from_timestamp(value: typing.Any) -> dt.datetime:
