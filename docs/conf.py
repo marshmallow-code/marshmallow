@@ -15,7 +15,7 @@ extensions = [
 primary_domain = "py"
 default_role = "py:obj"
 
-intersphinx_mapping = {"python": ("https://python.readthedocs.io/en/latest/", None)}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 issues_github_path = "marshmallow-code/marshmallow"
 
