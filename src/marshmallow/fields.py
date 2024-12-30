@@ -418,48 +418,6 @@ class Field(FieldABC):
         """The context dictionary for the parent :class:`Schema`."""
         return self.parent.context
 
-    # the default and missing properties are provided for compatibility and
-    # emit warnings when they are accessed and set
-    @property
-    def default(self):
-        warnings.warn(
-            "The 'default' attribute of fields is deprecated. "
-            "Use 'dump_default' instead.",
-            RemovedInMarshmallow4Warning,
-            stacklevel=2,
-        )
-        return self.dump_default
-
-    @default.setter
-    def default(self, value):
-        warnings.warn(
-            "The 'default' attribute of fields is deprecated. "
-            "Use 'dump_default' instead.",
-            RemovedInMarshmallow4Warning,
-            stacklevel=2,
-        )
-        self.dump_default = value
-
-    @property
-    def missing(self):
-        warnings.warn(
-            "The 'missing' attribute of fields is deprecated. "
-            "Use 'load_default' instead.",
-            RemovedInMarshmallow4Warning,
-            stacklevel=2,
-        )
-        return self.load_default
-
-    @missing.setter
-    def missing(self, value):
-        warnings.warn(
-            "The 'missing' attribute of fields is deprecated. "
-            "Use 'load_default' instead.",
-            RemovedInMarshmallow4Warning,
-            stacklevel=2,
-        )
-        self.load_default = value
-
 
 class Raw(Field):
     """Field that applies no formatting."""
