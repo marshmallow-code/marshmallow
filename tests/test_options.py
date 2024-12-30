@@ -1,36 +1,9 @@
 import datetime as dt
-from collections import OrderedDict
 
 from marshmallow import EXCLUDE, Schema, fields
-from tests.base import User
-
-
-class TestUnordered:
-    class UnorderedSchema(Schema):
-        name = fields.Str()
-        email = fields.Str()
-
-        class Meta:
-            ordered = False
-
-    def test_unordered_dump_returns_dict(self):
-        schema = self.UnorderedSchema()
-        u = User("steve", email="steve@steve.steve")
-        result = schema.dump(u)
-        assert not isinstance(result, OrderedDict)
-        assert type(result) is dict
-
-    def test_unordered_load_returns_dict(self):
-        schema = self.UnorderedSchema()
-        result = schema.load({"name": "steve", "email": "steve@steve.steve"})
-        assert not isinstance(result, OrderedDict)
-        assert type(result) is dict
 
 
 class KeepOrder(Schema):
-    class Meta:
-        ordered = True
-
     name = fields.String(allow_none=True)
     email = fields.Email(allow_none=True)
     age = fields.Integer()
@@ -46,13 +19,9 @@ class OrderedMetaSchema(Schema):
 
     class Meta:
         fields = ("name", "email", "age", "created", "id", "homepage", "birthdate")
-        ordered = True
 
 
 class OrderedNestedOnly(Schema):
-    class Meta:
-        ordered = True
-
     user = fields.Nested(KeepOrder)
 
 
