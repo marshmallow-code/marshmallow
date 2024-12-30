@@ -1,8 +1,6 @@
 import datetime as dt
 from collections import OrderedDict
 
-import pytest
-
 from marshmallow import EXCLUDE, Schema, fields
 from tests.base import User
 
