@@ -10,7 +10,7 @@ import json
 import typing
 import uuid
 from abc import ABCMeta
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from collections.abc import Mapping
 
 from marshmallow import base, class_registry, types
@@ -82,18 +82,6 @@ class SchemaMeta(ABCMeta):
 
     def __new__(mcs, name, bases, attrs):
         meta = attrs.get("Meta")
-        ordered = getattr(meta, "ordered", False)
-        if not ordered:
-            # Inherit 'ordered' option
-            # Warning: We loop through bases instead of MRO because we don't
-            # yet have access to the class object
-            # (i.e. can't call super before we have fields)
-            for base_ in bases:
-                if hasattr(base_, "Meta") and hasattr(base_.Meta, "ordered"):
-                    ordered = base_.Meta.ordered
-                    break
-            else:
-                ordered = False
         cls_fields = _get_fields(attrs)
         # Remove fields from list of class attributes to avoid shadowing
         # Schema attributes/methods in case of name conflict
@@ -105,7 +93,7 @@ class SchemaMeta(ABCMeta):
         meta = klass.Meta
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
         # get_declared_fields
-        klass.opts = klass.OPTIONS_CLASS(meta, ordered=ordered)
+        klass.opts = klass.OPTIONS_CLASS(meta)
         # Add fields specified in the `include` class Meta option
         cls_fields += list(klass.opts.include.items())
 
@@ -189,7 +177,7 @@ class SchemaMeta(ABCMeta):
 class SchemaOpts:
     """class Meta options for the :class:`Schema`. Defines defaults."""
 
-    def __init__(self, meta, ordered: bool = False):
+    def __init__(self, meta):
         self.fields = getattr(meta, "fields", ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -208,7 +196,6 @@ class SchemaOpts:
         self.datetimeformat = getattr(meta, "datetimeformat", None)
         self.timeformat = getattr(meta, "timeformat", None)
         self.render_module = getattr(meta, "render_module", json)
-        self.ordered = getattr(meta, "ordered", ordered)
         self.index_errors = getattr(meta, "index_errors", True)
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
@@ -305,6 +292,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     OPTIONS_CLASS = SchemaOpts  # type: type
 
     set_class = OrderedSet
+    dict_class = dict  # type: type[dict]
 
     # These get set by SchemaMeta
     opts = None  # type: SchemaOpts
@@ -375,7 +363,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.exclude: set[typing.Any] | typing.MutableSet[typing.Any] = set(
             self.opts.exclude
         ) | set(exclude)
-        self.ordered = self.opts.ordered
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
@@ -400,13 +387,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(many={self.many})>"
-
-    @property
-    def dict_class(self) -> type[dict]:
-        if self.ordered:
-            return OrderedDict
-        else:
-            return dict
 
     @classmethod
     def from_dict(

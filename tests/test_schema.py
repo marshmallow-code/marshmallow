@@ -2807,12 +2807,10 @@ class TestFromDict:
     def test_meta_options_are_applied(self):
         class OrderedSchema(Schema):
             class Meta:
-                ordered = True
                 load_only = ("bar",)
 
         OSchema = OrderedSchema.from_dict({"foo": fields.Int(), "bar": fields.Int()})
         dumped = OSchema().dump({"foo": 42, "bar": 24})
-        assert isinstance(dumped, OrderedDict)
         assert "bar" not in dumped
 
 

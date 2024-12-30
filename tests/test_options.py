@@ -59,52 +59,6 @@ class OrderedNestedOnly(Schema):
 
 
 class TestFieldOrdering:
-    @pytest.mark.parametrize("with_meta", (False, True))
-    def test_ordered_option_is_inherited(self, user, with_meta):
-        class ParentUnordered(Schema):
-            class Meta:
-                ordered = False
-
-        # KeepOrder is before ParentUnordered in MRO,
-        # so ChildOrderedSchema will be ordered
-        class ChildOrderedSchema(KeepOrder, ParentUnordered):
-            if with_meta:
-
-                class Meta:
-                    pass
-
-        schema = ChildOrderedSchema()
-        assert schema.opts.ordered is True
-        assert schema.dict_class == OrderedDict
-
-        data = schema.dump(user)
-        keys = list(data)
-        assert keys == [
-            "name",
-            "email",
-            "age",
-            "created",
-            "id",
-            "homepage",
-            "birthdate",
-        ]
-
-        # KeepOrder is before ParentUnordered in MRO,
-        # so ChildOrderedSchema will be ordered
-        class ChildUnorderedSchema(ParentUnordered, KeepOrder):
-            class Meta:
-                pass
-
-        schema = ChildUnorderedSchema()
-        assert schema.opts.ordered is False
-
-    def test_ordering_is_off_by_default(self):
-        class DummySchema(Schema):
-            pass
-
-        schema = DummySchema()
-        assert schema.ordered is False
-
     def test_declared_field_order_is_maintained_on_dump(self, user):
         ser = KeepOrder()
         data = ser.dump(user)
