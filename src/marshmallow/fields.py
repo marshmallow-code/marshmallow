@@ -168,9 +168,7 @@ class Field(FieldABC):
         self,
         *,
         load_default: typing.Any = missing_,
-        missing: typing.Any = missing_,
         dump_default: typing.Any = missing_,
-        default: typing.Any = missing_,
         data_key: str | None = None,
         attribute: str | None = None,
         validate: (
@@ -186,25 +184,6 @@ class Field(FieldABC):
         metadata: typing.Mapping[str, typing.Any] | None = None,
         **additional_metadata,
     ) -> None:
-        # handle deprecated `default` and `missing` parameters
-        if default is not missing_:
-            warnings.warn(
-                "The 'default' argument to fields is deprecated. "
-                "Use 'dump_default' instead.",
-                RemovedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-            if dump_default is missing_:
-                dump_default = default
-        if missing is not missing_:
-            warnings.warn(
-                "The 'missing' argument to fields is deprecated. "
-                "Use 'load_default' instead.",
-                RemovedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-            if load_default is missing_:
-                load_default = missing
         self.dump_default = dump_default
         self.load_default = load_default
 
@@ -558,7 +537,6 @@ class Nested(Field):
         ),
         *,
         dump_default: typing.Any = missing_,
-        default: typing.Any = missing_,
         only: types.StrSequenceOrSet | None = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
@@ -585,7 +563,7 @@ class Nested(Field):
         self.many = many
         self.unknown = unknown
         self._schema = None  # Cached Schema instance
-        super().__init__(default=default, dump_default=dump_default, **kwargs)
+        super().__init__(dump_default=dump_default, **kwargs)
 
     @property
     def schema(self):

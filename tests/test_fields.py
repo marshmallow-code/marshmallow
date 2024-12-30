@@ -226,62 +226,6 @@ class TestMetadata:
         assert field.metadata == {"description": "foo", "widget": "select"}
 
 
-class TestDeprecatedDefaultAndMissing:
-    @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
-    def test_load_default_in_deprecated_style_warns(self, FieldClass):
-        # in constructor
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'missing' argument to fields is deprecated. "
-            "Use 'load_default' instead.",
-        ):
-            FieldClass(missing=None)
-
-        # via attribute
-        myfield = FieldClass(load_default=1)
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'missing' attribute of fields is deprecated. "
-            "Use 'load_default' instead.",
-        ):
-            assert myfield.missing == 1
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'missing' attribute of fields is deprecated. "
-            "Use 'load_default' instead.",
-        ):
-            myfield.missing = 0
-        # but setting it worked
-        assert myfield.load_default == 0
-
-    @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
-    def test_dump_default_in_deprecated_style_warns(self, FieldClass):
-        # in constructor
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'default' argument to fields is deprecated. "
-            "Use 'dump_default' instead.",
-        ):
-            FieldClass(default=None)
-
-        # via attribute
-        myfield = FieldClass(dump_default=1)
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'default' attribute of fields is deprecated. "
-            "Use 'dump_default' instead.",
-        ):
-            assert myfield.default == 1
-        with pytest.warns(
-            DeprecationWarning,
-            match="The 'default' attribute of fields is deprecated. "
-            "Use 'dump_default' instead.",
-        ):
-            myfield.default = 0
-        # but setting it worked
-        assert myfield.dump_default == 0
-
-
 class TestErrorMessages:
     class MyField(fields.Field):
         default_error_messages = {"custom": "Custom error message."}

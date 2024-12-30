@@ -35,7 +35,7 @@ class User(BaseModel):
 
 class Todo(BaseModel):
     content = pw.TextField()
-    is_done = pw.BooleanField(default=False)
+    is_done = pw.BooleanField(dump_default=False)
     user = pw.ForeignKeyField(User)
     posted_on = pw.DateTimeField()
 
