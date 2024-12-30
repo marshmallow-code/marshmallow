@@ -38,9 +38,12 @@ Thanks :user:`ddelange` for the PR.
 Previously-deprecated API have been removed, including:
 
 - `default` and `missing` parameters, which were replaced by `dump_default` and `load_default` in 3.13.0 (:pr:`1742`, :pr:`2700`).
-- Passing field metadata via keyword arguments is no longer supported (deprecated in 3.10.0). Use the explicit ``metadata=...``
+- Passing field metadata via keyword arguments (deprecated in 3.10.0). Use the explicit ``metadata=...``
   argument instead (:issue:`1350`).
 - ``Field.fail``, which was replaced by ``Field.make_error`` in 3.0.0.
+- Passing `"self"` to `fields.Nested` (deprecated in 3.3.0). Use a callable instead.
+- `json_module` class Meta option (deprecated in 3.0.0b3). Use `render_module` instead.
+- `marshmallow.utils.pprint` (deprecated in 3.7.0). Use `pprint.pprint` instead.
 
 3.23.2 (2024-12-18)
 *******************

@@ -38,7 +38,6 @@ from marshmallow.utils import (
     set_value,
     validate_unknown_parameter_value,
 )
-from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 
 def _get_fields(attrs):
@@ -209,16 +208,7 @@ class SchemaOpts:
         self.dateformat = getattr(meta, "dateformat", None)
         self.datetimeformat = getattr(meta, "datetimeformat", None)
         self.timeformat = getattr(meta, "timeformat", None)
-        if hasattr(meta, "json_module"):
-            warnings.warn(
-                "The json_module class Meta option is deprecated. Use render_module instead.",
-                RemovedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-            render_module = getattr(meta, "json_module", json)
-        else:
-            render_module = json
-        self.render_module = getattr(meta, "render_module", render_module)
+        self.render_module = getattr(meta, "render_module", json)
         self.ordered = getattr(meta, "ordered", ordered)
         self.index_errors = getattr(meta, "index_errors", True)
         self.include = getattr(meta, "include", {})

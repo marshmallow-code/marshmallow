@@ -194,7 +194,7 @@ Correspondingly, a representation of a ``Book`` will include its author represen
 
 .. code-block:: python
 
-    from marshmallow import pprint
+    from pprint import pprint
     from mymodels import Author, Book
 
     author = Author(name="William Faulkner")

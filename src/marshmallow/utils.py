@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import collections
 import datetime as dt
 import functools
 import inspect
-import json
 import typing
-import warnings
 from collections.abc import Mapping
 from email.utils import format_datetime, parsedate_to_datetime
-from pprint import pprint as py_pprint
 
 from marshmallow.base import FieldABC
 from marshmallow.exceptions import FieldInstanceResolutionError
-from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 EXCLUDE = "exclude"
 INCLUDE = "include"
@@ -71,25 +66,6 @@ def is_keyed_tuple(obj) -> bool:
     namedtuples or SQLAlchemy's KeyedTuples.
     """
     return isinstance(obj, tuple) and hasattr(obj, "_fields")
-
-
-def pprint(obj, *args, **kwargs) -> None:
-    """Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries. Useful for printing the output of
-    :meth:`marshmallow.Schema.dump`.
-
-    .. deprecated:: 3.7.0
-        marshmallow.pprint will be removed in marshmallow 4.
-    """
-    warnings.warn(
-        "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",
-        RemovedInMarshmallow4Warning,
-        stacklevel=2,
-    )
-    if isinstance(obj, collections.OrderedDict):
-        print(json.dumps(obj, *args, **kwargs))
-    else:
-        py_pprint(obj, *args, **kwargs)
 
 
 # https://stackoverflow.com/a/27596917

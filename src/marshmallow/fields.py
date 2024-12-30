@@ -39,7 +39,6 @@ from marshmallow.utils import (
     missing as missing_,
 )
 from marshmallow.validate import And, Length
-from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 if typing.TYPE_CHECKING:
     from marshmallow.schema import SchemaMeta
@@ -484,13 +483,6 @@ class Nested(Field):
             raise StringNotCollectionError(
                 '"exclude" should be a collection of strings.'
             )
-        if nested == "self":
-            warnings.warn(
-                "Passing 'self' to `Nested` is deprecated. "
-                "Use `Nested(lambda: MySchema(...))` instead.",
-                RemovedInMarshmallow4Warning,
-                stacklevel=2,
-            )
         self.nested = nested
         self.only = only
         self.exclude = exclude
@@ -542,8 +534,6 @@ class Nested(Field):
                         "`Nested` fields must be passed a "
                         f"`Schema`, not {nested.__class__}."
                     )
-                elif nested == "self":
-                    schema_class = self.root.__class__
                 else:
                     schema_class = class_registry.get_class(nested)
                 self._schema = schema_class(
@@ -621,8 +611,7 @@ class Pluck(Nested):
         loaded = AlbumSchema().load(in_data)  # => {'artist': {'id': 42}}
         dumped = AlbumSchema().dump(loaded)  # => {'artist': 42}
 
-    :param Schema nested: The Schema class or class name (string)
-        to nest, or ``"self"`` to nest the :class:`Schema` within itself.
+    :param Schema nested: The Schema class or class name (string) to nest
     :param str field_name: The key to pluck a value from.
     :param kwargs: The same keyword arguments that :class:`Nested` receives.
     """
