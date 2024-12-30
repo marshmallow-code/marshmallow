@@ -37,7 +37,7 @@ Thanks :user:`ddelange` for the PR.
 
 Previously-deprecated API have been removed, including:
 
-- `default` and `missing` parameters, which were replaced by `dump_default` and `load_default` in 3.13.0 (:pr:`1742`).
+- `default` and `missing` parameters, which were replaced by `dump_default` and `load_default` in 3.13.0 (:pr:`1742`, :pr:`2700`).
 
 3.23.2 (2024-12-18)
 *******************
