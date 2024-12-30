@@ -235,16 +235,6 @@ class TestErrorMessages:
         error = field.make_error(key)
         assert error.args[0] == message
 
-    @pytest.mark.parametrize(("key", "message"), error_messages)
-    def test_fail(self, key, message):
-        field = self.MyField()
-
-        with pytest.warns(DeprecationWarning):
-            try:
-                field.fail(key)
-            except ValidationError as error:
-                assert error.args[0] == message
-
     def test_make_error_key_doesnt_exist(self):
         with pytest.raises(AssertionError) as excinfo:
             self.MyField().make_error("doesntexist")

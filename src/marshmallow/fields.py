@@ -271,20 +271,6 @@ class Field(FieldABC):
             msg = msg.format(**kwargs)
         return ValidationError(msg)
 
-    def fail(self, key: str, **kwargs):
-        """Helper method that raises a `ValidationError` with an error message
-        from ``self.error_messages``.
-
-        .. deprecated:: 3.0.0
-            Use `make_error <marshmallow.fields.Field.make_error>` instead.
-        """
-        warnings.warn(
-            f'`Field.fail` is deprecated. Use `raise self.make_error("{key}", ...)` instead.',
-            RemovedInMarshmallow4Warning,
-            stacklevel=2,
-        )
-        raise self.make_error(key=key, **kwargs)
-
     def _validate_missing(self, value):
         """Validate missing values. Raise a :exc:`ValidationError` if
         `value` should be considered missing.
