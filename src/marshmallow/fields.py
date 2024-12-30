@@ -336,14 +336,14 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _bind_to_schema(self, field_name, schema):
+    def _bind_to_schema(self, field_name, parent):
         """Update field with values from its parent schema. Called by
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param str field_name: Field name set in schema.
-        :param Schema|Field schema: Parent object.
+        :param Schema|Field parent: Parent object.
         """
-        self.parent = self.parent or schema
+        self.parent = self.parent or parent
         self.name = self.name or field_name
         self.root = self.root or (
             self.parent.root if isinstance(self.parent, FieldABC) else self.parent
@@ -681,8 +681,8 @@ class List(Field):
             self.only = self.inner.only
             self.exclude = self.inner.exclude
 
-    def _bind_to_schema(self, field_name, schema):
-        super()._bind_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, parent):
+        super()._bind_to_schema(field_name, parent)
         self.inner = copy.deepcopy(self.inner)
         self.inner._bind_to_schema(field_name, self)
         if isinstance(self.inner, Nested):
@@ -755,8 +755,8 @@ class Tuple(Field):
 
         self.validate_length = Length(equal=len(self.tuple_fields))
 
-    def _bind_to_schema(self, field_name, schema):
-        super()._bind_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, parent):
+        super()._bind_to_schema(field_name, parent)
         new_tuple_fields = []
         for field in self.tuple_fields:
             field = copy.deepcopy(field)
@@ -1184,8 +1184,8 @@ class DateTime(Field):
         # format, e.g. from a Meta option
         self.format = format
 
-    def _bind_to_schema(self, field_name, schema):
-        super()._bind_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, parent):
+        super()._bind_to_schema(field_name, parent)
         self.format = (
             self.format
             or getattr(self.root.opts, self.SCHEMA_OPTS_VAR_NAME)
@@ -1497,8 +1497,8 @@ class Mapping(Field):
                 self.only = self.value_field.only
                 self.exclude = self.value_field.exclude
 
-    def _bind_to_schema(self, field_name, schema):
-        super()._bind_to_schema(field_name, schema)
+    def _bind_to_schema(self, field_name, parent):
+        super()._bind_to_schema(field_name, parent)
         if self.value_field:
             self.value_field = copy.deepcopy(self.value_field)
             self.value_field._bind_to_schema(field_name, self)
@@ -1880,18 +1880,18 @@ class Method(Field):
         self._serialize_method = None
         self._deserialize_method = None
 
-    def _bind_to_schema(self, field_name, schema):
+    def _bind_to_schema(self, field_name, parent):
         if self.serialize_method_name:
             self._serialize_method = utils.callable_or_raise(
-                getattr(schema, self.serialize_method_name)
+                getattr(parent, self.serialize_method_name)
             )
 
         if self.deserialize_method_name:
             self._deserialize_method = utils.callable_or_raise(
-                getattr(schema, self.deserialize_method_name)
+                getattr(parent, self.deserialize_method_name)
             )
 
-        super()._bind_to_schema(field_name, schema)
+        super()._bind_to_schema(field_name, parent)
 
     def _serialize(self, value, attr, obj, **kwargs):
         if self._serialize_method is not None:

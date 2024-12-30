@@ -30,8 +30,9 @@ As a consequence of this change:
     # datetime.timedelta(seconds=12, microseconds=900000)
 
 - Improve performance and minimize float precision loss of `marshmallow.fields.TimeDelta` serialization (:pr:`2654`).
-- *Backwards-incompatible*: Remove `serialization_type` parameter from
+- *Backwards-incompatible*: Remove ``serialization_type`` parameter from
   `marshmallow.fields.TimeDelta` (:pr:`2654`).
+- *Backwards-incompatible*: Rename ``schema`` parameter to ``parent`` in `marshmallow.fields.Field._bind_to_schema` (:issue:`1360`).
 
 Thanks :user:`ddelange` for the PR.
 
