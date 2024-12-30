@@ -182,7 +182,6 @@ class Field(FieldABC):
         dump_only: bool = False,
         error_messages: dict[str, str] | None = None,
         metadata: typing.Mapping[str, typing.Any] | None = None,
-        **additional_metadata,
     ) -> None:
         self.dump_default = dump_default
         self.load_default = load_default
@@ -212,16 +211,7 @@ class Field(FieldABC):
         self.required = required
 
         metadata = metadata or {}
-        self.metadata = {**metadata, **additional_metadata}
-        if additional_metadata:
-            warnings.warn(
-                "Passing field metadata as keyword arguments is deprecated. Use the "
-                "explicit `metadata=...` argument instead. "
-                f"Additional metadata: {additional_metadata}",
-                RemovedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-
+        self.metadata = metadata
         # Collect default error message from self and parent classes
         messages = {}  # type: dict[str, str]
         for cls in reversed(self.__class__.__mro__):
