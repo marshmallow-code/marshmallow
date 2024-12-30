@@ -11,7 +11,6 @@ import math
 import numbers
 import typing
 import uuid
-import warnings
 from collections.abc import Mapping as _Mapping
 from enum import Enum as EnumType
 
