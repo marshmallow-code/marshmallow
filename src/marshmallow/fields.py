@@ -16,7 +16,7 @@ from enum import Enum as EnumType
 
 # Remove this when dropping Python 3.10
 try:
-    from backports.datetime_fromisoformat import MonkeyPatch  # type: ignore # noqa
+    from backports.datetime_fromisoformat import MonkeyPatch
 except ImportError:
     pass
 else:
