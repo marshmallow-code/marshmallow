@@ -297,9 +297,9 @@ def resolve_field_instance(cls_or_instance):
 
 
 def timedelta_to_microseconds(value: dt.timedelta) -> int:
-    """Compute the total microseconds of a timedelta
+    """Compute the total microseconds of a timedelta.
 
-    https://github.com/python/cpython/blob/bb3e0c240bc60fe08d332ff5955d54197f79751c/Lib/datetime.py#L665-L667  # noqa: B950
+    https://github.com/python/cpython/blob/v3.13.1/Lib/_pydatetime.py#L805-L807
     """
     return (value.days * (24 * 3600) + value.seconds) * 1000000 + value.microseconds
 

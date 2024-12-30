@@ -1454,45 +1454,53 @@ class Date(DateTime):
 
 
 class TimeDelta(Field):
-    """A field that (de)serializes a :class:`datetime.timedelta` object to an
-    integer or float and vice versa. The integer or float can represent the
-    number of days, seconds or microseconds.
+    """A field that (de)serializes a :class:`datetime.timedelta` object to a `float`.
+    The `float` can represent any time unit that the :class:`datetime.timedelta` constructor
+    supports.
 
-    :param precision: Influences how the integer or float is interpreted during
-        (de)serialization. Must be 'days', 'seconds', 'microseconds',
-        'milliseconds', 'minutes', 'hours' or 'weeks'.
-    :param serialization_type: Whether to (de)serialize to a `int` or `float`.
+    :param precision: The time unit used for (de)serialization. Must be one of 'weeks',
+        'days', 'hours', 'minutes', 'seconds', 'milliseconds' or 'microseconds'.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
-    Integer Caveats
-    ---------------
-    Any fractional parts (which depends on the precision used) will be truncated
-    when serializing using `int`.
 
     Float Caveats
     -------------
-    Use of `float` when (de)serializing may result in data precision loss due
-    to the way machines handle floating point values.
+    Precision loss may occur when serializing a highly precise :class:`datetime.timedelta`
+    object using a big ``precision`` unit due to floating point arithmetics.
 
-    Regardless of the precision chosen, the fractional part when using `float`
-    will always be truncated to microseconds.
-    For example, `1.12345` interpreted as microseconds will result in `timedelta(microseconds=1)`.
+    When necessary, the :class:`datetime.timedelta` constructor rounds `float` inputs
+    to whole microseconds during initialization of the object. As a result, deserializing
+    a `float` might be subject to rounding, regardless of `precision`. For example,
+    ``TimeDelta().deserialize("1.1234567") == timedelta(seconds=1, microseconds=123457)``.
 
     .. versionchanged:: 2.0.0
         Always serializes to an integer value to avoid rounding errors.
         Add `precision` parameter.
     .. versionchanged:: 3.17.0
-        Allow (de)serialization to `float` through use of a new `serialization_type` parameter.
-        `int` is the default to retain previous behaviour.
+        Allow serialization to `float` through use of a new `serialization_type` parameter.
+        Defaults to `int` for backwards compatibility. Also affects deserialization.
+    .. versionchanged:: 4.0.0
+        Remove `serialization_type` parameter and always serialize to float.
+        Value is cast to a `float` upon deserialization.
     """
 
-    DAYS = "days"
-    SECONDS = "seconds"
-    MICROSECONDS = "microseconds"
-    MILLISECONDS = "milliseconds"
-    MINUTES = "minutes"
-    HOURS = "hours"
     WEEKS = "weeks"
+    DAYS = "days"
+    HOURS = "hours"
+    MINUTES = "minutes"
+    SECONDS = "seconds"
+    MILLISECONDS = "milliseconds"
+    MICROSECONDS = "microseconds"
+
+    # cache this mapping on class level for performance
+    _unit_to_microseconds_mapping = {
+        WEEKS: 1000000 * 60 * 60 * 24 * 7,
+        DAYS: 1000000 * 60 * 60 * 24,
+        HOURS: 1000000 * 60 * 60,
+        MINUTES: 1000000 * 60,
+        SECONDS: 1000000,
+        MILLISECONDS: 1000,
+        MICROSECONDS: 1,
+    }
 
     #: Default error messages.
     default_error_messages = {
@@ -1503,49 +1511,30 @@ class TimeDelta(Field):
     def __init__(
         self,
         precision: str = SECONDS,
-        serialization_type: type[int | float] = int,
         **kwargs,
-    ):
+    ) -> None:
         precision = precision.lower()
-        units = (
-            self.DAYS,
-            self.SECONDS,
-            self.MICROSECONDS,
-            self.MILLISECONDS,
-            self.MINUTES,
-            self.HOURS,
-            self.WEEKS,
-        )
 
-        if precision not in units:
-            msg = 'The precision must be {} or "{}".'.format(
-                ", ".join([f'"{each}"' for each in units[:-1]]), units[-1]
-            )
+        if precision not in self._unit_to_microseconds_mapping:
+            units = ", ".join(self._unit_to_microseconds_mapping)
+            msg = f"The precision must be one of: {units}."
             raise ValueError(msg)
 
-        if serialization_type not in (int, float):
-            raise ValueError("The serialization type must be one of int or float")
-
         self.precision = precision
-        self.serialization_type = serialization_type
         super().__init__(**kwargs)
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, attr, obj, **kwargs) -> float | None:
         if value is None:
             return None
 
-        base_unit = dt.timedelta(**{self.precision: 1})
+        # limit float arithmetics to a single division to minimize precision loss
+        microseconds: int = utils.timedelta_to_microseconds(value)
+        microseconds_per_unit: int = self._unit_to_microseconds_mapping[self.precision]
+        return microseconds / microseconds_per_unit
 
-        if self.serialization_type is int:
-            delta = utils.timedelta_to_microseconds(value)
-            unit = utils.timedelta_to_microseconds(base_unit)
-            return delta // unit
-        assert self.serialization_type is float
-        return value.total_seconds() / base_unit.total_seconds()
-
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs) -> dt.timedelta:
         try:
-            value = self.serialization_type(value)
+            value = float(value)
         except (TypeError, ValueError) as error:
             raise self.make_error("invalid") from error
 

@@ -704,25 +704,25 @@ class TestFieldSerialization:
         )
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize("d1", user) == 1
+        assert field.serialize("d1", user) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize("d1", user) == 86401
+        assert field.serialize("d1", user) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d1", user) == 86401000001
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
-        assert field.serialize("d1", user) == 24
+        assert field.serialize("d1", user) == 24.000277778055555
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize("d2", user) == 1
+        assert field.serialize("d2", user) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize("d2", user) == 86401
+        assert field.serialize("d2", user) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d2", user) == 86401000001
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize("d3", user) == 1
+        assert field.serialize("d3", user) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize("d3", user) == 86401
+        assert field.serialize("d3", user) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         assert field.serialize("d3", user) == 86401000001
 
@@ -741,38 +741,30 @@ class TestFieldSerialization:
         assert field.serialize("d5", user) == -86400000000
 
         field = fields.TimeDelta(fields.TimeDelta.WEEKS)
-        assert field.serialize("d6", user) == 1
+        assert field.serialize("d6", user) == 1.1489103852529763
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize("d6", user) == 7 + 1
+        assert field.serialize("d6", user) == 8.042372696770833
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
-        assert field.serialize("d6", user) == 7 * 24 + 24 + 1
+        assert field.serialize("d6", user) == 193.0169447225
         field = fields.TimeDelta(fields.TimeDelta.MINUTES)
-        assert field.serialize("d6", user) == 7 * 24 * 60 + 24 * 60 + 60 + 1
-        d6_seconds = (
-            7 * 24 * 60 * 60
-            + 24 * 60 * 60  # 1 week
-            + 60 * 60  # 1 day
-            + 60  # 1 hour
-            + 1  # 1 minute
-        )
+        assert field.serialize("d6", user) == 11581.01668335
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize("d6", user) == d6_seconds
+        assert field.serialize("d6", user) == 694861.001001
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
-        assert field.serialize("d6", user) == d6_seconds * 1000 + 1
+        assert field.serialize("d6", user) == 694861001.001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize("d6", user) == d6_seconds * 10**6 + 1000 + 1
+        assert field.serialize("d6", user) == 694861001001
 
         user.d7 = None
         assert field.serialize("d7", user) is None
 
-        # https://github.com/marshmallow-code/marshmallow/issues/1856
         user.d8 = dt.timedelta(milliseconds=345)
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
         assert field.serialize("d8", user) == 345
 
         user.d9 = dt.timedelta(milliseconds=1999)
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize("d9", user) == 1
+        assert field.serialize("d9", user) == 1.999
 
         user.d10 = dt.timedelta(
             weeks=1,
@@ -784,47 +776,44 @@ class TestFieldSerialization:
             microseconds=742,
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS, float)
+        field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         unit_value = dt.timedelta(microseconds=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS, float)
+        field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
         unit_value = dt.timedelta(milliseconds=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.SECONDS, float)
+        field = fields.TimeDelta(fields.TimeDelta.SECONDS)
         assert math.isclose(field.serialize("d10", user), user.d10.total_seconds())
 
-        field = fields.TimeDelta(fields.TimeDelta.MINUTES, float)
+        field = fields.TimeDelta(fields.TimeDelta.MINUTES)
         unit_value = dt.timedelta(minutes=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.HOURS, float)
+        field = fields.TimeDelta(fields.TimeDelta.HOURS)
         unit_value = dt.timedelta(hours=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.DAYS, float)
+        field = fields.TimeDelta(fields.TimeDelta.DAYS)
         unit_value = dt.timedelta(days=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
 
-        field = fields.TimeDelta(fields.TimeDelta.WEEKS, float)
+        field = fields.TimeDelta(fields.TimeDelta.WEEKS)
         unit_value = dt.timedelta(weeks=1).total_seconds()
         assert math.isclose(
             field.serialize("d10", user), user.d10.total_seconds() / unit_value
         )
-
-        with pytest.raises(ValueError):
-            fields.TimeDelta(fields.TimeDelta.SECONDS, str)
 
     def test_datetime_list_field(self):
         obj = DateTimeList([dt.datetime.now(dt.timezone.utc), dt.datetime.now()])

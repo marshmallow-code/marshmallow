@@ -1,6 +1,33 @@
 Changelog
 ---------
 
+4.0.0 (unreleased)
+******************
+
+- `marshmallow.fields.TimeDelta` no longer truncates float values when
+  deserializing (:pr:`2654`). This allows microseconds to be preserved, e.g.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+    field = fields.TimeDelta()
+
+    # Before
+    field.deserialize(12.9)
+    datetime.timedelta(seconds=12)
+    # datetime.timedelta(seconds=12)
+
+    # After
+    field.deserialize(12.9)
+    # datetime.timedelta(seconds=12, microseconds=900000)
+
+- Improve performance and minimize float precision loss of `marshmallow.fields.TimeDelta` serialization (:pr:`2654`).
+- *Backwards-incompatible*: Remove `serialization_type` parameter from
+  `marshmallow.fields.TimeDelta` (:pr:`2654`).
+
+Thanks :user:`ddelange` for the PR.
+
 3.23.2 (2024-12-18)
 *******************
 
