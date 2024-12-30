@@ -16,7 +16,7 @@ from enum import Enum as EnumType
 
 # Remove this when dropping Python 3.10
 try:
-    from backports.datetime_fromisoformat import MonkeyPatch
+    from backports.datetime_fromisoformat import MonkeyPatch  # type: ignore # noqa
 except ImportError:
     pass
 else:
@@ -1990,34 +1990,6 @@ class Constant(Field):
 
     def _deserialize(self, value, *args, **kwargs):
         return self.constant
-
-
-class Inferred(Field):
-    """A field that infers how to serialize, based on the value type.
-
-    .. warning::
-
-        This class is treated as private API.
-        Users should not need to use this class directly.
-    """
-
-    def __init__(self):
-        super().__init__()
-        # We memoize the fields to avoid creating and binding new fields
-        # every time on serialization.
-        self._field_cache = {}
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        field_cls = self.root.TYPE_MAPPING.get(type(value))
-        if field_cls is None:
-            field = super()
-        else:
-            field = self._field_cache.get(field_cls)
-            if field is None:
-                field = field_cls()
-                field._bind_to_schema(self.name, self.parent)
-                self._field_cache[field_cls] = field
-        return field._serialize(value, attr, obj, **kwargs)
 
 
 # Aliases

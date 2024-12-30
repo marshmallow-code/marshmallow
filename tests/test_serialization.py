@@ -980,21 +980,11 @@ class TestSchemaSerialization:
 
 def test_serializing_named_tuple():
     Point = namedtuple("Point", ["x", "y"])
-
-    field = fields.Field()
-
-    p = Point(x=4, y=2)
-
-    assert field.serialize("x", p) == 4
-
-
-def test_serializing_named_tuple_with_meta():
-    Point = namedtuple("Point", ["x", "y"])
     p = Point(x=4, y=2)
 
     class PointSerializer(Schema):
-        class Meta:
-            fields = ("x", "y")
+        x = fields.Int()
+        y = fields.Int()
 
     serialized = PointSerializer().dump(p)
     assert serialized["x"] == 4

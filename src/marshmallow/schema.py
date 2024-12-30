@@ -193,14 +193,6 @@ class SchemaOpts:
         self.fields = getattr(meta, "fields", ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
-        self.additional = getattr(meta, "additional", ())
-        if not isinstance(self.additional, (list, tuple)):
-            raise ValueError("`additional` option must be a list or tuple.")
-        if self.fields and self.additional:
-            raise ValueError(
-                "Cannot set both `fields` and `additional` options"
-                " for the same Schema."
-            )
         self.exclude = getattr(meta, "exclude", ())
         if not isinstance(self.exclude, (list, tuple)):
             raise ValueError("`exclude` must be a list or tuple.")
@@ -323,9 +315,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         Available options:
 
         - ``fields``: Tuple or list of fields to include in the serialized result.
-        - ``additional``: Tuple or list of fields to include *in addition* to the
-            explicitly declared fields. ``additional`` and ``fields`` are
-            mutually-exclusive options.
         - ``include``: Dictionary of additional fields to include in the schema. It is
             usually better to define fields as class variables, but you may need to
             use this option, e.g., if your fields are Python keywords. May be an
@@ -943,8 +932,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             available_field_names = self.set_class(self.opts.fields)
         else:
             available_field_names = self.set_class(self.declared_fields.keys())
-            if self.opts.additional:
-                available_field_names |= self.set_class(self.opts.additional)
 
         invalid_fields = self.set_class()
 
@@ -969,7 +956,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, ma_fields.Inferred())
+            field_obj = self.declared_fields[field_name]
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
