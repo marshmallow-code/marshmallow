@@ -3,7 +3,7 @@ import datetime as dt
 from marshmallow import EXCLUDE, Schema, fields
 
 
-class KeepOrder(Schema):
+class UserSchema(Schema):
     name = fields.String(allow_none=True)
     email = fields.Email(allow_none=True)
     age = fields.Integer()
@@ -13,13 +13,13 @@ class KeepOrder(Schema):
     birthdate = fields.Date()
 
 
-class OrderedNestedOnly(Schema):
-    user = fields.Nested(KeepOrder)
+class ProfileSchema(Schema):
+    user = fields.Nested(UserSchema)
 
 
 class TestFieldOrdering:
     def test_declared_field_order_is_maintained_on_dump(self, user):
-        ser = KeepOrder()
+        ser = UserSchema()
         data = ser.dump(user)
         keys = list(data)
         assert keys == [
@@ -33,7 +33,7 @@ class TestFieldOrdering:
         ]
 
     def test_declared_field_order_is_maintained_on_load(self, serialized_user):
-        schema = KeepOrder(unknown=EXCLUDE)
+        schema = UserSchema(unknown=EXCLUDE)
         data = schema.load(serialized_user)
         keys = list(data)
         assert keys == [
@@ -47,7 +47,7 @@ class TestFieldOrdering:
         ]
 
     def test_nested_field_order_with_only_arg_is_maintained_on_dump(self, user):
-        schema = OrderedNestedOnly()
+        schema = ProfileSchema()
         data = schema.dump({"user": user})
         user_data = data["user"]
         keys = list(user_data)
@@ -62,7 +62,7 @@ class TestFieldOrdering:
         ]
 
     def test_nested_field_order_with_only_arg_is_maintained_on_load(self):
-        schema = OrderedNestedOnly()
+        schema = ProfileSchema()
         data = schema.load(
             {
                 "user": {
@@ -90,7 +90,7 @@ class TestFieldOrdering:
 
     def test_nested_field_order_with_exclude_arg_is_maintained(self, user):
         class HasNestedExclude(Schema):
-            user = fields.Nested(KeepOrder, exclude=("birthdate",))
+            user = fields.Nested(UserSchema, exclude=("birthdate",))
 
         ser = HasNestedExclude()
         data = ser.dump({"user": user})
