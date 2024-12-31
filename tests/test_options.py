@@ -13,14 +13,6 @@ class KeepOrder(Schema):
     birthdate = fields.Date()
 
 
-class OrderedMetaSchema(Schema):
-    id = fields.Int(allow_none=True)
-    email = fields.Email(allow_none=True)
-
-    class Meta:
-        fields = ("name", "email", "age", "created", "id", "homepage", "birthdate")
-
-
 class OrderedNestedOnly(Schema):
     user = fields.Nested(KeepOrder)
 
@@ -105,34 +97,6 @@ class TestFieldOrdering:
         user_data = data["user"]
         keys = list(user_data)
         assert keys == ["name", "email", "age", "created", "id", "homepage"]
-
-    def test_meta_fields_order_is_maintained_on_dump(self, user):
-        ser = OrderedMetaSchema()
-        data = ser.dump(user)
-        keys = list(data)
-        assert keys == [
-            "name",
-            "email",
-            "age",
-            "created",
-            "id",
-            "homepage",
-            "birthdate",
-        ]
-
-    def test_meta_fields_order_is_maintained_on_load(self, serialized_user):
-        schema = OrderedMetaSchema(unknown=EXCLUDE)
-        data = schema.load(serialized_user)
-        keys = list(data)
-        assert keys == [
-            "name",
-            "email",
-            "age",
-            "created",
-            "id",
-            "homepage",
-            "birthdate",
-        ]
 
 
 class TestIncludeOption:

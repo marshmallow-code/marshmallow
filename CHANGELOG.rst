@@ -4,6 +4,7 @@ Changelog
 4.0.0 (unreleased)
 ******************
 
+- *Backwards-incompatible*: Remove implicit field creation, i.e. using the ``fields`` or ``additional`` class Meta options with undeclared fields (:issue:`1356`).
 - *Backwards-incompatible*: Use `datetime.date.fromisoformat`, `datetime.time.fromisoformat`, and `datetime.datetime.fromisoformat` from the standard library to deserialize dates, times and datetimes (:pr:`2078`). 
 
 As a consequence of this change:
@@ -30,8 +31,9 @@ As a consequence of this change:
     # datetime.timedelta(seconds=12, microseconds=900000)
 
 - Improve performance and minimize float precision loss of `marshmallow.fields.TimeDelta` serialization (:pr:`2654`).
-- *Backwards-incompatible*: Remove `serialization_type` parameter from
+- *Backwards-incompatible*: Remove ``serialization_type`` parameter from
   `marshmallow.fields.TimeDelta` (:pr:`2654`).
+- *Backwards-incompatible*: Rename ``schema`` parameter to ``parent`` in `marshmallow.fields.Field._bind_to_schema` (:issue:`1360`).
 
 Thanks :user:`ddelange` for the PR.
 
