@@ -18,14 +18,17 @@ Returning `False` from a validator is no longer supported.
 
     from marshmallow import Schema, fields
 
+
     # 3.x
     class UserSchema(Schema):
         password = fields.String(validate=lambda x: x == "password")
+
 
     # 4.x
     def validate_password(val):
         if val != "password":
             raise ValidationError("Invalid password.")
+
 
     class UserSchema(Schema):
         password = fields.String(validate=validate_password)
@@ -39,6 +42,7 @@ If you want to use anonymous functions, you can use this helper function.
 
     from marshmallow import Schema, fields
 
+
     def predicate(
         func: typing.Callable[[typing.Any], typing.Any],
     ) -> typing.Callable[[typing.Any], None]:
@@ -47,6 +51,7 @@ If you want to use anonymous functions, you can use this helper function.
                 raise ValidationError("Invalid value.")
 
         return validate
+
 
     # Usage
     class UserSchema(Schema):
