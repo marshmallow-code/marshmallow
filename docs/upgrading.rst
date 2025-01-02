@@ -3,6 +3,56 @@ Upgrading to Newer Releases
 
 This section documents migration paths to new releases.
 
+.. _upgrading_4_0:
+
+Upgrading to 4.0
+++++++++++++++++
+
+Validators must raise a ValidationError
+***************************************
+
+In marshmallow 4.0, validators must raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` when the value is invalid.
+Returning `False` from a validator is no longer supported.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+    # 3.x
+    class UserSchema(Schema):
+        password = fields.String(validate=lambda x: x == "password")
+
+    # 4.x
+    def validate_password(val):
+        if val != "password":
+            raise ValidationError("Invalid password.")
+
+    class UserSchema(Schema):
+        password = fields.String(validate=validate_password)
+
+
+If you want to use anonymous functions, you can use this helper function.
+
+.. code-block:: python
+
+    import typing
+
+    from marshmallow import Schema, fields
+
+    def predicate(
+        func: typing.Callable[[typing.Any], typing.Any],
+    ) -> typing.Callable[[typing.Any], None]:
+        def validate(value: typing.Any) -> None:
+            if not func(value):
+                raise ValidationError("Invalid value.")
+
+        return validate
+
+    # Usage
+    class UserSchema(Schema):
+        password = fields.String(validate=predicate(lambda x: x == "password"))
+
+
 Upgrading to 3.3
 ++++++++++++++++
 
