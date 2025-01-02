@@ -5,6 +5,7 @@ import functools
 import uuid
 from enum import Enum, IntEnum
 from zoneinfo import ZoneInfo
+import typing
 
 import simplejson
 
@@ -63,17 +64,30 @@ ALL_FIELDS = [
 ##### Custom asserts #####
 
 
-def assert_date_equal(d1, d2):
+def assert_date_equal(d1: dt.date, d2: dt.date) -> None:
     assert d1.year == d2.year
     assert d1.month == d2.month
     assert d1.day == d2.day
 
 
-def assert_time_equal(t1, t2):
+def assert_time_equal(t1: dt.time, t2: dt.time) -> None:
     assert t1.hour == t2.hour
     assert t1.minute == t2.minute
     assert t1.second == t2.second
     assert t1.microsecond == t2.microsecond
+
+
+##### Validation #####
+
+
+def predicate(
+    func: typing.Callable[[typing.Any], typing.Any],
+) -> typing.Callable[[typing.Any], None]:
+    def validate(value: typing.Any) -> None:
+        if not func(value):
+            raise ValidationError("Invalid value.")
+
+    return validate
 
 
 ##### Models #####

@@ -15,6 +15,7 @@ from marshmallow import (
     fields,
     utils,
     validates,
+    validate,
     validates_schema,
 )
 from marshmallow.exceptions import (
@@ -72,9 +73,12 @@ def test_load_resets_errors():
 
 
 def test_load_validation_error_stores_input_data_and_valid_data():
+    def validator(val):
+        raise ValidationError("oops")
+
     class MySchema(Schema):
         always_valid = fields.DateTime()
-        always_invalid = fields.Field(validate=[lambda v: False])
+        always_invalid = fields.Field(validate=[validator])
 
     schema = MySchema()
     input_data = {
@@ -117,8 +121,11 @@ def test_errored_fields_do_not_appear_in_output():
         def _serialize(self, val, attr, obj):
             raise ValidationError("oops")
 
+    def validator(val):
+        raise ValidationError("oops")
+
     class MySchema(Schema):
-        foo = MyField(validate=lambda x: False)
+        foo = MyField(validate=validator)
 
     sch = MySchema()
     with pytest.raises(ValidationError) as excinfo:
@@ -164,8 +171,8 @@ def test_boolean_can_dump_unhashable(value):
 
 def test_multiple_errors_can_be_stored_for_a_given_index():
     class MySchema(Schema):
-        foo = fields.Str(validate=lambda x: len(x) > 3)
-        bar = fields.Int(validate=lambda x: x > 3)
+        foo = fields.Str(validate=validate.Length(min=4))
+        bar = fields.Int(validate=validate.Range(min=4))
 
     sch = MySchema()
     valid = {"foo": "loll", "bar": 42}
@@ -2135,11 +2142,14 @@ def test_deserialization_with_required_field():
 
 
 def test_deserialization_with_required_field_and_custom_validator():
+    def validator(val):
+        if val.lower() not in {"red", "blue"}:
+            raise ValidationError("Color must be red or blue")
+
     class ValidatingSchema(Schema):
         color = fields.String(
             required=True,
-            validate=lambda x: x.lower() == "red" or x.lower() == "blue",
-            error_messages={"validator_failed": "Color must be red or blue"},
+            validate=validator,
         )
 
     with pytest.raises(ValidationError) as excinfo:

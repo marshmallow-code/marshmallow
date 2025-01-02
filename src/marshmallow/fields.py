@@ -250,7 +250,7 @@ class Field(FieldABC):
 
     @property
     def _validate_all(self):
-        return And(*self.validators, error=self.error_messages["validator_failed"])
+        return And(*self.validators)
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
         """Helper method to make a `ValidationError` with an error message

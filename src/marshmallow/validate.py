@@ -58,14 +58,10 @@ class And(Validator):
         # ValidationError: ['Must be greater than or equal to 0.', 'Not an even value.']
 
     :param validators: Validators to combine.
-    :param error: Error message to use when a validator returns ``False``.
     """
 
-    default_error_message = "Invalid value."
-
-    def __init__(self, *validators: types.Validator, error: str | None = None):
+    def __init__(self, *validators: types.Validator):
         self.validators = tuple(validators)
-        self.error = error or self.default_error_message  # type: str
 
     def _repr_args(self) -> str:
         return f"validators={self.validators!r}"
@@ -75,9 +71,7 @@ class And(Validator):
         kwargs = {}
         for validator in self.validators:
             try:
-                r = validator(value)
-                if not isinstance(validator, Validator) and r is False:
-                    raise ValidationError(self.error)
+                validator(value)
             except ValidationError as err:
                 kwargs.update(err.kwargs)
                 if isinstance(err.messages, dict):
