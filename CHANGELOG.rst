@@ -12,8 +12,9 @@ As a consequence of this change:
   - YYYY-MM-DD is now accepted as a datetime and deserialized as naive 00:00 AM.
   - `from_iso_date`, `from_iso_time` and `from_iso_datetime` are removed from `marshmallow.utils`
 
+- *Backwards-incompatible*: Custom validators must raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values.
+  Returning `False` is no longer supported (:issue:`1775`).
 - *Backwards-incompatible*: Rename ``schema`` parameter to ``parent`` in `marshmallow.fields.Field._bind_to_schema` (:issue:`1360`).
-
 - *Backwards-incompatible*: `marshmallow.fields.TimeDelta` no longer truncates float values when
   deserializing (:pr:`2654`). This allows microseconds to be preserved, e.g.
 
