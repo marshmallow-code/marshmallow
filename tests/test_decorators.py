@@ -6,16 +6,15 @@ from marshmallow import (
     RAISE,
     Schema,
     ValidationError,
-    validate,
     fields,
     post_dump,
     post_load,
     pre_dump,
     pre_load,
+    validate,
     validates,
     validates_schema,
 )
-
 from tests.base import predicate
 
 

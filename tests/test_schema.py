@@ -14,8 +14,8 @@ from marshmallow import (
     class_registry,
     fields,
     utils,
-    validates,
     validate,
+    validates,
     validates_schema,
 )
 from marshmallow.exceptions import (

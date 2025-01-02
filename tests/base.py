@@ -2,10 +2,10 @@
 
 import datetime as dt
 import functools
+import typing
 import uuid
 from enum import Enum, IntEnum
 from zoneinfo import ZoneInfo
-import typing
 
 import simplejson
 

@@ -16,8 +16,8 @@ from tests.base import (
     HairColorEnum,
     assert_date_equal,
     assert_time_equal,
-    predicate,
     central,
+    predicate,
 )
 
 
