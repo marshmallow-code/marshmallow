@@ -1,3 +1,5 @@
+import typing
+
 from marshmallow import Schema, fields, validates
 from marshmallow.exceptions import ValidationError
 from marshmallow.experimental.context import Context
@@ -6,7 +8,9 @@ from tests.base import Blog, User
 
 class UserContextSchema(Schema):
     is_owner = fields.Method("get_is_owner")
-    is_collab = fields.Function(lambda user: user in Context.get()["blog"])
+    is_collab = fields.Function(
+        lambda user: user in Context[dict[str, typing.Any]].get()["blog"]
+    )
 
     def get_is_owner(self, user):
         return Context.get()["blog"].user.name == user.name
