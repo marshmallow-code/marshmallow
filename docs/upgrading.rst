@@ -8,6 +8,27 @@ This section documents migration paths to new releases.
 Upgrading to 4.0
 ++++++++++++++++
 
+Use standard library for parsing ISO 8601 dates/times/datetimes
+***************************************************************
+
+The ``from_iso_*`` utilities are removed from marshmallow in favor of using the standard library implementations.
+
+.. code-block:: python
+
+    # 3.x
+    from marshmallow.utils import from_iso_date, from_iso_time, from_iso_datetime
+
+    from_iso_date("2013-11-10")
+    from_iso_time("01:23:45")
+    from_iso_datetime("2013-11-10T01:23:45")
+
+    # 4.x
+    import datetime as dt
+
+    dt.date.fromisoformat("2013-11-10")
+    dt.time.fromisoformat("01:23:45")
+    dt.datetime.fromisoformat("2013-11-10T01:23:45")
+
 Validators must raise a ValidationError
 ***************************************
 
@@ -57,6 +78,26 @@ If you want to use anonymous functions, you can use this helper function.
     class UserSchema(Schema):
         password = fields.String(validate=predicate(lambda x: x == "password"))
 
+Rename ``schema`` to ``parent`` in ``_bind_to_field``
+*****************************************************
+
+Custom fields that define a `_bind_to_field` method should rename the `schema` argument to `parent`.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+
+    # 3.x
+    class MyField(fields.Field):
+        def _bind_to_field(self, schema, field_name):
+            ...
+
+
+    # 4.x
+    class MyField(fields.Field):
+        def _bind_to_field(self, parent, field_name):
+            ...
 
 Upgrading to 3.3
 ++++++++++++++++
