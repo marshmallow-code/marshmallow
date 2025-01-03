@@ -186,8 +186,7 @@ The behavior is unchanged.
         name = fields.Str()
 
         @post_dump(pass_many=True)
-        def post_dump(self, data, many, **kwargs):
-            ...
+        def post_dump(self, data, many, **kwargs): ...
 
 
     # 4.x
@@ -195,8 +194,7 @@ The behavior is unchanged.
         name = fields.Str()
 
         @post_dump(pass_collection=True)
-        def post_dump(self, data, many, **kwargs):
-            ...
+        def post_dump(self, data, many, **kwargs): ...
 
 Rename ``schema`` to ``parent`` in ``_bind_to_schema``
 ******************************************************
@@ -210,14 +208,12 @@ Custom fields that define a `_bind_to_schema <marshmallow.Fields._bind_to_schema
 
     # 3.x
     class MyField(fields.Field):
-        def _bind_to_schema(self, schema, field_name):
-            ...
+        def _bind_to_schema(self, schema, field_name): ...
 
 
     # 4.x
     class MyField(fields.Field):
-        def _bind_to_schema(self, parent, field_name):
-            ...
+        def _bind_to_schema(self, parent, field_name): ...
 
 Use standard library for parsing ISO 8601 dates, times, and datetimes
 *********************************************************************
