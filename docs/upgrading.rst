@@ -1117,14 +1117,12 @@ should accept ``**kwargs``:
 
     # 2.x
     class MyCustomField(fields.Field):
-        def _deserialize(self, value, attr, obj):
-            ...
+        def _deserialize(self, value, attr, obj): ...
 
 
     # 3.x
     class MyCustomField(fields.Field):
-        def _deserialize(self, value, attr, obj, **kwargs):
-            ...
+        def _deserialize(self, value, attr, obj, **kwargs): ...
 
 
 Upgrading to 2.3

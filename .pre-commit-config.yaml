@@ -2,7 +2,7 @@ ci:
   autoupdate_schedule: monthly
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.8.1
+  rev: v0.8.5
   hooks:
     - id: ruff
     - id: ruff-format
@@ -16,9 +16,9 @@ repos:
   rev: 1.19.1
   hooks:
   - id: blacken-docs
-    additional_dependencies: [black==23.12.1]
+    additional_dependencies: [black==24.10.0]
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.13.0
+  rev: v1.14.1
   hooks:
   - id: mypy
     additional_dependencies: [types-simplejson, packaging]
