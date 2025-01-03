@@ -35,12 +35,12 @@ Example: ::
             item["email"] = item["email"].lower().strip()
             return item
 
-        @pre_load(pass_many=True)
+        @pre_load(pass_collection=True)
         def remove_envelope(self, data, many, **kwargs):
             namespace = "results" if many else "result"
             return data[namespace]
 
-        @post_dump(pass_many=True)
+        @post_dump(pass_collection=True)
         def add_envelope(self, data, many, **kwargs):
             namespace = "results" if many else "result"
             return {namespace: data}
@@ -93,7 +93,7 @@ def validates(field_name: str) -> Callable[..., Any]:
 
 def validates_schema(
     fn: Callable[..., Any] | None = None,
-    pass_many: bool = False,
+    pass_collection: bool = False,
     pass_original: bool = False,
     skip_on_field_errors: bool = True,
 ) -> Callable[..., Any]:
@@ -101,7 +101,7 @@ def validates_schema(
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.validate` call.
-    If ``pass_many=True``, the raw data (which may be a collection) is passed.
+    If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before unmarshalling) will be passed as
     an additional argument to the method.
@@ -119,31 +119,31 @@ def validates_schema(
     return set_hook(
         fn,
         VALIDATES_SCHEMA,
-        many=pass_many,
+        many=pass_collection,
         pass_original=pass_original,
         skip_on_field_errors=skip_on_field_errors,
     )
 
 
 def pre_dump(
-    fn: Callable[..., Any] | None = None, pass_many: bool = False
+    fn: Callable[..., Any] | None = None, pass_collection: bool = False
 ) -> Callable[..., Any]:
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
-    If ``pass_many=True``, the raw data (which may be a collection) is passed.
+    If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
     .. versionchanged:: 3.0.0
         ``many`` is always passed as a keyword arguments to the decorated method.
     """
-    return set_hook(fn, PRE_DUMP, many=pass_many)
+    return set_hook(fn, PRE_DUMP, many=pass_collection)
 
 
 def post_dump(
     fn: Callable[..., Any] | None = None,
-    pass_many: bool = False,
+    pass_collection: bool = False,
     pass_original: bool = False,
 ) -> Callable[..., Any]:
     """Register a method to invoke after serializing an object. The method
@@ -151,7 +151,7 @@ def post_dump(
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
-    If ``pass_many=True``, the raw data (which may be a collection) is passed.
+    If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before serializing) will be passed as
     an additional argument to the method.
@@ -159,29 +159,29 @@ def post_dump(
     .. versionchanged:: 3.0.0
         ``many`` is always passed as a keyword arguments to the decorated method.
     """
-    return set_hook(fn, POST_DUMP, many=pass_many, pass_original=pass_original)
+    return set_hook(fn, POST_DUMP, many=pass_collection, pass_original=pass_original)
 
 
 def pre_load(
-    fn: Callable[..., Any] | None = None, pass_many: bool = False
+    fn: Callable[..., Any] | None = None, pass_collection: bool = False
 ) -> Callable[..., Any]:
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
-    If ``pass_many=True``, the raw data (which may be a collection) is passed.
+    If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
     .. versionchanged:: 3.0.0
         ``partial`` and ``many`` are always passed as keyword arguments to
         the decorated method.
     """
-    return set_hook(fn, PRE_LOAD, many=pass_many)
+    return set_hook(fn, PRE_LOAD, many=pass_collection)
 
 
 def post_load(
     fn: Callable[..., Any] | None = None,
-    pass_many: bool = False,
+    pass_collection: bool = False,
     pass_original: bool = False,
 ) -> Callable[..., Any]:
     """Register a method to invoke after deserializing an object. The method
@@ -189,7 +189,7 @@ def post_load(
 
     By default it receives a single object at a time, transparently handling the ``many``
     argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
-    If ``pass_many=True``, the raw data (which may be a collection) is passed.
+    If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before deserializing) will be passed as
     an additional argument to the method.
@@ -198,7 +198,7 @@ def post_load(
         ``partial`` and ``many`` are always passed as keyword arguments to
         the decorated method.
     """
-    return set_hook(fn, POST_LOAD, many=pass_many, pass_original=pass_original)
+    return set_hook(fn, POST_LOAD, many=pass_collection, pass_original=pass_original)
 
 
 def set_hook(
