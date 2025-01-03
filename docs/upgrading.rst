@@ -60,7 +60,7 @@ If you want to use anonymous functions, you can use this helper function.
 Implicit field creation is removed
 **********************************
 
-marshmallow 3 the ``fields`` and ``additional`` class Meta options allowed fields to be implicitly created via introspection of the data being serialized.
+In marshmallow 3, the ``fields`` and ``additional`` class Meta options allowed fields to be implicitly created via introspection of the data being serialized.
 
 In marshmallow 4.0, implicit field creation is removed to prevent conflicts with libraries
 that generate fields dynamically.
@@ -95,7 +95,7 @@ To automatically generate schema fields from model classes, consider using a sep
 `marshmallow-sqlalchemy <https://github.com/marshmallow-code/marshmallow-sqlalchemy>`_ for SQLAlchemy models.
 
 .. code-block:: python
-    
+
     from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
 
 
@@ -106,11 +106,102 @@ To automatically generate schema fields from model classes, consider using a sep
         name = auto_field()
         birthdate = auto_field()
 
+``ordered`` is removed
+**********************
 
-Rename ``schema`` to ``parent`` in ``_bind_to_field``
-*****************************************************
+The ``ordered`` class Meta option is removed, since order is already preserved by default.
 
-Custom fields that define a `_bind_to_field` method should rename the `schema` argument to `parent`.
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+
+    # 3.x
+    class MySchema(Schema):
+        id = fields.Integer()
+
+        class Meta:
+            ordered = True
+
+
+    # 4.x
+    class MySchema(Schema):
+        id = fields.Integer()
+
+Custom ``SchemaOpts`` classes should remove the ``ordered`` argument from the constructor.
+
+.. code-block:: python
+
+    # 3.x
+    class CustomOpts(SchemaOpts):
+        def __init__(self, meta, ordered=False):
+            super().__init__(meta)
+            self.custom_option = getattr(meta, "meta", False)
+
+
+    # 4.x
+    class CustomOpts(SchemaOpts):
+        def __init__(self, meta):
+            super().__init__(meta, ordered)
+            self.custom_option = getattr(meta, "meta", False)
+
+``TimeDelta`` changes
+*********************
+
+The `TimeDelta <marshmallow.fields.TimeDelta>` field now preserves float values such that
+microseconds are included in the resulting `datetime.timedelta` object.
+
+.. code-block:: python
+
+    from marshmallow import fields
+
+    field = fields.TimeDelta()
+    value = field.deserialize(12.9)
+
+    # 3.x
+    print(value)  # => datetime.timedelta(seconds=12)
+
+    # 4.x
+    print(value)  # => datetime.timedelta(seconds=12, microseconds=900000)
+
+The ``serialization_type`` parameter has been removed. Use a custom field or cast the serialized value
+if you need to change the final output type.
+
+``pass_many`` is renamed to ``pass_collection`` in decorators
+*************************************************************
+
+The ``pass_many`` argument to `pre_load <marshmallow.decorators.pre_load>`, 
+`post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, 
+and `post_dump <marshmallow.decorators.post_dump>` is renamed to ``pass_collection``.
+
+The behavior is unchanged.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields, post_load
+
+
+    # 3.x
+    class MySchema(Schema):
+        name = fields.Str()
+
+        @post_dump(pass_many=True)
+        def post_dump(self, data, many, **kwargs):
+            ...
+
+
+    # 4.x
+    class MySchema(Schema):
+        name = fields.Str()
+
+        @post_dump(pass_collection=True)
+        def post_dump(self, data, many, **kwargs):
+            ...
+
+Rename ``schema`` to ``parent`` in ``_bind_to_schema``
+******************************************************
+
+Custom fields that define a `_bind_to_schema <marshmallow.Fields._bind_to_schema>` method should rename the `schema` argument to `parent`.
 
 .. code-block:: python
 
@@ -119,17 +210,17 @@ Custom fields that define a `_bind_to_field` method should rename the `schema` a
 
     # 3.x
     class MyField(fields.Field):
-        def _bind_to_field(self, schema, field_name):
+        def _bind_to_schema(self, schema, field_name):
             ...
 
 
     # 4.x
     class MyField(fields.Field):
-        def _bind_to_field(self, parent, field_name):
+        def _bind_to_schema(self, parent, field_name):
             ...
 
-Use standard library for parsing ISO 8601 dates/times/datetimes
-***************************************************************
+Use standard library for parsing ISO 8601 dates, times, and datetimes
+*********************************************************************
 
 The ``from_iso_*`` utilities are removed from marshmallow in favor of using the standard library implementations.
 
@@ -148,6 +239,33 @@ The ``from_iso_*`` utilities are removed from marshmallow in favor of using the 
     dt.date.fromisoformat("2013-11-10")
     dt.time.fromisoformat("01:23:45")
     dt.datetime.fromisoformat("2013-11-10T01:23:45")
+
+Upgrading to 3.13
++++++++++++++++++
+
+``load_default`` and ``dump_default``
++++++++++++++++++++++++++++++++++++++
+
+The ``missing`` and ``default`` parameters of fields are renamed to 
+``load_default`` and ``dump_default``, respectively.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+
+    # < 3.13
+    class MySchema(Schema):
+        name = fields.Str(missing="Monty")
+        age = fields.Int(default=42)
+
+
+    # >=3.13
+    class MySchema(Schema):
+        name = fields.Str(load_default="Monty")
+        age = fields.Int(dump_default=42)
+
+``load_default`` and ``dump_default`` are passed to the field constructor as keyword arguments.
 
 Upgrading to 3.3
 ++++++++++++++++

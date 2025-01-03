@@ -28,8 +28,8 @@ Data pre-processing and post-processing methods can be registered using the `pre
     result = schema.load({"name": "Steve", "slug": "Steve Loria "})
     result["slug"]  # => 'steve-loria'
 
-Passing "many"
-++++++++++++++
+Passing collections when ``many=True``
+++++++++++++++++++++++++++++++++++++++
 
 By default, pre- and post-processing methods receive one object/datum at a time, transparently handling the ``many`` parameter passed to the ``Schema``'s :func:`~marshmallow.Schema.dump`/:func:`~marshmallow.Schema.load` method at runtime.
 
