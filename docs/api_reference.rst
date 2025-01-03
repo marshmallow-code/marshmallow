@@ -13,13 +13,3 @@ API Reference
     marshmallow.error_store
     marshmallow.class_registry
     marshmallow.exceptions
-
-.. automodule:: marshmallow
-   :members:
-   :undoc-members:
-   :autosummary:
-
-.. data:: EXCLUDE
-.. data:: INCLUDE
-.. data:: RAISE
-.. data:: missing

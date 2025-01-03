@@ -36,7 +36,6 @@ docs = [
   "sphinx==8.1.3",
   "sphinx-issues==5.0.0",
   "alabaster==1.0.0",
-  "sphinx-version-warning==1.1.2",
   "autodocsumm==0.2.14",
 ]
 tests = ["pytest", "simplejson"]

@@ -8,7 +8,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "alabaster",
     "sphinx_issues",
-    "versionwarning.extension",
     "autodocsumm",
 ]
 
@@ -36,7 +35,6 @@ exclude_patterns = ["_build"]
 html_theme_path = [alabaster.get_path()]
 html_theme = "alabaster"
 html_static_path = ["_static"]
-html_css_files = ["css/versionwarning.css"]
 templates_path = ["_templates"]
 html_show_sourcelink = False
 
@@ -76,21 +74,3 @@ html_sidebars = {
         "relations.html",
     ],
 }
-
-# sphinx-version-warning config
-versionwarning_messages = {
-    "latest": (
-        "This document is for the development version. "
-        'For the stable version documentation, see <a href="/en/stable/">here</a>.'
-    ),
-    "2.x-line": (
-        "marshmallow 2 is no longer supported as of 2020-08-18. "
-        '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
-        "Update your code to use marshmallow 3</a>."
-    ),
-}
-# Show warning at top of page
-versionwarning_body_selector = "div.document"
-versionwarning_banner_title = ""
-# For debugging locally
-# versionwarning_project_version = "latest"
