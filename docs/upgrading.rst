@@ -8,27 +8,6 @@ This section documents migration paths to new releases.
 Upgrading to 4.0
 ++++++++++++++++
 
-Use standard library for parsing ISO 8601 dates/times/datetimes
-***************************************************************
-
-The ``from_iso_*`` utilities are removed from marshmallow in favor of using the standard library implementations.
-
-.. code-block:: python
-
-    # 3.x
-    from marshmallow.utils import from_iso_date, from_iso_time, from_iso_datetime
-
-    from_iso_date("2013-11-10")
-    from_iso_time("01:23:45")
-    from_iso_datetime("2013-11-10T01:23:45")
-
-    # 4.x
-    import datetime as dt
-
-    dt.date.fromisoformat("2013-11-10")
-    dt.time.fromisoformat("01:23:45")
-    dt.datetime.fromisoformat("2013-11-10T01:23:45")
-
 Validators must raise a ValidationError
 ***************************************
 
@@ -78,6 +57,56 @@ If you want to use anonymous functions, you can use this helper function.
     class UserSchema(Schema):
         password = fields.String(validate=predicate(lambda x: x == "password"))
 
+Implicit field creation is removed
+**********************************
+
+marshmallow 3 the ``fields`` and ``additional`` class Meta options allowed fields to be implicitly created via introspection of the data being serialized.
+
+In marshmallow 4.0, implicit field creation is removed to prevent conflicts with libraries
+that generate fields dynamically.
+
+.. code-block:: python
+
+    import datetime as dt
+    import dataclasses
+
+    from marshmallow import Schema, fields
+
+
+    @dataclasses.dataclass
+    class User:
+        name: str
+        birthdate: dt.date
+
+
+    # 3.x
+    class UserSchema(Schema):
+        class Meta:
+            fields = ("name", "birthdate")
+
+
+    # 4.x
+    class UserSchema(Schema):
+        name = fields.String()
+        email = fields.Date()
+
+
+To automatically generate schema fields from model classes, consider using a separate library, e.g.
+`marshmallow-sqlalchemy <https://github.com/marshmallow-code/marshmallow-sqlalchemy>`_ for SQLAlchemy models.
+
+.. code-block:: python
+    
+    from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
+
+
+    class UserSchema(SQLAlchemySchema):
+        class Meta:
+            model = Author
+
+        name = auto_field()
+        birthdate = auto_field()
+
+
 Rename ``schema`` to ``parent`` in ``_bind_to_field``
 *****************************************************
 
@@ -99,10 +128,31 @@ Custom fields that define a `_bind_to_field` method should rename the `schema` a
         def _bind_to_field(self, parent, field_name):
             ...
 
+Use standard library for parsing ISO 8601 dates/times/datetimes
+***************************************************************
+
+The ``from_iso_*`` utilities are removed from marshmallow in favor of using the standard library implementations.
+
+.. code-block:: python
+
+    # 3.x
+    from marshmallow.utils import from_iso_date, from_iso_time, from_iso_datetime
+
+    from_iso_date("2013-11-10")
+    from_iso_time("01:23:45")
+    from_iso_datetime("2013-11-10T01:23:45")
+
+    # 4.x
+    import datetime as dt
+
+    dt.date.fromisoformat("2013-11-10")
+    dt.time.fromisoformat("01:23:45")
+    dt.datetime.fromisoformat("2013-11-10T01:23:45")
+
 Upgrading to 3.3
 ++++++++++++++++
 
-In 3.3, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance. 
+In 3.3, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance.
 Use this to resolve order-of-declaration issues when schemas nest each other.
 
 .. code-block:: python
@@ -1157,7 +1207,7 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 ``Field.fail`` is deprecated in favor of ``Field.make_error``
 *************************************************************
 
-`Field.fail <marshmallow.fields.Field.fail>` is deprecated. 
+`Field.fail <marshmallow.fields.Field.fail>` is deprecated.
 Use `Field.make_error <marshmallow.fields.Field.fail>`. This allows you to
 re-raise exceptions using ``raise ... from ...``.
 
