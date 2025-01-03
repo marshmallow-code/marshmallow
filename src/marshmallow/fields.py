@@ -105,8 +105,9 @@ class Field(FieldABC):
     :param required: Raise a :exc:`ValidationError` if the field value
         is not supplied during deserialization.
     :param allow_none: Set this to `True` if `None` should be considered a valid value during
-        validation/deserialization. If ``load_default=None`` and ``allow_none`` is unset,
-        will default to ``True``. Otherwise, the default is ``False``.
+        validation/deserialization. If set to `False` (the default), `None` is considered invalid input.
+        If ``load_default`` is explicitly set to `None` and ``allow_none`` is unset,
+        `allow_none` is implicitly set to ``True``.
     :param load_only: If `True` skip this field during serialization, otherwise
         its value will be present in the serialized data.
     :param dump_only: If `True` skip this field during deserialization, otherwise
