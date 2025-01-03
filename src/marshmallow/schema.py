@@ -422,7 +422,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: dict[str, ma_fields.Field | type[ma_fields.Field]],
+        fields: dict[str, ma_fields.Field],
         *,
         name: str = "GeneratedSchema",
     ) -> type[Schema]:
@@ -444,11 +444,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         .. versionadded:: 3.0.0
         """
-        attrs = fields.copy()
-        attrs["Meta"] = type(
+        Meta = type(
             "GeneratedMeta", (getattr(cls, "Meta", object),), {"register": False}
         )
-        schema_cls = type(name, (cls,), attrs)
+        schema_cls = type(name, (cls,), {**fields.copy(), "Meta": Meta})
         return schema_cls
 
     ##### Override-able methods #####
