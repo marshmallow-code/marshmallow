@@ -74,7 +74,7 @@ class UserSchema(Schema):
 
 class TodoSchema(Schema):
     id = fields.Int(dump_only=True)
-    done = fields.Boolean(attribute="is_done", missing=False)
+    done = fields.Boolean(attribute="is_done", load_default=False)
     user = fields.Nested(UserSchema(exclude=("joined_on", "password")), dump_only=True)
     content = fields.Str(required=True)
     posted_on = fields.DateTime(dump_only=True)

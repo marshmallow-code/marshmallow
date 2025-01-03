@@ -6,7 +6,13 @@ Changelog
 
 See :ref:`upgrading_4_0` for a guide on updating your code.
 
-- *Backwards-incompatible*: Remove implicit field creation, i.e. using the ``fields`` or ``additional`` class Meta options with undeclared fields (:issue:`1356`).
+Features:
+
+- Typing: Add types to all `Field <marshmallow.fields.Field>` subclass kwargs (:issue:`2285`).
+  Thanks :user:`navignaw` for the suggestion.
+
+Other changes:
+
 - *Backwards-incompatible*: Use `datetime.date.fromisoformat`, `datetime.time.fromisoformat`, and `datetime.datetime.fromisoformat` from the standard library to deserialize dates, times and datetimes (:pr:`2078`).
 
 As a consequence of this change:
@@ -41,6 +47,9 @@ As a consequence of this change:
 
 Thanks :user:`ddelange` for the PR.
 
+Deprecations/Removals:
+
+- *Backwards-incompatible*: Remove implicit field creation, i.e. using the ``fields`` or ``additional`` class Meta options with undeclared fields (:issue:`1356`).
 - The `ordered` class Meta option is removed  (:issue:`2146`). Field order is already preserved by default.
   Set `Schema.dict_class` to `OrderedDict` to maintain the previous behavior.
 

@@ -14,7 +14,12 @@ import uuid
 from collections.abc import Mapping as _Mapping
 from enum import Enum as EnumType
 
-# Remove this when dropping Python 3.10
+try:
+    from typing import Unpack
+except ImportError:  # Remove when dropping Python 3.10
+    from typing_extensions import Unpack
+
+# Remove when dropping Python 3.10
 try:
     from backports.datetime_fromisoformat import MonkeyPatch
 except ImportError:
@@ -84,6 +89,24 @@ __all__ = [
 ]
 
 _T = typing.TypeVar("_T")
+
+
+class _BaseFieldKwargs(typing.TypedDict, total=False):
+    load_default: typing.Any
+    dump_default: typing.Any
+    data_key: str | None
+    attribute: str | None
+    validate: (
+        typing.Callable[[typing.Any], typing.Any]
+        | typing.Iterable[typing.Callable[[typing.Any], typing.Any]]
+        | None
+    )
+    required: bool
+    allow_none: bool | None
+    load_only: bool
+    dump_only: bool
+    error_messages: dict[str, str] | None
+    metadata: typing.Mapping[str, typing.Any] | None
 
 
 class Field(FieldABC):
@@ -468,12 +491,11 @@ class Nested(Field):
             ]
         ),
         *,
-        dump_default: typing.Any = missing_,
         only: types.StrSequenceOrSet | None = None,
         exclude: types.StrSequenceOrSet = (),
         many: bool = False,
         unknown: str | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -488,7 +510,7 @@ class Nested(Field):
         self.many = many
         self.unknown = unknown
         self._schema = None  # Cached Schema instance
-        super().__init__(dump_default=dump_default, **kwargs)
+        super().__init__(**kwargs)
 
     @property
     def schema(self):
@@ -619,7 +641,7 @@ class Pluck(Nested):
         self,
         nested: SchemaABC | SchemaMeta | str | typing.Callable[[], SchemaABC],
         field_name: str,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(nested, only=(field_name,), **kwargs)
         self.field_name = field_name
@@ -668,7 +690,9 @@ class List(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid list."}
 
-    def __init__(self, cls_or_instance: Field | type[Field], **kwargs):
+    def __init__(
+        self, cls_or_instance: Field | type[Field], **kwargs: Unpack[_BaseFieldKwargs]
+    ):
         super().__init__(**kwargs)
         try:
             self.inner = resolve_field_instance(cls_or_instance)
@@ -735,8 +759,8 @@ class Tuple(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid tuple."}
 
-    def __init__(self, tuple_fields, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, tuple_fields, **kwargs: Unpack[_BaseFieldKwargs]):
+        super().__init__(**kwargs)
         if not utils.is_collection(tuple_fields):
             raise ValueError(
                 "tuple_fields must be an iterable of Field classes or " "instances."
@@ -860,7 +884,7 @@ class Number(Field):
         "too_large": "Number too large.",
     }
 
-    def __init__(self, *, as_string: bool = False, **kwargs):
+    def __init__(self, *, as_string: bool = False, **kwargs: Unpack[_BaseFieldKwargs]):
         self.as_string = as_string
         super().__init__(**kwargs)
 
@@ -909,9 +933,15 @@ class Integer(Number):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid integer."}
 
-    def __init__(self, *, strict: bool = False, **kwargs):
+    def __init__(
+        self,
+        *,
+        strict: bool = False,
+        as_string: bool = False,
+        **kwargs: Unpack[_BaseFieldKwargs],
+    ):
         self.strict = strict
-        super().__init__(**kwargs)
+        super().__init__(as_string=as_string, **kwargs)
 
     # override Number
     def _validated(self, value):
@@ -936,7 +966,13 @@ class Float(Number):
         "special": "Special numeric values (nan or infinity) are not permitted."
     }
 
-    def __init__(self, *, allow_nan: bool = False, as_string: bool = False, **kwargs):
+    def __init__(
+        self,
+        *,
+        allow_nan: bool = False,
+        as_string: bool = False,
+        **kwargs: Unpack[_BaseFieldKwargs],
+    ):
         self.allow_nan = allow_nan
         super().__init__(as_string=as_string, **kwargs)
 
@@ -999,7 +1035,7 @@ class Decimal(Number):
         *,
         allow_nan: bool = False,
         as_string: bool = False,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         self.places = (
             decimal.Decimal((0, (1,), -places)) if places is not None else None
@@ -1094,7 +1130,7 @@ class Boolean(Field):
         *,
         truthy: set | None = None,
         falsy: set | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
 
@@ -1177,7 +1213,9 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str | None = None, **kwargs) -> None:
+    def __init__(
+        self, format: str | None = None, **kwargs: Unpack[_BaseFieldKwargs]
+    ) -> None:
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1238,7 +1276,7 @@ class NaiveDateTime(DateTime):
         format: str | None = None,
         *,
         timezone: dt.timezone | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ) -> None:
         super().__init__(format=format, **kwargs)
         self.timezone = timezone
@@ -1275,7 +1313,7 @@ class AwareDateTime(DateTime):
         format: str | None = None,
         *,
         default_timezone: dt.tzinfo | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ) -> None:
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
@@ -1411,7 +1449,7 @@ class TimeDelta(Field):
     def __init__(
         self,
         precision: str = SECONDS,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ) -> None:
         precision = precision.lower()
 
@@ -1469,7 +1507,7 @@ class Mapping(Field):
         self,
         keys: Field | type[Field] | None = None,
         values: Field | type[Field] | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
         if keys is None:
@@ -1617,7 +1655,7 @@ class Url(String):
         absolute: bool = True,
         schemes: types.StrSequenceOrSet | None = None,
         require_tld: bool = True,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
 
@@ -1645,8 +1683,8 @@ class Email(String):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid email address."}
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs: Unpack[_BaseFieldKwargs]) -> None:
+        super().__init__(**kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
         validator = validate.Email(error=self.error_messages["invalid"])
         self.validators.insert(0, validator)
@@ -1665,8 +1703,8 @@ class IP(Field):
 
     DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
 
-    def __init__(self, *args, exploded=False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *, exploded: bool = False, **kwargs: Unpack[_BaseFieldKwargs]):
+        super().__init__(**kwargs)
         self.exploded = exploded
 
     def _serialize(self, value, attr, obj, **kwargs) -> str | None:
@@ -1729,8 +1767,8 @@ class IPInterface(Field):
 
     DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
 
-    def __init__(self, *args, exploded: bool = False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *, exploded: bool = False, **kwargs: Unpack[_BaseFieldKwargs]):
+        super().__init__(**kwargs)
         self.exploded = exploded
 
     def _serialize(self, value, attr, obj, **kwargs) -> str | None:
@@ -1792,7 +1830,7 @@ class Enum(Field):
         enum: type[EnumType],
         *,
         by_value: bool | Field | type[Field] = False,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
         self.enum = enum
@@ -1869,7 +1907,7 @@ class Method(Field):
         self,
         serialize: str | None = None,
         deserialize: str | None = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],  # FIXME: Omit dump_only and load_only
     ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
@@ -1941,7 +1979,7 @@ class Function(Field):
             | typing.Callable[[typing.Any, dict], typing.Any]
             | None
         ) = None,
-        **kwargs,
+        **kwargs: Unpack[_BaseFieldKwargs],  # FIXME: Omit dump_only and load_only
     ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
@@ -1979,7 +2017,7 @@ class Constant(Field):
 
     _CHECK_ATTRIBUTE = False
 
-    def __init__(self, constant: typing.Any, **kwargs):
+    def __init__(self, constant: typing.Any, **kwargs: Unpack[_BaseFieldKwargs]):
         super().__init__(**kwargs)
         self.constant = constant
         self.load_default = constant
