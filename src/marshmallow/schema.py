@@ -817,7 +817,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 field_errors = bool(error_store.errors)
                 self._invoke_schema_validators(
                     error_store=error_store,
-                    pass_many=True,
+                    pass_collection=True,
                     data=result,
                     original_data=data,
                     many=many,
@@ -826,7 +826,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
                 self._invoke_schema_validators(
                     error_store=error_store,
-                    pass_many=False,
+                    pass_collection=False,
                     data=result,
                     original_data=data,
                     many=many,
@@ -999,14 +999,18 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def _invoke_dump_processors(
         self, tag: str, data, *, many: bool, original_data=None
     ):
-        # The pass_many post-dump processors may do things like add an envelope, so
-        # invoke those after invoking the non-pass_many processors which will expect
+        # The pass_collection post-dump processors may do things like add an envelope, so
+        # invoke those after invoking the non-pass_collection processors which will expect
         # to get a list of items.
         data = self._invoke_processors(
-            tag, pass_many=False, data=data, many=many, original_data=original_data
+            tag,
+            pass_collection=False,
+            data=data,
+            many=many,
+            original_data=original_data,
         )
         data = self._invoke_processors(
-            tag, pass_many=True, data=data, many=many, original_data=original_data
+            tag, pass_collection=True, data=data, many=many, original_data=original_data
         )
         return data
 
@@ -1019,11 +1023,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         original_data,
         partial: bool | types.StrSequenceOrSet | None,
     ):
-        # This has to invert the order of the dump processors, so run the pass_many
+        # This has to invert the order of the dump processors, so run the pass_collection
         # processors first.
         data = self._invoke_processors(
             tag,
-            pass_many=True,
+            pass_collection=True,
             data=data,
             many=many,
             original_data=original_data,
@@ -1031,7 +1035,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         )
         data = self._invoke_processors(
             tag,
-            pass_many=False,
+            pass_collection=False,
             data=data,
             many=many,
             original_data=original_data,
@@ -1089,7 +1093,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         *,
         error_store: ErrorStore,
-        pass_many: bool,
+        pass_collection: bool,
         data,
         original_data,
         many: bool,
@@ -1097,14 +1101,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         field_errors: bool = False,
     ):
         for attr_name, hook_many, validator_kwargs in self._hooks[VALIDATES_SCHEMA]:
-            if hook_many != pass_many:
+            if hook_many != pass_collection:
                 continue
             validator = getattr(self, attr_name)
             if field_errors and validator_kwargs["skip_on_field_errors"]:
                 continue
             pass_original = validator_kwargs.get("pass_original", False)
 
-            if many and not pass_many:
+            if many and not pass_collection:
                 for idx, (item, orig) in enumerate(zip(data, original_data)):
                     self._run_validator(
                         validator,
@@ -1131,20 +1135,20 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self,
         tag: str,
         *,
-        pass_many: bool,
+        pass_collection: bool,
         data,
         many: bool,
         original_data=None,
         **kwargs,
     ):
         for attr_name, hook_many, processor_kwargs in self._hooks[tag]:
-            if hook_many != pass_many:
+            if hook_many != pass_collection:
                 continue
             # This will be a bound method.
             processor = getattr(self, attr_name)
             pass_original = processor_kwargs.get("pass_original", False)
 
-            if many and not pass_many:
+            if many and not pass_collection:
                 if pass_original:
                     data = [
                         processor(item, original, many=many, **kwargs)
