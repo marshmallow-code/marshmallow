@@ -116,25 +116,6 @@ class Field(FieldABC):
     :param dict error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra information to be stored as field metadata.
 
-    .. versionchanged:: 2.0.0
-        Removed `error` parameter. Use ``error_messages`` instead.
-
-    .. versionchanged:: 2.0.0
-        Added `allow_none` parameter, which makes validation/deserialization of `None`
-        consistent across fields.
-
-    .. versionchanged:: 2.0.0
-        Added `load_only` and `dump_only` parameters, which allow field skipping
-        during the (de)serialization process.
-
-    .. versionchanged:: 2.0.0
-        Added `missing` parameter, which indicates the value for a field if the field
-        is not found during deserialization.
-
-    .. versionchanged:: 2.0.0
-        ``default`` value is only used if explicitly set. Otherwise, missing values
-        inputs are excluded from serialized output.
-
     .. versionchanged:: 3.0.0b8
         Add ``data_key`` parameter for the specifying the key in the input and
         output data. This parameter replaced both ``load_from`` and ``dump_to``.
@@ -426,9 +407,6 @@ class Field(FieldABC):
         :param kwargs: Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The deserialized value.
-
-        .. versionchanged:: 2.0.0
-            Added ``attr`` and ``data`` parameters.
 
         .. versionchanged:: 3.0.0
             Added ``**kwargs`` to signature.
@@ -749,10 +727,6 @@ class List(Field):
 
     :param cls_or_instance: A field class or instance.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
-
-    .. versionchanged:: 2.0.0
-        The ``allow_none`` parameter now applies to deserialization and
-        has the same semantics as the other fields.
 
     .. versionchanged:: 3.0.0rc9
         Does not serialize scalar values to single-item lists.
@@ -1465,9 +1439,6 @@ class TimeDelta(Field):
     will always be truncated to microseconds.
     For example, `1.12345` interpreted as microseconds will result in `timedelta(microseconds=1)`.
 
-    .. versionchanged:: 2.0.0
-        Always serializes to an integer value to avoid rounding errors.
-        Add `precision` parameter.
     .. versionchanged:: 3.17.0
         Allow (de)serialization to `float` through use of a new `serialization_type` parameter.
         `int` is the default to retain previous behaviour.
@@ -1950,9 +1921,6 @@ class Method(Field):
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
 
-    .. versionchanged:: 2.0.0
-        Removed optional ``context`` parameter on methods. Use ``self.context`` instead.
-
     .. versionchanged:: 2.3.0
         Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
         ``serialize`` to not be passed at all.
@@ -2071,8 +2039,6 @@ class Constant(Field):
     ``dump_only=True`` or ``load_only=True`` respectively.
 
     :param constant: The constant to return for the field attribute.
-
-    .. versionadded:: 2.0.0
     """
 
     _CHECK_ATTRIBUTE = False
