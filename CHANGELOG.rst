@@ -9,6 +9,11 @@ Bug fixes:
 - Typing: Fix typing for `Schema.from_dict <marshmallow.schema.Schema.from_dict>` (:issue:`1653`).
   Thanks :user:`SteadBytes` for reporting.
 
+Support:
+
+- Documentation: clean up `marshmallow.fields` API reference (:issue:`2307`).
+  Thanks :user:`AbdealiLoKo` for reporting.
+
 3.23.2 (2024-12-18)
 *******************
 

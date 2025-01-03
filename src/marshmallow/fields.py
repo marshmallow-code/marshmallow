@@ -1,5 +1,3 @@
-"""Field classes for various types of data."""
-
 from __future__ import annotations
 
 import collections
@@ -84,7 +82,6 @@ class Field(FieldABC):
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized or deserialized.
-    On error, the name of the field will be returned.
 
     :param dump_default: If set, this value will be used during serialization if the
         input value is missing. If not set, the field will be excluded from the
@@ -140,6 +137,9 @@ class Field(FieldABC):
     .. versionchanged:: 3.0.0b8
         Add ``data_key`` parameter for the specifying the key in the input and
         output data. This parameter replaced both ``load_from`` and ``dump_to``.
+
+    .. versionchanged:: 3.13.0
+        Replace ``missing`` and ``default`` parameters with ``load_default`` and ``dump_default``.
     """
 
     # Some fields, such as Method fields and Function fields, are not expected
