@@ -11,7 +11,7 @@ Bug fixes:
 
 Support:
 
-- Documentation: clean up `marshmallow.fields` API reference (:issue:`2307`).
+- Documentation: Various documentation cleanups, including more concise docs in the `marshmallow.fields` API reference (:issue:`2307`).
   Thanks :user:`AbdealiLoKo` for reporting.
 
 3.23.2 (2024-12-18)
