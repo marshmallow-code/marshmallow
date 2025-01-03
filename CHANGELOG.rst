@@ -23,6 +23,7 @@ As a consequence of this change:
 - *Backwards-incompatible*: Custom validators must raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values.
   Returning `False` is no longer supported (:issue:`1775`).
 - *Backwards-incompatible*: Rename ``schema`` parameter to ``parent`` in `marshmallow.fields.Field._bind_to_schema` (:issue:`1360`).
+- *Backwards-incompatible*: Rename ``pass_many`` parameter to ``pass_collection`` in pre/post processing methods (:issue:`1369`).
 - *Backwards-incompatible*: `marshmallow.fields.TimeDelta` no longer truncates float values when
   deserializing (:pr:`2654`). This allows microseconds to be preserved, e.g.
 
