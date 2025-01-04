@@ -6,6 +6,7 @@ Changelog
 
 Features:
 
+- Typing: Improve typings in `marshmallow.fields` (:pr:`2723`).
 - Typing: Replace type comments with inline typings (:pr:`2718`).
 
 Bug fixes:
