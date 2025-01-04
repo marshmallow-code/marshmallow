@@ -63,6 +63,7 @@ Previously-deprecated API have been removed, including:
 - Passing `"self"` to `fields.Nested` (deprecated in 3.3.0). Use a callable instead.
 - `json_module` class Meta option (deprecated in 3.0.0b3). Use `render_module` instead.
 - `marshmallow.utils.pprint` (deprecated in 3.7.0). Use `pprint.pprint` instead.
+- Remove ``__version__``, ``__parsed_version__``, and ``__version_info__`` attributes which were deprecated in 3.21.0.
 
 3.23.3 (2025-01-03)
 *******************

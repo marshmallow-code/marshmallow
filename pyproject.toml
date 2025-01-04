@@ -23,7 +23,6 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
-  "packaging>=17.0",
   "backports-datetime-fromisoformat; python_version < '3.11'",
   "typing-extensions; python_version < '3.11'",
 ]
