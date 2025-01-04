@@ -71,6 +71,7 @@ Previously-deprecated API have been removed, including:
 
 Features:
 
+- Typing: Improve typings in `marshmallow.fields` (:pr:`2723`).
 - Typing: Replace type comments with inline typings (:pr:`2718`).
 
 Bug fixes:
