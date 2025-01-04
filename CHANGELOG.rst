@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+3.24.0 (unreleased)
+*******************
+
+Features:
+
+- Typing: Replace type comments with inline typings (:pr:`2718`).
+
+
 3.23.3 (2025-01-03)
 *******************
 
