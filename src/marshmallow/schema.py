@@ -154,7 +154,7 @@ class SchemaMeta(ABCMeta):
         """
         mro = inspect.getmro(cls)
 
-        hooks = defaultdict(list)  # type: dict[str, list[tuple[str, bool, dict]]]
+        hooks: dict[str, list[tuple[str, bool, dict]]] = defaultdict(list)
 
         for attr_name in dir(cls):
             # Need to look up the actual descriptor, not whatever might be
@@ -174,7 +174,9 @@ class SchemaMeta(ABCMeta):
                 continue
 
             try:
-                hook_config = attr.__marshmallow_hook__  # type: dict[str, list[tuple[bool, dict]]]
+                hook_config: dict[str, list[tuple[bool, dict]]] = (
+                    attr.__marshmallow_hook__
+                )
             except AttributeError:
                 pass
             else:
@@ -282,7 +284,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         `prefix` parameter removed.
     """
 
-    TYPE_MAPPING = {
+    TYPE_MAPPING: dict[type, type[ma_fields.Field]] = {
         str: ma_fields.String,
         bytes: ma_fields.String,
         dt.datetime: ma_fields.DateTime,
@@ -297,23 +299,23 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         dt.date: ma_fields.Date,
         dt.timedelta: ma_fields.TimeDelta,
         decimal.Decimal: ma_fields.Decimal,
-    }  # type: dict[type, typing.Type[ma_fields.Field]]
+    }
     #: Overrides for default schema-level error messages
-    error_messages = {}  # type: dict[str, str]
+    error_messages: dict[str, str] = {}
 
-    _default_error_messages = {
+    _default_error_messages: dict[str, str] = {
         "type": "Invalid input type.",
         "unknown": "Unknown field.",
-    }  # type: dict[str, str]
+    }
 
-    OPTIONS_CLASS = SchemaOpts  # type: type
+    OPTIONS_CLASS: type = SchemaOpts
 
     set_class = OrderedSet
 
     # These get set by SchemaMeta
-    opts = None  # type: SchemaOpts
-    _declared_fields = {}  # type: dict[str, ma_fields.Field]
-    _hooks = {}  # type: dict[str, list[tuple[str, bool, dict]]]
+    opts: SchemaOpts
+    _declared_fields: dict[str, ma_fields.Field] = {}
+    _hooks: dict[str, list[tuple[str, bool, dict]]] = {}
 
     class Meta:
         """Options object for a Schema.
@@ -391,9 +393,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields = {}  # type: dict[str, ma_fields.Field]
-        self.load_fields = {}  # type: dict[str, ma_fields.Field]
-        self.dump_fields = {}  # type: dict[str, ma_fields.Field]
+        self.fields: dict[str, ma_fields.Field] = {}
+        self.load_fields: dict[str, ma_fields.Field] = {}
+        self.dump_fields: dict[str, ma_fields.Field] = {}
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -821,7 +823,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         :return: Deserialized data
         """
         error_store = ErrorStore()
-        errors = {}  # type: dict[str, list[str]]
+        errors: dict[str, list[str]] = {}
         many = self.many if many is None else bool(many)
         unknown = (
             self.unknown
@@ -838,7 +840,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 )
             except ValidationError as err:
                 errors = err.normalized_messages()
-                result = None  # type: list | dict | None
+                result: list | dict | None = None
         else:
             processed_data = data
         if not errors:

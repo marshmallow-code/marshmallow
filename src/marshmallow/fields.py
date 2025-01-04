@@ -218,7 +218,7 @@ class Field(FieldABC):
             )
 
         # Collect default error message from self and parent classes
-        messages = {}  # type: dict[str, str]
+        messages: dict[str, str] = {}
         for cls in reversed(self.__class__.__mro__):
             messages.update(getattr(cls, "default_error_messages", {}))
         messages.update(error_messages or {})
@@ -919,7 +919,7 @@ class Number(Field):
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
-    num_type = float  # type: typing.Type
+    num_type: type = float
 
     #: Default error messages.
     default_error_messages = {
@@ -956,7 +956,7 @@ class Number(Field):
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
         if value is None:
             return None
-        ret = self._format_num(value)  # type: _T
+        ret: _T = self._format_num(value)
         return self._to_string(ret) if self.as_string else ret
 
     def _deserialize(self, value, attr, data, **kwargs) -> _T | None:
@@ -1213,23 +1213,23 @@ class DateTime(Field):
         Add timestamp as a format.
     """
 
-    SERIALIZATION_FUNCS = {
+    SERIALIZATION_FUNCS: dict[str, typing.Callable[[typing.Any], str | float]] = {
         "iso": utils.isoformat,
         "iso8601": utils.isoformat,
         "rfc": utils.rfcformat,
         "rfc822": utils.rfcformat,
         "timestamp": utils.timestamp,
         "timestamp_ms": utils.timestamp_ms,
-    }  # type: dict[str, typing.Callable[[typing.Any], str | float]]
+    }
 
-    DESERIALIZATION_FUNCS = {
+    DESERIALIZATION_FUNCS: dict[str, typing.Callable[[str], typing.Any]] = {
         "iso": utils.from_iso_datetime,
         "iso8601": utils.from_iso_datetime,
         "rfc": utils.from_rfc,
         "rfc822": utils.from_rfc,
         "timestamp": utils.from_timestamp,
         "timestamp_ms": utils.from_timestamp_ms,
-    }  # type: dict[str, typing.Callable[[str], typing.Any]]
+    }
 
     DEFAULT_FORMAT = "iso"
 
@@ -1732,7 +1732,7 @@ class IP(Field):
 
     default_error_messages = {"invalid_ip": "Not a valid IP address."}
 
-    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+    DESERIALIZATION_CLASS: type | None = None
 
     def __init__(self, *args, exploded=False, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1796,7 +1796,7 @@ class IPInterface(Field):
 
     default_error_messages = {"invalid_ip_interface": "Not a valid IP interface."}
 
-    DESERIALIZATION_CLASS = None  # type: typing.Optional[typing.Type]
+    DESERIALIZATION_CLASS: type | None = None
 
     def __init__(self, *args, exploded: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
