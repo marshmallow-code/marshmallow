@@ -367,7 +367,7 @@ class Field(FieldABC):
 
     # Methods for concrete classes to override.
 
-    def _bind_to_schema(self, field_name: str, schema: Schema) -> None:
+    def _bind_to_schema(self, field_name: str, schema: Schema | Field) -> None:
         """Update field with values from its parent schema. Called by
         :meth:`Schema._bind_field <marshmallow.Schema._bind_field>`.
 
@@ -767,7 +767,7 @@ class List(Field):
             self.only = self.inner.only
             self.exclude = self.inner.exclude
 
-    def _bind_to_schema(self, field_name: str, schema: Schema) -> None:
+    def _bind_to_schema(self, field_name: str, schema: Schema | Field) -> None:
         super()._bind_to_schema(field_name, schema)
         self.inner = copy.deepcopy(self.inner)
         self.inner._bind_to_schema(field_name, self)
@@ -841,7 +841,7 @@ class Tuple(Field):
 
         self.validate_length = Length(equal=len(self.tuple_fields))
 
-    def _bind_to_schema(self, field_name: str, schema: Schema) -> None:
+    def _bind_to_schema(self, field_name: str, schema: Schema | Field) -> None:
         super()._bind_to_schema(field_name, schema)
         new_tuple_fields = []
         for field in self.tuple_fields:
