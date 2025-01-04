@@ -8,6 +8,10 @@ Features:
 
 - Typing: Replace type comments with inline typings (:pr:`2718`).
 
+Bug fixes:
+
+- Typing: Fix type hint for ``nested`` parameter of `Nested <marshmallow.fields.Nested>`.
+
 
 3.23.3 (2025-01-03)
 *******************

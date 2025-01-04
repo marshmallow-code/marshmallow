@@ -14,7 +14,7 @@ from collections.abc import Mapping as _Mapping
 from enum import Enum as EnumType
 
 from marshmallow import class_registry, types, utils, validate
-from marshmallow.base import FieldABC, SchemaABC
+from marshmallow.base import FieldABC
 from marshmallow.exceptions import (
     FieldInstanceResolutionError,
     StringNotCollectionError,
@@ -32,7 +32,7 @@ from marshmallow.validate import And, Length
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 if typing.TYPE_CHECKING:
-    from marshmallow.schema import SchemaMeta
+    from marshmallow.schema import Schema, SchemaMeta
 
 
 __all__ = [
@@ -519,13 +519,11 @@ class Nested(Field):
     def __init__(
         self,
         nested: (
-            SchemaABC
+            Schema
             | SchemaMeta
             | str
-            | dict[str, Field | type[Field]]
-            | typing.Callable[
-                [], SchemaABC | SchemaMeta | dict[str, Field | type[Field]]
-            ]
+            | dict[str, Field]
+            | typing.Callable[[], Schema | SchemaMeta | dict[str, Field]]
         ),
         *,
         dump_default: typing.Any = missing_,
@@ -555,11 +553,11 @@ class Nested(Field):
         self.exclude = exclude
         self.many = many
         self.unknown = unknown
-        self._schema = None  # Cached Schema instance
+        self._schema: Schema | None = None  # Cached Schema instance
         super().__init__(default=default, dump_default=dump_default, **kwargs)
 
     @property
-    def schema(self):
+    def schema(self) -> Schema:
         """The nested Schema object.
 
         .. versionchanged:: 1.0.0
@@ -571,18 +569,18 @@ class Nested(Field):
             if callable(self.nested) and not isinstance(self.nested, type):
                 nested = self.nested()
             else:
-                nested = self.nested
-            if isinstance(nested, dict):
-                # defer the import of `marshmallow.schema` to avoid circular imports
-                from marshmallow.schema import Schema
+                nested = typing.cast("Schema", self.nested)
+            # defer the import of `marshmallow.schema` to avoid circular imports
+            from marshmallow.schema import Schema
 
+            if isinstance(nested, dict):
                 nested = Schema.from_dict(nested)
 
-            if isinstance(nested, SchemaABC):
+            if isinstance(nested, Schema):
                 self._schema = copy.copy(nested)
                 self._schema.context.update(context)
                 # Respect only and exclude passed from parent and re-initialize fields
-                set_class = self._schema.set_class
+                set_class = typing.cast(type[set], self._schema.set_class)
                 if self.only is not None:
                     if self._schema.only is not None:
                         original = self._schema.only
@@ -594,17 +592,17 @@ class Nested(Field):
                     self._schema.exclude = set_class(self.exclude) | set_class(original)
                 self._schema._init_fields()
             else:
-                if isinstance(nested, type) and issubclass(nested, SchemaABC):
-                    schema_class = nested
+                if isinstance(nested, type) and issubclass(nested, Schema):
+                    schema_class: type[Schema] = nested
                 elif not isinstance(nested, (str, bytes)):
                     raise ValueError(
                         "`Nested` fields must be passed a "
                         f"`Schema`, not {nested.__class__}."
                     )
                 elif nested == "self":
-                    schema_class = self.root.__class__
+                    schema_class = typing.cast(Schema, self.root).__class__
                 else:
-                    schema_class = class_registry.get_class(nested)
+                    schema_class = class_registry.get_class(nested, all=False)
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,
@@ -688,7 +686,7 @@ class Pluck(Nested):
 
     def __init__(
         self,
-        nested: SchemaABC | SchemaMeta | str | typing.Callable[[], SchemaABC],
+        nested: Schema | SchemaMeta | str | typing.Callable[[], Schema],
         field_name: str,
         **kwargs,
     ):

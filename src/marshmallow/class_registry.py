@@ -69,6 +69,16 @@ def register(classname: str, cls: SchemaType) -> None:
     return None
 
 
+@typing.overload
+def get_class(classname: str, all: typing.Literal[False]) -> SchemaType: ...
+
+
+@typing.overload
+def get_class(
+    classname: str, all: typing.Literal[True]
+) -> list[SchemaType] | SchemaType: ...
+
+
 def get_class(classname: str, all: bool = False) -> list[SchemaType] | SchemaType:
     """Retrieve a class from the registry.
 
