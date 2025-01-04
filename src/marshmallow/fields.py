@@ -26,7 +26,6 @@ else:
     MonkeyPatch.patch_fromisoformat()
 
 from marshmallow import class_registry, types, utils, validate
-from marshmallow.base import FieldABC
 from marshmallow.exceptions import (
     FieldInstanceResolutionError,
     StringNotCollectionError,
@@ -35,7 +34,6 @@ from marshmallow.exceptions import (
 from marshmallow.utils import (
     is_aware,
     is_collection,
-    resolve_field_instance,
 )
 from marshmallow.utils import (
     missing as missing_,
@@ -107,7 +105,22 @@ class _BaseFieldKwargs(typing.TypedDict, total=False):
     metadata: typing.Mapping[str, typing.Any] | None
 
 
-class Field(FieldABC):
+def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
+    """Return a Field instance from a Field class or instance.
+
+    :param cls_or_instance: Field class or instance.
+    """
+    if isinstance(cls_or_instance, type):
+        if not issubclass(cls_or_instance, Field):
+            raise FieldInstanceResolutionError
+        return cls_or_instance()
+    else:
+        if not isinstance(cls_or_instance, Field):
+            raise FieldInstanceResolutionError
+        return cls_or_instance
+
+
+class Field:
     """Basic field from which other fields should extend. It applies no
     formatting by default, and should only be used in cases where
     data does not need to be formatted before being serialized or deserialized.
@@ -221,6 +234,10 @@ class Field(FieldABC):
             messages.update(getattr(cls, "default_error_messages", {}))
         messages.update(error_messages or {})
         self.error_messages = messages
+
+        self.parent: Field | Schema | None = None
+        self.name: str | None = None
+        self.root: Schema | None = None
 
     def __repr__(self) -> str:
         return (
@@ -351,7 +368,7 @@ class Field(FieldABC):
         self.parent = self.parent or parent
         self.name = self.name or field_name
         self.root = self.root or (
-            self.parent.root if isinstance(self.parent, FieldABC) else self.parent
+            self.parent.root if isinstance(self.parent, Field) else self.parent
         )
 
     def _serialize(
@@ -668,11 +685,11 @@ class List(Field):
     ):
         super().__init__(**kwargs)
         try:
-            self.inner = resolve_field_instance(cls_or_instance)
+            self.inner = _resolve_field_instance(cls_or_instance)
         except FieldInstanceResolutionError as error:
             raise ValueError(
                 "The list elements must be a subclass or instance of "
-                "marshmallow.base.FieldABC."
+                "marshmallow.fields.Field."
             ) from error
         if isinstance(self.inner, Nested):
             self.only = self.inner.only
@@ -741,13 +758,13 @@ class Tuple(Field):
 
         try:
             self.tuple_fields = [
-                resolve_field_instance(cls_or_instance)
+                _resolve_field_instance(cls_or_instance)
                 for cls_or_instance in tuple_fields
             ]
         except FieldInstanceResolutionError as error:
             raise ValueError(
                 'Elements of "tuple_fields" must be subclasses or '
-                "instances of marshmallow.base.FieldABC."
+                "instances of marshmallow.fields.Field."
             ) from error
 
         self.validate_length = Length(equal=len(self.tuple_fields))
@@ -1484,22 +1501,22 @@ class Mapping(Field):
             self.key_field = None
         else:
             try:
-                self.key_field = resolve_field_instance(keys)
+                self.key_field = _resolve_field_instance(keys)
             except FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
-                    "marshmallow.base.FieldABC."
+                    "marshmallow.fields.Field."
                 ) from error
 
         if values is None:
             self.value_field = None
         else:
             try:
-                self.value_field = resolve_field_instance(values)
+                self.value_field = _resolve_field_instance(values)
             except FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
-                    "marshmallow.base.FieldABC."
+                    "marshmallow.fields.Field."
                 ) from error
             if isinstance(self.value_field, Nested):
                 self.only = self.value_field.only
@@ -1818,11 +1835,11 @@ class Enum(Field):
                 self.field = Field()
             else:
                 try:
-                    self.field = resolve_field_instance(by_value)
+                    self.field = _resolve_field_instance(by_value)
                 except FieldInstanceResolutionError as error:
                     raise ValueError(
                         '"by_value" must be either a bool or a subclass or instance of '
-                        "marshmallow.base.FieldABC."
+                        "marshmallow.fields.Field."
                     ) from error
             self.choices_text = ", ".join(
                 str(self.field._serialize(m.value, None, None)) for m in enum

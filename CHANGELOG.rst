@@ -74,7 +74,7 @@ Features:
 
 Bug fixes:
 
-- Typing: Fix type hint for ``nested`` parameter of `Nested <marshmallow.fields.Nested>`.
+- Typing: Fix type hint for ``nested`` parameter of `Nested <marshmallow.fields.Nested>` (:pr:`2721`).
 
 
 3.23.3 (2025-01-03)

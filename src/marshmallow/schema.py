@@ -13,7 +13,7 @@ from abc import ABCMeta
 from collections import defaultdict
 from collections.abc import Mapping
 
-from marshmallow import base, class_registry, types
+from marshmallow import class_registry, types
 from marshmallow import fields as ma_fields
 from marshmallow.decorators import (
     POST_DUMP,
@@ -47,7 +47,7 @@ def _get_fields(attrs):
     return [
         (field_name, field_value)
         for field_name, field_value in attrs.items()
-        if is_instance_or_subclass(field_value, base.FieldABC)
+        if is_instance_or_subclass(field_value, ma_fields.Field)
     ]
 
 
@@ -988,7 +988,7 @@ class Schema(metaclass=SchemaMeta):
             # Field declared as a class, not an instance. Ignore type checking because
             # we handle unsupported arg types, i.e. this is dead code from
             # the type checker's perspective.
-            if isinstance(field_obj, type) and issubclass(field_obj, base.FieldABC):
+            if isinstance(field_obj, type) and issubclass(field_obj, ma_fields.Field):
                 msg = (
                     f'Field for "{field_name}" must be declared as a '
                     "Field instance, not a class. "

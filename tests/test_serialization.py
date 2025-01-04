@@ -893,7 +893,7 @@ class TestFieldSerialization:
             fields.List("string")
         expected_msg = (
             "The list elements must be a subclass or instance of "
-            "marshmallow.base.FieldABC"
+            "marshmallow.fields.Field"
         )
         with pytest.raises(ValueError, match=expected_msg):
             fields.List(ASchema)
@@ -920,7 +920,7 @@ class TestFieldSerialization:
             fields.Tuple(fields.String)
         expected_msg = (
             'Elements of "tuple_fields" must be subclasses or '
-            "instances of marshmallow.base.FieldABC."
+            "instances of marshmallow.fields.Field."
         )
         with pytest.raises(ValueError, match=expected_msg):
             fields.Tuple([ASchema])
