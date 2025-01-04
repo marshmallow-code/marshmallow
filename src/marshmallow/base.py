@@ -16,10 +16,6 @@ from abc import ABC, abstractmethod
 class FieldABC(ABC):
     """Abstract base class from which all Field classes inherit."""
 
-    parent = None
-    name = None
-    root = None
-
     @abstractmethod
     def serialize(self, attr, obj, accessor=None):
         pass
