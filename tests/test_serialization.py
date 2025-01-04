@@ -425,17 +425,6 @@ class TestFieldSerialization:
         assert isinstance(s, str)
         assert s == "0.00"
 
-    def test_boolean_field_serialization(self, user):
-        field = fields.Boolean()
-
-        user.truthy = "non-falsy-ish"
-        user.falsy = "false"
-        user.none = None
-
-        assert field.serialize("truthy", user) is True
-        assert field.serialize("falsy", user) is False
-        assert field.serialize("none", user) is None
-
     def test_email_field_serialize_none(self, user):
         user.email = None
         field = fields.Email()

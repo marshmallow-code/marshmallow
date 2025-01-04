@@ -32,7 +32,7 @@ class ValidationError(MarshmallowError):
         data: typing.Mapping[str, typing.Any]
         | typing.Iterable[typing.Mapping[str, typing.Any]]
         | None = None,
-        valid_data: list[dict[str, typing.Any]] | dict[str, typing.Any] | None = None,
+        valid_data: list[typing.Any] | dict[str, typing.Any] | None = None,
         **kwargs,
     ):
         self.messages = [message] if isinstance(message, (str, bytes)) else message

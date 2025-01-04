@@ -2122,7 +2122,7 @@ class TestSelfReference:
 
 
 class RequiredUserSchema(Schema):
-    name = fields.Field(required=True)
+    name = fields.Raw(required=True)
 
 
 def test_serialization_with_required_field():

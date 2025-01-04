@@ -93,10 +93,10 @@ class TestField:
 
 class TestParentAndName:
     class MySchema(Schema):
-        foo = fields.Field()
+        foo = fields.Raw()
         bar = fields.List(fields.Str())
         baz = fields.Tuple([fields.Str(), fields.Int()])
-        bax = fields.Mapping(fields.Str(), fields.Int())
+        bax = fields.Dict(fields.Str(), fields.Int())
 
     @pytest.fixture()
     def schema(self):
