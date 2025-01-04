@@ -231,7 +231,7 @@ class SchemaOpts:
         self.many = getattr(meta, "many", False)
 
 
-class Schema(base.SchemaABC, metaclass=SchemaMeta):
+class Schema(metaclass=SchemaMeta):
     """Base schema class with which to define custom schemas.
 
     Example usage:
