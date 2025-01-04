@@ -67,5 +67,5 @@ class StringNotCollectionError(MarshmallowError, TypeError):
     """Raised when a string is passed when a list of strings is expected."""
 
 
-class FieldInstanceResolutionError(MarshmallowError, TypeError):
-    """Raised when schema to instantiate is neither a Schema class nor an instance."""
+class _FieldInstanceResolutionError(MarshmallowError, TypeError):
+    """Raised when an argument is passed to a field class that cannot be resolved to a Field instance."""

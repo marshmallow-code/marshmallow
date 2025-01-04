@@ -27,9 +27,9 @@ else:
 
 from marshmallow import class_registry, types, utils, validate
 from marshmallow.exceptions import (
-    FieldInstanceResolutionError,
     StringNotCollectionError,
     ValidationError,
+    _FieldInstanceResolutionError,
 )
 from marshmallow.utils import (
     is_aware,
@@ -112,11 +112,11 @@ def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
     """
     if isinstance(cls_or_instance, type):
         if not issubclass(cls_or_instance, Field):
-            raise FieldInstanceResolutionError
+            raise _FieldInstanceResolutionError
         return cls_or_instance()
     else:
         if not isinstance(cls_or_instance, Field):
-            raise FieldInstanceResolutionError
+            raise _FieldInstanceResolutionError
         return cls_or_instance
 
 
@@ -686,7 +686,7 @@ class List(Field):
         super().__init__(**kwargs)
         try:
             self.inner = _resolve_field_instance(cls_or_instance)
-        except FieldInstanceResolutionError as error:
+        except _FieldInstanceResolutionError as error:
             raise ValueError(
                 "The list elements must be a subclass or instance of "
                 "marshmallow.fields.Field."
@@ -761,7 +761,7 @@ class Tuple(Field):
                 _resolve_field_instance(cls_or_instance)
                 for cls_or_instance in tuple_fields
             ]
-        except FieldInstanceResolutionError as error:
+        except _FieldInstanceResolutionError as error:
             raise ValueError(
                 'Elements of "tuple_fields" must be subclasses or '
                 "instances of marshmallow.fields.Field."
@@ -1502,7 +1502,7 @@ class Mapping(Field):
         else:
             try:
                 self.key_field = _resolve_field_instance(keys)
-            except FieldInstanceResolutionError as error:
+            except _FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"keys" must be a subclass or instance of '
                     "marshmallow.fields.Field."
@@ -1513,7 +1513,7 @@ class Mapping(Field):
         else:
             try:
                 self.value_field = _resolve_field_instance(values)
-            except FieldInstanceResolutionError as error:
+            except _FieldInstanceResolutionError as error:
                 raise ValueError(
                     '"values" must be a subclass or instance of '
                     "marshmallow.fields.Field."
@@ -1836,7 +1836,7 @@ class Enum(Field):
             else:
                 try:
                     self.field = _resolve_field_instance(by_value)
-                except FieldInstanceResolutionError as error:
+                except _FieldInstanceResolutionError as error:
                     raise ValueError(
                         '"by_value" must be either a bool or a subclass or instance of '
                         "marshmallow.fields.Field."
