@@ -1066,7 +1066,7 @@ Features:
   The ``strict`` parameter is removed.
 - *Backwards-incompatible*: ``Schema().load`` and ``Schema().dump`` return ``data`` instead of a
   ``(data, errors)`` tuple (:issue:`598`).
-- *Backwards-incomaptible*: ``Schema().load(None)`` raises a
+- *Backwards-incompatible*: ``Schema().load(None)`` raises a
   ``ValidationError`` (:issue:`511`).
 
 See :ref:`upgrading_3_0` for a guide on updating your code.
@@ -1269,7 +1269,7 @@ Bug fixes:
   This is a backport of the fix in :pr:`857`. Thanks :user:`cristi23` for the
   thorough bug report and the PR.
 
-Deprecation/Removal:
+Deprecation/Removals:
 
 - Python 2.6 is no longer officially supported (:issue:`1274`).
 

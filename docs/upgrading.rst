@@ -1,4 +1,4 @@
-Upgrading to Newer Releases
+Upgrading to newer releases
 ===========================
 
 This section documents migration paths to new releases.
@@ -336,7 +336,7 @@ page for an example.
 Schemas raise ``ValidationError`` when deserializing data with unknown keys
 ***************************************************************************
 
-Marshmallow 3.x schemas can deal with unknown keys in three different ways,
+marshmallow 3.x schemas can deal with unknown keys in three different ways,
 configurable with the ``unknown`` option:
 
 - ``EXCLUDE``: drop those keys (same as marshmallow 2)
@@ -1190,7 +1190,7 @@ In 2.0, validation/deserialization of `None` is consistent across field types. I
     # allow_none makes None a valid value
     fields.Int(allow_none=True).deserialize(None)  # None
 
-Default Values
+Default values
 **************
 
 Before version 2.0, certain fields (including `String <marshmallow.fields.String>`, `List <marshmallow.fields.List>`, `Nested <marshmallow.fields.Nested>`, and number fields) had implicit default values that would be used if their corresponding input value was `None` or missing.
@@ -1239,7 +1239,7 @@ In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Fie
 As a consequence of this new behavior, the ``skip_missing`` class Meta option has been removed.
 
 
-Pre-processing and Post-processing Methods
+Pre-processing and post-processing methods
 ******************************************
 
 The pre- and post-processing API was significantly improved for better consistency and flexibility. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. `Schema.preprocessor` and `Schema.data_handler` are removed.
@@ -1286,7 +1286,7 @@ The pre- and post-processing API was significantly improved for better consisten
 
 See the :doc:`Extending Schemas <extending>` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
-Schema Validators
+Schema validators
 *****************
 
 Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validates_schema <marshmallow.decorators.validates_schema>`. `Schema.validator` is removed.
@@ -1321,7 +1321,7 @@ Similar to pre-processing and post-processing methods, schema validators are now
             if data["field_a"] < data["field_b"]:
                 raise ValidationError("field_a must be greater than field_b")
 
-Custom Accessors and Error Handlers
+Custom accessors and error handlers
 ***********************************
 
 Custom accessors and error handlers are now defined as methods. `Schema.accessor` and `Schema.error_handler` are deprecated.
@@ -1388,7 +1388,7 @@ The `make_object` method was deprecated from the `Schema <marshmallow.Schema>` A
         def make_user(self, data):
             return User(**data)
 
-Error Format when ``many=True``
+Error format when ``many=True``
 *******************************
 
 When validating a collection (i.e. when calling ``load`` or ``dump`` with ``many=True``), the errors dictionary will be keyed on the indices of invalid items.
@@ -1472,7 +1472,7 @@ In 2.0, `strict` mode was improved so that you can access all error messages for
     # }
 
 
-Custom Fields
+Custom fields
 *************
 
 Two changes must be made to make your custom fields compatible with version 2.0.
@@ -1513,7 +1513,7 @@ To make a field compatible with both marshmallow 1.x and 2.x, you can pass `*arg
                 raise ValidationError("Password too short.")
             return val
 
-Custom Error Messages
+Custom error messages
 *********************
 
 Error messages can be customized at the `Field` class or instance level.
@@ -1560,7 +1560,7 @@ The `fields.Select` field is deprecated in favor of the newly-added `OneOf` vali
     # 2.0
     fields.Str(validate=OneOf(["red", "blue"]))
 
-Accessing Context from Method fields
+Accessing context from method fields
 ************************************
 
 Use ``self.context`` to access a schema's context within a ``Method`` field.
@@ -1575,7 +1575,7 @@ Use ``self.context`` to access a schema's context within a ``Method`` field.
             return "bicycle" in self.context["blog"].title.lower()
 
 
-Validation Error Messages
+Validation error messages
 *************************
 
 The default error messages for many fields and validators have been changed for better consistency.
@@ -1653,7 +1653,7 @@ Validators were rewritten as class-based callables, making them easier to use wh
 
 The validator functions from 1.1 are deprecated and will be removed in 2.0.
 
-Deserializing the Empty String
+Deserializing the empty string
 ******************************
 
 

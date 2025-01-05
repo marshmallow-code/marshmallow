@@ -5,7 +5,7 @@ Quickstart
 
 This guide will walk you through the basics of creating schemas for serializing and deserializing data.
 
-Declaring Schemas
+Declaring schemas
 -----------------
 
 Let's start with a basic user "model".
@@ -41,7 +41,7 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
     For a full reference on the available field classes, see the :ref:`API Docs <api_fields>`.
 
-Creating Schemas From Dictionaries
+Creating schemas from dictionaries
 ----------------------------------
 
 You can create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
@@ -56,7 +56,7 @@ You can create a schema from a dictionary of fields using the `from_dict <marshm
 
 `from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
 
-Serializing Objects ("Dumping")
+Serializing objects ("dumping")
 -------------------------------
 
 Serialize objects by passing them to your schema's :meth:`dump <marshmallow.Schema.dump>` method, which returns the formatted result.
@@ -81,7 +81,7 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
     pprint(json_result)
     # '{"name": "Monty", "email": "monty@python.org", "created_at": "2014-08-17T14:54:16.049594+00:00"}'
 
-Filtering Output
+Filtering output
 ----------------
 
 You may not need to output all declared fields every time you use a schema. You can specify which fields to output with the ``only`` parameter.
@@ -95,7 +95,7 @@ You may not need to output all declared fields every time you use a schema. You 
 You can also exclude fields by passing in the ``exclude`` parameter.
 
 
-Deserializing Objects ("Loading")
+Deserializing objects ("loading")
 ---------------------------------
 
 The reverse of the `dump <Schema.dump>` method is `load <Schema.load>`, which validates and deserializes 
@@ -122,7 +122,7 @@ with a dictionary of validation errors, which we'll :ref:`revisit later <validat
 
 Notice that the datetime string was converted to a `datetime` object.
 
-Deserializing to Objects
+Deserializing to objects
 ++++++++++++++++++++++++
 
 In order to deserialize to an object, define a method of your :class:`Schema` and decorate it with `post_load <marshmallow.decorators.post_load>`. The method receives a dictionary of deserialized data.
@@ -150,7 +150,7 @@ Now, the `load <Schema.load>` method return a ``User`` instance.
     result = schema.load(user_data)
     print(result)  # => <User(name='Ronnie')>
 
-Handling Collections of Objects
+Handling collections of objects
 -------------------------------
 
 Set ``many=True`` when dealing with iterable collections of objects.
@@ -289,7 +289,7 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
     Need schema-level validation? See the :ref:`Extending Schemas <schemavalidation>` page.
 
 
-Field Validators as Methods
+Field validators as methods
 +++++++++++++++++++++++++++
 
 It is sometimes convenient to write validators as methods. Use the `validates <marshmallow.decorators.validates>` decorator to register field validator methods.
@@ -310,7 +310,7 @@ It is sometimes convenient to write validators as methods. Use the `validates <m
                 raise ValidationError("Quantity must not be greater than 30.")
 
 
-Required Fields
+Required fields
 ---------------
 
 Make a field required by passing ``required=True``. An error will be raised if the the value is missing from the input to :meth:`Schema.load`.
@@ -343,7 +343,7 @@ To customize the error message for required fields, pass a `dict` with a ``requi
         # 'name': ['Missing data for required field.']}
 
 
-Partial Loading
+Partial loading
 ---------------
 
 When using the same schema in multiple places, you may only want to skip ``required``
@@ -373,7 +373,7 @@ You can ignore missing fields entirely by setting ``partial=True``.
     # OR UserSchema(partial=True).load({'age': 42})
     print(result)  # => {'age': 42}
 
-Specifying Defaults
+Specifying defaults
 -------------------
 
 `load_default` specifies the default deserialization value for a field.
@@ -393,7 +393,7 @@ Likewise, `dump_default` specifies the default serialization value.
 
 .. _unknown:
 
-Handling Unknown Fields
+Handling unknown fields
 -----------------------
 
 By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a key with no matching ``Field`` in the schema.
@@ -433,7 +433,7 @@ The ``unknown`` option value set in :meth:`load <Schema.load>` will override the
 This order of precedence allows you to change the behavior of a schema for different contexts.
 
 
-Validation Without Deserialization
+Validation without deserialization
 ----------------------------------
 
 If you only need to validate input data (without deserializing to an object), you can use :meth:`Schema.validate`.
@@ -444,7 +444,7 @@ If you only need to validate input data (without deserializing to an object), yo
     print(errors)  # {'email': ['Not a valid email address.']}
 
 
-"Read-only" and "Write-only" Fields
+"Read-only" and "write-only" fields
 -----------------------------------
 
 In the context of a web API, the ``dump_only`` and ``load_only`` parameters are conceptually equivalent to "read-only" and "write-only" fields, respectively.
@@ -462,7 +462,7 @@ In the context of a web API, the ``dump_only`` and ``load_only`` parameters are 
 
     When loading, dump-only fields are considered unknown. If the ``unknown`` option is set to ``INCLUDE``, values with keys corresponding to those fields are therefore loaded with no validation.
 
-Specifying Serialization/Deserialization Keys
+Specifying serialization/deserialization keys
 ---------------------------------------------
 
 Schemas will (de)serialize an input dictionary from/to an output dictionary whose keys are identical to the field names.
@@ -490,12 +490,12 @@ If you are consuming and producing data that does not match your schema, you can
 
 .. _meta_options:
 
-Implicit Field Creation
+Implicit field creation
 -----------------------
 
 When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
 
-The ``fields`` option allows you to specify implicitly-created fields. Marshmallow will choose an appropriate field type based on the attribute's type.
+The ``fields`` option allows you to specify implicitly-created fields. marshmallow will choose an appropriate field type based on the attribute's type.
 
 Let's refactor our User schema to be more concise.
 
@@ -524,9 +524,8 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
                 # No need to include 'uppername'
                 additional = ("name", "email", "created_at")
 
-Next Steps
+Next steps
 ----------
-
 - Need to represent relationships between objects? See the :doc:`Nesting Schemas <nesting>` page.
 - Want to create your own field type? See the :doc:`Custom Fields <custom_fields>` page.
 - Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.

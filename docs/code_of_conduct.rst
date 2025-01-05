@@ -8,7 +8,7 @@ organization.
 
 .. _coc-when-something-happens:
 
-When Something Happens
+When something happens
 ----------------------
 
 If you see a Code of Conduct violation, follow these steps:
@@ -32,7 +32,7 @@ resolve the situation.
 recipients of the violation over the comfort of the violator.** See
 :ref:`some examples below <coc-enforcement-examples>`.
 
-Our Pledge
+Our pledge
 ----------
 
 In the interest of fostering an open and welcoming environment, we as
@@ -43,7 +43,7 @@ identity and expression, level of experience, technical preferences,
 nationality, personal appearance, race, religion, or sexual identity and
 orientation.
 
-Our Standards
+Our standards
 -------------
 
 Examples of behavior that contributes to creating a positive environment
@@ -112,7 +112,7 @@ to maintain the comfort and safety of its members.
 
 .. _coc-other-community-standards:
 
-Other Community Standards
+Other community standards
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As a project on GitHub, this project is additionally covered by the
@@ -123,7 +123,7 @@ Enforcement of those guidelines after violations overlapping with the
 above are the responsibility of the entities, and enforcement may happen
 in any or all of the services/communities.
 
-Maintainer Enforcement Process
+Maintainer enforcement process
 ------------------------------
 
 Once the maintainers get involved, they will follow a documented series
@@ -133,7 +133,7 @@ members. This section covers actual concrete steps.
 
 .. _coc-contacting-maintainers:
 
-Contacting Maintainers
+Contacting maintainers
 ~~~~~~~~~~~~~~~~~~~~~~
 
 As a small and young project, we don't yet have a Code of Conduct
@@ -147,7 +147,7 @@ message is noticed quickly.
 
 .. _coc-further-enforcement:
 
-Further Enforcement
+Further enforcement
 ~~~~~~~~~~~~~~~~~~~
 
 If you've already followed the :ref:`initial enforcement steps
@@ -177,7 +177,7 @@ in any social setting that puts our members at risk.
 Members expelled from events or venues with any sort of paid attendance
 will not be refunded.
 
-Who Watches the Watchers?
+Who watches the watchers?
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Maintainers and other leaders who do not follow or enforce the Code of
@@ -194,10 +194,10 @@ procedures.
 
 .. _coc-enforcement-examples:
 
-Enforcement Examples
+Enforcement examples
 --------------------
 
-The Best Case
+The best case
 ~~~~~~~~~~~~~
 
 The vast majority of situations work out like this. This interaction is
@@ -211,7 +211,7 @@ common, and generally positive.
     Alex: "oh sorry, sure." -> edits old comment to say "it was really
     confusing!"
 
-The Maintainer Case
+The maintainer case
 ~~~~~~~~~~~~~~~~~~~
 
 Sometimes, though, you need to get maintainers involved. Maintainers
@@ -248,7 +248,7 @@ something **will take priority**.
     KeeperOfCommitBits: "@patt Thanks for that. I hear you on the
     stress. Burnout sucks :/. Have a good one!"
 
-The Nope Case
+The nope case
 ~~~~~~~~~~~~~
 
     PepeTheFrog🐸: "Hi, I am a literal actual nazi and I think white

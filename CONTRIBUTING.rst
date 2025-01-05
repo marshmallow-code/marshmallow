@@ -1,4 +1,4 @@
-Contributing Guidelines
+Contributing guidelines
 =======================
 
 So you're interested in contributing to marshmallow or `one of our associated
@@ -7,21 +7,21 @@ welcome contributions from anyone willing to work in good faith with
 other contributors and the community (see also our
 :doc:`code_of_conduct`).
 
-Security Contact Information
+Security contact information
 ----------------------------
 
 To report a security vulnerability, please use the
 `Tidelift security contact <https://tidelift.com/security>`_.
 Tidelift will coordinate the fix and disclosure.
 
-Questions, Feature Requests, Bug Reports, and Feedback…
+Questions, feature requests, bug reports, and feedback…
 -------------------------------------------------------
 
 …should all be reported on the `Github Issue Tracker`_ .
 
 .. _`Github Issue Tracker`: https://github.com/marshmallow-code/marshmallow/issues?state=open
 
-Ways to Contribute
+Ways to contribute
 ------------------
 
 - Comment on some of marshmallow's `open issues <https://github.com/marshmallow-code/marshmallow/issues>`_ (especially those `labeled "feedback welcome" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22feedback+welcome%22>`_). Share a solution or workaround. Make a suggestion for how a feature can be made better. Opinions are welcome!
@@ -34,10 +34,10 @@ Ways to Contribute
 - Send a PR for an open issue (especially one `labeled "help wanted" <https://github.com/marshmallow-code/marshmallow/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_). The next section details how to contribute code.
 
 
-Contributing Code
+Contributing code
 -----------------
 
-Setting Up for Local Development
+Setting up for local development
 ++++++++++++++++++++++++++++++++
 
 1. Fork marshmallow_ on Github.
@@ -63,20 +63,20 @@ Setting Up for Local Development
     # The pre-commit CLI was installed above
     $ pre-commit install --allow-missing-config
 
-Git Branch Structure
+Git branch structure
 ++++++++++++++++++++
 
-Marshmallow abides by the following branching model:
+marshmallow abides by the following branching model:
 
 ``dev``
     Current development branch. **New features should branch off here**.
 
 ``X.Y-line``
-    Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.** The maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.
+    Maintenance branch for release ``X.Y``. **Bug fixes should be sent to the most recent release branch.** A maintainer will forward-port the fix to ``dev``. Note: exceptions may be made for bug fixes that introduce large code changes.
 
 **Always make a new branch for your work**, no matter how small. Also, **do not put unrelated changes in the same branch or pull request**. This makes it more difficult to merge your changes.
 
-Pull Requests
+Pull requests
 ++++++++++++++
 
 1. Create a new local branch.
@@ -134,7 +134,7 @@ Changes in the `docs/` directory will automatically trigger a rebuild.
 
 .. _contributing_examples:
 
-Contributing Examples
+Contributing examples
 +++++++++++++++++++++
 
 Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.

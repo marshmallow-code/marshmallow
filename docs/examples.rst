@@ -291,8 +291,8 @@ After registering a user and creating some todo items in the database, here is a
     }
 
 
-Inflection (Camel-casing Keys)
-==============================
+Inflection (camel-cased keys)
+=============================
 
 HTTP APIs will often use camel-cased keys for their input and output representations. This example shows how you can use the
 `Schema.on_bind_field <marshmallow.Schema.on_bind_field>` hook to automatically inflect keys.

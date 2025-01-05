@@ -1,9 +1,9 @@
 .. module:: marshmallow
 
-Extending Schemas
+Extending schemas
 =================
 
-Pre-processing and Post-processing Methods
+Pre-processing and post-processing methods
 ------------------------------------------
 
 Data pre-processing and post-processing methods can be registered using the `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` decorators.
@@ -97,8 +97,7 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
     user_objs = user_schema.load(users_data, many=True)
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
 
-
-Raising Errors in Pre-/Post-processor Methods
+Raising errors in pre-/post-processor methods
 +++++++++++++++++++++++++++++++++++++++++++++
 
 Pre- and post-processing methods may raise a `ValidationError <marshmallow.exceptions.ValidationError>`. By default, errors will be stored on the ``"_schema"`` key in the errors dictionary.
@@ -151,8 +150,7 @@ If you want to store and error on a different key, pass the key name as the seco
         err.messages
     # {'_preprocessing': ['Input data must have a "data" key.']}
 
-
-Pre-/Post-processor Invocation Order
+Pre-/post-processor invocation order
 ++++++++++++++++++++++++++++++++++++
 
 In summary, the processing pipeline for deserialization is as follows:
@@ -215,10 +213,7 @@ The pipeline for serialization is similar, except that the ``pass_many=True`` pr
             def step2(self, data, **kwargs):
                 do_step2(data)
 
-
-.. _schemavalidation:
-
-Schema-level Validation
+Schema-level validation
 -----------------------
 
 You can register schema-level validation functions for a :class:`Schema` using the `marshmallow.validates_schema <marshmallow.decorators.validates_schema>` decorator. By default, schema-level validation errors will be stored on the ``_schema`` key of the errors dictionary.
@@ -245,7 +240,7 @@ You can register schema-level validation functions for a :class:`Schema` using t
         err.messages["_schema"]
     # => ["field_a must be greater than field_b"]
 
-Storing Errors on Specific Fields
+Storing errors on specific fields
 +++++++++++++++++++++++++++++++++
 
 It is possible to report errors on fields and subfields using a `dict`.
@@ -300,8 +295,7 @@ When multiple schema-leval validator return errors, the error structures are mer
     #     ]
     #    }
 
-
-Using Original Input Data
+Using original input data
 -------------------------
 
 If you want to use the original, unprocessed input, you can add ``pass_original=True`` to
@@ -332,7 +326,7 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 
    The default behavior for unspecified fields can be controlled with the ``unknown`` option, see :ref:`Handling Unknown Fields <unknown>` for more information.
 
-Overriding How Attributes Are Accessed
+Overriding how attributes are accessed
 --------------------------------------
 
 By default, marshmallow uses `utils.get_value` to pull attributes from various types of objects for serialization. This will work for *most* use cases.
@@ -350,7 +344,7 @@ However, if you want to specify how values are accessed from an object, you can 
         def get_attribute(self, obj, key, default):
             return obj.get(key, default)
 
-Custom Error Handling
+Custom error handling
 ---------------------
 
 By default, :meth:`Schema.load` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if passed invalid data.
@@ -379,15 +373,14 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
     schema = UserSchema()
     schema.load({"email": "invalid-email"})  # raises AppError
 
-
-Custom "class Meta" Options
+Custom "class Meta" options
 ---------------------------
 
 ``class Meta`` options are a way to configure and modify a :class:`Schema's <Schema>` behavior. See the :class:`API docs <Schema.Meta>` for a listing of available options.
 
 You can add custom ``class Meta`` options by subclassing :class:`SchemaOpts`.
 
-Example: Enveloping, Revisited
+Example: Enveloping, revisited
 ++++++++++++++++++++++++++++++
 
 Let's build upon the example above for adding an envelope to serialized output. This time, we will allow the envelope key to be customizable with ``class Meta`` options.
@@ -461,7 +454,7 @@ Our application schemas can now inherit from our custom schema class.
     result = ser.dump(user)
     result  # {"user": {"name": "Keith", "email": "keith@stones.com"}}
 
-Using Context
+Using context
 -------------
 
 The ``context`` attribute of a `Schema` is a general-purpose store for extra information that may be needed for (de)serialization. It may be used in both ``Schema`` and ``Field`` methods.
@@ -474,7 +467,7 @@ The ``context`` attribute of a `Schema` is a general-purpose store for extra inf
     schema.context["request"] = request
     schema.dump(user)
 
-Custom Error Messages
+Custom error messages
 ---------------------
 
 To customize the schema-level error messages that `load <marshmallow.Schema.load>` and `loads <marshmallow.Schema.loads>` use when raising a `ValidationError <marshmallow.exceptions.ValidationError>`, override the `error_messages <marshmallow.Schema.error_messages>` class variable:

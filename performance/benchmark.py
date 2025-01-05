@@ -1,6 +1,6 @@
-"""Simple benchmark for Marshmallow serialization of a moderately complex object.
+"""Simple benchmark for marshmallow serialization of a moderately complex object.
 
-Uses the `timeit` module to benchmark serializing an object through Marshmallow.
+Uses the `timeit` module to benchmark serializing an object through marshmallow.
 """
 
 import argparse
@@ -125,7 +125,7 @@ def main():
     parser.add_argument(
         "--profile",
         action="store_true",
-        help="Whether or not to profile Marshmallow while running the benchmark.",
+        help="Whether or not to profile marshmallow while running the benchmark.",
     )
     args = parser.parse_args()
 
