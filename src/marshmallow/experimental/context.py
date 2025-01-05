@@ -14,13 +14,16 @@ Example usage:
         suffix: str
 
 
+    UserSchemaContext = Context[UserContext]
+
+
     class UserSchema(Schema):
         name_suffixed = fields.Function(
-            lambda user: user["name"] + Context[UserContext].get()["suffix"]
+            lambda user: user["name"] + UserSchemaContext.get()["suffix"]
         )
 
 
-    with Context[UserContext]({"suffix": "bar"}):
+    with UserSchemaContext({"suffix": "bar"}):
         print(UserSchema().dump({"name": "foo"}))
         # {'name_suffixed': 'foobar'}
 """

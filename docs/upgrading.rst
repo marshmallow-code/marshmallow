@@ -94,13 +94,16 @@ manager class that can be used to both set and retrieve context.
         suffix: str
 
 
+    UserSchemaContext = Context[UserContext]
+
+
     class UserSchema(Schema):
         name_suffixed = fields.Function(
-            lambda obj: obj["name"] + Context[UserContext].get()["suffix"]
+            lambda obj: obj["name"] + UserSchemaContext.get()["suffix"]
         )
 
 
-    with Context[UserContext]({"suffix": "bar"}):
+    with UserSchemaContext({"suffix": "bar"}):
         UserSchema().dump({"name": "foo"})
         # {'name_suffixed': 'foobar'}
 
