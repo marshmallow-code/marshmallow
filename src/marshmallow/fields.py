@@ -1165,11 +1165,6 @@ class Boolean(Field[bool]):
         if falsy is not None:
             self.falsy = set(falsy)
 
-    def _serialize(
-        self, value: bool | None, attr: str | None, obj: typing.Any, **kwargs
-    ):
-        return value
-
     def _deserialize(
         self,
         value: typing.Any,
