@@ -10,6 +10,8 @@ Features:
 
 - Typing: Add types to all `Field <marshmallow.fields.Field>` subclass kwargs (:issue:`2285`).
   Thanks :user:`navignaw` for the suggestion.
+- All fields accept their internal value type as valid input (:issue:`1415`).
+  Thanks :user:`bitdancer` for the suggestion.
 
 Other changes:
 
