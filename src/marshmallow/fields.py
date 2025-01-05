@@ -1730,7 +1730,7 @@ class Email(String):
         self.validators.insert(0, validator)
 
 
-class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
+class IP(Field[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]):
     """A IP address field.
 
     :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
@@ -1787,7 +1787,9 @@ class IPv6(IP):
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
-class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
+class IPInterface(
+    Field[typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]]
+):
     """A IPInterface field.
 
     IP interface is the non-strict form of the IPNetwork type where arbitrary host
