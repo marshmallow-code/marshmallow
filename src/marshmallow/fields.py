@@ -336,6 +336,26 @@ class Field(typing.Generic[_InternalType]):
             value = None
         return self._serialize(value, attr, obj, **kwargs)
 
+    # If value is None, None may be returned
+    @typing.overload
+    def deserialize(
+        self,
+        value: None,
+        attr: str | None = None,
+        data: typing.Mapping[str, typing.Any] | None = None,
+        **kwargs,
+    ) -> None | _InternalType: ...
+
+    # If value is not None, internal type is returned
+    @typing.overload
+    def deserialize(
+        self,
+        value: typing.Any,
+        attr: str | None = None,
+        data: typing.Mapping[str, typing.Any] | None = None,
+        **kwargs,
+    ) -> _InternalType: ...
+
     def deserialize(
         self,
         value: typing.Any,
