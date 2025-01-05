@@ -122,8 +122,8 @@ def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
 
 
 class Field(typing.Generic[_InternalType]):
-    """Basic field from which other fields should extend.
-    All fields should inherit from this class. It should not be used directly within Schemas.
+    """Base field from which all other fields inherit.
+    This class should not be used directly within Schemas.
 
     :param dump_default: If set, this value will be used during serialization if the
         input value is missing. If not set, the field will be excluded from the
