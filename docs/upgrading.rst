@@ -1230,8 +1230,8 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
 
     # 2.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field()
+        f1 = fields.Raw()
+        f2 = fields.Raw()
 
 
     MySchema(prefix="pre_").dump({"f1": "one", "f2": "two"})
@@ -1240,8 +1240,8 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
 
     # 3.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field()
+        f1 = fields.Raw()
+        f2 = fields.Raw()
 
         @post_dump
         def prefix_usr(self, data):
@@ -1285,10 +1285,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
     # 2.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1")
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5")
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1")
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5")
 
 
     MySchema()
@@ -1297,10 +1297,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
     # 3.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1")
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5")
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1")
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5")
 
 
     MySchema()
@@ -1308,10 +1308,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
 
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1", dump_only=True)
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5", dump_only=True)
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1", dump_only=True)
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5", dump_only=True)
 
 
     MySchema()

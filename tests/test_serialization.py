@@ -506,7 +506,7 @@ class TestFieldSerialization:
 
     def test_serialize_with_data_key_as_empty_string(self):
         class MySchema(Schema):
-            name = fields.Field(data_key="")
+            name = fields.Raw(data_key="")
 
         schema = MySchema()
         assert schema.dump({"name": "Grace"}) == {"": "Grace"}
@@ -897,7 +897,7 @@ class TestFieldSerialization:
             fields.Tuple([ASchema])
 
     def test_serialize_does_not_apply_validators(self, user):
-        field = fields.Field(validate=lambda x: False)
+        field = fields.Raw(validate=lambda x: False)
         # No validation error raised
         assert field.serialize("age", user) == user.age
 

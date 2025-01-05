@@ -175,7 +175,7 @@ class DummyModel:
 ###### Schemas #####
 
 
-class Uppercased(fields.Field):
+class Uppercased(fields.String):
     """Custom field formatting example."""
 
     def _serialize(self, value, attr, obj):

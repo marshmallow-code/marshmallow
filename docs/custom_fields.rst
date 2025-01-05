@@ -19,7 +19,8 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
     from marshmallow import fields, ValidationError
 
 
-    class PinCode(fields.Field):
+    # Field's type argument is the internal type, i.e. the type that the field deserializes to
+    class PinCode(fields.Field[list[int]]):
         """Field that serializes to a string of numbers and deserializes
         to a list of numbers.
         """

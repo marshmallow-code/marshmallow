@@ -30,9 +30,9 @@ def test_field_aliases(alias, field):
 class TestField:
     def test_repr(self):
         default = "œ∑´"
-        field = fields.Field(dump_default=default, attribute=None)
+        field = fields.Raw(dump_default=default, attribute=None)
         assert repr(field) == (
-            f"<fields.Field(dump_default={default!r}, attribute=None, "
+            f"<fields.Raw(dump_default={default!r}, attribute=None, "
             "validate=None, required=False, "
             "load_only=False, dump_only=False, "
             f"load_default={missing}, allow_none=False, "
@@ -43,16 +43,16 @@ class TestField:
 
     def test_error_raised_if_uncallable_validator_passed(self):
         with pytest.raises(ValueError, match="must be a callable"):
-            fields.Field(validate="notcallable")
+            fields.Raw(validate="notcallable")
 
     def test_error_raised_if_missing_is_set_on_required_field(self):
         with pytest.raises(
             ValueError, match="'load_default' must not be set for required fields"
         ):
-            fields.Field(required=True, load_default=42)
+            fields.Raw(required=True, load_default=42)
 
     def test_custom_field_receives_attr_and_obj(self):
-        class MyField(fields.Field):
+        class MyField(fields.Field[str]):
             def _deserialize(self, val, attr, data, **kwargs):
                 assert attr == "name"
                 assert data["foo"] == 42
@@ -65,7 +65,7 @@ class TestField:
         assert result == {"name": "Monty"}
 
     def test_custom_field_receives_data_key_if_set(self):
-        class MyField(fields.Field):
+        class MyField(fields.Field[str]):
             def _deserialize(self, val, attr, data, **kwargs):
                 assert attr == "name"
                 assert data["foo"] == 42
@@ -78,7 +78,7 @@ class TestField:
         assert result == {"Name": "Monty"}
 
     def test_custom_field_follows_data_key_if_set(self):
-        class MyField(fields.Field):
+        class MyField(fields.Field[str]):
             def _serialize(self, val, attr, data):
                 assert attr == "name"
                 assert data["foo"] == 42
@@ -188,7 +188,7 @@ class TestParentAndName:
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1808
     def test_field_named_parent_has_root(self, schema):
         class MySchema(Schema):
-            parent = fields.Field()
+            parent = fields.Raw()
 
         schema = MySchema()
         assert schema.fields["parent"].root == schema
