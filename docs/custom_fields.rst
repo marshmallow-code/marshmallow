@@ -1,5 +1,4 @@
-
-Custom Fields
+Custom fields
 =============
 
 There are three ways to create a custom-formatted field for a `Schema`:
@@ -10,7 +9,7 @@ There are three ways to create a custom-formatted field for a `Schema`:
 
 The method you choose will depend on the manner in which you intend to reuse the field.
 
-Creating A Field Class
+Creating a field class
 ----------------------
 
 To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_serialize <marshmallow.fields.Field._serialize>` and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
@@ -43,7 +42,7 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
         created_at = fields.DateTime()
         pin_code = PinCode()
 
-Method Fields
+Method fields
 -------------
 
 A :class:`Method <marshmallow.fields.Method>` field will serialize to the value returned by a method of the Schema. The method must take an ``obj`` parameter which is the object to be serialized.
@@ -59,7 +58,7 @@ A :class:`Method <marshmallow.fields.Method>` field will serialize to the value 
         def get_days_since_created(self, obj):
             return dt.datetime.now().day - obj.created_at.day
 
-Function Fields
+Function fields
 ---------------
 
 A :class:`Function <marshmallow.fields.Function>` field will serialize the value of a function that is passed directly to it. Like a :class:`Method <marshmallow.fields.Method>` field, the function must take a single argument ``obj``.
@@ -97,7 +96,7 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
 
 .. _adding-context:
 
-Adding Context to `Method` and `Function` Fields
+Adding context to `Method` and `Function` fields
 ------------------------------------------------
 
 A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
@@ -129,7 +128,7 @@ As an example, you might want your ``UserSchema`` to output whether or not a ``U
     result["likes_bikes"]  # => True
 
 
-Customizing Error Messages
+Customizing error messages
 --------------------------
 
 Validation error messages for fields can be configured at the class or instance level.
@@ -160,8 +159,8 @@ Error messages can also be passed to a `Field's` constructor.
         )
 
 
-Next Steps
+Next steps
 ----------
 
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending schemas <extending>` page.
 - For example applications using marshmallow, check out the :doc:`Examples <examples>` page.

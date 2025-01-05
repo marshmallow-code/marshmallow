@@ -9,7 +9,7 @@ Base Field Class
 .. autoclass:: marshmallow.fields.Field
     :private-members:
 
-Field Subclasses
+Field subclasses
 ----------------
 
 .. automodule:: marshmallow.fields
