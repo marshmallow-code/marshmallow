@@ -516,11 +516,7 @@ class Nested(Field):
 
     @property
     def schema(self) -> Schema:
-        """The nested Schema object.
-
-        .. versionchanged:: 1.0.0
-            Renamed from `serializer` to `schema`.
-        """
+        """The nested Schema object."""
         if not self._schema:
             # Inherit context from parent.
             context = getattr(self.parent, "context", {})
@@ -1027,8 +1023,6 @@ class Decimal(Number[decimal.Decimal]):
     :param as_string: If `True`, serialize to a string instead of a Python
         `decimal.Decimal` type.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
-
-    .. versionadded:: 1.2.0
     """
 
     num_type = decimal.Decimal

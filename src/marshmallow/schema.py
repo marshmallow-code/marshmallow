@@ -477,7 +477,6 @@ class Schema(metaclass=SchemaMeta):
             for `self.many` is used.
         :return: Serialized data
 
-        .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
             This method returns the serialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
@@ -510,7 +509,6 @@ class Schema(metaclass=SchemaMeta):
             for `self.many` is used.
         :return: A ``json`` string
 
-        .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
             This method returns the serialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
@@ -658,7 +656,6 @@ class Schema(metaclass=SchemaMeta):
             If `None`, the value for `self.unknown` is used.
         :return: Deserialized data
 
-        .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
             This method returns the deserialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
@@ -691,7 +688,6 @@ class Schema(metaclass=SchemaMeta):
             If `None`, the value for `self.unknown` is used.
         :return: Deserialized data
 
-        .. versionadded:: 1.0.0
         .. versionchanged:: 3.0.0b7
             This method returns the deserialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
@@ -741,8 +737,6 @@ class Schema(metaclass=SchemaMeta):
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :return: A dictionary of validation errors.
-
-        .. versionadded:: 1.1.0
         """
         try:
             self._do_load(data, many=many, partial=partial, postprocess=False)
