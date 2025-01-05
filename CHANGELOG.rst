@@ -18,7 +18,7 @@ Other changes:
 As a consequence of this change:
   - Time with time offsets are now supported.
   - YYYY-MM-DD is now accepted as a datetime and deserialized as naive 00:00 AM.
-  - `from_iso_date`, `from_iso_time` and `from_iso_datetime` are removed from `marshmallow.utils`
+  - `from_iso_date`, `from_iso_time` and `from_iso_datetime` are removed from `marshmallow.utils`.
 
 - *Backwards-incompatible*: Custom validators must raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values.
   Returning `False` is no longer supported (:issue:`1775`).
@@ -48,28 +48,32 @@ As a consequence of this change:
 
 Thanks :user:`ddelange` for the PR.
 
-- *Backwards-incompatible*: Remove schema ``context`` property. Passing a context
-  should be done using a context variable. (issue:`1826`)
-  marshmallow 4.0 provides an experimental `Context <marshmallow.experimental.context.Context>`
-  manager class that can be used both to set and retrieve the context.
+- *Backwards-incompatible*: Remove `Schema <marshmallow.schema.Schema>`'s ``context`` attribute. Passing a context
+  should be done using `contextvars.ContextVar` (:issue:`1826`).
+  marshmallow 4 provides an experimental `Context <marshmallow.experimental.context.Context>`
+  manager class that can be used to both set and retrieve context.
 
 .. code-block:: python
+
+    import typing
 
     from marshmallow import Schema, fields
     from marshmallow.experimental.context import Context
 
 
-    def transform_name(obj):
-        return obj["name"].upper() + Context.get()["suffix"]
+    class UserContext(typing.TypedDict):
+        suffix: str
 
 
     class UserSchema(Schema):
-        name = fields.Function(serialize=transform_name)
+        name_suffixed = fields.Function(
+            lambda obj: obj["name"] + Context[UserContext].get()["suffix"]
+        )
 
 
-    with Context({"suffix": "BAR"}):
+    with Context[UserContext]({"suffix": "bar"}):
         UserSchema().dump({"name": "foo"})
-        # {'name': 'FOOBAR'}
+        # {'name_suffixed': 'foobar'}
 
 Deprecations/Removals:
 

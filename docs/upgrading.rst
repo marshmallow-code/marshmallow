@@ -57,6 +57,55 @@ If you want to use anonymous functions, you can use this helper function.
     class UserSchema(Schema):
         password = fields.String(validate=predicate(lambda x: x == "password"))
 
+New context API
+***************
+
+Passing context to `Schema <marshmallow.schema.Schema>` classes is no longer supported. Use `contextvars.ContextVar` for passing context to
+fields, pre-/post-processing methods, and validators instead.
+
+marshmallow 4 provides an experimental `Context <marshmallow.experimental.context.Context>`
+manager class that can be used to both set and retrieve context.
+
+.. code-block:: python
+
+    # 3.x
+    from marshmallow import Schema, fields
+
+
+    class UserSchema(Schema):
+        name_suffixed = fields.Function(
+            lambda obj, context: obj["name"] + context["suffix"]
+        )
+
+
+    user_schema = UserSchema()
+    user_schema.context = {"suffix": "bar"}
+    user_schema.dump({"name": "foo"})
+    # {'name_suffixed': 'foobar'}
+
+    # 4.x
+    import typing
+
+    from marshmallow import Schema, fields
+    from marshmallow.experimental.context import Context
+
+
+    class UserContext(typing.TypedDict):
+        suffix: str
+
+
+    class UserSchema(Schema):
+        name_suffixed = fields.Function(
+            lambda obj: obj["name"] + Context[UserContext].get()["suffix"]
+        )
+
+
+    with Context[UserContext]({"suffix": "bar"}):
+        UserSchema().dump({"name": "foo"})
+        # {'name_suffixed': 'foobar'}
+
+See :ref:`using_context` for more information.
+
 Implicit field creation is removed
 **********************************
 
@@ -263,48 +312,6 @@ The ``missing`` and ``default`` parameters of fields are renamed to
 
 ``load_default`` and ``dump_default`` are passed to the field constructor as keyword arguments.
 
-Schema context is removed
-*************************
-
-Passing context to the schema is no longer supported. Use `contextvars` for passing context to
-fields and pre-/post-processing methods instead.
-
-marshmallow 4.0 provides an experimental `Context <marshmallow.experimental.context.Context>`
-manager class that can be used both to set and retrieve the context.
-
-.. code-block:: python
-
-    # 3.x
-    from marshmallow import Schema, fields
-
-
-    class UserSchema(Schema):
-        name = fields.Function(
-            serialize=lambda obj, context: obj["name"].upper() + context["suffix"]
-        )
-
-
-    user_schema = UserSchema()
-    user_schema.context = {"suffix": "BAR"}
-    user_schema.dump({"name": "foo"})
-    # {'name': 'FOOBAR'}
-
-    # 4.x
-    from marshmallow import Schema, fields
-    from marshmallow.experimental.context import Context
-
-
-    def transform_name(obj):
-        return obj["name"].upper() + Context.get()["suffix"]
-
-
-    class UserSchema(Schema):
-        name = fields.Function(serialize=transform_name)
-
-
-    with Context({"suffix": "BAR"}):
-        UserSchema().dump({"name": "foo"})
-        # {'name': 'FOOBAR'}
 
 Upgrading to 3.3
 ++++++++++++++++

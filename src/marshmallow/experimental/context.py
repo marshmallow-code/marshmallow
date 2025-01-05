@@ -20,9 +20,9 @@ Example usage:
         )
 
 
-    with Context({"suffix": "bar"}):
+    with Context[UserContext]({"suffix": "bar"}):
         print(UserSchema().dump({"name": "foo"}))
-        # {'name': 'foobar'}
+        # {'name_suffixed': 'foobar'}
 """
 
 import contextlib
