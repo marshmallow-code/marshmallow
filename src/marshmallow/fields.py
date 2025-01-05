@@ -917,7 +917,7 @@ _NumType = typing.TypeVar("_NumType")
 
 
 class Number(Field[_NumType]):
-    """Base class for number fields.
+    """Base class for number fields. This class should not be used within schemas.
 
     :param bool as_string: If `True`, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
@@ -1539,7 +1539,7 @@ _MappingType = typing.TypeVar("_MappingType", bound=collections.abc.Mapping)
 
 
 class Mapping(Field[_MappingType]):
-    """An abstract class for objects with key-value pairs.
+    """An abstract class for objects with key-value pairs. This class should not be used within schemas.
 
     :param keys: A field class or instance for dict keys.
     :param values: A field class or instance for dict values.
@@ -1672,8 +1672,7 @@ class Mapping(Field[_MappingType]):
 
 
 class Dict(Mapping[dict]):
-    """A dict field. Supports dicts and dict-like objects. Extends
-    Mapping with dict as the mapping_type.
+    """A dict field. Supports dicts and dict-like objects
 
     Example: ::
 
