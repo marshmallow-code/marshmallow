@@ -1206,7 +1206,7 @@ class Boolean(Field[bool]):
 _D = typing.TypeVar("_D", dt.datetime, dt.date, dt.time)
 
 
-class _BaseTemporalField(Field[_D], metaclass=abc.ABCMeta):
+class _TemporalField(Field[_D], metaclass=abc.ABCMeta):
     """Base field for date and time related fields including common (de)serialization logic."""
 
     # Subclasses should define each of these class constants
@@ -1265,7 +1265,7 @@ class _BaseTemporalField(Field[_D], metaclass=abc.ABCMeta):
     def _make_object_from_format(value: typing.Any, data_format: str) -> _D: ...
 
 
-class DateTime(_BaseTemporalField[dt.datetime]):
+class DateTime(_TemporalField[dt.datetime]):
     """A formatted datetime string.
 
     Example: ``'2014-12-22T03:12:58.019077+00:00'``
@@ -1385,7 +1385,7 @@ class AwareDateTime(DateTime):
         return ret
 
 
-class Time(_BaseTemporalField[dt.time]):
+class Time(_TemporalField[dt.time]):
     """A formatted time string.
 
     Example: ``'03:12:58.019077'``
@@ -1413,7 +1413,7 @@ class Time(_BaseTemporalField[dt.time]):
         return dt.datetime.strptime(value, data_format).time()
 
 
-class Date(_BaseTemporalField[dt.date]):
+class Date(_TemporalField[dt.date]):
     """ISO8601-formatted date string.
 
     :param format: Either ``"iso"`` (for ISO8601) or a date format string.
