@@ -854,6 +854,11 @@ class String(Field[str]):
         "invalid_utf8": "Not a valid utf-8 string.",
     }
 
+    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+        if value is None:
+            return None
+        return utils.ensure_text_type(value)
+
     def _deserialize(self, value, attr, data, **kwargs) -> str:
         if not isinstance(value, (str, bytes)):
             raise self.make_error("invalid")
