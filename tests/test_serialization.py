@@ -35,24 +35,6 @@ class TestFieldSerialization:
     def user(self):
         return User("Foo", email="foo@bar.com", age=42)
 
-    @pytest.mark.parametrize(
-        ("value", "expected"), [(42, float(42)), (0, float(0)), (None, None)]
-    )
-    def test_number(self, value, expected, user):
-        field = fields.Number()
-        user.age = value
-        assert field.serialize("age", user) == expected
-
-    def test_number_as_string(self, user):
-        user.age = 42
-        field = fields.Number(as_string=True)
-        assert field.serialize("age", user) == str(float(user.age))
-
-    def test_number_as_string_passed_none(self, user):
-        user.age = None
-        field = fields.Number(as_string=True, allow_none=True)
-        assert field.serialize("age", user) is None
-
     def test_function_field_passed_func(self, user):
         field = fields.Function(lambda obj: obj.name.upper())
         assert "FOO" == field.serialize("key", user)

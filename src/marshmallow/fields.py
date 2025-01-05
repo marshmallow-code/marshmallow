@@ -1193,14 +1193,20 @@ _D = typing.TypeVar("_D", dt.datetime, dt.date, dt.time)
 
 
 class _BaseTemporalField(Field[_D], metaclass=abc.ABCMeta):
+    """Base field for date and time related fields including common (de)serialization logic."""
+
+    # Subclasses should define each of these class constants
     SERIALIZATION_FUNCS: dict[str, typing.Callable[[_D], str | float]]
     DESERIALIZATION_FUNCS: dict[str, typing.Callable[[str], _D]]
-
     DEFAULT_FORMAT: str
-
     OBJ_TYPE: str
-
     SCHEMA_OPTS_VAR_NAME: str
+
+    default_error_messages = {
+        "invalid": "Not a valid {obj_type}.",
+        "invalid_awareness": "Not a valid {awareness} {obj_type}.",
+        "format": '"{input}" cannot be formatted as a {obj_type}.',
+    }
 
     def __init__(
         self, format: str | None = None, **kwargs: Unpack[_BaseFieldKwargs]
@@ -1284,13 +1290,6 @@ class DateTime(_BaseTemporalField[dt.datetime]):
     OBJ_TYPE = "datetime"
 
     SCHEMA_OPTS_VAR_NAME = "datetimeformat"
-
-    #: Default error messages.
-    default_error_messages = {
-        "invalid": "Not a valid {obj_type}.",
-        "invalid_awareness": "Not a valid {awareness} {obj_type}.",
-        "format": '"{input}" cannot be formatted as a {obj_type}.',
-    }
 
     @staticmethod
     def _make_object_from_format(value, data_format) -> dt.datetime:

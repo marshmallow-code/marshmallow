@@ -401,7 +401,7 @@ class TestFieldDeserialization:
             boolfield.deserialize("notabool")
         assert str(excinfo.value.args[0]) == "Not valid: notabool"
 
-        numfield = fields.Number(error_messages=error_messages)
+        numfield = fields.Float(error_messages=error_messages)
         with pytest.raises(ValidationError) as excinfo:
             numfield.deserialize("notanum")
         assert str(excinfo.value.args[0]) == "Not valid: notanum"
