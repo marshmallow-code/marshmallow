@@ -682,7 +682,7 @@ class Pluck(Nested):
         return self._load(value, partial=partial)
 
 
-class List(Field[list[_InternalType | None]]):
+class List(Field[list[typing.Optional[_InternalType]]]):
     """A list field, composed with another `Field` class or
     instance.
 

@@ -15,6 +15,7 @@ Other changes:
 
 - Typing: `Field <marshmallow.fields.Field>` is now a generic type with a type argument for the internal value type.
   Therefore, it is no longer usable as a field in a schema. Use `marshmallow.fields.Raw` instead.
+- `marshmallow.fields.UUID` no longer subclasses `marshmallow.fields.String`.
 - *Backwards-incompatible*: `marshmallow.fields.Number` is no longer usable as a field in a schema.
   Use `marshmallow.fields.Integer`, `marshmallow.fields.Float`, or `marshmallow.fields.Decimal` instead.
 - *Backwards-incompatible*: `marshmallow.fields.Mapping` is no longer usable as a field in a schema.
