@@ -10,6 +10,7 @@ API Reference
     marshmallow.decorators
     marshmallow.validate
     marshmallow.utils
+    marshmallow.experimental.context
     marshmallow.error_store
     marshmallow.class_registry
     marshmallow.exceptions

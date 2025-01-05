@@ -94,6 +94,46 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
     result = schema.load({"balance": "100.00"})
     result["balance"]  # => 100.0
 
+Using context
+-------------
+
+A field may need information about its environment to know how to (de)serialize a value.
+
+You can use the experimental `Context <marshmallow.experimental.context.Context>` class
+to set and retrieve context.
+
+As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether a certain word appears in a ``Blog's`` title.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+    from marshmallow.experimental.context import Context
+
+
+    class UserSchema(Schema):
+        name = fields.String()
+
+        is_author = fields.Function(lambda user: user == Context.get()["blog"].author)
+        likes_bikes = fields.Method("writes_about_bikes")
+
+        def writes_about_bikes(self, user):
+            return "bicycle" in Context.get()["blog"].title.lower()
+
+
+    schema = UserSchema()
+
+    user = User("Freddie Mercury", "fred@queen.com")
+    blog = Blog("Bicycle Blog", author=user)
+
+    with Context({"blog": blog}):
+        result = schema.dump(user)
+        result["is_author"]  # => True
+        result["likes_bikes"]  # => True
+
+.. note::
+    You can use `Context.get <marshmallow.experimental.context.Context.get>`
+    within custom fields, pre-/post-processing methods, and validators.
+
 Customizing error messages
 --------------------------
 
