@@ -127,7 +127,7 @@ def test_decorated_processor_returning_none(unknown):
 class TestPassOriginal:
     def test_pass_original_single(self):
         class MySchema(Schema):
-            foo = fields.Field()
+            foo = fields.Raw()
 
             @post_load(pass_original=True)
             def post_load(self, data, original_data, **kwargs):
@@ -154,7 +154,7 @@ class TestPassOriginal:
 
     def test_pass_original_many(self):
         class MySchema(Schema):
-            foo = fields.Field()
+            foo = fields.Raw()
 
             @post_load(pass_many=True, pass_original=True)
             def post_load(self, data, original, many, **kwargs):

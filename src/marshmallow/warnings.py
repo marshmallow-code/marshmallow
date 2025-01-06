@@ -1,2 +1,10 @@
-class RemovedInMarshmallow4Warning(DeprecationWarning):
+class Marshmallow4Warning(DeprecationWarning):
+    pass
+
+
+class ChangedInMarshmallow4Warning(Marshmallow4Warning):
+    pass
+
+
+class RemovedInMarshmallow4Warning(Marshmallow4Warning):
     pass

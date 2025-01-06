@@ -38,7 +38,6 @@ ALL_FIELDS = [
     fields.Integer,
     fields.Boolean,
     fields.Float,
-    fields.Number,
     fields.DateTime,
     fields.Time,
     fields.Date,

@@ -10,7 +10,10 @@ import pytest
 from marshmallow import EXCLUDE, INCLUDE, RAISE, Schema, fields, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
-from marshmallow.warnings import RemovedInMarshmallow4Warning
+from marshmallow.warnings import (
+    ChangedInMarshmallow4Warning,
+    RemovedInMarshmallow4Warning,
+)
 from tests.base import (
     ALL_FIELDS,
     DateEnum,
@@ -50,7 +53,7 @@ class TestDeserializingNone:
             field.deserialize(None)
 
     def test_allow_none_is_true_if_missing_is_true(self):
-        field = fields.Field(load_default=None)
+        field = fields.Raw(load_default=None)
         assert field.allow_none is True
         assert field.deserialize(None) is None
 
@@ -402,7 +405,8 @@ class TestFieldDeserialization:
             boolfield.deserialize("notabool")
         assert str(excinfo.value.args[0]) == "Not valid: notabool"
 
-        numfield = fields.Number(error_messages=error_messages)
+        with pytest.warns(ChangedInMarshmallow4Warning):
+            numfield = fields.Number(error_messages=error_messages)
         with pytest.raises(ValidationError) as excinfo:
             numfield.deserialize("notanum")
         assert str(excinfo.value.args[0]) == "Not valid: notanum"
@@ -1410,7 +1414,7 @@ class TestFieldDeserialization:
                     return True
                 return False
 
-        field = fields.Field(validate=MyValidator())
+        field = fields.Raw(validate=MyValidator())
         assert field.deserialize("valid") == "valid"
         with pytest.raises(ValidationError, match="Invalid value."):
             field.deserialize("invalid")
@@ -1422,7 +1426,7 @@ class TestFieldDeserialization:
             raise ValidationError(["err1", "err2"])
 
         class MySchema(Schema):
-            foo = fields.Field(validate=validator)
+            foo = fields.Raw(validate=validator)
 
         errors = MySchema().validate({"foo": 42})
         assert errors["foo"] == ["err1", "err2"]
@@ -1654,7 +1658,7 @@ class TestSchemaDeserialization:
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/450
     def test_deserialize_with_attribute_param_symmetry(self):
         class MySchema(Schema):
-            foo = fields.Field(attribute="bar.baz")
+            foo = fields.Raw(attribute="bar.baz")
 
         schema = MySchema()
         dump_data = schema.dump({"bar": {"baz": 42}})
@@ -1705,7 +1709,7 @@ class TestSchemaDeserialization:
 
     def test_deserialize_with_data_key_as_empty_string(self):
         class MySchema(Schema):
-            name = fields.Field(data_key="")
+            name = fields.Raw(data_key="")
 
         schema = MySchema()
         assert schema.load({"": "Grace"}) == {"name": "Grace"}
@@ -1797,7 +1801,7 @@ class TestSchemaDeserialization:
             raise ValidationError("Something went wrong")
 
         class MySchema(Schema):
-            foo = fields.Field(validate=validate_field)
+            foo = fields.Raw(validate=validate_field)
 
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({"foo": 42})
@@ -1812,7 +1816,7 @@ class TestSchemaDeserialization:
             raise ValidationError("foo is not valid")
 
         class MySchema(Schema):
-            foo = fields.Field(
+            foo = fields.Raw(
                 required=True, validate=[validate_with_bool, validate_with_error]
             )
 
@@ -1851,7 +1855,7 @@ class TestSchemaDeserialization:
 
     def test_required_value_only_passed_to_validators_if_provided(self):
         class MySchema(Schema):
-            foo = fields.Field(required=True, validate=lambda f: False)
+            foo = fields.Raw(required=True, validate=lambda f: False)
 
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({})
@@ -1863,8 +1867,8 @@ class TestSchemaDeserialization:
     @pytest.mark.parametrize("partial_schema", [True, False])
     def test_partial_deserialization(self, partial_schema):
         class MySchema(Schema):
-            foo = fields.Field(required=True)
-            bar = fields.Field(required=True)
+            foo = fields.Raw(required=True)
+            bar = fields.Raw(required=True)
 
         schema_args = {}
         load_args = {}
@@ -1879,9 +1883,9 @@ class TestSchemaDeserialization:
 
     def test_partial_fields_deserialization(self):
         class MySchema(Schema):
-            foo = fields.Field(required=True)
-            bar = fields.Field(required=True)
-            baz = fields.Field(required=True)
+            foo = fields.Raw(required=True)
+            bar = fields.Raw(required=True)
+            baz = fields.Raw(required=True)
 
         with pytest.raises(ValidationError) as excinfo:
             MySchema().load({"foo": 3}, partial=tuple())
@@ -1902,9 +1906,9 @@ class TestSchemaDeserialization:
 
     def test_partial_fields_validation(self):
         class MySchema(Schema):
-            foo = fields.Field(required=True)
-            bar = fields.Field(required=True)
-            baz = fields.Field(required=True)
+            foo = fields.Raw(required=True)
+            bar = fields.Raw(required=True)
+            baz = fields.Raw(required=True)
 
         errors = MySchema().validate({"foo": 3}, partial=tuple())
         assert "bar" in errors
@@ -2291,8 +2295,8 @@ def test_required_message_can_be_changed(message):
 @pytest.mark.parametrize("data", [True, False, 42, None, []])
 def test_deserialize_raises_exception_if_input_type_is_incorrect(data, unknown):
     class MySchema(Schema):
-        foo = fields.Field()
-        bar = fields.Field()
+        foo = fields.Raw()
+        bar = fields.Raw()
 
     with pytest.raises(ValidationError, match="Invalid input type.") as excinfo:
         MySchema(unknown=unknown).load(data)

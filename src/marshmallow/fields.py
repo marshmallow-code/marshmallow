@@ -29,7 +29,10 @@ from marshmallow.utils import (
     missing as missing_,
 )
 from marshmallow.validate import And, Length
-from marshmallow.warnings import RemovedInMarshmallow4Warning
+from marshmallow.warnings import (
+    ChangedInMarshmallow4Warning,
+    RemovedInMarshmallow4Warning,
+)
 
 if typing.TYPE_CHECKING:
     from marshmallow.schema import Schema, SchemaMeta
@@ -135,6 +138,16 @@ class Field(FieldABC):
         "null": "Field may not be null.",
         "validator_failed": "Invalid value.",
     }
+
+    def __new__(cls, *args, **kwargs):
+        if cls is Field:
+            warnings.warn(
+                "`Field` should not be instantiated. Use `fields.Raw` or  "
+                "another field subclass instead.",
+                ChangedInMarshmallow4Warning,
+                stacklevel=2,
+            )
+        return super().__new__(cls)
 
     def __init__(
         self,
@@ -949,6 +962,15 @@ class Number(Field, typing.Generic[_NumType]):
         "too_large": "Number too large.",
     }
 
+    def __new__(cls, *args, **kwargs):
+        if cls is Number:
+            warnings.warn(
+                "`Number` field should not be instantiated. Use `Integer`, `Float`, or `Decimal` instead.",
+                ChangedInMarshmallow4Warning,
+                stacklevel=2,
+            )
+        return super().__new__(cls)
+
     def __init__(self, *, as_string: bool = False, **kwargs):
         self.as_string = as_string
         super().__init__(**kwargs)
@@ -1556,6 +1578,15 @@ class Mapping(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
 
+    def __new__(cls, *args, **kwargs):
+        if cls is Mapping:
+            warnings.warn(
+                "`Mapping` field should not be instantiated. Use `Dict` instead.",
+                ChangedInMarshmallow4Warning,
+                stacklevel=2,
+            )
+        return super().__new__(cls)
+
     def __init__(
         self,
         keys: Field | type[Field] | None = None,
@@ -1868,7 +1899,7 @@ class Enum(Field):
         or Field class or instance to use to (de)serialize by value. Defaults to False.
 
     If `by_value` is `False` (default), enum members are (de)serialized by symbol (name).
-    If it is `True`, they are (de)serialized by value using :class:`Field`.
+    If it is `True`, they are (de)serialized by value using :class:`Raw`.
     If it is a field instance or class, they are (de)serialized by value using this field.
 
     .. versionadded:: 3.18.0
@@ -1898,7 +1929,7 @@ class Enum(Field):
         # Serialization by value
         else:
             if by_value is True:
-                self.field = Field()
+                self.field = Raw()
             else:
                 try:
                     self.field = resolve_field_instance(by_value)

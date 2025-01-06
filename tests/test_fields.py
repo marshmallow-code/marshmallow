@@ -30,9 +30,9 @@ def test_field_aliases(alias, field):
 class TestField:
     def test_repr(self):
         default = "œ∑´"
-        field = fields.Field(dump_default=default, attribute=None)
+        field = fields.Raw(dump_default=default, attribute=None)
         assert repr(field) == (
-            f"<fields.Field(dump_default={default!r}, attribute=None, "
+            f"<fields.Raw(dump_default={default!r}, attribute=None, "
             "validate=None, required=False, "
             "load_only=False, dump_only=False, "
             f"load_default={missing}, allow_none=False, "
@@ -43,13 +43,13 @@ class TestField:
 
     def test_error_raised_if_uncallable_validator_passed(self):
         with pytest.raises(ValueError, match="must be a callable"):
-            fields.Field(validate="notcallable")
+            fields.Raw(validate="notcallable")
 
     def test_error_raised_if_missing_is_set_on_required_field(self):
         with pytest.raises(
             ValueError, match="'load_default' must not be set for required fields"
         ):
-            fields.Field(required=True, load_default=42)
+            fields.Raw(required=True, load_default=42)
 
     def test_custom_field_receives_attr_and_obj(self):
         class MyField(fields.Field):
@@ -93,10 +93,10 @@ class TestField:
 
 class TestParentAndName:
     class MySchema(Schema):
-        foo = fields.Field()
+        foo = fields.Raw()
         bar = fields.List(fields.Str())
         baz = fields.Tuple([fields.Str(), fields.Int()])
-        bax = fields.Mapping(fields.Str(), fields.Int())
+        bax = fields.Dict(fields.Str(), fields.Int())
 
     @pytest.fixture()
     def schema(self):
@@ -188,7 +188,7 @@ class TestParentAndName:
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1808
     def test_field_named_parent_has_root(self, schema):
         class MySchema(Schema):
-            parent = fields.Field()
+            parent = fields.Raw()
 
         schema = MySchema()
         assert schema.fields["parent"].root == schema

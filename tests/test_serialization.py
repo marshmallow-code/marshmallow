@@ -12,7 +12,10 @@ import pytest
 
 from marshmallow import Schema, fields
 from marshmallow import missing as missing_
-from marshmallow.warnings import RemovedInMarshmallow4Warning
+from marshmallow.warnings import (
+    ChangedInMarshmallow4Warning,
+    RemovedInMarshmallow4Warning,
+)
 from tests.base import ALL_FIELDS, DateEnum, GenderEnum, HairColorEnum, User, central
 
 
@@ -40,18 +43,21 @@ class TestFieldSerialization:
         ("value", "expected"), [(42, float(42)), (0, float(0)), (None, None)]
     )
     def test_number(self, value, expected, user):
-        field = fields.Number()
+        with pytest.warns(ChangedInMarshmallow4Warning):
+            field = fields.Number()
         user.age = value
         assert field.serialize("age", user) == expected
 
     def test_number_as_string(self, user):
         user.age = 42
-        field = fields.Number(as_string=True)
+        with pytest.warns(ChangedInMarshmallow4Warning):
+            field = fields.Number(as_string=True)
         assert field.serialize("age", user) == str(float(user.age))
 
     def test_number_as_string_passed_none(self, user):
         user.age = None
-        field = fields.Number(as_string=True, allow_none=True)
+        with pytest.warns(ChangedInMarshmallow4Warning):
+            field = fields.Number(as_string=True, allow_none=True)
         assert field.serialize("age", user) is None
 
     def test_function_field_passed_func(self, user):
@@ -537,7 +543,7 @@ class TestFieldSerialization:
 
     def test_serialize_with_data_key_as_empty_string(self):
         class MySchema(Schema):
-            name = fields.Field(data_key="")
+            name = fields.Raw(data_key="")
 
         schema = MySchema()
         assert schema.dump({"name": "Grace"}) == {"": "Grace"}
@@ -939,7 +945,7 @@ class TestFieldSerialization:
             fields.Tuple([ASchema])
 
     def test_serialize_does_not_apply_validators(self, user):
-        field = fields.Field(validate=lambda x: False)
+        field = fields.Raw(validate=lambda x: False)
         # No validation error raised
         assert field.serialize("age", user) == user.age
 
@@ -994,7 +1000,7 @@ class TestSchemaSerialization:
 def test_serializing_named_tuple():
     Point = namedtuple("Point", ["x", "y"])
 
-    field = fields.Field()
+    field = fields.Raw()
 
     p = Point(x=4, y=2)
 
