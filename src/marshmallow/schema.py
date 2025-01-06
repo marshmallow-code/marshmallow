@@ -390,6 +390,13 @@ class Schema(metaclass=SchemaMeta):
             if unknown is None
             else validate_unknown_parameter_value(unknown)
         )
+        if context:
+            warnings.warn(
+                "The `context` parameter is deprecated and will be removed in marshmallow 4.0. "
+                "Use `contextvars.ContextVar` to pass context instead.",
+                RemovedInMarshmallow4Warning,
+                stacklevel=2,
+            )
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects

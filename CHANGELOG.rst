@@ -13,6 +13,10 @@ Bug fixes:
 
 - Typing: Fix type hint for ``nested`` parameter of `Nested <marshmallow.fields.Nested>`.
 
+Deprecations:
+
+- Deprecate ``context`` parameter of `Schema <marshmallow.schema.Schema>` (:issue:`1826`).
+  Use `contextVars.ContextVar` to pass context data instead.
 
 3.23.3 (2025-01-03)
 *******************

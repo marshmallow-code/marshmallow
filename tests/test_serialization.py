@@ -12,6 +12,7 @@ import pytest
 
 from marshmallow import Schema, fields
 from marshmallow import missing as missing_
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 from tests.base import ALL_FIELDS, DateEnum, GenderEnum, HairColorEnum, User, central
 
 
@@ -110,7 +111,8 @@ class TestFieldSerialization:
         field = fields.Function(
             serialize=lambda obj, context: obj.name.upper() + context["key"]
         )
-        field.parent = Parent(context={"key": "BAR"})
+        with pytest.warns(RemovedInMarshmallow4Warning):
+            field.parent = Parent(context={"key": "BAR"})
         assert "FOOBAR" == field.serialize("key", user)
 
     def test_function_field_passed_uncallable_object(self):

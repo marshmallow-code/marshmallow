@@ -23,6 +23,7 @@ from marshmallow.exceptions import (
     StringNotCollectionError,
     ValidationError,
 )
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 from tests.base import (
     Blog,
     BlogOnlySchema,
@@ -364,11 +365,12 @@ def test_nested_on_bind_field_hook():
 
         foo = fields.Nested(NestedSchema)
 
-    schema1 = MySchema(context={"fname": "foobar"})
-    schema2 = MySchema(context={"fname": "quxquux"})
+    with pytest.warns(RemovedInMarshmallow4Warning):
+        schema1 = MySchema(context={"fname": "foobar"})
+        schema2 = MySchema(context={"fname": "quxquux"})
 
-    assert schema1.fields["foo"].schema.fields["bar"].metadata["fname"] == "foobar"
-    assert schema2.fields["foo"].schema.fields["bar"].metadata["fname"] == "quxquux"
+        assert schema1.fields["foo"].schema.fields["bar"].metadata["fname"] == "foobar"
+        assert schema2.fields["foo"].schema.fields["bar"].metadata["fname"] == "quxquux"
 
 
 class TestValidate:
@@ -2518,7 +2520,8 @@ class TestContext:
         ser = CSchema()
         ser.context["info"] = "i like bikes"
         obj = {"inner": {}}
-        result = ser.dump(obj)
+        with pytest.warns(RemovedInMarshmallow4Warning):
+            result = ser.dump(obj)
         assert result["inner"]["likes_bikes"] is True
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/820
@@ -2572,8 +2575,10 @@ class TestContext:
         class InnerSchema(Schema):
             foo = fields.Field()
 
-        class OuterSchema(Schema):
-            inner = fields.Nested(InnerSchema(context={"unp": Unpicklable()}))
+        with pytest.warns(RemovedInMarshmallow4Warning):
+
+            class OuterSchema(Schema):
+                inner = fields.Nested(InnerSchema(context={"unp": Unpicklable()}))
 
         outer = OuterSchema()
         obj = {"inner": {"foo": 42}}

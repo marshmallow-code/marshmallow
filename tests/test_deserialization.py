@@ -10,6 +10,7 @@ import pytest
 from marshmallow import EXCLUDE, INCLUDE, RAISE, Schema, fields, validate
 from marshmallow.exceptions import ValidationError
 from marshmallow.validate import Equal
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 from tests.base import (
     ALL_FIELDS,
     DateEnum,
@@ -992,7 +993,8 @@ class TestFieldDeserialization:
             lambda x: None,
             deserialize=lambda val, context: val.upper() + context["key"],
         )
-        field.parent = Parent(context={"key": "BAR"})
+        with pytest.warns(RemovedInMarshmallow4Warning):
+            field.parent = Parent(context={"key": "BAR"})
         assert field.deserialize("foo") == "FOOBAR"
 
     def test_function_field_passed_deserialize_only_is_load_only(self):
