@@ -15,6 +15,8 @@ Bug fixes:
 
 Deprecations:
 
+- Custom validators should raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values. 
+  Returning `False`` is no longer supported .
 - Deprecate ``context`` parameter of `Schema <marshmallow.schema.Schema>` (:issue:`1826`).
   Use `contextVars.ContextVar` to pass context data instead.
 - `Field <marshmallow.fields.Field>`, `Mapping <marshmallow.fields.Mapping>`,

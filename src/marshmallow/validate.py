@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 from abc import ABC, abstractmethod
 from itertools import zip_longest
 from operator import attrgetter
 
 from marshmallow import types
 from marshmallow.exceptions import ValidationError
+from marshmallow.warnings import ChangedInMarshmallow4Warning
 
 _T = typing.TypeVar("_T")
 
@@ -77,6 +79,12 @@ class And(Validator):
             try:
                 r = validator(value)
                 if not isinstance(validator, Validator) and r is False:
+                    warnings.warn(
+                        "Returning `False` from a validator is deprecated. "
+                        "Raise a `ValidationError` instead.",
+                        ChangedInMarshmallow4Warning,
+                        stacklevel=2,
+                    )
                     raise ValidationError(self.error)
             except ValidationError as err:
                 kwargs.update(err.kwargs)
