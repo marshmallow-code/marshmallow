@@ -10,7 +10,9 @@ Features:
 
 - Typing: Add types to all `Field <marshmallow.fields.Field>` subclass kwargs (:issue:`2285`).
   Thanks :user:`navignaw` for the suggestion.
-- All fields accept their internal value type as valid input (:issue:`1415`).
+- `DateTime <marshmallow.fields.DateTime>`, `Date <marshmallow.fields.Date>`, `Time <marshmallow.fields.Time>`,
+  `TimeDelta <marshmallow.fields.TimeDelta>`, and `Enum <marshmallow.fields.Enum>`
+  accept their internal value types as valid input (:issue:`1415`).
   Thanks :user:`bitdancer` for the suggestion.
 
 Other changes:
