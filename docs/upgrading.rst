@@ -111,7 +111,7 @@ If you want to use anonymous functions, you can use this helper function.
 
 
     def predicate(
-        func: typing.Callable[[typing.Any], typing.Any],
+        func: typing.Callable[[typing.Any], bool],
     ) -> typing.Callable[[typing.Any], None]:
         def validate(value: typing.Any) -> None:
             if func(value) is False:

@@ -80,7 +80,7 @@ def assert_time_equal(t1: dt.time, t2: dt.time) -> None:
 
 
 def predicate(
-    func: typing.Callable[[typing.Any], typing.Any],
+    func: typing.Callable[[typing.Any], bool],
 ) -> typing.Callable[[typing.Any], None]:
     def validate(value: typing.Any) -> None:
         if func(value) is False:
