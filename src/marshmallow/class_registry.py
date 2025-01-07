@@ -70,12 +70,12 @@ def register(classname: str, cls: SchemaType) -> None:
 
 
 @typing.overload
-def get_class(classname: str, all: typing.Literal[False]) -> SchemaType: ...
+def get_class(classname: str, all: typing.Literal[False] = ...) -> SchemaType: ...
 
 
 @typing.overload
 def get_class(
-    classname: str, all: typing.Literal[True]
+    classname: str, all: typing.Literal[True] = ...
 ) -> list[SchemaType] | SchemaType: ...
 
 

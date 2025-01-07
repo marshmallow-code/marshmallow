@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.24.1 (unreleased)
+*******************
+
+Bug fixes:
+
+- Typing: Fix typing for `class_registry.get_class <marshmallow.class_registry.get_class>`.
+
 3.24.0 (2025-01-06)
 *******************
 
