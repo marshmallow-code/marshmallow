@@ -6,7 +6,7 @@ Changelog
 
 Bug fixes:
 
-- Typing: Fix typing for `class_registry.get_class <marshmallow.class_registry.get_class>`.
+- Typing: Fix typing for `class_registry.get_class <marshmallow.class_registry.get_class>` (:pr:`2735`).
 
 3.24.0 (2025-01-06)
 *******************
