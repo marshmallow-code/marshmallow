@@ -83,7 +83,7 @@ def predicate(
     func: typing.Callable[[typing.Any], typing.Any],
 ) -> typing.Callable[[typing.Any], None]:
     def validate(value: typing.Any) -> None:
-        if not func(value):
+        if func(value) is False:
             raise ValidationError("Invalid value.")
 
     return validate
