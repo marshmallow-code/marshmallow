@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.25.0 (unreleased)
+*******************
+
+Features:
+
+- Typing: Improve type annotations for ``SchemaMeta.get_declared_fields``.
+
 3.24.2 (2025-01-08)
 *******************
 

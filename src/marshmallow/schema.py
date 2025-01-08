@@ -41,7 +41,7 @@ from marshmallow.utils import (
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 
-def _get_fields(attrs):
+def _get_fields(attrs) -> list[tuple[str, ma_fields.Field]]:
     """Get fields from a class
 
     :param attrs: Mapping of class attributes
@@ -124,10 +124,10 @@ class SchemaMeta(ABCMeta):
     def get_declared_fields(
         mcs,
         klass: SchemaMeta,
-        cls_fields: list,
-        inherited_fields: list,
+        cls_fields: list[tuple[str, ma_fields.Field]],
+        inherited_fields: list[tuple[str, ma_fields.Field]],
         dict_cls: type[dict] = dict,
-    ):
+    ) -> dict[str, ma_fields.Field]:
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
         computed from class Meta options.
