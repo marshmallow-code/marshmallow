@@ -139,16 +139,6 @@ class Field(FieldABC):
         "validator_failed": "Invalid value.",
     }
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Field:
-            warnings.warn(
-                "`Field` should not be instantiated. Use `fields.Raw` or  "
-                "another field subclass instead.",
-                ChangedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-        return super().__new__(cls)
-
     def __init__(
         self,
         *,
@@ -171,6 +161,13 @@ class Field(FieldABC):
         metadata: typing.Mapping[str, typing.Any] | None = None,
         **additional_metadata,
     ) -> None:
+        if self.__class__ is Field:
+            warnings.warn(
+                "`Field` should not be instantiated. Use `fields.Raw` or  "
+                "another field subclass instead.",
+                ChangedInMarshmallow4Warning,
+                stacklevel=2,
+            )
         # handle deprecated `default` and `missing` parameters
         if default is not missing_:
             warnings.warn(
@@ -963,16 +960,13 @@ class Number(Field, typing.Generic[_NumType]):
         "too_large": "Number too large.",
     }
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Number:
+    def __init__(self, *, as_string: bool = False, **kwargs):
+        if self.__class__ is Number:
             warnings.warn(
                 "`Number` field should not be instantiated. Use `Integer`, `Float`, or `Decimal` instead.",
                 ChangedInMarshmallow4Warning,
                 stacklevel=2,
             )
-        return super().__new__(cls)
-
-    def __init__(self, *, as_string: bool = False, **kwargs):
         self.as_string = as_string
         super().__init__(**kwargs)
 
@@ -1579,21 +1573,18 @@ class Mapping(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
 
-    def __new__(cls, *args, **kwargs):
-        if cls is Mapping:
-            warnings.warn(
-                "`Mapping` field should not be instantiated. Use `Dict` instead.",
-                ChangedInMarshmallow4Warning,
-                stacklevel=2,
-            )
-        return super().__new__(cls)
-
     def __init__(
         self,
         keys: Field | type[Field] | None = None,
         values: Field | type[Field] | None = None,
         **kwargs,
     ):
+        if self.__class__ is Mapping:
+            warnings.warn(
+                "`Mapping` field should not be instantiated. Use `Dict` instead.",
+                ChangedInMarshmallow4Warning,
+                stacklevel=2,
+            )
         super().__init__(**kwargs)
         if keys is None:
             self.key_field = None

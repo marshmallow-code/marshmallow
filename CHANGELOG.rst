@@ -4,6 +4,13 @@ Changelog
 3.24.2 (unreleased)
 *******************
 
+Changes:
+
+- Don't override ``__new__`` to avoid breaking usages of `inspect.signature` with
+  `Field <marshmallow.fields.Field>` classes.
+  This allows marshmallow-sqlalchemy users to upgrade marshmallow without
+  upgrading to marshmallow-sqlalchemy>=1.1.1.
+
 Documentation:
 
 - Add top-level API back to docs (:issue:`2739`).
@@ -30,7 +37,7 @@ Bug fixes:
 
 Deprecations:
 
-- Custom validators should raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values. 
+- Custom validators should raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values.
   Returning `False`` is no longer supported .
 - Deprecate ``context`` parameter of `Schema <marshmallow.schema.Schema>` (:issue:`1826`).
   Use `contextVars.ContextVar` to pass context data instead.
