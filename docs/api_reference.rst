@@ -5,6 +5,7 @@ API Reference
 *************
 
 .. toctree::
+    marshmallow
     marshmallow.schema
     marshmallow.fields
     marshmallow.decorators
