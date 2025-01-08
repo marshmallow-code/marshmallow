@@ -100,7 +100,7 @@ def validates_schema(
     """Register a schema-level validator.
 
     By default it receives a single object at a time, transparently handling the ``many``
-    argument passed to the `Schema`'s :func:`~marshmallow.Schema.validate` call.
+    argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.validate` call.
     If ``pass_many=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before unmarshalling) will be passed as
@@ -132,7 +132,7 @@ def pre_dump(
     receives the object to be serialized and returns the processed object.
 
     By default it receives a single object at a time, transparently handling the ``many``
-    argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
+    argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.dump` call.
     If ``pass_many=True``, the raw data (which may be a collection) is passed.
 
     .. versionchanged:: 3.0.0
@@ -150,7 +150,7 @@ def post_dump(
     receives the serialized object and returns the processed object.
 
     By default it receives a single object at a time, transparently handling the ``many``
-    argument passed to the `Schema`'s :func:`~marshmallow.Schema.dump` call.
+    argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.dump` call.
     If ``pass_many=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before serializing) will be passed as
@@ -169,7 +169,7 @@ def pre_load(
     receives the data to be deserialized and returns the processed data.
 
     By default it receives a single object at a time, transparently handling the ``many``
-    argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
+    argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.load` call.
     If ``pass_many=True``, the raw data (which may be a collection) is passed.
 
     .. versionchanged:: 3.0.0
@@ -188,7 +188,7 @@ def post_load(
     receives the deserialized data and returns the processed data.
 
     By default it receives a single object at a time, transparently handling the ``many``
-    argument passed to the `Schema`'s :func:`~marshmallow.Schema.load` call.
+    argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.load` call.
     If ``pass_many=True``, the raw data (which may be a collection) is passed.
 
     If ``pass_original=True``, the original data (before deserializing) will be passed as

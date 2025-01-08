@@ -344,15 +344,15 @@ class Schema(metaclass=SchemaMeta):
         - ``timeformat``: Default format for `Time <fields.Time>` fields.
         - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
             Defaults to `json` from the standard library.
-        - ``ordered``: If `True`, output of `Schema.dump` will be a `collections.OrderedDict`.
+        - ``ordered``: If `True`, output of `Schema.dump <marshmallow.Schema.dump>` will be a `collections.OrderedDict`.
         - ``index_errors``: If `True`, errors dictionaries will include the index
             of invalid items in a collection.
         - ``load_only``: Tuple or list of fields to exclude from serialized results.
         - ``dump_only``: Tuple or list of fields to exclude from deserialization
         - ``unknown``: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        - ``register``: Whether to register the `Schema` with marshmallow's internal
-            class registry. Must be `True` if you intend to refer to this `Schema`
+        - ``register``: Whether to register the `Schema <marshmallow.Schema>` with marshmallow's internal
+            class registry. Must be `True` if you intend to refer to this `Schema <marshmallow.Schema>`
             by class name in `Nested` fields. Only set this to `False` when memory
             usage is critical. Defaults to `True`.
         """
@@ -428,7 +428,7 @@ class Schema(metaclass=SchemaMeta):
         *,
         name: str = "GeneratedSchema",
     ) -> type[Schema]:
-        """Generate a `Schema` class given a dictionary of fields.
+        """Generate a `Schema <marshmallow.Schema>` class given a dictionary of fields.
 
         .. code-block:: python
 
@@ -1016,7 +1016,7 @@ class Schema(metaclass=SchemaMeta):
         self.load_fields = load_fields
 
     def on_bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
-        """Hook to modify a field when it is bound to the `Schema`.
+        """Hook to modify a field when it is bound to the `Schema <marshmallow.Schema>`.
 
         No-op by default.
         """

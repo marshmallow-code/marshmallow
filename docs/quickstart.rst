@@ -1,5 +1,3 @@
-.. module:: marshmallow
-
 Quickstart
 ==========
 
@@ -176,7 +174,7 @@ Set ``many=True`` when dealing with iterable collections of objects.
 Validation
 ----------
 
-:meth:`Schema.load` (and its JSON-decoding counterpart, :meth:`Schema.loads`) raises a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` error when invalid data are passed in. You can access the dictionary of validation errors from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute. The data that were correctly deserialized are accessible in `ValidationError.valid_data <marshmallow.exceptions.ValidationError.valid_data>`. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
+`Schema.load <marshmallow.Schema.load>` (and its JSON-decoding counterpart, `Schema.loads <marshmallow.Schema.loads>`) raises a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` error when invalid data are passed in. You can access the dictionary of validation errors from the `ValidationError.messages <marshmallow.exceptions.ValidationError.messages>` attribute. The data that were correctly deserialized are accessible in `ValidationError.valid_data <marshmallow.exceptions.ValidationError.valid_data>`. Some fields, such as the :class:`Email <fields.Email>` and :class:`URL <fields.URL>` fields, have built-in validation.
 
 .. code-block:: python
 
@@ -275,7 +273,7 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
 .. warning::
 
     Validation occurs on deserialization but not on serialization. 
-    To improve serialization performance, data passed to :meth:`Schema.dump` 
+    To improve serialization performance, data passed to `Schema.dump <marshmallow.Schema.dump>` 
     are considered valid.
 
 .. seealso::
@@ -286,7 +284,7 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
 
 .. seealso::
 
-    Need schema-level validation? See the :ref:`Extending Schemas <schemavalidation>` page.
+    Need schema-level validation? See the :ref:`Extending Schemas <schema_validation>` page.
 
 
 Field validators as methods
@@ -313,7 +311,7 @@ It is sometimes convenient to write validators as methods. Use the `validates <m
 Required fields
 ---------------
 
-Make a field required by passing ``required=True``. An error will be raised if the the value is missing from the input to :meth:`Schema.load`.
+Make a field required by passing ``required=True``. An error will be raised if the the value is missing from the input to `Schema.load <marshmallow.Schema.load>`.
 
 To customize the error message for required fields, pass a `dict` with a ``required`` key as the ``error_messages`` argument for the field.
 
@@ -405,7 +403,7 @@ This behavior can be modified with the ``unknown`` option, which accepts one of 
 - `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
 - `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
 
-You can specify ``unknown`` in the *class Meta* of your `Schema`,
+You can specify ``unknown`` in the *class Meta* of your `Schema <marshmallow.Schema>`,
 
 .. code-block:: python
 
@@ -436,7 +434,7 @@ This order of precedence allows you to change the behavior of a schema for diffe
 Validation without deserialization
 ----------------------------------
 
-If you only need to validate input data (without deserializing to an object), you can use :meth:`Schema.validate`.
+If you only need to validate input data (without deserializing to an object), you can use `Schema.validate <marshmallow.Schema.validate>`.
 
 .. code-block:: python
 

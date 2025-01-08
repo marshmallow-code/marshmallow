@@ -261,7 +261,7 @@ This is useful for avoiding circular imports when your schemas are located in di
 Nesting a schema within itself
 ------------------------------
 
-If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema` within itself by passing a callable that returns an instance of the same schema.
+If the object to be marshalled has a relationship to an object of the same type, you can nest the `Schema <marshmallow.Schema>` within itself by passing a callable that returns an instance of the same schema.
 
 .. code-block:: python
 

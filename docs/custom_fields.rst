@@ -1,7 +1,7 @@
 Custom fields
 =============
 
-There are three ways to create a custom-formatted field for a `Schema`:
+There are three ways to create a custom-formatted field for a `Schema <marshmallow.Schema>`:
 
 - Create a custom :class:`Field <marshmallow.fields.Field>` class
 - Use a :class:`Method <marshmallow.fields.Method>` field
@@ -101,7 +101,7 @@ Adding context to `Method` and `Function` fields
 
 A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
 
-In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema <marshmallow.Schema>`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
 
 As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether a certain word appears in a ``Blog's`` title.
 

@@ -295,7 +295,7 @@ Bug fixes:
 - Don't expose ``Field``\s as ``Schema`` attributes. This reverts a change
   introduced in 3.12.0 that causes issues when field names conflict with
   ``Schema`` attributes or methods. ``Fields``\s are still accessible on a
-   ``Schema`` instance through the ``fields`` attribute. (:pr:`1843`)
+  ``Schema`` instance through the ``fields`` attribute. (:pr:`1843`)
 
 3.12.1 (2021-05-10)
 *******************
@@ -870,7 +870,7 @@ Bug fixes:
 Other changes:
 
 - *Backwards-incompatible*: ``_serialize`` and ``_deserialize`` methods of
-all ``fields.Field`` subclasses must accept ``**kwargs`` (:pr:`1007`).
+  all ``fields.Field`` subclasses must accept ``**kwargs`` (:pr:`1007`).
 
 
 3.0.0b18 (2018-10-15)

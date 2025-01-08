@@ -39,7 +39,7 @@ class _Missing:
 
 
 # Singleton value that indicates that a field's value is missing from input
-# dict passed to :meth:`Schema.load`. If the field's value is not required,
+# dict passed to `Schema.load <marshmallow.Schema.load>`. If the field's value is not required,
 # it's ``default`` value is used.
 missing = _Missing()
 

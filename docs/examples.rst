@@ -1,5 +1,3 @@
-.. module:: marshmallow
-
 ********
 Examples
 ********
@@ -12,7 +10,7 @@ Below is a schema that could be used to validate
 ``package.json`` files. This example demonstrates the following features:
 
 
-- Validation and deserialization using :meth:`Schema.load`
+- Validation and deserialization using `Schema.load <marshmallow.Schema.load>`
 - :doc:`Custom fields <custom_fields>`
 - Specifying deserialization keys using ``data_key``
 - Including unknown keys using ``unknown = INCLUDE``

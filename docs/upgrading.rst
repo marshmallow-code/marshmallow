@@ -6,7 +6,7 @@ This section documents migration paths to new releases.
 Upgrading to 3.3
 ++++++++++++++++
 
-In 3.3, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance. 
+In 3.3, `fields.Nested <marshmallow.fields.Nested>` may take a callable that returns a schema instance.
 Use this to resolve order-of-declaration issues when schemas nest each other.
 
 .. code-block:: python
@@ -103,15 +103,15 @@ along with the valid data from the `ValidationError.valid_data
         errors = err.messages
         valid_data = err.valid_data
 
-:meth:`Schema.validate() <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
+`Schema.validate <marshmallow.Schema.validate>` always returns a dictionary of validation errors (same as 2.x with ``strict=False``).
 
 .. code-block:: python
 
     schema.validate({"email": "invalid"})
     # {'email': ['Not a valid email address.']}
 
-Setting the ``strict`` option on ``class Meta`` has no effect on `Schema` behavior.
-Passing ``strict=True`` or ``strict=False`` to the `Schema` constructor
+Setting the ``strict`` option on ``class Meta`` has no effect on `Schema <marshmallow.Schema>` behavior.
+Passing ``strict=True`` or ``strict=False`` to the `Schema <marshmallow.Schema>` constructor
 will raise a :exc:`TypeError`.
 
 
@@ -182,7 +182,7 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
 Validation does not occur on serialization
 ******************************************
 
-:meth:`Schema.dump() <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
+`Schema.dump <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
 your data before serializing it.
 
 .. code-block:: python
@@ -737,7 +737,7 @@ The same key is used for serialization and deserialization.
         email = fields.Email(data_key="CamelCasedEmail")
 
 It is not possible to specify a different key for serialization and deserialization on the same field.
-This use case is covered by using two different `Schema`.
+This use case is covered by using two different `Schema <marshmallow.Schema>`.
 
 .. code-block:: python
 
@@ -970,8 +970,8 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
 
     # 2.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field()
+        f1 = fields.Raw()
+        f2 = fields.Raw()
 
 
     MySchema(prefix="pre_").dump({"f1": "one", "f2": "two"})
@@ -980,8 +980,8 @@ The ``prefix`` parameter of ``Schema`` is removed. The same feature can be achie
 
     # 3.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field()
+        f1 = fields.Raw()
+        f2 = fields.Raw()
 
         @post_dump
         def prefix_usr(self, data):
@@ -1025,10 +1025,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
     # 2.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1")
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5")
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1")
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5")
 
 
     MySchema()
@@ -1037,10 +1037,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
     # 3.x
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1")
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5")
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1")
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5")
 
 
     MySchema()
@@ -1048,10 +1048,10 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 
 
     class MySchema(Schema):
-        f1 = fields.Field()
-        f2 = fields.Field(attribute="f1", dump_only=True)
-        f3 = fields.Field(attribute="f5")
-        f4 = fields.Field(attribute="f5", dump_only=True)
+        f1 = fields.Raw()
+        f2 = fields.Raw(attribute="f1", dump_only=True)
+        f3 = fields.Raw(attribute="f5")
+        f4 = fields.Raw(attribute="f5", dump_only=True)
 
 
     MySchema()
@@ -1061,7 +1061,7 @@ In marshmallow 2, it was possible to have multiple fields with the same ``attrib
 ``Field.fail`` is deprecated in favor of ``Field.make_error``
 *************************************************************
 
-`Field.fail <marshmallow.fields.Field.fail>` is deprecated. 
+`Field.fail <marshmallow.fields.Field.fail>` is deprecated.
 Use `Field.make_error <marshmallow.fields.Field.fail>`. This allows you to
 re-raise exceptions using ``raise ... from ...``.
 
@@ -1242,7 +1242,7 @@ As a consequence of this new behavior, the ``skip_missing`` class Meta option ha
 Pre-processing and post-processing methods
 ******************************************
 
-The pre- and post-processing API was significantly improved for better consistency and flexibility. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. `Schema.preprocessor` and `Schema.data_handler` are removed.
+The pre- and post-processing API was significantly improved for better consistency and flexibility. The `pre_load <marshmallow.decorators.pre_load>`, `post_load <marshmallow.decorators.post_load>`, `pre_dump <marshmallow.decorators.pre_dump>`, and `post_dump <marshmallow.decorators.post_dump>` should be used to define processing hooks. ``Schema.preprocessor`` and ``Schema.data_handler`` are removed.
 
 
 .. code-block:: python
@@ -1289,7 +1289,7 @@ See the :doc:`Extending Schemas <extending>` page for more information on the ``
 Schema validators
 *****************
 
-Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validates_schema <marshmallow.decorators.validates_schema>`. `Schema.validator` is removed.
+Similar to pre-processing and post-processing methods, schema validators are now defined as methods. Decorate schema validators with `validates_schema <marshmallow.decorators.validates_schema>`. ``Schema.validator`` is removed.
 
 .. code-block:: python
 
@@ -1324,7 +1324,7 @@ Similar to pre-processing and post-processing methods, schema validators are now
 Custom accessors and error handlers
 ***********************************
 
-Custom accessors and error handlers are now defined as methods. `Schema.accessor` and `Schema.error_handler` are deprecated.
+Custom accessors and error handlers are now defined as methods. ``Schema.accessor`` and ``Schema.error_handler`` are deprecated.
 
 .. code-block:: python
 
@@ -1432,7 +1432,7 @@ The :exc:`MarshallingError` and :exc:`UnmarshallingError` exceptions are depreca
 Handle ``ValidationError`` in strict mode
 -----------------------------------------
 
-When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump` and `Schema.load`.
+When using `strict` mode, you should handle `ValidationErrors` when calling `Schema.dump <marshmallow.Schema.dump>` and `Schema.load <marshmallow.Schema.load>`.
 
 .. code-block:: python
 
@@ -1707,7 +1707,7 @@ Perhaps the largest change is in how objects get serialized. Serialization occur
 
 .. note::
 
-    Some crucial parts of the pre-1.0 API have been retained to ease the transition. You can still pass an object to a `Schema` constructor and access the `Schema.data` and `Schema.errors` properties. The `is_valid` method, however, has been completely removed. It is recommended that you migrate to the new API to prevent future releases from breaking your code.
+    Some crucial parts of the pre-1.0 API have been retained to ease the transition. You can still pass an object to a `Schema <marshmallow.Schema>` constructor and access the `Schema.data` and `Schema.errors` properties. The `is_valid` method, however, has been completely removed. It is recommended that you migrate to the new API to prevent future releases from breaking your code.
 
 The Fields interface was also reworked in 1.0 to make it easier to define custom fields with their own serialization and deserialization behavior. Custom fields now implement :meth:`Field._serialize` and :meth:`Field._deserialize`.
 
