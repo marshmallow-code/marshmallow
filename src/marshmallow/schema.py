@@ -313,7 +313,7 @@ class Schema(metaclass=SchemaMeta):
     set_class = OrderedSet
 
     # These get set by SchemaMeta
-    opts: SchemaOpts
+    opts: typing.Any
     _declared_fields: dict[str, ma_fields.Field] = {}
     _hooks: dict[str, list[tuple[str, bool, dict]]] = {}
 
