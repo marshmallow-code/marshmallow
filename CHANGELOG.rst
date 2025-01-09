@@ -6,12 +6,12 @@ Changelog
 
 Features:
 
-- Typing: Improve type annotations for ``SchemaMeta.get_declared_fields``.
+- Typing: Improve type annotations for ``SchemaMeta.get_declared_fields`` (:pr:`2742`).
 
 Bug fixes:
 
 - Typing: Relax type annotation for ``Schema.opts`` to allow subclasses to define their own
-  options classes.
+  options classes (:pr:`2744`).
 
 3.24.2 (2025-01-08)
 *******************
