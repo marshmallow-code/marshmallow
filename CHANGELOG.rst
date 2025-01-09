@@ -13,6 +13,12 @@ Bug fixes:
 - Typing: Relax type annotation for ``Schema.opts`` to allow subclasses to define their own
   options classes (:pr:`2744`).
 
+Other changes:
+
+- Restore ``marshmallow.base.SchemaABC`` for backwards-compatibility (:issue:`2743`).
+  Note that this class is deprecated and will be removed in marshmallow 4.
+  Use `marshmallow.schema.Schema` as a base class for type-checking instead.
+
 3.24.2 (2025-01-08)
 *******************
 
