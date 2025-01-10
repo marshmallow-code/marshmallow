@@ -20,6 +20,8 @@ marshmallow: simplified object serialization
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
 
+.. start elevator-pitch
+
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
 .. code-block:: python
@@ -50,7 +52,6 @@ marshmallow: simplified object serialization
     #   'release_date': '1971-12-17',
     #   'title': 'Hunky Dory'}
 
-
 In short, marshmallow schemas can be used to:
 
 - **Validate** input data.
@@ -63,6 +64,8 @@ Get it now
 .. code-block:: shell-session
 
     $ pip install -U marshmallow
+
+.. end elevator-pitch
 
 Documentation
 =============
@@ -110,6 +113,8 @@ Thank you to all our backers! [`Become a backer`_]
 Sponsors
 --------
 
+.. start sponsors
+
 marshmallow is sponsored by `Route4Me <https://route4me.com>`_.
 
 .. image:: https://github.com/user-attachments/assets/018c2e23-032e-4a11-98da-8b6dc25b9054
@@ -120,6 +125,8 @@ Support this project by becoming a sponsor (or ask your company to support this 
 Your logo will be displayed here with a link to your website. [`Become a sponsor`_]
 
 .. _`Become a sponsor`: https://opencollective.com/marshmallow#sponsor
+
+.. end sponsors
 
 Professional Support
 ====================
