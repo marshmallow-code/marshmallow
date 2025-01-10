@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+3.25.1 (unreleased)
+*******************
+
+Documentation:
+
+- Various documentation improvements (:pr:`2746`).
+
 3.25.0 (2025-01-09)
 *******************
 
