@@ -1,4 +1,4 @@
-"""The :class:`Schema` class, including its metaclass and options (class Meta)."""
+"""The `Schema <marshmallow.Schema>` class, including its metaclass and options (class Meta)."""
 
 from __future__ import annotations
 
@@ -191,7 +191,7 @@ class SchemaMeta(ABCMeta):
 
 
 class SchemaOpts:
-    """class Meta options for the :class:`Schema`. Defines defaults."""
+    """class Meta options for the `Schema <marshmallow.Schema>`. Defines defaults."""
 
     def __init__(self, meta, ordered: bool = False):
         self.fields = getattr(meta, "fields", ())

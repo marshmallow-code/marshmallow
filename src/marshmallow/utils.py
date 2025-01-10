@@ -18,6 +18,10 @@ from marshmallow.base import FieldABC
 from marshmallow.exceptions import FieldInstanceResolutionError
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
+if typing.TYPE_CHECKING:
+    from marshmallow.fields import Field
+
+
 EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
@@ -347,10 +351,10 @@ def get_func_args(func: typing.Callable) -> list[str]:
     return _signature(func)
 
 
-def resolve_field_instance(cls_or_instance):
-    """Return a Schema instance from a Schema class or instance.
+def resolve_field_instance(cls_or_instance: type[Field] | Field) -> Field:
+    """Return a field instance from a field class or instance.
 
-    :param type|Schema cls_or_instance: Marshmallow Schema class or instance.
+    :param cls_or_instance: Field class or instance.
     """
     if isinstance(cls_or_instance, type):
         if not issubclass(cls_or_instance, FieldABC):
