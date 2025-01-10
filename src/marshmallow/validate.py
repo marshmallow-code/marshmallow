@@ -637,9 +637,9 @@ class ContainsOnly(OneOf):
     in the sequence is also in the sequence passed as ``choices``. Empty input
     is considered valid.
 
-    :param iterable choices: Same as :class:`OneOf`.
-    :param iterable labels: Same as :class:`OneOf`.
-    :param str error: Same as :class:`OneOf`.
+    :param choices: Same as :class:`OneOf`.
+    :param labels: Same as :class:`OneOf`.
+    :param error: Same as :class:`OneOf`.
 
     .. versionchanged:: 3.0.0b2
         Duplicate values are considered valid.
@@ -667,8 +667,8 @@ class ContainsNoneOf(NoneOf):
     in the sequence is a member of the sequence passed as ``iterable``. Empty input
     is considered valid.
 
-    :param iterable iterable: Same as :class:`NoneOf`.
-    :param str error: Same as :class:`NoneOf`.
+    :param iterable: Same as :class:`NoneOf`.
+    :param error: Same as :class:`NoneOf`.
 
     .. versionadded:: 3.6.0
     """

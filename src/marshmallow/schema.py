@@ -60,7 +60,7 @@ def _get_fields_by_mro(klass: SchemaMeta):
     class itself is excluded from the search; only its parents are checked. Get
     fields from ``_declared_fields`` if available, else use ``__dict__``.
 
-    :param type klass: Class whose fields to retrieve
+    :param klass: Class whose fields to retrieve
     """
     mro = inspect.getmro(klass)
     # Loop over mro in reverse to maintain correct order of fields
@@ -440,8 +440,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         Generated schemas are not added to the class registry and therefore cannot
         be referred to by name in `Nested` fields.
 
-        :param dict fields: Dictionary mapping field names to field instances.
-        :param str name: Optional name for the class, which will appear in
+
+        :param fields: Dictionary mapping field names to field instances.
+        :param name: Optional name for the class, which will appear in
             the ``repr`` for the class.
 
         .. versionadded:: 3.0.0
@@ -483,11 +484,11 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     def _call_and_store(getter_func, data, *, field_name, error_store, index=None):
         """Call ``getter_func`` with ``data`` as its argument, and store any `ValidationErrors`.
 
-        :param callable getter_func: Function for getting the serialized/deserialized
+        :param getter_func: Function for getting the serialized/deserialized
             value from ``data``.
         :param data: The data passed to ``getter_func``.
-        :param str field_name: Field name.
-        :param int index: Index of the item being validated, if validating a collection,
+        :param field_name: Field name.
+        :param index: Index of the item being validated, if validating a collection,
             otherwise `None`.
         """
         try:
@@ -503,7 +504,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
-        :param bool many: `True` if ``data`` should be serialized as a collection.
+        :param many: `True` if ``data`` should be serialized as a collection.
         :return: A dictionary of the serialized data
         """
         if many and obj is not None:
@@ -583,16 +584,16 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     ) -> typing.Any | list[typing.Any]:
         """Deserialize ``data``.
 
-        :param dict data: The data to deserialize.
-        :param ErrorStore error_store: Structure to store errors.
-        :param bool many: `True` if ``data`` should be deserialized as a collection.
-        :param bool|tuple partial: Whether to ignore missing fields and not require
+        :param data: The data to deserialize.
+        :param error_store: Structure to store errors.
+        :param many: `True` if ``data`` should be deserialized as a collection.
+        :param partial: Whether to ignore missing fields and not require
             any fields declared. Propagates down to ``Nested`` fields as well. If
             its value is an iterable, only missing fields listed in that iterable
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param int index: Index of the item being serialized (for storing errors) if
+        :param index: Index of the item being serialized (for storing errors) if
             serializing a collection, otherwise `None`.
         :return: The deserialized data as `dict_class` instance or list of `dict_class`
         instances if `many` is `True`.

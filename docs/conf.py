@@ -6,6 +6,7 @@ extensions = [
     "alabaster",
     "autodocsumm",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autodoc.typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
@@ -83,3 +84,5 @@ ogp_image = "_static/marshmallow-logo.png"
 # Strip the dollar prompt when copying code
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#strip-and-configure-input-prompts-for-code-cells
 copybutton_prompt_text = "$ "
+
+autodoc_typehints = "both"

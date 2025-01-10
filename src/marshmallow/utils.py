@@ -111,7 +111,7 @@ def from_rfc(datestring: str) -> dt.datetime:
 def rfcformat(datetime: dt.datetime) -> str:
     """Return the RFC822-formatted representation of a datetime object.
 
-    :param datetime datetime: The datetime.
+    :param datetime: The datetime.
     """
     return format_datetime(datetime)
 
@@ -229,7 +229,7 @@ def timestamp_ms(value: dt.datetime) -> float:
 def isoformat(datetime: dt.datetime) -> str:
     """Return the ISO8601-formatted representation of a datetime object.
 
-    :param datetime datetime: The datetime.
+    :param datetime: The datetime.
     """
     return datetime.isoformat()
 

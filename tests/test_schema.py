@@ -1170,9 +1170,9 @@ def test_nested_custom_set_not_implementing_getitem():
         Implements an object with some attribute
         """
 
-        def __init__(self, attribute):
+        def __init__(self, attribute: str):
             """
-            :param str attribute: The attribute to initialize
+            :param attribute: The attribute to initialize
             """
             self.attribute = attribute
 

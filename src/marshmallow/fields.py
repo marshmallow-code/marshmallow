@@ -114,7 +114,7 @@ class Field(FieldABC):
     :param dump_only: If `True` skip this field during deserialization, otherwise
         its value will be present in the deserialized object. In the context of an
         HTTP API, this effectively marks the field as "read-only".
-    :param dict error_messages: Overrides for `Field.default_error_messages`.
+    :param error_messages: Overrides for `Field.default_error_messages`.
     :param metadata: Extra information to be stored as field metadata.
 
     .. versionchanged:: 3.0.0b8
@@ -260,9 +260,9 @@ class Field(FieldABC):
     ):
         """Return the value for a given key from an object.
 
-        :param object obj: The object to get the value from.
-        :param str attr: The attribute/key in `obj` to get the value from.
-        :param callable accessor: A callable used to retrieve the value of `attr` from
+        :param obj: The object to get the value from.
+        :param attr: The attribute/key in `obj` to get the value from.
+        :param accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
         """
         accessor_func = accessor or utils.get_value
@@ -381,8 +381,8 @@ class Field(FieldABC):
         """Update field with values from its parent schema. Called by
         `Schema._bind_field <marshmallow.Schema._bind_field>`.
 
-        :param str field_name: Field name set in schema.
-        :param Schema|Field schema: Parent object.
+        :param field_name: Field name set in schema.
+        :param schema: Parent object.
         """
         self.parent = self.parent or schema
         self.name = self.name or field_name
@@ -405,9 +405,9 @@ class Field(FieldABC):
                     return str(value).title()
 
         :param value: The value to be serialized.
-        :param str attr: The attribute or key on the object to be serialized.
-        :param object obj: The object the value was pulled from.
-        :param dict kwargs: Field-specific keyword arguments.
+        :param attr: The attribute or key on the object to be serialized.
+        :param obj: The object the value was pulled from.
+        :param kwargs: Field-specific keyword arguments.
         :return: The serialized value
         """
         return value
@@ -710,9 +710,9 @@ class Pluck(Nested):
         loaded = AlbumSchema().load(in_data)  # => {'artist': {'id': 42}}
         dumped = AlbumSchema().dump(loaded)  # => {'artist': 42}
 
-    :param Schema nested: The Schema class or class name (string)
+    :param nested: The Schema class or class name (string)
         to nest, or ``"self"`` to nest the `Schema <marshmallow.Schema>` within itself.
-    :param str field_name: The key to pluck a value from.
+    :param field_name: The key to pluck a value from.
     :param kwargs: The same keyword arguments that :class:`Nested` receives.
     """
 
@@ -948,7 +948,7 @@ _NumType = typing.TypeVar("_NumType")
 class Number(Field, typing.Generic[_NumType]):
     """Base class for number fields.
 
-    :param bool as_string: If `True`, format the serialized value as a string.
+    :param as_string: If `True`, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
     """
 
@@ -1027,9 +1027,9 @@ class Integer(Number[int]):
 class Float(Number[float]):
     """A double as an IEEE-754 double precision string.
 
-    :param bool allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
+    :param allow_nan: If `True`, `NaN`, `Infinity` and `-Infinity` are allowed,
         even though they are illegal according to the JSON specification.
-    :param bool as_string: If `True`, format the value as a string.
+    :param as_string: If `True`, format the value as a string.
     :param kwargs: The same keyword arguments that :class:`Number` receives.
     """
 
@@ -1769,7 +1769,7 @@ class Email(String):
 class IP(Field):
     """A IP address field.
 
-    :param bool exploded: If `True`, serialize ipv6 address in long form, ie. with groups
+    :param exploded: If `True`, serialize ipv6 address in long form, ie. with groups
         consisting entirely of zeros included.
 
     .. versionadded:: 3.8.0
@@ -1835,7 +1835,7 @@ class IPInterface(Field):
 
     see https://python.readthedocs.io/en/latest/library/ipaddress.html#interface-objects
 
-    :param bool exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
+    :param exploded: If `True`, serialize ipv6 interface in long form, ie. with groups
         consisting entirely of zeros included.
     """
 
@@ -1886,8 +1886,8 @@ class IPv6Interface(IPInterface):
 class Enum(Field):
     """An Enum field (de)serializing enum members by symbol (name) or by value.
 
-    :param enum Enum: Enum class
-    :param boolean|Schema|Field by_value: Whether to (de)serialize by value or by name,
+    :param enum: Enum class
+    :param by_value: Whether to (de)serialize by value or by name,
         or Field class or instance to use to (de)serialize by value. Defaults to False.
 
     If `by_value` is `False` (default), enum members are (de)serialized by symbol (name).
@@ -1959,10 +1959,10 @@ class Enum(Field):
 class Method(Field):
     """A field that takes the value returned by a `Schema <marshmallow.Schema>` method.
 
-    :param str serialize: The name of the Schema method from which
+    :param serialize: The name of the Schema method from which
         to retrieve the value. The method must take an argument ``obj``
         (in addition to self) that is the object to be serialized.
-    :param str deserialize: Optional name of the Schema method for deserializing
+    :param deserialize: Optional name of the Schema method for deserializing
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
 
