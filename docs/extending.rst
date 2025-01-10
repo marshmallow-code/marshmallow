@@ -182,7 +182,7 @@ The pipeline for serialization is similar, except that the ``pass_many=True`` pr
 
         # YES
         class MySchema(Schema):
-            field_a = fields.Field()
+            field_a = fields.Raw()
 
             @pre_load
             def preprocess(self, data, **kwargs):
@@ -200,7 +200,7 @@ The pipeline for serialization is similar, except that the ``pass_many=True`` pr
 
         # NO
         class MySchema(Schema):
-            field_a = fields.Field()
+            field_a = fields.Raw()
 
             @pre_load
             def step1(self, data, **kwargs):
@@ -456,6 +456,13 @@ Our application schemas can now inherit from our custom schema class.
 
 Using context
 -------------
+
+.. warning::
+
+    The ``context`` attribute is deprecated and will be removed in marshmallow 4.
+    Use `contextvars.ContextVar` for passing context to fields, pre-/post-processing methods, and validators instead.
+    marshmallow 4 will also provide an `experimental helper API <https://marshmallow.readthedocs.io/en/latest/marshmallow.experimental.context.html>`_
+    for using context.
 
 The ``context`` attribute of a `Schema <marshmallow.Schema>` is a general-purpose store for extra information that may be needed for (de)serialization. It may be used in both ``Schema`` and ``Field`` methods.
 

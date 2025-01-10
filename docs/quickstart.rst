@@ -491,6 +491,24 @@ If you are consuming and producing data that does not match your schema, you can
 Implicit field creation
 -----------------------
 
+.. warning::
+
+    Implicit field creation is deprecated and is removed in marshmallow 4.
+    Fields should be declared explicitly.
+
+    .. code-block:: python
+
+        # 3.x
+        class UserSchema(Schema):
+            class Meta:
+                fields = ("name", "birthdate")
+
+
+        # 4.x
+        class UserSchema(Schema):
+            name = fields.String()
+            email = fields.Date()
+
 When your model has many attributes, specifying the field type for every attribute can get repetitive, especially when many of the attributes are already native Python datatypes.
 
 The ``fields`` option allows you to specify implicitly-created fields. marshmallow will choose an appropriate field type based on the attribute's type.
