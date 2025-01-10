@@ -33,12 +33,19 @@ exclude_patterns = ["_build"]
 # THEME
 
 html_theme = "furo"
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        # Serif system font stack: https://systemfontstack.com/
+        "font-stack": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;",
+    },
+}
 html_favicon = "_static/favicon.ico"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_show_sourcelink = False
 # TODO: Dark theme logo
-html_logo = "_static/marshmallow-logo-150.png"
+html_logo = "_static/marshmallow-logo-with-title.png"
 ogp_image = "_static/marshmallow-logo.png"
 
 # Strip the dollar prompt when copying code

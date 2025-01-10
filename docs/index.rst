@@ -1,4 +1,6 @@
-.. marshmallow documentation master file
+.. meta::
+   :description:
+        marshmallow is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
 ***********
 marshmallow
@@ -19,7 +21,7 @@ Ready to get started? Go on to the :doc:`Quickstart tutorial <quickstart>` or ch
 Upgrading from an older version?
 ================================
 
-See the :doc:`Upgrading to Newer Releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
+See the :doc:`Upgrading to newer releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
 
 Why another library?
 =====================
@@ -32,6 +34,13 @@ Sponsors
 .. include:: ../README.rst
     :start-after: .. start sponsors
     :end-before: .. end sponsors
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+    :titlesonly:
+
+    Home <self>
 
 Usage guide
 ===========
