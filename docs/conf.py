@@ -46,7 +46,7 @@ html_css_files = ["custom.css"]
 html_show_sourcelink = False
 # TODO: Dark theme logo
 html_logo = "_static/marshmallow-logo-with-title.png"
-ogp_image = "_static/marshmallow-logo.png"
+ogp_image = "_static/marshmallow-logo-200.png"
 
 # Strip the dollar prompt when copying code
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#strip-and-configure-input-prompts-for-code-cells
