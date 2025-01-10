@@ -1,17 +1,22 @@
 .. _api:
 
-*************
-API Reference
-*************
-
 .. toctree::
+    :caption: API Reference
+
     top_level
     marshmallow.schema
     marshmallow.fields
     marshmallow.decorators
     marshmallow.validate
     marshmallow.utils
-    marshmallow.error_store
-    marshmallow.class_registry
     marshmallow.exceptions
+
+Private API
+===========
+
+.. toctree::
+    :caption: Private API
+
     marshmallow.types
+    marshmallow.class_registry
+    marshmallow.error_store

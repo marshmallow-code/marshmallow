@@ -1,4 +1,4 @@
-Class Registry
+Class registry
 ==============
 
 .. automodule:: marshmallow.class_registry

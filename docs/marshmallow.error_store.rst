@@ -1,4 +1,4 @@
-Error Store
+Error store
 ===========
 
 .. automodule:: marshmallow.error_store

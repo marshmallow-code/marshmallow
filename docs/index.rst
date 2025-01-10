@@ -1,10 +1,14 @@
 .. marshmallow documentation master file
 
-********************************************
-marshmallow: simplified object serialization
-********************************************
+***********
+marshmallow
+***********
+
+*Object serialization and deserialization, lightweight and fluffy.*
 
 Release v\ |version|. (:doc:`Changelog <changelog>`)
+
+----
 
 .. include:: ../README.rst
     :start-after: .. start elevator-pitch
@@ -29,10 +33,11 @@ Sponsors
     :start-after: .. start sponsors
     :end-before: .. end sponsors
 
-Guide
-=====
+Usage guide
+===========
 
 .. toctree::
+    :caption: Usage guide
     :maxdepth: 2
 
     install
@@ -43,27 +48,38 @@ Guide
     examples
 
 
-API Reference
+API reference
 =============
 
 .. toctree::
-    :maxdepth: 2
+    :caption: API reference
+    :maxdepth: 1
 
     api_reference
 
-Project Info
-============
+Project info
+=============
 
 .. toctree::
+    :caption: Project info
     :maxdepth: 1
 
     why
     changelog
     upgrading
-    ecosystem
     whos_using
     license
     authors
     contributing
     code_of_conduct
     kudos
+    donate
+
+.. toctree::
+    :hidden:
+    :caption: Useful links
+
+    marshmallow @ PyPI <https://pypi.org/project/marshmallow/>
+    marshmallow @ GitHub <https://github.com/marshmallow-code/marshmallow/>
+    Issue Tracker <https://github.com/marshmallow-code/marshmallow/issues>
+    Ecosystem <https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem>

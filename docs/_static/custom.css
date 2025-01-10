@@ -1,0 +1,5 @@
+/* Hide ToC caption text within the main body (but leave them in the side-bar). */
+/* https://github.com/hynek/structlog/blob/b488a8bf589a01aabc41e3bf8df81a9848cd426c/docs/_static/custom.css#L17-L20 */
+#furo-main-content span.caption-text {
+  display: none;
+}
