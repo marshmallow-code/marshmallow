@@ -14,3 +14,4 @@ API Reference
     marshmallow.error_store
     marshmallow.class_registry
     marshmallow.exceptions
+    marshmallow.types
