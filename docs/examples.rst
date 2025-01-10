@@ -40,7 +40,7 @@ Given the following ``package.json`` file...
 
 We can validate it using the above script.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ python examples/package_json_example.py < package.json
     {'description': 'The Pythonic JavaScript toolkit',
@@ -67,7 +67,7 @@ But if we pass an invalid package.json file...
 
 We see the corresponding error messages.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ python examples/package_json_example.py < invalid_package.json
     ERROR: package.json is invalid
@@ -89,14 +89,14 @@ Assume that ``TextBlob`` objects have ``polarity``, ``subjectivity``, ``noun_phr
 
 First, run the app.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ python examples/textblob_example.py
 
 Then send a POST request with some text with `httpie <https://github.com/jkbr/httpie>`_ (a curl-like tool) for testing the APIs.
 
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install httpie
     $ http POST :5000/api/v1/analyze text="Simple is better"
@@ -150,14 +150,14 @@ Below is a full example of a REST API for a quotes app using `Flask <http://flas
 
 Run the app.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install flask flask-sqlalchemy
     $ python examples/flask_example.py
 
 First we'll POST some quotes.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install httpie
     $ http POST :5000/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
@@ -167,7 +167,7 @@ First we'll POST some quotes.
 
 If we provide invalid input data, we get 400 error response. Let's omit "author" from the input data.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ http POST :5000/quotes/ content="I have no author"
     {
@@ -178,7 +178,7 @@ If we provide invalid input data, we get 400 error response. Let's omit "author"
 
 Now we can GET a list of all the quotes.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ http :5000/quotes/
     {
@@ -200,7 +200,7 @@ Now we can GET a list of all the quotes.
 
 We can also GET the quotes for a single author.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ http :5000/authors/1
     {
@@ -236,14 +236,14 @@ Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize
 
 Run the app.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install flask peewee
     $ python examples/peewee_example.py
 
 After registering a user and creating some todo items in the database, here is an example response.
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install httpie
     $ http GET :5000/todos/

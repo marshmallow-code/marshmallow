@@ -3,12 +3,13 @@ import importlib.metadata
 import alabaster
 
 extensions = [
+    "alabaster",
+    "autodocsumm",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
-    "alabaster",
+    "sphinx_copybutton",
     "sphinx_issues",
-    "autodocsumm",
     "sphinxext.opengraph",
 ]
 
@@ -78,3 +79,7 @@ html_sidebars = {
     ],
 }
 ogp_image = "_static/marshmallow-logo.png"
+
+# Strip the dollar prompt when copying code
+# https://sphinx-copybutton.readthedocs.io/en/latest/use.html#strip-and-configure-input-prompts-for-code-cells
+copybutton_prompt_text = "$ "

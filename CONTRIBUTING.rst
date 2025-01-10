@@ -42,7 +42,7 @@ Setting up for local development
 
 1. Fork marshmallow_ on Github.
 
-::
+.. code-block:: shell-session
 
     $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
@@ -51,14 +51,14 @@ Setting up for local development
    Use the following command to install an editable version of
    marshmallow along with its development requirements.
 
-::
+.. code-block:: shell-session
 
     # After activating your virtualenv
     $ pip install -e '.[dev]'
 
 3. Install the pre-commit hooks, which will format and lint your git staged files.
 
-::
+.. code-block:: shell-session
 
     # The pre-commit CLI was installed above
     $ pre-commit install --allow-missing-config
@@ -81,17 +81,21 @@ Pull requests
 
 1. Create a new local branch.
 
-::
+For a new feature:
 
-    # For a new feature
+.. code-block:: shell-session
+
     $ git checkout -b name-of-feature dev
 
-    # For a bugfix
-    $ git checkout -b fix-something 2.x-line
+For a bugfix:
+
+.. code-block:: shell-session
+
+    $ git checkout -b fix-something 3.x-line
 
 2. Commit your changes. Write `good commit messages <https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html>`_.
 
-::
+.. code-block:: shell-session
 
     $ git commit -m "Detailed commit message"
     $ git push origin name-of-feature
@@ -106,15 +110,21 @@ Pull requests
 Running tests
 +++++++++++++
 
-To run all tests: ::
+To run all tests:
+
+.. code-block:: shell-session
 
     $ pytest
 
-To run formatting and syntax checks: ::
+To run formatting and syntax checks:
+
+.. code-block:: shell-session
 
     $ tox -e lint
 
-(Optional) To run tests in all supported Python versions in their own virtual environments (must have each interpreter installed): ::
+(Optional) To run tests in all supported Python versions in their own virtual environments (must have each interpreter installed):
+
+.. code-block:: shell-session
 
     $ tox
 
@@ -125,7 +135,9 @@ Documentation
 
 Contributions to the documentation are welcome. Documentation is written in `reStructuredText`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
-To build the docs in "watch" mode: ::
+To build the docs in "watch" mode:
+
+.. code-block:: shell-session
 
    $ tox -e watch-docs
 
@@ -137,7 +149,7 @@ Changes in the `docs/` directory will automatically trigger a rebuild.
 Contributing examples
 +++++++++++++++++++++
 
-Have a usage example you'd like to share? A custom `Field` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.
+Have a usage example you'd like to share? A custom `Field <marshmallow.fields.Field>` that others might find useful? Feel free to add it to the `examples <https://github.com/marshmallow-code/marshmallow/tree/dev/examples>`_ directory and send a pull request.
 
 
 .. _Sphinx: https://www.sphinx-doc.org/

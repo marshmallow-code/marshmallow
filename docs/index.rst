@@ -6,7 +6,7 @@ marshmallow: simplified object serialization
 
 Release v\ |version|. (:doc:`Changelog <changelog>`)
 
-.. include:: about.rst.inc
+.. include:: about.rst
 
 Upgrading from an older version?
 ================================

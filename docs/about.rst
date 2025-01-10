@@ -35,10 +35,10 @@ In short, marshmallow schemas can be used to:
 - **Serialize** app-level objects to primitive Python types. The serialized objects can then be rendered to standard formats such as JSON for use in an HTTP API.
 
 
-Get It Now
+Get it now
 ==========
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ pip install -U marshmallow
 
