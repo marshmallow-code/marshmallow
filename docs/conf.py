@@ -9,6 +9,7 @@ extensions = [
     "alabaster",
     "sphinx_issues",
     "autodocsumm",
+    "sphinxext.opengraph",
 ]
 
 primary_domain = "py"
@@ -34,12 +35,14 @@ exclude_patterns = ["_build"]
 
 html_theme_path = [alabaster.get_path()]
 html_theme = "alabaster"
+html_favicon = "_static/favicon.ico"
 html_static_path = ["_static"]
 templates_path = ["_templates"]
 html_show_sourcelink = False
 
 html_theme_options = {
-    "logo": "marshmallow-logo.png",
+    "logo": "marshmallow-logo-with-title.png",
+    "touch_icon": "apple-touch-icon.png",
     "description": "Object serialization and deserialization, lightweight and fluffy.",
     "description_font_style": "italic",
     "github_user": "marshmallow-code",
@@ -74,3 +77,4 @@ html_sidebars = {
         "relations.html",
     ],
 }
+ogp_image = "_static/marshmallow-logo.png"
