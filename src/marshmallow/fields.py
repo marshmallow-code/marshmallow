@@ -718,9 +718,14 @@ class Pluck(Nested):
         self,
         nested: Schema | SchemaMeta | str | typing.Callable[[], Schema],
         field_name: str,
+        *,
+        many: bool = False,
+        unknown: str | None = None,
         **kwargs,
     ):
-        super().__init__(nested, only=(field_name,), **kwargs)
+        super().__init__(
+            nested, only=(field_name,), many=many, unknown=unknown, **kwargs
+        )
         self.field_name = field_name
 
     @property
@@ -830,8 +835,12 @@ class Tuple(Field):
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid tuple."}
 
-    def __init__(self, tuple_fields: typing.Iterable[Field], *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        tuple_fields: typing.Iterable[Field] | typing.Iterable[type[Field]],
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
         if not utils.is_collection(tuple_fields):
             raise ValueError(
                 "tuple_fields must be an iterable of Field classes or " "instances."
@@ -1198,8 +1207,8 @@ class Boolean(Field):
     def __init__(
         self,
         *,
-        truthy: set | None = None,
-        falsy: set | None = None,
+        truthy: typing.Iterable | None = None,
+        falsy: typing.Iterable | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -1557,7 +1566,7 @@ class TimeDelta(Field):
 
 
 class Mapping(Field):
-    """An abstract class for objects with key-value pairs.
+    """An abstract class for objects with key-value pairs. This class should not be used within schemas.
 
     :param keys: A field class or instance for dict keys.
     :param values: A field class or instance for dict values.
