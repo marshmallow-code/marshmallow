@@ -234,10 +234,6 @@ def callable_or_raise(obj):
     return obj
 
 
-def _signature(func: typing.Callable) -> list[str]:
-    return list(inspect.signature(func).parameters.keys())
-
-
 def timedelta_to_microseconds(value: dt.timedelta) -> int:
     """Compute the total microseconds of a timedelta.
 
