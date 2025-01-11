@@ -80,9 +80,7 @@ __all__ = [
 
 
 class Field(FieldABC):
-    """Basic field from which other fields should extend. It applies no
-    formatting by default, and should only be used in cases where
-    data does not need to be formatted before being serialized or deserialized.
+    """Base field from which other fields inherit.
 
     :param dump_default: If set, this value will be used during serialization if the
         input value is missing. If not set, the field will be excluded from the
@@ -123,6 +121,10 @@ class Field(FieldABC):
 
     .. versionchanged:: 3.13.0
         Replace ``missing`` and ``default`` parameters with ``load_default`` and ``dump_default``.
+
+    .. versionchanged:: 3.24.0
+        `Field <marshmallow.fields.Field>` should no longer be used as a field within a `Schema <marshmallow.Schema>`.
+        Use `Raw <marshmallow.fields.Raw>` or another `Field <marshmallow.fields.Field>` subclass instead.
     """
 
     # Some fields, such as Method fields and Function fields, are not expected
@@ -950,6 +952,10 @@ class Number(Field, typing.Generic[_NumType]):
 
     :param as_string: If `True`, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionchanged:: 3.24.0
+        `Number <marshmallow.fields.Number>` should no longer be used as a field within a `Schema <marshmallow.Schema>`.
+        Use `Integer <marshmallow.fields.Integer>`, `Float <marshmallow.fields.Float>`, or `Decimal <marshmallow.fields.Decimal>` instead.
     """
 
     num_type: type = float
@@ -1566,6 +1572,9 @@ class Mapping(Field):
         `keys` and `values` arguments to prevent content validation.
 
     .. versionadded:: 3.0.0rc4
+    .. versionchanged:: 3.24.0
+        `Mapping <marshmallow.fields.Mapping>` should no longer be used as a field within a `Schema <marshmallow.Schema>`.
+        Use `Dict <marshmallow.fields.Dict>` instead.
     """
 
     mapping_type = dict
