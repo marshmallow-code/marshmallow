@@ -29,6 +29,8 @@ copyright = "Steven Loria and contributors"
 version = release = importlib.metadata.version("marshmallow")
 
 exclude_patterns = ["_build"]
+# Ignore WARNING: more than one target found for cross-reference 'Schema': marshmallow.schema.Schema, marshmallow.Schema
+suppress_warnings = ["ref.python"]
 
 # THEME
 
