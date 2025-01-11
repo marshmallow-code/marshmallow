@@ -99,6 +99,13 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
 Adding context to `Method` and `Function` fields
 ------------------------------------------------
 
+.. warning::
+
+    The ``context`` attribute is deprecated and will be removed in marshmallow 4.
+    Use `contextvars.ContextVar` for passing context to fields, pre-/post-processing methods, and validators instead.
+    marshmallow 4 will also provide an `experimental helper API <https://marshmallow.readthedocs.io/en/latest/marshmallow.experimental.context.html>`_
+    for using context.
+
 A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
 
 In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema <marshmallow.Schema>`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.

@@ -37,9 +37,6 @@ As an example, you might have a JSON endpoint for retrieving all information abo
         players = fields.List(fields.Nested(PlayerSchema))
         last_changed = fields.DateTime(format="rfc")
 
-        class Meta:
-            additional = ("title", "date_created", "type", "is_active")
-
 
     # Serializes full game state
     full_serializer = GameStateSchema()
