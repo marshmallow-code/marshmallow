@@ -4,6 +4,13 @@ Changelog
 3.25.1 (unreleased)
 *******************
 
+Bug fixes:
+
+- Typing: Fix type annotations for `Tuple <marshmallow.fields.Tuple>`,
+  `Boolean <marshmallow.fields.Boolean>`, and `Pluck <marshmallow.fields.Pluck>`
+  constructors (:pr:`2756`).
+- Typing: Fix overload for `marshmallow.class_registry.get_class` (:pr:`2756`).
+
 Documentation:
 
 - Various documentation improvements (:pr:`2746`, :pr:`2747`, :pr:`2748`, :pr:`2749`, :pr:`2750`, :pr:`2751`).

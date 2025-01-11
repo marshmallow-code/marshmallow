@@ -80,7 +80,7 @@ def get_class(classname: str, all: typing.Literal[True] = ...) -> list[SchemaTyp
 def get_class(classname: str, all: bool = False) -> list[SchemaType] | SchemaType:
     """Retrieve a class from the registry.
 
-    :raises: marshmallow.exceptions.RegistryError if the class cannot be found
+    :raises: `marshmallow.exceptions.RegistryError` if the class cannot be found
         or if there are multiple entries for the given class name.
     """
     try:
