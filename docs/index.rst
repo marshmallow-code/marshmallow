@@ -8,7 +8,7 @@ marshmallow
 
 *Object serialization and deserialization, lightweight and fluffy.*
 
-Release v\ |version|. (:doc:`Changelog <changelog>`)
+Release v\ |version|. (:doc:`changelog`)
 
 ----
 

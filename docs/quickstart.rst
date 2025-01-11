@@ -280,7 +280,7 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
 
     You can register a custom error handler function for a schema by overriding the 
     :func:`handle_error <Schema.handle_error>` method. 
-    See the :doc:`Extending Schemas <extending>` page for more info.
+    See the :doc:`extending` page for more info.
 
 .. seealso::
 
@@ -542,7 +542,7 @@ Note that ``name`` will be automatically formatted as a :class:`String <marshmal
 
 Next steps
 ----------
-- Need to represent relationships between objects? See the :doc:`Nesting Schemas <nesting>` page.
-- Want to create your own field type? See the :doc:`Custom Fields <custom_fields>` page.
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
-- For example applications using marshmallow, check out the :doc:`Examples <examples>` page.
+- Need to represent relationships between objects? See the :doc:`nesting` page.
+- Want to create your own field type? See the :doc:`custom_fields` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending` page.
+- For example applications using marshmallow, check out the :doc:`examples` page.
