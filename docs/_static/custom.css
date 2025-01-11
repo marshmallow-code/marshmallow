@@ -4,8 +4,8 @@ h2, h3, h4, h5, h6 {
   font-weight: 400;
 }
 
-/* Navigational elements: left and right sidebars, "Back to top" button */
-.sidebar-drawer, .toc-drawer, .back-to-top {
+/* UI elements: left and right sidebars, "Back to top" button, admonitions, Copy button */
+.sidebar-drawer, .toc-drawer, .back-to-top, .admonition, .copybtn {
   /* Sans-serif system font stack */
   font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
 }

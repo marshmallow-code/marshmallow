@@ -37,7 +37,7 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
 .. seealso::
 
-    For a full reference on the available field classes, see the :ref:`API Docs <api_fields>`.
+    For a full reference on the available field classes, see the :ref:`fields module documentation <api_fields>`.
 
 Creating schemas from dictionaries
 ----------------------------------

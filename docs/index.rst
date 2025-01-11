@@ -16,12 +16,12 @@ Release v\ |version|. (:doc:`Changelog <changelog>`)
     :start-after: .. start elevator-pitch
     :end-before: .. end elevator-pitch
 
-Ready to get started? Go on to the :doc:`Quickstart tutorial <quickstart>` or check out some :doc:`Examples <examples>`.
+Ready to get started? Go on to the :doc:`quickstart` or check out some :doc:`examples <examples>`.
 
 Upgrading from an older version?
 ================================
 
-See the :doc:`Upgrading to newer releases <upgrading>` page for notes on getting your code up-to-date with the latest version.
+See the :doc:`upgrading` page for notes on getting your code up-to-date with the latest version.
 
 Why another library?
 =====================

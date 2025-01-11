@@ -32,4 +32,4 @@ To get the latest development version of marshmallow, run
 
 .. seealso::
 
-    Need help upgrading to newer releases? See the :doc:`Upgrading to Newer Releases <upgrading>` page.
+    Need help upgrading to newer releases? See the :doc:`upgrading` page.
