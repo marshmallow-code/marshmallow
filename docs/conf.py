@@ -18,8 +18,6 @@ intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 issues_github_path = "marshmallow-code/marshmallow"
 
-templates_path = ["_templates"]
-
 source_suffix = ".rst"
 master_doc = "index"
 
@@ -38,6 +36,9 @@ html_theme = "furo"
 html_theme_options = {
     "light_logo": "marshmallow-logo-with-title.png",
     "dark_logo": "marshmallow-logo-with-title-for-dark-theme.png",
+    "source_repository": "https://github.com/marshmallow-code/marshmallow",
+    "source_branch": "3.x-line",
+    "source_directory": "docs/",
     "sidebar_hide_name": True,
     "light_css_variables": {
         # Serif system font stack: https://systemfontstack.com/
