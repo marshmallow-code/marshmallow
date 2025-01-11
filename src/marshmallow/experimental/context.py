@@ -34,18 +34,21 @@ import contextlib
 import contextvars
 import typing
 
-_T = typing.TypeVar("_T")
+_ContextType = typing.TypeVar("_ContextType")
 _CURRENT_CONTEXT: contextvars.ContextVar = contextvars.ContextVar("context")
 
 
-class Context(contextlib.AbstractContextManager, typing.Generic[_T]):
-    """Context manager for setting and retrieving context."""
+class Context(contextlib.AbstractContextManager, typing.Generic[_ContextType]):
+    """Context manager for setting and retrieving context.
 
-    def __init__(self, context: _T) -> None:
+    :param context: The context to use within the context manager scope.
+    """
+
+    def __init__(self, context: _ContextType) -> None:
         self.context = context
         self.token: contextvars.Token | None = None
 
-    def __enter__(self) -> Context[_T]:
+    def __enter__(self) -> Context[_ContextType]:
         self.token = _CURRENT_CONTEXT.set(self.context)
         return self
 
@@ -53,7 +56,7 @@ class Context(contextlib.AbstractContextManager, typing.Generic[_T]):
         _CURRENT_CONTEXT.reset(typing.cast(contextvars.Token, self.token))
 
     @classmethod
-    def get(cls, default=...) -> _T:
+    def get(cls, default=...) -> _ContextType:
         """Get the current context.
 
         :param default: Default value to return if no context is set.
