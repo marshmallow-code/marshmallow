@@ -1946,10 +1946,6 @@ class Method(Field):
         a value The method must take a single argument ``value``, which is the
         value to deserialize.
 
-    .. versionchanged:: 2.3.0
-        Deprecated ``method_name`` parameter in favor of ``serialize`` and allow
-        ``serialize`` to not be passed at all.
-
     .. versionchanged:: 3.0.0
         Removed ``method_name`` parameter.
     """
@@ -2008,9 +2004,6 @@ class Function(Field):
         to be deserialized.
         If no callable is provided then ```value``` will be passed through
         unchanged.
-
-    .. versionchanged:: 2.3.0
-        Deprecated ``func`` parameter in favor of ``serialize``.
 
     .. versionchanged:: 3.0.0a1
         Removed ``func`` parameter.
