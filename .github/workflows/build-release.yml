@@ -6,17 +6,6 @@ on:
   pull_request:
 
 jobs:
-  mypy:
-    name: mypy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4.0.0
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-      - run: python -m pip install --upgrade pip
-      - run: python -m pip install tox
-      - run: python -m tox -e mypy-test
   docs:
     name: docs
     runs-on: ubuntu-latest
@@ -36,6 +25,7 @@ jobs:
         include:
           - { name: "3.9", python: "3.9", tox: py39 }
           - { name: "3.13", python: "3.13", tox: py313 }
+          - { name: "mypy", python: "3.13", tox: mypy }
     steps:
       - uses: actions/checkout@v4.0.0
       - uses: actions/setup-python@v5

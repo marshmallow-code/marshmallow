@@ -17,10 +17,3 @@ repos:
   hooks:
   - id: blacken-docs
     additional_dependencies: [black==24.10.0]
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.14.1
-  hooks:
-  - id: mypy
-    additional_dependencies: [types-simplejson, packaging]
-    # these files are checked under `tox -e mypy-test`
-    exclude: ^tests/mypy_test_cases/.*$
