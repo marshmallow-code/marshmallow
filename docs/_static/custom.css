@@ -4,10 +4,16 @@ h2, h3, h4, h5, h6 {
   font-weight: 400;
 }
 
-/* Left and ride sidebars */
-.sidebar-drawer, .toc-drawer {
+/* Navigational elements: left and right sidebars, "Back to top" button */
+.sidebar-drawer, .toc-drawer, .back-to-top {
   /* Sans-serif system font stack */
   font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+}
+
+/* Links */
+
+a:link, a:visited {
+  color: var(--color-link);
 }
 
 /* Hide ToC caption text within the main body (but leave them in the side-bar). */
