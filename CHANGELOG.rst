@@ -6,7 +6,7 @@ Changelog
 
 Documentation:
 
-- Various documentation improvements (:pr:`2746`).
+- Various documentation improvements (:pr:`2746`, :pr:`2747`, :pr:`2748`, :pr:`2749`, :pr:`2750`).
 
 3.25.0 (2025-01-09)
 *******************
