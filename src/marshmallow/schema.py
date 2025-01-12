@@ -83,7 +83,14 @@ class SchemaMeta(ABCMeta):
     the Schema class's `class Meta <marshmallow.Schema.Meta>` options.
     """
 
-    def __new__(mcs, name, bases, attrs):
+    Meta: type
+    opts: typing.Any
+    OPTIONS_CLASS: type
+    _declared_fields: dict[str, Field]
+
+    def __new__(
+        mcs, name: str, bases: tuple[type, ...], attrs: dict[str, typing.Any]
+    ) -> SchemaMeta:
         meta = attrs.get("Meta")
         ordered = getattr(meta, "ordered", False)
         if not ordered:
@@ -194,7 +201,7 @@ class SchemaMeta(ABCMeta):
 class SchemaOpts:
     """Defines defaults for `marshmallow.Schema.Meta`."""
 
-    def __init__(self, meta, ordered: bool = False):
+    def __init__(self, meta: type, ordered: bool = False):
         self.fields = getattr(meta, "fields", ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")

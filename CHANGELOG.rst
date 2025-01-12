@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Typing: Add type annotations and improved documentation for `class Meta <marshmallow.Schema.Meta>` options (:pr:`2760`).
+- Typing: Improve type coverage of `marshmallow.Schema.SchemaMeta`.
 
 Documentation:
 
