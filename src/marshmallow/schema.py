@@ -371,8 +371,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         .. versionadded:: 3.0.0b12 Add `unknown`.
         .. versionchanged:: 3.0.0b17 Rename ``dateformat`` to `datetimeformat`.
         .. versionadded:: 3.9.0 Add `timeformat`.
-        .. versionchanged:: 3.26.0
-            `ordered` option is deprecated. Field order is preserved by default.
+        .. versionchanged:: 3.26.0 Deprecate `ordered`. Field order is preserved by default.
         """
 
         fields: typing.ClassVar[tuple[Field] | list[Field]]
