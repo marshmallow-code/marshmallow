@@ -745,6 +745,8 @@ class Schema(metaclass=SchemaMeta):
             This method returns the deserialized data rather than a ``(data, errors)`` duple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
+        .. versionchanged:: 4.0.0
+            Rename ``json_module`` parameter to ``s``.
         """
         data = self.opts.render_module.loads(s, **kwargs)
         return self.load(data, many=many, partial=partial, unknown=unknown)
