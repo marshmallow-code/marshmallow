@@ -57,6 +57,8 @@ As a consequence of this change:
 - Improve performance and minimize float precision loss of `marshmallow.fields.TimeDelta` serialization (:pr:`2654`).
 - *Backwards-incompatible*: Remove ``serialization_type`` parameter from
   `marshmallow.fields.TimeDelta` (:pr:`2654`).
+- Rename ``json_data`` parameter of `marshmallow.Schema.loads` to ``s``
+  for compatibility with most render module implementations (`json`, ``simplejson``, etc.).
 
 Thanks :user:`ddelange` for the PR.
 
