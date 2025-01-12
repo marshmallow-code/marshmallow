@@ -13,6 +13,12 @@ Documentation:
 
 - Various documentation improvements (:pr:`2757`, :pr:`2759`).
 
+Deprecations:
+
+- The ``ordered`` `class Meta <marshmallow.Schema.Meta>` option is deprecated (:issue:`2146`). 
+  Field order is already preserved by default. Set `marshmallow.Schema.dict_class` to `collections.OrderedDict` 
+  to maintain the previous behavior.
+
 3.25.1 (2025-01-11)
 *******************
 

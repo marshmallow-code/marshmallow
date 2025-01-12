@@ -4,6 +4,7 @@ from collections import OrderedDict
 import pytest
 
 from marshmallow import EXCLUDE, Schema, fields
+from marshmallow.warnings import RemovedInMarshmallow4Warning
 from tests.base import User
 
 
@@ -59,6 +60,19 @@ class OrderedNestedOnly(Schema):
 
 
 class TestFieldOrdering:
+    def test_ordered_option_is_deprecate(self):
+        with pytest.warns(RemovedInMarshmallow4Warning):
+
+            class MySchema(Schema):
+                class Meta:
+                    ordered = True
+
+        with pytest.warns(RemovedInMarshmallow4Warning):
+
+            class MySchema(Schema):
+                class Meta:
+                    ordered = False
+
     @pytest.mark.parametrize("with_meta", (False, True))
     def test_ordered_option_is_inherited(self, user, with_meta):
         class ParentUnordered(Schema):

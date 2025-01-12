@@ -91,7 +91,7 @@ no_implicit_optional = true
 
 [tool.pytest.ini_options]
 norecursedirs = ".git .ropeproject .tox docs env venv tests/mypy_test_cases"
-addopts = "-v --tb=short"
 filterwarnings = [
   "ignore:Returning `False` from a validator:marshmallow.warnings.ChangedInMarshmallow4Warning",
+  "ignore:The `ordered` `class Meta` option is deprecated.:marshmallow.warnings.RemovedInMarshmallow4Warning",
 ]

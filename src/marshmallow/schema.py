@@ -229,6 +229,14 @@ class SchemaOpts:
         else:
             render_module = json
         self.render_module = getattr(meta, "render_module", render_module)
+        if hasattr(meta, "ordered"):
+            warnings.warn(
+                "The `ordered` `class Meta` option is deprecated. "
+                "Field order is already preserved by default. "
+                "Set `Schema.dict_class` to OrderedDict to maintain the previous behavior.",
+                RemovedInMarshmallow4Warning,
+                stacklevel=2,
+            )
         self.ordered = getattr(meta, "ordered", ordered)
         self.index_errors = getattr(meta, "index_errors", True)
         self.include = getattr(meta, "include", {})
