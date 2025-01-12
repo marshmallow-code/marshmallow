@@ -366,6 +366,13 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     # Type checkers will check attributes
                     class Meta(Schema.Opts):
                         additional = True  # Incompatible types in assignment
+
+        .. versionremoved:: 3.0.0b7 Remove ``strict``.
+        .. versionadded:: 3.0.0b12 Add `unknown`.
+        .. versionchanged:: 3.0.0b17 Rename ``dateformat`` to `datetimeformat`.
+        .. versionadded:: 3.9.0 Add `timeformat`.
+        .. versionchanged:: 3.26.0
+            `ordered` option is deprecated. Field order is preserved by default.
         """
 
         fields: typing.ClassVar[tuple[Field] | list[Field]]
