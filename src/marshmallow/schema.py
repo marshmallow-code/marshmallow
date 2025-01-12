@@ -474,6 +474,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     @property
     def dict_class(self) -> type[dict]:
+        """`dict` type to return when serializing."""
         if self.ordered:
             return OrderedDict
         else:
