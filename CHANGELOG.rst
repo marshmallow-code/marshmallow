@@ -4,6 +4,10 @@ Changelog
 3.26.0 (unreleased)
 *******************
 
+Features:
+
+- Typing: Add type annotations and improved documentation for `class Meta <marshmallow.Schema.Meta>` options.
+
 Documentation:
 
 - Various documentation improvements (:pr:`2757`, :pr:`2759`).

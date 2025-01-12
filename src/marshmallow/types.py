@@ -14,3 +14,14 @@ StrSequenceOrSet = typing.Union[typing.Sequence[str], typing.AbstractSet[str]]
 
 #: Type for validator functions
 Validator = typing.Callable[[typing.Any], typing.Any]
+
+
+class RenderModule(typing.Protocol):
+    def dumps(
+        self, obj: typing.Any, *args: typing.Any, **kwargs: typing.Any
+    ) -> str: ...
+
+    # TODO: rename json_data to data in marshmallow 4
+    def loads(
+        self, json_data: str, *args: typing.Any, **kwargs: typing.Any
+    ) -> typing.Any: ...

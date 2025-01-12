@@ -14,7 +14,8 @@ from abc import ABCMeta
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 
-from marshmallow import base, class_registry, fields, types
+from marshmallow import base, class_registry, types
+from marshmallow import fields as ma_fields
 from marshmallow.decorators import (
     POST_DUMP,
     POST_LOAD,
@@ -25,6 +26,7 @@ from marshmallow.decorators import (
 )
 from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import StringNotCollectionError, ValidationError
+from marshmallow.fields import Field
 from marshmallow.orderedset import OrderedSet
 from marshmallow.utils import (
     EXCLUDE,
@@ -40,7 +42,7 @@ from marshmallow.utils import (
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 
-def _get_fields(attrs) -> list[tuple[str, fields.Field]]:
+def _get_fields(attrs) -> list[tuple[str, Field]]:
     """Get fields from a class
 
     :param attrs: Mapping of class attributes
@@ -123,10 +125,10 @@ class SchemaMeta(ABCMeta):
     def get_declared_fields(
         mcs,
         klass: SchemaMeta,
-        cls_fields: list[tuple[str, fields.Field]],
-        inherited_fields: list[tuple[str, fields.Field]],
+        cls_fields: list[tuple[str, Field]],
+        inherited_fields: list[tuple[str, Field]],
         dict_cls: type[dict] = dict,
-    ) -> dict[str, fields.Field]:
+    ) -> dict[str, Field]:
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
         computed from `class Meta <marshmallow.Schema.Meta>` options.
@@ -231,7 +233,7 @@ class SchemaOpts:
 
 
 class Schema(base.SchemaABC, metaclass=SchemaMeta):
-    """Base schema class with which to define custom schemas.
+    """Base schema class with which to define schemas.
 
     Example usage:
 
@@ -283,21 +285,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         `prefix` parameter removed.
     """
 
-    TYPE_MAPPING: dict[type, type[fields.Field]] = {
-        str: fields.String,
-        bytes: fields.String,
-        dt.datetime: fields.DateTime,
-        float: fields.Float,
-        bool: fields.Boolean,
-        tuple: fields.Raw,
-        list: fields.Raw,
-        set: fields.Raw,
-        int: fields.Integer,
-        uuid.UUID: fields.UUID,
-        dt.time: fields.Time,
-        dt.date: fields.Date,
-        dt.timedelta: fields.TimeDelta,
-        decimal.Decimal: fields.Decimal,
+    TYPE_MAPPING: dict[type, type[Field]] = {
+        str: ma_fields.String,
+        bytes: ma_fields.String,
+        dt.datetime: ma_fields.DateTime,
+        float: ma_fields.Float,
+        bool: ma_fields.Boolean,
+        tuple: ma_fields.Raw,
+        list: ma_fields.Raw,
+        set: ma_fields.Raw,
+        int: ma_fields.Integer,
+        uuid.UUID: ma_fields.UUID,
+        dt.time: ma_fields.Time,
+        dt.date: ma_fields.Date,
+        dt.timedelta: ma_fields.TimeDelta,
+        decimal.Decimal: ma_fields.Decimal,
     }
     #: Overrides for default schema-level error messages
     error_messages: dict[str, str] = {}
@@ -313,7 +315,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     # These get set by SchemaMeta
     opts: typing.Any
-    _declared_fields: dict[str, fields.Field] = {}
+    _declared_fields: dict[str, Field] = {}
     _hooks: dict[str, list[tuple[str, bool, dict]]] = {}
 
     class Meta:
@@ -321,42 +323,81 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         Example usage: ::
 
-            from marshmallow impmort Schema
+            from marshmallow import Schema
+
 
             class MySchema(Schema):
                 class Meta:
                     fields = ("id", "email", "date_created")
                     exclude = ("password", "secret_attribute")
 
-        Available options:
+        .. admonition:: A note on type checking
 
-        - ``fields``: Tuple or list of fields to include in the serialized result.
-        - ``additional``: Tuple or list of fields to include *in addition* to the
-            explicitly declared fields. ``additional`` and ``fields`` are
-            mutually-exclusive options.
-        - ``include``: Dictionary of additional fields to include in the schema. It is
-            usually better to define fields as class variables, but you may need to
-            use this option, e.g., if your fields are Python keywords. May be an
-            `OrderedDict`.
-        - ``exclude``: Tuple or list of fields to exclude in the serialized result.
-            Nested fields can be represented with dot delimiters.
-        - ``many``: Whether the data is a collection by default.
-        - ``dateformat``: Default format for `Date <fields.Date>` fields.
-        - ``datetimeformat``: Default format for `DateTime <fields.DateTime>` fields.
-        - ``timeformat``: Default format for `Time <fields.Time>` fields.
-        - ``render_module``: Module to use for `loads <Schema.loads>` and `dumps <Schema.dumps>`.
-            Defaults to `json` from the standard library.
-        - ``ordered``: If `True`, output of `Schema.dump <marshmallow.Schema.dump>` will be a `collections.OrderedDict`.
-        - ``index_errors``: If `True`, errors dictionaries will include the index
-            of invalid items in a collection.
-        - ``load_only``: Tuple or list of fields to exclude from serialized results.
-        - ``dump_only``: Tuple or list of fields to exclude from deserialization
-        - ``unknown``: Whether to exclude, include, or raise an error for unknown
-            fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        - ``register``: Whether to register the `Schema <marshmallow.Schema>` with marshmallow's internal
-            class registry. Must be `True` if you intend to refer to this `Schema <marshmallow.Schema>`
-            by class name in `Nested` fields. Only set this to `False` when memory
-            usage is critical. Defaults to `True`.
+            Type checkers will only check the attributes of the `Meta <marshmallow.Schema.Meta>`
+            class if you explicitly subclass `marshmallow.Schema.Meta`.
+
+            .. code-block:: python
+
+                from marshmallow import Schema
+
+
+                class MySchema(Schema):
+                    # Not checked by type checkers
+                    class Meta:
+                        additional = True
+
+
+                class MySchema2(Schema):
+                    # Type checkers will check attributes
+                    class Meta(Schema.Opts):
+                        additional = True  # Incompatible types in assignment
+        """
+
+        fields: typing.ClassVar[tuple[Field] | list[Field]]
+        """Fields to include in the (de)serialized result"""
+        additional: typing.ClassVar[tuple[Field] | list[Field]]
+        """Fields to include in addition to the explicitly declared fields.
+        `additional <marshmallow.Schema.Meta.additional>` and `fields <marshmallow.Schema.Meta.fields>`
+        are mutually-exclusive options.
+        """
+        include: typing.ClassVar[dict[str, Field]]
+        """Dictionary of additional fields to include in the schema. It is
+        usually better to define fields as class variables, but you may need to
+        use this option, e.g., if your fields are Python keywords.
+        """
+        exclude: typing.ClassVar[tuple[Field] | list[Field]]
+        """Fields to exclude in the serialized result.
+        Nested fields can be represented with dot delimiters.
+        """
+        many: typing.ClassVar[bool]
+        """Whether data should be (de)serialized as a collection by default."""
+        dateformat: typing.ClassVar[str]
+        """Default format for `Date <marshmallow.fields.Date>` fields."""
+        datetimeformat: typing.ClassVar[str]
+        """Default format for `DateTime <marshmallow.fields.DateTime>` fields."""
+        timeformat: typing.ClassVar[str]
+        """Default format for `Time <marshmallow.fields.Time>` fields."""
+        render_module: typing.ClassVar[types.RenderModule]
+        """ Module to use for `loads <marshmallow.Schema.loads>` and `dumps <marshmallow.Schema.dumps>`.
+        Defaults to `json` from the standard library.
+        """
+        ordered: typing.ClassVar[bool]
+        """If `True`, `Schema.dump <marshmallow.Schema.dump>` is a `collections.OrderedDict`."""
+        index_errors: typing.ClassVar[bool]
+        """If `True`, errors dictionaries will include the index of invalid items in a collection."""
+        load_only: typing.ClassVar[tuple[Field] | list[Field]]
+        """Fields to exclude from serialized results"""
+        dump_only: typing.ClassVar[tuple[Field] | list[Field]]
+        """Fields to exclude from serialized results"""
+        unknown: typing.ClassVar[typing.Literal["exclude", "include", "raise"]]
+        """Whether to exclude, include, or raise an error for unknown fields in the data.
+        Use `EXCLUDE`, `INCLUDE` or `RAISE`.
+        """
+        register: typing.ClassVar[bool]
+        """Whether to register the `Schema <marshmallow.Schema>` with marshmallow's internal
+        class registry. Must be `True` if you intend to refer to this `Schema <marshmallow.Schema>`
+        by class name in `Nested` fields. Only set this to `False` when memory
+        usage is critical. Defaults to `True`.
         """
 
     def __init__(
@@ -402,9 +443,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields: dict[str, fields.Field] = {}
-        self.load_fields: dict[str, fields.Field] = {}
-        self.dump_fields: dict[str, fields.Field] = {}
+        self.fields: dict[str, Field] = {}
+        self.load_fields: dict[str, Field] = {}
+        self.dump_fields: dict[str, Field] = {}
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -426,7 +467,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: dict[str, fields.Field],
+        fields: dict[str, Field],
         *,
         name: str = "GeneratedSchema",
     ) -> type[Schema]:
@@ -977,7 +1018,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, fields.Inferred())
+            field_obj = self.declared_fields.get(field_name, ma_fields.Inferred())
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
@@ -1018,14 +1059,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.dump_fields = dump_fields
         self.load_fields = load_fields
 
-    def on_bind_field(self, field_name: str, field_obj: fields.Field) -> None:
+    def on_bind_field(self, field_name: str, field_obj: Field) -> None:
         """Hook to modify a field when it is bound to the `Schema <marshmallow.Schema>`.
 
         No-op by default.
         """
         return None
 
-    def _bind_field(self, field_name: str, field_obj: fields.Field) -> None:
+    def _bind_field(self, field_name: str, field_obj: Field) -> None:
         """Bind field to the schema, setting any necessary attributes on the
         field (e.g. parent and name).
 
