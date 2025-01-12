@@ -389,7 +389,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """Fields to exclude from serialized results"""
         dump_only: typing.ClassVar[tuple[Field] | list[Field]]
         """Fields to exclude from serialized results"""
-        unknown: typing.ClassVar[typing.Literal["exclude", "include", "raise"]]
+        unknown: typing.ClassVar[str]
         """Whether to exclude, include, or raise an error for unknown fields in the data.
         Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         """
