@@ -727,7 +727,7 @@ class Schema(metaclass=SchemaMeta):
         **kwargs,
     ):
         """Same as :meth:`load`, except it uses `marshmallow.Schema.Meta.render_module` to deserialize
-        the passed string data before passing data to :`load`.
+        the passed string before passing data to :meth:`load`.
 
         :param s: A string of the data to deserialize.
         :param many: Whether to deserialize `obj` as a collection. If `None`, the
