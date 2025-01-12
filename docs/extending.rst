@@ -373,17 +373,17 @@ You can specify a custom error-handling function for a :class:`Schema` by overri
     schema = UserSchema()
     schema.load({"email": "invalid-email"})  # raises AppError
 
-Custom "class Meta" options
----------------------------
+Custom `class Meta <marshmallow.Schema.Meta>` options
+-----------------------------------------------------
 
-``class Meta`` options are a way to configure and modify a :class:`Schema's <Schema>` behavior. See the :class:`API docs <Schema.Meta>` for a listing of available options.
+`class Meta <marshmallow.Schema.Meta>` options are a way to configure and modify a `Schema's <Schema>` behavior. See `marshmallow.Schema.Meta` for a listing of available options.
 
-You can add custom ``class Meta`` options by subclassing :class:`SchemaOpts`.
+You can add custom `class Meta <marshmallow.Schema.Meta>` options by subclassing `marshmallow.SchemaOpts`.
 
 Example: Enveloping, revisited
 ++++++++++++++++++++++++++++++
 
-Let's build upon the example above for adding an envelope to serialized output. This time, we will allow the envelope key to be customizable with ``class Meta`` options.
+Let's build upon the example above for adding an envelope to serialized output. This time, we will allow the envelope key to be customizable with `class Meta <marshmallow.Schema.Meta>` options.
 
 ::
 

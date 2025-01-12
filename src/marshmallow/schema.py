@@ -191,7 +191,7 @@ class SchemaMeta(ABCMeta):
 
 
 class SchemaOpts:
-    """class Meta options for the `Schema <marshmallow.Schema>`. Defines defaults."""
+    """Defines defaults for `marshmallow.Schema.Meta`."""
 
     def __init__(self, meta, ordered: bool = False):
         self.fields = getattr(meta, "fields", ())

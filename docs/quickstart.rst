@@ -403,7 +403,7 @@ This behavior can be modified with the ``unknown`` option, which accepts one of 
 - `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
 - `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
 
-You can specify ``unknown`` in the *class Meta* of your `Schema <marshmallow.Schema>`,
+You can specify ``unknown`` in the `class Meta <marshmallow.Schema.Meta>` of your `Schema <marshmallow.Schema>`,
 
 .. code-block:: python
 
@@ -426,7 +426,7 @@ or when calling `load <Schema.load>`.
 
     UserSchema().load(data, unknown=INCLUDE)
 
-The ``unknown`` option value set in :meth:`load <Schema.load>` will override the value applied at instantiation time, which itself will override the value defined in the *class Meta*.
+The ``unknown`` option value set in :meth:`load <Schema.load>` will override the value applied at instantiation time, which itself will override the value defined in the `class Meta <marshmallow.Schema.Meta>`.
 
 This order of precedence allows you to change the behavior of a schema for different contexts.
 

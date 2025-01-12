@@ -110,7 +110,7 @@ along with the valid data from the `ValidationError.valid_data
     schema.validate({"email": "invalid"})
     # {'email': ['Not a valid email address.']}
 
-Setting the ``strict`` option on ``class Meta`` has no effect on `Schema <marshmallow.Schema>` behavior.
+Setting the ``strict`` option on `class Meta <marshmallow.Schema.Meta>` has no effect on `Schema <marshmallow.Schema>` behavior.
 Passing ``strict=True`` or ``strict=False`` to the `Schema <marshmallow.Schema>` constructor
 will raise a :exc:`TypeError`.
 
@@ -660,7 +660,7 @@ To validate against empty inputs, use `validate.Length(min=1) <marshmallow.valid
 ``json_module`` option is renamed to ``render_module``
 ******************************************************
 
-The ``json_module`` class Meta option is deprecated in favor of ``render_module``.
+The ``json_module`` `class Meta <marshmallow.Schema.Meta>` option is deprecated in favor of ``render_module``.
 
 .. code-block:: python
 
@@ -1236,7 +1236,7 @@ In 2.0, these implicit defaults are removed.  A `Field's <marshmallow.fields.Fie
     # {}
 
 
-As a consequence of this new behavior, the ``skip_missing`` class Meta option has been removed.
+As a consequence of this new behavior, the ``skip_missing`` `class Meta <marshmallow.Schema.Meta>` option has been removed.
 
 
 Pre-processing and post-processing methods
@@ -1422,7 +1422,7 @@ When validating a collection (i.e. when calling ``load`` or ``dump`` with ``many
     # {1: {'email': ['"invalid" is not a valid email address.']},
     #  3: {'name': ['Missing data for required field.']}}
 
-You can still get the pre-2.0 behavior by setting ``index_errors = False`` in a ``Schema's`` *class Meta* options.
+You can still get the pre-2.0 behavior by setting ``index_errors = False`` in a ``Schema's`` `class Meta <marshmallow.Schema.Meta>` options.
 
 Use ``ValidationError`` instead of ``MarshallingError`` and ``UnmarshallingError``
 **********************************************************************************
@@ -1753,7 +1753,7 @@ Another major change in 1.0 is that multiple validation errors can be stored for
 
 Other notable changes:
 
-- Serialized output is no longer an ``OrderedDict`` by default. You must explicitly set the `ordered` class Meta option to `True` .
+- Serialized output is no longer an ``OrderedDict`` by default. You must explicitly set the `ordered` `class Meta <marshmallow.Schema.Meta>` option to `True` .
 - ``Serializer`` has been renamed to `Schema <marshmallow.schema.Schema>`, but you can still import ``marshmallow.Serializer`` (which is aliased to `Schema <marshmallow.Schema>`).
 - ``datetime`` objects serialize to ISO8601-formatted strings by default (instead of RFC821 format).
 - The ``fields.validated`` decorator was removed, as it is no longer necessary given the new Fields interface.
