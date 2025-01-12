@@ -14,8 +14,7 @@ from abc import ABCMeta
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 
-from marshmallow import base, class_registry, types
-from marshmallow import fields as ma_fields
+from marshmallow import base, class_registry, fields, types
 from marshmallow.decorators import (
     POST_DUMP,
     POST_LOAD,
@@ -41,7 +40,7 @@ from marshmallow.utils import (
 from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 
-def _get_fields(attrs) -> list[tuple[str, ma_fields.Field]]:
+def _get_fields(attrs) -> list[tuple[str, fields.Field]]:
     """Get fields from a class
 
     :param attrs: Mapping of class attributes
@@ -124,10 +123,10 @@ class SchemaMeta(ABCMeta):
     def get_declared_fields(
         mcs,
         klass: SchemaMeta,
-        cls_fields: list[tuple[str, ma_fields.Field]],
-        inherited_fields: list[tuple[str, ma_fields.Field]],
+        cls_fields: list[tuple[str, fields.Field]],
+        inherited_fields: list[tuple[str, fields.Field]],
         dict_cls: type[dict] = dict,
-    ) -> dict[str, ma_fields.Field]:
+    ) -> dict[str, fields.Field]:
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
         computed from class Meta options.
@@ -284,21 +283,21 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         `prefix` parameter removed.
     """
 
-    TYPE_MAPPING: dict[type, type[ma_fields.Field]] = {
-        str: ma_fields.String,
-        bytes: ma_fields.String,
-        dt.datetime: ma_fields.DateTime,
-        float: ma_fields.Float,
-        bool: ma_fields.Boolean,
-        tuple: ma_fields.Raw,
-        list: ma_fields.Raw,
-        set: ma_fields.Raw,
-        int: ma_fields.Integer,
-        uuid.UUID: ma_fields.UUID,
-        dt.time: ma_fields.Time,
-        dt.date: ma_fields.Date,
-        dt.timedelta: ma_fields.TimeDelta,
-        decimal.Decimal: ma_fields.Decimal,
+    TYPE_MAPPING: dict[type, type[fields.Field]] = {
+        str: fields.String,
+        bytes: fields.String,
+        dt.datetime: fields.DateTime,
+        float: fields.Float,
+        bool: fields.Boolean,
+        tuple: fields.Raw,
+        list: fields.Raw,
+        set: fields.Raw,
+        int: fields.Integer,
+        uuid.UUID: fields.UUID,
+        dt.time: fields.Time,
+        dt.date: fields.Date,
+        dt.timedelta: fields.TimeDelta,
+        decimal.Decimal: fields.Decimal,
     }
     #: Overrides for default schema-level error messages
     error_messages: dict[str, str] = {}
@@ -314,7 +313,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     # These get set by SchemaMeta
     opts: typing.Any
-    _declared_fields: dict[str, ma_fields.Field] = {}
+    _declared_fields: dict[str, fields.Field] = {}
     _hooks: dict[str, list[tuple[str, bool, dict]]] = {}
 
     class Meta:
@@ -400,9 +399,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.context = context or {}
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
-        self.fields: dict[str, ma_fields.Field] = {}
-        self.load_fields: dict[str, ma_fields.Field] = {}
-        self.dump_fields: dict[str, ma_fields.Field] = {}
+        self.fields: dict[str, fields.Field] = {}
+        self.load_fields: dict[str, fields.Field] = {}
+        self.dump_fields: dict[str, fields.Field] = {}
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -424,7 +423,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
     @classmethod
     def from_dict(
         cls,
-        fields: dict[str, ma_fields.Field],
+        fields: dict[str, fields.Field],
         *,
         name: str = "GeneratedSchema",
     ) -> type[Schema]:
@@ -975,7 +974,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         fields_dict = self.dict_class()
         for field_name in field_names:
-            field_obj = self.declared_fields.get(field_name, ma_fields.Inferred())
+            field_obj = self.declared_fields.get(field_name, fields.Inferred())
             self._bind_field(field_name, field_obj)
             fields_dict[field_name] = field_obj
 
@@ -1016,14 +1015,14 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.dump_fields = dump_fields
         self.load_fields = load_fields
 
-    def on_bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
+    def on_bind_field(self, field_name: str, field_obj: fields.Field) -> None:
         """Hook to modify a field when it is bound to the `Schema <marshmallow.Schema>`.
 
         No-op by default.
         """
         return None
 
-    def _bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
+    def _bind_field(self, field_name: str, field_obj: fields.Field) -> None:
         """Bind field to the schema, setting any necessary attributes on the
         field (e.g. parent and name).
 
