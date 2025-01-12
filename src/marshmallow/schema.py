@@ -1,4 +1,4 @@
-"""The `Schema <marshmallow.Schema>` class, including its metaclass and options (class Meta)."""
+"""The `Schema <marshmallow.Schema>` class, including its metaclass and options (`class Meta <marshmallow.Schema.Meta>`)."""
 
 from __future__ import annotations
 
@@ -78,7 +78,7 @@ class SchemaMeta(ABCMeta):
     """Metaclass for the Schema class. Binds the declared fields to
     a ``_declared_fields`` attribute, which is a dictionary mapping attribute
     names to field objects. Also sets the ``opts`` class attribute, which is
-    the Schema class's ``class Meta`` options.
+    the Schema class's `class Meta <marshmallow.Schema.Meta>` options.
     """
 
     def __new__(mcs, name, bases, attrs):
@@ -129,11 +129,11 @@ class SchemaMeta(ABCMeta):
     ) -> dict[str, fields.Field]:
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields
-        computed from class Meta options.
+        computed from `class Meta <marshmallow.Schema.Meta>` options.
 
         :param klass: The class object.
         :param cls_fields: The fields declared on the class, including those added
-            by the ``include`` class Meta option.
+            by the ``include`` `class Meta <marshmallow.Schema.Meta>` option.
         :param inherited_fields: Inherited fields.
         :param dict_cls: dict-like class to use for dict output Default to ``dict``.
         """
@@ -321,9 +321,12 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         Example usage: ::
 
-            class Meta:
-                fields = ("id", "email", "date_created")
-                exclude = ("password", "secret_attribute")
+            from marshmallow impmort Schema
+
+            class MySchema(Schema):
+                class Meta:
+                    fields = ("id", "email", "date_created")
+                    exclude = ("password", "secret_attribute")
 
         Available options:
 
@@ -1027,7 +1030,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         field (e.g. parent and name).
 
         Also set field load_only and dump_only values if field_name was
-        specified in ``class Meta``.
+        specified in `class Meta <marshmallow.Schema.Meta>`.
         """
         if field_name in self.load_only:
             field_obj.load_only = True
