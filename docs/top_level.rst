@@ -3,8 +3,8 @@ Top-level API
 
 .. automodule:: marshmallow
    :members:
-   :undoc-members:
    :autosummary:
+   :exclude-members: OPTIONS_CLASS
 
 .. data:: EXCLUDE
 .. data:: INCLUDE

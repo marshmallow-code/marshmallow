@@ -49,11 +49,21 @@ html_theme_options = {
 html_favicon = "_static/favicon.ico"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
-html_show_sourcelink = False
+html_copy_source = False  # Don't copy source files to _build/sources
+html_show_sourcelink = False  # Don't link to source files
 ogp_image = "_static/marshmallow-logo-200.png"
 
 # Strip the dollar prompt when copying code
 # https://sphinx-copybutton.readthedocs.io/en/latest/use.html#strip-and-configure-input-prompts-for-code-cells
 copybutton_prompt_text = "$ "
 
+autodoc_default_options = {
+    "exclude-members": "__new__",
+    # Don't show signatures in the summary tables
+    "autosummary-nosignatures": True,
+    # Don't render summaries for classes within modules
+    "autosummary-no-nesting": True,
+}
+# Only display type hints next to params but not within the signature
+# to avoid the signature from getting too long
 autodoc_typehints = "description"
