@@ -87,16 +87,6 @@ def rfcformat(datetime: dt.datetime) -> str:
     return format_datetime(datetime)
 
 
-def get_fixed_timezone(offset: int | float | dt.timedelta) -> dt.timezone:
-    """Return a tzinfo instance with a fixed offset from UTC."""
-    if isinstance(offset, dt.timedelta):
-        offset = offset.total_seconds() // 60
-    sign = "-" if offset < 0 else "+"
-    hhmm = "{:02d}{:02d}".format(*divmod(abs(offset), 60))
-    name = sign + hhmm
-    return dt.timezone(dt.timedelta(minutes=offset), name)
-
-
 def from_timestamp(value: typing.Any) -> dt.datetime:
     if value is True or value is False:
         raise ValueError("Not a valid POSIX timestamp")
