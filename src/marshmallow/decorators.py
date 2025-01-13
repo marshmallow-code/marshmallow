@@ -111,10 +111,11 @@ def validates_schema(
 
     .. versionchanged:: 3.0.0b1
         ``skip_on_field_errors`` defaults to `True`.
-
     .. versionchanged:: 3.0.0
         ``partial`` and ``many`` are always passed as keyword arguments to
         the decorated method.
+    .. versionchanged:: 4.0.0
+        ``unknown`` is passed as a keyword argument to the decorated method.
     """
     return set_hook(
         fn,
@@ -175,6 +176,8 @@ def pre_load(
     .. versionchanged:: 3.0.0
         ``partial`` and ``many`` are always passed as keyword arguments to
         the decorated method.
+    .. versionchanged:: 4.0.0
+        ``unknown`` is passed as a keyword argument to the decorated method.
     """
     return set_hook(fn, PRE_LOAD, many=pass_collection)
 
@@ -197,6 +200,8 @@ def post_load(
     .. versionchanged:: 3.0.0
         ``partial`` and ``many`` are always passed as keyword arguments to
         the decorated method.
+    .. versionchanged:: 4.0.0
+        ``unknown`` is passed as a keyword argument to the decorated method.
     """
     return set_hook(fn, POST_LOAD, many=pass_collection, pass_original=pass_original)
 
