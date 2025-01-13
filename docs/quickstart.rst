@@ -36,20 +36,23 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
     For a full reference on the available field classes, see the `fields module documentation <marshmallow.fields>`.
 
-Creating schemas from dictionaries
-----------------------------------
+.. admonition:: Creating schemas from dictionaries
 
-You can create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
+    You can also create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
 
-.. code-block:: python
+    .. code-block:: python
 
-    from marshmallow import Schema, fields
+        from marshmallow import Schema, fields
 
-    UserSchema = Schema.from_dict(
-        {"name": fields.Str(), "email": fields.Email(), "created_at": fields.DateTime()}
-    )
+        UserSchema = Schema.from_dict(
+            {
+                "name": fields.Str(),
+                "email": fields.Email(),
+                "created_at": fields.DateTime(),
+            }
+        )
 
-`from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
+    `from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
 
 Serializing objects ("dumping")
 -------------------------------
@@ -73,7 +76,7 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
 .. code-block:: python
 
     json_result = schema.dumps(user)
-    pprint(json_result)
+    print(json_result)
     # '{"name": "Monty", "email": "monty@python.org", "created_at": "2014-08-17T14:54:16.049594+00:00"}'
 
 Filtering output
@@ -281,7 +284,7 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
 
 .. seealso::
 
-    Need schema-level validation? See the :ref:`Extending Schemas <schema_validation>` page.
+    If you need to validate multiple fields within a single validator, see :ref:`schema_validation`.
 
 
 Field validators as methods
