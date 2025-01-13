@@ -49,14 +49,6 @@ def is_collection(obj) -> bool:
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
 
-def is_instance_or_subclass(val, class_) -> bool:
-    """Return True if ``val`` is either a subclass or instance of ``class_``."""
-    try:
-        return issubclass(val, class_)
-    except TypeError:
-        return isinstance(val, class_)
-
-
 def is_keyed_tuple(obj) -> bool:
     """Return True if ``obj`` has keyed tuple behavior, such as
     namedtuples or SQLAlchemy's KeyedTuples.

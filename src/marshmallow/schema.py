@@ -33,7 +33,6 @@ from marshmallow.utils import (
     RAISE,
     get_value,
     is_collection,
-    is_instance_or_subclass,
     missing,
     set_value,
     validate_unknown_parameter_value,
@@ -45,11 +44,18 @@ def _get_fields(attrs) -> list[tuple[str, Field]]:
 
     :param attrs: Mapping of class attributes
     """
-    return [
-        (field_name, field_value)
-        for field_name, field_value in attrs.items()
-        if is_instance_or_subclass(field_value, ma_fields.Field)
-    ]
+    ret = []
+    for field_name, field_value in attrs.items():
+        if isinstance(field_value, type) and issubclass(field_value, ma_fields.Field):
+            msg = (
+                f'Field for "{field_name}" must be declared as a '
+                "Field instance, not a class. "
+                f'Did you mean "fields.{field_value.__name__}()"?'
+            )
+            raise TypeError(msg)
+        elif isinstance(field_value, ma_fields.Field):
+            ret.append((field_name, field_value))
+    return ret
 
 
 # This function allows Schemas to inherit from non-Schema classes and ensures
@@ -1050,20 +1056,7 @@ class Schema(metaclass=SchemaMeta):
             field_obj.load_only = True
         if field_name in self.dump_only:
             field_obj.dump_only = True
-        try:
-            field_obj._bind_to_schema(field_name, self)
-        except TypeError as error:
-            # Field declared as a class, not an instance. Ignore type checking because
-            # we handle unsupported arg types, i.e. this is dead code from
-            # the type checker's perspective.
-            if isinstance(field_obj, type) and issubclass(field_obj, ma_fields.Field):
-                msg = (
-                    f'Field for "{field_name}" must be declared as a '
-                    "Field instance, not a class. "
-                    f'Did you mean "fields.{field_obj.__name__}()"?'  # type: ignore
-                )
-                raise TypeError(msg) from error
-            raise error
+        field_obj._bind_to_schema(field_name, self)
         self.on_bind_field(field_name, field_obj)
 
     def _invoke_dump_processors(
