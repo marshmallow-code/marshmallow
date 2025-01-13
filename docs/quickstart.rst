@@ -10,18 +10,15 @@ Let's start with a basic user "model".
 
 .. code-block:: python
 
+    from dataclasses import dataclass, field
     import datetime as dt
 
 
+    @dataclass
     class User:
-        def __init__(self, name, email):
-            self.name = name
-            self.email = email
-            self.created_at = dt.datetime.now()
-
-        def __repr__(self):
-            return "<User(name={self.name!r})>".format(self=self)
-
+        name: str
+        email: str
+        created_at: dt.datetime = field(default_factory=dt.datetime.now)
 
 Create a schema by defining a class with variables mapping attribute names to :class:`Field <fields.Field>` objects.
 
@@ -37,22 +34,25 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
 .. seealso::
 
-    For a full reference on the available field classes, see the :ref:`fields module documentation <api_fields>`.
+    For a full reference on the available field classes, see the `fields module documentation <marshmallow.fields>`.
 
-Creating schemas from dictionaries
-----------------------------------
+.. admonition:: Creating schemas from dictionaries
 
-You can create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
+    You can also create a schema from a dictionary of fields using the `from_dict <marshmallow.Schema.from_dict>` method.
 
-.. code-block:: python
+    .. code-block:: python
 
-    from marshmallow import Schema, fields
+        from marshmallow import Schema, fields
 
-    UserSchema = Schema.from_dict(
-        {"name": fields.Str(), "email": fields.Email(), "created_at": fields.DateTime()}
-    )
+        UserSchema = Schema.from_dict(
+            {
+                "name": fields.Str(),
+                "email": fields.Email(),
+                "created_at": fields.DateTime(),
+            }
+        )
 
-`from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
+    `from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
 
 Serializing objects ("dumping")
 -------------------------------
@@ -76,7 +76,7 @@ You can also serialize to a JSON-encoded string using :meth:`dumps <marshmallow.
 .. code-block:: python
 
     json_result = schema.dumps(user)
-    pprint(json_result)
+    print(json_result)
     # '{"name": "Monty", "email": "monty@python.org", "created_at": "2014-08-17T14:54:16.049594+00:00"}'
 
 Filtering output
@@ -96,10 +96,10 @@ You can also exclude fields by passing in the ``exclude`` parameter.
 Deserializing objects ("loading")
 ---------------------------------
 
-The reverse of the `dump <Schema.dump>` method is `load <Schema.load>`, which validates and deserializes 
-an input dictionary to an application-level data structure. 
+The reverse of the `dump <Schema.dump>` method is `load <Schema.load>`, which validates and deserializes
+an input dictionary to an application-level data structure.
 
-By default, :meth:`load <Schema.load>` will return a dictionary of field names mapped to deserialized values (or raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` 
+By default, :meth:`load <Schema.load>` will return a dictionary of field names mapped to deserialized values (or raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
 with a dictionary of validation errors, which we'll :ref:`revisit later <validation>`).
 
 .. code-block:: python
@@ -272,19 +272,19 @@ You may also pass a collection (list, tuple, generator) of callables to ``valida
 
 .. warning::
 
-    Validation occurs on deserialization but not on serialization. 
-    To improve serialization performance, data passed to `Schema.dump <marshmallow.Schema.dump>` 
+    Validation occurs on deserialization but not on serialization.
+    To improve serialization performance, data passed to `Schema.dump <marshmallow.Schema.dump>`
     are considered valid.
 
 .. seealso::
 
-    You can register a custom error handler function for a schema by overriding the 
-    :func:`handle_error <Schema.handle_error>` method. 
+    You can register a custom error handler function for a schema by overriding the
+    :func:`handle_error <Schema.handle_error>` method.
     See the :doc:`extending` page for more info.
 
 .. seealso::
 
-    Need schema-level validation? See the :ref:`Extending Schemas <schema_validation>` page.
+    If you need to validate multiple fields within a single validator, see :ref:`schema_validation`.
 
 
 Field validators as methods
@@ -396,23 +396,64 @@ Handling unknown fields
 
 By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>` if it encounters a key with no matching ``Field`` in the schema.
 
-This behavior can be modified with the ``unknown`` option, which accepts one of the following:
-
-- `RAISE <marshmallow.utils.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
-  if there are any unknown fields
-- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
-- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
-
-You can specify ``unknown`` in the `class Meta <marshmallow.Schema.Meta>` of your `Schema <marshmallow.Schema>`,
-
 .. code-block:: python
 
-    from marshmallow import Schema, INCLUDE
+    from marshmallow import Schema, fields
 
 
     class UserSchema(Schema):
+        name = fields.Str()
+        email = fields.Email()
+        created_at = fields.DateTime()
+
+
+    UserSchema().load(
+        {
+            "name": "Monty",
+            "email": "monty@python.org",
+            "created_at": "2014-08-17T14:54:16.049594+00:00",
+            "extra": "Not a field",
+        }
+    )
+    # raises marshmallow.exceptions.ValidationError: {'extra': ['Unknown field.']}
+
+This behavior can be modified with the ``unknown`` option, which accepts one of the following:
+
+- `RAISE <marshmallow.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+  if there are any unknown fields
+- `EXCLUDE <marshmallow.EXCLUDE>`: exclude unknown fields
+- `INCLUDE <marshmallow.INCLUDE>`: accept and include the unknown fields
+
+You can specify `unknown <marshmallow.Schema.Meta.unknown>` in the `class Meta <marshmallow.Schema.Meta>` of your `Schema <marshmallow.Schema>`,
+
+.. code-block:: python
+
+    from pprint import pprint
+    from marshmallow import Schema, fields, INCLUDE
+
+
+    class UserSchema(Schema):
+        name = fields.Str()
+        email = fields.Email()
+        created_at = fields.DateTime()
+
         class Meta:
             unknown = INCLUDE
+
+
+    result = UserSchema().load(
+        {
+            "name": "Monty",
+            "email": "monty@python.org",
+            "created_at": "2014-08-17T14:54:16.049594+00:00",
+            "extra": "Not a field",
+        }
+    )
+    pprint(result)
+    # {'created_at': datetime.datetime(2014, 8, 17, 14, 54, 16, 49594, tzinfo=datetime.timezone(datetime.timedelta(0), '+0000')),
+    #  'email': 'monty@python.org',
+    #  'extra': 'Not a field',
+    #  'name': 'Monty'}
 
 at instantiation time,
 
@@ -420,13 +461,15 @@ at instantiation time,
 
     schema = UserSchema(unknown=INCLUDE)
 
-or when calling `load <Schema.load>`.
+or when calling :meth:`load <marshmallow.Schema.load>`.
 
 .. code-block:: python
 
     UserSchema().load(data, unknown=INCLUDE)
 
-The ``unknown`` option value set in :meth:`load <Schema.load>` will override the value applied at instantiation time, which itself will override the value defined in the `class Meta <marshmallow.Schema.Meta>`.
+The `unknown <marshmallow.Schema.Meta.unknown>` option value set in `load <marshmallow.Schema.load>`
+will override the value applied at instantiation time,
+which itself will override the value defined in the `class Meta <marshmallow.Schema.Meta>`.
 
 This order of precedence allows you to change the behavior of a schema for different contexts.
 

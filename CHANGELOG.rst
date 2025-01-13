@@ -32,6 +32,9 @@ As a consequence of this change:
   - `from_iso_date`, `from_iso_time` and `from_iso_datetime` are removed from `marshmallow.utils`.
 
 - Remove `isoformat`, `to_iso_time` and `to_iso_datetime` from `marshmallow.utils` (:pr:`2766`).
+- Remove `from_rfc`, and `rfcformat` from `marshmallow.utils` (:pr:`2767`).
+- Remove `is_keyed_tuple` from `marshmallow.utils` (:pr:`2768`).
+- Remove `get_fixed_timezone` from `marshmallow.utils` (:pr:`2773`).
 
 - *Backwards-incompatible*: `marshmallow.fields.Boolean` no longer serializes non-boolean values (:pr:`2725`).
 - *Backwards-incompatible*: Custom validators must raise a `ValidationError <marshmallow.exceptions.ValidationError>` for invalid values.
@@ -59,9 +62,6 @@ As a consequence of this change:
 - Improve performance and minimize float precision loss of `marshmallow.fields.TimeDelta` serialization (:pr:`2654`).
 - *Backwards-incompatible*: Remove ``serialization_type`` parameter from
   `marshmallow.fields.TimeDelta` (:pr:`2654`).
-- Rename ``json_data`` parameter of `marshmallow.Schema.loads` to ``s``
-  for compatibility with most render module implementations (`json`, ``simplejson``, etc.) (:pr:`2764`).
-  Also make it a positional-only argument.
 
 Thanks :user:`ddelange` for the PR.
 
@@ -95,6 +95,11 @@ Thanks :user:`ddelange` for the PR.
 - Methods decorated with `marshmallow.pre_load`, `marshmallow.post_load`, `marshmallow.validates_schema`,
   receive ``unknown`` as a keyword argument (:pr:`1632`).
   Thanks :user:`jforand` for the PR.
+- Rename ``json_data`` parameter of `marshmallow.Schema.loads` to ``s``
+  for compatibility with most render module implementations (`json`, ``simplejson``, etc.) (:pr:`2764`).
+  Also make it a positional-only argument.
+- Incorrectly declaring a field using a field class rather than instance
+  errors at class declaration time (previously happended when the schema was instantiated) (:pr:`2772`).
 - Passing invalid values for ``unknown`` will cause an error in type checkers.
   Runtime checking is removed (:pr:`2771`).
 
@@ -128,7 +133,7 @@ Features:
 
 Documentation:
 
-- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`).
+- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`, :pr:`2774`).
 
 Deprecations:
 

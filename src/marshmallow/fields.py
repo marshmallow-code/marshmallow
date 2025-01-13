@@ -5,6 +5,7 @@ import collections
 import copy
 import datetime as dt
 import decimal
+import email.utils
 import ipaddress
 import math
 import numbers
@@ -1276,8 +1277,8 @@ class DateTime(_TemporalField[dt.datetime]):
     SERIALIZATION_FUNCS: dict[str, typing.Callable[[dt.datetime], str | float]] = {
         "iso": dt.datetime.isoformat,
         "iso8601": dt.datetime.isoformat,
-        "rfc": utils.rfcformat,
-        "rfc822": utils.rfcformat,
+        "rfc": email.utils.format_datetime,
+        "rfc822": email.utils.format_datetime,
         "timestamp": utils.timestamp,
         "timestamp_ms": utils.timestamp_ms,
     }
@@ -1285,8 +1286,8 @@ class DateTime(_TemporalField[dt.datetime]):
     DESERIALIZATION_FUNCS: dict[str, typing.Callable[[str], dt.datetime]] = {
         "iso": dt.datetime.fromisoformat,
         "iso8601": dt.datetime.fromisoformat,
-        "rfc": utils.from_rfc,
-        "rfc822": utils.from_rfc,
+        "rfc": email.utils.parsedate_to_datetime,
+        "rfc822": email.utils.parsedate_to_datetime,
         "timestamp": utils.from_timestamp,
         "timestamp_ms": utils.from_timestamp_ms,
     }

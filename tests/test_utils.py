@@ -5,7 +5,6 @@ from copy import copy, deepcopy
 import pytest
 
 from marshmallow import Schema, fields, utils
-from tests.base import central
 
 
 def test_missing_singleton_copy():
@@ -94,62 +93,10 @@ def test_set_value():
         utils.set_value(d, "foo.bar", 42)
 
 
-def test_is_keyed_tuple():
-    Point = namedtuple("Point", ["x", "y"])
-    p = Point(24, 42)
-    assert utils.is_keyed_tuple(p) is True
-    t = (24, 42)
-    assert utils.is_keyed_tuple(t) is False
-    d = {"x": 42, "y": 24}
-    assert utils.is_keyed_tuple(d) is False
-    s = "xy"
-    assert utils.is_keyed_tuple(s) is False
-    lst = [24, 42]
-    assert utils.is_keyed_tuple(lst) is False
-
-
 def test_is_collection():
     assert utils.is_collection([1, "foo", {}]) is True
     assert utils.is_collection(("foo", 2.3)) is True
     assert utils.is_collection({"foo": "bar"}) is False
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
-        (
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
-            "Sun, 10 Nov 2013 01:23:45 +0000",
-        ),
-        (
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
-            "Sun, 10 Nov 2013 01:23:45 -0600",
-        ),
-    ],
-)
-def test_rfc_format(value, expected):
-    assert utils.rfcformat(value) == expected
-
-
-@pytest.mark.parametrize(
-    ("value", "expected"),
-    [
-        ("Sun, 10 Nov 2013 01:23:45 -0000", dt.datetime(2013, 11, 10, 1, 23, 45)),
-        (
-            "Sun, 10 Nov 2013 01:23:45 +0000",
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
-        ),
-        (
-            "Sun, 10 Nov 2013 01:23:45 -0600",
-            dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=central),
-        ),
-    ],
-)
-def test_from_rfc(value, expected):
-    result = utils.from_rfc(value)
-    assert type(result) is dt.datetime
-    assert result == expected
 
 
 @pytest.mark.parametrize(
