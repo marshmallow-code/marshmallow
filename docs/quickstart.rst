@@ -10,18 +10,15 @@ Let's start with a basic user "model".
 
 .. code-block:: python
 
+    from dataclasses import dataclass, field
     import datetime as dt
 
 
+    @dataclass
     class User:
-        def __init__(self, name, email):
-            self.name = name
-            self.email = email
-            self.created_at = dt.datetime.now()
-
-        def __repr__(self):
-            return "<User(name={self.name!r})>".format(self=self)
-
+        name: str
+        email: str
+        created_at: dt.datetime = field(default_factory=dt.datetime.now)
 
 Create a schema by defining a class with variables mapping attribute names to :class:`Field <fields.Field>` objects.
 

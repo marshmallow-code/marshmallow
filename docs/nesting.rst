@@ -1,26 +1,31 @@
 Nesting schemas
 ===============
 
-Schemas can be nested to represent relationships between objects (e.g. foreign key relationships). For example, a ``Blog`` may have an author represented by a User object.
+Schemas can be nested to represent relationships between objects (e.g. foreign key relationships). 
+For example, a ``Blog`` may have an author represented by a ``User``.
+And a ``User`` may have many friends, each of which is a ``User``.
 
 .. code-block:: python
 
+    from __future__ import annotations  # Enable newer type annotation syntax
+
     import datetime as dt
+    from dataclasses import dataclass, field
 
 
+    @dataclass
     class User:
-        def __init__(self, name, email):
-            self.name = name
-            self.email = email
-            self.created_at = dt.datetime.now()
-            self.friends = []
-            self.employer = None
+        name: str
+        email: str
+        created_at: dt.datetime = field(default_factory=dt.datetime.now)
+        friends: list[User] = field(default_factory=list)
+        employer: User | None = None
 
 
+    @dataclass
     class Blog:
-        def __init__(self, title, author):
-            self.title = title
-            self.author = author  # A User object
+        title: str
+        author: User
 
 Use a :class:`Nested <marshmallow.fields.Nested>` field to represent the relationship, passing in a nested schema.
 
