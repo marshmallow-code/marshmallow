@@ -201,7 +201,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        self.unknown = typing.cast(types.UnknownOption, getattr(meta, "unknown", RAISE))
+        self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
 
