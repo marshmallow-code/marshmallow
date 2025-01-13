@@ -36,7 +36,6 @@ from marshmallow.utils import (
     is_instance_or_subclass,
     missing,
     set_value,
-    validate_unknown_parameter_value,
 )
 
 
@@ -202,7 +201,7 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
-        self.unknown = validate_unknown_parameter_value(getattr(meta, "unknown", RAISE))
+        self.unknown = typing.cast(types.UnknownOption, getattr(meta, "unknown", RAISE))
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
 
@@ -372,7 +371,7 @@ class Schema(metaclass=SchemaMeta):
         """Fields to exclude from serialized results"""
         dump_only: typing.ClassVar[tuple[Field] | list[Field]]
         """Fields to exclude from serialized results"""
-        unknown: typing.ClassVar[str]
+        unknown: typing.ClassVar[types.UnknownOption]
         """Whether to exclude, include, or raise an error for unknown fields in the data.
         Use `EXCLUDE`, `INCLUDE` or `RAISE`.
         """
@@ -392,7 +391,7 @@ class Schema(metaclass=SchemaMeta):
         load_only: types.StrSequenceOrSet = (),
         dump_only: types.StrSequenceOrSet = (),
         partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        unknown: types.UnknownOption | None = None,
     ):
         # Raise error if only or exclude is passed as string, not list of strings
         if only is not None and not is_collection(only):
@@ -409,10 +408,8 @@ class Schema(metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown = (
-            self.opts.unknown
-            if unknown is None
-            else validate_unknown_parameter_value(unknown)
+        self.unknown: types.UnknownOption | None = (
+            self.opts.unknown if unknown is None else unknown
         )
         self._normalize_nested_options()
         #: Dictionary mapping field_names -> :class:`Field` objects
@@ -586,7 +583,7 @@ class Schema(metaclass=SchemaMeta):
         error_store: ErrorStore,
         many: bool = False,
         partial=None,
-        unknown=RAISE,
+        unknown: types.UnknownOption | None = RAISE,
         index=None,
     ) -> typing.Any | list[typing.Any]:
         """Deserialize ``data``.
@@ -699,7 +696,7 @@ class Schema(metaclass=SchemaMeta):
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        unknown: types.UnknownOption | None = None,
     ):
         """Deserialize a data structure to an object defined by this Schema's fields.
 
@@ -731,7 +728,7 @@ class Schema(metaclass=SchemaMeta):
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        unknown: types.UnknownOption | None = None,
         **kwargs,
     ):
         """Same as :meth:`load`, except it uses `marshmallow.Schema.Meta.render_module` to deserialize
@@ -821,7 +818,7 @@ class Schema(metaclass=SchemaMeta):
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
-        unknown: str | None = None,
+        unknown: types.UnknownOption | None = None,
         postprocess: bool = True,
     ):
         """Deserialize `data`, returning the deserialized result.
@@ -843,11 +840,7 @@ class Schema(metaclass=SchemaMeta):
         error_store = ErrorStore()
         errors: dict[str, list[str]] = {}
         many = self.many if many is None else bool(many)
-        unknown = (
-            self.unknown
-            if unknown is None
-            else validate_unknown_parameter_value(unknown)
-        )
+        unknown = self.unknown if unknown is None else unknown
         if partial is None:
             partial = self.partial
         # Run preprocessors
@@ -1092,7 +1085,7 @@ class Schema(metaclass=SchemaMeta):
         many: bool,
         original_data,
         partial: bool | types.StrSequenceOrSet | None,
-        unknown: str,
+        unknown: types.UnknownOption | None,
     ):
         # This has to invert the order of the dump processors, so run the pass_collection
         # processors first.
@@ -1172,7 +1165,7 @@ class Schema(metaclass=SchemaMeta):
         many: bool,
         partial: bool | types.StrSequenceOrSet | None,
         field_errors: bool = False,
-        unknown: str,
+        unknown: types.UnknownOption | None,
     ):
         for attr_name, hook_many, validator_kwargs in self._hooks[VALIDATES_SCHEMA]:
             if hook_many != pass_collection:

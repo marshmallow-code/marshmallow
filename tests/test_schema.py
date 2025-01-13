@@ -2493,30 +2493,6 @@ def test_class_registry_returns_schema_type():
     assert SchemaClass is DefinitelyUniqueSchema
 
 
-@pytest.mark.parametrize("usage_location", ["meta", "init", "load"])
-def test_unknown_parameter_value_is_validated(usage_location):
-    class MySchema(Schema):
-        foo = fields.String()
-
-    with pytest.raises(
-        ValueError,
-        match="Object 'badval' is not a valid value for the 'unknown' parameter",
-    ):
-        # Meta.unknown setting gets caught at class creation time, since that's when
-        # metaclass __new__ runs
-        if usage_location == "meta":
-
-            class SubSchema(MySchema):
-                class Meta:
-                    unknown = "badval"
-
-        # usages in init and load are caught at call time, as expected
-        elif usage_location == "init":
-            MySchema(unknown="badval")
-        else:
-            MySchema().load({"foo": "bar"}, unknown="badval")
-
-
 @pytest.mark.parametrize("dict_cls", (dict, OrderedDict))
 def test_set_dict_class(dict_cls):
     """Demonstrate how to specify dict_class as class attribute"""

@@ -8,9 +8,9 @@ import typing
 from collections.abc import Mapping
 from email.utils import format_datetime, parsedate_to_datetime
 
-EXCLUDE = "exclude"
-INCLUDE = "include"
-RAISE = "raise"
+EXCLUDE: typing.Final = "exclude"
+INCLUDE: typing.Final = "include"
+RAISE: typing.Final = "raise"
 _UNKNOWN_VALUES = {EXCLUDE, INCLUDE, RAISE}
 
 
@@ -224,11 +224,3 @@ def timedelta_to_microseconds(value: dt.timedelta) -> int:
     https://github.com/python/cpython/blob/v3.13.1/Lib/_pydatetime.py#L805-L807
     """
     return (value.days * (24 * 3600) + value.seconds) * 1000000 + value.microseconds
-
-
-def validate_unknown_parameter_value(obj: typing.Any) -> str:
-    if obj not in _UNKNOWN_VALUES:
-        raise ValueError(
-            f"Object {obj!r} is not a valid value for the 'unknown' parameter"
-        )
-    return obj

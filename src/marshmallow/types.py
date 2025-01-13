@@ -15,6 +15,8 @@ StrSequenceOrSet = typing.Union[typing.Sequence[str], typing.AbstractSet[str]]
 #: Type for validator functions
 Validator = typing.Callable[[typing.Any], typing.Any]
 
+UnknownOption = typing.Literal["exclude", "include", "raise"]
+
 
 class RenderModule(typing.Protocol):
     def dumps(
