@@ -8,6 +8,7 @@ Features:
 
 - Typing: Add type annotations and improved documentation for `class Meta <marshmallow.Schema.Meta>` options (:pr:`2760`).
 - Typing: Improve type coverage of `marshmallow.Schema.SchemaMeta` (:pr:`2761`).
+- Typing: `marshmallow.Schema.loads` parameter allows `bytes` and `bytesarray`.
 
 Documentation:
 

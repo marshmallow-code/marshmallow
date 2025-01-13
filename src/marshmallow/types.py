@@ -21,7 +21,9 @@ class RenderModule(typing.Protocol):
         self, obj: typing.Any, *args: typing.Any, **kwargs: typing.Any
     ) -> str: ...
 
-    # TODO: rename json_data to data in marshmallow 4
     def loads(
-        self, json_data: str, *args: typing.Any, **kwargs: typing.Any
+        self,
+        json_data: str | bytes | bytearray,
+        *args: typing.Any,
+        **kwargs: typing.Any,
     ) -> typing.Any: ...

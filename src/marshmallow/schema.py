@@ -785,16 +785,17 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     def loads(
         self,
-        json_data: str,
+        json_data: str | bytes | bytearray,
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
         unknown: str | None = None,
         **kwargs,
     ):
-        """Same as :meth:`load`, except it takes a JSON string as input.
+        """Same as :meth:`load`, except it uses `marshmallow.Schema.Meta.render_module` to deserialize
+        the passed string before passing data to :meth:`load`.
 
-        :param json_data: A JSON string of the data to deserialize.
+        :param json_data: A string of the data to deserialize.
         :param many: Whether to deserialize `obj` as a collection. If `None`, the
             value for `self.many` is used.
         :param partial: Whether to ignore missing fields and not require
