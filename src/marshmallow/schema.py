@@ -408,7 +408,7 @@ class Schema(metaclass=SchemaMeta):
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
-        self.unknown: types.UnknownOption | None = (
+        self.unknown: types.UnknownOption = (
             self.opts.unknown if unknown is None else unknown
         )
         self._normalize_nested_options()
@@ -583,7 +583,7 @@ class Schema(metaclass=SchemaMeta):
         error_store: ErrorStore,
         many: bool = False,
         partial=None,
-        unknown: types.UnknownOption | None = RAISE,
+        unknown: types.UnknownOption = RAISE,
         index=None,
     ) -> typing.Any | list[typing.Any]:
         """Deserialize ``data``.
