@@ -727,6 +727,7 @@ class Schema(metaclass=SchemaMeta):
     def loads(
         self,
         s: str | bytes | bytearray,
+        /,
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,

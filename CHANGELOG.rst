@@ -61,6 +61,7 @@ As a consequence of this change:
   `marshmallow.fields.TimeDelta` (:pr:`2654`).
 - Rename ``json_data`` parameter of `marshmallow.Schema.loads` to ``s``
   for compatibility with most render module implementations (`json`, ``simplejson``, etc.) (:pr:`2764`).
+  Also make it a positional-only argument.
 
 Thanks :user:`ddelange` for the PR.
 
