@@ -398,12 +398,12 @@ By default, :meth:`load <Schema.load>` will raise a :exc:`ValidationError <marsh
 
 This behavior can be modified with the ``unknown`` option, which accepts one of the following:
 
-- `RAISE <marshmallow.utils.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
+- `RAISE <marshmallow.RAISE>` (default): raise a :exc:`ValidationError <marshmallow.exceptions.ValidationError>`
   if there are any unknown fields
-- `EXCLUDE <marshmallow.utils.EXCLUDE>`: exclude unknown fields
-- `INCLUDE <marshmallow.utils.INCLUDE>`: accept and include the unknown fields
+- `EXCLUDE <marshmallow.EXCLUDE>`: exclude unknown fields
+- `INCLUDE <marshmallow.INCLUDE>`: accept and include the unknown fields
 
-You can specify ``unknown`` in the `class Meta <marshmallow.Schema.Meta>` of your `Schema <marshmallow.Schema>`,
+You can specify `unknown <marshmallow.Schema.Meta.unknown>` in the `class Meta <marshmallow.Schema.Meta>` of your `Schema <marshmallow.Schema>`,
 
 .. code-block:: python
 
