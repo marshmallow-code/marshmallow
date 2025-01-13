@@ -95,6 +95,8 @@ Thanks :user:`ddelange` for the PR.
 - Methods decorated with `marshmallow.pre_load`, `marshmallow.post_load`, `marshmallow.validates_schema`,
   receive ``unknown`` as a keyword argument (:pr:`1632`).
   Thanks :user:`jforand` for the PR.
+- Incorrectly declaring a field using a field class rather than instance
+  errors at class declaration time (previously happended when the schema was instantiated) (:pr:`2772`).
 
 Deprecations/Removals:
 
