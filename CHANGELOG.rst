@@ -95,6 +95,8 @@ Thanks :user:`ddelange` for the PR.
 - Methods decorated with `marshmallow.pre_load`, `marshmallow.post_load`, `marshmallow.validates_schema`,
   receive ``unknown`` as a keyword argument (:pr:`1632`).
   Thanks :user:`jforand` for the PR.
+- Passing invalid values for ``unknown`` will cause an error in type checkers.
+  Runtime checking is removed (:pr:`2771`).
 
 Deprecations/Removals:
 
@@ -130,8 +132,8 @@ Documentation:
 
 Deprecations:
 
-- The ``ordered`` `class Meta <marshmallow.Schema.Meta>` option is deprecated (:issue:`2146`, :pr:`2762`). 
-  Field order is already preserved by default. Set `marshmallow.Schema.dict_class` to `collections.OrderedDict` 
+- The ``ordered`` `class Meta <marshmallow.Schema.Meta>` option is deprecated (:issue:`2146`, :pr:`2762`).
+  Field order is already preserved by default. Set `marshmallow.Schema.dict_class` to `collections.OrderedDict`
   to maintain the previous behavior.
 
 3.25.1 (2025-01-11)
