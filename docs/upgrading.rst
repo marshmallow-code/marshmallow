@@ -334,26 +334,48 @@ Custom fields that define a `_bind_to_schema <marshmallow.Fields._bind_to_schema
     class MyField(fields.Field):
         def _bind_to_schema(self, parent, field_name): ...
 
-Use standard library functions for parsing ISO 8601 dates, times, and datetimes
-*******************************************************************************
+Use standard library functions to handle RFC 822 and ISO 8601 dates, times, and datetimes
+*****************************************************************************************
 
-The ``from_iso_*`` utilities are removed from marshmallow in favor of using the standard library implementations.
+ISO 8601 and RFC 822 utilities are removed from ``marshmallow.utils`` in favor
+of using the standard library implementations.
 
 .. code-block:: python
 
     # 3.x
-    from marshmallow.utils import from_iso_date, from_iso_time, from_iso_datetime
+    import datetime as dt
+    from marshmallow.utils import (
+        from_iso_date,
+        from_iso_time,
+        from_iso_datetime,
+        to_iso_date,
+        to_iso_time,
+        isoformat,
+        from_rfc,
+        rfc_format,
+    )
 
     from_iso_date("2013-11-10")
     from_iso_time("01:23:45")
     from_iso_datetime("2013-11-10T01:23:45")
+    to_iso_date(dt.date(2013, 11, 10))
+    to_iso_time(dt.time(1, 23, 45))
+    isoformat(dt.datetime(2013, 11, 10, 1, 23, 45))
+    from_rfc("Sun, 10 Nov 2013 01:23:45 -0000")
+    rfc_format(dt.datetime(2013, 11, 10, 1, 23, 45))
 
     # 4.x
     import datetime as dt
+    import email.utils
 
     dt.date.fromisoformat("2013-11-10")
     dt.time.fromisoformat("01:23:45")
     dt.datetime.fromisoformat("2013-11-10T01:23:45")
+    dt.date(2013, 11, 10).isoformat()
+    dt.time(1, 23, 45).isoformat()
+    dt.datetime(2013, 11, 10, 1, 23, 45).isoformat()
+    email.utils.parsedate_to_datetime("Sun, 10 Nov 2013 01:23:45 -0000")
+    email.utils.format_datetime(dt.datetime(2013, 11, 10, 1, 23, 45))
 
 Upgrading to 3.13
 +++++++++++++++++
