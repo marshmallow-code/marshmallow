@@ -1,0 +1,87 @@
+name: build
+on:
+  push:
+    branches: ["dev", "*.x-line"]
+    tags: ["*"]
+  pull_request:
+
+jobs:
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.0.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install tox
+      - run: tox -e docs
+  tests:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "3.9", python: "3.9", tox: py39 }
+          - { name: "3.13", python: "3.13", tox: py313 }
+          - { name: "mypy", python: "3.13", tox: mypy }
+    steps:
+      - uses: actions/checkout@v4.0.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+      - run: python -m pip install tox
+      - run: python -m tox -e ${{ matrix.tox }}
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install pypa/build
+        run: python -m pip install build
+      - name: Build a binary wheel and a source tarball
+        run: python -m build
+      - name: Install twine
+        run: python -m pip install twine
+      - name: Check build
+        run: python -m twine check --strict dist/*
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+  # this duplicates pre-commit.ci, so only run it on tags
+  # it guarantees that linting is passing prior to a release
+  lint-pre-release:
+    if: startsWith(github.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.0.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install tox
+      - run: python -m tox -e lint
+  publish-to-pypi:
+    name: PyPI release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [build, tests, lint-pre-release]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/marshmallow
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

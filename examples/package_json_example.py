@@ -1,12 +1,13 @@
-import sys
 import json
-from packaging import version
+import sys
 from pprint import pprint
 
-from marshmallow import Schema, fields, INCLUDE, ValidationError
+from packaging import version
+
+from marshmallow import INCLUDE, Schema, ValidationError, fields
 
 
-class Version(fields.Field):
+class Version(fields.Field[version.Version]):
     """Version field that deserializes to a Version object."""
 
     def _deserialize(self, value, *args, **kwargs):

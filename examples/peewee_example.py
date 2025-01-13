@@ -1,16 +1,17 @@
 import datetime as dt
 from functools import wraps
 
-from flask import Flask, request, g, jsonify
 import peewee as pw
+from flask import Flask, g, jsonify, request
+
 from marshmallow import (
     Schema,
+    ValidationError,
     fields,
-    validate,
-    pre_load,
     post_dump,
     post_load,
-    ValidationError,
+    pre_load,
+    validate,
 )
 
 app = Flask(__name__)
@@ -34,12 +35,9 @@ class User(BaseModel):
 
 class Todo(BaseModel):
     content = pw.TextField()
-    is_done = pw.BooleanField(default=False)
+    is_done = pw.BooleanField(dump_default=False)
     user = pw.ForeignKeyField(User)
     posted_on = pw.DateTimeField()
-
-    class Meta:
-        order_by = ("-posted_on",)
 
 
 def create_tables():
@@ -68,7 +66,7 @@ class UserSchema(Schema):
         return data
 
     # We add a post_dump hook to add an envelope to responses
-    @post_dump(pass_many=True)
+    @post_dump(pass_collection=True)
     def wrap(self, data, many, **kwargs):
         key = "users" if many else "user"
         return {key: data}
@@ -76,13 +74,13 @@ class UserSchema(Schema):
 
 class TodoSchema(Schema):
     id = fields.Int(dump_only=True)
-    done = fields.Boolean(attribute="is_done", missing=False)
+    done = fields.Boolean(attribute="is_done", load_default=False)
     user = fields.Nested(UserSchema(exclude=("joined_on", "password")), dump_only=True)
     content = fields.Str(required=True)
     posted_on = fields.DateTime(dump_only=True)
 
     # Again, add an envelope to responses
-    @post_dump(pass_many=True)
+    @post_dump(pass_collection=True)
     def wrap(self, data, many, **kwargs):
         key = "todos" if many else "todo"
         return {key: data}
@@ -95,7 +93,7 @@ class TodoSchema(Schema):
         return Todo(
             content=data["content"],
             is_done=data["is_done"],
-            posted_on=dt.datetime.utcnow(),
+            posted_on=dt.datetime.now(dt.timezone.utc),
         )
 
 
@@ -107,8 +105,7 @@ todos_schema = TodoSchema(many=True)
 
 
 def check_auth(email, password):
-    """Check if a username/password combination is valid.
-    """
+    """Check if a username/password combination is valid."""
     try:
         user = User.get(User.email == email)
     except User.DoesNotExist:
@@ -160,7 +157,7 @@ def register():
         user = User.create(
             email=data["email"], joined_on=dt.datetime.now(), password=data["password"]
         )
-        message = "Successfully created user: {}".format(user.email)
+        message = f"Successfully created user: {user.email}"
     else:
         return {"errors": "That email address is already in the database"}, 400
 

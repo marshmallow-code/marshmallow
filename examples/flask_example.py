@@ -2,8 +2,9 @@ import datetime
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import IntegrityError
-from marshmallow import Schema, fields, ValidationError, pre_load
+from sqlalchemy.exc import NoResultFound
+
+from marshmallow import Schema, ValidationError, fields, pre_load
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/quotes.db"
@@ -36,7 +37,7 @@ class AuthorSchema(Schema):
     formatted_name = fields.Method("format_name", dump_only=True)
 
     def format_name(self, author):
-        return "{}, {}".format(author.last, author.first)
+        return f"{author.last}, {author.first}"
 
 
 # Custom validator
@@ -84,8 +85,8 @@ def get_authors():
 @app.route("/authors/<int:pk>")
 def get_author(pk):
     try:
-        author = Author.query.get(pk)
-    except IntegrityError:
+        author = Author.query.filter(Author.id == pk).one()
+    except NoResultFound:
         return {"message": "Author could not be found."}, 400
     author_result = author_schema.dump(author)
     quotes_result = quotes_schema.dump(author.quotes.all())
@@ -102,8 +103,8 @@ def get_quotes():
 @app.route("/quotes/<int:pk>")
 def get_quote(pk):
     try:
-        quote = Quote.query.get(pk)
-    except IntegrityError:
+        quote = Quote.query.filter(Quote.id == pk).one()
+    except NoResultFound:
         return {"message": "Quote could not be found."}, 400
     result = quote_schema.dump(quote)
     return {"quote": result}
@@ -127,7 +128,9 @@ def new_quote():
         db.session.add(author)
     # Create new quote
     quote = Quote(
-        content=data["content"], author=author, posted_at=datetime.datetime.utcnow()
+        content=data["content"],
+        author=author,
+        posted_at=datetime.datetime.now(datetime.UTC),
     )
     db.session.add(quote)
     db.session.commit()

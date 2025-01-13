@@ -1,20 +1,17 @@
-from marshmallow.schema import Schema, SchemaOpts
-
-from . import fields
 from marshmallow.decorators import (
-    pre_dump,
     post_dump,
-    pre_load,
     post_load,
+    pre_dump,
+    pre_load,
     validates,
     validates_schema,
 )
-from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, pprint, missing
 from marshmallow.exceptions import ValidationError
-from distutils.version import LooseVersion
+from marshmallow.schema import Schema, SchemaOpts
+from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, missing
 
-__version__ = "3.7.0"
-__version_info__ = tuple(LooseVersion(__version__).version)
+from . import fields
+
 __all__ = [
     "EXCLUDE",
     "INCLUDE",

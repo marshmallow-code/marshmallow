@@ -1,8 +1,7 @@
-
-Custom Fields
+Custom fields
 =============
 
-There are three ways to create a custom-formatted field for a `Schema`:
+There are three ways to create a custom-formatted field for a `Schema <marshmallow.Schema>`:
 
 - Create a custom :class:`Field <marshmallow.fields.Field>` class
 - Use a :class:`Method <marshmallow.fields.Method>` field
@@ -10,17 +9,18 @@ There are three ways to create a custom-formatted field for a `Schema`:
 
 The method you choose will depend on the manner in which you intend to reuse the field.
 
-Creating A Field Class
+Creating a field class
 ----------------------
 
 To create a custom field class, create a subclass of :class:`marshmallow.fields.Field` and implement its :meth:`_serialize <marshmallow.fields.Field._serialize>` and/or :meth:`_deserialize <marshmallow.fields.Field._deserialize>` methods.
+Field's type argument is the internal type, i.e. the type that the field deserializes to.
 
 .. code-block:: python
 
     from marshmallow import fields, ValidationError
 
 
-    class PinCode(fields.Field):
+    class PinCode(fields.Field[list[int]]):
         """Field that serializes to a string of numbers and deserializes
         to a list of numbers.
         """
@@ -43,7 +43,7 @@ To create a custom field class, create a subclass of :class:`marshmallow.fields.
         created_at = fields.DateTime()
         pin_code = PinCode()
 
-Method Fields
+Method fields
 -------------
 
 A :class:`Method <marshmallow.fields.Method>` field will serialize to the value returned by a method of the Schema. The method must take an ``obj`` parameter which is the object to be serialized.
@@ -59,7 +59,7 @@ A :class:`Method <marshmallow.fields.Method>` field will serialize to the value 
         def get_days_since_created(self, obj):
             return dt.datetime.now().day - obj.created_at.day
 
-Function Fields
+Function fields
 ---------------
 
 A :class:`Function <marshmallow.fields.Function>` field will serialize the value of a function that is passed directly to it. Like a :class:`Method <marshmallow.fields.Method>` field, the function must take a single argument ``obj``.
@@ -95,41 +95,75 @@ Both :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshma
     result = schema.load({"balance": "100.00"})
     result["balance"]  # => 100.0
 
-.. _adding-context:
+.. _using_context:
 
-Adding Context to `Method` and `Function` Fields
-------------------------------------------------
+Using context
+-------------
 
-A :class:`Function <marshmallow.fields.Function>` or :class:`Method <marshmallow.fields.Method>` field may need information about its environment to know how to serialize a value.
+A field may need information about its environment to know how to (de)serialize a value.
 
-In these cases, you can set the ``context`` attribute (a dictionary) of a `Schema`. :class:`Function <marshmallow.fields.Function>` and :class:`Method <marshmallow.fields.Method>` fields will have access to this dictionary.
+You can use the experimental `Context <marshmallow.experimental.context.Context>` class
+to set and retrieve context.
 
-As an example, you might want your ``UserSchema`` to output whether or not a ``User`` is the author of a ``Blog`` or whether a certain word appears in a ``Blog's`` title.
+Let's say your ``UserSchema`` needs to output
+whether or not a ``User`` is the author of a ``Blog`` or
+whether a certain word appears in a ``Blog's`` title.
 
 .. code-block:: python
 
+    import typing
+    from dataclasses import dataclass
+
+    from marshmallow import Schema, fields
+    from marshmallow.experimental.context import Context
+
+
+    @dataclass
+    class User:
+        name: str
+
+
+    @dataclass
+    class Blog:
+        title: str
+        author: User
+
+
+    class ContextDict(typing.TypedDict):
+        blog: Blog
+
+
     class UserSchema(Schema):
         name = fields.String()
-        # Function fields optionally receive context argument
-        is_author = fields.Function(lambda user, context: user == context["blog"].author)
+
+        is_author = fields.Function(
+            lambda user: user == Context[ContextDict].get()["blog"].author
+        )
         likes_bikes = fields.Method("writes_about_bikes")
 
-        def writes_about_bikes(self, user):
-            return "bicycle" in self.context["blog"].title.lower()
+        def writes_about_bikes(self, user: User) -> bool:
+            return "bicycle" in Context[ContextDict].get()["blog"].title.lower()
 
+.. note::
+    You can use `Context.get <marshmallow.experimental.context.Context.get>`
+    within custom fields, pre-/post-processing methods, and validators.
 
-    schema = UserSchema()
+When (de)serializing, set the context by using `Context <marshmallow.experimental.context.Context>` as a context manager.
+
+.. code-block:: python
+
 
     user = User("Freddie Mercury", "fred@queen.com")
     blog = Blog("Bicycle Blog", author=user)
 
-    schema.context = {"blog": blog}
-    result = schema.dump(user)
-    result["is_author"]  # => True
-    result["likes_bikes"]  # => True
+    schema = UserSchema()
+    with Context({"blog": blog}):
+        result = schema.dump(user)
+        print(result["is_author"])  # => True
+        print(result["likes_bikes"])  # => True
 
 
-Customizing Error Messages
+Customizing error messages
 --------------------------
 
 Validation error messages for fields can be configured at the class or instance level.
@@ -155,14 +189,13 @@ Error messages can also be passed to a `Field's` constructor.
 
 
     class UserSchema(Schema):
-
         name = fields.Str(
             required=True, error_messages={"required": "Please provide a name."}
         )
 
 
-Next Steps
+Next steps
 ----------
 
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`Extending Schemas <extending>` page.
-- For example applications using marshmallow, check out the :doc:`Examples <examples>` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending` page.
+- For example applications using marshmallow, check out the :doc:`examples` page.

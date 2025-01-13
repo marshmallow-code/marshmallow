@@ -1,118 +1,69 @@
-from collections import OrderedDict
-import sys
-import os
-import datetime as dt
-
-import alabaster
-
-sys.path.insert(0, os.path.abspath(os.path.join("..", "src")))
-import marshmallow  # noqa: E402
+import importlib.metadata
 
 extensions = [
+    "autodocsumm",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autodoc.typehints",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
-    "alabaster",
+    "sphinx_copybutton",
     "sphinx_issues",
-    "versionwarning.extension",
-    "autodocsumm",
+    "sphinxext.opengraph",
 ]
 
 primary_domain = "py"
 default_role = "py:obj"
 
-intersphinx_mapping = {"python": ("https://python.readthedocs.io/en/latest/", None)}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 issues_github_path = "marshmallow-code/marshmallow"
-
-templates_path = ["_templates"]
 
 source_suffix = ".rst"
 master_doc = "index"
 
 project = "marshmallow"
-copyright = ' {:%Y} <a href="https://stevenloria.com">Steven Loria</a> and contributors'.format(
-    dt.datetime.utcfromtimestamp(os.path.getmtime("../CHANGELOG.rst"))
-)
+copyright = "Steven Loria and contributors"
 
-version = release = marshmallow.__version__
+version = release = importlib.metadata.version("marshmallow")
 
 exclude_patterns = ["_build"]
+# Ignore WARNING: more than one target found for cross-reference 'Schema': marshmallow.schema.Schema, marshmallow.Schema
+suppress_warnings = ["ref.python"]
 
 # THEME
 
-html_theme_path = [alabaster.get_path()]
-html_theme = "alabaster"
-html_static_path = ["_static"]
-templates_path = ["_templates"]
-html_show_sourcelink = False
-
+html_theme = "furo"
 html_theme_options = {
-    "logo": "marshmallow-logo.png",
-    "description": "Object serialization and deserialization, lightweight and fluffy.",
-    "description_font_style": "italic",
-    "github_user": "marshmallow-code",
-    "github_repo": "marshmallow",
-    "github_banner": True,
-    "github_type": "star",
-    "opencollective": "marshmallow",
-    "tidelift_url": (
-        "https://tidelift.com/subscription/pkg/pypi-marshmallow"
-        "?utm_source=marshmallow&utm_medium=referral&utm_campaign=docs"
-    ),
-    "code_font_size": "0.8em",
-    "warn_bg": "#FFC",
-    "warn_border": "#EEE",
-    # Used to populate the useful-links.html template
-    "extra_nav_links": OrderedDict(
-        [
-            ("marshmallow @ PyPI", "https://pypi.python.org/pypi/marshmallow"),
-            ("marshmallow @ GitHub", "https://github.com/marshmallow-code/marshmallow"),
-            ("Issue Tracker", "https://github.com/marshmallow-code/marshmallow/issues"),
-            (
-                "Ecosystem",
-                "https://github.com/marshmallow-code/marshmallow/wiki/Ecosystem",
-            ),
-        ]
-    ),
+    "light_logo": "marshmallow-logo-with-title.png",
+    "dark_logo": "marshmallow-logo-with-title-for-dark-theme.png",
+    "source_repository": "https://github.com/marshmallow-code/marshmallow",
+    "source_branch": "dev",
+    "source_directory": "docs/",
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        # Serif system font stack: https://systemfontstack.com/
+        "font-stack": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;",
+    },
+    "top_of_page_buttons": ["view"],
 }
+html_favicon = "_static/favicon.ico"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
+html_copy_source = False  # Don't copy source files to _build/sources
+html_show_sourcelink = False  # Don't link to source files
+ogp_image = "_static/marshmallow-logo-200.png"
 
-html_sidebars = {
-    "index": ["about.html", "donate.html", "useful-links.html", "searchbox.html"],
-    "**": [
-        "about.html",
-        "donate.html",
-        "useful-links.html",
-        "localtoc.html",
-        "relations.html",
-        "searchbox.html",
-    ],
+# Strip the dollar prompt when copying code
+# https://sphinx-copybutton.readthedocs.io/en/latest/use.html#strip-and-configure-input-prompts-for-code-cells
+copybutton_prompt_text = "$ "
+
+autodoc_default_options = {
+    "exclude-members": "__new__",
+    # Don't show signatures in the summary tables
+    "autosummary-nosignatures": True,
+    # Don't render summaries for classes within modules
+    "autosummary-no-nesting": True,
 }
-
-# sphinx-version-warning config
-versionwarning_messages = {
-    "latest": (
-        "This document is for the development version. "
-        'For the stable version documentation, see <a href="/en/stable/">here</a>.'
-    ),
-    "stable": (
-        "<strong>Black Lives Matter.</strong> "
-        'Support the <a href="https://eji.org/">Equal Justice Initiative</a> and '
-        '<a href="https://colorofchange.org/">Color of Change</a>.'
-    ),
-    "2.x-line": (
-        "marshmallow 2 will no longer be supported as of 2020-08-18. "
-        '<a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html#upgrading-to-3-0">'
-        "Update your code to use marshmallow 3</a>."
-    ),
-}
-# Show warning at top of page
-versionwarning_body_selector = "div.document"
-versionwarning_banner_title = ""
-# For debugging locally
-# versionwarning_project_version = "stable"
-
-
-def setup(app):
-    # https://docs.readthedocs.io/en/latest/guides/adding-custom-css.html
-    app.add_stylesheet("css/versionwarning.css")
+# Only display type hints next to params but not within the signature
+# to avoid the signature from getting too long
+autodoc_typehints = "description"

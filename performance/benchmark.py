@@ -1,14 +1,15 @@
-"""Simple benchmark for Marshmallow serialization of a moderately complex object.
+"""Simple benchmark for marshmallow serialization of a moderately complex object.
 
-Uses the `timeit` module to benchmark serializing an object through Marshmallow.
+Uses the `timeit` module to benchmark serializing an object through marshmallow.
 """
+
 import argparse
 import cProfile
+import datetime
 import gc
 import timeit
-import datetime
 
-from marshmallow import Schema, fields, ValidationError, post_dump
+from marshmallow import Schema, ValidationError, fields, post_dump
 
 
 # Custom validator
@@ -27,7 +28,7 @@ class AuthorSchema(Schema):
     full_name = fields.Method("get_full_name")
 
     def get_full_name(self, author):
-        return "{}, {}".format(author.last, author.first)
+        return f"{author.last}, {author.first}"
 
 
 class QuoteSchema(Schema):
@@ -99,7 +100,7 @@ def run_timeit(quotes, iterations, repeat, profile=False):
         profile.disable()
         profile.dump_stats("marshmallow.pprof")
 
-    usec = best * 1e6 / iterations
+    usec = best * 1e6 / iterations / len(quotes)
     return usec
 
 
@@ -124,7 +125,7 @@ def main():
     parser.add_argument(
         "--profile",
         action="store_true",
-        help="Whether or not to profile Marshmallow while running the benchmark.",
+        help="Whether or not to profile marshmallow while running the benchmark.",
     )
     args = parser.parse_args()
 
@@ -145,9 +146,7 @@ def main():
         )
 
     print(
-        "Benchmark Result: {:.2f} usec/dump".format(
-            run_timeit(quotes, args.iterations, args.repeat, profile=args.profile)
-        )
+        f"Benchmark Result: {run_timeit(quotes, args.iterations, args.repeat, profile=args.profile):.2f} usec/dump"
     )
 
 

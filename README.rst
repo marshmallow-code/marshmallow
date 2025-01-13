@@ -2,22 +2,25 @@
 marshmallow: simplified object serialization
 ********************************************
 
-.. image:: https://badgen.net/pypi/v/marshmallow
+|pypi| |build-status| |pre-commit| |docs|
+
+.. |pypi| image:: https://badgen.net/pypi/v/marshmallow
     :target: https://pypi.org/project/marshmallow/
     :alt: Latest version
 
-.. image:: https://dev.azure.com/sloria/sloria/_apis/build/status/marshmallow-code.marshmallow?branchName=dev
-    :target: https://dev.azure.com/sloria/sloria/_build/latest?definitionId=5&branchName=dev
+.. |build-status| image:: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml/badge.svg
+    :target: https://github.com/marshmallow-code/marshmallow/actions/workflows/build-release.yml
     :alt: Build status
 
-.. image:: https://readthedocs.org/projects/marshmallow/badge/
+.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/marshmallow-code/marshmallow/dev.svg
+   :target: https://results.pre-commit.ci/latest/github/marshmallow-code/marshmallow/dev
+   :alt: pre-commit.ci status
+
+.. |docs| image:: https://readthedocs.org/projects/marshmallow/badge/
    :target: https://marshmallow.readthedocs.io/
    :alt: Documentation
-   
-.. image:: https://badgen.net/badge/code%20style/black/000
-    :target: https://github.com/ambv/black
-    :alt: code style: black
 
+.. start elevator-pitch
 
 **marshmallow** is an ORM/ODM/framework-agnostic library for converting complex datatypes, such as objects, to and from native Python datatypes.
 
@@ -49,30 +52,25 @@ marshmallow: simplified object serialization
     #   'release_date': '1971-12-17',
     #   'title': 'Hunky Dory'}
 
-
 In short, marshmallow schemas can be used to:
 
 - **Validate** input data.
 - **Deserialize** input data to app-level objects.
 - **Serialize** app-level objects to primitive Python types. The serialized objects can then be rendered to standard formats such as JSON for use in an HTTP API.
 
-Get It Now
+Get it now
 ==========
 
-::
+.. code-block:: shell-session
 
     $ pip install -U marshmallow
 
+.. end elevator-pitch
 
 Documentation
 =============
 
 Full documentation is available at https://marshmallow.readthedocs.io/ .
-
-Requirements
-============
-
-- Python >= 3.5
 
 Ecosystem
 =========
@@ -115,19 +113,20 @@ Thank you to all our backers! [`Become a backer`_]
 Sponsors
 --------
 
+.. start sponsors
+
+marshmallow is sponsored by `Route4Me <https://route4me.com>`_.
+
+.. image:: https://github.com/user-attachments/assets/018c2e23-032e-4a11-98da-8b6dc25b9054
+    :target: https://route4me.com
+    :alt: Routing Planner
+
 Support this project by becoming a sponsor (or ask your company to support this project by becoming a sponsor).
-Your logo will show up here with a link to your website. [`Become a sponsor`_]
+Your logo will be displayed here with a link to your website. [`Become a sponsor`_]
 
 .. _`Become a sponsor`: https://opencollective.com/marshmallow#sponsor
 
-.. image:: https://opencollective.com/marshmallow/sponsor/0/avatar.svg
-    :target: https://opencollective.com/marshmallow/sponsor/0/website
-    :alt: Sponsors
-
-.. image:: https://opencollective.com/static/images/become_sponsor.svg
-    :target: https://opencollective.com/marshmallow#sponsor
-    :alt: Become a sponsor
-
+.. end sponsors
 
 Professional Support
 ====================
@@ -145,12 +144,6 @@ while seamlessly integrating with existing tools. [`Get professional support`_]
     :target: https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=readme
     :alt: Get supported marshmallow with Tidelift
 
-Security Contact Information
-============================
-
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.
 
 Project Links
 =============
@@ -158,7 +151,7 @@ Project Links
 - Docs: https://marshmallow.readthedocs.io/
 - Changelog: https://marshmallow.readthedocs.io/en/latest/changelog.html
 - Contributing Guidelines: https://marshmallow.readthedocs.io/en/latest/contributing.html
-- PyPI: https://pypi.python.org/pypi/marshmallow
+- PyPI: https://pypi.org/project/marshmallow/
 - Issues: https://github.com/marshmallow-code/marshmallow/issues
 - Donate: https://opencollective.com/marshmallow
 

@@ -151,3 +151,28 @@ Contributors (chronological)
 - Ram Rachum `@cool-RR <https://github.com/cool-RR>`_
 - `@weeix <https://github.com/weeix>`_
 - Juan Norris `@juannorris <https://github.com/juannorris>`_
+- 장준영 `@jun0jang <https://github.com/jun0jang>`_
+- `@ebargtuo <https://github.com/ebargtuo>`_
+- Michał Getka `@mgetka <https://github.com/mgetka>`_
+- Nadège Michel `@nadege <https://github.com/nadege>`_
+- Tamara `@infinityxxx <https://github.com/infinityxxx>`_
+- Stephen Rosen `@sirosen <https://github.com/sirosen>`_
+- Vladimir Mikhaylov `@vemikhaylov <https://github.com/vemikhaylov>`_
+- Stephen Eaton `@madeinoz67 <https://github.com/madeinoz67>`_
+- Antonio Lassandro `@lassandroan <https://github.com/lassandroan>`_
+- Javier Fernández `@jfernandz <https://github.com/jfernandz>`_
+- Michael Dimchuk  `@michaeldimchuk <https://github.com/michaeldimchuk>`_
+- Jochen Kupperschmidt  `@homeworkprod <https://github.com/homeworkprod>`_
+- `@yourun-proger <https://github.com/yourun-proger>`_
+- Ryan Morehart `@traherom <https://github.com/traherom>`_
+- Ben Windsor `@bwindsor <https://github.com/bwindsor>`_
+- Kevin Kirsche `@kkirsche <https://github.com/kkirsche>`_
+- Isira Seneviratne `@Isira-Seneviratne <https://github.com/Isira-Seneviratne>`_
+- Karthikeyan Singaravelan `@tirkarthi  <https://github.com/tirkarthi>`_
+- Marco Satti `@marcosatti  <https://github.com/marcosatti>`_
+- Ivo Reumkens `@vanHoi <https://github.com/vanHoi>`_
+- Aditya Tewary `@aditkumar72 <https://github.com/aditkumar72>`_
+- Sebastien Lovergne `@TheBigRoomXXL <https://github.com/TheBigRoomXXL>`_
+- Peter C `@somethingnew2-0 <https://github.com/somethingnew2-0>`_
+- Marcel Jackwerth `@mrcljx` <https://github.com/mrcljx>`_
+- Fares Abubaker `@Fares-Abubaker <https://github.com/Fares-Abubaker>`_

@@ -1,0 +1,23 @@
+/* Headings */
+
+h2, h3, h4, h5, h6 {
+  font-weight: 400;
+}
+
+/* UI elements: left and right sidebars, "Back to top" button, admonitions, Copy button */
+.sidebar-drawer, .toc-drawer, .back-to-top, .admonition, .copybtn {
+  /* Sans-serif system font stack */
+  font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+}
+
+/* Links */
+
+a:link, a:visited {
+  color: var(--color-link);
+}
+
+/* Hide ToC caption text within the main body (but leave them in the side-bar). */
+/* https://github.com/hynek/structlog/blob/b488a8bf589a01aabc41e3bf8df81a9848cd426c/docs/_static/custom.css#L17-L20 */
+#furo-main-content span.caption-text {
+  display: none;
+}

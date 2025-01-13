@@ -1,23 +1,17 @@
 """Utility methods for marshmallow."""
-import collections
-import functools
+
+from __future__ import annotations
+
 import datetime as dt
 import inspect
-import json
-import re
 import typing
-import warnings
 from collections.abc import Mapping
 from email.utils import format_datetime, parsedate_to_datetime
-from pprint import pprint as py_pprint
-
-from marshmallow.base import FieldABC
-from marshmallow.exceptions import FieldInstanceResolutionError
-from marshmallow.warnings import RemovedInMarshmallow4Warning
 
 EXCLUDE = "exclude"
 INCLUDE = "include"
 RAISE = "raise"
+_UNKNOWN_VALUES = {EXCLUDE, INCLUDE, RAISE}
 
 
 class _Missing:
@@ -35,14 +29,13 @@ class _Missing:
 
 
 # Singleton value that indicates that a field's value is missing from input
-# dict passed to :meth:`Schema.load`. If the field's value is not required,
+# dict passed to `Schema.load <marshmallow.Schema.load>`. If the field's value is not required,
 # it's ``default`` value is used.
 missing = _Missing()
 
 
 def is_generator(obj) -> bool:
-    """Return True if ``obj`` is a generator
-    """
+    """Return True if ``obj`` is a generator"""
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
@@ -71,21 +64,6 @@ def is_keyed_tuple(obj) -> bool:
     return isinstance(obj, tuple) and hasattr(obj, "_fields")
 
 
-def pprint(obj, *args, **kwargs) -> None:
-    """Pretty-printing function that can pretty-print OrderedDicts
-    like regular dictionaries. Useful for printing the output of
-    :meth:`marshmallow.Schema.dump`.
-    """
-    warnings.warn(
-        "marshmallow's pprint function is deprecated and will be removed in marshmallow 4.",
-        RemovedInMarshmallow4Warning,
-    )
-    if isinstance(obj, collections.OrderedDict):
-        print(json.dumps(obj, *args, **kwargs))
-    else:
-        py_pprint(obj, *args, **kwargs)
-
-
 # https://stackoverflow.com/a/27596917
 def is_aware(datetime: dt.datetime) -> bool:
     return (
@@ -104,105 +82,63 @@ def from_rfc(datestring: str) -> dt.datetime:
 def rfcformat(datetime: dt.datetime) -> str:
     """Return the RFC822-formatted representation of a datetime object.
 
-    :param datetime datetime: The datetime.
+    :param datetime: The datetime.
     """
     return format_datetime(datetime)
 
 
-# Hat tip to Django for ISO8601 deserialization functions
-
-_iso8601_datetime_re = re.compile(
-    r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})"
-    r"[T ](?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
-    r"(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?"
-    r"(?P<tzinfo>Z|[+-]\d{2}(?::?\d{2})?)?$"
-)
-
-_iso8601_date_re = re.compile(r"(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})$")
-
-_iso8601_time_re = re.compile(
-    r"(?P<hour>\d{1,2}):(?P<minute>\d{1,2})"
-    r"(?::(?P<second>\d{1,2})(?:\.(?P<microsecond>\d{1,6})\d{0,6})?)?"
-)
-
-
-def get_fixed_timezone(offset: typing.Union[int, float, dt.timedelta]) -> dt.timezone:
+def get_fixed_timezone(offset: int | float | dt.timedelta) -> dt.timezone:
     """Return a tzinfo instance with a fixed offset from UTC."""
     if isinstance(offset, dt.timedelta):
         offset = offset.total_seconds() // 60
     sign = "-" if offset < 0 else "+"
-    hhmm = "%02d%02d" % divmod(abs(offset), 60)
+    hhmm = "{:02d}{:02d}".format(*divmod(abs(offset), 60))
     name = sign + hhmm
     return dt.timezone(dt.timedelta(minutes=offset), name)
 
 
-def from_iso_datetime(value):
-    """Parse a string and return a datetime.datetime.
+def from_timestamp(value: typing.Any) -> dt.datetime:
+    if value is True or value is False:
+        raise ValueError("Not a valid POSIX timestamp")
+    value = float(value)
+    if value < 0:
+        raise ValueError("Not a valid POSIX timestamp")
 
-    This function supports time zone offsets. When the input contains one,
-    the output uses a timezone with a fixed offset from UTC.
-    """
-    match = _iso8601_datetime_re.match(value)
-    if not match:
-        raise ValueError("Not a valid ISO8601-formatted datetime string")
-    kw = match.groupdict()
-    kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
-    tzinfo = kw.pop("tzinfo")
-    if tzinfo == "Z":
-        tzinfo = dt.timezone.utc
-    elif tzinfo is not None:
-        offset_mins = int(tzinfo[-2:]) if len(tzinfo) > 3 else 0
-        offset = 60 * int(tzinfo[1:3]) + offset_mins
-        if tzinfo[0] == "-":
-            offset = -offset
-        tzinfo = get_fixed_timezone(offset)
-    kw = {k: int(v) for k, v in kw.items() if v is not None}
-    kw["tzinfo"] = tzinfo
-    return dt.datetime(**kw)
+    # Load a timestamp with utc as timezone to prevent using system timezone.
+    # Then set timezone to None, to let the Field handle adding timezone info.
+    try:
+        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
+    except OverflowError as exc:
+        raise ValueError("Timestamp is too large") from exc
+    except OSError as exc:
+        raise ValueError("Error converting value to datetime") from exc
 
 
-def from_iso_time(value):
-    """Parse a string and return a datetime.time.
-
-    This function doesn't support time zone offsets.
-    """
-    match = _iso8601_time_re.match(value)
-    if not match:
-        raise ValueError("Not a valid ISO8601-formatted time string")
-    kw = match.groupdict()
-    kw["microsecond"] = kw["microsecond"] and kw["microsecond"].ljust(6, "0")
-    kw = {k: int(v) for k, v in kw.items() if v is not None}
-    return dt.time(**kw)
+def from_timestamp_ms(value: typing.Any) -> dt.datetime:
+    value = float(value)
+    return from_timestamp(value / 1000)
 
 
-def from_iso_date(value):
-    """Parse a string and return a datetime.date."""
-    match = _iso8601_date_re.match(value)
-    if not match:
-        raise ValueError("Not a valid ISO8601-formatted date string")
-    kw = {k: int(v) for k, v in match.groupdict().items()}
-    return dt.date(**kw)
+def timestamp(
+    value: dt.datetime,
+) -> float:
+    if not is_aware(value):
+        # When a date is naive, use UTC as zone info to prevent using system timezone.
+        value = value.replace(tzinfo=dt.timezone.utc)
+    return value.timestamp()
 
 
-def isoformat(datetime: dt.datetime) -> str:
-    """Return the ISO8601-formatted representation of a datetime object.
-
-    :param datetime datetime: The datetime.
-    """
-    return datetime.isoformat()
+def timestamp_ms(value: dt.datetime) -> float:
+    return timestamp(value) * 1000
 
 
-def to_iso_date(date: dt.date) -> str:
-    return dt.date.isoformat(date)
-
-
-def ensure_text_type(val: typing.Union[str, bytes]) -> str:
+def ensure_text_type(val: str | bytes) -> str:
     if isinstance(val, bytes):
         val = val.decode("utf-8")
     return str(val)
 
 
-def pluck(dictlist: typing.List[typing.Dict[str, typing.Any]], key: str):
+def pluck(dictlist: list[dict[str, typing.Any]], key: str):
     """Extracts a list of dictionary values from a list of dictionaries.
     ::
 
@@ -216,7 +152,7 @@ def pluck(dictlist: typing.List[typing.Dict[str, typing.Any]], key: str):
 # Various utilities for pulling keyed values from objects
 
 
-def get_value(obj, key: typing.Union[int, str], default=missing):
+def get_value(obj, key: int | str, default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -252,7 +188,7 @@ def _get_value_for_key(obj, key, default):
         return getattr(obj, key, default)
 
 
-def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
+def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
     """Set a value in a dict. If `key` contains a '.', it is assumed
     be a path (i.e. dot-delimited string) to the value's location.
 
@@ -268,10 +204,7 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
         target = dct.setdefault(head, {})
         if not isinstance(target, dict):
             raise ValueError(
-                "Cannot set {key} in {head} "
-                "due to existing value: {target}".format(
-                    key=key, head=head, target=target
-                )
+                f"Cannot set {key} in {head} " f"due to existing value: {target}"
             )
         set_value(target, rest, value)
     else:
@@ -279,42 +212,23 @@ def set_value(dct: typing.Dict[str, typing.Any], key: str, value: typing.Any):
 
 
 def callable_or_raise(obj):
-    """Check that an object is callable, else raise a :exc:`ValueError`.
-    """
+    """Check that an object is callable, else raise a :exc:`TypeError`."""
     if not callable(obj):
-        raise ValueError("Object {!r} is not callable.".format(obj))
+        raise TypeError(f"Object {obj!r} is not callable.")
     return obj
 
 
-def _signature(func: typing.Callable) -> typing.List[str]:
-    return list(inspect.signature(func).parameters.keys())
+def timedelta_to_microseconds(value: dt.timedelta) -> int:
+    """Compute the total microseconds of a timedelta.
 
-
-def get_func_args(func: typing.Callable) -> typing.List[str]:
-    """Given a callable, return a list of argument names. Handles
-    `functools.partial` objects and class-based callables.
-
-    .. versionchanged:: 3.0.0a1
-        Do not return bound arguments, eg. ``self``.
+    https://github.com/python/cpython/blob/v3.13.1/Lib/_pydatetime.py#L805-L807
     """
-    if inspect.isfunction(func) or inspect.ismethod(func):
-        return _signature(func)
-    if isinstance(func, functools.partial):
-        return _signature(func.func)
-    # Callable class
-    return _signature(func)
+    return (value.days * (24 * 3600) + value.seconds) * 1000000 + value.microseconds
 
 
-def resolve_field_instance(cls_or_instance):
-    """Return a Schema instance from a Schema class or instance.
-
-    :param type|Schema cls_or_instance: Marshmallow Schema class or instance.
-    """
-    if isinstance(cls_or_instance, type):
-        if not issubclass(cls_or_instance, FieldABC):
-            raise FieldInstanceResolutionError
-        return cls_or_instance()
-    else:
-        if not isinstance(cls_or_instance, FieldABC):
-            raise FieldInstanceResolutionError
-        return cls_or_instance
+def validate_unknown_parameter_value(obj: typing.Any) -> str:
+    if obj not in _UNKNOWN_VALUES:
+        raise ValueError(
+            f"Object {obj!r} is not a valid value for the 'unknown' parameter"
+        )
+    return obj
