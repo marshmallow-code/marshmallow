@@ -767,14 +767,17 @@ class Schema(metaclass=SchemaMeta):
         error_store,
         many,
         partial,
+        unknown,
         pass_original,
         index=None,
     ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
-                validator_func(output, original_data, partial=partial, many=many)
+                validator_func(
+                    output, original_data, partial=partial, many=many, unknown=unknown
+                )
             else:
-                validator_func(output, partial=partial, many=many)
+                validator_func(output, partial=partial, many=many, unknown=unknown)
         except ValidationError as err:
             error_store.store_error(err.messages, err.field_name, index=index)
 
@@ -885,6 +888,7 @@ class Schema(metaclass=SchemaMeta):
                     original_data=data,
                     many=many,
                     partial=partial,
+                    unknown=unknown,
                     field_errors=field_errors,
                 )
                 self._invoke_schema_validators(
@@ -894,6 +898,7 @@ class Schema(metaclass=SchemaMeta):
                     original_data=data,
                     many=many,
                     partial=partial,
+                    unknown=unknown,
                     field_errors=field_errors,
                 )
             errors = error_store.errors
@@ -1166,6 +1171,7 @@ class Schema(metaclass=SchemaMeta):
         many: bool,
         partial: bool | types.StrSequenceOrSet | None,
         field_errors: bool = False,
+        unknown: str,
     ):
         for attr_name, hook_many, validator_kwargs in self._hooks[VALIDATES_SCHEMA]:
             if hook_many != pass_collection:
@@ -1184,6 +1190,7 @@ class Schema(metaclass=SchemaMeta):
                         error_store=error_store,
                         many=many,
                         partial=partial,
+                        unknown=unknown,
                         index=idx,
                         pass_original=pass_original,
                     )
@@ -1196,6 +1203,7 @@ class Schema(metaclass=SchemaMeta):
                     many=many,
                     pass_original=pass_original,
                     partial=partial,
+                    unknown=unknown,
                 )
 
     def _invoke_processors(

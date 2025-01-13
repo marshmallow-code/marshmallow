@@ -881,3 +881,36 @@ def test_decorator_post_load_with_nested_original_and_pass_collection(
 
     schema = ExampleSchema()
     assert schema.load(data) == data
+
+
+@pytest.mark.parametrize("usage_location", ["meta", "init", "load"])
+@pytest.mark.parametrize("unknown_val", (EXCLUDE, INCLUDE))
+def test_load_processors_receive_unknown(usage_location, unknown_val):
+    class ExampleSchema(Schema):
+        foo = fields.Int()
+
+        @validates_schema
+        def check_unknown_validates(self, data, unknown, **kwargs):
+            assert unknown == unknown_val
+
+        @pre_load
+        def check_unknown_pre(self, data, unknown, **kwargs):
+            assert unknown == unknown_val
+            return data
+
+        @post_load
+        def check_unknown_post(self, data, unknown, **kwargs):
+            assert unknown == unknown_val
+            return data
+
+    if usage_location == "meta":
+
+        class ExampleSchemaChild(ExampleSchema):
+            class Meta:
+                unknown = unknown_val
+
+        ExampleSchemaChild().load({"foo": 42})
+    if usage_location == "init":
+        ExampleSchema(unknown=unknown_val).load({"foo": 42})
+    else:
+        ExampleSchema().load({"foo": 42}, unknown=unknown_val)
