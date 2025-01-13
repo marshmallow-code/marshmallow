@@ -11,7 +11,6 @@ from email.utils import format_datetime, parsedate_to_datetime
 EXCLUDE: typing.Final = "exclude"
 INCLUDE: typing.Final = "include"
 RAISE: typing.Final = "raise"
-_UNKNOWN_VALUES = {EXCLUDE, INCLUDE, RAISE}
 
 
 class _Missing:
