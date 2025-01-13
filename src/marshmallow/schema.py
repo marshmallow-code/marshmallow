@@ -47,12 +47,11 @@ def _get_fields(attrs) -> list[tuple[str, Field]]:
     ret = []
     for field_name, field_value in attrs.items():
         if isinstance(field_value, type) and issubclass(field_value, ma_fields.Field):
-            msg = (
+            raise TypeError(
                 f'Field for "{field_name}" must be declared as a '
                 "Field instance, not a class. "
                 f'Did you mean "fields.{field_value.__name__}()"?'
             )
-            raise TypeError(msg)
         elif isinstance(field_value, ma_fields.Field):
             ret.append((field_name, field_value))
     return ret
