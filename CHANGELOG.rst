@@ -92,7 +92,8 @@ Thanks :user:`ddelange` for the PR.
         # {'name_suffixed': 'foobar'}
 
 - Methods decorated with `marshmallow.pre_load`, `marshmallow.post_load`, `marshmallow.validates_schema`,
-  receive ``unknown`` as a keyword argument.
+  receive ``unknown`` as a keyword argument (:pr:`1632`).
+  Thanks :user:`jforand` for the PR.
 
 Deprecations/Removals:
 
