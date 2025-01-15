@@ -13,7 +13,7 @@ Features:
 Documentation:
 
 - Add :doc:`upgrading guides <upgrading>` for 3.24 and 3.26 (:pr:`2780`).
-- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`, :pr:`2774`, :pr:`2778`).
+- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`, :pr:`2774`, :pr:`2778`, :pr:`2783`).
 
 Deprecations:
 
