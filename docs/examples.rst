@@ -82,7 +82,7 @@ Run the app.
 
     $ uv run examples/flask_example.py
 
-We'll use the [httpie cli](https://httpie.io/cli) to send requests
+We'll use the `httpie cli <https://httpie.io/cli>`_ to send requests
 Install it with ``uv``.
 
 .. code-block:: shell-session
@@ -164,3 +164,13 @@ HTTP APIs will often use camel-cased keys for their input and output representat
 
 .. literalinclude:: ../examples/inflection_example.py
     :language: python
+
+To run the example:
+
+.. code-block:: shell-session
+
+    $ uv run examples/inflection_example.py
+    Loaded data:
+    {'first_name': 'David', 'last_name': 'Bowie'}
+    Dumped data:
+    {'firstName': 'David', 'lastName': 'Bowie'}
