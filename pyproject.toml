@@ -83,6 +83,7 @@ select = [
 "tests/*" = ["E721"]
 
 [tool.mypy]
+files = ["src", "tests"]
 ignore_missing_imports = true
 warn_unreachable = true
 warn_unused_ignores = true
