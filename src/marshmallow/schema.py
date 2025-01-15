@@ -326,7 +326,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
     OPTIONS_CLASS: type = SchemaOpts
 
-    set_class: type[typing.AbstractSet] = OrderedSet
+    set_class = OrderedSet
 
     # These get set by SchemaMeta
     opts: typing.Any
