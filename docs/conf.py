@@ -46,6 +46,7 @@ html_theme_options = {
     },
     "top_of_page_buttons": ["view"],
 }
+pygments_dark_style = "lightbulb"
 html_favicon = "_static/favicon.ico"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
