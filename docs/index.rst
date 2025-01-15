@@ -16,7 +16,7 @@ Release v\ |version|. (:doc:`changelog`)
     :start-after: .. start elevator-pitch
     :end-before: .. end elevator-pitch
 
-Ready to get started? Go on to the :doc:`quickstart` or check out some :doc:`examples <examples>`.
+Ready to get started? Go on to the :doc:`quickstart` or check out some :doc:`examples <examples/index>`.
 
 Upgrading from an older version?
 ================================
@@ -54,7 +54,7 @@ Usage guide
     nesting
     custom_fields
     extending
-    examples
+    examples/index
 
 
 API reference
