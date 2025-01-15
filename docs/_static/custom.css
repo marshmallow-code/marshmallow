@@ -12,8 +12,13 @@ h2, h3, h4, h5, h6 {
 
 /* Links */
 
-a:link, a:visited {
+/* Don't change the color of visited links. */
+a:visited {
   color: var(--color-link);
+}
+
+.announcement-content a {
+  color: var(--color-announcement-text);
 }
 
 /* Hide ToC caption text within the main body (but leave them in the side-bar). */
