@@ -2,6 +2,11 @@
 Examples
 ********
 
+The below examples demonstrate how to use marshmallow in various contexts.
+To run each example, you will need to have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed.
+The examples use the [PEP 723 inline metadata](https://peps.python.org/pep-0723/)
+to declare the dependencies of each script. ``uv`` will install the depedencies automatically when running a script.
+
 Validating ``package.json``
 ===========================
 
@@ -21,28 +26,15 @@ Below is a schema that could be used to validate
 
 Given the following ``package.json`` file...
 
-.. code-block:: json
-
-    {
-      "name": "dunderscore",
-      "version": "1.2.3",
-      "description": "The Pythonic JavaScript toolkit",
-      "devDependencies": {
-        "pest": "^23.4.1"
-      },
-      "main": "index.js",
-      "scripts": {
-        "test": "pest"
-      },
-      "license": "MIT"
-    }
+.. literalinclude:: ../examples/package.json
+    :language: json
 
 
 We can validate it using the above script.
 
 .. code-block:: shell-session
 
-    $ python examples/package_json_example.py < package.json
+    $ uv run examples/package_json_example.py < examples/package.json
     {'description': 'The Pythonic JavaScript toolkit',
     'dev_dependencies': {'pest': '^23.4.1'},
     'license': 'MIT',
@@ -55,81 +47,16 @@ Notice that our custom field deserialized the version string to a ``Version`` ob
 
 But if we pass an invalid package.json file...
 
-.. code-block:: json
-
-    {
-      "name": "dunderscore",
-      "version": "INVALID",
-      "homepage": "INVALID",
-      "description": "The Pythonic JavaScript toolkit",
-      "license": "MIT"
-    }
+.. literalinclude:: ../examples/invalid_package.json
+    :language: json
 
 We see the corresponding error messages.
 
 .. code-block:: shell-session
 
-    $ python examples/package_json_example.py < invalid_package.json
+    $ uv run examples/package_json_example.py < examples/invalid_package.json
     ERROR: package.json is invalid
     {'homepage': ['Not a valid URL.'], 'version': ['Not a valid version.']}
-
-
-
-Text Analysis API (Bottle + TextBlob)
-=====================================
-
-Here is a very simple text analysis API using `Bottle <https://bottlepy.org>`_ and `TextBlob <https://textblob.readthedocs.io/>`_ that demonstrates how to declare an object serializer.
-
-Assume that ``TextBlob`` objects have ``polarity``, ``subjectivity``, ``noun_phrase``, ``tags``, and ``words`` properties.
-
-.. literalinclude:: ../examples/textblob_example.py
-    :language: python
-
-**Using The API**
-
-First, run the app.
-
-.. code-block:: shell-session
-
-    $ python examples/textblob_example.py
-
-Then send a POST request with some text with `httpie <https://github.com/jkbr/httpie>`_ (a curl-like tool) for testing the APIs.
-
-
-.. code-block:: shell-session
-
-    $ pip install httpie
-    $ http POST :5000/api/v1/analyze text="Simple is better"
-    HTTP/1.0 200 OK
-    Content-Length: 189
-    Content-Type: application/json
-    Date: Wed, 13 Nov 2013 08:58:40 GMT
-    Server: WSGIServer/0.1 Python/2.7.5
-
-    {
-        "chunks": [
-            "simple"
-        ],
-        "discrete_sentiment": "positive",
-        "polarity": 0.25,
-        "subjectivity": 0.4285714285714286,
-        "tags": [
-            [
-                "Simple",
-                "NN"
-            ],
-            [
-                "is",
-                "VBZ"
-            ],
-            [
-                "better",
-                "JJR"
-            ]
-        ],
-        "word_count": 3
-    }
-
 
 Quotes API (Flask + SQLAlchemy)
 ===============================
@@ -152,14 +79,19 @@ Run the app.
 
 .. code-block:: shell-session
 
-    $ pip install flask flask-sqlalchemy
-    $ python examples/flask_example.py
+    $ uv run examples/flask_example.py
+
+We'll use the [httpie cli](https://httpie.io/cli) to send requests
+Install it with ``uv``.
+
+.. code-block:: shell-session
+
+    $ uv tool install httpie
 
 First we'll POST some quotes.
 
 .. code-block:: shell-session
 
-    $ pip install httpie
     $ http POST :5000/quotes/ author="Tim Peters" content="Beautiful is better than ugly."
     $ http POST :5000/quotes/ author="Tim Peters" content="Now is better than never."
     $ http POST :5000/quotes/ author="Peter Hintjens" content="Simplicity is always better than functionality."
@@ -218,72 +150,6 @@ We can also GET the quotes for a single author.
             {
                 "content": "Now is better than never.",
                 "id": 2
-            }
-        ]
-    }
-
-ToDo API (Flask + Peewee)
-=========================
-
-This example uses Flask and the `Peewee <https://peewee.readthedocs.io/en/latest/index.html>`_ ORM to create a basic Todo application.
-
-Here, we use `Schema.load <marshmallow.Schema.load>` to validate and deserialize input data to model data. Also notice how `pre_load <marshmallow.decorators.pre_load>` is used to clean input data and `post_load <marshmallow.decorators.post_load>` is used to add an envelope to response data.
-
-.. literalinclude:: ../examples/peewee_example.py
-    :language: python
-
-**Using the API**
-
-Run the app.
-
-.. code-block:: shell-session
-
-    $ pip install flask peewee
-    $ python examples/peewee_example.py
-
-After registering a user and creating some todo items in the database, here is an example response.
-
-.. code-block:: shell-session
-
-    $ pip install httpie
-    $ http GET :5000/todos/
-    {
-        "todos": [
-            {
-                "content": "Install marshmallow",
-                "done": false,
-                "id": 1,
-                "posted_on": "2015-05-05T01:51:12.832232+00:00",
-                "user": {
-                    "user": {
-                        "email": "foo@bar.com",
-                        "id": 1
-                    }
-                }
-            },
-            {
-                "content": "Learn Python",
-                "done": false,
-                "id": 2,
-                "posted_on": "2015-05-05T01:51:20.728052+00:00",
-                "user": {
-                    "user": {
-                        "email": "foo@bar.com",
-                        "id": 1
-                    }
-                }
-            },
-            {
-                "content": "Refactor everything",
-                "done": false,
-                "id": 3,
-                "posted_on": "2015-05-05T01:51:25.970153+00:00",
-                "user": {
-                    "user": {
-                        "email": "foo@bar.com",
-                        "id": 1
-                    }
-                }
             }
         ]
     }

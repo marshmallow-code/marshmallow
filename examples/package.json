@@ -1,0 +1,13 @@
+{
+  "name": "dunderscore",
+  "version": "1.2.3",
+  "description": "The Pythonic JavaScript toolkit",
+  "devDependencies": {
+    "pest": "^23.4.1"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "pest"
+  },
+  "license": "MIT"
+}

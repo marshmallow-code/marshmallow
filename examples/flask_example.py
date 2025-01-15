@@ -1,14 +1,32 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "flask",
+#     "flask-sqlalchemy>=3.1.1",
+#     "marshmallow",
+#     "sqlalchemy>2.0",
+# ]
+# ///
+from __future__ import annotations
+
 import datetime
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.orm import DeclarativeBase
 
 from marshmallow import Schema, ValidationError, fields, pre_load
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/quotes.db"
-db = SQLAlchemy(app)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(app, model_class=Base)
 
 ##### MODELS #####
 
@@ -139,5 +157,6 @@ def new_quote():
 
 
 if __name__ == "__main__":
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, port=5000)

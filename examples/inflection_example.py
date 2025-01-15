@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "marshmallow",
+# ]
+# ///
 from marshmallow import Schema, fields
 
 
@@ -25,6 +31,8 @@ class UserSchema(CamelCaseSchema):
 
 schema = UserSchema()
 loaded = schema.load({"firstName": "David", "lastName": "Bowie"})
+print("Loaded data:")
 print(loaded)  # => {'last_name': 'Bowie', 'first_name': 'David'}
 dumped = schema.dump(loaded)
+print("Dumped data:")
 print(dumped)  # => {'lastName': 'Bowie', 'firstName': 'David'}

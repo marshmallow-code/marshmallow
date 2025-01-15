@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "marshmallow",
+#     "packaging>=17.0",
+# ]
+# ///
 import json
 import sys
 from pprint import pprint
