@@ -14,7 +14,7 @@ import datetime
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from marshmallow import Schema, ValidationError, fields, pre_load
 
@@ -31,18 +31,18 @@ db = SQLAlchemy(app, model_class=Base)
 ##### MODELS #####
 
 
-class Author(db.Model):  # type: ignore
-    id = db.Column(db.Integer, primary_key=True)
-    first = db.Column(db.String(80))
-    last = db.Column(db.String(80))
+class Author(db.Model):  # type: ignore[name-defined]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    first: Mapped[str]
+    last: Mapped[str]
 
 
-class Quote(db.Model):  # type: ignore
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String, nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey("author.id"))
-    author = db.relationship("Author", backref=db.backref("quotes", lazy="dynamic"))
-    posted_at = db.Column(db.DateTime)
+class Quote(db.Model):  # type: ignore[name-defined]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[str] = mapped_column(nullable=False)
+    author_id: Mapped[int] = mapped_column(db.ForeignKey(Author.id))
+    author: Mapped[Author] = relationship(backref=db.backref("quotes", lazy="dynamic"))  # type: ignore[assignment]
+    posted_at: Mapped[datetime.datetime]
 
 
 ##### SCHEMAS #####
