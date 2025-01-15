@@ -1,3 +1,4 @@
+from marshmallow.constants import EXCLUDE, INCLUDE, RAISE, missing
 from marshmallow.decorators import (
     post_dump,
     post_load,
@@ -8,7 +9,6 @@ from marshmallow.decorators import (
 )
 from marshmallow.exceptions import ValidationError
 from marshmallow.schema import Schema, SchemaOpts
-from marshmallow.utils import EXCLUDE, INCLUDE, RAISE, missing
 
 from . import fields
 

@@ -28,18 +28,13 @@ else:
     MonkeyPatch.patch_fromisoformat()
 
 from marshmallow import class_registry, types, utils, validate
+from marshmallow.constants import missing as missing_
 from marshmallow.exceptions import (
     StringNotCollectionError,
     ValidationError,
     _FieldInstanceResolutionError,
 )
-from marshmallow.utils import (
-    is_aware,
-    is_collection,
-)
-from marshmallow.utils import (
-    missing as missing_,
-)
+from marshmallow.utils import is_aware, is_collection
 from marshmallow.validate import And, Length
 
 if typing.TYPE_CHECKING:

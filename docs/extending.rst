@@ -324,7 +324,7 @@ If you want to use the original, unprocessed input, you can add ``pass_original=
 
 .. seealso::
 
-   The default behavior for unspecified fields can be controlled with the ``unknown`` option, see :ref:`Handling Unknown Fields <unknown>` for more information.
+   The default behavior for unspecified fields can be controlled with the ``unknown`` option, see :ref:`unknown` for more information.
 
 Overriding how attributes are accessed
 --------------------------------------

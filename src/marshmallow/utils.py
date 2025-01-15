@@ -7,29 +7,7 @@ import inspect
 import typing
 from collections.abc import Mapping
 
-EXCLUDE: typing.Final = "exclude"
-INCLUDE: typing.Final = "include"
-RAISE: typing.Final = "raise"
-
-
-class _Missing:
-    def __bool__(self):
-        return False
-
-    def __copy__(self):
-        return self
-
-    def __deepcopy__(self, _):
-        return self
-
-    def __repr__(self):
-        return "<marshmallow.missing>"
-
-
-# Singleton value that indicates that a field's value is missing from input
-# dict passed to `Schema.load <marshmallow.Schema.load>`. If the field's value is not required,
-# it's ``default`` value is used.
-missing = _Missing()
+from marshmallow.constants import missing
 
 
 def is_generator(obj) -> bool:

@@ -15,6 +15,7 @@ from collections.abc import Mapping
 
 from marshmallow import class_registry, types
 from marshmallow import fields as ma_fields
+from marshmallow.constants import EXCLUDE, INCLUDE, RAISE, missing
 from marshmallow.decorators import (
     POST_DUMP,
     POST_LOAD,
@@ -27,15 +28,7 @@ from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import StringNotCollectionError, ValidationError
 from marshmallow.fields import Field
 from marshmallow.orderedset import OrderedSet
-from marshmallow.utils import (
-    EXCLUDE,
-    INCLUDE,
-    RAISE,
-    get_value,
-    is_collection,
-    missing,
-    set_value,
-)
+from marshmallow.utils import get_value, is_collection, set_value
 
 
 def _get_fields(attrs) -> list[tuple[str, Field]]:
