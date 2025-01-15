@@ -588,4 +588,4 @@ Next steps
 - Need to represent relationships between objects? See the :doc:`nesting` page.
 - Want to create your own field type? See the :doc:`custom_fields` page.
 - Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending` page.
-- For example applications using marshmallow, check out the :doc:`examples` page.
+- For more detailed usage examples, check out the :doc:`examples/index` page.

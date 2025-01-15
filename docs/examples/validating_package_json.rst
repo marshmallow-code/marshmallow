@@ -8,7 +8,7 @@ Below is a schema that could be used to validate
 
 
 - Validation and deserialization using `Schema.load <marshmallow.Schema.load>`
-- :doc:`Custom fields <custom_fields>`
+- :doc:`Custom fields <../custom_fields>`
 - Specifying deserialization keys using ``data_key``
 - Including unknown keys using ``unknown = INCLUDE``
 

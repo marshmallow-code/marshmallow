@@ -170,4 +170,4 @@ Next steps
 ----------
 
 - Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending` page.
-- For example applications using marshmallow, check out the :doc:`examples` page.
+- For example applications using marshmallow, check out the :doc:`examples/index` page.
