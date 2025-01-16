@@ -188,6 +188,8 @@ class TestContext:
             assert field.deserialize("foo") == "FOOBAR"
 
     def test_decorated_processors_with_context(self):
+        NumDictContext = Context[dict[int, int]]
+
         class MySchema(Schema):
             f_1 = fields.Integer()
             f_2 = fields.Integer()
@@ -196,27 +198,27 @@ class TestContext:
 
             @pre_dump
             def multiply_f_1(self, item, **kwargs):
-                item["f_1"] *= Context.get()[1]
+                item["f_1"] *= NumDictContext.get()[1]
                 return item
 
             @pre_load
             def multiply_f_2(self, data, **kwargs):
-                data["f_2"] *= Context.get()[2]
+                data["f_2"] *= NumDictContext.get()[2]
                 return data
 
             @post_dump
             def multiply_f_3(self, item, **kwargs):
-                item["f_3"] *= Context.get()[3]
+                item["f_3"] *= NumDictContext.get()[3]
                 return item
 
             @post_load
             def multiply_f_4(self, data, **kwargs):
-                data["f_4"] *= Context.get()[4]
+                data["f_4"] *= NumDictContext.get()[4]
                 return data
 
         schema = MySchema()
 
-        with Context({1: 2, 2: 3, 3: 4, 4: 5}):
+        with NumDictContext({1: 2, 2: 3, 3: 4, 4: 5}):
             assert schema.dump({"f_1": 1, "f_2": 1, "f_3": 1, "f_4": 1}) == {
                 "f_1": 2,
                 "f_2": 1,
