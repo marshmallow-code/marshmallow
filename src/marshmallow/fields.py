@@ -81,7 +81,7 @@ __all__ = [
     "Pluck",
 ]
 
-_InternalType = typing.TypeVar("_InternalType")
+_InternalT = typing.TypeVar("_InternalT")
 
 
 class _BaseFieldKwargs(typing.TypedDict, total=False):
@@ -113,7 +113,7 @@ def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
         return cls_or_instance
 
 
-class Field(typing.Generic[_InternalType]):
+class Field(typing.Generic[_InternalT]):
     """Base field from which all other fields inherit.
     This class should not be used directly within Schemas.
 
@@ -252,7 +252,7 @@ class Field(typing.Generic[_InternalType]):
             typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
         ) = None,
         default: typing.Any = missing_,
-    ) -> _InternalType:
+    ) -> _InternalT:
         """Return the value for a given key from an object.
 
         :param obj: The object to get the value from.
@@ -336,7 +336,7 @@ class Field(typing.Generic[_InternalType]):
         attr: str | None = None,
         data: typing.Mapping[str, typing.Any] | None = None,
         **kwargs,
-    ) -> None | _InternalType: ...
+    ) -> None | _InternalT: ...
 
     # If value is not None, internal type is returned
     @typing.overload
@@ -346,7 +346,7 @@ class Field(typing.Generic[_InternalType]):
         attr: str | None = None,
         data: typing.Mapping[str, typing.Any] | None = None,
         **kwargs,
-    ) -> _InternalType: ...
+    ) -> _InternalT: ...
 
     def deserialize(
         self,
@@ -354,7 +354,7 @@ class Field(typing.Generic[_InternalType]):
         attr: str | None = None,
         data: typing.Mapping[str, typing.Any] | None = None,
         **kwargs,
-    ) -> _InternalType | None:
+    ) -> _InternalT | None:
         """Deserialize ``value``.
 
         :param value: The value to deserialize.
@@ -392,7 +392,7 @@ class Field(typing.Generic[_InternalType]):
         )
 
     def _serialize(
-        self, value: _InternalType | None, attr: str | None, obj: typing.Any, **kwargs
+        self, value: _InternalT | None, attr: str | None, obj: typing.Any, **kwargs
     ) -> typing.Any:
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
@@ -419,7 +419,7 @@ class Field(typing.Generic[_InternalType]):
         attr: str | None,
         data: typing.Mapping[str, typing.Any] | None,
         **kwargs,
-    ) -> _InternalType:
+    ) -> _InternalT:
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
 
         :param value: The value to be deserialized.
@@ -682,7 +682,7 @@ class Pluck(Nested):
         return self._load(value, partial=partial)
 
 
-class List(Field[list[typing.Optional[_InternalType]]]):
+class List(Field[list[typing.Optional[_InternalT]]]):
     """A list field, composed with another `Field` class or
     instance.
 
@@ -702,12 +702,12 @@ class List(Field[list[typing.Optional[_InternalType]]]):
 
     def __init__(
         self,
-        cls_or_instance: Field[_InternalType] | type[Field[_InternalType]],
+        cls_or_instance: Field[_InternalT] | type[Field[_InternalT]],
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
         try:
-            self.inner: Field[_InternalType] = _resolve_field_instance(cls_or_instance)
+            self.inner: Field[_InternalT] = _resolve_field_instance(cls_or_instance)
         except _FieldInstanceResolutionError as error:
             raise ValueError(
                 "The list elements must be a subclass or instance of "
@@ -725,12 +725,12 @@ class List(Field[list[typing.Optional[_InternalType]]]):
             self.inner.only = self.only
             self.inner.exclude = self.exclude
 
-    def _serialize(self, value, attr, obj, **kwargs) -> list[_InternalType] | None:
+    def _serialize(self, value, attr, obj, **kwargs) -> list[_InternalT] | None:
         if value is None:
             return None
         return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
 
-    def _deserialize(self, value, attr, data, **kwargs) -> list[_InternalType | None]:
+    def _deserialize(self, value, attr, data, **kwargs) -> list[_InternalT | None]:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
 
@@ -741,7 +741,7 @@ class List(Field[list[typing.Optional[_InternalType]]]):
                 result.append(self.inner.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
-                    result.append(typing.cast(_InternalType, error.valid_data))
+                    result.append(typing.cast(_InternalT, error.valid_data))
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)
