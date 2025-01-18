@@ -75,8 +75,11 @@ def test_decorated_processors(partial_val):
     schema = ExampleSchema(partial=partial_val)
 
     # Need to re-create these because the processors will modify in place.
-    make_item = lambda: {"value": 3}
-    make_items = lambda: [make_item(), {"value": 5}]
+    def make_item():
+        return {"value": 3}
+
+    def make_items():
+        return [make_item(), {"value": 5}]
 
     item_dumped = schema.dump(make_item())
     assert item_dumped == {"datum": {"value": "TAG4"}}
@@ -89,7 +92,7 @@ def test_decorated_processors(partial_val):
     assert items_loaded == make_items()
 
 
-#  Regression test for https://github.com/marshmallow-code/marshmallow/issues/347
+# Regression test for https://github.com/marshmallow-code/marshmallow/issues/347
 @pytest.mark.parametrize("unknown", (EXCLUDE, INCLUDE, RAISE))
 def test_decorated_processor_returning_none(unknown):
     class PostSchema(Schema):
@@ -449,7 +452,7 @@ class TestValidatesSchemaDecorator:
 
     @pytest.mark.parametrize("data", ([{"foo": 1, "bar": 2}],))
     @pytest.mark.parametrize(
-        "pass_many,expected_data,expected_original_data",
+        ("pass_many", "expected_data", "expected_original_data"),
         (
             [True, [{"foo": 1}], [{"foo": 1, "bar": 2}]],
             [False, {"foo": 1}, {"foo": 1, "bar": 2}],
@@ -687,7 +690,7 @@ class TestValidatesSchemaDecorator:
         assert "_schema" not in errors
 
 
-def test_decorator_error_handling():  # noqa: C901
+def test_decorator_error_handling():
     class ExampleSchema(Schema):
         foo = fields.Int()
         bar = fields.Int()
@@ -829,7 +832,7 @@ example = Example(nested=[Nested(x) for x in range(1)])
 
 
 @pytest.mark.parametrize(
-    "data,expected_data,expected_original_data",
+    ("data", "expected_data", "expected_original_data"),
     ([example, {"foo": 0}, example.nested[0]],),
 )
 def test_decorator_post_dump_with_nested_original_and_pass_many(
@@ -863,7 +866,7 @@ def test_decorator_post_dump_with_nested_original_and_pass_many(
 
 
 @pytest.mark.parametrize(
-    "data,expected_data,expected_original_data",
+    ("data", "expected_data", "expected_original_data"),
     ([{"nested": [{"foo": 0}]}, {"foo": 0}, {"foo": 0}],),
 )
 def test_decorator_post_load_with_nested_original_and_pass_many(

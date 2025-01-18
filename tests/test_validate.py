@@ -95,7 +95,7 @@ def test_url_relative_valid(valid_url):
     assert validator(valid_url) == valid_url
 
 
-@pytest.mark.parametrize(  # noqa: W605
+@pytest.mark.parametrize(
     "invalid_url",
     [
         "http//example.org",
@@ -357,7 +357,7 @@ def test_range_repr():
                 min=None, max=None, error=None, min_inclusive=True, max_inclusive=True
             )
         )
-        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"  # noqa: B950
+        == "<Range(min=None, max=None, min_inclusive=True, max_inclusive=True, error=None)>"
     )
     assert (
         repr(
@@ -365,7 +365,7 @@ def test_range_repr():
                 min=1, max=3, error="foo", min_inclusive=False, max_inclusive=False
             )
         )
-        == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(  # noqa: B950
+        == "<Range(min=1, max=3, min_inclusive=False, max_inclusive=False, error={!r})>".format(
             "foo"
         )
     )
@@ -421,12 +421,12 @@ def test_length_equal():
         validate.Length(equal=2)("foo")
     with pytest.raises(ValidationError):
         validate.Length(equal=2)([1, 2, 3])
-
-    with pytest.raises(ValueError):
+    error_message = "The `equal` parameter was provided, maximum or minimum parameter must not be provided"
+    with pytest.raises(ValueError, match=error_message):
         validate.Length(1, None, equal=3)("foo")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=error_message):
         validate.Length(None, 5, equal=3)("foo")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=error_message):
         validate.Length(1, 5, equal=3)("foo")
 
 

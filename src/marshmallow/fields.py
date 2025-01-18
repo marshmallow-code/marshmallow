@@ -1,3 +1,4 @@
+# ruff: noqa: F841, SLF001
 from __future__ import annotations
 
 import collections
@@ -11,7 +12,6 @@ import typing
 import uuid
 import warnings
 from collections.abc import Mapping as _Mapping
-from enum import Enum as EnumType
 
 from marshmallow import class_registry, types, utils, validate
 from marshmallow.base import FieldABC
@@ -35,47 +35,49 @@ from marshmallow.warnings import (
 )
 
 if typing.TYPE_CHECKING:
+    from enum import Enum as EnumType
+
     from marshmallow.schema import Schema, SchemaMeta
 
 
 __all__ = [
-    "Field",
-    "Raw",
-    "Nested",
-    "Mapping",
-    "Dict",
-    "List",
-    "Tuple",
-    "String",
-    "UUID",
-    "Number",
-    "Integer",
-    "Decimal",
-    "Boolean",
-    "Float",
-    "DateTime",
-    "NaiveDateTime",
-    "AwareDateTime",
-    "Time",
-    "Date",
-    "TimeDelta",
-    "Url",
-    "URL",
-    "Email",
     "IP",
-    "IPv4",
-    "IPv6",
-    "IPInterface",
-    "IPv4Interface",
-    "IPv6Interface",
-    "Enum",
-    "Method",
-    "Function",
-    "Str",
+    "URL",
+    "UUID",
+    "AwareDateTime",
     "Bool",
-    "Int",
+    "Boolean",
     "Constant",
+    "Date",
+    "DateTime",
+    "Decimal",
+    "Dict",
+    "Email",
+    "Enum",
+    "Field",
+    "Float",
+    "Function",
+    "IPInterface",
+    "IPv4",
+    "IPv4Interface",
+    "IPv6",
+    "IPv6Interface",
+    "Int",
+    "Integer",
+    "List",
+    "Mapping",
+    "Method",
+    "NaiveDateTime",
+    "Nested",
+    "Number",
     "Pluck",
+    "Raw",
+    "Str",
+    "String",
+    "Time",
+    "TimeDelta",
+    "Tuple",
+    "Url",
 ]
 
 
@@ -498,7 +500,9 @@ class Nested(Field):
             name = fields.Str()
             # Use lambda functions when you need two-way nesting or self-nesting
             parent = fields.Nested(lambda: ParentSchema(only=("id",)), dump_only=True)
-            siblings = fields.List(fields.Nested(lambda: ChildSchema(only=("id", "name"))))
+            siblings = fields.List(
+                fields.Nested(lambda: ChildSchema(only=("id", "name")))
+            )
 
 
         class ParentSchema(Schema):
@@ -843,7 +847,7 @@ class Tuple(Field):
         super().__init__(**kwargs)
         if not utils.is_collection(tuple_fields):
             raise ValueError(
-                "tuple_fields must be an iterable of Field classes or " "instances."
+                "tuple_fields must be an iterable of Field classes or instances."
             )
 
         try:
@@ -863,9 +867,9 @@ class Tuple(Field):
         super()._bind_to_schema(field_name, schema)
         new_tuple_fields = []
         for field in self.tuple_fields:
-            field = copy.deepcopy(field)
-            field._bind_to_schema(field_name, self)
-            new_tuple_fields.append(field)
+            new_field = copy.deepcopy(field)
+            new_field._bind_to_schema(field_name, self)
+            new_tuple_fields.append(new_field)
 
         self.tuple_fields = new_tuple_fields
 
@@ -1294,7 +1298,7 @@ class DateTime(Field):
         "format": '"{input}" cannot be formatted as a {obj_type}.',
     }
 
-    def __init__(self, format: str | None = None, **kwargs) -> None:
+    def __init__(self, format: str | None = None, **kwargs) -> None:  # noqa: A002
         super().__init__(**kwargs)
         # Allow this to be None. It may be set later in the ``_serialize``
         # or ``_deserialize`` methods. This allows a Schema to dynamically set the
@@ -1352,7 +1356,7 @@ class NaiveDateTime(DateTime):
 
     def __init__(
         self,
-        format: str | None = None,
+        format: str | None = None,  # noqa: A002
         *,
         timezone: dt.timezone | None = None,
         **kwargs,
@@ -1389,7 +1393,7 @@ class AwareDateTime(DateTime):
 
     def __init__(
         self,
-        format: str | None = None,
+        format: str | None = None,  # noqa: A002
         *,
         default_timezone: dt.tzinfo | None = None,
         **kwargs,
@@ -1548,7 +1552,7 @@ class TimeDelta(Field):
             delta = utils.timedelta_to_microseconds(value)
             unit = utils.timedelta_to_microseconds(base_unit)
             return delta // unit
-        assert self.serialization_type is float
+        assert self.serialization_type is float  # noqa: S101
         return value.total_seconds() / base_unit.total_seconds()
 
     def _deserialize(self, value, attr, data, **kwargs):
@@ -1643,16 +1647,15 @@ class Mapping(Field):
         if not self.value_field and not self.key_field:
             return self.mapping_type(value)
 
-        #  Serialize keys
+        # Serialize keys
         if self.key_field is None:
-            keys = {k: k for k in value.keys()}
+            keys = {k: k for k in value}
         else:
             keys = {
-                k: self.key_field._serialize(k, None, None, **kwargs)
-                for k in value.keys()
+                k: self.key_field._serialize(k, None, None, **kwargs) for k in value
             }
 
-        #  Serialize values
+        # Serialize values
         result = self.mapping_type()
         if self.value_field is None:
             for k, v in value.items():
@@ -1672,18 +1675,18 @@ class Mapping(Field):
 
         errors = collections.defaultdict(dict)
 
-        #  Deserialize keys
+        # Deserialize keys
         if self.key_field is None:
-            keys = {k: k for k in value.keys()}
+            keys = {k: k for k in value}
         else:
             keys = {}
-            for key in value.keys():
+            for key in value:
                 try:
                     keys[key] = self.key_field.deserialize(key, **kwargs)
                 except ValidationError as error:
                     errors[key]["key"] = error.messages
 
-        #  Deserialize values
+        # Deserialize values
         result = self.mapping_type()
         if self.value_field is None:
             for k, v in value.items():

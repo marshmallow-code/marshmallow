@@ -69,6 +69,7 @@ output-format = "full"
 docstring-code-format = true
 
 [tool.ruff.lint]
+# use all checks available in ruff except the ones explicitly ignored below
 select = ["ALL"]
 ignore = [
   "A005",    # "module {name} shadows a Python standard-library module"
@@ -77,29 +78,47 @@ ignore = [
   "COM",     # let formatter take care commas
   "C901",    # don't enforce complexity level
   "D",       # don't require docstrings
+  "DTZ007",  # ignore false positives due to https://github.com/astral-sh/ruff/issues/1306
   "E501",    # leave line-length enforcement to formatter
   "EM",      # allow string messages in exceptions
   "FIX",     # allow "FIX" comments in code
   "INP001",  # allow Python files outside of packages
+  "N806",    # allow uppercase variable names for variables that are classes
+  "PERF203", # allow try-except within loops
   "PLR0913", # "Too many arguments"
+  "PLR0912", # "Too many branches"
   "PLR2004", # "Magic value used in comparison"
   "PTH",     # don't require using pathlib instead of os
+  "RUF012",  # allow mutable class variables
+  "SIM102",  # Sometimes nested ifs are more readable than if...and...
   "SIM105",  # "Use `contextlib.suppress(...)` instead of `try`-`except`-`pass`"
+  "SIM108",  # sometimes if-else is more readable than a ternary
   "TD",      # allow TODO comments to be whatever we want
   "TRY003",  # allow long messages passed to exceptions
+  "TRY004",  # allow ValueError for invalid argument types
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
-  "ARG",    # unused arguments are fine in tests
-  "C408",   # allow dict() instead of dict literal
-  "DTZ",    # allow naive datetimes
-  "S",      # allow asserts
-  "SIM117", # allow nested with statements because it's more readable sometimes
+  "ARG",     # unused arguments are fine in tests
+  "C408",    # allow dict() instead of dict literal
+  "DTZ",     # allow naive datetimes
+  "FBT003",  # allow boolean positional argument
+  "N803",    # fixture names might be uppercase
+  "PLR0915", # allow lots of statements
+  "PT007",   # ignore false positives due to https://github.com/astral-sh/ruff/issues/14743
+  "PT011",   # don't require match when using pytest.raises
+  "S",       # allow asserts
+  "SIM117",  # allow nested with statements because it's more readable sometimes
+  "SLF001",  # allow private attribute access
 ]
 "examples/*" = [
   "S", # allow asserts
   "T", # allow prints
+]
+"src/marshmallow/orderedset.py" = [
+  "FBT002", # allow boolean positional argument
+  "T",      # allow prints
 ]
 
 [tool.mypy]

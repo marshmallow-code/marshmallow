@@ -77,7 +77,7 @@ class QuoteSchema(Schema):
         author_name = data.get("author")
         if author_name:
             first, last = author_name.split(" ")
-            author_dict = dict(first=first, last=last)
+            author_dict = {"first": first, "last": last}
         else:
             author_dict = {}
         data["author"] = author_dict

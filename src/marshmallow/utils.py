@@ -1,5 +1,6 @@
 """Utility methods for marshmallow."""
 
+# ruff: noqa: T201, T203
 from __future__ import annotations
 
 import collections
@@ -137,7 +138,7 @@ _iso8601_time_re = re.compile(
 )
 
 
-def get_fixed_timezone(offset: int | float | dt.timedelta) -> dt.timezone:
+def get_fixed_timezone(offset: float | dt.timedelta) -> dt.timezone:
     """Return a tzinfo instance with a fixed offset from UTC."""
     if isinstance(offset, dt.timedelta):
         offset = offset.total_seconds() // 60
@@ -169,7 +170,7 @@ def from_iso_datetime(value):
         tzinfo = get_fixed_timezone(offset)
     kw = {k: int(v) for k, v in kw.items() if v is not None}
     kw["tzinfo"] = tzinfo
-    return dt.datetime(**kw)
+    return dt.datetime(**kw)  # noqa: DTZ001
 
 
 def from_iso_time(value):
@@ -279,17 +280,15 @@ def get_value(obj, key: int | str, default=missing):
     """
     if not isinstance(key, int) and "." in key:
         return _get_value_for_keys(obj, key.split("."), default)
-    else:
-        return _get_value_for_key(obj, key, default)
+    return _get_value_for_key(obj, key, default)
 
 
 def _get_value_for_keys(obj, keys, default):
     if len(keys) == 1:
         return _get_value_for_key(obj, keys[0], default)
-    else:
-        return _get_value_for_keys(
-            _get_value_for_key(obj, keys[0], default), keys[1:], default
-        )
+    return _get_value_for_keys(
+        _get_value_for_key(obj, keys[0], default), keys[1:], default
+    )
 
 
 def _get_value_for_key(obj, key, default):
@@ -318,7 +317,7 @@ def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
         target = dct.setdefault(head, {})
         if not isinstance(target, dict):
             raise ValueError(
-                f"Cannot set {key} in {head} " f"due to existing value: {target}"
+                f"Cannot set {key} in {head} due to existing value: {target}"
             )
         set_value(target, rest, value)
     else:
@@ -360,10 +359,9 @@ def resolve_field_instance(cls_or_instance: type[Field] | Field) -> Field:
         if not issubclass(cls_or_instance, FieldABC):
             raise FieldInstanceResolutionError
         return cls_or_instance()
-    else:
-        if not isinstance(cls_or_instance, FieldABC):
-            raise FieldInstanceResolutionError
-        return cls_or_instance
+    if not isinstance(cls_or_instance, FieldABC):
+        raise FieldInstanceResolutionError
+    return cls_or_instance
 
 
 def timedelta_to_microseconds(value: dt.timedelta) -> int:

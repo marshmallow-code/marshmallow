@@ -22,7 +22,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 project = "marshmallow"
-copyright = "Steven Loria and contributors"
+copyright = "Steven Loria and contributors"  # noqa: A001
 
 version = release = importlib.metadata.version("marshmallow")
 

@@ -2,7 +2,8 @@ import datetime as dt
 import decimal
 import math
 import random
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
+from typing import NamedTuple
 
 import pytest
 import simplejson as json
@@ -92,18 +93,16 @@ def test_load_validation_error_stores_input_data_and_valid_data():
         "always_valid": dt.datetime.now(dt.timezone.utc).isoformat(),
         "always_invalid": 24,
     }
-    try:
+    with pytest.raises(ValidationError) as excinfo:
         schema.load(input_data)
-    except ValidationError as err:
-        # err.data is the raw input data
-        assert err.data == input_data
-        assert "always_valid" in err.valid_data
-        # err.valid_data contains valid, deserialized data
-        assert isinstance(err.valid_data["always_valid"], dt.datetime)
-        # excludes invalid data
-        assert "always_invalid" not in err.valid_data
-    else:
-        pytest.fail("Data is invalid. Expected a ValidationError to be raised.")
+    err = excinfo.value
+    # err.data is the raw input data
+    assert err.data == input_data
+    assert "always_valid" in err.valid_data
+    # err.valid_data contains valid, deserialized data
+    assert isinstance(err.valid_data["always_valid"], dt.datetime)
+    # excludes invalid data
+    assert "always_invalid" not in err.valid_data
 
 
 def test_load_resets_error_fields():
@@ -1314,7 +1313,7 @@ def test_attribute_collision(attribute):
 
 
 class TestDeeplyNestedLoadOnly:
-    @pytest.fixture()
+    @pytest.fixture
     def schema(self):
         class GrandChildSchema(Schema):
             str_dump_only = fields.String()
@@ -1346,7 +1345,7 @@ class TestDeeplyNestedLoadOnly:
             ),
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def data(self):
         return dict(
             str_dump_only="Dump Only",
@@ -1394,7 +1393,7 @@ class TestDeeplyNestedLoadOnly:
 
 
 class TestDeeplyNestedListLoadOnly:
-    @pytest.fixture()
+    @pytest.fixture
     def schema(self):
         class ChildSchema(Schema):
             str_dump_only = fields.String()
@@ -1412,7 +1411,7 @@ class TestDeeplyNestedListLoadOnly:
             load_only=("str_load_only", "child.str_load_only"),
         )
 
-    @pytest.fixture()
+    @pytest.fixture
     def data(self):
         return dict(
             str_dump_only="Dump Only",
@@ -1605,8 +1604,10 @@ def test_nested_with_sets():
 
     sch = Outer()
 
-    DataClass = namedtuple("DataClass", ["foo"])
-    data = dict(inners={DataClass(42), DataClass(2)})
+    class Thing(NamedTuple):
+        foo: int
+
+    data = dict(inners={Thing(42), Thing(2)})
     result = sch.dump(data)
     assert len(result["inners"]) == 2
 
@@ -1953,13 +1954,12 @@ class TestNestedSchema:
     def blog(self, user):
         col1 = User(name="Mick", age=123)
         col2 = User(name="Keith", age=456)
-        blog = Blog(
+        return Blog(
             "Monty's blog",
             user=user,
             categories=["humor", "violence"],
             collaborators=[col1, col2],
         )
-        return blog
 
     # regression test for https://github.com/marshmallow-code/marshmallow/issues/64
     def test_nested_many_with_missing_attribute(self, user):
@@ -2037,7 +2037,7 @@ class TestNestedSchema:
 
     def test_exclude(self, blog):
         serialized = BlogSchemaExclude().dump(blog)
-        assert "uppername" not in serialized["user"].keys()
+        assert "uppername" not in serialized["user"]
 
     def test_list_field(self, blog):
         serialized = BlogSchema().dump(blog)
@@ -2159,7 +2159,7 @@ class TestNestedSchema:
         if unknown is None or unknown == RAISE:
             with pytest.raises(ValidationError) as exc:
                 ParentSchema().load(data)
-                assert exc.messages == {"child": {"extra": ["Unknown field."]}}
+            assert exc.value.messages == {"child": {"extra": ["Unknown field."]}}
         else:
             output = {
                 INCLUDE: {"child": {"num": 1, "extra": 1}},
@@ -2712,11 +2712,11 @@ class TestRequiredFields:
         allow_none_field = fields.Str(allow_none=True)
         allow_none_required_field = fields.Str(required=True, allow_none=True)
 
-    @pytest.fixture()
+    @pytest.fixture
     def string_schema(self):
         return self.StringSchema()
 
-    @pytest.fixture()
+    @pytest.fixture
     def data(self):
         return dict(
             required_field="foo",
@@ -2767,11 +2767,11 @@ class TestDefaults:
         int_with_default = fields.Int(allow_none=True, dump_default=42)
         str_with_default = fields.Str(allow_none=True, dump_default="foo")
 
-    @pytest.fixture()
+    @pytest.fixture
     def schema(self):
         return self.MySchema()
 
-    @pytest.fixture()
+    @pytest.fixture
     def data(self):
         return dict(
             int_no_default=None,
@@ -2795,13 +2795,13 @@ class TestDefaults:
             # the missing key is not in the serialized result
             assert key not in result
             # the rest of the keys are in the result
-            assert all(k in result for k in d.keys())
+            assert all(k in result for k in d)
 
     def test_none_is_serialized_to_none(self, schema, data):
         errors = schema.validate(data)
         assert errors == {}
         result = schema.dump(data)
-        for key in data.keys():
+        for key in data:
             msg = f"result[{key!r}] should be None"
             assert result[key] is None, msg
 
@@ -2814,7 +2814,7 @@ class TestDefaults:
 
     def test_loading_none(self, schema, data):
         result = schema.load(data)
-        for key in data.keys():
+        for key in data:
             assert result[key] is None
 
     def test_missing_inputs_are_excluded_from_load_output(self, schema, data):
@@ -2830,7 +2830,7 @@ class TestDefaults:
             # the missing key is not in the deserialized result
             assert key not in result
             # the rest of the keys are in the result
-            assert all(k in result for k in d.keys())
+            assert all(k in result for k in d)
 
 
 class TestLoadOnly:
@@ -2843,11 +2843,11 @@ class TestLoadOnly:
         str_load_only = fields.String()
         str_regular = fields.String()
 
-    @pytest.fixture()
+    @pytest.fixture
     def schema(self):
         return self.MySchema()
 
-    @pytest.fixture()
+    @pytest.fixture
     def data(self):
         return dict(
             str_dump_only="Dump Only",
@@ -2928,7 +2928,7 @@ def test_unknown_parameter_value_is_validated(usage_location):
     class MySchema(Schema):
         foo = fields.String()
 
-    with pytest.raises(
+    with pytest.raises(  # noqa: PT012
         ValueError,
         match="Object 'badval' is not a valid value for the 'unknown' parameter",
     ):

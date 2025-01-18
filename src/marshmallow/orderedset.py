@@ -45,7 +45,7 @@ class OrderedSet(MutableSet):
 
     def discard(self, key):
         if key in self.map:
-            key, prev, next = self.map.pop(key)
+            key, prev, next = self.map.pop(key)  # noqa: A001
             prev[2] = next
             next[1] = prev
 

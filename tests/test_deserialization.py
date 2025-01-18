@@ -29,14 +29,14 @@ class MockDateTimeOverflowError(dt.datetime):
     """Used to simulate the possible OverflowError of datetime.fromtimestamp"""
 
     def fromtimestamp(self, *args, **kwargs):
-        raise OverflowError()
+        raise OverflowError
 
 
 class MockDateTimeOSError(dt.datetime):
     """Used to simulate the possible OSError of datetime.fromtimestamp"""
 
     def fromtimestamp(self, *args, **kwargs):
-        raise OSError()
+        raise OSError
 
 
 class TestDeserializingNone:
@@ -216,31 +216,38 @@ class TestFieldDeserialization:
 
         m1d = field.deserialize(m1)
         assert isinstance(m1d, decimal.Decimal)
-        assert m1d.is_qnan() and not m1d.is_signed()
+        assert m1d.is_qnan()
+        assert not m1d.is_signed()
 
         m2d = field.deserialize(m2)
         assert isinstance(m2d, decimal.Decimal)
-        assert m2d.is_qnan() and not m2d.is_signed()
+        assert m2d.is_qnan()
+        assert not m2d.is_signed()
 
         m3d = field.deserialize(m3)
         assert isinstance(m3d, decimal.Decimal)
-        assert m3d.is_qnan() and not m3d.is_signed()
+        assert m3d.is_qnan()
+        assert not m3d.is_signed()
 
         m4d = field.deserialize(m4)
         assert isinstance(m4d, decimal.Decimal)
-        assert m4d.is_qnan() and not m4d.is_signed()
+        assert m4d.is_qnan()
+        assert not m4d.is_signed()
 
         m5d = field.deserialize(m5)
         assert isinstance(m5d, decimal.Decimal)
-        assert m5d.is_infinite() and m5d.is_signed()
+        assert m5d.is_infinite()
+        assert m5d.is_signed()
 
         m6d = field.deserialize(m6)
         assert isinstance(m6d, decimal.Decimal)
-        assert m6d.is_infinite() and not m6d.is_signed()
+        assert m6d.is_infinite()
+        assert not m6d.is_signed()
 
         m7d = field.deserialize(m7)
         assert isinstance(m7d, decimal.Decimal)
-        assert m7d.is_zero() and m7d.is_signed()
+        assert m7d.is_zero()
+        assert m7d.is_signed()
 
     def test_decimal_field_special_values_not_permitted(self):
         m1 = "-NaN"
@@ -271,7 +278,8 @@ class TestFieldDeserialization:
 
         m7d = field.deserialize(m7)
         assert isinstance(m7d, decimal.Decimal)
-        assert m7d.is_zero() and m7d.is_signed()
+        assert m7d.is_zero()
+        assert m7d.is_signed()
 
     @pytest.mark.parametrize("allow_nan", (None, False, True))
     @pytest.mark.parametrize("value", ("nan", "-nan", "inf", "-inf"))
@@ -552,7 +560,6 @@ class TestFieldDeserialization:
         [
             ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
             ("timestamp", "1384043025", dt.datetime(2013, 11, 10, 0, 23, 45)),
-            ("timestamp", 1384043025, dt.datetime(2013, 11, 10, 0, 23, 45)),
             ("timestamp", 1384043025.12, dt.datetime(2013, 11, 10, 0, 23, 45, 120000)),
             (
                 "timestamp",
@@ -591,7 +598,7 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
 
-    #  Regression test for https://github.com/marshmallow-code/marshmallow/pull/2102
+    # Regression test for https://github.com/marshmallow-code/marshmallow/pull/2102
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "mock_fromtimestamp", [MockDateTimeOSError, MockDateTimeOverflowError]
@@ -845,7 +852,7 @@ class TestFieldDeserialization:
         assert excinfo.value.args[0] == "Not a valid period of time."
 
     @pytest.mark.parametrize("format", (None, "%Y-%m-%d"))
-    def test_date_field_deserialization(self, format):
+    def test_date_field_deserialization(self, format):  # noqa: A002
         field = fields.Date(format=format)
         d = dt.date(2014, 8, 21)
         iso_date = d.isoformat()
@@ -1410,9 +1417,7 @@ class TestFieldDeserialization:
     def test_field_deserialization_with_user_validator_class_that_returns_bool(self):
         class MyValidator:
             def __call__(self, val):
-                if val == "valid":
-                    return True
-                return False
+                return val == "valid"
 
         field = fields.Raw(validate=MyValidator())
         assert field.deserialize("valid") == "valid"
@@ -2055,7 +2060,7 @@ class TestSchemaDeserialization:
         assert data == {"foo": "hi", "bar": "okay", "alpha.beta": "woah!"}
 
 
-validators_gen = (func for func in [lambda x: x <= 24, lambda x: 18 <= x])
+validators_gen = (func for func in [lambda x: x <= 24, lambda x: x >= 18])
 
 validators_gen_float = (func for func in [lambda f: f <= 4.1, lambda f: f >= 1.0])
 
@@ -2075,8 +2080,8 @@ class TestValidation:
     @pytest.mark.parametrize(
         "field",
         [
-            fields.Integer(validate=[lambda x: x <= 24, lambda x: 18 <= x]),
-            fields.Integer(validate=(lambda x: x <= 24, lambda x: 18 <= x)),
+            fields.Integer(validate=[lambda x: x <= 24, lambda x: x >= 18]),
+            fields.Integer(validate=(lambda x: x <= 24, lambda x: x >= 18)),
             fields.Integer(validate=validators_gen),
         ],
     )
@@ -2260,7 +2265,7 @@ class TestValidation:
 
 
 @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
-def test_required_field_failure(FieldClass):  # noqa
+def test_required_field_failure(FieldClass):
     class RequireSchema(Schema):
         age = FieldClass(required=True)
 

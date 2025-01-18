@@ -9,9 +9,11 @@ from abc import ABC, abstractmethod
 from itertools import zip_longest
 from operator import attrgetter
 
-from marshmallow import types
 from marshmallow.exceptions import ValidationError
 from marshmallow.warnings import ChangedInMarshmallow4Warning
+
+if typing.TYPE_CHECKING:
+    from marshmallow import types
 
 _T = typing.TypeVar("_T")
 
@@ -85,7 +87,7 @@ class And(Validator):
                         ChangedInMarshmallow4Warning,
                         stacklevel=2,
                     )
-                    raise ValidationError(self.error)
+                    raise ValidationError(self.error)  # noqa: TRY301
             except ValidationError as err:
                 kwargs.update(err.kwargs)
                 if isinstance(err.messages, dict):
@@ -115,7 +117,7 @@ class URL(Validator):
             self._memoized = {}
 
         def _regex_generator(
-            self, relative: bool, absolute: bool, require_tld: bool
+            self, *, relative: bool, absolute: bool, require_tld: bool
         ) -> typing.Pattern:
             hostname_variants = [
                 # a normal domain name, expressed in [A-Z0-9] chars with hyphens allowed only in the middle
@@ -169,12 +171,12 @@ class URL(Validator):
             return re.compile("".join(parts), re.IGNORECASE)
 
         def __call__(
-            self, relative: bool, absolute: bool, require_tld: bool
+            self, *, relative: bool, absolute: bool, require_tld: bool
         ) -> typing.Pattern:
             key = (relative, absolute, require_tld)
             if key not in self._memoized:
                 self._memoized[key] = self._regex_generator(
-                    relative, absolute, require_tld
+                    relative=relative, absolute=absolute, require_tld=require_tld
                 )
 
             return self._memoized[key]
@@ -220,7 +222,9 @@ class URL(Validator):
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
-        regex = self._regex(self.relative, self.absolute, self.require_tld)
+        regex = self._regex(
+            relative=self.relative, absolute=self.absolute, require_tld=self.require_tld
+        )
 
         if not regex.search(value):
             raise ValidationError(message)
@@ -318,8 +322,8 @@ class Range(Validator):
 
     def __init__(
         self,
-        min=None,
-        max=None,
+        min=None,  # noqa: A002
+        max=None,  # noqa: A002
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
@@ -387,8 +391,8 @@ class Length(Validator):
 
     def __init__(
         self,
-        min: int | None = None,
-        max: int | None = None,
+        min: int | None = None,  # noqa: A002
+        max: int | None = None,  # noqa: A002
         *,
         equal: int | None = None,
         error: str | None = None,

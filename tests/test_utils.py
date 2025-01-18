@@ -1,7 +1,7 @@
 import datetime as dt
-from collections import namedtuple
 from copy import copy, deepcopy
 from functools import partial
+from typing import NamedTuple
 
 import pytest
 
@@ -14,7 +14,9 @@ def test_missing_singleton_copy():
     assert deepcopy(utils.missing) is utils.missing
 
 
-PointNT = namedtuple("PointNT", ["x", "y"])
+class PointNT(NamedTuple):
+    x: int
+    y: int
 
 
 class PointClass:
@@ -96,8 +98,7 @@ def test_set_value():
 
 
 def test_is_keyed_tuple():
-    Point = namedtuple("Point", ["x", "y"])
-    p = Point(24, 42)
+    p = PointNT(24, 42)
     assert utils.is_keyed_tuple(p) is True
     t = (24, 42)
     assert utils.is_keyed_tuple(t) is False
@@ -249,7 +250,7 @@ def test_from_timestamp_with_negative_value():
 
 def test_from_timestamp_with_overflow_value():
     value = 9223372036854775
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="out of range"):
         utils.from_timestamp(value)
 
 
@@ -271,7 +272,7 @@ def test_get_func_args():
 
 # Regression test for https://github.com/marshmallow-code/marshmallow/issues/540
 def test_function_field_using_type_annotation():
-    def get_split_words(value: str):  # noqa
+    def get_split_words(value: str):
         return value.split(";")
 
     class MySchema(Schema):

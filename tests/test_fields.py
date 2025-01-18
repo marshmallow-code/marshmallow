@@ -29,7 +29,7 @@ def test_field_aliases(alias, field):
 
 class TestField:
     def test_repr(self):
-        default = "œ∑´"
+        default = "œ∑´"  # noqa: RUF001
         field = fields.Raw(dump_default=default, attribute=None)
         assert repr(field) == (
             f"<fields.Raw(dump_default={default!r}, attribute=None, "
@@ -98,7 +98,7 @@ class TestParentAndName:
         baz = fields.Tuple([fields.Str(), fields.Int()])
         bax = fields.Dict(fields.Str(), fields.Int())
 
-    @pytest.fixture()
+    @pytest.fixture
     def schema(self):
         return self.MySchema()
 
@@ -196,7 +196,7 @@ class TestParentAndName:
 
 class TestMetadata:
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
-    def test_extra_metadata_may_be_added_to_field(self, FieldClass):  # noqa
+    def test_extra_metadata_may_be_added_to_field(self, FieldClass):
         with pytest.warns(DeprecationWarning):
             field = FieldClass(description="Just a normal field.")
         assert field.metadata["description"] == "Just a normal field."
@@ -209,7 +209,7 @@ class TestMetadata:
         assert field.metadata == {"description": "foo", "widget": "select"}
 
     @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
-    def test_field_metadata_added_in_deprecated_style_warns(self, FieldClass):  # noqa
+    def test_field_metadata_added_in_deprecated_style_warns(self, FieldClass):
         # just the old style
         with pytest.warns(DeprecationWarning):
             field = FieldClass(description="Just a normal field.")
@@ -286,12 +286,12 @@ class TestErrorMessages:
     class MyField(fields.Field):
         default_error_messages = {"custom": "Custom error message."}
 
-    error_messages = [
+    error_messages = (
         ("required", "Missing data for required field."),
         ("null", "Field may not be null."),
         ("custom", "Custom error message."),
         ("validator_failed", "Invalid value."),
-    ]
+    )
 
     def test_default_error_messages_get_merged_with_parent_error_messages_cstm_msg(
         self,
@@ -315,11 +315,11 @@ class TestErrorMessages:
     def test_fail(self, key, message):
         field = self.MyField()
 
-        with pytest.warns(DeprecationWarning):
-            try:
-                field.fail(key)
-            except ValidationError as error:
-                assert error.args[0] == message
+        with (
+            pytest.warns(DeprecationWarning),
+            pytest.raises(ValidationError, match=message),
+        ):
+            field.fail(key)
 
     def test_make_error_key_doesnt_exist(self):
         with pytest.raises(AssertionError) as excinfo:

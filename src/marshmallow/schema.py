@@ -5,8 +5,10 @@ from __future__ import annotations
 import copy
 import datetime as dt
 import decimal
+import functools
 import inspect
 import json
+import operator
 import typing
 import uuid
 import warnings
@@ -26,7 +28,6 @@ from marshmallow.decorators import (
 )
 from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import StringNotCollectionError, ValidationError
-from marshmallow.fields import Field
 from marshmallow.orderedset import OrderedSet
 from marshmallow.utils import (
     EXCLUDE,
@@ -40,6 +41,9 @@ from marshmallow.utils import (
     validate_unknown_parameter_value,
 )
 from marshmallow.warnings import RemovedInMarshmallow4Warning
+
+if typing.TYPE_CHECKING:
+    from marshmallow.fields import Field
 
 
 def _get_fields(attrs) -> list[tuple[str, Field]]:
@@ -64,8 +68,11 @@ def _get_fields_by_mro(klass: SchemaMeta):
     :param klass: Class whose fields to retrieve
     """
     mro = inspect.getmro(klass)
+    # Combine fields from all parents
+    # functools.reduce(operator.iadd, list_of_lists) is faster than sum(list_of_lists, [])
     # Loop over mro in reverse to maintain correct order of fields
-    return sum(
+    return functools.reduce(
+        operator.iadd,
         (
             _get_fields(
                 getattr(base, "_declared_fields", base.__dict__),
@@ -89,7 +96,10 @@ class SchemaMeta(ABCMeta):
     _declared_fields: dict[str, Field]
 
     def __new__(
-        mcs, name: str, bases: tuple[type, ...], attrs: dict[str, typing.Any]
+        mcs,  # noqa: N804
+        name: str,
+        bases: tuple[type, ...],
+        attrs: dict[str, typing.Any],
     ) -> SchemaMeta:
         meta = attrs.get("Meta")
         ordered = getattr(meta, "ordered", False)
@@ -120,7 +130,7 @@ class SchemaMeta(ABCMeta):
         cls_fields += list(klass.opts.include.items())
 
         # Assign _declared_fields on class
-        klass._declared_fields = mcs.get_declared_fields(
+        klass._declared_fields = mcs.get_declared_fields(  # noqa: SLF001
             klass=klass,
             cls_fields=cls_fields,
             inherited_fields=inherited_fields,
@@ -130,7 +140,7 @@ class SchemaMeta(ABCMeta):
 
     @classmethod
     def get_declared_fields(
-        mcs,
+        mcs,  # noqa: N804
         klass: SchemaMeta,
         cls_fields: list[tuple[str, Field]],
         inherited_fields: list[tuple[str, Field]],
@@ -201,7 +211,7 @@ class SchemaMeta(ABCMeta):
 class SchemaOpts:
     """Defines defaults for `marshmallow.Schema.Meta`."""
 
-    def __init__(self, meta: type, ordered: bool = False):
+    def __init__(self, meta: type, ordered: bool = False):  # noqa: FBT001, FBT002
         self.fields = getattr(meta, "fields", ())
         if not isinstance(self.fields, (list, tuple)):
             raise ValueError("`fields` option must be a list or tuple.")
@@ -210,8 +220,7 @@ class SchemaOpts:
             raise ValueError("`additional` option must be a list or tuple.")
         if self.fields and self.additional:
             raise ValueError(
-                "Cannot set both `fields` and `additional` options"
-                " for the same Schema."
+                "Cannot set both `fields` and `additional` options for the same Schema."
             )
         self.exclude = getattr(meta, "exclude", ())
         if not isinstance(self.exclude, (list, tuple)):
@@ -483,8 +492,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """`dict` type to return when serializing."""
         if self.ordered:
             return OrderedDict
-        else:
-            return dict
+        return dict
 
     @classmethod
     def from_dict(
@@ -515,8 +523,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         Meta = type(
             "GeneratedMeta", (getattr(cls, "Meta", object),), {"register": False}
         )
-        schema_cls = type(name, (cls,), {**fields.copy(), "Meta": Meta})
-        return schema_cls
+        return type(name, (cls,), {**fields.copy(), "Meta": Meta})
 
     ##### Override-able methods #####
 
@@ -533,7 +540,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         .. versionchanged:: 3.0.0rc9
             Receives `many` and `partial` (on deserialization) as keyword arguments.
         """
-        pass
 
     def get_attribute(self, obj: typing.Any, attr: str, default: typing.Any):
         """Defines how to pull values from an object to serialize.
@@ -1087,7 +1093,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
         No-op by default.
         """
-        return None
+        return
 
     def _bind_field(self, field_name: str, field_obj: Field) -> None:
         """Bind field to the schema, setting any necessary attributes on the
@@ -1101,7 +1107,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         if field_name in self.dump_only:
             field_obj.dump_only = True
         try:
-            field_obj._bind_to_schema(field_name, self)
+            field_obj._bind_to_schema(field_name, self)  # noqa: SLF001
         except TypeError as error:
             # Field declared as a class, not an instance. Ignore type checking because
             # we handle unsupported arg types, i.e. this is dead code from
@@ -1110,10 +1116,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 msg = (
                     f'Field for "{field_name}" must be declared as a '
                     "Field instance, not a class. "
-                    f'Did you mean "fields.{field_obj.__name__}()"?'  # type: ignore
+                    f'Did you mean "fields.{field_obj.__name__}()"?'  # type: ignore[attr-defined]
                 )
                 raise TypeError(msg) from error
-            raise error
+            raise
         self.on_bind_field(field_name, field_obj)
 
     def _invoke_dump_processors(
@@ -1125,10 +1131,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         data = self._invoke_processors(
             tag, pass_many=False, data=data, many=many, original_data=original_data
         )
-        data = self._invoke_processors(
+        return self._invoke_processors(
             tag, pass_many=True, data=data, many=many, original_data=original_data
         )
-        return data
 
     def _invoke_load_processors(
         self,
@@ -1149,7 +1154,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             original_data=original_data,
             partial=partial,
         )
-        data = self._invoke_processors(
+        return self._invoke_processors(
             tag,
             pass_many=False,
             data=data,
@@ -1157,7 +1162,6 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
             original_data=original_data,
             partial=partial,
         )
-        return data
 
     def _invoke_field_validators(self, *, error_store: ErrorStore, data, many: bool):
         for attr_name, _, validator_kwargs in self._hooks[VALIDATES]:
@@ -1189,7 +1193,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                             index=(idx if self.opts.index_errors else None),
                         )
                         if validated_value is missing:
-                            data[idx].pop(field_name, None)
+                            item.pop(field_name, None)
             else:
                 try:
                     value = data[field_obj.attribute or field_name]
@@ -1272,11 +1276,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                     ]
                 else:
                     data = [processor(item, many=many, **kwargs) for item in data]
+            elif pass_original:
+                data = processor(data, original_data, many=many, **kwargs)
             else:
-                if pass_original:
-                    data = processor(data, original_data, many=many, **kwargs)
-                else:
-                    data = processor(data, many=many, **kwargs)
+                data = processor(data, many=many, **kwargs)
         return data
 
 

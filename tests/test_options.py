@@ -273,8 +273,8 @@ class TestIncludeOption:
             email = fields.Str()
 
         s = AddFieldsChild()
-        assert "email" in s._declared_fields.keys()
-        assert "from" in s._declared_fields.keys()
+        assert "email" in s._declared_fields
+        assert "from" in s._declared_fields
         assert isinstance(s._declared_fields["from"], fields.Str)
 
 

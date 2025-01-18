@@ -25,7 +25,7 @@ class ErrorStore:
         self.errors = merge_errors(self.errors, messages)
 
 
-def merge_errors(errors1, errors2):
+def merge_errors(errors1, errors2):  # noqa: PLR0911
     """Deeply merge two error messages.
 
     The format of ``errors1`` and ``errors2`` matches the ``message``
@@ -40,7 +40,7 @@ def merge_errors(errors1, errors2):
             return errors1 + errors2
         if isinstance(errors2, dict):
             return dict(errors2, **{SCHEMA: merge_errors(errors1, errors2.get(SCHEMA))})
-        return errors1 + [errors2]
+        return [*errors1, errors2]
     if isinstance(errors1, dict):
         if isinstance(errors2, list):
             return dict(errors1, **{SCHEMA: merge_errors(errors1.get(SCHEMA), errors2)})
@@ -54,7 +54,7 @@ def merge_errors(errors1, errors2):
             return errors
         return dict(errors1, **{SCHEMA: merge_errors(errors1.get(SCHEMA), errors2)})
     if isinstance(errors2, list):
-        return [errors1] + errors2
+        return [errors1, *errors2]
     if isinstance(errors2, dict):
         return dict(errors2, **{SCHEMA: merge_errors(errors1, errors2.get(SCHEMA))})
     return [errors1, errors2]
