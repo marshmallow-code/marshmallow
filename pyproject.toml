@@ -69,18 +69,38 @@ output-format = "full"
 docstring-code-format = true
 
 [tool.ruff.lint]
-ignore = ["E203", "E266", "E501", "E731"]
-select = [
-  "B",  # flake8-bugbear
-  "E",  # pycodestyle error
-  "F",  # pyflakes
-  "I",  # isort
-  "UP", # pyupgrade
-  "W",  # pycodestyle warning
+select = ["ALL"]
+ignore = [
+  "A005",    # "module {name} shadows a Python standard-library module"
+  "ANN",     # let mypy handle annotation checks
+  "ARG",     # unused arguments are common w/ interfaces
+  "COM",     # let formatter take care commas
+  "C901",    # don't enforce complexity level
+  "D",       # don't require docstrings
+  "E501",    # leave line-length enforcement to formatter
+  "EM",      # allow string messages in exceptions
+  "FIX",     # allow "FIX" comments in code
+  "INP001",  # allow Python files outside of packages
+  "PLR0913", # "Too many arguments"
+  "PLR2004", # "Magic value used in comparison"
+  "PTH",     # don't require using pathlib instead of os
+  "SIM105",  # "Use `contextlib.suppress(...)` instead of `try`-`except`-`pass`"
+  "TD",      # allow TODO comments to be whatever we want
+  "TRY003",  # allow long messages passed to exceptions
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["E721"]
+"tests/*" = [
+  "ARG",    # unused arguments are fine in tests
+  "C408",   # allow dict() instead of dict literal
+  "DTZ",    # allow naive datetimes
+  "S",      # allow asserts
+  "SIM117", # allow nested with statements because it's more readable sometimes
+]
+"examples/*" = [
+  "S", # allow asserts
+  "T", # allow prints
+]
 
 [tool.mypy]
 files = ["src", "tests"]
