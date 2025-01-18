@@ -41,7 +41,7 @@ class Quote(db.Model):  # type: ignore[name-defined]
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(nullable=False)
     author_id: Mapped[int] = mapped_column(db.ForeignKey(Author.id))
-    author: Mapped[Author] = relationship(backref=db.backref("quotes", lazy="dynamic"))  # type: ignore[assignment]
+    author: Mapped[Author] = relationship(backref=db.backref("quotes", lazy="dynamic"))
     posted_at: Mapped[datetime.datetime]
 
 

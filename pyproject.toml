@@ -122,7 +122,7 @@ ignore = [
 ]
 
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src", "tests", "examples"]
 ignore_missing_imports = true
 warn_unreachable = true
 warn_unused_ignores = true
