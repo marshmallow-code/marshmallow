@@ -689,6 +689,34 @@ class TestValidatesSchemaDecorator:
         assert "bar" in errors[0]
         assert "_schema" not in errors
 
+    # https://github.com/marshmallow-code/marshmallow/issues/2170
+    def test_data_key_is_used_in_errors_dict(self):
+        class MySchema(Schema):
+            foo = fields.Int(data_key="fooKey")
+
+            @validates("foo")
+            def validate_foo(self, value, **kwargs):
+                raise ValidationError("from validates")
+
+            @validates_schema(skip_on_field_errors=False)
+            def validate_schema(self, data, **kwargs):
+                raise ValidationError("from validates_schema str", field_name="foo")
+
+            @validates_schema(skip_on_field_errors=False)
+            def validate_schema2(self, data, **kwargs):
+                raise ValidationError({"fooKey": "from validates_schema dict"})
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({"fooKey": 42})
+        exc = excinfo.value
+        assert exc.messages == {
+            "fooKey": [
+                "from validates",
+                "from validates_schema str",
+                "from validates_schema dict",
+            ]
+        }
+
 
 def test_decorator_error_handling():
     class ExampleSchema(Schema):

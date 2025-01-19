@@ -69,7 +69,10 @@ from __future__ import annotations
 
 import functools
 from collections import defaultdict
-from typing import Any, Callable, cast
+from typing import TYPE_CHECKING, Any, Callable, cast
+
+if TYPE_CHECKING:
+    from marshmallow import types
 
 PRE_DUMP = "pre_dump"
 POST_DUMP = "post_dump"
@@ -92,7 +95,7 @@ def validates(field_name: str) -> Callable[..., Any]:
 
 
 def validates_schema(
-    fn: Callable[..., Any] | None = None,
+    fn: types.SchemaValidator | None = None,
     pass_many: bool = False,  # noqa: FBT001, FBT002
     pass_original: bool = False,  # noqa: FBT001, FBT002
     skip_on_field_errors: bool = True,  # noqa: FBT001, FBT002
