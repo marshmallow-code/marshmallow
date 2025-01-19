@@ -30,7 +30,12 @@ from marshmallow.decorators import (
 from marshmallow.error_store import ErrorStore
 from marshmallow.exceptions import SCHEMA, StringNotCollectionError, ValidationError
 from marshmallow.orderedset import OrderedSet
-from marshmallow.utils import get_value, is_collection, set_value
+from marshmallow.utils import (
+    get_value,
+    is_collection,
+    is_sequence_but_not_string,
+    set_value,
+)
 
 if typing.TYPE_CHECKING:
     from marshmallow.fields import Field
@@ -609,7 +614,7 @@ class Schema(metaclass=SchemaMeta):
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
-            if not isinstance(data, Sequence):
+            if not is_sequence_but_not_string(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
                 ret_l = []
             else:
@@ -828,7 +833,7 @@ class Schema(metaclass=SchemaMeta):
 
     def _do_load(
         self,
-        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
+        data: (Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]]),
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,

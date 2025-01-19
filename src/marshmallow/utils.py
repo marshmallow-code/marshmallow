@@ -6,9 +6,11 @@ from __future__ import annotations
 import datetime as dt
 import inspect
 import typing
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from marshmallow.constants import missing
+
+# TODO: Use TypeGuard for predicate functions
 
 
 def is_generator(obj) -> bool:
@@ -19,6 +21,11 @@ def is_generator(obj) -> bool:
 def is_iterable_but_not_string(obj) -> bool:
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
+
+
+def is_sequence_but_not_string(obj) -> bool:
+    """Return True if ``obj`` is a sequence that isn't a string."""
+    return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
 
 def is_collection(obj) -> bool:

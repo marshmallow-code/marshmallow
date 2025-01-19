@@ -250,7 +250,7 @@ def test_load_many_invalid_input_type(val):
     assert e.value.valid_data == []
 
 
-@pytest.mark.parametrize("val", ([], set()))
+@pytest.mark.parametrize("val", ([], tuple()))
 def test_load_many_empty_collection(val):
     class Sch(Schema):
         name = fields.Str()
@@ -276,7 +276,7 @@ def test_load_many_in_nested_invalid_input_type(val):
     }
 
 
-@pytest.mark.parametrize("val", ([], set()))
+@pytest.mark.parametrize("val", ([], tuple()))
 def test_load_many_in_nested_empty_collection(val):
     class Inner(Schema):
         name = fields.String()
