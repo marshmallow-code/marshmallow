@@ -8,6 +8,12 @@ import inspect
 import typing
 from collections.abc import Mapping, Sequence
 
+# Remove when we drop Python 3.9
+try:
+    from typing import TypeGuard
+except ImportError:
+    from typing_extensions import TypeGuard
+
 from marshmallow.constants import missing
 
 # TODO: Use TypeGuard for predicate functions
@@ -23,7 +29,7 @@ def is_iterable_but_not_string(obj) -> bool:
     return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
 
-def is_sequence_but_not_string(obj) -> bool:
+def is_sequence_but_not_string(obj) -> TypeGuard[Sequence]:
     """Return True if ``obj`` is a sequence that isn't a string."""
     return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
