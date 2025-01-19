@@ -14,7 +14,7 @@ import typing
 import uuid
 from abc import ABCMeta
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from marshmallow import class_registry, types
 from marshmallow import fields as ma_fields
@@ -582,10 +582,7 @@ class Schema(metaclass=SchemaMeta):
 
     def _deserialize(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         error_store: ErrorStore,
         many: bool = False,
@@ -612,13 +609,13 @@ class Schema(metaclass=SchemaMeta):
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
-            if not is_collection(data):
+            if not isinstance(data, Sequence):
                 error_store.store_error([self.error_messages["type"]], index=index)
                 ret_l = []
             else:
                 ret_l = [
                     self._deserialize(
-                        typing.cast(dict, d),
+                        d,
                         error_store=error_store,
                         many=False,
                         partial=partial,
@@ -696,10 +693,7 @@ class Schema(metaclass=SchemaMeta):
 
     def load(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -807,10 +801,7 @@ class Schema(metaclass=SchemaMeta):
 
     def validate(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -837,10 +828,7 @@ class Schema(metaclass=SchemaMeta):
 
     def _do_load(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -1092,7 +1080,7 @@ class Schema(metaclass=SchemaMeta):
     def _invoke_load_processors(
         self,
         tag: str,
-        data,
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool,
         original_data,
@@ -1216,7 +1204,7 @@ class Schema(metaclass=SchemaMeta):
         tag: str,
         *,
         pass_collection: bool,
-        data,
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         many: bool,
         original_data=None,
         **kwargs,
