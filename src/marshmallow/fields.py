@@ -35,7 +35,6 @@ from marshmallow.exceptions import (
     ValidationError,
     _FieldInstanceResolutionError,
 )
-from marshmallow.utils import is_aware, is_collection
 from marshmallow.validate import And, Length
 
 if typing.TYPE_CHECKING:
@@ -501,9 +500,9 @@ class Nested(Field):
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
         # Raise error if only or exclude is passed as string, not list of strings
-        if only is not None and not is_collection(only):
+        if only is not None and not utils.is_sequence_but_not_string(only):
             raise StringNotCollectionError('"only" should be a collection of strings.')
-        if not is_collection(exclude):
+        if not utils.is_sequence_but_not_string(exclude):
             raise StringNotCollectionError(
                 '"exclude" should be a collection of strings.'
             )
@@ -818,7 +817,7 @@ class Tuple(Field[tuple]):
         data: typing.Mapping[str, typing.Any] | None,
         **kwargs,
     ) -> tuple:
-        if not utils.is_collection(value):
+        if not utils.is_sequence_but_not_string(value):
             raise self.make_error("invalid")
 
         self.validate_length(value)
@@ -1322,7 +1321,7 @@ class NaiveDateTime(DateTime):
 
     def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         ret = super()._deserialize(value, attr, data, **kwargs)
-        if is_aware(ret):
+        if utils.is_aware(ret):
             if self.timezone is None:
                 raise self.make_error(
                     "invalid_awareness",
@@ -1359,7 +1358,7 @@ class AwareDateTime(DateTime):
 
     def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         ret = super()._deserialize(value, attr, data, **kwargs)
-        if not is_aware(ret):
+        if not utils.is_aware(ret):
             if self.default_timezone is None:
                 raise self.make_error(
                     "invalid_awareness",

@@ -16,15 +16,13 @@ except ImportError:
 
 from marshmallow.constants import missing
 
-# TODO: Use TypeGuard for predicate functions
 
-
-def is_generator(obj) -> bool:
+def is_generator(obj) -> TypeGuard[typing.Generator]:
     """Return True if ``obj`` is a generator"""
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
-def is_iterable_but_not_string(obj) -> bool:
+def is_iterable_but_not_string(obj) -> TypeGuard[typing.Iterable]:
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
@@ -34,7 +32,7 @@ def is_sequence_but_not_string(obj) -> TypeGuard[Sequence]:
     return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
 
-def is_collection(obj) -> bool:
+def is_collection(obj) -> TypeGuard[typing.Iterable]:
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
