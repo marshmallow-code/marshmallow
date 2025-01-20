@@ -20,7 +20,7 @@ If you have used `Django REST Framework`_ or  `WTForms <https://wtforms.readthed
 Class-based schemas allow for code reuse and configuration
 ----------------------------------------------------------
 
-Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marshmallow uses classes. This allows for easy code reuse and configuration. It also enables patterns for configuring and extending schemas, such as adding :doc:`post-processing and error handling behavior <extending>`.
+Unlike `Flask-RESTful`_, which uses dictionaries to define output schemas, marshmallow uses classes. This allows for easy code reuse and configuration. It also enables patterns for configuring and extending schemas, such as adding :doc:`post-processing and error handling behavior <extending/index>`.
 
 Consistency meets flexibility
 -----------------------------
