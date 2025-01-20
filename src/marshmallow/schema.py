@@ -15,6 +15,7 @@ import warnings
 from abc import ABCMeta
 from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
+from itertools import zip_longest
 
 from marshmallow import base, class_registry, types
 from marshmallow import fields as ma_fields
@@ -1291,7 +1292,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
                 if pass_original:
                     data = [
                         processor(item, original, many=many, **kwargs)
-                        for item, original in zip(data, original_data)
+                        for item, original in zip_longest(data, original_data)
                     ]
                 else:
                     data = [processor(item, many=many, **kwargs) for item in data]

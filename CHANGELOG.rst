@@ -14,6 +14,9 @@ Bug fixes:
 
 - Respect ``data_key`` when schema validators raise a `ValidationError <marshmallow.exceptions.ValidationError>` 
   with a ``field_name`` argument (:issue:`2170`). Thanks :user:`matejsp` for reporting.
+- Correctly handle multiple `@post_load <marshmallow.post_load>` methods where one method appends to
+  the data and another passes ``pass_original=True`` (:issue:`1755`).
+  Thanks :user:`ghostwheel42` for reporting.
 
 Documentation:
 

@@ -925,3 +925,26 @@ def test_decorator_post_load_with_nested_original_and_pass_many(
 
     schema = ExampleSchema()
     assert schema.load(data) == data
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/1755
+def test_post_load_method_that_appends_to_data():
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        @post_load(pass_many=True)
+        def append_to_data(self, data, **kwargs):
+            data.append({"foo": 42})
+            return data
+
+        @post_load(pass_many=False, pass_original=True)
+        def noop(self, data, original_data, **kwargs):
+            if original_data is None:  # added item
+                assert data == {"foo": 42}
+            else:
+                assert original_data == {"foo": 24}
+                assert data == {"foo": 24}
+            return data
+
+    schema = MySchema(many=True)
+    assert schema.load([{"foo": 24}]) == [{"foo": 24}, {"foo": 42}]
