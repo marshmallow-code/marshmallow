@@ -75,8 +75,8 @@ class And(Validator):
         return f"validators={self.validators!r}"
 
     def __call__(self, value: typing.Any) -> typing.Any:
-        errors = []
-        kwargs = {}
+        errors: list[str | dict] = []
+        kwargs: dict[str, typing.Any] = {}
         for validator in self.validators:
             try:
                 r = validator(value)
@@ -93,8 +93,7 @@ class And(Validator):
                 if isinstance(err.messages, dict):
                     errors.append(err.messages)
                 else:
-                    # FIXME : Get rid of cast
-                    errors.extend(typing.cast(list, err.messages))
+                    errors.extend(err.messages)
         if errors:
             raise ValidationError(errors, **kwargs)
         return value
