@@ -631,3 +631,125 @@ class TestDictNested:
                     "daughter": {"value": {"age": ["Missing data for required field."]}}
                 }
             }
+
+
+class TestFieldPreAndPostLoad:
+    def test_field_pre_load(self):
+        class UserSchema(Schema):
+            name = fields.Str(pre_load=str)
+
+        schema = UserSchema()
+        result = schema.load({"name": 808})
+        assert result["name"] == "808"
+
+    def test_field_pre_load_multiple(self):
+        def decrement(value):
+            return value - 1
+
+        def add_prefix(value):
+            return "test_" + value
+
+        class UserSchema(Schema):
+            name = fields.Str(pre_load=[decrement, str, add_prefix])
+
+        schema = UserSchema()
+        result = schema.load({"name": 809})
+        assert result["name"] == "test_808"
+
+    def test_field_post_load(self):
+        class UserSchema(Schema):
+            age = fields.Int(post_load=str)
+
+        schema = UserSchema()
+        result = schema.load({"age": 42})
+        assert result["age"] == "42"
+
+    def test_field_post_load_multiple(self):
+        def to_string(value):
+            return str(value)
+
+        def add_suffix(value):
+            return value + " years"
+
+        class UserSchema(Schema):
+            age = fields.Int(post_load=[to_string, add_suffix])
+
+        schema = UserSchema()
+        result = schema.load({"age": 42})
+        assert result["age"] == "42 years"
+
+    def test_field_pre_and_post_load(self):
+        def multiply_by_2(value):
+            return value * 2
+
+        class UserSchema(Schema):
+            age = fields.Int(pre_load=[str.strip, int], post_load=[multiply_by_2])
+
+        schema = UserSchema()
+        result = schema.load({"age": " 21 "})
+        assert result["age"] == 42
+
+    def test_field_pre_load_validation_error(self):
+        def always_fail(value):
+            raise ValidationError("oops")
+
+        class UserSchema(Schema):
+            age = fields.Int(pre_load=always_fail)
+
+        schema = UserSchema()
+        with pytest.raises(ValidationError) as exc:
+            schema.load({"age": 42})
+        assert exc.value.messages == {"age": ["oops"]}
+
+    def test_field_post_load_validation_error(self):
+        def always_fail(value):
+            raise ValidationError("oops")
+
+        class UserSchema(Schema):
+            age = fields.Int(post_load=always_fail)
+
+        schema = UserSchema()
+        with pytest.raises(ValidationError) as exc:
+            schema.load({"age": 42})
+        assert exc.value.messages == {"age": ["oops"]}
+
+    def test_field_pre_load_none(self):
+        def handle_none(value):
+            if value is None:
+                return 0
+            return value
+
+        class UserSchema(Schema):
+            age = fields.Int(pre_load=handle_none, allow_none=True)
+
+        schema = UserSchema()
+        result = schema.load({"age": None})
+        assert result["age"] == 0
+
+    def test_field_post_load_not_called_with_none_input_when_not_allowed(self):
+        def handle_none(value):
+            if value is None:
+                return 0
+            return value
+
+        class UserSchema(Schema):
+            age = fields.Int(post_load=handle_none, allow_none=False)
+
+        schema = UserSchema()
+        with pytest.raises(ValidationError) as exc:
+            schema.load({"age": None})
+        assert exc.value.messages == {"age": ["Field may not be null."]}
+
+    def test_invalid_type_passed_to_pre_load(self):
+        with pytest.raises(
+            ValueError,
+            match="The 'pre_load' parameter must be a callable or an iterable of callables.",
+        ):
+            fields.Int(pre_load="not_callable")
+
+    def test_invalid_type_passed_to_post_load(self):
+        with pytest.raises(
+            ValueError,
+            match="The 'post_load' parameter must be a callable or an iterable of callables.",
+        ):
+            fields.Int(post_load="not_callable")

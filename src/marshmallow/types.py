@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import typing
 
+T = typing.TypeVar("T")
+
 #: A type that can be either a sequence of strings or a set of strings
 StrSequenceOrSet: typing.TypeAlias = typing.Sequence[str] | typing.AbstractSet[str]
 
@@ -23,6 +25,11 @@ ErrorMessages: typing.TypeAlias = dict[str, ErrorMessageValue]
 
 #: A valid option for the ``unknown`` schema option and argument
 UnknownOption: typing.TypeAlias = typing.Literal["exclude", "include", "raise"]
+
+#: Type for field-level pre-load functions
+PreLoadCallable = typing.Callable[[typing.Any], typing.Any]
+#: Type for field-level post-load functions
+PostLoadCallable = typing.Callable[[T], T]
 
 
 class SchemaValidator(typing.Protocol):
