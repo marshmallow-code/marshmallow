@@ -665,18 +665,18 @@ class TestFieldPreAndPostLoad:
         assert result["age"] == "42"
 
     def test_field_post_load_multiple(self):
-        def to_string(value):
-            return str(value)
+        def multiply_by_2(value):
+            return value * 2
 
-        def add_suffix(value):
-            return value + " years"
+        def decrement(value):
+            return value - 1
 
         class UserSchema(Schema):
-            age = fields.Int(post_load=[to_string, add_suffix])
+            age = fields.Float(post_load=[multiply_by_2, decrement])
 
         schema = UserSchema()
-        result = schema.load({"age": 42})
-        assert result["age"] == "42 years"
+        result = schema.load({"age": 21.5})
+        assert result["age"] == 42.0
 
     def test_field_pre_and_post_load(self):
         def multiply_by_2(value):

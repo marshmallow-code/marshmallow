@@ -84,7 +84,7 @@ __all__ = [
 _InternalT = typing.TypeVar("_InternalT")
 _ProcessorT = typing.TypeVar(
     "_ProcessorT",
-    bound=typing.Union[types.PostLoadCallable, types.PreLoadCallable, types.Validator],
+    bound=types.PostLoadCallable | types.PreLoadCallable | types.Validator,
 )
 
 
@@ -457,7 +457,7 @@ class Field(typing.Generic[_InternalT]):
         if processors is None:
             return []
         if callable(processors):
-            return [typing.cast(_ProcessorT, processors)]
+            return [typing.cast("_ProcessorT", processors)]
         if not utils.is_iterable_but_not_string(processors):
             raise ValueError(
                 f"The '{param}' parameter must be a callable "
