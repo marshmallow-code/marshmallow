@@ -216,6 +216,7 @@ class URL(Validator):
             raise ValidationError(message)
 
         # Check first if the scheme is valid
+        scheme = None
         if "://" in value:
             scheme = value.split("://")[0].lower()
             if scheme not in self.schemes:
@@ -225,7 +226,15 @@ class URL(Validator):
             relative=self.relative, absolute=self.absolute, require_tld=self.require_tld
         )
 
-        if not regex.search(value):
+        # The `file` scheme is a slightly-special case: hostnames are optional,
+        # and if absent it means `localhost`; fill it in for the validation if
+        # needed
+        if scheme == "file" and value.startswith("file:///"):
+            matched = regex.search(value.replace("file:///", "file://localhost/", 1))
+        else:
+            matched = regex.search(value)
+
+        if not matched:
             raise ValidationError(message)
 
         return value

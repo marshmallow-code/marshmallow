@@ -17,6 +17,7 @@ Bug fixes:
 - Correctly handle multiple `@post_load <marshmallow.post_load>` methods where one method appends to
   the data and another passes ``pass_original=True`` (:issue:`1755`).
   Thanks :user:`ghostwheel42` for reporting.
+- ``URL`` fields now properly validate ``file`` paths.
 
 Documentation:
 
@@ -25,8 +26,8 @@ Documentation:
 
 Deprecations:
 
-- The ``ordered`` `class Meta <marshmallow.Schema.Meta>` option is deprecated (:issue:`2146`, :pr:`2762`). 
-  Field order is already preserved by default. Set `marshmallow.Schema.dict_class` to `collections.OrderedDict` 
+- The ``ordered`` `class Meta <marshmallow.Schema.Meta>` option is deprecated (:issue:`2146`, :pr:`2762`).
+  Field order is already preserved by default. Set `marshmallow.Schema.dict_class` to `collections.OrderedDict`
   to maintain the previous behavior.
 
 3.25.1 (2025-01-11)

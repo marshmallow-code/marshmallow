@@ -205,6 +205,13 @@ def test_url_custom_scheme():
     assert validator(url) == url
 
 
+def test_url_file_scheme():
+    # Ensure that file URLs don't get confused
+    url = "file:///tmp/tmp1234"
+    validator = validate.URL(schemes={"file"})
+    assert validator(url) == url
+
+
 def test_url_relative_and_custom_schemes():
     validator = validate.URL(relative=True)
     # By default, ws not allowed
