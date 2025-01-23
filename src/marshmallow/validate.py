@@ -226,9 +226,8 @@ class URL(Validator):
             relative=self.relative, absolute=self.absolute, require_tld=self.require_tld
         )
 
-        # The `file` scheme is a slightly-special case: hostnames are optional,
-        # and if absent it means `localhost`; fill it in for the validation if
-        # needed
+        # Hostname is optional for file URLS. If absent it means `localhost`.
+        # Fill it in for the validation if needed
         if scheme == "file" and value.startswith("file:///"):
             matched = regex.search(value.replace("file:///", "file://localhost/", 1))
         else:
