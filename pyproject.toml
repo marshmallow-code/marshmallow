@@ -60,10 +60,7 @@ include = [
 exclude = ["docs/_build/"]
 
 [tool.ruff]
-src = ["src", "tests", "examples"]
 fix = true
-show-fixes = true
-output-format = "full"
 
 [tool.ruff.format]
 docstring-code-format = true
