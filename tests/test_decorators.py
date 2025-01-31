@@ -945,3 +945,26 @@ def test_load_processors_receive_unknown(usage_location, unknown_val):
         ExampleSchema(unknown=unknown_val).load({"foo": 42})
     else:
         ExampleSchema().load({"foo": 42}, unknown=unknown_val)
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/1755
+def test_post_load_method_that_appends_to_data():
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        @post_load(pass_collection=True)
+        def append_to_data(self, data, **kwargs):
+            data.append({"foo": 42})
+            return data
+
+        @post_load(pass_collection=False, pass_original=True)
+        def noop(self, data, original_data, **kwargs):
+            if original_data is None:  # added item
+                assert data == {"foo": 42}
+            else:
+                assert original_data == {"foo": 24}
+                assert data == {"foo": 24}
+            return data
+
+    schema = MySchema(many=True)
+    assert schema.load([{"foo": 24}]) == [{"foo": 24}, {"foo": 42}]

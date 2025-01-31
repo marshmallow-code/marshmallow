@@ -124,7 +124,16 @@ Previously-deprecated APIs have been removed, including:
 - ``Field.fail``, which was replaced by ``Field.make_error`` in 3.0.0.
 - `json_module` class Meta option (deprecated in 3.0.0b3). Use `render_module` instead.
 
-3.26.0 (unreleased)
+(unreleased)
+************
+
+Other changes:
+
+- Remove default value for the ``data`` param of `Nested._deserialize <marshmallow.fields.Nested._deserialize>` (:issue:`2802`).
+  Thanks :user:`gbenson` for reporting.
+
+
+3.26.0 (2025-01-22)
 *******************
 
 Features:
@@ -137,11 +146,16 @@ Bug fixes:
 
 - Respect ``data_key`` when schema validators raise a `ValidationError <marshmallow.exceptions.ValidationError>` 
   with a ``field_name`` argument (:issue:`2170`). Thanks :user:`matejsp` for reporting.
+- Correctly handle multiple `@post_load <marshmallow.post_load>` methods where one method appends to
+  the data and another passes ``pass_original=True`` (:issue:`1755`).
+  Thanks :user:`ghostwheel42` for reporting.
+- ``URL`` fields now properly validate ``file`` paths (:issue:`2249`).
+  Thanks :user:`0xDEC0DE` for reporting and fixing.
 
 Documentation:
 
 - Add :doc:`upgrading guides <upgrading>` for 3.24 and 3.26 (:pr:`2780`).
-- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`, :pr:`2774`, :pr:`2778`, :pr:`2783`).
+- Various documentation improvements (:pr:`2757`, :pr:`2759`, :pr:`2765`, :pr:`2774`, :pr:`2778`, :pr:`2783`, :pr:`2796`).
 
 Deprecations:
 
