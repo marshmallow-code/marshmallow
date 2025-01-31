@@ -675,7 +675,7 @@ class Nested(Field):
         self,
         value: typing.Any,
         attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None = None,
+        data: typing.Mapping[str, typing.Any] | None,
         partial: bool | types.StrSequenceOrSet | None = None,
         **kwargs,
     ) -> typing.Any:
