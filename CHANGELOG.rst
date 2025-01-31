@@ -20,6 +20,9 @@ Other changes:
 - Typing: `Field <marshmallow.fields.Field>` is now a generic type with a type argument for the internal value type.
 - `marshmallow.fields.UUID` no longer subclasses `marshmallow.fields.String`.
 - *Backwards-incompatible*: Use `datetime.date.fromisoformat`, `datetime.time.fromisoformat`, and `datetime.datetime.fromisoformat` from the standard library to deserialize dates, times and datetimes (:pr:`2078`).
+- `marshmallow.Schema.load` no longer silently fails to call schema validators when a generator is passed (:issue:`1898`). 
+  The typing of `data` is also updated to be more accurate.
+  Thanks :user:`ziplokk1` for reporting.
 
 As a consequence of this change:
   - Time with time offsets are now supported.
