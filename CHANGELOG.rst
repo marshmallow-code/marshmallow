@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+(unreleased)
+************
+
+Other changes:
+
+- Remove default value for the ``data`` param of `Nested._deserialize <marshmallow.fields.Nested._deserialize>` (:issue:`2802`).
+  Thanks :user:`gbenson` for reporting.
+
+
 3.26.0 (2025-01-22)
 *******************
 
