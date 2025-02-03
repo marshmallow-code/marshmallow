@@ -374,7 +374,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
 
                 class MySchema2(Schema):
                     # Type checkers will check attributes
-                    class Meta(Schema.Opts):
+                    class Meta(Schema.Meta):
                         additional = True  # Incompatible types in assignment
 
         .. versionremoved:: 3.0.0b7 Remove ``strict``.
