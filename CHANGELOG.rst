@@ -4,6 +4,11 @@ Changelog
 (unreleased)
 ************
 
+Bug fixes:
+
+- Typing: Fix type annotations for `class Meta <marshmallow.Schema.Meta>` options (:issue:`2804`).
+  Thanks :user:`lawrence-law` for reporting.
+
 Other changes:
 
 - Remove default value for the ``data`` param of `Nested._deserialize <marshmallow.fields.Nested._deserialize>` (:issue:`2802`).

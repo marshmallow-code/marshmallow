@@ -384,9 +384,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         .. versionchanged:: 3.26.0 Deprecate `ordered`. Field order is preserved by default.
         """
 
-        fields: typing.ClassVar[tuple[Field] | list[Field]]
+        fields: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to include in the (de)serialized result"""
-        additional: typing.ClassVar[tuple[Field] | list[Field]]
+        additional: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to include in addition to the explicitly declared fields.
         `additional <marshmallow.Schema.Meta.additional>` and `fields <marshmallow.Schema.Meta.fields>`
         are mutually-exclusive options.
@@ -396,7 +396,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         usually better to define fields as class variables, but you may need to
         use this option, e.g., if your fields are Python keywords.
         """
-        exclude: typing.ClassVar[tuple[Field] | list[Field]]
+        exclude: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude in the serialized result.
         Nested fields can be represented with dot delimiters.
         """
@@ -408,7 +408,10 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """Default format for `DateTime <marshmallow.fields.DateTime>` fields."""
         timeformat: typing.ClassVar[str]
         """Default format for `Time <marshmallow.fields.Time>` fields."""
-        render_module: typing.ClassVar[types.RenderModule]
+
+        # FIXME: Use a more constrained type here.
+        # ClassVar[RenderModule] doesn't work.
+        render_module: typing.Any
         """ Module to use for `loads <marshmallow.Schema.loads>` and `dumps <marshmallow.Schema.dumps>`.
         Defaults to `json` from the standard library.
         """
@@ -416,9 +419,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         """If `True`, `Schema.dump <marshmallow.Schema.dump>` is a `collections.OrderedDict`."""
         index_errors: typing.ClassVar[bool]
         """If `True`, errors dictionaries will include the index of invalid items in a collection."""
-        load_only: typing.ClassVar[tuple[Field] | list[Field]]
+        load_only: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude from serialized results"""
-        dump_only: typing.ClassVar[tuple[Field] | list[Field]]
+        dump_only: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude from serialized results"""
         unknown: typing.ClassVar[str]
         """Whether to exclude, include, or raise an error for unknown fields in the data.
