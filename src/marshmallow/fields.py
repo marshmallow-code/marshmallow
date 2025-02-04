@@ -72,6 +72,13 @@ __all__ = [
     "Nested",
     "Number",
     "Pluck",
+    "Raw",
+    "Str",
+    "String",
+    "Time",
+    "TimeDelta",
+    "Tuple",
+    "Url",
 ]
 
 _InternalT = typing.TypeVar("_InternalT")
