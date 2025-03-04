@@ -197,5 +197,5 @@ Error messages can also be passed to a `Field's` constructor.
 Next steps
 ----------
 
-- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending` page.
+- Need to add schema-level validation, post-processing, or error handling behavior? See the :doc:`extending/index` page.
 - For example applications using marshmallow, check out the :doc:`examples/index` page.

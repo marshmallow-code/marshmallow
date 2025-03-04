@@ -69,8 +69,8 @@ class And(Validator):
         return f"validators={self.validators!r}"
 
     def __call__(self, value: typing.Any) -> typing.Any:
-        errors = []
-        kwargs = {}
+        errors: list[str | dict] = []
+        kwargs: dict[str, typing.Any] = {}
         for validator in self.validators:
             try:
                 validator(value)
@@ -79,8 +79,7 @@ class And(Validator):
                 if isinstance(err.messages, dict):
                     errors.append(err.messages)
                 else:
-                    # FIXME : Get rid of cast
-                    errors.extend(typing.cast(list, err.messages))
+                    errors.extend(err.messages)
         if errors:
             raise ValidationError(errors, **kwargs)
         return value
@@ -203,6 +202,7 @@ class URL(Validator):
             raise ValidationError(message)
 
         # Check first if the scheme is valid
+        scheme = None
         if "://" in value:
             scheme = value.split("://")[0].lower()
             if scheme not in self.schemes:
@@ -212,7 +212,14 @@ class URL(Validator):
             relative=self.relative, absolute=self.absolute, require_tld=self.require_tld
         )
 
-        if not regex.search(value):
+        # Hostname is optional for file URLS. If absent it means `localhost`.
+        # Fill it in for the validation if needed
+        if scheme == "file" and value.startswith("file:///"):
+            matched = regex.search(value.replace("file:///", "file://localhost/", 1))
+        else:
+            matched = regex.search(value)
+
+        if not matched:
             raise ValidationError(message)
 
         return value

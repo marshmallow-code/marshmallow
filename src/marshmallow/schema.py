@@ -14,7 +14,8 @@ import typing
 import uuid
 from abc import ABCMeta
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from itertools import zip_longest
 
 from marshmallow import class_registry, types
 from marshmallow import fields as ma_fields
@@ -28,9 +29,14 @@ from marshmallow.decorators import (
     VALIDATES_SCHEMA,
 )
 from marshmallow.error_store import ErrorStore
-from marshmallow.exceptions import StringNotCollectionError, ValidationError
+from marshmallow.exceptions import SCHEMA, StringNotCollectionError, ValidationError
 from marshmallow.orderedset import OrderedSet
-from marshmallow.utils import get_value, is_collection, set_value
+from marshmallow.utils import (
+    get_value,
+    is_collection,
+    is_sequence_but_not_string,
+    set_value,
+)
 
 if typing.TYPE_CHECKING:
     from marshmallow.fields import Field
@@ -346,9 +352,9 @@ class Schema(metaclass=SchemaMeta):
         .. versionremoved:: 4.0.0 Remove ``ordered``.
         """
 
-        fields: typing.ClassVar[tuple[Field] | list[Field]]
+        fields: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to include in the (de)serialized result"""
-        additional: typing.ClassVar[tuple[Field] | list[Field]]
+        additional: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to include in addition to the explicitly declared fields.
         `additional <marshmallow.Schema.Meta.additional>` and `fields <marshmallow.Schema.Meta.fields>`
         are mutually-exclusive options.
@@ -358,7 +364,7 @@ class Schema(metaclass=SchemaMeta):
         usually better to define fields as class variables, but you may need to
         use this option, e.g., if your fields are Python keywords.
         """
-        exclude: typing.ClassVar[tuple[Field] | list[Field]]
+        exclude: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude in the serialized result.
         Nested fields can be represented with dot delimiters.
         """
@@ -370,15 +376,18 @@ class Schema(metaclass=SchemaMeta):
         """Default format for `DateTime <marshmallow.fields.DateTime>` fields."""
         timeformat: typing.ClassVar[str]
         """Default format for `Time <marshmallow.fields.Time>` fields."""
-        render_module: typing.ClassVar[types.RenderModule]
+
+        # FIXME: Use a more constrained type here.
+        # ClassVar[RenderModule] doesn't work.
+        render_module: typing.Any
         """ Module to use for `loads <marshmallow.Schema.loads>` and `dumps <marshmallow.Schema.dumps>`.
         Defaults to `json` from the standard library.
         """
         index_errors: typing.ClassVar[bool]
         """If `True`, errors dictionaries will include the index of invalid items in a collection."""
-        load_only: typing.ClassVar[tuple[Field] | list[Field]]
+        load_only: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude from serialized results"""
-        dump_only: typing.ClassVar[tuple[Field] | list[Field]]
+        dump_only: typing.ClassVar[tuple[str, ...] | list[str]]
         """Fields to exclude from serialized results"""
         unknown: typing.ClassVar[types.UnknownOption]
         """Whether to exclude, include, or raise an error for unknown fields in the data.
@@ -582,10 +591,7 @@ class Schema(metaclass=SchemaMeta):
 
     def _deserialize(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         error_store: ErrorStore,
         many: bool = False,
@@ -612,13 +618,13 @@ class Schema(metaclass=SchemaMeta):
         index_errors = self.opts.index_errors
         index = index if index_errors else None
         if many:
-            if not is_collection(data):
+            if not is_sequence_but_not_string(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
                 ret_l = []
             else:
                 ret_l = [
                     self._deserialize(
-                        typing.cast(dict, d),
+                        d,
                         error_store=error_store,
                         many=False,
                         partial=partial,
@@ -696,10 +702,7 @@ class Schema(metaclass=SchemaMeta):
 
     def load(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -765,16 +768,16 @@ class Schema(metaclass=SchemaMeta):
 
     def _run_validator(
         self,
-        validator_func,
+        validator_func: types.SchemaValidator,
         output,
         *,
         original_data,
-        error_store,
-        many,
-        partial,
-        unknown,
-        pass_original,
-        index=None,
+        error_store: ErrorStore,
+        many: bool,
+        partial: bool | types.StrSequenceOrSet | None,
+        unknown: types.UnknownOption | None,
+        pass_original: bool,
+        index: int | None = None,
     ):
         try:
             if pass_original:  # Pass original, raw data (before unmarshalling)
@@ -784,14 +787,30 @@ class Schema(metaclass=SchemaMeta):
             else:
                 validator_func(output, partial=partial, many=many, unknown=unknown)
         except ValidationError as err:
-            error_store.store_error(err.messages, err.field_name, index=index)
+            field_name = err.field_name
+            data_key: str
+            if field_name == SCHEMA:
+                data_key = SCHEMA
+            else:
+                field_obj: Field | None = None
+                try:
+                    field_obj = self.fields[field_name]
+                except KeyError:
+                    if field_name in self.declared_fields:
+                        field_obj = self.declared_fields[field_name]
+                if field_obj:
+                    data_key = (
+                        field_obj.data_key
+                        if field_obj.data_key is not None
+                        else field_name
+                    )
+                else:
+                    data_key = field_name
+            error_store.store_error(err.messages, data_key, index=index)
 
     def validate(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -818,10 +837,7 @@ class Schema(metaclass=SchemaMeta):
 
     def _do_load(
         self,
-        data: (
-            typing.Mapping[str, typing.Any]
-            | typing.Iterable[typing.Mapping[str, typing.Any]]
-        ),
+        data: (Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]]),
         *,
         many: bool | None = None,
         partial: bool | types.StrSequenceOrSet | None = None,
@@ -1073,7 +1089,7 @@ class Schema(metaclass=SchemaMeta):
     def _invoke_load_processors(
         self,
         tag: str,
-        data,
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         *,
         many: bool,
         original_data,
@@ -1201,7 +1217,7 @@ class Schema(metaclass=SchemaMeta):
         tag: str,
         *,
         pass_collection: bool,
-        data,
+        data: Mapping[str, typing.Any] | Sequence[Mapping[str, typing.Any]],
         many: bool,
         original_data=None,
         **kwargs,
@@ -1217,7 +1233,7 @@ class Schema(metaclass=SchemaMeta):
                 if pass_original:
                     data = [
                         processor(item, original, many=many, **kwargs)
-                        for item, original in zip(data, original_data)
+                        for item, original in zip_longest(data, original_data)
                     ]
                 else:
                     data = [processor(item, many=many, **kwargs) for item in data]

@@ -135,13 +135,13 @@ Documentation
 
 Contributions to the documentation are welcome. Documentation is written in `reStructuredText`_ (rST). A quick rST reference can be found `here <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_. Builds are powered by Sphinx_.
 
-To build the docs in "watch" mode:
+To build and serve the docs in "watch" mode:
 
 .. code-block:: shell-session
 
-   $ tox -e watch-docs
+   $ tox -e docs-serve
 
-Changes in the `docs/` directory will automatically trigger a rebuild.
+Changes to documentation will automatically trigger a rebuild.
 
 
 .. _contributing_examples:

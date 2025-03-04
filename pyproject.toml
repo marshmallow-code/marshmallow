@@ -40,7 +40,7 @@ docs = [
   "furo==2024.8.6",
   "sphinx-copybutton==0.5.2",
   "sphinx-issues==5.0.0",
-  "sphinx==8.1.3",
+  "sphinx==8.2.3",
   "sphinxext-opengraph==0.9.1",
 ]
 tests = ["pytest", "simplejson"]
@@ -63,10 +63,7 @@ include = [
 exclude = ["docs/_build/"]
 
 [tool.ruff]
-src = ["src"]
 fix = true
-show-fixes = true
-output-format = "full"
 
 [tool.ruff.format]
 docstring-code-format = true

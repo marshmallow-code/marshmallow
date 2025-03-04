@@ -693,6 +693,34 @@ class TestValidatesSchemaDecorator:
         assert "bar" in errors[0]
         assert "_schema" not in errors
 
+    # https://github.com/marshmallow-code/marshmallow/issues/2170
+    def test_data_key_is_used_in_errors_dict(self):
+        class MySchema(Schema):
+            foo = fields.Int(data_key="fooKey")
+
+            @validates("foo")
+            def validate_foo(self, value, **kwargs):
+                raise ValidationError("from validates")
+
+            @validates_schema(skip_on_field_errors=False)
+            def validate_schema(self, data, **kwargs):
+                raise ValidationError("from validates_schema str", field_name="foo")
+
+            @validates_schema(skip_on_field_errors=False)
+            def validate_schema2(self, data, **kwargs):
+                raise ValidationError({"fooKey": "from validates_schema dict"})
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({"fooKey": 42})
+        exc = excinfo.value
+        assert exc.messages == {
+            "fooKey": [
+                "from validates",
+                "from validates_schema str",
+                "from validates_schema dict",
+            ]
+        }
+
 
 def test_decorator_error_handling():
     class ExampleSchema(Schema):
@@ -934,3 +962,26 @@ def test_load_processors_receive_unknown(usage_location, unknown_val):
         ExampleSchema(unknown=unknown_val).load({"foo": 42})
     else:
         ExampleSchema().load({"foo": 42}, unknown=unknown_val)
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/1755
+def test_post_load_method_that_appends_to_data():
+    class MySchema(Schema):
+        foo = fields.Int()
+
+        @post_load(pass_collection=True)
+        def append_to_data(self, data, **kwargs):
+            data.append({"foo": 42})
+            return data
+
+        @post_load(pass_collection=False, pass_original=True)
+        def noop(self, data, original_data, **kwargs):
+            if original_data is None:  # added item
+                assert data == {"foo": 42}
+            else:
+                assert original_data == {"foo": 24}
+                assert data == {"foo": 24}
+            return data
+
+    schema = MySchema(many=True)
+    assert schema.load([{"foo": 24}]) == [{"foo": 24}, {"foo": 42}]
