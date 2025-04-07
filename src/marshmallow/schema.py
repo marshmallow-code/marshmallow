@@ -98,7 +98,7 @@ class SchemaMeta(ABCMeta):
     _declared_fields: dict[str, Field]
 
     def __new__(
-        mcs,  # noqa: N804
+        mcs,
         name: str,
         bases: tuple[type, ...],
         attrs: dict[str, typing.Any],
@@ -830,7 +830,7 @@ class Schema(metaclass=SchemaMeta):
         try:
             self._do_load(data, many=many, partial=partial, postprocess=False)
         except ValidationError as exc:
-            return typing.cast(dict[str, list[str]], exc.messages)
+            return typing.cast("dict[str, list[str]]", exc.messages)
         return {}
 
     ##### Private Helpers #####

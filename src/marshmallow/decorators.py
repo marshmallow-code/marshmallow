@@ -241,7 +241,7 @@ def set_hook(
 
     # Set a __marshmallow_hook__ attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
-    function = cast(MarshmallowHook, fn)
+    function = cast("MarshmallowHook", fn)
     try:
         hook_config = function.__marshmallow_hook__
     except AttributeError:

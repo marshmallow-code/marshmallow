@@ -538,7 +538,7 @@ class Nested(Field):
             if isinstance(nested, Schema):
                 self._schema = copy.copy(nested)
                 # Respect only and exclude passed from parent and re-initialize fields
-                set_class = typing.cast(type[set], self._schema.set_class)
+                set_class = typing.cast("type[set]", self._schema.set_class)
                 if self.only is not None:
                     if self._schema.only is not None:
                         original = self._schema.only
@@ -742,7 +742,7 @@ class List(Field[list[typing.Optional[_InternalT]]]):
                 result.append(self.inner.deserialize(each, **kwargs))
             except ValidationError as error:
                 if error.valid_data is not None:
-                    result.append(typing.cast(_InternalT, error.valid_data))
+                    result.append(typing.cast("_InternalT", error.valid_data))
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)

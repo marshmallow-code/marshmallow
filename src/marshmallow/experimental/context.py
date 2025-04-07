@@ -59,7 +59,7 @@ class Context(contextlib.AbstractContextManager, typing.Generic[_ContextT]):
         return self
 
     def __exit__(self, *args, **kwargs) -> None:
-        _CURRENT_CONTEXT.reset(typing.cast(contextvars.Token, self.token))
+        _CURRENT_CONTEXT.reset(typing.cast("contextvars.Token", self.token))
 
     @classmethod
     def get(cls, default: _DefaultT | EllipsisType = ...) -> _ContextT | _DefaultT:
