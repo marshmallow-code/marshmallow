@@ -39,7 +39,7 @@ docs = [
   "autodocsumm==0.2.14",
   "furo==2024.8.6",
   "sphinx-copybutton==0.5.2",
-  "sphinx-issues==5.0.0",
+  "sphinx-issues==5.0.1",
   "sphinx==8.2.3",
   "sphinxext-opengraph==0.10.0",
 ]
