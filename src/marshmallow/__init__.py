@@ -23,7 +23,6 @@ __all__ = [
     "missing",
     "post_dump",
     "post_load",
-    "pprint",
     "pre_dump",
     "pre_load",
     "validates",
