@@ -178,3 +178,4 @@ Contributors (chronological)
 - Fares Abubaker `@Fares-Abubaker <https://github.com/Fares-Abubaker>`_
 - Dharanikumar Sekar `@dharani7998 <https://github.com/dharani7998>`_
 - Nicolas Simonds `@0xDEC0DE <https://github.com/0xDEC0DE>`_
+- Florian Laport `@Florian-Laport <https://github.com/Florian-Laport>`_
