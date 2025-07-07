@@ -438,7 +438,7 @@ class TestFieldSerialization:
         )
 
     def test_structured_dict_value_serialize(self, user):
-        user.various_data = {"foo": decimal.Decimal("1")}
+        user.various_data = {"foo": decimal.Decimal(1)}
         field = fields.Dict(values=fields.Decimal)
         assert field.serialize("various_data", user) == {"foo": 1}
 
@@ -448,7 +448,7 @@ class TestFieldSerialization:
         assert field.serialize("various_data", user) == {"1": "bar"}
 
     def test_structured_dict_key_value_serialize(self, user):
-        user.various_data = {1: decimal.Decimal("1")}
+        user.various_data = {1: decimal.Decimal(1)}
         field = fields.Dict(keys=fields.Str, values=fields.Decimal)
         assert field.serialize("various_data", user) == {"1": 1}
 

@@ -1,4 +1,4 @@
-# ruff: noqa: F841, SLF001
+# ruff: noqa: SLF001
 from __future__ import annotations
 
 import abc
