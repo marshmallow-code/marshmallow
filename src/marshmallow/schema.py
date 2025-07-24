@@ -550,7 +550,7 @@ class Schema(metaclass=SchemaMeta):
         :return: Serialized data
 
         .. versionchanged:: 3.0.0b7
-            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            This method returns the serialized data rather than a ``(data, errors)`` tuple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         .. versionchanged:: 3.0.0rc9
@@ -582,7 +582,7 @@ class Schema(metaclass=SchemaMeta):
         :return: A ``json`` string
 
         .. versionchanged:: 3.0.0b7
-            This method returns the serialized data rather than a ``(data, errors)`` duple.
+            This method returns the serialized data rather than a ``(data, errors)`` tuple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if ``obj`` is invalid.
         """
@@ -723,7 +723,7 @@ class Schema(metaclass=SchemaMeta):
         :return: Deserialized data
 
         .. versionchanged:: 3.0.0b7
-            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            This method returns the deserialized data rather than a ``(data, errors)`` tuple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         """
@@ -757,7 +757,7 @@ class Schema(metaclass=SchemaMeta):
         :return: Deserialized data
 
         .. versionchanged:: 3.0.0b7
-            This method returns the deserialized data rather than a ``(data, errors)`` duple.
+            This method returns the deserialized data rather than a ``(data, errors)`` tuple.
             A :exc:`ValidationError <marshmallow.exceptions.ValidationError>` is raised
             if invalid data are passed.
         .. versionchanged:: 4.0.0
