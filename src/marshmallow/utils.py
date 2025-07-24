@@ -1,6 +1,5 @@
 """Utility methods for marshmallow."""
 
-# ruff: noqa: T201, T203
 from __future__ import annotations
 
 import datetime as dt
