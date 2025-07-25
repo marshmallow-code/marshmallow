@@ -234,7 +234,7 @@ def test_decorated_processor_inheritance():
             item["overridden"] = "overridden"
             return item
 
-        deleted = None
+        deleted = None  # type: ignore[assignment]
 
     parent_dumped = ParentSchema().dump({})
     assert parent_dumped == {
