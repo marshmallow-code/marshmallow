@@ -1,4 +1,4 @@
-# ruff: noqa: F841, SLF001
+# ruff: noqa: SLF001
 from __future__ import annotations
 
 import abc
@@ -530,7 +530,7 @@ class Nested(Field):
             else:
                 nested = typing.cast("Schema", self.nested)
             # defer the import of `marshmallow.schema` to avoid circular imports
-            from marshmallow.schema import Schema
+            from marshmallow.schema import Schema  # noqa: PLC0415
 
             if isinstance(nested, dict):
                 nested = Schema.from_dict(nested)
@@ -558,7 +558,7 @@ class Nested(Field):
                         f"`Schema`, not {nested.__class__}."
                     )
                 else:
-                    schema_class = class_registry.get_class(nested, all=False)
+                    schema_class = class_registry.get_class(nested, all=False)  # type: ignore[unreachable]
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,
@@ -591,7 +591,9 @@ class Nested(Field):
             raise self.make_error("type", input=value, type=value.__class__.__name__)
 
     def _load(
-        self, value: typing.Any, partial: bool | types.StrSequenceOrSet | None = None
+        self,
+        value: typing.Any,
+        partial: bool | types.StrSequenceOrSet | None = None,  # noqa: FBT001
     ):
         try:
             valid_data = self.schema.load(value, unknown=self.unknown, partial=partial)
@@ -606,7 +608,7 @@ class Nested(Field):
         value: typing.Any,
         attr: str | None,
         data: typing.Mapping[str, typing.Any] | None,
-        partial: bool | types.StrSequenceOrSet | None = None,
+        partial: bool | types.StrSequenceOrSet | None = None,  # noqa: FBT001
         **kwargs,
     ):
         """Same as :meth:`Field._deserialize` with additional ``partial`` argument.
