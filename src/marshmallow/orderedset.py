@@ -23,7 +23,7 @@
 from collections.abc import MutableSet
 
 
-class OrderedSet(MutableSet):
+class OrderedSet(MutableSet):  # noqa: PLW1641
     def __init__(self, iterable=None):
         self.end = end = []
         end += [None, end, end]  # sentinel node for doubly linked list

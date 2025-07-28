@@ -189,7 +189,7 @@ class FooSerializer(Schema):
 
 def test_multiple_classes_with_same_name_raises_error():
     # Import a class with the same name
-    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: F401
+    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: PLC0415, F401
 
     class MySchema(Schema):
         foo = fields.Nested("FooSerializer")
@@ -204,14 +204,14 @@ def test_multiple_classes_with_same_name_raises_error():
 
 def test_multiple_classes_with_all():
     # Import a class with the same name
-    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: F401
+    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: PLC0415, F401
 
     classes = class_registry.get_class("FooSerializer", all=True)
     assert len(classes) == 2
 
 
 def test_can_use_full_module_path_to_class():
-    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: F401
+    from .foo_serializer import FooSerializer as FooSerializer1  # noqa: PLC0415, F401
 
     # Using full paths is ok
 
