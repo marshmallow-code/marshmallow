@@ -4,7 +4,7 @@ repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.12.5
   hooks:
-    - id: ruff
+    - id: ruff-check
     - id: ruff-format
 - repo: https://github.com/python-jsonschema/check-jsonschema
   rev: 0.33.2
