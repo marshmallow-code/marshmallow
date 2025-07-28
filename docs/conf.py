@@ -44,7 +44,7 @@ html_theme_options = {
         # Serif system font stack: https://systemfontstack.com/
         "font-stack": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;",
     },
-    "top_of_page_buttons": ["view"],
+    "top_of_page_buttons": ["view", "edit"],
 }
 pygments_dark_style = "lightbulb"
 html_favicon = "_static/favicon.ico"
