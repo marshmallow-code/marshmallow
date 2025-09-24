@@ -1,6 +1,6 @@
 [project]
 name = "marshmallow"
-version = "4.0.2"
+version = "4.0.1"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 readme = "README.rst"
 license = "MIT"
@@ -47,7 +47,7 @@ tests = ["pytest", "simplejson"]
 dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
 
 [build-system]
-requires = ["flit_core<4"]
+requires = ["flit_core<4","flit_core>=3.12"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.sdist]
