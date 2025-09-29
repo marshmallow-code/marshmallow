@@ -482,6 +482,9 @@ class Nested(Field):
     :param only: A list or tuple of fields to marshal. If `None`, all fields are marshalled.
         This parameter takes precedence over ``exclude``.
     :param many: Whether the field is a collection of objects.
+        If `None` (default), and nested `Schema` instance is provided, ``many`` is not overridden.
+        If `None` (default), and `Schema` subclass is provided, schema instance sets ``many`` as False.
+        If `True | False` nested `[nested_field].schema.many` is overridden.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
@@ -502,7 +505,7 @@ class Nested(Field):
         *,
         only: types.StrSequenceOrSet | None = None,
         exclude: types.StrSequenceOrSet = (),
-        many: bool = False,
+        many: bool | None = None,
         unknown: types.UnknownOption | None = None,
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
@@ -537,7 +540,7 @@ class Nested(Field):
 
             if isinstance(nested, Schema):
                 self._schema = copy.copy(nested)
-                # Respect only and exclude passed from parent and re-initialize fields
+                # Respect only and exclude and many passed from parent and re-initialize fields
                 set_class = typing.cast("type[set]", self._schema.set_class)
                 if self.only is not None:
                     if self._schema.only is not None:
@@ -548,6 +551,8 @@ class Nested(Field):
                 if self.exclude:
                     original = self._schema.exclude
                     self._schema.exclude = set_class(self.exclude) | set_class(original)
+                if self.many is not None:
+                    self._schema.many = self.many
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, Schema):
@@ -560,7 +565,7 @@ class Nested(Field):
                 else:
                     schema_class = class_registry.get_class(nested, all=False)  # type: ignore[unreachable]
                 self._schema = schema_class(
-                    many=self.many,
+                    many=bool(self.many),
                     only=self.only,
                     exclude=self.exclude,
                     load_only=self._nested_normalized_option("load_only"),

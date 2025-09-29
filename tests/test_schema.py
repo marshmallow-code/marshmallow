@@ -2,7 +2,7 @@ import datetime as dt
 import math
 import random
 from collections import OrderedDict
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 import pytest
 import simplejson as json
@@ -1003,8 +1003,54 @@ def test_nested_instance_many():
     books = [{"id": 1, "title": "First book"}, {"id": 2, "title": "Second book"}]
     user = {"id": 1, "name": "Peter", "books": books}
 
+    assert cast("fields.Nested", UserSchema().fields["books"]).schema.many
+
     user_dump = UserSchema().dump(user)
     assert user_dump["books"] == books
+
+    user_load = UserSchema().load(user_dump)
+    assert user_load == user
+
+
+def test_nested_many_should_override_schema_many_case1():
+    class BookSchema(Schema):
+        id = fields.Int()
+        title = fields.String()
+
+    class UserSchema(Schema):
+        id = fields.Int()
+        name = fields.String()
+        books = fields.Nested(BookSchema(), many=True)
+
+    books = [{"id": 1, "title": "First book"}, {"id": 2, "title": "Second book"}]
+    user = {"id": 1, "name": "Peter", "books": books}
+
+    assert cast("fields.Nested", UserSchema().fields["books"]).schema.many
+
+    user_dump = UserSchema().dump(user)
+    assert user_dump["books"] == books
+
+    user_load = UserSchema().load(user_dump)
+    assert user_load == user
+
+
+def test_nested_many_should_override_schema_many_case2():
+    class BookSchema(Schema):
+        id = fields.Int()
+        title = fields.String()
+
+    class UserSchema(Schema):
+        id = fields.Int()
+        name = fields.String()
+        book = fields.Nested(BookSchema(many=True), many=False)
+
+    book = {"id": 1, "title": "First book"}
+    user = {"id": 1, "name": "Peter", "book": book}
+
+    assert not cast("fields.Nested", UserSchema().fields["book"]).schema.many
+
+    user_dump = UserSchema().dump(user)
+    assert user_dump["book"] == book
 
     user_load = UserSchema().load(user_dump)
     assert user_load == user
