@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
       - run: pip install tox
       - run: tox -e docs
   tests:
@@ -24,7 +24,7 @@ jobs:
       matrix:
         include:
           - { name: "3.10", python: "3.10", tox: py310 }
-          - { name: "3.13", python: "3.13", tox: py313 }
+          - { name: "3.14", python: "3.14", tox: py314 }
           - { name: "mypy", python: "3.13", tox: mypy }
     steps:
       - uses: actions/checkout@v5
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
       - name: Install pypa/build
         run: python -m pip install build
       - name: Build a binary wheel and a source tarball
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.13"
+          python-version: "3.14"
       - run: python -m pip install tox
       - run: python -m tox -e lint
   publish-to-pypi:

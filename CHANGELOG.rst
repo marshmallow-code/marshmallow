@@ -7,6 +7,8 @@ Changelog
 Other changes:
 
 - Drop support for Python 3.9 (:pr:`2363`).
+- Test against Python 3.14.
+
 
 4.0.1 (2025-08-28)
 ++++++++++++++++++
