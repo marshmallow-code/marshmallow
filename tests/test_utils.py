@@ -124,7 +124,7 @@ def test_from_timestamp_with_negative_value():
 
 def test_from_timestamp_with_overflow_value():
     value = 9223372036854775
-    with pytest.raises(ValueError, match="out of range"):
+    with pytest.raises(ValueError, match=r"out of range|year must be in 1\.\.9999"):
         utils.from_timestamp(value)
 
 

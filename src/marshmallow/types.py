@@ -7,23 +7,16 @@
 
 from __future__ import annotations
 
-try:
-    from typing import TypeAlias
-except ImportError:  # Remove when dropping Python 3.9
-    from typing_extensions import TypeAlias
-
 import typing
 
 #: A type that can be either a sequence of strings or a set of strings
-StrSequenceOrSet: TypeAlias = typing.Union[
-    typing.Sequence[str], typing.AbstractSet[str]
-]
+StrSequenceOrSet: typing.TypeAlias = typing.Sequence[str] | typing.AbstractSet[str]
 
 #: Type for validator functions
-Validator: TypeAlias = typing.Callable[[typing.Any], typing.Any]
+Validator: typing.TypeAlias = typing.Callable[[typing.Any], typing.Any]
 
 #: A valid option for the ``unknown`` schema option and argument
-UnknownOption: TypeAlias = typing.Literal["exclude", "include", "raise"]
+UnknownOption: typing.TypeAlias = typing.Literal["exclude", "include", "raise"]
 
 
 class SchemaValidator(typing.Protocol):

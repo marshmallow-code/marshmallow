@@ -1314,7 +1314,7 @@ class TestFieldDeserialization:
         field = fields.List(fields.DateTime())
         result = field.deserialize(dstrings)
         assert all(isinstance(each, dt.datetime) for each in result)
-        for actual, expected in zip(result, dtimes):
+        for actual, expected in zip(result, dtimes, strict=True):
             assert_date_equal(actual, expected)
 
     def test_list_field_deserialize_invalid_item(self):
@@ -1355,7 +1355,9 @@ class TestFieldDeserialization:
 
         assert isinstance(result, tuple)
         assert len(result) == 2
-        for val, type_, true_val in zip(result, (dt.datetime, int), (dtime, 42)):
+        for val, type_, true_val in zip(
+            result, (dt.datetime, int), (dtime, 42), strict=True
+        ):
             assert isinstance(val, type_)
             assert val == true_val
 

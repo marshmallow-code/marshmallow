@@ -1188,7 +1188,9 @@ class Schema(metaclass=SchemaMeta):
             pass_original = validator_kwargs.get("pass_original", False)
 
             if many and not pass_collection:
-                for idx, (item, orig) in enumerate(zip(data, original_data)):
+                for idx, (item, orig) in enumerate(
+                    zip(data, original_data, strict=True)
+                ):
                     self._run_validator(
                         validator,
                         item,

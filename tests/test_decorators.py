@@ -165,7 +165,7 @@ class TestPassOriginal:
             def post_load(self, data, original, many, **kwargs):
                 if many:
                     ret = []
-                    for item, orig_item in zip(data, original):
+                    for item, orig_item in zip(data, original, strict=True):
                         item["_post_load"] = orig_item["sentinel"]
                         ret.append(item)
                 else:
@@ -177,7 +177,7 @@ class TestPassOriginal:
             def post_dump(self, data, original, many, **kwargs):
                 if many:
                     ret = []
-                    for item, orig_item in zip(data, original):
+                    for item, orig_item in zip(data, original, strict=True):
                         item["_post_dump"] = orig_item["sentinel"]
                         ret.append(item)
                 else:

@@ -2265,7 +2265,7 @@ class TestGetAttribute:
         ]
         schema = UserDictSchema(many=True)
         results = schema.dump(user_dicts)
-        for result, user_dict in zip(results, user_dicts):
+        for result, user_dict in zip(results, user_dicts, strict=True):
             assert result["name"] == user_dict["_name"]
             assert result["email"] == user_dict["_email"]
         # can't serialize User object
