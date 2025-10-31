@@ -14,6 +14,7 @@ from marshmallow import (
     RAISE,
     Schema,
     fields,
+    missing,
     validate,
 )
 from marshmallow.exceptions import ValidationError
@@ -1004,6 +1005,13 @@ class TestFieldDeserialization:
     def test_function_field_deserialization_with_callable(self):
         field = fields.Function(lambda x: None, deserialize=lambda val: val.upper())
         assert field.deserialize("foo") == "FOO"
+
+    def test_function_field_deserialization_missing_with_length_validator(self):
+        field = fields.Function(
+            deserialize=lambda value: value.get("some-key", missing),
+            validate=validate.Length(min=0),
+        )
+        assert field.deserialize({}) is missing
 
     def test_function_field_passed_deserialize_only_is_load_only(self):
         field = fields.Function(deserialize=lambda val: val.upper())
