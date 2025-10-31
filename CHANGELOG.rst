@@ -6,6 +6,9 @@ Changelog
 
 Other changes:
 
+- Add `__len__` implementation to `missing` so that it can be used with
+  `validate.Length <marshmallow.validate.Length>` (:pr:`2861`).
+  Thanks :user:`agentgodzilla` for the PR.
 - Drop support for Python 3.9 (:pr:`2363`).
 - Test against Python 3.14.
 
