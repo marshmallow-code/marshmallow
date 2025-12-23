@@ -6,7 +6,7 @@ Changelog
 
 Bug fixes:
 
-- :cve:`CVE-2025-68480`: Merge error store messages without rebuilding collections.
+- :cve:`2025-68480`: Merge error store messages without rebuilding collections.
   Thanks 카푸치노 for reporting and :user:`deckar01` for the fix.
 
 3.26.1 (2025-02-03)
@@ -1568,7 +1568,7 @@ Bug fixes:
 
 Bug fixes:
 
-- :cve:`CVE-2018-17175`: Fix behavior when an empty list is passed as the ``only`` argument
+- :cve:`2018-17175`: Fix behavior when an empty list is passed as the ``only`` argument
   (:issue:`772`). Thanks :user:`deckar01` for reporting and thanks
   :user:`lafrech` for the fix.
 
