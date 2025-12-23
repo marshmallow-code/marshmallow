@@ -558,7 +558,7 @@ class Nested(Field):
                         f"`Schema`, not {nested.__class__}."
                     )
                 else:
-                    schema_class = class_registry.get_class(nested, all=False)  # type: ignore[unreachable]
+                    schema_class = class_registry.get_class(nested, all=False)
                 self._schema = schema_class(
                     many=self.many,
                     only=self.only,
