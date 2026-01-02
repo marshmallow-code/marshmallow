@@ -18,5 +18,8 @@ class _Missing:
     def __repr__(self):
         return "<marshmallow.missing>"
 
+    def __len__(self):
+        return 0
+
 
 missing: typing.Final = _Missing()

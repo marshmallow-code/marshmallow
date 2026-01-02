@@ -341,7 +341,7 @@ class Schema(metaclass=SchemaMeta):
 
                 class MySchema2(Schema):
                     # Type checkers will check attributes
-                    class Meta(Schema.Opts):
+                    class Meta(Schema.Meta):
                         additional = True  # Incompatible types in assignment
 
         .. versionremoved:: 3.0.0b7 Remove ``strict``.
@@ -1188,7 +1188,9 @@ class Schema(metaclass=SchemaMeta):
             pass_original = validator_kwargs.get("pass_original", False)
 
             if many and not pass_collection:
-                for idx, (item, orig) in enumerate(zip(data, original_data)):
+                for idx, (item, orig) in enumerate(
+                    zip(data, original_data, strict=True)
+                ):
                     self._run_validator(
                         validator,
                         item,

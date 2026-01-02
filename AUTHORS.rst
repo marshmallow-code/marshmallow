@@ -179,4 +179,6 @@ Contributors (chronological)
 - Dharanikumar Sekar `@dharani7998 <https://github.com/dharani7998>`_
 - Nicolas Simonds `@0xDEC0DE <https://github.com/0xDEC0DE>`_
 - Florian Laport `@Florian-Laport <https://github.com/Florian-Laport>`_
+- `@agentgodzilla <https://github.com/agentgodzilla>`_
+- Xiao `@T90REAL <https://github.com/T90REAL>`_
 - jfo `@jafournier <https://github.com/jafournier>`_

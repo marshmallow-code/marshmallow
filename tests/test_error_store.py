@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
 from marshmallow import missing
-from marshmallow.error_store import merge_errors
+from marshmallow.error_store import ErrorStore, merge_errors
 
 
 def test_missing_is_falsy():
@@ -149,3 +149,19 @@ class TestMergeErrors:
         assert merge_errors(
             {"field1": {"field2": "error1"}}, {"field1": {"field2": "error2"}}
         ) == {"field1": {"field2": ["error1", "error2"]}}
+
+    def test_list_not_changed(self):
+        store = ErrorStore()
+        message = ["foo"]
+        store.store_error(message)
+        store.store_error(message)
+        assert message == ["foo"]
+        assert store.errors == {"_schema": ["foo", "foo"]}
+
+    def test_dict_not_changed(self):
+        store = ErrorStore()
+        message = {"foo": ["bar"]}
+        store.store_error(message)
+        store.store_error(message)
+        assert message == {"foo": ["bar"]}
+        assert store.errors == {"foo": ["bar", "bar"]}

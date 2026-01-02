@@ -563,7 +563,7 @@ class Nested(Field):
                         f"`Schema`, not {nested.__class__}."
                     )
                 else:
-                    schema_class = class_registry.get_class(nested, all=False)  # type: ignore[unreachable]
+                    schema_class = class_registry.get_class(nested, all=False)
                 self._schema = schema_class(
                     many=bool(self.many),
                     only=self.only,
@@ -690,7 +690,7 @@ class Pluck(Nested):
         return self._load(value, partial=partial)
 
 
-class List(Field[list[typing.Optional[_InternalT]]]):
+class List(Field[list[_InternalT | None]]):
     """A list field, composed with another `Field` class or
     instance.
 
@@ -821,7 +821,7 @@ class Tuple(Field[tuple]):
 
         return tuple(
             field._serialize(each, attr, obj, **kwargs)
-            for field, each in zip(self.tuple_fields, value)
+            for field, each in zip(self.tuple_fields, value, strict=True)
         )
 
     def _deserialize(
@@ -839,7 +839,7 @@ class Tuple(Field[tuple]):
         result = []
         errors = {}
 
-        for idx, (field, each) in enumerate(zip(self.tuple_fields, value)):
+        for idx, (field, each) in enumerate(zip(self.tuple_fields, value, strict=True)):
             try:
                 result.append(field.deserialize(each, **kwargs))
             except ValidationError as error:
@@ -1750,7 +1750,7 @@ class Email(String):
         self.validators.insert(0, validator)
 
 
-class IP(Field[typing.Union[ipaddress.IPv4Address, ipaddress.IPv6Address]]):
+class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
     """A IP address field.
 
     :param exploded: If `True`, serialize ipv6 address in long form, ie. with groups
@@ -1807,9 +1807,7 @@ class IPv6(IP):
     DESERIALIZATION_CLASS = ipaddress.IPv6Address
 
 
-class IPInterface(
-    Field[typing.Union[ipaddress.IPv4Interface, ipaddress.IPv6Interface]]
-):
+class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
     """A IPInterface field.
 
     IP interface is the non-strict form of the IPNetwork type where arbitrary host

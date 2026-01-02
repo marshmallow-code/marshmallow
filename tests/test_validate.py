@@ -205,6 +205,14 @@ def test_url_custom_scheme():
     assert validator(url) == url
 
 
+def test_url_custom_scheme_case_insensitive():
+    validator = validate.URL(schemes={"HTTP"})
+    assert validator("http://example.com") == "http://example.com"
+
+    validator = validate.URL(schemes={"HtTp"})
+    assert validator("hTtP://example.com") == "hTtP://example.com"
+
+
 @pytest.mark.parametrize(
     "valid_url",
     (

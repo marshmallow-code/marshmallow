@@ -68,8 +68,8 @@ Example: ::
 from __future__ import annotations
 
 import functools
+import typing
 from collections import defaultdict
-from typing import Any, Callable, cast
 
 PRE_DUMP = "pre_dump"
 POST_DUMP = "post_dump"
@@ -80,10 +80,10 @@ VALIDATES_SCHEMA = "validates_schema"
 
 
 class MarshmallowHook:
-    __marshmallow_hook__: dict[str, list[tuple[bool, Any]]] | None = None
+    __marshmallow_hook__: dict[str, list[tuple[bool, typing.Any]]] | None = None
 
 
-def validates(*field_names: str) -> Callable[..., Any]:
+def validates(*field_names: str) -> typing.Callable[..., typing.Any]:
     """Register a validator method for field(s).
 
     :param field_names: Names of the fields that the method validates.
@@ -95,12 +95,12 @@ def validates(*field_names: str) -> Callable[..., Any]:
 
 
 def validates_schema(
-    fn: Callable[..., Any] | None = None,
+    fn: typing.Callable[..., typing.Any] | None = None,
     *,
     pass_collection: bool = False,
     pass_original: bool = False,
     skip_on_field_errors: bool = True,
-) -> Callable[..., Any]:
+) -> typing.Callable[..., typing.Any]:
     """Register a schema-level validator.
 
     By default it receives a single object at a time, transparently handling the ``many``
@@ -131,10 +131,10 @@ def validates_schema(
 
 
 def pre_dump(
-    fn: Callable[..., Any] | None = None,
+    fn: typing.Callable[..., typing.Any] | None = None,
     *,
     pass_collection: bool = False,
-) -> Callable[..., Any]:
+) -> typing.Callable[..., typing.Any]:
     """Register a method to invoke before serializing an object. The method
     receives the object to be serialized and returns the processed object.
 
@@ -150,11 +150,11 @@ def pre_dump(
 
 
 def post_dump(
-    fn: Callable[..., Any] | None = None,
+    fn: typing.Callable[..., typing.Any] | None = None,
     *,
     pass_collection: bool = False,
     pass_original: bool = False,
-) -> Callable[..., Any]:
+) -> typing.Callable[..., typing.Any]:
     """Register a method to invoke after serializing an object. The method
     receives the serialized object and returns the processed object.
 
@@ -173,10 +173,10 @@ def post_dump(
 
 
 def pre_load(
-    fn: Callable[..., Any] | None = None,
+    fn: typing.Callable[..., typing.Any] | None = None,
     *,
     pass_collection: bool = False,
-) -> Callable[..., Any]:
+) -> typing.Callable[..., typing.Any]:
     """Register a method to invoke before deserializing an object. The method
     receives the data to be deserialized and returns the processed data.
 
@@ -194,11 +194,11 @@ def pre_load(
 
 
 def post_load(
-    fn: Callable[..., Any] | None = None,
+    fn: typing.Callable[..., typing.Any] | None = None,
     *,
     pass_collection: bool = False,
     pass_original: bool = False,
-) -> Callable[..., Any]:
+) -> typing.Callable[..., typing.Any]:
     """Register a method to invoke after deserializing an object. The method
     receives the deserialized data and returns the processed data.
 
@@ -219,12 +219,12 @@ def post_load(
 
 
 def set_hook(
-    fn: Callable[..., Any] | None,
+    fn: typing.Callable[..., typing.Any] | None,
     tag: str,
     *,
     many: bool = False,
-    **kwargs: Any,
-) -> Callable[..., Any]:
+    **kwargs: typing.Any,
+) -> typing.Callable[..., typing.Any]:
     """Mark decorated function as a hook to be picked up later.
     You should not need to use this method directly.
 
@@ -241,7 +241,7 @@ def set_hook(
 
     # Set a __marshmallow_hook__ attribute instead of wrapping in some class,
     # because I still want this to end up as a normal (unbound) method.
-    function = cast("MarshmallowHook", fn)
+    function = typing.cast("MarshmallowHook", fn)
     try:
         hook_config = function.__marshmallow_hook__
     except AttributeError:

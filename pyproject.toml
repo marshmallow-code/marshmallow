@@ -1,6 +1,6 @@
 [project]
 name = "marshmallow"
-version = "4.0.1"
+version = "4.1.2"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 readme = "README.rst"
 license = { file = "LICENSE" }
@@ -15,13 +15,13 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "backports-datetime-fromisoformat; python_version < '3.11'",
   "typing-extensions; python_version < '3.11'",
@@ -37,7 +37,7 @@ Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=py
 [project.optional-dependencies]
 docs = [
   "autodocsumm==0.2.14",
-  "furo==2025.7.19",
+  "furo==2025.12.19",
   "sphinx-copybutton==0.5.2",
   "sphinx-issues==5.0.1",
   "sphinx==8.2.3",
@@ -108,6 +108,7 @@ ignore = [
   "PLR0915", # allow lots of statements
   "PT007",   # ignore false positives due to https://github.com/astral-sh/ruff/issues/14743
   "PT011",   # don't require match when using pytest.raises
+  "RUF043",  # allow metacharacters in match patterns
   "S",       # allow asserts
   "SIM117",  # allow nested with statements because it's more readable sometimes
   "SLF001",  # allow private attribute access
@@ -124,7 +125,7 @@ ignore = [
 [tool.mypy]
 files = ["src", "tests", "examples"]
 ignore_missing_imports = true
-warn_unreachable = true
+warn_unreachable = false
 warn_unused_ignores = true
 warn_redundant_casts = true
 no_implicit_optional = true

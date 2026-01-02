@@ -18,11 +18,20 @@ class ErrorStore:
         # field error  -> store/merge error messages under field name key
         # schema error -> if string or list, store/merge under _schema key
         #              -> if dict, store/merge with other top-level keys
+        messages = copy_containers(messages)
         if field_name != SCHEMA or not isinstance(messages, dict):
             messages = {field_name: messages}
         if index is not None:
             messages = {index: messages}
         self.errors = merge_errors(self.errors, messages)
+
+
+def copy_containers(errors):
+    if isinstance(errors, list):
+        return [copy_containers(val) for val in errors]
+    if isinstance(errors, dict):
+        return {key: copy_containers(val) for key, val in errors.items()}
+    return errors
 
 
 def merge_errors(errors1, errors2):  # noqa: PLR0911
@@ -37,24 +46,26 @@ def merge_errors(errors1, errors2):  # noqa: PLR0911
         return errors1
     if isinstance(errors1, list):
         if isinstance(errors2, list):
-            return errors1 + errors2
+            errors1.extend(errors2)
+            return errors1
         if isinstance(errors2, dict):
-            return dict(errors2, **{SCHEMA: merge_errors(errors1, errors2.get(SCHEMA))})
-        return [*errors1, errors2]
+            errors2[SCHEMA] = merge_errors(errors1, errors2.get(SCHEMA))
+            return errors2
+        errors1.append(errors2)
+        return errors1
     if isinstance(errors1, dict):
-        if isinstance(errors2, list):
-            return dict(errors1, **{SCHEMA: merge_errors(errors1.get(SCHEMA), errors2)})
         if isinstance(errors2, dict):
-            errors = dict(errors1)
             for key, val in errors2.items():
-                if key in errors:
-                    errors[key] = merge_errors(errors[key], val)
+                if key in errors1:
+                    errors1[key] = merge_errors(errors1[key], val)
                 else:
-                    errors[key] = val
-            return errors
-        return dict(errors1, **{SCHEMA: merge_errors(errors1.get(SCHEMA), errors2)})
+                    errors1[key] = val
+            return errors1
+        errors1[SCHEMA] = merge_errors(errors1.get(SCHEMA), errors2)
+        return errors1
     if isinstance(errors2, list):
         return [errors1, *errors2]
     if isinstance(errors2, dict):
-        return dict(errors2, **{SCHEMA: merge_errors(errors1, errors2.get(SCHEMA))})
+        errors2[SCHEMA] = merge_errors(errors1, errors2.get(SCHEMA))
+        return errors2
     return [errors1, errors2]

@@ -7,31 +7,25 @@ import inspect
 import typing
 from collections.abc import Mapping, Sequence
 
-# Remove when we drop Python 3.9
-try:
-    from typing import TypeGuard
-except ImportError:
-    from typing_extensions import TypeGuard
-
 from marshmallow.constants import missing
 
 
-def is_generator(obj) -> TypeGuard[typing.Generator]:
+def is_generator(obj) -> typing.TypeGuard[typing.Generator]:
     """Return True if ``obj`` is a generator"""
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
-def is_iterable_but_not_string(obj) -> TypeGuard[typing.Iterable]:
+def is_iterable_but_not_string(obj) -> typing.TypeGuard[typing.Iterable]:
     """Return True if ``obj`` is an iterable object that isn't a string."""
     return (hasattr(obj, "__iter__") and not hasattr(obj, "strip")) or is_generator(obj)
 
 
-def is_sequence_but_not_string(obj) -> TypeGuard[Sequence]:
+def is_sequence_but_not_string(obj) -> typing.TypeGuard[Sequence]:
     """Return True if ``obj`` is a sequence that isn't a string."""
     return isinstance(obj, Sequence) and not isinstance(obj, (str, bytes))
 
 
-def is_collection(obj) -> TypeGuard[typing.Iterable]:
+def is_collection(obj) -> typing.TypeGuard[typing.Iterable]:
     """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
