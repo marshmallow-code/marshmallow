@@ -1,6 +1,15 @@
 Changelog
 =========
 
+
+4.2.0 (unreleased)
+------------------
+
+Other changes:
+
+- ``many`` argument of ``Nested`` properly overrides schema instance
+  value (:pr:`2854`). Thanks :user:`jafournier` for the PR.
+
 4.1.2 (2025-12-19)
 ------------------
 
