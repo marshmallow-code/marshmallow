@@ -40,7 +40,7 @@ docs = [
   "furo==2025.12.19",
   "sphinx-copybutton==0.5.2",
   "sphinx-issues==5.0.1",
-  "sphinx==8.2.3",
+  "sphinx==9.1.0",
   "sphinxext-opengraph==0.13.0",
 ]
 tests = ["pytest", "simplejson"]
