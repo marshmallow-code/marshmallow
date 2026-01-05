@@ -34,6 +34,7 @@ suppress_warnings = ["ref.python"]
 
 html_theme = "furo"
 html_theme_options = {
+    "announcement": 'marshmallow version 3 will be unsupported starting April 16, 2026. <a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html">Upgrade to version 4</a> as soon as you can.',
     "light_logo": "marshmallow-logo-with-title.png",
     "dark_logo": "marshmallow-logo-with-title-for-dark-theme.png",
     "source_repository": "https://github.com/marshmallow-code/marshmallow",
