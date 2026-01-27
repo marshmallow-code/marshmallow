@@ -1413,6 +1413,15 @@ class TestFieldDeserialization:
         assert sch.load({})["foo"] == 42
         assert sch.load({"foo": 24})["foo"] == 42
 
+    def test_constant_none_allows_none_value(self):
+        class MySchema(Schema):
+            foo = fields.Constant(None)
+
+        sch = MySchema()
+        assert sch.load({"foo": None})["foo"] is None
+        assert sch.load({})["foo"] is None
+        assert sch.load({"foo": "ignored"})["foo"] is None
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=predicate(lambda s: s.lower() == "valid"))
         assert field.deserialize("Valid") == "Valid"

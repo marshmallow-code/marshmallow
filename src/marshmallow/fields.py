@@ -2065,10 +2065,10 @@ class Constant(Field[_ContantT]):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, constant: _ContantT, **kwargs: Unpack[_BaseFieldKwargs]):
+        kwargs["load_default"] = constant
+        kwargs["dump_default"] = constant
         super().__init__(**kwargs)
         self.constant = constant
-        self.load_default = constant
-        self.dump_default = constant
 
     def _serialize(self, value, *args, **kwargs) -> _ContantT:
         return self.constant
