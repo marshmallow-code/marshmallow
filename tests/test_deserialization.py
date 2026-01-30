@@ -1413,6 +1413,22 @@ class TestFieldDeserialization:
         assert sch.load({})["foo"] == 42
         assert sch.load({"foo": 24})["foo"] == 42
 
+    def test_constant_none_allows_null_input(self):
+        """Test that Constant(None) correctly allows null input (issue #2868)."""
+
+        class MySchema(Schema):
+            sentinel = fields.Constant(None)
+
+        schema = MySchema()
+        # Should not raise ValidationError
+        result = schema.load({"sentinel": None})
+        assert result["sentinel"] is None
+        # Should also work with any other input
+        result = schema.load({"sentinel": "anything"})
+        assert result["sentinel"] is None
+        # Dump should also work
+        assert schema.dump({"sentinel": "anything"})["sentinel"] is None
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=predicate(lambda s: s.lower() == "valid"))
         assert field.deserialize("Valid") == "Valid"

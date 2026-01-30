@@ -2065,10 +2065,13 @@ class Constant(Field[_ContantT]):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, constant: _ContantT, **kwargs: Unpack[_BaseFieldKwargs]):
+        # Set load_default and dump_default before calling super().__init__
+        # so that allow_none is correctly computed when constant is None
+        # (fixes issue #2868)
+        kwargs.setdefault("load_default", constant)
+        kwargs.setdefault("dump_default", constant)
         super().__init__(**kwargs)
         self.constant = constant
-        self.load_default = constant
-        self.dump_default = constant
 
     def _serialize(self, value, *args, **kwargs) -> _ContantT:
         return self.constant
