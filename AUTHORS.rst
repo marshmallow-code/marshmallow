@@ -183,3 +183,4 @@ Contributors (chronological)
 - Xiao `@T90REAL <https://github.com/T90REAL>`_
 - jfo `@jafournier <https://github.com/jafournier>`_
 - thanhlecongg `@thanhlecongg <https://github.com/thanhlecongg>`_
+- Emmanuel Ferdman  `@emmanuel-ferdman  <https://github.com/emmanuel-ferdman>`_

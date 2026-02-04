@@ -1,6 +1,14 @@
 Changelog
 =========
 
+unreleased
+----------
+
+Bug fixes:
+
+- Fix behavior of ``fields.Contant(None)`` (:issue:`2868`).
+  Thanks :user:`T90REAL` for reporting and `emmanuel-ferdman` for the fix.
+
 
 4.2.1 (2026-01-23)
 ------------------
