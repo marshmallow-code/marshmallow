@@ -1,6 +1,7 @@
 """Tests for marshmallow.validate"""
 
 import re
+import warnings
 
 import pytest
 
@@ -725,13 +726,24 @@ def test_oneof_options():
     expected = [("1", "one"), ("2", "two"), ("3", "")]
     assert list(oneof.options()) == expected
 
-    oneof = validate.OneOf([1, 2], ["one", "two", "three"])
-    expected = [("1", "one"), ("2", "two"), ("", "three")]
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter("always")
+        oneof = validate.OneOf([1, 2], ["one", "two", "three"])
+    expected = [("1", "one"), ("2", "two")]
     assert list(oneof.options()) == expected
 
     oneof = validate.OneOf([1, 2])
     expected = [("1", ""), ("2", "")]
     assert list(oneof.options()) == expected
+
+
+def test_oneof_options_labels_exceed_choices():
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        oneof = validate.OneOf([1, 2], ["one", "two", "three"])
+        assert len(w) == 1
+
+    assert list(oneof.options()) == [("1", "one"), ("2", "two")]
 
 
 def test_oneof_text():

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 from abc import ABC, abstractmethod
-from itertools import zip_longest
 from operator import attrgetter
 
 from marshmallow.exceptions import ValidationError
@@ -594,6 +594,16 @@ class OneOf(Validator):
         self.labels = labels if labels is not None else []
         self.labels_text = ", ".join(str(label) for label in self.labels)
         self.error: str = error or self.default_message
+        if labels is not None:
+            try:
+                if len(self.labels) > len(self.choices):
+                    warnings.warn(
+                        "The number of labels exceeds the number of choices. "
+                        "Extra labels will be ignored in options().",
+                        stacklevel=2,
+                    )
+            except TypeError:
+                pass
 
     def _repr_args(self) -> str:
         return f"choices={self.choices!r}, labels={self.labels!r}"
@@ -626,7 +636,8 @@ class OneOf(Validator):
             of an attribute of the choice objects. Defaults to `str()`.
         """
         valuegetter = valuegetter if callable(valuegetter) else attrgetter(valuegetter)
-        pairs = zip_longest(self.choices, self.labels, fillvalue="")
+        labels = list(self.labels) + [""] * max(0, len(self.choices) - len(self.labels))
+        pairs = zip(self.choices, labels, strict=False)
 
         return ((valuegetter(choice), label) for choice, label in pairs)
 
