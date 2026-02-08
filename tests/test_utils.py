@@ -79,6 +79,42 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+def test_get_value_out_of_range_int_index_returns_default():
+    """get_value should return default when an int index is out of range.
+
+    Regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+    """
+    # Out-of-range index on a list
+    lst = [0, 1, 2, 3, 4, 5]
+    assert utils.get_value(lst, 999, default=3) == 3
+
+    # Missing int key on a dict with int keys
+    dictionary = {1: "a", 2: "b", 3: "c"}
+    assert utils.get_value(dictionary, 4, default="z") == "z"
+
+    # Out-of-range index on a nested list of objects
+    class PointClass:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+
+    list_obj = [[PointClass(24, 42), {"x": 24, "y": 42}]]
+    assert utils.get_value(list_obj, 3, default=None) is None
+
+
+def test_get_value_int_key_on_non_subscriptable_returns_default():
+    """get_value should return default when key is int and obj has no __getitem__.
+
+    Regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+    """
+
+    class Obj:
+        pass
+
+    obj = Obj()
+    assert utils.get_value(obj, 42, default="fallback") == "fallback"
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
