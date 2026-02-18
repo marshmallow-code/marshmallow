@@ -2065,10 +2065,18 @@ class Constant(Field[_ContantT]):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, constant: _ContantT, **kwargs: Unpack[_BaseFieldKwargs]):
-        kwargs["load_default"] = constant
-        kwargs["dump_default"] = constant
         super().__init__(**kwargs)
         self.constant = constant
+        self.load_default = constant
+        self.dump_default = constant
+        # If allow_none was not explicitly provided and the constant is None,
+        # None should be considered valid (mirrors Field.__init__ logic).
+        if kwargs.get("allow_none") is None and constant is None:
+            self.allow_none = True
+
+    def _validate_missing(self, value):
+        if value is None and not self.allow_none:
+            raise self.make_error("null")
 
     def _serialize(self, value, *args, **kwargs) -> _ContantT:
         return self.constant
