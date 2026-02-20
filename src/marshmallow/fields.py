@@ -1938,9 +1938,10 @@ class Enum(Field[_EnumT]):
             except ValueError as error:
                 raise self.make_error("unknown", choices=self.choices_text) from error
         try:
-            return getattr(self.enum, val)
-        except AttributeError as error:
+            ret = self.enum[val]
+        except KeyError as error:
             raise self.make_error("unknown", choices=self.choices_text) from error
+        return ret
 
 
 class Method(Field):
