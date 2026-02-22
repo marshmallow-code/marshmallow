@@ -589,6 +589,13 @@ class TestFieldDeserialization:
         assert field.deserialize(value) == expected_aware
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    @pytest.mark.parametrize("in_value", [True, False])
+    def test_boolean_timestamp_field_deserialization(self, fmt, in_value):
+        field = fields.DateTime(format=fmt)
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
+            field.deserialize(in_value)
+
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "in_value",
         ["", "!@#", -1],
