@@ -1197,6 +1197,14 @@ class TestFieldDeserialization:
         ):
             field.deserialize("dummy")
 
+    @pytest.mark.parametrize("non_member", ["mro", "__class__", "__members__"])
+    def test_enum_field_by_symbol_rejects_non_member_attributes(self, non_member):
+        field = fields.Enum(GenderEnum)
+        with pytest.raises(
+            ValidationError, match="Must be one of: male, female, non_binary."
+        ):
+            field.deserialize(non_member)
+
     def test_enum_field_by_symbol_not_string(self):
         field = fields.Enum(GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid string."):
