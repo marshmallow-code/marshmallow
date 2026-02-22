@@ -127,6 +127,7 @@ def test_from_timestamp_with_overflow_value():
     with pytest.raises(ValueError, match=r"out of range|year must be in 1\.\.9999"):
         utils.from_timestamp(value)
 
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
@@ -144,6 +145,7 @@ def test_from_timestamp_ms(value, expected):
 def test_from_timestamp_ms_rejects_booleans(value):
     with pytest.raises(ValueError, match=r"Not a valid POSIX timestamp"):
         utils.from_timestamp_ms(value)
+
 
 # Regression test for https://github.com/marshmallow-code/marshmallow/issues/540
 def test_function_field_using_type_annotation():
