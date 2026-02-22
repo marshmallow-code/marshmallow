@@ -2299,6 +2299,26 @@ class TestValidation:
         with pytest.raises(ValidationError):
             SchemaB().load({"z": {"x": 0}})
 
+    def test_nested_partial_tuple_with_data_key(self):
+        class AddressSchema(Schema):
+            zip_code = fields.String(required=True)
+            city = fields.String(required=True)
+
+        class PersonSchema(Schema):
+            address = fields.Nested(
+                AddressSchema, data_key="homeAddress", required=True
+            )
+
+        data = {"homeAddress": {"city": "Springfield"}}
+        # partial uses attr_name ("address.zip_code"), not data_key
+        result = PersonSchema().load(data, partial=("address.zip_code",))
+        assert result["address"]["city"] == "Springfield"
+        assert "zip_code" not in result["address"]
+        # Without partial, it should fail on the missing required field
+        with pytest.raises(ValidationError) as excinfo:
+            PersonSchema().load(data)
+        assert "zip_code" in excinfo.value.messages["homeAddress"]
+
 
 @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
 def test_required_field_failure(FieldClass):
