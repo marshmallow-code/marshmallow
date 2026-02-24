@@ -123,6 +123,10 @@ def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
+        # If key is an int, we can't use getattr (requires string)
+        # Just return the default value
+        if isinstance(key, int):
+            return default
         return getattr(obj, key, default)
 
 
