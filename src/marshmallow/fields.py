@@ -94,7 +94,7 @@ class _BaseFieldKwargs(typing.TypedDict, total=False):
     allow_none: bool | None
     load_only: bool
     dump_only: bool
-    error_messages: dict[str, str] | None
+    error_messages: types.ErrorMessages | None
     metadata: typing.Mapping[str, typing.Any] | None
 
 
@@ -169,7 +169,7 @@ class Field(typing.Generic[_InternalT]):
     #: Default error messages for various kinds of errors. The keys in this dictionary
     #: are passed to `Field.make_error`. The values are error messages passed to
     #: :exc:`marshmallow.exceptions.ValidationError`.
-    default_error_messages: dict[str, str] = {
+    default_error_messages: types.ErrorMessages = {
         "required": "Missing data for required field.",
         "null": "Field may not be null.",
         "validator_failed": "Invalid value.",
@@ -187,7 +187,7 @@ class Field(typing.Generic[_InternalT]):
         allow_none: bool | None = None,
         load_only: bool = False,
         dump_only: bool = False,
-        error_messages: dict[str, str] | None = None,
+        error_messages: types.ErrorMessages | None = None,
         metadata: typing.Mapping[str, typing.Any] | None = None,
     ) -> None:
         self.dump_default = dump_default
@@ -220,7 +220,7 @@ class Field(typing.Generic[_InternalT]):
         metadata = metadata or {}
         self.metadata = metadata
         # Collect default error message from self and parent classes
-        messages: dict[str, str] = {}
+        messages: types.ErrorMessages = {}
         for cls in reversed(self.__class__.__mro__):
             messages.update(getattr(cls, "default_error_messages", {}))
         messages.update(error_messages or {})
