@@ -1,4 +1,5 @@
 import datetime as dt
+import ipaddress
 import math
 import random
 from collections import OrderedDict
@@ -2549,3 +2550,17 @@ def test_set_dict_class(dict_cls):
     result = MySchema().dump({"foo": "bar"})
     assert result == {"foo": "bar"}
     assert isinstance(result, dict_cls)
+
+
+class TestIPTypeMappings:
+    @pytest.mark.parametrize(
+        ("ip_type", "expected_field_cls"),
+        [
+            (ipaddress.IPv4Address, fields.IPv4),
+            (ipaddress.IPv6Address, fields.IPv6),
+            (ipaddress.IPv4Interface, fields.IPv4Interface),
+            (ipaddress.IPv6Interface, fields.IPv6Interface),
+        ],
+    )
+    def test_ip_types_in_type_mapping(self, ip_type, expected_field_cls):
+        assert Schema.TYPE_MAPPING[ip_type] is expected_field_cls
