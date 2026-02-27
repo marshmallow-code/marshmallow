@@ -1422,6 +1422,16 @@ class TestFieldDeserialization:
         assert sch.load({})["foo"] is None
         assert sch.load({"foo": "ignored"})["foo"] is None
 
+    def test_constant_with_required(self):
+        class MySchema(Schema):
+            type_ = fields.Constant("foo", required=True)
+
+        sch = MySchema()
+        assert sch.fields["type_"].required is True
+        assert sch.load({})["type_"] == "foo"
+        assert sch.load({"type_": "ignored"})["type_"] == "foo"
+        assert sch.dump({}) == {"type_": "foo"}
+
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=predicate(lambda s: s.lower() == "valid"))
         assert field.deserialize("Valid") == "Valid"

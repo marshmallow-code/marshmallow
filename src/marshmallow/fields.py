@@ -2065,10 +2065,21 @@ class Constant(Field[_ContantT]):
     _CHECK_ATTRIBUTE = False
 
     def __init__(self, constant: _ContantT, **kwargs: Unpack[_BaseFieldKwargs]):
+        # Extract required before passing to super().__init__ because
+        # Constant always sets load_default (to the constant value),
+        # which would conflict with the required=True check in Field.__init__.
+        is_required = kwargs.pop("required", False)
         kwargs["load_default"] = constant
         kwargs["dump_default"] = constant
         super().__init__(**kwargs)
+        self.required = is_required
         self.constant = constant
+
+    def _validate_missing(self, value: typing.Any) -> None:
+        # Skip the required check for Constant fields since the constant
+        # value is always available via load_default. Only check allow_none.
+        if value is None and not self.allow_none:
+            self.make_error("null")
 
     def _serialize(self, value, *args, **kwargs) -> _ContantT:
         return self.constant
