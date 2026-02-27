@@ -203,7 +203,7 @@ class URL(Validator):
         # Check first if the scheme is valid
         scheme = None
         if "://" in value:
-            scheme = value.split("://")[0].lower()
+            scheme = value.split("://", maxsplit=1)[0].lower()
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
@@ -634,7 +634,7 @@ class OneOf(Validator):
 
         return (
             (valuegetter(choice), label)
-            for choice, label in zip(choices, padded_labels)
+            for choice, label in zip(choices, padded_labels, strict=True)
         )
 
 
