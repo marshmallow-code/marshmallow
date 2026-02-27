@@ -79,6 +79,14 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+def test_get_value_out_of_range_int_returns_default():
+    lst = [0, 1, 2]
+    assert utils.get_value(lst, 999, default=3) == 3
+
+    d = {1: "a", 2: "b"}
+    assert utils.get_value(d, 4, default="z") == "z"
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
