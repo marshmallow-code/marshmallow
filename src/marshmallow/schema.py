@@ -690,7 +690,21 @@ class Schema(metaclass=SchemaMeta):
                 }
                 for key in set(data) - fields:
                     value = data[key]
-                    if unknown == INCLUDE:
+                    if isinstance(unknown, ma_fields.Field):
+
+                        def getter(val, unknown_field=unknown, field_name=key):
+                            return unknown_field.deserialize(val, field_name, data)
+
+                        deserialized = self._call_and_store(
+                            getter_func=getter,
+                            data=value,
+                            field_name=key,
+                            error_store=error_store,
+                            index=index,
+                        )
+                        if deserialized is not missing:
+                            ret_d[key] = deserialized
+                    elif unknown == INCLUDE:
                         ret_d[key] = value
                     elif unknown == RAISE:
                         error_store.store_error(
