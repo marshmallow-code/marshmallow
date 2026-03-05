@@ -108,6 +108,7 @@ ignore = [
   "PLR0915", # allow lots of statements
   "PT007",   # ignore false positives due to https://github.com/astral-sh/ruff/issues/14743
   "PT011",   # don't require match when using pytest.raises
+  "PLW0108", # allow lambda: MySchema, which is needed in some of the test cases
   "RUF043",  # allow metacharacters in match patterns
   "S",       # allow asserts
   "SIM117",  # allow nested with statements because it's more readable sometimes
