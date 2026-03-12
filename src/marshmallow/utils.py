@@ -123,7 +123,12 @@ def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        try:
+            return getattr(obj, key, default)
+        except TypeError:
+            # getattr requires a string attribute name; if key is
+            # a non-string (e.g. int), fall back to the default.
+            return default
 
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
