@@ -1,5 +1,5 @@
 from marshmallow import utils
-import pytest
+
 
 def test_get_value_out_of_range_int():
     lst = [0, 1, 2, 3, 4, 5]
@@ -11,14 +11,15 @@ def test_get_value_out_of_range_int():
     except Exception as e:
         print(f"Case 1 (List out of range) FAILED with {type(e).__name__}: {e}")
 
-    dictionary = {1: 'a', 2: 'b', 3: 'c'}
+    dictionary = {1: "a", 2: "b", 3: "c"}
     try:
-        val = utils.get_value(dictionary, 4, default='z')
+        val = utils.get_value(dictionary, 4, default="z")
         print(f"Case 2 (Dict missing int key): {val}")
     except TypeError as e:
         print(f"Case 2 (Dict missing int key) FAILED with TypeError: {e}")
     except Exception as e:
         print(f"Case 2 (Dict missing int key) FAILED with {type(e).__name__}: {e}")
+
 
 if __name__ == "__main__":
     test_get_value_out_of_range_int()
