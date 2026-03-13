@@ -9,14 +9,25 @@ from __future__ import annotations
 
 import typing
 
+if typing.TYPE_CHECKING:
+    from marshmallow.fields import Field
+
 #: A type that can be either a sequence of strings or a set of strings
 StrSequenceOrSet: typing.TypeAlias = typing.Sequence[str] | typing.AbstractSet[str]
 
 #: Type for validator functions
 Validator: typing.TypeAlias = typing.Callable[[typing.Any], typing.Any]
 
-#: A valid option for the ``unknown`` schema option and argument
-UnknownOption: typing.TypeAlias = typing.Literal["exclude", "include", "raise"]
+#: A valid option for the ``unknown`` schema option and argument.
+#: Can be a string constant (``"exclude"``, ``"include"``, ``"raise"``)
+#: or a :class:`Field <marshmallow.fields.Field>` instance to deserialize unknown
+#: field values through.
+if typing.TYPE_CHECKING:
+    UnknownOption: typing.TypeAlias = (
+        typing.Literal["exclude", "include", "raise"] | Field
+    )
+else:
+    UnknownOption: typing.TypeAlias = typing.Literal["exclude", "include", "raise"]
 
 
 class SchemaValidator(typing.Protocol):

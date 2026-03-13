@@ -638,6 +638,75 @@ def test_custom_error_message():
     assert "Invalid email" in errors["email"]
 
 
+class TestUnknownFieldOption:
+    """Tests for passing a Field instance to ``unknown``."""
+
+    def test_unknown_field_deserializes_values(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        schema = MySchema(unknown=fields.Int())
+        result = schema.load({"name": "Joe", "age": "42"})
+        assert result == {"name": "Joe", "age": 42}
+
+    def test_unknown_field_validation_error(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        schema = MySchema(unknown=fields.Int())
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"name": "Joe", "age": "not_a_number"})
+        assert "age" in excinfo.value.messages
+
+    def test_unknown_field_in_meta(self):
+        class MySchema(Schema):
+            class Meta:
+                unknown = fields.String()
+
+            name = fields.String()
+
+        result = MySchema().load({"name": "Joe", "extra": "hello"})
+        assert result == {"name": "Joe", "extra": "hello"}
+
+    def test_unknown_field_with_many(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        schema = MySchema(unknown=fields.Int())
+        result = schema.load(
+            [{"name": "Joe", "age": "42"}, {"name": "Jane", "score": "99"}],
+            many=True,
+        )
+        assert result == [{"name": "Joe", "age": 42}, {"name": "Jane", "score": 99}]
+
+    def test_unknown_field_in_load_kwarg(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        schema = MySchema()
+        result = schema.load({"name": "Joe", "extra": "42"}, unknown=fields.Int())
+        assert result == {"name": "Joe", "extra": 42}
+
+    def test_unknown_field_nested(self):
+        class ChildSchema(Schema):
+            num = fields.Int()
+
+        class ParentSchema(Schema):
+            child = fields.Nested(ChildSchema, unknown=fields.String())
+
+        data = {"child": {"num": 1, "extra": "hello"}}
+        result = ParentSchema().load(data)
+        assert result == {"child": {"num": 1, "extra": "hello"}}
+
+    def test_unknown_field_excludes_nothing(self):
+        class MySchema(Schema):
+            name = fields.String()
+
+        schema = MySchema(unknown=fields.Field())
+        result = schema.load({"name": "Joe", "extra": "value", "more": 123})
+        assert result == {"name": "Joe", "extra": "value", "more": 123}
+
+
 def test_custom_unknown_error_message():
     custom_message = "custom error message."
 
