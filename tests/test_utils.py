@@ -78,6 +78,17 @@ def test_get_value():
 
     assert utils.get_value(lst, MyInt(1)) == 2
 
+    # regression tests for https://github.com/marshmallow-code/marshmallow/issues/2893
+    assert utils.get_value(lst, 999, default=3) == 3
+    dictionary = {1: "a", 2: "b"}
+    assert utils.get_value(dictionary, 4, default="z") == "z"
+
+    class NoGetItem:
+        pass
+
+    obj = NoGetItem()
+    assert utils.get_value(obj, 1, default="default") == "default"
+
 
 def test_set_value():
     d: dict[str, int | dict] = {}
