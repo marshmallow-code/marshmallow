@@ -240,6 +240,10 @@ class Field(typing.Generic[_InternalT]):
             f"error_messages={self.error_messages})>"
         )
 
+    def resolved_data_key(self, field_name: str) -> str:
+        """Return the data key for this field, falling back to the given field name."""
+        return self.data_key if self.data_key is not None else field_name
+
     def __deepcopy__(self, memo):
         return copy.copy(self)
 

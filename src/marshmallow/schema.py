@@ -42,47 +42,21 @@ if typing.TYPE_CHECKING:
     from marshmallow.fields import Field
 
 
-def _get_fields(attrs) -> list[tuple[str, Field]]:
-    """Get fields from a class
+def _check_field_key_collisions(keys: list[str], *, key_type: str) -> None:
+    """Raise ValueError if there are duplicate keys in the given list.
 
-    :param attrs: Mapping of class attributes
+    :param keys: List of field keys to check for duplicates.
+    :param key_type: The type of key being checked (e.g. "data_key" or "attribute"),
+        used in the error message.
     """
-    ret = []
-    for field_name, field_value in attrs.items():
-        if isinstance(field_value, type) and issubclass(field_value, ma_fields.Field):
-            raise TypeError(
-                f'Field for "{field_name}" must be declared as a '
-                "Field instance, not a class. "
-                f'Did you mean "fields.{field_value.__name__}()"?'
-            )
-        if isinstance(field_value, ma_fields.Field):
-            ret.append((field_name, field_value))
-    return ret
-
-
-# This function allows Schemas to inherit from non-Schema classes and ensures
-#   inheritance according to the MRO
-def _get_fields_by_mro(klass: SchemaMeta):
-    """Collect fields from a class, following its method resolution order. The
-    class itself is excluded from the search; only its parents are checked. Get
-    fields from ``_declared_fields`` if available, else use ``__dict__``.
-
-    :param klass: Class whose fields to retrieve
-    """
-    mro = inspect.getmro(klass)
-    # Combine fields from all parents
-    # functools.reduce(operator.iadd, list_of_lists) is faster than sum(list_of_lists, [])
-    # Loop over mro in reverse to maintain correct order of fields
-    return functools.reduce(
-        operator.iadd,
-        (
-            _get_fields(
-                getattr(base, "_declared_fields", base.__dict__),
-            )
-            for base in mro[:0:-1]
-        ),
-        [],
-    )
+    if len(keys) != len(set(keys)):
+        duplicates = {x for x in keys if keys.count(x) > 1}
+        raise ValueError(
+            f"The {key_type} argument for one or more fields collides "
+            f"with another field's name or {key_type} argument. "
+            f"Check the following field names and "
+            f"{key_type} arguments: {list(duplicates)}"
+        )
 
 
 class SchemaMeta(ABCMeta):
@@ -97,6 +71,48 @@ class SchemaMeta(ABCMeta):
     OPTIONS_CLASS: type
     _declared_fields: dict[str, Field]
 
+    @staticmethod
+    def _get_fields(attrs) -> list[tuple[str, Field]]:
+        """Get fields from a class.
+
+        :param attrs: Mapping of class attributes
+        """
+        ret = []
+        for field_name, field_value in attrs.items():
+            if isinstance(field_value, type) and issubclass(
+                field_value, ma_fields.Field
+            ):
+                raise TypeError(
+                    f'Field for "{field_name}" must be declared as a '
+                    "Field instance, not a class. "
+                    f'Did you mean "fields.{field_value.__name__}()"?'
+                )
+            if isinstance(field_value, ma_fields.Field):
+                ret.append((field_name, field_value))
+        return ret
+
+    @staticmethod
+    def _get_fields_by_mro(klass: SchemaMeta) -> list[tuple[str, Field]]:
+        """Collect fields from a class, following its method resolution order.
+
+        The class itself is excluded from the search; only its parents are
+        checked. Get fields from ``_declared_fields`` if available, else use
+        ``__dict__``.
+
+        :param klass: Class whose fields to retrieve
+        """
+        mro = inspect.getmro(klass)
+        return functools.reduce(
+            operator.iadd,
+            (
+                SchemaMeta._get_fields(
+                    getattr(base, "_declared_fields", base.__dict__),
+                )
+                for base in mro[:0:-1]
+            ),
+            [],
+        )
+
     def __new__(
         mcs,
         name: str,
@@ -104,13 +120,13 @@ class SchemaMeta(ABCMeta):
         attrs: dict[str, typing.Any],
     ) -> SchemaMeta:
         meta = attrs.get("Meta")
-        cls_fields = _get_fields(attrs)
+        cls_fields = mcs._get_fields(attrs)
         # Remove fields from list of class attributes to avoid shadowing
         # Schema attributes/methods in case of name conflict
         for field_name, _ in cls_fields:
             del attrs[field_name]
         klass = super().__new__(mcs, name, bases, attrs)
-        inherited_fields = _get_fields_by_mro(klass)
+        inherited_fields = mcs._get_fields_by_mro(klass)
 
         meta = klass.Meta
         # Set klass.opts in __new__ rather than __init__ so that it is accessible in
@@ -536,7 +552,7 @@ class Schema(metaclass=SchemaMeta):
             value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
             if value is missing:
                 continue
-            key = field_obj.data_key if field_obj.data_key is not None else attr_name
+            key = field_obj.resolved_data_key(attr_name)
             ret[key] = value
         return ret
 
@@ -620,9 +636,9 @@ class Schema(metaclass=SchemaMeta):
         if many:
             if not is_sequence_but_not_string(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
-                ret_l = []
+                result_list = []
             else:
-                ret_l = [
+                result_list = [
                     self._deserialize(
                         d,
                         error_store=error_store,
@@ -633,17 +649,15 @@ class Schema(metaclass=SchemaMeta):
                     )
                     for idx, d in enumerate(data)
                 ]
-            return ret_l
-        ret_d = self.dict_class()
+            return result_list
+        result = self.dict_class()
         # Check data is a dict
         if not isinstance(data, Mapping):
             error_store.store_error([self.error_messages["type"]], index=index)
         else:
             partial_is_collection = is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
-                field_name = (
-                    field_obj.data_key if field_obj.data_key is not None else attr_name
-                )
+                field_name = field_obj.resolved_data_key(attr_name)
                 raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
@@ -651,26 +665,23 @@ class Schema(metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
-                # Allow partial loading of nested schemas.
-                if partial_is_collection:
-                    prefix = field_name + "."
-                    len_prefix = len(prefix)
-                    sub_partial = [
-                        f[len_prefix:] for f in partial if f.startswith(prefix)
-                    ]
-                    d_kwargs["partial"] = sub_partial
-                elif partial is not None:
-                    d_kwargs["partial"] = partial
+                field_deserialize_kwargs = self._build_field_deserialize_kwargs(
+                    field_name=field_name,
+                    partial=partial,
+                    partial_is_collection=partial_is_collection,
+                )
 
                 def getter(
-                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
+                    val,
+                    field_obj=field_obj,
+                    field_name=field_name,
+                    field_deserialize_kwargs=field_deserialize_kwargs,
                 ):
                     return field_obj.deserialize(
                         val,
                         field_name,
                         data,
-                        **d_kwargs,
+                        **field_deserialize_kwargs,
                     )
 
                 value = self._call_and_store(
@@ -682,23 +693,60 @@ class Schema(metaclass=SchemaMeta):
                 )
                 if value is not missing:
                     key = field_obj.attribute or attr_name
-                    set_value(ret_d, key, value)
+                    set_value(result, key, value)
             if unknown != EXCLUDE:
-                fields = {
-                    field_obj.data_key if field_obj.data_key is not None else field_name
-                    for field_name, field_obj in self.load_fields.items()
-                }
-                for key in set(data) - fields:
-                    value = data[key]
-                    if unknown == INCLUDE:
-                        ret_d[key] = value
-                    elif unknown == RAISE:
-                        error_store.store_error(
-                            [self.error_messages["unknown"]],
-                            key,
-                            (index if index_errors else None),
-                        )
-        return ret_d
+                self._handle_unknown_fields(
+                    data=data,
+                    unknown=unknown,
+                    error_store=error_store,
+                    ret_d=result,
+                    index=index,
+                    index_errors=index_errors,
+                )
+        return result
+
+    @staticmethod
+    def _build_field_deserialize_kwargs(
+        *,
+        field_name: str,
+        partial,
+        partial_is_collection: bool,
+    ) -> dict:
+        if partial_is_collection:
+            prefix = field_name + "."
+            len_prefix = len(prefix)
+            sub_partial = [
+                f[len_prefix:] for f in partial if f.startswith(prefix)
+            ]
+            return {"partial": sub_partial}
+        if partial is not None:
+            return {"partial": partial}
+        return {}
+
+    def _handle_unknown_fields(
+        self,
+        *,
+        data: Mapping[str, typing.Any],
+        unknown: types.UnknownOption,
+        error_store: ErrorStore,
+        ret_d: dict,
+        index: int | None,
+        index_errors: bool,
+    ) -> None:
+        known_fields = {
+            field_obj.resolved_data_key(field_name)
+            for field_name, field_obj in self.load_fields.items()
+        }
+        for key in set(data) - known_fields:
+            value = data[key]
+            if unknown == INCLUDE:
+                ret_d[key] = value
+            elif unknown == RAISE:
+                error_store.store_error(
+                    [self.error_messages["unknown"]],
+                    key,
+                    (index if index_errors else None),
+                )
 
     def load(
         self,
@@ -1019,30 +1067,17 @@ class Schema(metaclass=SchemaMeta):
                 dump_fields[field_name] = field_obj
 
         dump_data_keys = [
-            field_obj.data_key if field_obj.data_key is not None else name
-            for name, field_obj in dump_fields.items()
+            field_obj.resolved_data_key(name) for name, field_obj in dump_fields.items()
         ]
-        if len(dump_data_keys) != len(set(dump_data_keys)):
-            data_keys_duplicates = {
-                x for x in dump_data_keys if dump_data_keys.count(x) > 1
-            }
-            raise ValueError(
-                "The data_key argument for one or more fields collides "
-                "with another field's name or data_key argument. "
-                "Check the following field names and "
-                f"data_key arguments: {list(data_keys_duplicates)}"
-            )
+        _check_field_key_collisions(
+            dump_data_keys,
+            key_type="data_key",
+        )
         load_attributes = [obj.attribute or name for name, obj in load_fields.items()]
-        if len(load_attributes) != len(set(load_attributes)):
-            attributes_duplicates = {
-                x for x in load_attributes if load_attributes.count(x) > 1
-            }
-            raise ValueError(
-                "The attribute argument for one or more fields collides "
-                "with another field's name or attribute argument. "
-                "Check the following field names and "
-                f"attribute arguments: {list(attributes_duplicates)}"
-            )
+        _check_field_key_collisions(
+            load_attributes,
+            key_type="attribute",
+        )
 
         self.fields = fields_dict
         self.dump_fields = dump_fields
@@ -1131,9 +1166,7 @@ class Schema(metaclass=SchemaMeta):
                         continue
                     raise ValueError(f'"{field_name}" field does not exist.') from error
 
-                data_key = (
-                    field_obj.data_key if field_obj.data_key is not None else field_name
-                )
+                data_key = field_obj.resolved_data_key(field_name)
                 do_validate = functools.partial(validator, data_key=data_key)
 
                 if many:
