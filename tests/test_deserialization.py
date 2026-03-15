@@ -322,6 +322,23 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError):
             field.deserialize({})
 
+    def test_bytes_field_deserialization(self):
+        field = fields.Bytes()
+        assert field.deserialize(b"foo") == b"foo"
+        assert field.deserialize(bytearray(b"foo")) == b"foo"
+        assert field.deserialize("foo") == b"foo"
+        assert field.deserialize(0xDEAD) == b"\xDE\xAD"
+        assert field.deserialize([0xBE, 0xEF]) == b"\xBE\xEF"
+        assert field.deserialize((0xB, 0xA, 0xB, 0xE)) == b"\x0B\x0A\x0B\x0E"
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize({"hi": 222})
+        assert excinfo.value.args[0] == "not a bytes-like object"
+
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(['12345'])
+        assert excinfo.value.args[0] == "not a bytes-like object"
+
     def test_boolean_field_deserialization(self):
         field = fields.Boolean()
         assert field.deserialize(True) is True

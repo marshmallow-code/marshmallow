@@ -878,6 +878,44 @@ class String(Field[str]):
             raise self.make_error("invalid_utf8") from error
 
 
+class Bytes(Field[bytes]):
+  """
+  Marshmallow field type for any bytes array.
+  """
+
+  def _deserialize(
+    self,
+    value: typing.Any,
+    attr: str | None,
+    data: typing.Mapping[str, typing.Any] | None,
+    **kwargs: typing.Any,
+  ) -> bytes:
+    try:
+      match value:
+        case bytes() as b:
+          return b
+        case bytearray() as ba:
+          return bytes(ba)
+        case str() as s:
+          return bytes(
+            s,
+            encoding="utf-8",
+            errors="ignore",
+          )
+        case int() as i:
+          return i.to_bytes(
+            length=max(1, (7 + i.bit_length()) // 8),
+            byteorder="big",
+            signed=i < 0,
+          )
+        case obj:
+          if isinstance(obj, (typing.SupportsBytes, typing.Iterable)):
+            return bytes(obj)
+      raise ValidationError("not a bytes-like object")
+    except TypeError as e:
+      raise ValidationError("not a bytes-like object") from e
+
+
 class UUID(Field[uuid.UUID]):
     """A UUID field."""
 
