@@ -117,6 +117,12 @@ def _get_value_for_keys(obj, keys, default):
 
 
 def _get_value_for_key(obj, key, default):
+    if isinstance(obj, Mapping):
+        try:
+            return obj[key]
+        except KeyError:
+            return default
+
     if not hasattr(obj, "__getitem__"):
         return getattr(obj, key, default)
 
