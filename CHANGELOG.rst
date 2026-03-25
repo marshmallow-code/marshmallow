@@ -16,6 +16,8 @@ Bug fixes:
   Thanks :user:`bysiber` for the PR.
 - Fix Enum field by-name lookup to only return actual members (:pr:`2902`).
   Thanks :user:`bysiber` for the PR.
+- `marshmallow.fields.DateTime` with ``format="timestamp_ms"`` properly
+  rejects bool values (:pr:`2904`). Thanks :user:`bysiber` for the PR.
 
 4.2.2 (2026-02-04)
 ------------------
