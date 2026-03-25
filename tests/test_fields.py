@@ -27,6 +27,31 @@ def test_field_aliases(alias, field):
     assert alias is field
 
 
+class TestAbstractBaseFields:
+    def test_number_cannot_be_instantiated(self):
+        with pytest.raises(TypeError, match="num_type"):
+            fields.Number()  # type: ignore[abstract]
+
+    def test_mapping_cannot_be_instantiated(self):
+        with pytest.raises(TypeError, match="mapping_type"):
+            fields.Mapping()  # type: ignore[abstract]
+
+    # Ensure that typecheckers don't error when overriding abstract properties with class attributes
+    def test_custom_number_subclass(self):
+        class MyInt(fields.Number[int]):
+            num_type = int
+
+        field = MyInt()
+        assert field.num_type is int
+
+    def test_custom_mapping_subclass(self):
+        class MyDict(fields.Mapping[dict]):
+            mapping_type = dict
+
+        field = MyDict()
+        assert field.mapping_type is dict
+
+
 class TestField:
     def test_repr(self):
         default = "œ∑´"  # noqa: RUF001
