@@ -187,3 +187,4 @@ Contributors (chronological)
 - Fridayworks `@worksbyfriday  <https://github.com/worksbyfriday>`_
 - `@rstar327 <https://github.com/rstar327>`_
 - Kadir Can Ozden  `@bysiber  <https://github.com/bysiber>`_
+- Dhruvil Darji  `@dhruvildarji  <https://github.com/dhruvildarji>`_

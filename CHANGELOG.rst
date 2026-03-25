@@ -18,6 +18,8 @@ Bug fixes:
   Thanks :user:`bysiber` for the PR.
 - `marshmallow.fields.DateTime` with ``format="timestamp_ms"`` properly
   rejects bool values (:pr:`2904`). Thanks :user:`bysiber` for the PR.
+- Fix typing of ``error_essages`` argument to `marshmallow.fields.Field` (:pr:`1636`).
+  Thanks :user:`repole` for reporting and :user:`dhruvildarji` for the PR.
 
 4.2.2 (2026-02-04)
 ------------------
