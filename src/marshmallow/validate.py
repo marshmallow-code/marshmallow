@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 import typing
 from abc import ABC, abstractmethod
-from itertools import zip_longest
 from operator import attrgetter
 
 from marshmallow.exceptions import ValidationError
@@ -204,7 +203,7 @@ class URL(Validator):
         # Check first if the scheme is valid
         scheme = None
         if "://" in value:
-            scheme = value.split("://")[0].lower()
+            scheme = value.split("://", maxsplit=1)[0].lower()
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
@@ -626,9 +625,17 @@ class OneOf(Validator):
             of an attribute of the choice objects. Defaults to `str()`.
         """
         valuegetter = valuegetter if callable(valuegetter) else attrgetter(valuegetter)
-        pairs = zip_longest(self.choices, self.labels, fillvalue="")
+        choices = tuple(self.choices)
+        labels = tuple(self.labels)
+        # Pad labels with empty strings if fewer than choices, truncate if more
+        padded_labels = labels[: len(choices)] + ("",) * max(
+            0, len(choices) - len(labels)
+        )
 
-        return ((valuegetter(choice), label) for choice, label in pairs)
+        return (
+            (valuegetter(choice), label)
+            for choice, label in zip(choices, padded_labels, strict=True)
+        )
 
 
 class ContainsOnly(OneOf):

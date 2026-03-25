@@ -726,12 +726,16 @@ def test_oneof_options():
     assert list(oneof.options()) == expected
 
     oneof = validate.OneOf([1, 2], ["one", "two", "three"])
-    expected = [("1", "one"), ("2", "two"), ("", "three")]
+    expected = [("1", "one"), ("2", "two")]
     assert list(oneof.options()) == expected
 
     oneof = validate.OneOf([1, 2])
     expected = [("1", ""), ("2", "")]
     assert list(oneof.options()) == expected
+
+    # Empty choices with extra labels should produce no options
+    oneof = validate.OneOf(choices=[], labels=["extra"])
+    assert list(oneof.options()) == []
 
 
 def test_oneof_text():
