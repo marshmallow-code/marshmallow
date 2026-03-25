@@ -21,6 +21,11 @@ Bug fixes:
 - Fix typing of ``error_essages`` argument to `marshmallow.fields.Field` (:pr:`1636`).
   Thanks :user:`repole` for reporting and :user:`dhruvildarji` for the PR.
 
+Other changes:
+
+- Add ``ipaddress.*`` to `marshmallow.Schema.TYPE_MAPPING` (:issue:`1695`).
+  Thanks :user:`liberforce` for the suggestion and :user:`dhruvildarji` for the PR.
+
 4.2.2 (2026-02-04)
 ------------------
 
