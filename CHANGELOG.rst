@@ -14,7 +14,8 @@ Bug fixes:
   Thanks: user:`T90REAL` for the report and :user:`rstar327` for the PR.
 - Fix behavior when passing a dot-delited attribute name to ``partial`` for a key with ``data_key`` set (:pr:`2903`).
   Thanks :user:`bysiber` for the PR.
-
+- Fix Enum field by-name lookup to only return actual members (:pr:`2902`).
+  Thanks :user:`bysiber` for the PR.
 
 4.2.2 (2026-02-04)
 ------------------
