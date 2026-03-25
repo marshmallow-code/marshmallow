@@ -8,6 +8,8 @@ Bug fixes:
 
 - Make `marshmallow.fields.Number` and `marshmallow.fields.Mapping` abstract base classes to
   prevent using them within Schemas (:issue:`2924`). Thanks :user:`MartingaleCoda` for reporting.
+- Allow `required` to be set on `marshmallow.fields.Contant` (:issue:`2900`).
+  Thanks :user:`nosnickid` for the report and :user:`worksbyfriday` for the PR.
 
 
 4.2.2 (2026-02-04)

@@ -184,3 +184,5 @@ Contributors (chronological)
 - jfo `@jafournier <https://github.com/jafournier>`_
 - thanhlecongg `@thanhlecongg <https://github.com/thanhlecongg>`_
 - Emmanuel Ferdman  `@emmanuel-ferdman  <https://github.com/emmanuel-ferdman>`_
+- Fridayworks  `@worksbyfriday  <https://github.com/worksbyfriday`_
+
