@@ -1204,6 +1204,14 @@ class TestFieldDeserialization:
         ):
             field.deserialize("dummy")
 
+    @pytest.mark.parametrize("non_member", ["mro", "__class__", "__members__"])
+    def test_enum_field_by_symbol_rejects_non_member_attributes(self, non_member):
+        field = fields.Enum(GenderEnum)
+        with pytest.raises(
+            ValidationError, match="Must be one of: male, female, non_binary."
+        ):
+            field.deserialize(non_member)
+
     def test_enum_field_by_symbol_not_string(self):
         field = fields.Enum(GenderEnum)
         with pytest.raises(ValidationError, match="Not a valid string."):
@@ -1428,6 +1436,14 @@ class TestFieldDeserialization:
         assert sch.load({"foo": None})["foo"] is None
         assert sch.load({})["foo"] is None
         assert sch.load({"foo": "ignored"})["foo"] is None
+
+    def test_constant_with_required(self):
+        class MySchema(Schema):
+            foo = fields.Constant(42, required=True)
+
+        sch = MySchema()
+        assert sch.load({})["foo"] == 42
+        assert sch.load({"foo": 99})["foo"] == 42
 
     def test_field_deserialization_with_user_validator_function(self):
         field = fields.String(validate=predicate(lambda s: s.lower() == "valid"))
@@ -2305,6 +2321,26 @@ class TestValidation:
         assert result["z"]["y"] == 42
         with pytest.raises(ValidationError):
             SchemaB().load({"z": {"x": 0}})
+
+    def test_nested_partial_tuple_with_data_key(self):
+        class AddressSchema(Schema):
+            zip_code = fields.String(required=True)
+            city = fields.String(required=True)
+
+        class PersonSchema(Schema):
+            address = fields.Nested(
+                AddressSchema, data_key="homeAddress", required=True
+            )
+
+        data = {"homeAddress": {"city": "Springfield"}}
+        # partial uses attr_name ("address.zip_code"), not data_key
+        result = PersonSchema().load(data, partial=("address.zip_code",))
+        assert result["address"]["city"] == "Springfield"
+        assert "zip_code" not in result["address"]
+        # Without partial, it should fail on the missing required field
+        with pytest.raises(ValidationError) as excinfo:
+            PersonSchema().load(data)
+        assert "zip_code" in excinfo.value.messages["homeAddress"]
 
 
 @pytest.mark.parametrize("FieldClass", ALL_FIELDS)
