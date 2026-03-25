@@ -30,11 +30,11 @@ def test_field_aliases(alias, field):
 class TestAbstractBaseFields:
     def test_number_cannot_be_instantiated(self):
         with pytest.raises(TypeError, match="num_type"):
-            fields.Number()
+            fields.Number()  # type: ignore[abstract]
 
     def test_mapping_cannot_be_instantiated(self):
         with pytest.raises(TypeError, match="mapping_type"):
-            fields.Mapping()
+            fields.Mapping()  # type: ignore[abstract]
 
     # Ensure that typecheckers don't error when overriding abstract properties with class attributes
     def test_custom_number_subclass(self):

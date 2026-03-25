@@ -890,7 +890,7 @@ class TestFieldSerialization:
             id = fields.Int()
 
         with pytest.raises(ValueError):
-            fields.Tuple(["string"])  # type: ignore[arg-type]
+            fields.Tuple(["string"])  # type: ignore[list-item]
         with pytest.raises(ValueError):
             fields.Tuple(fields.String)  # type: ignore[arg-type]
         expected_msg = (
@@ -898,7 +898,7 @@ class TestFieldSerialization:
             "instances of marshmallow.fields.Field."
         )
         with pytest.raises(ValueError, match=expected_msg):
-            fields.Tuple([ASchema])  # type: ignore[arg-type]
+            fields.Tuple([ASchema])  # type: ignore[list-item]
 
     def test_serialize_does_not_apply_validators(self, user):
         field = fields.Raw(validate=lambda x: False)

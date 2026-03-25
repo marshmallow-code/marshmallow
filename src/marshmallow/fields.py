@@ -781,7 +781,7 @@ class Tuple(Field[tuple]):
 
     def __init__(
         self,
-        tuple_fields: typing.Iterable[Field] | typing.Iterable[type[Field]],
+        tuple_fields: typing.Iterable[Field | type[Field]],
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
