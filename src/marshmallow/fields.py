@@ -2075,6 +2075,8 @@ class Constant(Field[_ContantT]):
             self.allow_none = True
 
     def _validate_missing(self, value):
+        # Omit check for value is missing_
+        # Below is just a paranoid check
         if value is None and not self.allow_none:
             raise self.make_error("null")
 
