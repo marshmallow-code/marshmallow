@@ -781,7 +781,7 @@ class Tuple(Field[tuple]):
 
     def __init__(
         self,
-        tuple_fields: typing.Iterable[Field] | typing.Iterable[type[Field]],
+        tuple_fields: typing.Iterable[Field | type[Field]],
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
         super().__init__(**kwargs)
@@ -907,8 +907,11 @@ class UUID(Field[uuid.UUID]):
 _NumT = typing.TypeVar("_NumT")
 
 
-class Number(Field[_NumT]):
-    """Base class for number fields. This class should not be used within schemas.
+class Number(Field[_NumT], metaclass=abc.ABCMeta):
+    """Abstract base class for number fields.
+
+    Use `Integer <marshmallow.fields.Integer>`, `Float <marshmallow.fields.Float>`,
+    or `Decimal <marshmallow.fields.Decimal>` within schemas.
 
     :param as_string: If `True`, format the serialized value as a string.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
@@ -918,7 +921,9 @@ class Number(Field[_NumT]):
         Use `Integer <marshmallow.fields.Integer>`, `Float <marshmallow.fields.Float>`, or `Decimal <marshmallow.fields.Decimal>` instead.
     """
 
-    num_type: type[_NumT]
+    @property
+    @abc.abstractmethod
+    def num_type(self) -> type[_NumT]: ...
 
     #: Default error messages.
     default_error_messages = {
@@ -1544,8 +1549,10 @@ class TimeDelta(Field[dt.timedelta]):
 _MappingT = typing.TypeVar("_MappingT", bound=_Mapping)
 
 
-class Mapping(Field[_MappingT]):
-    """An abstract class for objects with key-value pairs. This class should not be used within schemas.
+class Mapping(Field[_MappingT], metaclass=abc.ABCMeta):
+    """Abstract base class for objects with key-value pairs.
+
+    Use `Dict <marshmallow.fields.Dict>` within schemas.
 
     :param keys: A field class or instance for dict keys.
     :param values: A field class or instance for dict values.
@@ -1561,7 +1568,9 @@ class Mapping(Field[_MappingT]):
         Use `Dict <marshmallow.fields.Dict>` instead.
     """
 
-    mapping_type: type[_MappingT]
+    @property
+    @abc.abstractmethod
+    def mapping_type(self) -> type[_MappingT]: ...
 
     #: Default error messages.
     default_error_messages = {"invalid": "Not a valid mapping type."}
