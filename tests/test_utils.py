@@ -128,6 +128,25 @@ def test_from_timestamp_with_overflow_value():
         utils.from_timestamp(value)
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (1676386740000, dt.datetime(2023, 2, 14, 14, 59, 00)),
+        (1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+    ],
+)
+def test_from_timestamp_ms(value, expected):
+    result = utils.from_timestamp_ms(value)
+    assert type(result) is dt.datetime
+    assert result == expected
+
+
+@pytest.mark.parametrize("value", [True, False])
+def test_from_timestamp_ms_rejects_booleans(value):
+    with pytest.raises(ValueError, match=r"Not a valid POSIX timestamp"):
+        utils.from_timestamp_ms(value)
+
+
 # Regression test for https://github.com/marshmallow-code/marshmallow/issues/540
 def test_function_field_using_type_annotation():
     def get_split_words(value: str):

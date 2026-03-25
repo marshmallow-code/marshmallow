@@ -55,6 +55,8 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
 
 
 def from_timestamp_ms(value: typing.Any) -> dt.datetime:
+    if value is True or value is False:
+        raise ValueError("Not a valid POSIX timestamp")
     value = float(value)
     return from_timestamp(value / 1000)
 

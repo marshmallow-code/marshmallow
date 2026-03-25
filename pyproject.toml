@@ -3,7 +3,7 @@ name = "marshmallow"
 version = "4.2.2"
 description = "A lightweight library for converting complex datatypes to and from native Python datatypes."
 readme = "README.rst"
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [{ name = "Steven Loria", email = "oss@stevenloria.com" }]
 maintainers = [
   { name = "Steven Loria", email = "oss@stevenloria.com" },
@@ -13,7 +13,6 @@ maintainers = [
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -39,7 +38,7 @@ docs = [
   "autodocsumm==0.2.14",
   "furo==2025.12.19",
   "sphinx-copybutton==0.5.2",
-  "sphinx-issues==5.0.1",
+  "sphinx-issues==6.0.0",
   "sphinx==8.2.3",
   "sphinxext-opengraph==0.13.0",
 ]
@@ -47,7 +46,7 @@ tests = ["pytest", "simplejson"]
 dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
 
 [build-system]
-requires = ["flit_core<4"]
+requires = ["flit_core>=3.12,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.sdist]
@@ -108,6 +107,7 @@ ignore = [
   "PLR0915", # allow lots of statements
   "PT007",   # ignore false positives due to https://github.com/astral-sh/ruff/issues/14743
   "PT011",   # don't require match when using pytest.raises
+  "PLW0108", # allow lambda: MySchema, which is needed in some of the test cases
   "RUF043",  # allow metacharacters in match patterns
   "S",       # allow asserts
   "SIM117",  # allow nested with statements because it's more readable sometimes

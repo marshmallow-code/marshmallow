@@ -1,6 +1,24 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Bug fixes:
+
+- Make `marshmallow.fields.Number` and `marshmallow.fields.Mapping` abstract base classes to
+  prevent using them within Schemas (:issue:`2924`). Thanks :user:`MartingaleCoda` for reporting.
+- Allow `required` to be set on `marshmallow.fields.Contant` (:issue:`2900`).
+  Thanks :user:`nosnickid` for the report and :user:`worksbyfriday` for the PR.
+- Fix `marshmallow.validate.OneOf` emitting extra pairs when labels outnumber choices (:issue:`2869`).
+  Thanks: user:`T90REAL` for the report and :user:`rstar327` for the PR.
+- Fix behavior when passing a dot-delited attribute name to ``partial`` for a key with ``data_key`` set (:pr:`2903`).
+  Thanks :user:`bysiber` for the PR.
+- Fix Enum field by-name lookup to only return actual members (:pr:`2902`).
+  Thanks :user:`bysiber` for the PR.
+- `marshmallow.fields.DateTime` with ``format="timestamp_ms"`` properly
+  rejects bool values (:pr:`2904`). Thanks :user:`bysiber` for the PR.
+
 4.2.2 (2026-02-04)
 ------------------
 
