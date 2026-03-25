@@ -1732,6 +1732,8 @@ class Url(String):
         self.absolute = absolute
         self.require_tld = require_tld
         # Insert validation into self.validators so that multiple errors can be stored.
+        if not isinstance(self.error_messages["invalid"], str):
+            raise ValueError('"invalid" error message must be a string.')
         validator = validate.URL(
             relative=self.relative,
             absolute=self.absolute,
@@ -1755,6 +1757,8 @@ class Email(String):
     def __init__(self, **kwargs: Unpack[_BaseFieldKwargs]) -> None:
         super().__init__(**kwargs)
         # Insert validation into self.validators so that multiple errors can be stored.
+        if not isinstance(self.error_messages["invalid"], str):
+            raise ValueError('"invalid" error message must be a string.')
         validator = validate.Email(error=self.error_messages["invalid"])
         self.validators.insert(0, validator)
 

@@ -3,6 +3,7 @@ import datetime as dt
 import decimal
 import ipaddress
 import math
+import typing
 import uuid
 from unittest.mock import patch
 
@@ -2363,7 +2364,9 @@ def test_required_field_failure(FieldClass):
         ["first error", "second error"],
     ],
 )
-def test_required_message_can_be_changed(message):
+def test_required_message_can_be_changed(
+    message: str | dict[str, typing.Any] | list[str],
+):
     class RequireSchema(Schema):
         age = fields.Integer(required=True, error_messages={"required": message})
 
