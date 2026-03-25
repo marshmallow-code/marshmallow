@@ -186,3 +186,4 @@ Contributors (chronological)
 - Emmanuel Ferdman  `@emmanuel-ferdman  <https://github.com/emmanuel-ferdman>`_
 - Fridayworks `@worksbyfriday  <https://github.com/worksbyfriday>`_
 - `@rstar327 <https://github.com/rstar327>`_
+- Kadir Can Ozden  `@bysiber  <https://github.com/bysiber>`_
