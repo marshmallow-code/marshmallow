@@ -6,6 +6,7 @@ import re
 import typing
 from abc import ABC, abstractmethod
 from operator import attrgetter
+from urllib.parse import urlsplit, urlunsplit
 
 from marshmallow.exceptions import ValidationError
 
@@ -203,37 +204,36 @@ class URL(Validator):
         so that the existing ASCII-only regex can validate them.
         """
         try:
-            from urllib.parse import urlsplit, urlunsplit
-
-            try:
-                parsed = urlsplit(value)
-            except ValueError:
-                return value
-            if not parsed.hostname:
-                return value
-            # Only encode if hostname contains non-ASCII characters
-            try:
-                parsed.hostname.encode("ascii")
-                return value
-            except UnicodeEncodeError:
-                pass
+            parsed = urlsplit(value)
+        except ValueError:
+            return value
+        if not parsed.hostname:
+            return value
+        # Only encode if hostname contains non-ASCII characters
+        try:
+            parsed.hostname.encode("ascii")
+        except UnicodeEncodeError:
+            pass
+        else:
+            return value
+        try:
             encoded_hostname = parsed.hostname.encode("idna").decode("ascii")
-            # Reconstruct netloc with encoded hostname (preserve port)
-            if parsed.port:
-                netloc = f"{encoded_hostname}:{parsed.port}"
-            else:
-                netloc = encoded_hostname
-            # Preserve userinfo if present
-            if parsed.username:
-                userinfo = parsed.username
-                if parsed.password:
-                    userinfo += f":{parsed.password}"
-                netloc = f"{userinfo}@{netloc}"
-            return urlunsplit(
-                (parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment)
-            )
         except (UnicodeError, UnicodeDecodeError):
             return value
+        # Reconstruct netloc with encoded hostname (preserve port)
+        if parsed.port:
+            netloc = f"{encoded_hostname}:{parsed.port}"
+        else:
+            netloc = encoded_hostname
+        # Preserve userinfo if present
+        if parsed.username:
+            userinfo = parsed.username
+            if parsed.password:
+                userinfo += f":{parsed.password}"
+            netloc = f"{userinfo}@{netloc}"
+        return urlunsplit(
+            (parsed.scheme, netloc, parsed.path, parsed.query, parsed.fragment)
+        )
 
     def __call__(self, value: str) -> str:
         message = self._format_error(value)
