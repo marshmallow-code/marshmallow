@@ -293,6 +293,35 @@ def test_url_rejects_invalid_relative_usage():
 
 
 @pytest.mark.parametrize(
+    "valid_url",
+    [
+        "https://তৌহিদুর.বাংলা",
+        "https://münchen.de",
+        "https://例え.jp/path",
+        "http://مثال.إختبار",
+        "https://üñîçödé.com/path?q=1#frag",
+        "http://www.اختبار.com:8080/path",
+    ],
+)
+def test_url_idn_valid(valid_url):
+    validator = validate.URL()
+    assert validator(valid_url) == valid_url
+
+
+@pytest.mark.parametrize(
+    "invalid_url",
+    [
+        "münchen.de",
+        "তৌহিদুর.বাংলা",
+    ],
+)
+def test_url_idn_invalid(invalid_url):
+    validator = validate.URL()
+    with pytest.raises(ValidationError):
+        validator(invalid_url)
+
+
+@pytest.mark.parametrize(
     "valid_email",
     [
         "niceandsimple@example.com",

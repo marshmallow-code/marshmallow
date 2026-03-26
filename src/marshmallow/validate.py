@@ -103,12 +103,24 @@ class URL(Validator):
         def _regex_generator(
             self, *, relative: bool, absolute: bool, require_tld: bool
         ) -> typing.Pattern:
+            unicode_letters = "\u00a1-\uffff"
             hostname_variants = [
-                # a normal domain name, expressed in [A-Z0-9] chars with hyphens allowed only in the middle
+                # a normal domain name, expressed in [A-Z0-9] chars (plus unicode letters)
+                # with hyphens allowed only in the middle
                 # note that the regex will be compiled with IGNORECASE, so these are upper and lowercase chars
                 (
-                    r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+"
-                    r"(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)"
+                    r"(?:[A-Z0-9"
+                    + unicode_letters
+                    + r"](?:[A-Z0-9"
+                    + unicode_letters
+                    + r"-]{0,61}[A-Z0-9"
+                    + unicode_letters
+                    + r"])?\.)+"
+                    r"(?:[A-Z"
+                    + unicode_letters
+                    + r"]{2,6}\.?|[A-Z0-9"
+                    + unicode_letters
+                    + r"-]{2,}\.?)"
                 ),
                 # or the special string 'localhost'
                 r"localhost",
@@ -119,7 +131,15 @@ class URL(Validator):
             ]
             if not require_tld:
                 # allow dotless hostnames
-                hostname_variants.append(r"(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.?)")
+                hostname_variants.append(
+                    r"(?:[A-Z0-9"
+                    + unicode_letters
+                    + r"](?:[A-Z0-9"
+                    + unicode_letters
+                    + r"-]{0,61}[A-Z0-9"
+                    + unicode_letters
+                    + r"])?\.?)"
+                )
 
             absolute_part = "".join(
                 (

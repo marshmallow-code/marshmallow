@@ -1,6 +1,14 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Bug fixes:
+
+- `marshmallow.validate.URL` accepts Internationalized Domain Names (IDNs) (:issue:`2821`).
+  Thanks :user:`touhidurrr` for the report.
+
 4.2.3 (2026-03-25)
 ------------------
 
