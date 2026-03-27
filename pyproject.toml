@@ -35,7 +35,7 @@ Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=py
 
 [project.optional-dependencies]
 docs = [
-  "autodocsumm==0.2.14",
+  "autodocsumm==0.2.15",
   "furo==2025.12.19",
   "sphinx-copybutton==0.5.2",
   "sphinx-issues==6.0.0",
