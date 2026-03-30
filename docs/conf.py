@@ -42,7 +42,7 @@ html_theme_options = {
     "sidebar_hide_name": True,
     "light_css_variables": {
         # Serif system font stack: https://systemfontstack.com/
-        "font-stack": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;",
+        "font-stack": "Charter, Iowan Old Style, Palatino Linotype, Palatino, Georgia, serif;",
     },
     "top_of_page_buttons": ["view", "edit"],
 }
