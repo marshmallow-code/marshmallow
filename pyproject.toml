@@ -33,17 +33,25 @@ Issues = "https://github.com/marshmallow-code/marshmallow/issues"
 Source = "https://github.com/marshmallow-code/marshmallow"
 Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi"
 
-[project.optional-dependencies]
+[dependency-groups]
 docs = [
-  "autodocsumm==0.2.15",
-  "furo==2025.12.19",
-  "sphinx-copybutton==0.5.2",
-  "sphinx-issues==6.0.0",
-  "sphinx==8.2.3",
-  "sphinxext-opengraph==0.13.0",
+  "autodocsumm",
+  "furo",
+  "sphinx-copybutton",
+  "sphinx-issues",
+  "sphinx>=8.1",
+  "sphinxext-opengraph",
 ]
 tests = ["pytest", "simplejson"]
-dev = ["marshmallow[tests]", "tox", "pre-commit>=3.5,<5.0"]
+dev = [
+  { include-group = "tests" },
+  "tox",
+  "tox-uv",
+  "pre-commit>=3.5,<5.0",
+]
+
+[tool.uv]
+default-groups = ["dev"]
 
 [build-system]
 requires = ["flit_core>=3.12,<4"]

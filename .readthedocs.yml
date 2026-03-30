@@ -1,15 +1,19 @@
+# https://docs.readthedocs.com/platform/stable/build-customization.html#install-dependencies-with-uv
 version: 2
 sphinx:
   configuration: docs/conf.py
 formats:
   - pdf
 build:
-  os: ubuntu-22.04
+  os: ubuntu-24.04
   tools:
     python: "3.13"
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
+  jobs:
+    pre_create_environment:
+      - asdf plugin add uv
+      - asdf install uv latest
+      - asdf global uv latest
+    create_environment:
+      - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+    install:
+      - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --frozen --group docs

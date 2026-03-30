@@ -46,21 +46,19 @@ Setting up for local development
     $ git clone https://github.com/marshmallow-code/marshmallow.git
     $ cd marshmallow
 
-2. Install development requirements. **It is highly recommended that you use a virtualenv.**
-   Use the following command to install an editable version of
-   marshmallow along with its development requirements.
+2. Install `uv <https://docs.astral.sh/uv/getting-started/installation/>`_.
+
+3. Install development requirements.
 
 .. code-block:: shell-session
 
-    # After activating your virtualenv
-    $ pip install -e '.[dev]'
+    $ uv sync
 
-3. Install the pre-commit hooks, which will format and lint your git staged files.
+4. (Optional but recommended) Install the pre-commit hooks, which will format and lint your git staged files.
 
 .. code-block:: shell-session
 
-    # The pre-commit CLI was installed above
-    $ pre-commit install --allow-missing-config
+    $ uv run pre-commit install --allow-missing-config
 
 Git branch structure
 ++++++++++++++++++++
@@ -113,19 +111,19 @@ To run all tests:
 
 .. code-block:: shell-session
 
-    $ pytest
+    $ uv run pytest
 
 To run formatting and syntax checks:
 
 .. code-block:: shell-session
 
-    $ tox -e lint
+    $ uv run tox -e lint
 
 (Optional) To run tests in all supported Python versions in their own virtual environments (must have each interpreter installed):
 
 .. code-block:: shell-session
 
-    $ tox
+    $ uv run tox
 
 .. _contributing_documentation:
 
@@ -138,7 +136,7 @@ To build and serve the docs in "watch" mode:
 
 .. code-block:: shell-session
 
-   $ tox -e docs-serve
+   $ uv run tox -e docs-serve
 
 Changes to documentation will automatically trigger a rebuild.
 
