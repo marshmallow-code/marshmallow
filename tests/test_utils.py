@@ -79,6 +79,19 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+def test_get_value_out_of_range_int_returns_default():
+    # Out-of-range integer index on a list should return default, not raise TypeError
+    lst = [0, 1, 2, 3]
+    assert utils.get_value(lst, 999, default=42) == 42
+
+    # Missing integer key in a dict with integer keys should return default
+    d = {1: "a", 2: "b"}
+    assert utils.get_value(d, 99, default="z") == "z"
+
+    # Nested list with out-of-range index
+    assert utils.get_value([[1, 2], [3, 4]], 5, default=None) is None
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
