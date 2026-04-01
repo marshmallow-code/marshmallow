@@ -8,6 +8,7 @@ Bug fixes:
 
 - `marshmallow.validate.URL` accepts Internationalized Domain Names (IDNs) (:issue:`2821`).
   Thanks :user:`touhidurrr` for the report.
+- Typing: Fix typing of ``netsted`` in `marshmallow.fields.Nested` (:pr:`2935`).
 
 4.2.3 (2026-03-25)
 ------------------
@@ -26,7 +27,7 @@ Bug fixes:
   Thanks :user:`bysiber` for the PR.
 - `marshmallow.fields.DateTime` with ``format="timestamp_ms"`` properly
   rejects bool values (:pr:`2904`). Thanks :user:`bysiber` for the PR.
-- Fix typing of ``error_essages`` argument to `marshmallow.fields.Field` (:pr:`1636`).
+- Fix typing of ``error_messages`` argument to `marshmallow.fields.Field` (:pr:`1636`).
   Thanks :user:`repole` for reporting and :user:`dhruvildarji` for the PR.
 
 Other changes:
