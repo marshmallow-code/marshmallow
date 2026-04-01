@@ -500,7 +500,7 @@ class Nested(Field):
             | SchemaMeta
             | str
             | dict[str, Field]
-            | typing.Callable[[], Schema | SchemaMeta | dict[str, Field]]
+            | typing.Callable[[], Schema | SchemaMeta | str | dict[str, Field]]
         ),
         *,
         only: types.StrSequenceOrSet | None = None,
