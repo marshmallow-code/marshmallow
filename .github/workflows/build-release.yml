@@ -13,7 +13,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.14"
           enable-cache: true
       - run: uv run tox -e docs
   tests:
@@ -23,14 +22,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: "3.10", python: "3.10", tox: py310 }
-          - { name: "3.14", python: "3.14", tox: py314 }
-          - { name: "mypy", python: "3.13", tox: mypy }
+          - { name: "3.10", tox: py310 }
+          - { name: "3.14", tox: py314 }
+          - { name: "mypy", tox: mypy }
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python }}
           enable-cache: true
       - run: uv run tox -e ${{ matrix.tox }}
   build:
@@ -40,7 +38,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.14"
           enable-cache: true
       - run: uv build
       - run: uvx twine check --strict dist/*
@@ -58,7 +55,6 @@ jobs:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.14"
           enable-cache: true
       - run: uv run tox -e lint
   publish-to-pypi:
