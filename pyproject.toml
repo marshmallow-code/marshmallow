@@ -133,7 +133,7 @@ ignore = [
 [tool.mypy]
 files = ["src", "tests", "examples"]
 ignore_missing_imports = true
-warn_unreachable = false
+warn_unreachable = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 no_implicit_optional = true
