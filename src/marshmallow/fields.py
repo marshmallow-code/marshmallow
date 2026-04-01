@@ -528,12 +528,12 @@ class Nested(Field):
     def schema(self) -> Schema:
         """The nested Schema object."""
         if not self._schema:
-            if callable(self.nested) and not isinstance(self.nested, type):
-                nested = self.nested()
-            else:
-                nested = typing.cast("Schema", self.nested)
             # defer the import of `marshmallow.schema` to avoid circular imports
             from marshmallow.schema import Schema  # noqa: PLC0415
+
+            nested = self.nested
+            if callable(nested) and not isinstance(nested, type):
+                nested = nested()
 
             if isinstance(nested, dict):
                 nested = Schema.from_dict(nested)
