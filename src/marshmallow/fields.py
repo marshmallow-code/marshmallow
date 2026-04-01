@@ -529,10 +529,10 @@ class Nested(Field):
         """The nested Schema object."""
         if not self._schema:
             # defer the import of `marshmallow.schema` to avoid circular imports
-            from marshmallow.schema import Schema  # noqa: PLC0415
+            from marshmallow.schema import Schema, SchemaMeta  # noqa: PLC0415
 
             nested = self.nested
-            if callable(nested) and not isinstance(nested, type):
+            if callable(nested) and not isinstance(nested, SchemaMeta):
                 nested = nested()
 
             if isinstance(nested, dict):
