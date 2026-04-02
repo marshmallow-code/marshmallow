@@ -368,6 +368,37 @@ def test_email_invalid(invalid_email):
         validator(invalid_email)
 
 
+@pytest.mark.parametrize(
+    "valid_email",
+    [
+        "user@münchen.de",
+        "user@例え.jp",
+        "user@مثال.إختبار",
+        "user@пример.испытание",
+        "user@üñîçödé.com",
+        "δοκ.ιμή@παράδειγμα.δοκιμή",
+        "user@sub.münchen.de",
+    ],
+)
+def test_email_idn_valid(valid_email):
+    validator = validate.Email()
+    assert validator(valid_email) == valid_email
+
+
+@pytest.mark.parametrize(
+    "invalid_email",
+    [
+        "user@-münchen.de",
+        "user@münchen-.de",
+        "user@münchen",
+    ],
+)
+def test_email_idn_invalid(invalid_email):
+    validator = validate.Email()
+    with pytest.raises(ValidationError):
+        validator(invalid_email)
+
+
 def test_email_custom_message():
     validator = validate.Email(error="{input} is not an email addy.")
     with pytest.raises(ValidationError, match="invalid is not an email addy."):
