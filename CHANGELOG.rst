@@ -9,7 +9,7 @@ Bug fixes:
 - `marshmallow.validate.URL` and `marshmallow.validate.Email` accept Internationalized Domain Names (IDNs) (:issue:`2821`, :issue:`2936`).
  `marshmallow.validate.Email` also correctly rejects IDN domains with leading/trailing hyphens.
   Thanks :user:`touhidurrr` for the report.
-- Typing: Fix typing of ``netsted`` in `marshmallow.fields.Nested` (:pr:`2935`).
+- Typing: Fix typing of ``nested`` in `marshmallow.fields.Nested` (:pr:`2935`).
 
 4.2.3 (2026-03-25)
 ------------------
