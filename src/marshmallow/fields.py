@@ -376,8 +376,7 @@ class Field(typing.Generic[_InternalT]):
 
         # Apply pre_load functions
         for func in self.pre_load:
-            if func is not None:
-                value = func(value)
+            value = func(value)
 
         if self.allow_none and value is None:
             return None
@@ -388,8 +387,7 @@ class Field(typing.Generic[_InternalT]):
 
         # Apply post_load functions
         for func in self.post_load:
-            if func is not None:
-                output = func(output)
+            output = func(output)
         return output
 
     # Methods for concrete classes to override.
