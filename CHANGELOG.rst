@@ -6,7 +6,7 @@ Changelog
 
 Features:
 
-- Typing: improvements to `marshmallow.validate`.
+- Typing: improvements to `marshmallow.validate` (:pr:`2940`).
 
 4.2.4 (2026-04-02)
 ------------------
