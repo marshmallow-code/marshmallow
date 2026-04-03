@@ -745,11 +745,11 @@ class TestFieldPreAndPostLoad:
             ValueError,
             match="The 'pre_load' parameter must be a callable or an iterable of callables.",
         ):
-            fields.Int(pre_load="not_callable")
+            fields.Int(pre_load="not_callable")  # type: ignore[arg-type]
 
     def test_invalid_type_passed_to_post_load(self):
         with pytest.raises(
             ValueError,
             match="The 'post_load' parameter must be a callable or an iterable of callables.",
         ):
-            fields.Int(post_load="not_callable")
+            fields.Int(post_load="not_callable")  # type: ignore[arg-type]

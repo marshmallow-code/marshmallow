@@ -94,6 +94,8 @@ class _BaseFieldKwargs(typing.TypedDict, total=False):
     data_key: str | None
     attribute: str | None
     validate: types.Validator | typing.Iterable[types.Validator] | None
+    pre_load: types.PreLoadCallable | typing.Iterable[types.PreLoadCallable] | None
+    post_load: types.PostLoadCallable | typing.Iterable[types.PostLoadCallable] | None
     required: bool
     allow_none: bool | None
     load_only: bool
@@ -457,13 +459,12 @@ class Field(typing.Generic[_InternalT]):
         if processors is None:
             return []
         if callable(processors):
-            return [typing.cast("_ProcessorT", processors)]
-        if not utils.is_iterable_but_not_string(processors):
-            raise ValueError(
-                f"The '{param}' parameter must be a callable "
-                "or an iterable of callables."
-            )
-        return list(processors)
+            return [processors]
+        if utils.is_iterable_but_not_string(processors):
+            return list(processors)
+        raise ValueError(
+            f"The '{param}' parameter must be a callable or an iterable of callables."
+        )
 
 
 class Raw(Field[typing.Any]):
