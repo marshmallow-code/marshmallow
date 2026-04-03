@@ -6,15 +6,6 @@ on:
   pull_request:
 
 jobs:
-  docs:
-    name: docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-      - run: uv run tox -e docs
   tests:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
