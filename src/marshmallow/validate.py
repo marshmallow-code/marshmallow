@@ -99,11 +99,11 @@ class URL(Validator):
 
     class RegexMemoizer:
         def __init__(self):
-            self._memoized = {}
+            self._memoized: dict[tuple[bool, bool, bool], re.Pattern[str]] = {}
 
         def _regex_generator(
             self, *, relative: bool, absolute: bool, require_tld: bool
-        ) -> typing.Pattern:
+        ) -> re.Pattern[str]:
             hostname_variants = [
                 # a normal domain name, expressed in [A-Z0-9] chars (plus unicode letters)
                 # with hyphens allowed only in the middle
@@ -176,7 +176,7 @@ class URL(Validator):
 
         def __call__(
             self, *, relative: bool, absolute: bool, require_tld: bool
-        ) -> typing.Pattern:
+        ) -> re.Pattern[str]:
             key = (relative, absolute, require_tld)
             if key not in self._memoized:
                 self._memoized[key] = self._regex_generator(
@@ -212,7 +212,7 @@ class URL(Validator):
     def _repr_args(self) -> str:
         return f"relative={self.relative!r}, absolute={self.absolute!r}"
 
-    def _format_error(self, value) -> str:
+    def _format_error(self, value: str) -> str:
         return self.error.format(input=value)
 
     def __call__(self, value: str) -> str:
@@ -330,8 +330,8 @@ class Range(Validator):
 
     def __init__(
         self,
-        min=None,  # noqa: A002
-        max=None,  # noqa: A002
+        min: typing.Any = None,  # noqa: A002
+        max: typing.Any = None,  # noqa: A002
         *,
         min_inclusive: bool = True,
         max_inclusive: bool = True,
@@ -492,7 +492,7 @@ class Regexp(Validator):
 
     def __init__(
         self,
-        regex: str | bytes | typing.Pattern,
+        regex: str | bytes | re.Pattern[str] | re.Pattern[bytes],
         flags: int = 0,
         *,
         error: str | None = None,
@@ -573,7 +573,7 @@ class NoneOf(Validator):
     def _repr_args(self) -> str:
         return f"iterable={self.iterable!r}"
 
-    def _format_error(self, value) -> str:
+    def _format_error(self, value: typing.Any) -> str:
         return self.error.format(input=value, values=self.values_text)
 
     def __call__(self, value: typing.Any) -> typing.Any:
@@ -613,7 +613,7 @@ class OneOf(Validator):
     def _repr_args(self) -> str:
         return f"choices={self.choices!r}, labels={self.labels!r}"
 
-    def _format_error(self, value) -> str:
+    def _format_error(self, value: typing.Any) -> str:
         return self.error.format(
             input=value, choices=self.choices_text, labels=self.labels_text
         )
@@ -672,7 +672,7 @@ class ContainsOnly(OneOf):
 
     default_message = "One or more of the choices you made was not in: {choices}."
 
-    def _format_error(self, value) -> str:
+    def _format_error(self, value: typing.Sequence[typing.Any]) -> str:
         value_text = ", ".join(str(val) for val in value)
         return super()._format_error(value_text)
 
@@ -697,7 +697,7 @@ class ContainsNoneOf(NoneOf):
 
     default_message = "One or more of the choices you made was in: {values}."
 
-    def _format_error(self, value) -> str:
+    def _format_error(self, value: typing.Sequence[typing.Any]) -> str:
         value_text = ", ".join(str(val) for val in value)
         return super()._format_error(value_text)
 
