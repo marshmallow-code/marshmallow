@@ -1,6 +1,13 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Features:
+
+- Typing: improvements to `marshmallow.validate`.
+
 4.2.4 (2026-04-02)
 ------------------
 
