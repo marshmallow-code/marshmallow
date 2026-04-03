@@ -1,6 +1,14 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Features:
+
+- Add ``pre_load`` and ``post_load`` parameters to `marshmallow.fields.Field` for
+  field-level pre- and post-processing (:issue:`2787`).
+
 4.2.4 (2026-04-02)
 ------------------
 

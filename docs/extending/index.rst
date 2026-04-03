@@ -6,7 +6,7 @@ The guides below demonstrate how to extend schemas in various ways.
 .. toctree::
   :maxdepth: 1
 
-  pre_and_post_processing_methods
+  pre_and_post_processing
   schema_validation
   using_original_input_data
   overriding_attribute_access

@@ -1,5 +1,5 @@
-Pre-processing and post-processing methods
-==========================================
+Pre-processing and post-processing
+===================================
 
 Decorator API
 -------------
@@ -97,6 +97,41 @@ One common use case is to wrap data in a namespace upon serialization and unwrap
     user_objs = user_schema.load(users_data, many=True)
     # [<User(name='Keith Richards')>, <User(name='Charlie Watts')>]
 
+.. _field_level_processing:
+
+Field-level pre- and post-processing
+-------------------------------------
+
+For field-level processing, pass ``pre_load`` and ``post_load``
+callables directly to individual fields. This is useful for simple, field-specific
+transformations that don't need access to the full schema data.
+
+Each callable receives the field value and returns a transformed value.
+You can pass a single callable or a list of callables, which are applied in order.
+
+.. code-block:: python
+
+    from marshmallow import Schema, fields
+
+
+    class UserSchema(Schema):
+        name = fields.Str(pre_load=str.strip)
+        birthday = fields.Date(post_load=lambda value: value.year)
+
+
+    schema = UserSchema()
+    result = schema.load({"name": "  Steve  ", "birthday": "1994-05-12"})
+    result["name"]  # => 'Steve'
+    result["birthday"]  # => 1994
+
+
+``pre_load`` callables run before the field's deserialization (and before ``allow_none`` is checked),
+while ``post_load`` callables run after validation and deserialization.
+
+Like validators, ``pre_load`` and ``post_load`` callables may raise a
+`ValidationError <marshmallow.exceptions.ValidationError>`, which will be
+stored under the field's key in the errors dictionary.
+
 Raising errors in pre-/post-processor methods
 ---------------------------------------------
 
@@ -157,11 +192,13 @@ In summary, the processing pipeline for deserialization is as follows:
 
 1. ``@pre_load(pass_many=True)`` methods
 2. ``@pre_load(pass_many=False)`` methods
-3. ``load(in_data, many)`` (validation and deserialization)
-4. ``@validates`` methods (field validators)
-5. ``@validates_schema`` methods (schema validators)
-6. ``@post_load(pass_many=True)`` methods
-7. ``@post_load(pass_many=False)`` methods
+3. Field-level ``pre_load`` callables
+4. Field deserialization (``_deserialize``)
+5. Field-level ``validate`` callables and ``@validates`` methods
+6. Field-level ``post_load`` callables
+7. ``@validates_schema`` methods (schema validators)
+8. ``@post_load(pass_many=False)`` methods
+9. ``@post_load(pass_many=True)`` methods
 
 The pipeline for serialization is similar, except that the ``pass_many=True`` processors are invoked *after* the ``pass_many=False`` processors and there are no validators.
 

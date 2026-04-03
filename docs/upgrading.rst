@@ -1750,7 +1750,7 @@ The pre- and post-processing API was significantly improved for better consisten
             data["field_a"] -= 1
             return data
 
-See the :doc:`extending/pre_and_post_processing_methods` page for more information on the ``pre_*`` and ``post_*`` decorators.
+See the :doc:`extending/pre_and_post_processing` page for more information on the ``pre_*`` and ``post_*`` decorators.
 
 Schema validators
 *****************
