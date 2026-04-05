@@ -32,12 +32,17 @@ def is_collection(obj) -> typing.TypeGuard[typing.Iterable]:
 
 # https://stackoverflow.com/a/27596917
 def is_aware(datetime: dt.datetime) -> bool:
+    """Return True if ``datetime`` has timezone info set."""
     return (
         datetime.tzinfo is not None and datetime.tzinfo.utcoffset(datetime) is not None
     )
 
 
 def from_timestamp(value: typing.Any) -> dt.datetime:
+    """Convert a POSIX timestamp to a naive :class:`datetime.datetime`.
+
+    :raises ValueError: If ``value`` is not a valid non-negative POSIX timestamp.
+    """
     if value is True or value is False:
         raise ValueError("Not a valid POSIX timestamp")
     value = float(value)
@@ -55,6 +60,10 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
 
 
 def from_timestamp_ms(value: typing.Any) -> dt.datetime:
+    """Convert a POSIX timestamp in milliseconds to a naive :class:`datetime.datetime`.
+
+    :raises ValueError: If ``value`` is not a valid POSIX timestamp in milliseconds.
+    """
     if value is True or value is False:
         raise ValueError("Not a valid POSIX timestamp")
     value = float(value)
@@ -64,6 +73,10 @@ def from_timestamp_ms(value: typing.Any) -> dt.datetime:
 def timestamp(
     value: dt.datetime,
 ) -> float:
+    """Convert a :class:`datetime.datetime` to a POSIX timestamp as a float.
+
+    Naive datetimes are assumed to be UTC.
+    """
     if not is_aware(value):
         # When a date is naive, use UTC as zone info to prevent using system timezone.
         value = value.replace(tzinfo=dt.timezone.utc)
@@ -71,10 +84,15 @@ def timestamp(
 
 
 def timestamp_ms(value: dt.datetime) -> float:
+    """Convert a :class:`datetime.datetime` to a POSIX timestamp in milliseconds.
+
+    Naive datetimes are assumed to be UTC.
+    """
     return timestamp(value) * 1000
 
 
 def ensure_text_type(val: str | bytes) -> str:
+    """Coerce ``val`` to a :class:`str`, decoding bytes as UTF-8 if necessary."""
     if isinstance(val, bytes):
         val = val.decode("utf-8")
     return str(val)
