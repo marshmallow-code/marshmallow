@@ -42,6 +42,7 @@ except ImportError:  # Python<3.10
 _ContextT = typing.TypeVar("_ContextT")
 _DefaultT = typing.TypeVar("_DefaultT")
 _CURRENT_CONTEXT: contextvars.ContextVar = contextvars.ContextVar("context")
+_CONTEXT_CLASSES: dict[typing.Any, type] = {}
 
 
 class Context(contextlib.AbstractContextManager, typing.Generic[_ContextT]):
@@ -50,16 +51,32 @@ class Context(contextlib.AbstractContextManager, typing.Generic[_ContextT]):
     :param context: The context to use within the context manager scope.
     """
 
+    _context_var: typing.ClassVar[contextvars.ContextVar] = _CURRENT_CONTEXT
+
+    def __class_getitem__(cls, item):
+        if isinstance(item, typing.TypeVar):
+            return super().__class_getitem__(item)
+        if item not in _CONTEXT_CLASSES:
+            ctx_var = contextvars.ContextVar(
+                f"context_{getattr(item, '__name__', repr(item))}"
+            )
+            _CONTEXT_CLASSES[item] = type(
+                f"{cls.__name__}[{getattr(item, '__name__', repr(item))}]",
+                (cls,),
+                {"_context_var": ctx_var},
+            )
+        return _CONTEXT_CLASSES[item]
+
     def __init__(self, context: _ContextT) -> None:
         self.context = context
         self.token: contextvars.Token | None = None
 
     def __enter__(self) -> Context[_ContextT]:
-        self.token = _CURRENT_CONTEXT.set(self.context)
+        self.token = self._context_var.set(self.context)
         return self
 
     def __exit__(self, *args, **kwargs) -> None:
-        _CURRENT_CONTEXT.reset(typing.cast("contextvars.Token", self.token))
+        self._context_var.reset(typing.cast("contextvars.Token", self.token))
 
     @classmethod
     def get(cls, default: _DefaultT | EllipsisType = ...) -> _ContextT | _DefaultT:
@@ -69,5 +86,5 @@ class Context(contextlib.AbstractContextManager, typing.Generic[_ContextT]):
             If not provided and no context is set, a :exc:`LookupError` is raised.
         """
         if default is not ...:
-            return _CURRENT_CONTEXT.get(default)
-        return _CURRENT_CONTEXT.get()
+            return cls._context_var.get(default)
+        return cls._context_var.get()
