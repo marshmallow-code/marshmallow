@@ -11,6 +11,7 @@ class:`fields.Nested <marshmallow.fields.Nested>`.
 
 from __future__ import annotations
 
+import threading
 import typing
 
 from marshmallow.exceptions import RegistryError
@@ -25,6 +26,7 @@ if typing.TYPE_CHECKING:
 #   <module_path_to_class>: <list of class objects>
 # }
 _registry = {}  # type: dict[str, list[SchemaType]]
+_registry_lock = threading.Lock()
 
 
 def register(classname: str, cls: SchemaType) -> None:
@@ -51,22 +53,23 @@ def register(classname: str, cls: SchemaType) -> None:
     # Full module path to the class
     # e.g. user.schemas.UserSchema
     fullpath = f"{module}.{classname}"
-    # If the class is already registered; need to check if the entries are
-    # in the same module as cls to avoid having multiple instances of the same
-    # class in the registry
-    if classname in _registry and not any(
-        each.__module__ == module for each in _registry[classname]
-    ):
-        _registry[classname].append(cls)
-    elif classname not in _registry:
-        _registry[classname] = [cls]
+    with _registry_lock:
+        # If the class is already registered; need to check if the entries are
+        # in the same module as cls to avoid having multiple instances of the same
+        # class in the registry
+        if classname in _registry and not any(
+            each.__module__ == module for each in _registry[classname]
+        ):
+            _registry[classname].append(cls)
+        elif classname not in _registry:
+            _registry[classname] = [cls]
 
-    # Also register the full path
-    if fullpath not in _registry:
-        _registry.setdefault(fullpath, []).append(cls)
-    else:
-        # If fullpath does exist, replace existing entry
-        _registry[fullpath] = [cls]
+        # Also register the full path
+        if fullpath not in _registry:
+            _registry.setdefault(fullpath, []).append(cls)
+        else:
+            # If fullpath does exist, replace existing entry
+            _registry[fullpath] = [cls]
 
 
 @typing.overload
@@ -85,19 +88,20 @@ def get_class(classname: str, *, all: bool = False) -> list[SchemaType] | Schema
     :raises: `marshmallow.exceptions.RegistryError` if the class cannot be found
         or if there are multiple entries for the given class name.
     """
-    try:
-        classes = _registry[classname]
-    except KeyError as error:
-        raise RegistryError(
-            f"Class with name {classname!r} was not found. You may need "
-            "to import the class."
-        ) from error
-    if len(classes) > 1:
-        if all:
-            return _registry[classname]
-        raise RegistryError(
-            f"Multiple classes with name {classname!r} "
-            "were found. Please use the full, "
-            "module-qualified path."
-        )
-    return _registry[classname][0]
+    with _registry_lock:
+        try:
+            classes = _registry[classname]
+        except KeyError as error:
+            raise RegistryError(
+                f"Class with name {classname!r} was not found. You may need "
+                "to import the class."
+            ) from error
+        if len(classes) > 1:
+            if all:
+                return _registry[classname]
+            raise RegistryError(
+                f"Multiple classes with name {classname!r} "
+                "were found. Please use the full, "
+                "module-qualified path."
+            )
+        return _registry[classname][0]
