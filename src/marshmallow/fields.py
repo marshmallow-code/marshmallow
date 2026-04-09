@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import abc
+import base64
 import collections
 import copy
 import datetime as dt
@@ -48,6 +49,7 @@ __all__ = [
     "AwareDateTime",
     "Bool",
     "Boolean",
+    "Bytes",
     "Constant",
     "Date",
     "DateTime",
@@ -880,8 +882,33 @@ class String(Field[str]):
 
 class Bytes(Field[bytes]):
     """
-    Marshmallow field type for any bytes array.
+    A field for deserializing strings into byte arrays.
+
+    :param encoding: Specifies the string encoding used when encoding/decoding to/from strings.
+    :param errors: Error behaviour when converting to/from a :class:`str`, inherited from it's constructor.
+    :param serialize: Specifies the return type when serializing.
+        `base64` and `str` use the value of `encoding` for the string.
+    :param kwargs: The same keyword arguments that :class:`Field` receives.
+
+    .. versionadded:: 4.3.0
     """
+    #: Default error messages.
+    default_error_messages = {
+        "not_bytes": "Not a bytes-like object.",
+        "unicode": "Invalid unicode string.",
+    }
+
+    def __init__(
+        self,
+        encoding: str = "utf-8",
+        errors: str = "strict",
+        serialize: typing.Literal["int", "str", "bytes", "base64"] = "base64",
+        **kwargs: Unpack[_BaseFieldKwargs],
+    ):
+        super().__init__(**kwargs)
+        self.encoding = encoding
+        self.errors = errors
+        self.serialize = serialize
 
     def _deserialize(
         self,
@@ -892,15 +919,11 @@ class Bytes(Field[bytes]):
     ) -> bytes:
         try:
             match value:
-                case bytes() as b:
-                    return b
-                case bytearray() as ba:
-                    return bytes(ba)
                 case str() as s:
                     return bytes(
                         s,
-                        encoding="utf-8",
-                        errors="ignore",
+                        encoding=self.encoding,
+                        errors=self.errors,
                     )
                 case int() as i:
                     return i.to_bytes(
@@ -908,12 +931,40 @@ class Bytes(Field[bytes]):
                         byteorder="big",
                         signed=i < 0,
                     )
-                case obj:
-                    if isinstance(obj, (typing.SupportsBytes, typing.Iterable)):
-                        return bytes(obj)
-            raise ValidationError("not a bytes-like object")
+                case _:
+                    return bytes(obj)
         except TypeError as e:
-            raise ValidationError("not a bytes-like object") from e
+            raise self.make_error("not_bytes")  from e
+        except UnicodeError as e:
+            raise self.make_error("unicode")  from e
+
+    def _serialize(self,
+        value: bytes,
+        attr: str | None,
+        obj: typing.Any,
+        **kwargs: typing.Any,
+    ) -> str | int | bytes:
+        try:
+            match self.serialize:
+                case "str":
+                    return str(
+                        value,
+                        encoding=self.encoding,
+                        errors=self.errors,
+                    )
+                case "base64":
+                    return base64.standard_b64encode(value)
+                case "int":
+                    return int.from_bytes(
+                        value,
+                        byteorder="big",
+                    )
+                case "bytes":
+                    return value
+                case _:
+                    typing.assert_never(self.serialize)
+        except UnicodeError as e:
+            raise self.make_error("unicode")  from e
 
 
 class UUID(Field[uuid.UUID]):
