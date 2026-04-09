@@ -892,6 +892,7 @@ class Bytes(Field[bytes]):
 
     .. versionadded:: 4.3.0
     """
+
     #: Default error messages.
     default_error_messages = {
         "not_bytes": "Not a bytes-like object.",
@@ -934,11 +935,12 @@ class Bytes(Field[bytes]):
                 case _:
                     return bytes(obj)
         except TypeError as e:
-            raise self.make_error("not_bytes")  from e
+            raise self.make_error("not_bytes") from e
         except UnicodeError as e:
-            raise self.make_error("unicode")  from e
+            raise self.make_error("unicode") from e
 
-    def _serialize(self,
+    def _serialize(
+        self,
         value: bytes,
         attr: str | None,
         obj: typing.Any,
@@ -964,7 +966,7 @@ class Bytes(Field[bytes]):
                 case _:
                     typing.assert_never(self.serialize)
         except UnicodeError as e:
-            raise self.make_error("unicode")  from e
+            raise self.make_error("unicode") from e
 
 
 class UUID(Field[uuid.UUID]):
