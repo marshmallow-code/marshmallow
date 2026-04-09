@@ -933,7 +933,7 @@ class Bytes(Field[bytes]):
                         signed=i < 0,
                     )
                 case _:
-                    return bytes(obj)
+                    return bytes(value)
         except TypeError as e:
             raise self.make_error("not_bytes") from e
         except UnicodeError as e:
