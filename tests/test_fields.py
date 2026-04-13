@@ -245,6 +245,7 @@ class TestMetadata:
             metadata={"description": "foo", "widget": "select"},
         )
         assert field.metadata == {"description": "foo", "widget": "select"}
+
     def test_metadata_is_defensively_copied(self):
         original_meta = {"key1": "value1", "key2": "value2"}
         field = fields.Field(metadata=original_meta)
@@ -276,6 +277,7 @@ class TestMetadata:
 
         assert field.metadata.get("description") == "test field"
         assert "extra" not in field.metadata
+
 
 class TestErrorMessages:
     class MyField(fields.Field):
