@@ -2,12 +2,12 @@ ci:
   autoupdate_schedule: monthly
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.4
+  rev: v0.15.10
   hooks:
     - id: ruff-check
     - id: ruff-format
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.37.0
+  rev: 0.37.1
   hooks:
     - id: check-github-workflows
     - id: check-readthedocs
@@ -18,6 +18,6 @@ repos:
   - id: blacken-docs
     additional_dependencies: [black==25.1.0]
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.10.9
+  rev: 0.11.6
   hooks:
     - id: uv-lock
