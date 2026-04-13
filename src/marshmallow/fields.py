@@ -230,7 +230,7 @@ class Field(typing.Generic[_InternalT]):
         self.required = required
 
         metadata = metadata or {}
-        self.metadata = metadata
+        self.metadata = dict(metadata)
         # Collect default error message from self and parent classes
         messages: types.ErrorMessages = {}
         for cls in reversed(self.__class__.__mro__):
