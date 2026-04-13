@@ -245,7 +245,37 @@ class TestMetadata:
             metadata={"description": "foo", "widget": "select"},
         )
         assert field.metadata == {"description": "foo", "widget": "select"}
+    def test_metadata_is_defensively_copied(self):
+        original_meta = {"key1": "value1", "key2": "value2"}
+        field = fields.Field(metadata=original_meta)
 
+        original_meta["key1"] = "modified_value"
+        original_meta["key3"] = "new_key"
+
+        assert field.metadata.get("key1") == "value1"
+        assert "key3" not in field.metadata
+
+    def test_empty_metadata_is_defensively_copied(self):
+        empty_meta = {}
+        field = fields.Field(metadata=empty_meta)
+
+        empty_meta["injected"] = "value"
+
+        assert "injected" not in field.metadata
+
+    def test_metadata_defensive_copy_with_other_params(self):
+        original_meta = {"description": "test field"}
+        field = fields.Field(
+            metadata=original_meta,
+            required=True,
+            data_key="test_key",
+        )
+
+        original_meta["description"] = "modified"
+        original_meta["extra"] = "added"
+
+        assert field.metadata.get("description") == "test field"
+        assert "extra" not in field.metadata
 
 class TestErrorMessages:
     class MyField(fields.Field):
