@@ -34,7 +34,7 @@ suppress_warnings = ["ref.python"]
 
 html_theme = "furo"
 html_theme_options = {
-    "announcement": 'marshmallow version 3 will be unsupported starting April 16, 2026. <a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html">Upgrade to version 4</a> as soon as you can.',
+    "announcement": 'marshmallow version 3 reached end-of-life on April 16, 2026. It will no longer receive security updates. <a href="https://marshmallow.readthedocs.io/en/latest/upgrading.html">Upgrade to version 4</a> as soon as you can.',
     "light_logo": "marshmallow-logo-with-title.png",
     "dark_logo": "marshmallow-logo-with-title-for-dark-theme.png",
     "source_repository": "https://github.com/marshmallow-code/marshmallow",
@@ -42,8 +42,7 @@ html_theme_options = {
     "source_directory": "docs/",
     "sidebar_hide_name": True,
     "light_css_variables": {
-        # Serif system font stack: https://systemfontstack.com/
-        "font-stack": "Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;",
+        "font-stack": "Charter, Iowan Old Style, Palatino Linotype, Palatino, Georgia, serif;",
     },
     "top_of_page_buttons": ["view"],
 }
