@@ -275,7 +275,9 @@ If the object to be marshalled has a relationship to an object of the same type,
         email = fields.Email()
         # Use the 'exclude' argument to avoid infinite recursion
         employer = fields.Nested(lambda: UserSchema(exclude=("employer", "friends")))
-        friends = fields.List(fields.Nested(lambda: UserSchema(exclude=("employer", "friends"))))
+        friends = fields.List(
+            fields.Nested(lambda: UserSchema(exclude=("employer", "friends")))
+        )
 
 
     user = User("Steve", "steve@example.com")
