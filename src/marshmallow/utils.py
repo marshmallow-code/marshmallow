@@ -125,7 +125,10 @@ def _get_value_for_key(obj, key, default):
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        try:
+            return getattr(obj, key, default)
+        except TypeError:
+            return default
 
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
