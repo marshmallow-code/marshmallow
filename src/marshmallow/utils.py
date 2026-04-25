@@ -124,7 +124,15 @@ def _get_value_for_key(obj, key, default):
 
     try:
         return obj[key]
-    except (KeyError, IndexError, TypeError, AttributeError):
+    except (KeyError, IndexError):
+        try:
+            return getattr(obj, key, default)
+        except TypeError:
+            # getattr(obj, int_key, default) fails when key is int and
+            # obj has no such attribute, because attribute name must be string.
+            return default
+    except TypeError:
+        # e.g. obj doesn't support indexing at all, or key type is invalid
         return getattr(obj, key, default)
 
 
