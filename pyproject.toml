@@ -47,6 +47,7 @@ dev = [{ include-group = "tests" }, "tox", "tox-uv", "pre-commit>=3.5,<5.0"]
 
 [tool.uv]
 default-groups = ["dev"]
+exclude-newer = "1 week"
 
 [build-system]
 requires = ["flit_core>=3.12,<4"]
