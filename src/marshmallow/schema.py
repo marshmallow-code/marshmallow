@@ -538,7 +538,8 @@ class Schema(metaclass=SchemaMeta):
             return [self._serialize(d, many=False) for d in obj]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
-            value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
+            value = field_obj.get_value(obj, attr_name, accessor=self.get_attribute)
+            value = field_obj.serialize(value, attr_name, obj)
             if value is missing:
                 continue
             key = field_obj.data_key if field_obj.data_key is not None else attr_name

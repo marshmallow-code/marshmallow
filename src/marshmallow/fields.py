@@ -320,24 +320,14 @@ class Field(typing.Generic[_InternalT]):
         if value is None and not self.allow_none:
             raise self.make_error("null")
 
-    def serialize(
-        self,
-        attr: str,
-        obj: typing.Any,
-        accessor: (
-            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-        ) = None,
-        **kwargs,
-    ):
-        """Pulls the value for the given key from the object, applies the
-        field's formatting and returns the result.
+    def serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
+        """Applies the field's formatting to ``value`` and returns the result.
 
-        :param attr: The attribute/key to get from the object.
-        :param obj: The object to access the attribute/key from.
-        :param accessor: Function used to access values from ``obj``.
+        :param value: The value to serialize.
+        :param attr: The attribute/key name (used for error context).
+        :param obj: The parent object (used by Nested fields).
         :param kwargs: Field-specific keyword arguments.
         """
-        value = self.get_value(obj, attr, accessor=accessor)
         if value is missing_:
             default = self.dump_default
             value = default() if callable(default) else default

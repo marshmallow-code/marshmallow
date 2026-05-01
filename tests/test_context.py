@@ -186,7 +186,7 @@ class TestContext:
         )
         field.parent = Parent()
         with Context({"key": "BAR"}):
-            assert field.serialize("key", user) == "MONTYBAR"
+            assert field.serialize(user.name, "key", user) == "MONTYBAR"
 
     def test_function_field_deserialization_with_context(self):
         class Parent(Schema):
