@@ -2019,8 +2019,8 @@ class Method(Field):
     """A field that takes the value returned by a `Schema <marshmallow.Schema>` method.
 
     :param serialize: The name of the Schema method from which
-        to retrieve the value. The method must take an argument ``obj``
-        (in addition to self) that is the object to be serialized.
+        to retrieve the value. The method must take an argument ``value``
+        (in addition to self) that is the value to be serialized.
     :param deserialize: Optional name of the Schema method for deserializing
         a value. The method must take a single argument ``value``, which is the
         value to deserialize.
@@ -2028,8 +2028,6 @@ class Method(Field):
     .. versionchanged:: 3.0.0
         Removed ``method_name`` parameter.
     """
-
-    _CHECK_ATTRIBUTE = False
 
     def __init__(
         self,
@@ -2061,7 +2059,7 @@ class Method(Field):
 
     def _serialize(self, value, attr, obj, **kwargs):
         if self._serialize_method is not None:
-            return self._serialize_method(obj)
+            return self._serialize_method(value)
         return missing_
 
     def _deserialize(self, value, attr, data, **kwargs):
@@ -2074,8 +2072,8 @@ class Function(Field):
     """A field that takes the value returned by a function.
 
     :param serialize: A callable from which to retrieve the value.
-        The function must take a single argument ``obj`` which is the object
-        to be serialized.
+        The function must take a single argument ``value`` which is the
+        value to be serialized.
         If no callable is provided then the ``load_only`` flag will be set
         to True.
     :param deserialize: A callable from which to retrieve the value.
@@ -2090,8 +2088,6 @@ class Function(Field):
     .. versionchanged:: 4.0.0
         Don't pass context to serialization and deserialization functions.
     """
-
-    _CHECK_ATTRIBUTE = False
 
     def __init__(
         self,
@@ -2115,7 +2111,7 @@ class Function(Field):
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj, **kwargs):
-        return self.serialize_func(obj)
+        return self.serialize_func(value)
 
     def _deserialize(self, value, attr, data, **kwargs):
         if self.deserialize_func:

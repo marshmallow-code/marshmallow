@@ -42,11 +42,11 @@ class TestFieldSerialization:
         return User("Foo", email="foo@bar.com", age=42)
 
     def test_function_field_passed_func(self, user):
-        field = fields.Function(lambda obj: obj.name.upper())
-        assert field.serialize("key", user) == "FOO"
+        field = fields.Function(lambda value: value.upper())
+        assert field.serialize("name", user) == "FOO"
 
     def test_function_field_passed_serialize_only_is_dump_only(self, user):
-        field = fields.Function(serialize=lambda obj: obj.name.upper())
+        field = fields.Function(serialize=lambda value: value.upper())
         assert field.dump_only is True
 
     def test_function_field_passed_deserialize_and_serialize_is_not_dump_only(self):
@@ -56,17 +56,17 @@ class TestFieldSerialization:
         assert field.dump_only is False
 
     def test_function_field_passed_serialize(self, user):
-        field = fields.Function(serialize=lambda obj: obj.name.upper())
-        assert field.serialize("key", user) == "FOO"
+        field = fields.Function(serialize=lambda value: value.upper())
+        assert field.serialize("name", user) == "FOO"
 
     # https://github.com/marshmallow-code/marshmallow/issues/395
     def test_function_field_does_not_swallow_attribute_error(self, user):
-        def raise_error(obj):
+        def raise_error(value):
             raise AttributeError
 
         field = fields.Function(serialize=raise_error)
         with pytest.raises(AttributeError):
-            field.serialize("key", user)
+            field.serialize("name", user)
 
     def test_serialize_with_load_only_param(self):
         class AliasingUserSerializer(Schema):
@@ -487,11 +487,11 @@ class TestFieldSerialization:
         class MySchema(Schema):
             mfield = fields.Method("raise_error")
 
-            def raise_error(self, obj):
+            def raise_error(self, value):
                 raise AttributeError
 
         with pytest.raises(AttributeError):
-            MySchema().dump({})
+            MySchema().dump({"mfield": "something"})
 
     def test_method_with_no_serialize_is_missing(self):
         m = fields.Method()

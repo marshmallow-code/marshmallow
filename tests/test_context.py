@@ -18,13 +18,18 @@ from tests.base import Blog, User
 
 
 class UserContextSchema(Schema):
-    is_owner = fields.Method("get_is_owner")
-    is_collab = fields.Function(
-        lambda user: user in Context[dict[str, typing.Any]].get()["blog"]
+    is_owner = fields.Boolean(
+        dump_only=True,
+        dump_getter=lambda user, attr, default: (
+            Context.get()["blog"].user.name == user.name
+        ),
     )
-
-    def get_is_owner(self, user):
-        return Context.get()["blog"].user.name == user.name
+    is_collab = fields.Boolean(
+        dump_only=True,
+        dump_getter=lambda user, attr, default: (
+            user in Context[dict[str, typing.Any]].get()["blog"]
+        ),
+    )
 
 
 class TestContext:
@@ -85,7 +90,9 @@ class TestContext:
 
         # only has a function field
         class UserFunctionContextSchema(Schema):
-            is_collab = fields.Function(serialize)
+            is_collab = fields.Function(
+                serialize, dump_getter=lambda obj, attr, default: obj.name
+            )
 
         owner = User("Joe")
         serializer = UserFunctionContextSchema()
@@ -94,7 +101,12 @@ class TestContext:
 
     def test_nested_fields_inherit_context(self):
         class InnerSchema(Schema):
-            likes_bikes = fields.Function(lambda obj: "bikes" in Context.get()["info"])
+            likes_bikes = fields.Boolean(
+                dump_only=True,
+                dump_getter=lambda obj, attr, default: (
+                    "bikes" in Context.get()["info"]
+                ),
+            )
 
         class CSchema(Schema):
             inner = fields.Nested(InnerSchema)
@@ -169,7 +181,8 @@ class TestContext:
             pass
 
         field = fields.Function(
-            serialize=lambda obj: obj.name.upper() + Context.get()["key"]
+            serialize=lambda value: value.upper() + Context.get()["key"],
+            attribute="name",
         )
         field.parent = Parent()
         with Context({"key": "BAR"}):
