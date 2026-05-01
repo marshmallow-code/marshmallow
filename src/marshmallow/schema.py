@@ -648,7 +648,12 @@ class Schema(metaclass=SchemaMeta):
                 field_name = (
                     field_obj.data_key if field_obj.data_key is not None else attr_name
                 )
-                raw_value = data.get(field_name, missing)
+                if field_obj.load_getter is not None:
+                    raw_value = field_obj.load_getter(
+                        data, field_name, missing
+                    )
+                else:
+                    raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (

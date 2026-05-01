@@ -102,6 +102,12 @@ class _BaseFieldKwargs(typing.TypedDict, total=False):
     dump_only: bool
     error_messages: types.ErrorMessages | None
     metadata: typing.Mapping[str, typing.Any] | None
+    dump_getter: (
+        typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
+    )
+    load_getter: (
+        typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
+    )
 
 
 def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
@@ -209,12 +215,20 @@ class Field(typing.Generic[_InternalT]):
         dump_only: bool = False,
         error_messages: types.ErrorMessages | None = None,
         metadata: typing.Mapping[str, typing.Any] | None = None,
+        dump_getter: (
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
+        ) = None,
+        load_getter: (
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
+        ) = None,
     ) -> None:
         self.dump_default = dump_default
         self.load_default = load_default
 
         self.attribute = attribute
         self.data_key = data_key
+        self.dump_getter = dump_getter
+        self.load_getter = load_getter
         self.validate = validate
         self.validators = self._normalize_processors(validate, param="validate")
         self.pre_load = self._normalize_processors(pre_load, param="pre_load")
@@ -271,7 +285,7 @@ class Field(typing.Generic[_InternalT]):
         :param accessor: A callable used to retrieve the value of `attr` from
             the object `obj`. Defaults to `marshmallow.utils.get_value`.
         """
-        accessor_func = accessor or utils.get_value
+        accessor_func = self.dump_getter or accessor or utils.get_value
         check_key = attr if self.attribute is None else self.attribute
         return accessor_func(obj, check_key, default)
 
