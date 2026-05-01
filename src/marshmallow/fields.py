@@ -320,12 +320,10 @@ class Field(typing.Generic[_InternalT]):
         if value is None and not self.allow_none:
             raise self.make_error("null")
 
-    def serialize(self, value: typing.Any, attr: str, obj: typing.Any, **kwargs):
+    def serialize(self, value: typing.Any, **kwargs):
         """Applies the field's formatting to ``value`` and returns the result.
 
         :param value: The value to serialize.
-        :param attr: The attribute/key name (used for error context).
-        :param obj: The parent object (used by Nested fields).
         :param kwargs: Field-specific keyword arguments.
         """
         if value is missing_:
@@ -333,40 +331,21 @@ class Field(typing.Generic[_InternalT]):
             value = default() if callable(default) else default
         if value is missing_:
             return value
-        return self._serialize(value, attr, obj, **kwargs)
+        return self._serialize(value, **kwargs)
 
     # If value is None, None may be returned
     @typing.overload
-    def deserialize(
-        self,
-        value: None,
-        attr: str | None = None,
-        data: typing.Mapping[str, typing.Any] | None = None,
-        **kwargs,
-    ) -> _InternalT | None: ...
+
+    def deserialize(self, value: None, **kwargs) -> _InternalT | None: ...
 
     # If value is not None, internal type is returned
     @typing.overload
-    def deserialize(
-        self,
-        value: typing.Any,
-        attr: str | None = None,
-        data: typing.Mapping[str, typing.Any] | None = None,
-        **kwargs,
-    ) -> _InternalT: ...
+    def deserialize(self, value: typing.Any, **kwargs) -> _InternalT: ...
 
-    def deserialize(
-        self,
-        value: typing.Any,
-        attr: str | None = None,
-        data: typing.Mapping[str, typing.Any] | None = None,
-        **kwargs,
-    ) -> _InternalT | None:
+    def deserialize(self, value: typing.Any, **kwargs) -> _InternalT | None:
         """Deserialize ``value``.
 
         :param value: The value to deserialize.
-        :param attr: The attribute/key in `data` to deserialize.
-        :param data: The raw input data passed to `Schema.load <marshmallow.Schema.load>`.
         :param kwargs: Field-specific keyword arguments.
         :raise ValidationError: If an invalid value is passed or if a required value
             is missing.
@@ -385,7 +364,7 @@ class Field(typing.Generic[_InternalT]):
         if self.allow_none and value is None:
             return None
 
-        output = self._deserialize(value, attr, data, **kwargs)
+        output = self._deserialize(value, **kwargs)
         # Apply validators
         self._validate(output)
 
@@ -409,40 +388,28 @@ class Field(typing.Generic[_InternalT]):
             self.parent.root if isinstance(self.parent, Field) else self.parent
         )
 
-    def _serialize(
-        self, value: _InternalT | None, attr: str | None, obj: typing.Any, **kwargs
-    ) -> typing.Any:
+    def _serialize(self, value: _InternalT | None, **kwargs) -> typing.Any:
         """Serializes ``value`` to a basic Python datatype. Noop by default.
         Concrete :class:`Field` classes should implement this method.
 
         Example: ::
 
             class TitleCase(Field):
-                def _serialize(self, value, attr, obj, **kwargs):
+                def _serialize(self, value, **kwargs):
                     if not value:
                         return ""
                     return str(value).title()
 
         :param value: The value to be serialized.
-        :param attr: The attribute or key on the object to be serialized.
-        :param obj: The object the value was pulled from.
         :param kwargs: Field-specific keyword arguments.
         :return: The serialized value
         """
         return value
 
-    def _deserialize(
-        self,
-        value: typing.Any,
-        attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None,
-        **kwargs,
-    ) -> _InternalT:
+    def _deserialize(self, value: typing.Any, **kwargs) -> _InternalT:
         """Deserialize value. Concrete :class:`Field` classes should implement this method.
 
         :param value: The value to be deserialized.
-        :param attr: The attribute/key in `data` to be deserialized.
-        :param data: The raw input data passed to the `Schema.load <marshmallow.Schema.load>`.
         :param kwargs: Field-specific keyword arguments.
         :raise ValidationError: In case of formatting or validation failure.
         :return: The deserialized value.
@@ -616,7 +583,7 @@ class Nested(Field):
             if field.startswith(nested_field)
         ]
 
-    def _serialize(self, nested_obj, attr, obj, **kwargs):
+    def _serialize(self, nested_obj, **kwargs):
         # Load up the schema first. This allows a RegistryError to be raised
         # if an invalid schema name was passed
         schema = self.schema
@@ -646,8 +613,6 @@ class Nested(Field):
     def _deserialize(
         self,
         value: typing.Any,
-        attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None,
         partial: bool | types.StrSequenceOrSet | None = None,  # noqa: FBT001
         **kwargs,
     ):
@@ -708,15 +673,15 @@ class Pluck(Nested):
         only_field = self.schema.fields[self.field_name]
         return only_field.data_key or self.field_name
 
-    def _serialize(self, nested_obj, attr, obj, **kwargs):
-        ret = super()._serialize(nested_obj, attr, obj, **kwargs)
+    def _serialize(self, nested_obj, **kwargs):
+        ret = super()._serialize(nested_obj, **kwargs)
         if ret is None:
             return None
         if self.many:
             return utils.pluck(ret, key=self._field_data_key)
         return ret[self._field_data_key]
 
-    def _deserialize(self, value, attr, data, partial=None, **kwargs):
+    def _deserialize(self, value, partial=None, **kwargs):
         self._test_collection(value)
         if self.many:
             value = [{self._field_data_key: v} for v in value]
@@ -768,12 +733,12 @@ class List(Field[list[_InternalT | None]]):
             self.inner.only = self.only
             self.inner.exclude = self.exclude
 
-    def _serialize(self, value, attr, obj, **kwargs) -> list[_InternalT] | None:
+    def _serialize(self, value, **kwargs) -> list[_InternalT] | None:
         if value is None:
             return None
-        return [self.inner._serialize(each, attr, obj, **kwargs) for each in value]
+        return [self.inner._serialize(each, **kwargs) for each in value]
 
-    def _deserialize(self, value, attr, data, **kwargs) -> list[_InternalT | None]:
+    def _deserialize(self, value, **kwargs) -> list[_InternalT | None]:
         if not utils.is_collection(value):
             raise self.make_error("invalid")
 
@@ -848,24 +813,16 @@ class Tuple(Field[tuple]):
 
         self.tuple_fields = new_tuple_fields
 
-    def _serialize(
-        self, value: tuple | None, attr: str | None, obj: typing.Any, **kwargs
-    ) -> tuple | None:
+    def _serialize(self, value: tuple | None, **kwargs) -> tuple | None:
         if value is None:
             return None
 
         return tuple(
-            field._serialize(each, attr, obj, **kwargs)
+            field._serialize(each, **kwargs)
             for field, each in zip(self.tuple_fields, value, strict=True)
         )
 
-    def _deserialize(
-        self,
-        value: typing.Any,
-        attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None,
-        **kwargs,
-    ) -> tuple:
+    def _deserialize(self, value: typing.Any, **kwargs) -> tuple:
         if not utils.is_sequence_but_not_string(value):
             raise self.make_error("invalid")
 
@@ -899,12 +856,12 @@ class String(Field[str]):
         "invalid_utf8": "Not a valid utf-8 string.",
     }
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, **kwargs) -> str | None:
         if value is None:
             return None
         return utils.ensure_text_type(value)
 
-    def _deserialize(self, value, attr, data, **kwargs) -> str:
+    def _deserialize(self, value, **kwargs) -> str:
         if not isinstance(value, (str, bytes)):
             raise self.make_error("invalid")
         try:
@@ -930,12 +887,12 @@ class UUID(Field[uuid.UUID]):
         except (ValueError, AttributeError, TypeError) as error:
             raise self.make_error("invalid_uuid") from error
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, **kwargs) -> str | None:
         if value is None:
             return None
         return str(value)
 
-    def _deserialize(self, value, attr, data, **kwargs) -> uuid.UUID:
+    def _deserialize(self, value, **kwargs) -> uuid.UUID:
         return self._validated(value)
 
 
@@ -989,14 +946,14 @@ class Number(Field[_NumT], metaclass=abc.ABCMeta):
     def _to_string(self, value: _NumT) -> str:
         return str(value)
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | _NumT | None:
+    def _serialize(self, value, **kwargs) -> str | _NumT | None:
         """Return a string if `self.as_string=True`, otherwise return this field's `num_type`."""
         if value is None:
             return None
         ret: _NumT = self._format_num(value)
         return self._to_string(ret) if self.as_string else ret
 
-    def _deserialize(self, value, attr, data, **kwargs) -> _NumT:
+    def _deserialize(self, value, **kwargs) -> _NumT:
         return self._validated(value)
 
 
@@ -1217,13 +1174,7 @@ class Boolean(Field[bool]):
         if falsy is not None:
             self.falsy = set(falsy)
 
-    def _deserialize(
-        self,
-        value: typing.Any,
-        attr: str | None,
-        data: typing.Mapping[str, typing.Any] | None,
-        **kwargs,
-    ) -> bool:
+    def _deserialize(self, value: typing.Any, **kwargs) -> bool:
         if not self.truthy:
             return bool(value)
         try:
@@ -1274,7 +1225,7 @@ class _TemporalField(Field[_D], metaclass=abc.ABCMeta):
             or self.DEFAULT_FORMAT
         )
 
-    def _serialize(self, value: _D | None, attr, obj, **kwargs) -> str | float | None:
+    def _serialize(self, value: _D | None, **kwargs) -> str | float | None:
         if value is None:
             return None
         data_format = self.format or self.DEFAULT_FORMAT
@@ -1283,7 +1234,7 @@ class _TemporalField(Field[_D], metaclass=abc.ABCMeta):
             return format_func(value)
         return value.strftime(data_format)
 
-    def _deserialize(self, value, attr, data, **kwargs) -> _D:
+    def _deserialize(self, value, **kwargs) -> _D:
         internal_type: type[_D] = getattr(dt, self.OBJ_TYPE)
         if isinstance(value, internal_type):
             return value
@@ -1373,8 +1324,8 @@ class NaiveDateTime(DateTime):
         super().__init__(format=format, **kwargs)
         self.timezone = timezone
 
-    def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
-        ret = super()._deserialize(value, attr, data, **kwargs)
+    def _deserialize(self, value, **kwargs) -> dt.datetime:
+        ret = super()._deserialize(value, **kwargs)
         if utils.is_aware(ret):
             if self.timezone is None:
                 raise self.make_error(
@@ -1410,8 +1361,8 @@ class AwareDateTime(DateTime):
         super().__init__(format=format, **kwargs)
         self.default_timezone = default_timezone
 
-    def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
-        ret = super()._deserialize(value, attr, data, **kwargs)
+    def _deserialize(self, value, **kwargs) -> dt.datetime:
+        ret = super()._deserialize(value, **kwargs)
         if not utils.is_aware(ret):
             if self.default_timezone is None:
                 raise self.make_error(
@@ -1556,7 +1507,7 @@ class TimeDelta(Field[dt.timedelta]):
         self.precision = precision
         super().__init__(**kwargs)
 
-    def _serialize(self, value, attr, obj, **kwargs) -> float | None:
+    def _serialize(self, value, **kwargs) -> float | None:
         if value is None:
             return None
 
@@ -1565,7 +1516,7 @@ class TimeDelta(Field[dt.timedelta]):
         microseconds_per_unit: int = self._unit_to_microseconds_mapping[self.precision]
         return microseconds / microseconds_per_unit
 
-    def _deserialize(self, value, attr, data, **kwargs) -> dt.timedelta:
+    def _deserialize(self, value, **kwargs) -> dt.timedelta:
         if isinstance(value, dt.timedelta):
             return value
         try:
@@ -1655,7 +1606,7 @@ class Mapping(Field[_MappingT], metaclass=abc.ABCMeta):
             self.key_field = copy.deepcopy(self.key_field)
             self.key_field._bind_to_schema(field_name, self)
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, **kwargs):
         if value is None:
             return None
         if not self.value_field and not self.key_field:
@@ -1665,9 +1616,7 @@ class Mapping(Field[_MappingT], metaclass=abc.ABCMeta):
         if self.key_field is None:
             keys = {k: k for k in value}
         else:
-            keys = {
-                k: self.key_field._serialize(k, None, None, **kwargs) for k in value
-            }
+            keys = {k: self.key_field._serialize(k, **kwargs) for k in value}
 
         # Serialize values
         result = self.mapping_type()
@@ -1677,11 +1626,11 @@ class Mapping(Field[_MappingT], metaclass=abc.ABCMeta):
                     result[keys[k]] = v
         else:
             for k, v in value.items():
-                result[keys[k]] = self.value_field._serialize(v, None, None, **kwargs)
+                result[keys[k]] = self.value_field._serialize(v, **kwargs)
 
         return result
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, **kwargs):
         if not isinstance(value, _Mapping):
             raise self.make_error("invalid")
         if not self.value_field and not self.key_field:
@@ -1817,7 +1766,7 @@ class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
         super().__init__(**kwargs)
         self.exploded = exploded
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, **kwargs) -> str | None:
         if value is None:
             return None
         if self.exploded:
@@ -1825,7 +1774,7 @@ class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
         return value.compressed
 
     def _deserialize(
-        self, value, attr, data, **kwargs
+        self, value, **kwargs
     ) -> ipaddress.IPv4Address | ipaddress.IPv6Address:
         try:
             return (self.DESERIALIZATION_CLASS or ipaddress.ip_address)(
@@ -1879,7 +1828,7 @@ class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
         super().__init__(**kwargs)
         self.exploded = exploded
 
-    def _serialize(self, value, attr, obj, **kwargs) -> str | None:
+    def _serialize(self, value, **kwargs) -> str | None:
         if value is None:
             return None
         if self.exploded:
@@ -1887,7 +1836,7 @@ class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
         return value.compressed
 
     def _deserialize(
-        self, value, attr, data, **kwargs
+        self, value, **kwargs
     ) -> ipaddress.IPv4Interface | ipaddress.IPv6Interface:
         try:
             return (self.DESERIALIZATION_CLASS or ipaddress.ip_interface)(
@@ -1950,7 +1899,7 @@ class Enum(Field[_EnumT]):
         if by_value is False:
             self.field: Field = String()
             self.choices_text = ", ".join(
-                str(self.field._serialize(m, None, None)) for m in enum.__members__
+                str(self.field._serialize(m)) for m in enum.__members__
             )
         # Serialization by value
         else:
@@ -1965,26 +1914,24 @@ class Enum(Field[_EnumT]):
                         "marshmallow.fields.Field."
                     ) from error
             self.choices_text = ", ".join(
-                str(self.field._serialize(m.value, None, None)) for m in enum
+                str(self.field._serialize(m.value)) for m in enum
             )
             if "allow_none" not in kwargs and any(m.value is None for m in enum):
                 self.allow_none = True
 
-    def _serialize(
-        self, value: _EnumT | None, attr: str | None, obj: typing.Any, **kwargs
-    ) -> typing.Any | None:
+    def _serialize(self, value: _EnumT | None, **kwargs) -> typing.Any | None:
         if value is None:
             return None
         if self.by_value:
             val = value.value
         else:
             val = value.name
-        return self.field._serialize(val, attr, obj, **kwargs)
+        return self.field._serialize(val, **kwargs)
 
-    def _deserialize(self, value, attr, data, **kwargs) -> _EnumT:
+    def _deserialize(self, value, **kwargs) -> _EnumT:
         if isinstance(value, self.enum):
             return value
-        val = self.field._deserialize(value, attr, data, **kwargs)
+        val = self.field._deserialize(value, **kwargs)
         if self.by_value:
             try:
                 return self.enum(val)
@@ -2039,12 +1986,12 @@ class Method(Field):
 
         super()._bind_to_schema(field_name, parent)
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, **kwargs):
         if self._serialize_method is not None:
             return self._serialize_method(value)
         return missing_
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, **kwargs):
         if self._deserialize_method is not None:
             return self._deserialize_method(value)
         return value
@@ -2092,10 +2039,10 @@ class Function(Field):
         self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, **kwargs):
         return self.serialize_func(value)
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, **kwargs):
         if self.deserialize_func:
             return self.deserialize_func(value)
         return value
@@ -2122,10 +2069,10 @@ class Constant(Field[_ContantT]):
         if kwargs.get("allow_none") is None and constant is None:
             self.allow_none = True
 
-    def _serialize(self, value, *args, **kwargs) -> _ContantT:
+    def _serialize(self, value, **kwargs) -> _ContantT:
         return self.constant
 
-    def _deserialize(self, value, *args, **kwargs) -> _ContantT:
+    def _deserialize(self, value, **kwargs) -> _ContantT:
         return self.constant
 
 

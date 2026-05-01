@@ -539,7 +539,7 @@ class Schema(metaclass=SchemaMeta):
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
             value = field_obj.get_value(obj, attr_name, accessor=self.get_attribute)
-            value = field_obj.serialize(value, attr_name, obj)
+            value = field_obj.serialize(value)
             if value is missing:
                 continue
             key = field_obj.data_key if field_obj.data_key is not None else attr_name
@@ -673,15 +673,8 @@ class Schema(metaclass=SchemaMeta):
                 elif partial is not None:
                     d_kwargs["partial"] = partial
 
-                def getter(
-                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
-                ):
-                    return field_obj.deserialize(
-                        val,
-                        field_name,
-                        data,
-                        **d_kwargs,
-                    )
+                def getter(val, field_obj=field_obj, d_kwargs=d_kwargs):
+                    return field_obj.deserialize(val, **d_kwargs)
 
                 value = self._call_and_store(
                     getter_func=getter,

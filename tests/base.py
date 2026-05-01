@@ -173,7 +173,7 @@ class Blog:
 class Uppercased(fields.String):
     """Custom field formatting example."""
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, **kwargs):
         if value:
             return value.upper()
         return None

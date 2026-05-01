@@ -76,11 +76,9 @@ class TestField:
         ):
             fields.Raw(required=True, load_default=42)
 
-    def test_custom_field_receives_attr_and_obj(self):
+    def test_custom_field_deserialize(self):
         class MyField(fields.Field[str]):
-            def _deserialize(self, value, attr, data, **kwargs) -> str:
-                assert attr == "name"
-                assert data["foo"] == 42
+            def _deserialize(self, value, **kwargs) -> str:
                 return str(value)
 
         class MySchema(Schema):
@@ -89,11 +87,9 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({"name": "Monty", "foo": 42})
         assert result == {"name": "Monty"}
 
-    def test_custom_field_receives_data_key_if_set(self):
+    def test_custom_field_deserialize_with_data_key(self):
         class MyField(fields.Field[str]):
-            def _deserialize(self, value, attr, data, **kwargs):
-                assert attr == "name"
-                assert data["foo"] == 42
+            def _deserialize(self, value, **kwargs):
                 return str(value)
 
         class MySchema(Schema):
@@ -104,9 +100,7 @@ class TestField:
 
     def test_custom_field_follows_data_key_if_set(self):
         class MyField(fields.Field[str]):
-            def _serialize(self, value, attr, obj, **kwargs) -> str:
-                assert attr == "name"
-                assert obj["foo"] == 42
+            def _serialize(self, value, **kwargs) -> str:
                 return str(value)
 
         class MySchema(Schema):

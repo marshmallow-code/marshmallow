@@ -35,13 +35,13 @@ class UserContextSchema(Schema):
 class TestContext:
     def test_context_load_dump(self):
         class ContextField(fields.Integer):
-            def _serialize(self, value, attr, obj, **kwargs):
+            def _serialize(self, value, **kwargs):
                 if (context := Context[dict].get(None)) is not None:
                     value *= context.get("factor", 1)
-                return super()._serialize(value, attr, obj, **kwargs)
+                return super()._serialize(value, **kwargs)
 
-            def _deserialize(self, value, attr, data, **kwargs):
-                val = super()._deserialize(value, attr, data, **kwargs)
+            def _deserialize(self, value, **kwargs):
+                val = super()._deserialize(value, **kwargs)
                 if (context := Context[dict].get(None)) is not None:
                     val *= context.get("factor", 1)
                 return val
@@ -186,7 +186,7 @@ class TestContext:
         )
         field.parent = Parent()
         with Context({"key": "BAR"}):
-            assert field.serialize(user.name, "key", user) == "MONTYBAR"
+            assert field.serialize(user.name) == "MONTYBAR"
 
     def test_function_field_deserialization_with_context(self):
         class Parent(Schema):
