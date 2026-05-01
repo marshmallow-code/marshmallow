@@ -181,11 +181,6 @@ class Field(typing.Generic[_InternalT]):
         Add ``pre_load`` and ``post_load``.
     """
 
-    # Some fields, such as Method fields and Function fields, are not expected
-    #  to exist as attributes on the objects to serialize. Set this to False
-    #  for those fields
-    _CHECK_ATTRIBUTE = True
-
     #: Default error messages for various kinds of errors. The keys in this dictionary
     #: are passed to `Field.make_error`. The values are error messages passed to
     #: :exc:`marshmallow.exceptions.ValidationError`.
@@ -342,15 +337,12 @@ class Field(typing.Generic[_InternalT]):
         :param accessor: Function used to access values from ``obj``.
         :param kwargs: Field-specific keyword arguments.
         """
-        if self._CHECK_ATTRIBUTE:
-            value = self.get_value(obj, attr, accessor=accessor)
-            if value is missing_:
-                default = self.dump_default
-                value = default() if callable(default) else default
-            if value is missing_:
-                return value
-        else:
-            value = None
+        value = self.get_value(obj, attr, accessor=accessor)
+        if value is missing_:
+            default = self.dump_default
+            value = default() if callable(default) else default
+        if value is missing_:
+            return value
         return self._serialize(value, attr, obj, **kwargs)
 
     # If value is None, None may be returned
