@@ -13,7 +13,7 @@ import pytest
 
 from marshmallow import Schema, fields
 from marshmallow import missing as missing_
-from tests.base import ALL_FIELDS, DateEnum, GenderEnum, HairColorEnum, User, central
+from tests.base import ALL_FIELDS, DateEnum, GenderEnum, HairColorEnum, central
 
 
 class Point(NamedTuple):
@@ -37,15 +37,11 @@ class DateTimeIntegerTuple:
 
 
 class TestFieldSerialization:
-    @pytest.fixture
-    def user(self):
-        return User("Foo", email="foo@bar.com", age=42)
-
-    def test_function_field_passed_func(self, user):
+    def test_function_field_passed_func(self):
         field = fields.Function(lambda value: value.upper())
-        assert field.serialize(user.name) == "FOO"
+        assert field.serialize("Foo") == "FOO"
 
-    def test_function_field_passed_serialize_only_is_dump_only(self, user):
+    def test_function_field_passed_serialize_only_is_dump_only(self):
         field = fields.Function(serialize=lambda value: value.upper())
         assert field.dump_only is True
 
@@ -55,18 +51,18 @@ class TestFieldSerialization:
         )
         assert field.dump_only is False
 
-    def test_function_field_passed_serialize(self, user):
+    def test_function_field_passed_serialize(self):
         field = fields.Function(serialize=lambda value: value.upper())
-        assert field.serialize(user.name) == "FOO"
+        assert field.serialize("Foo") == "FOO"
 
     # https://github.com/marshmallow-code/marshmallow/issues/395
-    def test_function_field_does_not_swallow_attribute_error(self, user):
+    def test_function_field_does_not_swallow_attribute_error(self):
         def raise_error(value):
             raise AttributeError
 
         field = fields.Function(serialize=raise_error)
         with pytest.raises(AttributeError):
-            field.serialize(user.name)
+            field.serialize("Foo")
 
     def test_serialize_with_load_only_param(self):
         class AliasingUserSerializer(Schema):
@@ -95,367 +91,336 @@ class TestFieldSerialization:
         with pytest.raises(TypeError):
             fields.Function("uncallable")  # type: ignore[arg-type]
 
-    def test_integer_field(self, user):
+    def test_integer_field(self):
         field = fields.Integer()
-        assert field.serialize(user.age) == 42
+        assert field.serialize(42) == 42
 
-    def test_integer_as_string_field(self, user):
+    def test_integer_as_string_field(self):
         field = fields.Integer(as_string=True)
-        assert field.serialize(user.age) == "42"
+        assert field.serialize(42) == "42"
 
-    def test_integer_field_default(self, user):
-        user.age = None
+    def test_integer_field_default(self):
         field = fields.Integer(dump_default=0)
-        assert field.serialize(user.age) is None
+        assert field.serialize(None) is None
         # missing
         assert field.serialize(0) == 0
 
-    def test_integer_field_default_set_to_none(self, user):
-        user.age = None
+    def test_integer_field_default_set_to_none(self):
         field = fields.Integer(dump_default=None)
-        assert field.serialize(user.age) is None
+        assert field.serialize(None) is None
 
-    def test_uuid_field(self, user):
-        user.uuid1 = uuid.UUID("12345678123456781234567812345678")
-        user.uuid2 = None
+    def test_uuid_field(self):
+        uuid1 = uuid.UUID("12345678123456781234567812345678")
 
         field = fields.UUID()
-        assert isinstance(field.serialize(user.uuid1), str)
-        assert field.serialize(user.uuid1) == "12345678-1234-5678-1234-567812345678"
-        assert field.serialize(user.uuid2) is None
+        assert isinstance(field.serialize(uuid1), str)
+        assert field.serialize(uuid1) == "12345678-1234-5678-1234-567812345678"
+        assert field.serialize(None) is None
 
-    def test_ip_address_field(self, user):
+    def test_ip_address_field(self):
         ipv4_string = "192.168.0.1"
         ipv6_string = "ffff::ffff"
         ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
 
-        user.ipv4 = ipaddress.ip_address(ipv4_string)
-        user.ipv6 = ipaddress.ip_address(ipv6_string)
-        user.empty_ip = None
+        ipv4 = ipaddress.ip_address(ipv4_string)
+        ipv6 = ipaddress.ip_address(ipv6_string)
 
         field_compressed = fields.IP()
-        assert isinstance(field_compressed.serialize(user.ipv4), str)
-        assert field_compressed.serialize(user.ipv4) == ipv4_string
-        assert isinstance(field_compressed.serialize(user.ipv6), str)
-        assert field_compressed.serialize(user.ipv6) == ipv6_string
-        assert field_compressed.serialize(user.empty_ip) is None
+        assert isinstance(field_compressed.serialize(ipv4), str)
+        assert field_compressed.serialize(ipv4) == ipv4_string
+        assert isinstance(field_compressed.serialize(ipv6), str)
+        assert field_compressed.serialize(ipv6) == ipv6_string
+        assert field_compressed.serialize(None) is None
 
         field_exploded = fields.IP(exploded=True)
-        assert isinstance(field_exploded.serialize(user.ipv6), str)
-        assert field_exploded.serialize(user.ipv6) == ipv6_exploded_string
+        assert isinstance(field_exploded.serialize(ipv6), str)
+        assert field_exploded.serialize(ipv6) == ipv6_exploded_string
 
-    def test_ipv4_address_field(self, user):
+    def test_ipv4_address_field(self):
         ipv4_string = "192.168.0.1"
 
-        user.ipv4 = ipaddress.ip_address(ipv4_string)
-        user.empty_ip = None
+        ipv4 = ipaddress.ip_address(ipv4_string)
 
         field = fields.IPv4()
-        assert isinstance(field.serialize(user.ipv4), str)
-        assert field.serialize(user.ipv4) == ipv4_string
-        assert field.serialize(user.empty_ip) is None
+        assert isinstance(field.serialize(ipv4), str)
+        assert field.serialize(ipv4) == ipv4_string
+        assert field.serialize(None) is None
 
-    def test_ipv6_address_field(self, user):
+    def test_ipv6_address_field(self):
         ipv6_string = "ffff::ffff"
         ipv6_exploded_string = ipaddress.ip_address("ffff::ffff").exploded
 
-        user.ipv6 = ipaddress.ip_address(ipv6_string)
-        user.empty_ip = None
+        ipv6 = ipaddress.ip_address(ipv6_string)
 
         field_compressed = fields.IPv6()
-        assert isinstance(field_compressed.serialize(user.ipv6), str)
-        assert field_compressed.serialize(user.ipv6) == ipv6_string
-        assert field_compressed.serialize(user.empty_ip) is None
+        assert isinstance(field_compressed.serialize(ipv6), str)
+        assert field_compressed.serialize(ipv6) == ipv6_string
+        assert field_compressed.serialize(None) is None
 
         field_exploded = fields.IPv6(exploded=True)
-        assert isinstance(field_exploded.serialize(user.ipv6), str)
-        assert field_exploded.serialize(user.ipv6) == ipv6_exploded_string
+        assert isinstance(field_exploded.serialize(ipv6), str)
+        assert field_exploded.serialize(ipv6) == ipv6_exploded_string
 
-    def test_ip_interface_field(self, user):
+    def test_ip_interface_field(self):
         ipv4interface_string = "192.168.0.1/24"
         ipv6interface_string = "ffff::ffff/128"
         ipv6interface_exploded_string = ipaddress.ip_interface(
             "ffff::ffff/128"
         ).exploded
 
-        user.ipv4interface = ipaddress.ip_interface(ipv4interface_string)
-        user.ipv6interface = ipaddress.ip_interface(ipv6interface_string)
-        user.empty_ipinterface = None
+        ipv4interface = ipaddress.ip_interface(ipv4interface_string)
+        ipv6interface = ipaddress.ip_interface(ipv6interface_string)
 
         field_compressed = fields.IPInterface()
-        assert isinstance(field_compressed.serialize(user.ipv4interface), str)
-        assert field_compressed.serialize(user.ipv4interface) == ipv4interface_string
-        assert isinstance(field_compressed.serialize(user.ipv6interface), str)
-        assert field_compressed.serialize(user.ipv6interface) == ipv6interface_string
-        assert field_compressed.serialize(user.empty_ipinterface) is None
+        assert isinstance(field_compressed.serialize(ipv4interface), str)
+        assert field_compressed.serialize(ipv4interface) == ipv4interface_string
+        assert isinstance(field_compressed.serialize(ipv6interface), str)
+        assert field_compressed.serialize(ipv6interface) == ipv6interface_string
+        assert field_compressed.serialize(None) is None
 
         field_exploded = fields.IPInterface(exploded=True)
-        assert isinstance(field_exploded.serialize(user.ipv6interface), str)
-        assert (
-            field_exploded.serialize(user.ipv6interface)
-            == ipv6interface_exploded_string
-        )
+        assert isinstance(field_exploded.serialize(ipv6interface), str)
+        assert field_exploded.serialize(ipv6interface) == ipv6interface_exploded_string
 
-    def test_ipv4_interface_field(self, user):
+    def test_ipv4_interface_field(self):
         ipv4interface_string = "192.168.0.1/24"
 
-        user.ipv4interface = ipaddress.ip_interface(ipv4interface_string)
-        user.empty_ipinterface = None
+        ipv4interface = ipaddress.ip_interface(ipv4interface_string)
 
         field = fields.IPv4Interface()
-        assert isinstance(field.serialize(user.ipv4interface), str)
-        assert field.serialize(user.ipv4interface) == ipv4interface_string
-        assert field.serialize(user.empty_ipinterface) is None
+        assert isinstance(field.serialize(ipv4interface), str)
+        assert field.serialize(ipv4interface) == ipv4interface_string
+        assert field.serialize(None) is None
 
-    def test_ipv6_interface_field(self, user):
+    def test_ipv6_interface_field(self):
         ipv6interface_string = "ffff::ffff/128"
         ipv6interface_exploded_string = ipaddress.ip_interface(
             "ffff::ffff/128"
         ).exploded
 
-        user.ipv6interface = ipaddress.ip_interface(ipv6interface_string)
-        user.empty_ipinterface = None
+        ipv6interface = ipaddress.ip_interface(ipv6interface_string)
 
         field_compressed = fields.IPv6Interface()
-        assert isinstance(field_compressed.serialize(user.ipv6interface), str)
-        assert field_compressed.serialize(user.ipv6interface) == ipv6interface_string
-        assert field_compressed.serialize(user.empty_ipinterface) is None
+        assert isinstance(field_compressed.serialize(ipv6interface), str)
+        assert field_compressed.serialize(ipv6interface) == ipv6interface_string
+        assert field_compressed.serialize(None) is None
 
         field_exploded = fields.IPv6Interface(exploded=True)
-        assert isinstance(field_exploded.serialize(user.ipv6interface), str)
-        assert (
-            field_exploded.serialize(user.ipv6interface)
-            == ipv6interface_exploded_string
-        )
+        assert isinstance(field_exploded.serialize(ipv6interface), str)
+        assert field_exploded.serialize(ipv6interface) == ipv6interface_exploded_string
 
-    def test_enum_field_by_symbol_serialization(self, user):
-        user.sex = GenderEnum.male
+    def test_enum_field_by_symbol_serialization(self):
         field = fields.Enum(GenderEnum)
-        assert field.serialize(user.sex) == "male"
+        assert field.serialize(GenderEnum.male) == "male"
 
-    def test_enum_field_by_value_true_serialization(self, user):
-        user.hair_color = HairColorEnum.black
+    def test_enum_field_by_value_true_serialization(self):
         field = fields.Enum(HairColorEnum, by_value=True)
-        assert field.serialize(user.hair_color) == "black hair"
-        user.sex = GenderEnum.male
+        assert field.serialize(HairColorEnum.black) == "black hair"
         field2 = fields.Enum(GenderEnum, by_value=True)
-        assert field2.serialize(user.sex) == 1
-        user.some_date = DateEnum.date_1
+        assert field2.serialize(GenderEnum.male) == 1
 
-    def test_enum_field_by_value_field_serialization(self, user):
-        user.hair_color = HairColorEnum.black
+    def test_enum_field_by_value_field_serialization(self):
         field = fields.Enum(HairColorEnum, by_value=fields.String)
-        assert field.serialize(user.hair_color) == "black hair"
-        user.sex = GenderEnum.male
+        assert field.serialize(HairColorEnum.black) == "black hair"
         field2 = fields.Enum(GenderEnum, by_value=fields.Integer)
-        assert field2.serialize(user.sex) == 1
-        user.some_date = DateEnum.date_1
+        assert field2.serialize(GenderEnum.male) == 1
         field3 = fields.Enum(DateEnum, by_value=fields.Date(format="%d/%m/%Y"))
-        assert field3.serialize(user.some_date) == "29/02/2004"
+        assert field3.serialize(DateEnum.date_1) == "29/02/2004"
 
-    def test_decimal_field(self, user):
-        user.m1 = 12
-        user.m2 = "12.355"
-        user.m3 = decimal.Decimal(1)
-        user.m4 = None
+    def test_decimal_field(self):
+        m1 = 12
+        m2 = "12.355"
+        m3 = decimal.Decimal(1)
+        m4 = None
 
         field = fields.Decimal()
-        assert isinstance(field.serialize(user.m1), decimal.Decimal)
-        assert field.serialize(user.m1) == decimal.Decimal(12)
-        assert isinstance(field.serialize(user.m2), decimal.Decimal)
-        assert field.serialize(user.m2) == decimal.Decimal("12.355")
-        assert isinstance(field.serialize(user.m3), decimal.Decimal)
-        assert field.serialize(user.m3) == decimal.Decimal(1)
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), decimal.Decimal)
+        assert field.serialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.serialize(m2), decimal.Decimal)
+        assert field.serialize(m2) == decimal.Decimal("12.355")
+        assert isinstance(field.serialize(m3), decimal.Decimal)
+        assert field.serialize(m3) == decimal.Decimal(1)
+        assert field.serialize(m4) is None
 
         field = fields.Decimal(1)
-        assert isinstance(field.serialize(user.m1), decimal.Decimal)
-        assert field.serialize(user.m1) == decimal.Decimal(12)
-        assert isinstance(field.serialize(user.m2), decimal.Decimal)
-        assert field.serialize(user.m2) == decimal.Decimal("12.4")
-        assert isinstance(field.serialize(user.m3), decimal.Decimal)
-        assert field.serialize(user.m3) == decimal.Decimal(1)
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), decimal.Decimal)
+        assert field.serialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.serialize(m2), decimal.Decimal)
+        assert field.serialize(m2) == decimal.Decimal("12.4")
+        assert isinstance(field.serialize(m3), decimal.Decimal)
+        assert field.serialize(m3) == decimal.Decimal(1)
+        assert field.serialize(m4) is None
 
         field = fields.Decimal(1, decimal.ROUND_DOWN)
-        assert isinstance(field.serialize(user.m1), decimal.Decimal)
-        assert field.serialize(user.m1) == decimal.Decimal(12)
-        assert isinstance(field.serialize(user.m2), decimal.Decimal)
-        assert field.serialize(user.m2) == decimal.Decimal("12.3")
-        assert isinstance(field.serialize(user.m3), decimal.Decimal)
-        assert field.serialize(user.m3) == decimal.Decimal(1)
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), decimal.Decimal)
+        assert field.serialize(m1) == decimal.Decimal(12)
+        assert isinstance(field.serialize(m2), decimal.Decimal)
+        assert field.serialize(m2) == decimal.Decimal("12.3")
+        assert isinstance(field.serialize(m3), decimal.Decimal)
+        assert field.serialize(m3) == decimal.Decimal(1)
+        assert field.serialize(m4) is None
 
-    def test_decimal_field_string(self, user):
-        user.m1 = 12
-        user.m2 = "12.355"
-        user.m3 = decimal.Decimal(1)
-        user.m4 = None
+    def test_decimal_field_string(self):
+        m1 = 12
+        m2 = "12.355"
+        m3 = decimal.Decimal(1)
+        m4 = None
 
         field = fields.Decimal(as_string=True)
-        assert isinstance(field.serialize(user.m1), str)
-        assert field.serialize(user.m1) == "12"
-        assert isinstance(field.serialize(user.m2), str)
-        assert field.serialize(user.m2) == "12.355"
-        assert isinstance(field.serialize(user.m3), str)
-        assert field.serialize(user.m3) == "1"
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), str)
+        assert field.serialize(m1) == "12"
+        assert isinstance(field.serialize(m2), str)
+        assert field.serialize(m2) == "12.355"
+        assert isinstance(field.serialize(m3), str)
+        assert field.serialize(m3) == "1"
+        assert field.serialize(m4) is None
 
         field = fields.Decimal(1, as_string=True)
-        assert isinstance(field.serialize(user.m1), str)
-        assert field.serialize(user.m1) == "12.0"
-        assert isinstance(field.serialize(user.m2), str)
-        assert field.serialize(user.m2) == "12.4"
-        assert isinstance(field.serialize(user.m3), str)
-        assert field.serialize(user.m3) == "1.0"
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), str)
+        assert field.serialize(m1) == "12.0"
+        assert isinstance(field.serialize(m2), str)
+        assert field.serialize(m2) == "12.4"
+        assert isinstance(field.serialize(m3), str)
+        assert field.serialize(m3) == "1.0"
+        assert field.serialize(m4) is None
 
         field = fields.Decimal(1, decimal.ROUND_DOWN, as_string=True)
-        assert isinstance(field.serialize(user.m1), str)
-        assert field.serialize(user.m1) == "12.0"
-        assert isinstance(field.serialize(user.m2), str)
-        assert field.serialize(user.m2) == "12.3"
-        assert isinstance(field.serialize(user.m3), str)
-        assert field.serialize(user.m3) == "1.0"
-        assert field.serialize(user.m4) is None
+        assert isinstance(field.serialize(m1), str)
+        assert field.serialize(m1) == "12.0"
+        assert isinstance(field.serialize(m2), str)
+        assert field.serialize(m2) == "12.3"
+        assert isinstance(field.serialize(m3), str)
+        assert field.serialize(m3) == "1.0"
+        assert field.serialize(m4) is None
 
-    def test_decimal_field_special_values(self, user):
-        user.m1 = "-NaN"
-        user.m2 = "NaN"
-        user.m3 = "-sNaN"
-        user.m4 = "sNaN"
-        user.m5 = "-Infinity"
-        user.m6 = "Infinity"
-        user.m7 = "-0"
+    def test_decimal_field_special_values(self):
+        m1 = "-NaN"
+        m2 = "NaN"
+        m3 = "-sNaN"
+        m4 = "sNaN"
+        m5 = "-Infinity"
+        m6 = "Infinity"
+        m7 = "-0"
 
         field = fields.Decimal(places=2, allow_nan=True)
 
-        m1s = field.serialize(user.m1)
+        m1s = field.serialize(m1)
         assert isinstance(m1s, decimal.Decimal)
         assert m1s.is_qnan()
         assert not m1s.is_signed()
 
-        m2s = field.serialize(user.m2)
+        m2s = field.serialize(m2)
         assert isinstance(m2s, decimal.Decimal)
         assert m2s.is_qnan()
         assert not m2s.is_signed()
 
-        m3s = field.serialize(user.m3)
+        m3s = field.serialize(m3)
         assert isinstance(m3s, decimal.Decimal)
         assert m3s.is_qnan()
         assert not m3s.is_signed()
 
-        m4s = field.serialize(user.m4)
+        m4s = field.serialize(m4)
         assert isinstance(m4s, decimal.Decimal)
         assert m4s.is_qnan()
         assert not m4s.is_signed()
 
-        m5s = field.serialize(user.m5)
+        m5s = field.serialize(m5)
         assert isinstance(m5s, decimal.Decimal)
         assert m5s.is_infinite()
         assert m5s.is_signed()
 
-        m6s = field.serialize(user.m6)
+        m6s = field.serialize(m6)
         assert isinstance(m6s, decimal.Decimal)
         assert m6s.is_infinite()
         assert not m6s.is_signed()
 
-        m7s = field.serialize(user.m7)
+        m7s = field.serialize(m7)
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero()
         assert m7s.is_signed()
 
         field = fields.Decimal(as_string=True, allow_nan=True)
 
-        m2s = field.serialize(user.m2)
+        m2s = field.serialize(m2)
         assert isinstance(m2s, str)
-        assert m2s == user.m2
+        assert m2s == m2
 
-        m5s = field.serialize(user.m5)
+        m5s = field.serialize(m5)
         assert isinstance(m5s, str)
-        assert m5s == user.m5
+        assert m5s == m5
 
-        m6s = field.serialize(user.m6)
+        m6s = field.serialize(m6)
         assert isinstance(m6s, str)
-        assert m6s == user.m6
+        assert m6s == m6
 
-    def test_decimal_field_special_values_not_permitted(self, user):
-        user.m7 = "-0"
-
+    def test_decimal_field_special_values_not_permitted(self):
         field = fields.Decimal(places=2)
 
-        m7s = field.serialize(user.m7)
+        m7s = field.serialize("-0")
         assert isinstance(m7s, decimal.Decimal)
         assert m7s.is_zero()
         assert m7s.is_signed()
 
-    def test_decimal_field_fixed_point_representation(self, user):
+    def test_decimal_field_fixed_point_representation(self):
         """
         Test we get fixed-point string representation for a Decimal number that would normally
         output in engineering notation.
         """
-        user.m1 = "0.00000000100000000"
+        m1 = "0.00000000100000000"
 
         field = fields.Decimal()
-        s = field.serialize(user.m1)
+        s = field.serialize(m1)
         assert isinstance(s, decimal.Decimal)
         assert s == decimal.Decimal("1.00000000E-9")
 
         field = fields.Decimal(as_string=True)
-        s = field.serialize(user.m1)
+        s = field.serialize(m1)
         assert isinstance(s, str)
-        assert s == user.m1
+        assert s == m1
 
         field = fields.Decimal(as_string=True, places=2)
-        s = field.serialize(user.m1)
+        s = field.serialize(m1)
         assert isinstance(s, str)
         assert s == "0.00"
 
-    def test_email_field_serialize_none(self, user):
-        user.email = None
+    def test_email_field_serialize_none(self):
         field = fields.Email()
-        assert field.serialize(user.email) is None
+        assert field.serialize(None) is None
 
-    def test_dict_field_serialize_none(self, user):
-        user.various_data = None
+    def test_dict_field_serialize_none(self):
         field = fields.Dict()
-        assert field.serialize(user.various_data) is None
+        assert field.serialize(None) is None
 
-    def test_dict_field_serialize(self, user):
-        user.various_data = {"foo": "bar"}
+    def test_dict_field_serialize(self):
+        data = {"foo": "bar"}
         field = fields.Dict()
-        dump = field.serialize(user.various_data)
+        dump = field.serialize(data)
         assert dump == {"foo": "bar"}
         # Check dump is a distinct object
         dump["foo"] = "baz"
-        assert user.various_data["foo"] == "bar"
+        assert data["foo"] == "bar"
 
-    def test_dict_field_serialize_ordereddict(self, user):
-        user.various_data = OrderedDict([("foo", "bar"), ("bar", "baz")])
+    def test_dict_field_serialize_ordereddict(self):
         field = fields.Dict()
-        assert field.serialize(user.various_data) == OrderedDict(
-            [("foo", "bar"), ("bar", "baz")]
-        )
+        assert field.serialize(
+            OrderedDict([("foo", "bar"), ("bar", "baz")])
+        ) == OrderedDict([("foo", "bar"), ("bar", "baz")])
 
-    def test_structured_dict_value_serialize(self, user):
-        user.various_data = {"foo": decimal.Decimal(1)}
+    def test_structured_dict_value_serialize(self):
         field = fields.Dict(values=fields.Decimal)
-        assert field.serialize(user.various_data) == {"foo": 1}
+        assert field.serialize({"foo": decimal.Decimal(1)}) == {"foo": 1}
 
-    def test_structured_dict_key_serialize(self, user):
-        user.various_data = {1: "bar"}
+    def test_structured_dict_key_serialize(self):
         field = fields.Dict(keys=fields.Str)
-        assert field.serialize(user.various_data) == {"1": "bar"}
+        assert field.serialize({1: "bar"}) == {"1": "bar"}
 
-    def test_structured_dict_key_value_serialize(self, user):
-        user.various_data = {1: decimal.Decimal(1)}
+    def test_structured_dict_key_value_serialize(self):
         field = fields.Dict(keys=fields.Str, values=fields.Decimal)
-        assert field.serialize(user.various_data) == {"1": 1}
+        assert field.serialize({1: decimal.Decimal(1)}) == {"1": 1}
 
-    def test_url_field_serialize_none(self, user):
-        user.homepage = None
+    def test_url_field_serialize_none(self):
         field = fields.Url()
-        assert field.serialize(user.homepage) is None
+        assert field.serialize(None) is None
 
     def test_method_field_with_method_missing(self):
         class BadSerializer(Schema):
@@ -464,7 +429,7 @@ class TestFieldSerialization:
         with pytest.raises(AttributeError):
             BadSerializer()
 
-    def test_method_field_passed_serialize_only_is_dump_only(self, user):
+    def test_method_field_passed_serialize_only_is_dump_only(self):
         field = fields.Method(serialize="method")
         assert field.dump_only is True
         assert field.load_only is False
@@ -608,30 +573,29 @@ class TestFieldSerialization:
             field = fields.DateTime(format=fmt)
         assert field.serialize(value) == expected
 
-    def test_datetime_field_format(self, user):
+    def test_datetime_field_format(self):
         datetimeformat = "%Y-%m-%d"
+        created = dt.datetime(2013, 11, 10, 14, 20, 58)
         field = fields.DateTime(format=datetimeformat)
-        assert field.serialize(user.created) == user.created.strftime(datetimeformat)
+        assert field.serialize(created) == created.strftime(datetimeformat)
 
     def test_string_field(self):
         field = fields.String()
-        user = User(name=b"foo")
-        assert field.serialize(user.name) == "foo"
+        assert field.serialize(b"foo") == "foo"
         field = fields.String(allow_none=True)
-        user.name = None
-        assert field.serialize(user.name) is None
+        assert field.serialize(None) is None
 
-    def test_string_field_default_to_empty_string(self, user):
+    def test_string_field_default_to_empty_string(self):
         field = fields.String(dump_default="")
         assert field.serialize("") == ""
 
-    def test_time_field(self, user):
+    def test_time_field(self):
+        time_registered = dt.time(1, 23, 45, 6789)
         field = fields.Time()
-        expected = user.time_registered.isoformat()[:15]
-        assert field.serialize(user.time_registered) == expected
+        expected = time_registered.isoformat()[:15]
+        assert field.serialize(time_registered) == expected
 
-        user.time_registered = None
-        assert field.serialize(user.time_registered) is None
+        assert field.serialize(None) is None
 
     @pytest.mark.parametrize("fmt", ["iso", "iso8601", None])
     @pytest.mark.parametrize(
@@ -650,25 +614,26 @@ class TestFieldSerialization:
             field = fields.Time(format=fmt)
         assert field.serialize(value) == expected
 
-    def test_time_field_format(self, user):
+    def test_time_field_format(self):
         fmt = "%H:%M:%S"
+        birthtime = dt.time(0, 1, 2, 3333)
         field = fields.Time(format=fmt)
-        assert field.serialize(user.birthtime) == user.birthtime.strftime(fmt)
+        assert field.serialize(birthtime) == birthtime.strftime(fmt)
 
-    def test_date_field(self, user):
+    def test_date_field(self):
+        birthdate = dt.date(2013, 1, 23)
         field = fields.Date()
-        assert field.serialize(user.birthdate) == user.birthdate.isoformat()
+        assert field.serialize(birthdate) == birthdate.isoformat()
 
-        user.birthdate = None
-        assert field.serialize(user.birthdate) is None
+        assert field.serialize(None) is None
 
-    def test_timedelta_field(self, user):
-        user.d1 = dt.timedelta(days=1, seconds=1, microseconds=1)
-        user.d2 = dt.timedelta(days=0, seconds=86401, microseconds=1)
-        user.d3 = dt.timedelta(days=0, seconds=0, microseconds=86401000001)
-        user.d4 = dt.timedelta(days=0, seconds=0, microseconds=0)
-        user.d5 = dt.timedelta(days=-1, seconds=0, microseconds=0)
-        user.d6 = dt.timedelta(
+    def test_timedelta_field(self):
+        d1 = dt.timedelta(days=1, seconds=1, microseconds=1)
+        d2 = dt.timedelta(days=0, seconds=86401, microseconds=1)
+        d3 = dt.timedelta(days=0, seconds=0, microseconds=86401000001)
+        d4 = dt.timedelta(days=0, seconds=0, microseconds=0)
+        d5 = dt.timedelta(days=-1, seconds=0, microseconds=0)
+        d6 = dt.timedelta(
             days=1,
             seconds=1,
             microseconds=1,
@@ -679,69 +644,68 @@ class TestFieldSerialization:
         )
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d1) == 1.0000115740856481
+        assert field.serialize(d1) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d1) == 86401.000001
+        assert field.serialize(d1) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d1) == 86401000001
+        assert field.serialize(d1) == 86401000001
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
-        assert field.serialize(user.d1) == 24.000277778055555
+        assert field.serialize(d1) == 24.000277778055555
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d2) == 1.0000115740856481
+        assert field.serialize(d2) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d2) == 86401.000001
+        assert field.serialize(d2) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d2) == 86401000001
+        assert field.serialize(d2) == 86401000001
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d3) == 1.0000115740856481
+        assert field.serialize(d3) == 1.0000115740856481
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d3) == 86401.000001
+        assert field.serialize(d3) == 86401.000001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d3) == 86401000001
+        assert field.serialize(d3) == 86401000001
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d4) == 0
+        assert field.serialize(d4) == 0
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d4) == 0
+        assert field.serialize(d4) == 0
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d4) == 0
+        assert field.serialize(d4) == 0
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d5) == -1
+        assert field.serialize(d5) == -1
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d5) == -86400
+        assert field.serialize(d5) == -86400
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d5) == -86400000000
+        assert field.serialize(d5) == -86400000000
 
         field = fields.TimeDelta(fields.TimeDelta.WEEKS)
-        assert field.serialize(user.d6) == 1.1489103852529763
+        assert field.serialize(d6) == 1.1489103852529763
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
-        assert field.serialize(user.d6) == 8.042372696770833
+        assert field.serialize(d6) == 8.042372696770833
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
-        assert field.serialize(user.d6) == 193.0169447225
+        assert field.serialize(d6) == 193.0169447225
         field = fields.TimeDelta(fields.TimeDelta.MINUTES)
-        assert field.serialize(user.d6) == 11581.01668335
+        assert field.serialize(d6) == 11581.01668335
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d6) == 694861.001001
+        assert field.serialize(d6) == 694861.001001
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
-        assert field.serialize(user.d6) == 694861001.001
+        assert field.serialize(d6) == 694861001.001
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
-        assert field.serialize(user.d6) == 694861001001
+        assert field.serialize(d6) == 694861001001
 
-        user.d7 = None
-        assert field.serialize(user.d7) is None
+        assert field.serialize(None) is None
 
-        user.d8 = dt.timedelta(milliseconds=345)
+        d8 = dt.timedelta(milliseconds=345)
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
-        assert field.serialize(user.d8) == 345
+        assert field.serialize(d8) == 345
 
-        user.d9 = dt.timedelta(milliseconds=1999)
+        d9 = dt.timedelta(milliseconds=1999)
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert field.serialize(user.d9) == 1.999
+        assert field.serialize(d9) == 1.999
 
-        user.d10 = dt.timedelta(
+        d10 = dt.timedelta(
             weeks=1,
             days=6,
             hours=2,
@@ -754,46 +718,46 @@ class TestFieldSerialization:
         field = fields.TimeDelta(fields.TimeDelta.MICROSECONDS)
         unit_value = dt.timedelta(microseconds=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
         field = fields.TimeDelta(fields.TimeDelta.MILLISECONDS)
         unit_value = dt.timedelta(milliseconds=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
         field = fields.TimeDelta(fields.TimeDelta.SECONDS)
-        assert math.isclose(field.serialize(user.d10), user.d10.total_seconds())
+        assert math.isclose(field.serialize(d10), d10.total_seconds())
 
         field = fields.TimeDelta(fields.TimeDelta.MINUTES)
         unit_value = dt.timedelta(minutes=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
         field = fields.TimeDelta(fields.TimeDelta.HOURS)
         unit_value = dt.timedelta(hours=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         unit_value = dt.timedelta(days=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
         field = fields.TimeDelta(fields.TimeDelta.WEEKS)
         unit_value = dt.timedelta(weeks=1).total_seconds()
         assert math.isclose(
-            field.serialize(user.d10),
-            user.d10.total_seconds() / unit_value,
+            field.serialize(d10),
+            d10.total_seconds() / unit_value,
         )
 
     def test_datetime_list_field(self):
@@ -906,12 +870,12 @@ class TestFieldSerialization:
         with pytest.raises(ValueError, match=expected_msg):
             fields.Tuple([ASchema])  # type: ignore[list-item]
 
-    def test_serialize_does_not_apply_validators(self, user):
+    def test_serialize_does_not_apply_validators(self):
         field = fields.Raw(validate=lambda x: False)
         # No validation error raised
-        assert field.serialize(user.age) == user.age
+        assert field.serialize(42) == 42
 
-    def test_constant_field_serialization(self, user):
+    def test_constant_field_serialization(self):
         field = fields.Constant("something")
         assert field.serialize("whatever") == "something"
 
