@@ -2,17 +2,17 @@ ci:
   autoupdate_schedule: monthly
 repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.15.10
+  rev: v0.15.12
   hooks:
     - id: ruff-check
     - id: ruff-format
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.37.1
+  rev: 0.37.2
   hooks:
     - id: check-github-workflows
     - id: check-readthedocs
 - repo: https://github.com/zizmorcore/zizmor-pre-commit
-  rev: v1.24.0
+  rev: v1.24.1
   hooks:
     - id: zizmor
 # TODO: Remove blacken-docs when https://github.com/astral-sh/ruff/issues/8237 is implemented
@@ -22,6 +22,6 @@ repos:
   - id: blacken-docs
     additional_dependencies: [black==25.1.0]
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.11.6
+  rev: 0.11.8
   hooks:
     - id: uv-lock
