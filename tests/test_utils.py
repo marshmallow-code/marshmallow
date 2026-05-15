@@ -72,11 +72,17 @@ def test_get_value_from_dict():
 def test_get_value():
     lst = [1, 2, 3]
     assert utils.get_value(lst, 1) == 2
+    assert utils.get_value(lst, 999, default=3) == 3
 
     class MyInt(int):
         pass
 
     assert utils.get_value(lst, MyInt(1)) == 2
+    assert utils.get_value(lst, MyInt(999), default=3) == 3
+
+
+def test_get_value_from_dict_with_missing_int_key():
+    assert utils.get_value({1: "a", 2: "b"}, 3, default="c") == "c"
 
 
 def test_set_value():
