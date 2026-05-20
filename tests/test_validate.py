@@ -446,6 +446,16 @@ def test_range_max():
         validate.Range(2, 2, min_inclusive=False, max_inclusive=True, error=None)(2)
 
 
+def test_range_equal_min_max_both_exclusive():
+    # When min == max and both bounds are exclusive, no value can satisfy
+    with pytest.raises(ValidationError, match="greater than 1 and less than 1"):
+        validate.Range(1, 1, min_inclusive=False, max_inclusive=False, error=None)(1)
+    with pytest.raises(ValidationError):
+        validate.Range(1, 1, min_inclusive=False, max_inclusive=False, error=None)(0)
+    with pytest.raises(ValidationError):
+        validate.Range(1, 1, min_inclusive=False, max_inclusive=False, error=None)(2)
+
+
 def test_range_custom_message():
     v = validate.Range(2, 3, error="{input} is not between {min} and {max}")
     with pytest.raises(ValidationError, match="1 is not between 2 and 3"):
@@ -519,6 +529,16 @@ def test_length_max():
         validate.Length(None, 2)("foo")
     with pytest.raises(ValidationError):
         validate.Length(None, 2)([1, 2, 3])
+
+
+def test_length_equal_min_max_zero():
+    assert validate.Length(0, 0)("") == ""
+    assert validate.Length(0, 0)([]) == []
+
+    with pytest.raises(ValidationError):
+        validate.Length(0, 0)("a")
+    with pytest.raises(ValidationError):
+        validate.Length(0, 0)([1])
 
 
 def test_length_equal():
@@ -632,6 +652,16 @@ def test_regexp_compile():
         validate.Regexp(re.compile(r"a"))("A")
     with pytest.raises(ValidationError):
         validate.Regexp(re.compile(r"a"), re.IGNORECASE)("A")
+
+
+def test_regexp_bytes_flags():
+    assert validate.Regexp(b"a", re.IGNORECASE)(b"A") == b"A"
+    assert validate.Regexp(re.compile(b"a", re.IGNORECASE))(b"A") == b"A"
+
+    with pytest.raises(ValidationError):
+        validate.Regexp(b"[0-9]+")(b"a")
+    with pytest.raises(ValidationError):
+        validate.Regexp(re.compile(b"a"))(b"A")
 
 
 def test_regexp_custom_message():
@@ -774,6 +804,14 @@ def test_oneof():
         validate.OneOf(dict(a=0, b=1))(0)
     with pytest.raises(ValidationError):
         validate.OneOf("123")(1)
+
+
+def test_oneof_unhashable_choices():
+    assert validate.OneOf([[1], [2]])([1]) == [1]
+    assert validate.OneOf([[1], [2]])([2]) == [2]
+
+    with pytest.raises(ValidationError, match=r"Must be one of: \[1\], \[2\]."):
+        validate.OneOf([[1], [2]])([3])
 
 
 def test_oneof_options():

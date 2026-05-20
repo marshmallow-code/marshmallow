@@ -573,10 +573,10 @@ class NoneOf(Validator):
     def _repr_args(self) -> str:
         return f"iterable={self.iterable!r}"
 
-    def _format_error(self, value: typing.Any) -> str:
+    def _format_error(self, value: _T) -> str:
         return self.error.format(input=value, values=self.values_text)
 
-    def __call__(self, value: typing.Any) -> typing.Any:
+    def __call__(self, value: _T) -> _T:
         try:
             if value in self.iterable:
                 raise ValidationError(self._format_error(value))
@@ -613,12 +613,12 @@ class OneOf(Validator):
     def _repr_args(self) -> str:
         return f"choices={self.choices!r}, labels={self.labels!r}"
 
-    def _format_error(self, value: typing.Any) -> str:
+    def _format_error(self, value: _T) -> str:
         return self.error.format(
             input=value, choices=self.choices_text, labels=self.labels_text
         )
 
-    def __call__(self, value: typing.Any) -> typing.Any:
+    def __call__(self, value: _T) -> _T:
         try:
             if value not in self.choices:
                 raise ValidationError(self._format_error(value))
