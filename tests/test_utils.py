@@ -79,6 +79,21 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+def test_get_value_out_of_range_int_index_returns_default():
+    # An out-of-range integer index should return default instead of raising TypeError.
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+    lst = [0, 1, 2, 3, 4, 5]
+    assert utils.get_value(lst, 999, default=3) == 3
+
+    # Dict with integer keys: missing key should return default
+    d = {1: "a", 2: "b", 3: "c"}
+    assert utils.get_value(d, 4, default="z") == "z"
+
+    # List of objects: out-of-range index should return default
+    lst_empty: list = []
+    assert utils.get_value(lst_empty, 0, default=None) is None
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
