@@ -79,8 +79,8 @@ Project info
     whos_using
     license
     authors
-    contributing
-    code_of_conduct
+    Contributing <https://github.com/marshmallow-code/.github/blob/main/CONTRIBUTING.md>
+    Code of Conduct <https://github.com/marshmallow-code/.github/blob/main/CODE_OF_CONDUCT.md>
     kudos
     donate
 

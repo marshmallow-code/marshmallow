@@ -58,7 +58,6 @@ include = [
   "docs/",
   "tests/",
   "CHANGELOG.rst",
-  "CONTRIBUTING.rst",
   "SECURITY.md",
   "NOTICE",
   "tox.ini",
