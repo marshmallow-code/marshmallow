@@ -925,7 +925,7 @@ class Schema(metaclass=SchemaMeta):
                 )
             errors = error_store.errors
             # Run post processors
-            if not errors and postprocess and self._hooks[POST_LOAD]:
+            if postprocess and self._hooks[POST_LOAD]:
                 try:
                     result = self._invoke_load_processors(
                         POST_LOAD,
