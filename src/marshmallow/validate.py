@@ -566,7 +566,11 @@ class NoneOf(Validator):
     default_message = "Invalid input."
 
     def __init__(self, iterable: typing.Iterable, *, error: str | None = None):
-        self.iterable = iterable
+        # Materialise single-use iterators (e.g. generators) so they are not
+        # exhausted while building ``values_text`` and can be reused in
+        # ``__call__``. Sequences and strings are kept as-is to preserve their
+        # membership semantics (e.g. substring checks for ``str``).
+        self.iterable = list(iterable) if iter(iterable) is iterable else iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
         self.error: str = error or self.default_message
 
@@ -604,7 +608,11 @@ class OneOf(Validator):
         *,
         error: str | None = None,
     ):
-        self.choices = choices
+        # Materialise single-use iterators (e.g. generators) so they are not
+        # exhausted while building ``choices_text`` and can be reused in
+        # ``__call__``. Sequences and strings are kept as-is to preserve their
+        # membership semantics (e.g. substring checks for ``str``).
+        self.choices = list(choices) if iter(choices) is choices else choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
         self.labels_text = ", ".join(str(label) for label in self.labels)

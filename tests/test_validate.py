@@ -841,6 +841,25 @@ def test_oneof_repr():
     )
 
 
+def test_oneof_accepts_single_use_iterable():
+    # ``choices`` is typed as ``Iterable``; a generator must validate the same
+    # as a list rather than being silently exhausted while building the error
+    # text (which previously made the validator reject every value).
+    validator = validate.OneOf(iter([1, 2, 3]))
+    assert validator(2) == 2
+    with pytest.raises(ValidationError):
+        validator(5)
+
+
+def test_noneof_accepts_single_use_iterable():
+    # Same single-use-iterable problem for ``NoneOf.iterable``: a generator was
+    # exhausted while building the error text, so nothing was ever rejected.
+    validator = validate.NoneOf(iter([1, 2, 3]))
+    assert validator(5) == 5
+    with pytest.raises(ValidationError):
+        validator(1)
+
+
 def test_containsonly_in_list():
     assert validate.ContainsOnly([])([]) == []
     assert validate.ContainsOnly([1, 2, 3])([1]) == [1]
