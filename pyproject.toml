@@ -43,7 +43,15 @@ docs = [
   "sphinxext-opengraph",
 ]
 tests = ["pytest", "simplejson"]
-dev = [{ include-group = "tests" }, "tox", "tox-uv", "pre-commit>=3.5,<5.0"]
+lint = ["pre-commit>=3.5,<5.0"]
+mypy = ["mypy>=1.14.1", "types-simplejson"]
+dev = [
+  { include-group = "tests" },
+  { include-group = "lint" },
+  { include-group = "mypy" },
+  "tox",
+  "tox-uv",
+]
 
 [tool.uv]
 default-groups = ["dev"]
