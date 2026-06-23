@@ -24,6 +24,7 @@ from tests.base import (
     DateEnum,
     GenderEnum,
     HairColorEnum,
+    UltimatumEnum,
     assert_date_equal,
     assert_time_equal,
     central,
@@ -1280,6 +1281,10 @@ class TestFieldDeserialization:
         field = fields.Enum(DateEnum, by_value=fields.Date(format="%d/%m/%Y"))
         with pytest.raises(ValidationError, match="Not a valid date."):
             field.deserialize("30/02/2004")
+
+    def test_enum_by_value_allow_none_default(self):
+        field = fields.Enum(UltimatumEnum, by_value=True)
+        assert field.deserialize(None) is None
 
     def test_deserialization_function_must_be_callable(self):
         with pytest.raises(TypeError):

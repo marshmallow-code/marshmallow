@@ -28,6 +28,11 @@ class HairColorEnum(Enum):
     red = "red hair"
 
 
+class UltimatumEnum(Enum):
+    all = float("inf")
+    nothing = None
+
+
 class DateEnum(Enum):
     date_1 = dt.date(2004, 2, 29)
     date_2 = dt.date(2008, 2, 29)
@@ -57,6 +62,7 @@ ALL_FIELDS = [
     functools.partial(fields.Enum, GenderEnum),
     functools.partial(fields.Enum, HairColorEnum, by_value=fields.String),
     functools.partial(fields.Enum, GenderEnum, by_value=fields.Integer),
+    functools.partial(fields.Enum, UltimatumEnum, allow_none=False),
 ]
 
 
