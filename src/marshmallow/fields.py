@@ -1928,6 +1928,7 @@ class Enum(Field[_EnumT]):
     If `by_value` is `False` (default), enum members are (de)serialized by symbol (name).
     If it is `True`, they are (de)serialized by value using `marshmallow.fields.Raw`.
     If it is a field instance or class, they are (de)serialized by value using this field.
+    If `by_value` is enabled on an enum with a `None` value, `allow_none` defaults to `True`.
 
     .. versionadded:: 3.18.0
     """
@@ -1968,6 +1969,8 @@ class Enum(Field[_EnumT]):
             self.choices_text = ", ".join(
                 str(self.field._serialize(m.value, None, None)) for m in enum
             )
+            if "allow_none" not in kwargs and any(m.value is None for m in enum):
+                self.allow_none = True
 
     def _serialize(
         self, value: _EnumT | None, attr: str | None, obj: typing.Any, **kwargs

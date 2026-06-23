@@ -1,6 +1,14 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Features:
+
+- If `by_value` is enabled on an enum with a `None` value `allow_none` now defaults to `True`.
+  Thanks :user:`GeraldineGalindo` for the suggestion (:issue:`2985`).
+
 4.3.0 (2026-04-03)
 ------------------
 
