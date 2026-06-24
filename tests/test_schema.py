@@ -2060,6 +2060,54 @@ class TestPluckSchema:
             "collaborators": [{"name": "Mick"}, {"name": "Keith"}],
         }
 
+    def test_pluck_missing_field(self):
+        """Pluck should not crash when the plucked field is absent
+        from a nested dict.
+
+        Regression test for KeyError crash in Pluck._serialize.
+        """
+
+        class AuthorSchema(Schema):
+            id = fields.Int()
+            name = fields.Str()
+
+        class BookSchema(Schema):
+            title = fields.Str()
+            author_name = fields.Pluck(AuthorSchema, "name")
+
+        s = BookSchema()
+        # author_name nested dict is present but lacks "name"
+        data = s.dump({"title": "Test Book", "author_name": {"id": 1}})
+        assert "author_name" not in data
+
+    def test_pluck_missing_field_many(self):
+        """Pluck(many=True) should not crash when the plucked field is
+        absent from one item in the list.
+
+        Regression test for KeyError crash in Pluck._serialize.
+        """
+
+        class AuthorSchema(Schema):
+            id = fields.Int()
+            name = fields.Str()
+
+        class BookSchema(Schema):
+            title = fields.Str()
+            authors = fields.Pluck(AuthorSchema, "name", many=True)
+
+        s = BookSchema()
+        data = s.dump(
+            {
+                "title": "Test Book",
+                "authors": [
+                    {"id": 1, "name": "John"},
+                    {"id": 2},  # missing "name"
+                    {"id": 3, "name": "Jane"},
+                ],
+            }
+        )
+        assert data["authors"] == ["John", None, "Jane"]
+
 
 class TestSelfReference:
     @pytest.fixture

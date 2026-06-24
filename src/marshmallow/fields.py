@@ -718,7 +718,7 @@ class Pluck(Nested):
             return None
         if self.many:
             return utils.pluck(ret, key=self._field_data_key)
-        return ret[self._field_data_key]
+        return ret.get(self._field_data_key, missing_)
 
     def _deserialize(self, value, attr, data, partial=None, **kwargs):
         self._test_collection(value)
