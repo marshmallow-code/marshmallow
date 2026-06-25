@@ -527,6 +527,12 @@ class Schema(metaclass=SchemaMeta):
             return error.valid_data or missing
         return value
 
+    @staticmethod
+    def _has_field_error(errors: dict, field_name: str, index: int | None = None):
+        if index is not None and isinstance(errors.get(index), dict):
+            errors = errors[index]
+        return field_name in errors
+
     def _serialize(self, obj: typing.Any, *, many: bool = False):
         """Serialize ``obj``.
 
@@ -1140,6 +1146,9 @@ class Schema(metaclass=SchemaMeta):
                     field_obj.data_key if field_obj.data_key is not None else field_name
                 )
                 do_validate = functools.partial(validator, data_key=data_key)
+                skip_on_field_errors = validator_kwargs.get(
+                    "skip_on_field_errors", False
+                )
 
                 if many:
                     for idx, item in enumerate(data):
@@ -1148,12 +1157,17 @@ class Schema(metaclass=SchemaMeta):
                         except KeyError:
                             pass
                         else:
+                            index = idx if self.opts.index_errors else None
+                            if skip_on_field_errors and self._has_field_error(
+                                error_store.errors, data_key, index=index
+                            ):
+                                continue
                             validated_value = self._call_and_store(
                                 getter_func=do_validate,
                                 data=value,
                                 field_name=data_key,
                                 error_store=error_store,
-                                index=(idx if self.opts.index_errors else None),
+                                index=index,
                             )
                             if validated_value is missing:
                                 item.pop(field_name, None)
@@ -1163,6 +1177,10 @@ class Schema(metaclass=SchemaMeta):
                     except KeyError:
                         pass
                     else:
+                        if skip_on_field_errors and self._has_field_error(
+                            error_store.errors, data_key
+                        ):
+                            continue
                         validated_value = self._call_and_store(
                             getter_func=do_validate,
                             data=value,
