@@ -620,8 +620,7 @@ class Schema(metaclass=SchemaMeta):
         :return: The deserialized data as `dict_class` instance or list of `dict_class`
         instances if `many` is `True`.
         """
-        index_errors = self.opts.index_errors
-        index = index if index_errors else None
+        index = index if self.opts.index_errors else None
         if many:
             if not is_sequence_but_not_string(data):
                 error_store.store_error([self.error_messages["type"]], index=index)
@@ -701,7 +700,7 @@ class Schema(metaclass=SchemaMeta):
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
-                            (index if index_errors else None),
+                            index,
                         )
         return ret_d
 
