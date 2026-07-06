@@ -1,3 +1,5 @@
+from enum import Enum
+
 import pytest
 
 from marshmallow import (
@@ -753,3 +755,69 @@ class TestFieldPreAndPostLoad:
             match="The 'post_load' parameter must be a callable or an iterable of callables.",
         ):
             fields.Int(post_load="not_callable")  # type: ignore[arg-type]
+
+
+class NoneMemberEnum(Enum):
+    A = "a"
+    B = 2
+    NONE = None
+
+
+class NoNoneEnum(Enum):
+    A = "a"
+    B = "b"
+
+
+class TestEnumAllowNone:
+    """`fields.Enum` should default ``allow_none=True`` when the passed Enum has a
+    member whose value is ``None`` (mirroring ``fields.Constant(None)``), unless the
+    user explicitly passes ``allow_none``. See issue #2985.
+    """
+
+    def test_by_name_defaults_allow_none_true_when_enum_has_none_member(self):
+        field = fields.Enum(NoneMemberEnum)
+        assert field.allow_none is True
+        assert field.deserialize(None) is None
+        assert field.serialize("x", {"x": None}) is None
+
+    def test_by_value_defaults_allow_none_true_when_enum_has_none_member(self):
+        field = fields.Enum(NoneMemberEnum, by_value=True)
+        assert field.allow_none is True
+        assert field.deserialize(None) is None
+        assert field.serialize("x", {"x": None}) is None
+
+    def test_by_value_field_defaults_allow_none_true_when_enum_has_none_member(self):
+        field = fields.Enum(NoneMemberEnum, by_value=fields.Raw)
+        assert field.allow_none is True
+        assert field.deserialize(None) is None
+
+    def test_explicit_allow_none_false_still_errors_on_none_load(self):
+        field = fields.Enum(NoneMemberEnum, allow_none=False)
+        assert field.allow_none is False
+        with pytest.raises(ValidationError, match="Field may not be null."):
+            field.deserialize(None)
+
+    def test_explicit_allow_none_false_by_value_still_errors_on_none_load(self):
+        field = fields.Enum(NoneMemberEnum, by_value=True, allow_none=False)
+        assert field.allow_none is False
+        with pytest.raises(ValidationError, match="Field may not be null."):
+            field.deserialize(None)
+
+    def test_explicit_allow_none_false_errors_in_schema_load(self):
+        class MySchema(Schema):
+            sentinel = fields.Enum(NoneMemberEnum, by_value=True, allow_none=False)
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({"sentinel": None})
+        assert excinfo.value.messages == {"sentinel": ["Field may not be null."]}
+
+    def test_enum_without_none_member_keeps_allow_none_false(self):
+        field = fields.Enum(NoNoneEnum)
+        assert field.allow_none is False
+        with pytest.raises(ValidationError, match="Field may not be null."):
+            field.deserialize(None)
+
+    def test_explicit_allow_none_true_without_none_member(self):
+        field = fields.Enum(NoNoneEnum, allow_none=True)
+        assert field.allow_none is True
+        assert field.deserialize(None) is None

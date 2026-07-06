@@ -1947,6 +1947,12 @@ class Enum(Field[_EnumT]):
         self.enum = enum
         self.by_value = by_value
 
+        # If allow_none was not explicitly provided and the enum has a member
+        # whose value is None, None should be considered valid
+        # (mirrors fields.Constant(None) behavior). See issue #2985.
+        if kwargs.get("allow_none") is None and any(m.value is None for m in enum):
+            self.allow_none = True
+
         # Serialization by name
         if by_value is False:
             self.field: Field = String()
