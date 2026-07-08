@@ -1505,7 +1505,7 @@ class TimeDelta(Field[dt.timedelta]):
     Float Caveats
     -------------
     Precision loss may occur when serializing a highly precise :class:`datetime.timedelta`
-    object using a big ``precision`` unit due to floating point arithmetics.
+    object using a big ``precision`` unit due to floating point arithmetic.
 
     When necessary, the :class:`datetime.timedelta` constructor rounds `float` inputs
     to whole microseconds during initialization of the object. As a result, deserializing
@@ -1564,7 +1564,7 @@ class TimeDelta(Field[dt.timedelta]):
         if value is None:
             return None
 
-        # limit float arithmetics to a single division to minimize precision loss
+        # limit float arithmetic to a single division to minimize precision loss
         microseconds: int = utils.timedelta_to_microseconds(value)
         microseconds_per_unit: int = self._unit_to_microseconds_mapping[self.precision]
         return microseconds / microseconds_per_unit
