@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+Bug fixes:
+
+- ``utils.get_value`` now returns the ``default`` for a non-string key such as
+  an out-of-range integer index, instead of raising a ``TypeError`` from
+  ``getattr`` (:issue:`2893`).
+
 4.3.0 (2026-04-03)
 ------------------
 

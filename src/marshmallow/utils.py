@@ -120,12 +120,21 @@ def _get_value_for_keys(obj, keys, default):
 
 def _get_value_for_key(obj, key, default):
     if not hasattr(obj, "__getitem__"):
-        return getattr(obj, key, default)
+        return _getattr_or_default(obj, key, default)
 
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        return _getattr_or_default(obj, key, default)
+
+
+def _getattr_or_default(obj, key, default):
+    # getattr only accepts a string attribute name, so a non-string key (e.g. an
+    # out-of-range int index) can never be an attribute: fall back to the default
+    # instead of letting getattr raise a TypeError.
+    if not isinstance(key, str):
+        return default
+    return getattr(obj, key, default)
 
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):

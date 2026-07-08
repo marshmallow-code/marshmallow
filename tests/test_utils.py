@@ -47,6 +47,16 @@ def test_get_value_from_namedtuple_with_default():
     assert utils.get_value(p, "y", default=123) is None
 
 
+def test_get_value_with_out_of_range_int_key_returns_default():
+    # A non-string key (e.g. an out-of-range int index) must fall back to the
+    # default instead of raising a TypeError from getattr (gh-2893).
+    assert utils.get_value([0, 1, 2], 999, default=3) == 3
+    assert utils.get_value({1: "a", 2: "b"}, 4, default="z") == "z"
+    assert utils.get_value([[1, 2]], 3, default=None) is None
+    # a valid int index still returns the element
+    assert utils.get_value([10, 20, 30], 1, default=None) == 20
+
+
 class Triangle:
     def __init__(self, p1, p2, p3):
         self.p1 = p1
