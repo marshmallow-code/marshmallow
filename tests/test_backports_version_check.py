@@ -3,6 +3,7 @@
 Regression test for issue #2978: on Python 3.11+, importing the backports
 compiled extension on ARM Macs can cause a Mach-O architecture crash.
 """
+
 import ast
 import sys
 from pathlib import Path
@@ -15,11 +16,7 @@ def test_backports_not_imported_on_311_plus():
 
         assert marshmallow is not None
         # Verify no backports modules were loaded
-        backports = [
-            m
-            for m in sys.modules
-            if m.startswith("backports.")
-        ]
+        backports = [m for m in sys.modules if m.startswith("backports.")]
         assert backports == [], f"Unexpected backports loaded: {backports}"
 
 
