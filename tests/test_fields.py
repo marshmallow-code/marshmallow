@@ -753,3 +753,15 @@ class TestFieldPreAndPostLoad:
             match="The 'post_load' parameter must be a callable or an iterable of callables.",
         ):
             fields.Int(post_load="not_callable")  # type: ignore[arg-type]
+
+
+# Integer key handling during schema load
+class IntAttributeSchema(Schema):
+    name = fields.String(required=True, attribute=1)
+
+
+def test_set_value_int_key_schema_load():
+    """Schema.load() with an integer attribute key should produce {1: value},
+    not raise TypeError from set_value."""
+    result = IntAttributeSchema().load({"name": "hello"})
+    assert result == {1: "hello"}
