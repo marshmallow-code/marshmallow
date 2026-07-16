@@ -579,19 +579,35 @@ class Nested(Field):
 
             if isinstance(nested, Schema):
                 self._schema = copy.copy(nested)
-                # Respect only and exclude and many passed from parent and re-initialize fields
                 set_class = typing.cast("type[set]", self._schema.set_class)
                 if self.only is not None:
+                    top_level_only = set_class(k.split(".")[0] for k in self.only)
                     if self._schema.only is not None:
-                        original = self._schema.only
-                    else:  # only=None -> all fields
-                        original = self._schema.fields.keys()
-                    self._schema.only = set_class(self.only) & set_class(original)
+                        original = set_class(self._schema.only)
+                    else:
+                        original = set_class(self._schema.fields.keys())
+                    matched_top = top_level_only & original
+                    # Keep full dotted paths so _normalize_nested_options can
+                    # propagate the remainder ("b.a2" -> "a2") down to child schemas.
+                    self._schema.only = set_class(
+                        k for k in self.only if k.split(".")[0] in matched_top
+                    )
                 if self.exclude:
-                    original = self._schema.exclude
-                    self._schema.exclude = set_class(self.exclude) | set_class(original)
+                    original_exclude = set_class(self._schema.exclude)
+                    # Only keep dotted excludes whose top-level key exists in this schema,
+                    # so _normalize_nested_options can propagate the remainder downward.
+                    valid_exclude = set_class(
+                        k
+                        for k in self.exclude
+                        if k.split(".")[0] in set_class(self._schema.fields.keys())
+                    )
+                    self._schema.exclude = valid_exclude | original_exclude
                 if self.many is not None:
                     self._schema.many = self.many
+                # _normalize_nested_options MUST run before _init_fields so dotted paths
+                # like "b.a2" are stripped to "b" and "a2" is propagated to the next
+                # nested level - same as what Schema.__init__ does for class-based nested.
+                self._schema._normalize_nested_options()
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, Schema):
