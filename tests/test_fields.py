@@ -759,6 +759,7 @@ class TestFieldPreAndPostLoad:
 class IntAttributeSchema(Schema):
     name = fields.String(required=True, attribute=1)
 
+
 def test_set_value_int_key_schema_load():
     """Schema.load() with an integer attribute key should produce {1: value},
     not raise TypeError from set_value."""

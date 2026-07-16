@@ -164,6 +164,7 @@ def test_function_field_using_type_annotation():
 def test_get_value_int_key_plain_object_returns_default():
     """get_value with an int key on an object that has no __getitem__
     should return default, not raise TypeError."""
+
     class DummyObject:
         pass
 
