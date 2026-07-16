@@ -759,6 +759,7 @@ class TestFieldPreAndPostLoad:
 class IntAttributeSchema(Schema):
     name = fields.String(required=True, attribute=1)
 
+
 def test_set_value_int_key_schema_load():
     """Schema.load() with an integer attribute key should produce {1: value},
     not raise TypeError from set_value."""
@@ -795,11 +796,12 @@ class D:
 
 def test_nested_instance_lambda_only_propagation():
     """instance-based nested schemas should behave like class-based schemas."""
+
     class BSchemaInst(Schema):
-        b = fields.Nested(lambda: ASchema())       # instance
+        b = fields.Nested(lambda: ASchema())  # instance
 
     class CSchemaInst(Schema):
-        c = fields.Nested(lambda: BSchemaInst())   # instance
+        c = fields.Nested(lambda: BSchemaInst())  # instance
 
     class DSchemaInst(Schema):
         d = fields.Nested(lambda: CSchemaInst, only=("c.b.a2",))
@@ -810,11 +812,12 @@ def test_nested_instance_lambda_only_propagation():
 
 def test_nested_instance_lambda_exclude_propagation():
     """instance-based nested schemas should preserve exclude propagation."""
+
     class BSchemaInst(Schema):
-        b = fields.Nested(lambda: ASchema())       # instance
+        b = fields.Nested(lambda: ASchema())  # instance
 
     class CSchemaInst(Schema):
-        c = fields.Nested(lambda: BSchemaInst())   # instance
+        c = fields.Nested(lambda: BSchemaInst())  # instance
 
     class DSchemaInst(Schema):
         d = fields.Nested(lambda: CSchemaInst, exclude=("c.b.a",))
@@ -825,11 +828,12 @@ def test_nested_instance_lambda_exclude_propagation():
 
 def test_instance_lambda_only_many_matches_class_behavior():
     """many=True instance-based nested schemas should preserve only propagation."""
+
     class BSchemaListInstance(Schema):
-        b = fields.List(fields.Nested(lambda: ASchema()))   # instance inside List
+        b = fields.List(fields.Nested(lambda: ASchema()))  # instance inside List
 
     class CSchemaListInstance(Schema):
-        c = fields.Nested(lambda: BSchemaListInstance())        # instance
+        c = fields.Nested(lambda: BSchemaListInstance())  # instance
 
     class DSchemaListInstance(Schema):
         d = fields.Nested(lambda: CSchemaListInstance, only=("c.b.a2",))
@@ -844,16 +848,19 @@ def test_instance_lambda_only_many_matches_class_behavior():
     )
 
     result = DSchemaListInstance().dump(obj)
-    assert result == {"d": {"c": {"b": [{"a2": "Hello from a2"}, {"a2": "Hello from a2"}]}}}
+    assert result == {
+        "d": {"c": {"b": [{"a2": "Hello from a2"}, {"a2": "Hello from a2"}]}}
+    }
 
 
 def test_instance_lambda_exclude_many_matches_class_behavior():
     """many=True instance-based nested schemas should preserve exclude propagation."""
+
     class BSchemaListInstance(Schema):
-        b = fields.List(fields.Nested(lambda: ASchema()))   # instance inside List
+        b = fields.List(fields.Nested(lambda: ASchema()))  # instance inside List
 
     class CSchemaListInstance(Schema):
-        c = fields.Nested(lambda: BSchemaListInstance())        # instance
+        c = fields.Nested(lambda: BSchemaListInstance())  # instance
 
     class DSchemaListInstance(Schema):
         d = fields.Nested(lambda: CSchemaListInstance, exclude=("c.b.a",))
@@ -868,4 +875,6 @@ def test_instance_lambda_exclude_many_matches_class_behavior():
     )
 
     result = DSchemaListInstance().dump(obj)
-    assert result == {"d": {"c": {"b": [{"a2": "Hello from a2"}, {"a2": "Hello from a2"}]}}}
+    assert result == {
+        "d": {"c": {"b": [{"a2": "Hello from a2"}, {"a2": "Hello from a2"}]}}
+    }

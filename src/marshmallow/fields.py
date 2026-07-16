@@ -597,7 +597,8 @@ class Nested(Field):
                     # Only keep dotted excludes whose top-level key exists in this schema,
                     # so _normalize_nested_options can propagate the remainder downward.
                     valid_exclude = set_class(
-                        k for k in self.exclude
+                        k
+                        for k in self.exclude
                         if k.split(".")[0] in set_class(self._schema.fields.keys())
                     )
                     self._schema.exclude = valid_exclude | original_exclude
