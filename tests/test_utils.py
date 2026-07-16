@@ -158,3 +158,48 @@ def test_function_field_using_type_annotation():
     data = {"friends": "Clark;Alfred;Robin"}
     result = MySchema().load(data)
     assert result == {"friends": ["Clark", "Alfred", "Robin"]}
+
+
+# Integer key handling in get_value and set_value
+def test_get_value_int_key_plain_object_returns_default():
+    """get_value with an int key on an object that has no __getitem__
+    should return default, not raise TypeError."""
+    class DummyObject:
+        pass
+
+    result = utils.get_value(DummyObject(), 1, default="fallback")
+    assert result == "fallback"
+
+
+def test_get_value_int_key_dict_missing_returns_default():
+    """get_value with an int key on a dict where the key is absent
+    should return default, not raise TypeError."""
+    result = utils.get_value({"name": "Praveen"}, 1, default="fallback")
+    assert result == "fallback"
+
+
+def test_get_value_int_key_dict_present_returns_value():
+    """get_value with an int key on a dict where the key exists
+    should return the correct value."""
+    result = utils.get_value({1: "found"}, 1, default="fallback")
+    assert result == "found"
+
+
+def test_get_value_int_key_list_valid_index():
+    """get_value with an int key on a list should return the element."""
+    result = utils.get_value(["a", "b", "c"], 1, default="fallback")
+    assert result == "b"
+
+
+def test_get_value_int_key_list_out_of_range_returns_default():
+    """get_value with an out-of-range int key on a list should return default."""
+    result = utils.get_value(["a", "b"], 99, default="fallback")
+    assert result == "fallback"
+
+
+def test_set_value_int_key_direct():
+    """utils.set_value with an integer key should store it directly,
+    not crash trying to do '.' in key on an int."""
+    d = {}
+    utils.set_value(d, 1, "value")
+    assert d == {1: "value"}

@@ -120,11 +120,17 @@ def _get_value_for_keys(obj, keys, default):
 
 def _get_value_for_key(obj, key, default):
     if not hasattr(obj, "__getitem__"):
+        # getattr only accepts strings. If key is an int, return default immediately.
+        if isinstance(key, int):
+            return default
         return getattr(obj, key, default)
 
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
+        # Same check here.
+        if isinstance(key, int):
+            return default
         return getattr(obj, key, default)
 
 
@@ -139,7 +145,8 @@ def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
         >>> d
         {'foo': {'bar': 42}}
     """
-    if "." in key:
+    # Only check for dots if the key is actually a string!
+    if isinstance(key, str) and "." in key:
         head, rest = key.split(".", 1)
         target = dct.setdefault(head, {})
         if not isinstance(target, dict):
