@@ -123,8 +123,14 @@ def test_from_timestamp_with_negative_value():
 
 
 def test_from_timestamp_with_overflow_value():
+    # The value is unrepresentable everywhere, but which error the platform
+    # raises differs, so matching one platform's wording is not portable:
+    # Linux raises ValueError("year ... is out of range"), which from_timestamp
+    # lets through unchanged, while Windows raises OSError(EINVAL), which it
+    # re-raises as ValueError("Error converting value to datetime"). Assert the
+    # contract they share instead.
     value = 9223372036854775
-    with pytest.raises(ValueError, match=r"out of range|year must be in 1\.\.9999"):
+    with pytest.raises(ValueError):
         utils.from_timestamp(value)
 
 
