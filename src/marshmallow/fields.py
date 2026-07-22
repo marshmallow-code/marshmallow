@@ -231,11 +231,13 @@ class Field(typing.Generic[_InternalT]):
 
         metadata = metadata or {}
         self.metadata = metadata
-        # Collect default error message from self and parent classes
+        # Collect default error message from self and parent classes.
+        # Deep-copy so nested dict/list message values are per-instance
+        # (shallow update shared nested containers across fields; issue #3005).
         messages: types.ErrorMessages = {}
         for cls in reversed(self.__class__.__mro__):
-            messages.update(getattr(cls, "default_error_messages", {}))
-        messages.update(error_messages or {})
+            messages.update(copy.deepcopy(getattr(cls, "default_error_messages", {})))
+        messages.update(copy.deepcopy(error_messages or {}))
         self.error_messages = messages
 
         self.parent: Field | Schema | None = None

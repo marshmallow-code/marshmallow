@@ -282,6 +282,43 @@ class TestErrorMessages:
         assert "doesntexist" in excinfo.value.args[0]
         assert "MyField" in excinfo.value.args[0]
 
+    def test_nested_error_messages_are_not_shared_across_instances(self):
+        class NestedMsgField(fields.Field):
+            default_error_messages = {
+                "invalid": {"lo": "too low", "hi": "too high"},
+                "steps": ["a", "b"],
+            }
+
+        f1 = NestedMsgField()
+        f2 = NestedMsgField()
+        invalid1 = f1.error_messages["invalid"]
+        steps1 = f1.error_messages["steps"]
+        assert isinstance(invalid1, dict)
+        assert isinstance(steps1, list)
+        invalid1["lo"] = "CHANGED BY f1"
+        steps1.append("INJECTED")
+
+        invalid2 = f2.error_messages["invalid"]
+        assert isinstance(invalid2, dict)
+        assert invalid2["lo"] == "too low"
+        assert NestedMsgField.default_error_messages["steps"] == ["a", "b"]
+        new_invalid = NestedMsgField().error_messages["invalid"]
+        assert isinstance(new_invalid, dict)
+        assert new_invalid["lo"] == "too low"
+        assert f1.error_messages["invalid"] is not f2.error_messages["invalid"]
+
+    def test_error_messages_kwarg_dict_is_deep_copied(self):
+        shared: dict = {"invalid": {"lo": "too low"}}
+        f1: fields.Field = fields.Field(error_messages=shared)
+        f2: fields.Field = fields.Field(error_messages=shared)
+        invalid1 = f1.error_messages["invalid"]
+        assert isinstance(invalid1, dict)
+        invalid1["lo"] = "CHANGED"
+        invalid2 = f2.error_messages["invalid"]
+        assert isinstance(invalid2, dict)
+        assert invalid2["lo"] == "too low"
+        assert shared["invalid"]["lo"] == "too low"
+
 
 class TestNestedField:
     @pytest.mark.parametrize("param", ("only", "exclude"))

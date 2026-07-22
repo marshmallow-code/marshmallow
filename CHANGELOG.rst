@@ -4,6 +4,12 @@ Changelog
 (unreleased)
 ------------
 
+Bug fixes:
+
+- Nested ``dict``/``list`` values in field ``error_messages`` are deep-copied so
+  mutating one field instance no longer rewrites siblings or class defaults
+  (:issue:`3005`).
+
 Features:
 
 - If `by_value` is enabled on an enum with a `None` value `allow_none` now defaults to `True`.
