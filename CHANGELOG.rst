@@ -9,6 +9,11 @@ Features:
 - If `by_value` is enabled on an enum with a `None` value `allow_none` now defaults to `True`.
   Thanks :user:`GeraldineGalindo` for the suggestion (:issue:`2985`).
 
+Bug fixes:
+
+- `marshmallow.utils.get_value` returns the ``default`` instead of raising a
+  ``TypeError`` when given an out-of-range or missing integer key (:issue:`2893`).
+
 4.3.0 (2026-04-03)
 ------------------
 
