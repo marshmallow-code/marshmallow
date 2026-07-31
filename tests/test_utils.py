@@ -62,6 +62,17 @@ def test_get_value_for_nested_object():
     assert utils.get_value(tri, "p3.x") == 5
 
 
+def test_get_value_out_of_range_int_key_returns_default():
+    # Regression test for #2893: a non-string key that misses (out-of-range
+    # list index / absent int dict key) must return the default, not raise
+    # ``TypeError`` from the getattr() fallback.
+    assert utils.get_value([0, 1, 2], 999, default=3) == 3
+    assert utils.get_value({1: "a"}, 4, default="z") == "z"
+    # a present integer key still resolves normally
+    assert utils.get_value([0, 1, 2], 1) == 1
+    assert utils.get_value({1: "a"}, 1) == "a"
+
+
 # regression test for https://github.com/marshmallow-code/marshmallow/issues/62
 def test_get_value_from_dict():
     d = dict(items=["foo", "bar"], keys=["baz", "quux"])

@@ -9,6 +9,12 @@ Features:
 - If `by_value` is enabled on an enum with a `None` value `allow_none` now defaults to `True`.
   Thanks :user:`GeraldineGalindo` for the suggestion (:issue:`2985`).
 
+Bug fixes:
+
+- ``get_value`` now returns the ``default`` for a missing non-string key (such as
+  an out-of-range list index or an absent integer dict key) instead of raising
+  ``TypeError`` from the ``getattr`` fallback (:issue:`2893`).
+
 4.3.0 (2026-04-03)
 ------------------
 

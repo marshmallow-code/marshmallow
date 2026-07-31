@@ -119,6 +119,14 @@ def _get_value_for_keys(obj, keys, default):
 
 
 def _get_value_for_key(obj, key, default):
+    # getattr() requires a string attribute name, so a non-string key can only
+    # be resolved through item access -- never fall back to getattr for it.
+    if not isinstance(key, str):
+        try:
+            return obj[key]
+        except (KeyError, IndexError, TypeError, AttributeError):
+            return default
+
     if not hasattr(obj, "__getitem__"):
         return getattr(obj, key, default)
 
