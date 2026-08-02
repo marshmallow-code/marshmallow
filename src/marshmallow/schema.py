@@ -220,6 +220,7 @@ class SchemaOpts:
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
+        self.partial = getattr(meta, "partial", False)
 
 
 class Schema(metaclass=SchemaMeta):
@@ -653,6 +654,12 @@ class Schema(metaclass=SchemaMeta):
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
                         partial_is_collection and attr_name in partial
+                    ):
+                        continue
+                    # Also check opts.partial for the current schema's fields.
+                    if self.opts.partial is True or (
+                        is_collection(self.opts.partial)
+                        and attr_name in self.opts.partial
                     ):
                         continue
                 d_kwargs = {}
