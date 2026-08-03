@@ -347,7 +347,7 @@ class Field(typing.Generic[_InternalT]):
         attr: str | None = None,
         data: typing.Mapping[str, typing.Any] | None = None,
         **kwargs,
-    ) -> None | _InternalT: ...
+    ) -> _InternalT | None: ...
 
     # If value is not None, internal type is returned
     @typing.overload
