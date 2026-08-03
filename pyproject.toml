@@ -87,6 +87,7 @@ ignore = [
   "ARG",     # unused arguments are common w/ interfaces
   "COM",     # let formatter take care commas
   "C901",    # don't enforce complexity level
+  "CPY001",  # don't require copyright notice at top of file
   "D",       # don't require docstrings
   "DTZ007",  # ignore false positives due to https://github.com/astral-sh/ruff/issues/1306
   "E501",    # leave line-length enforcement to formatter
@@ -127,6 +128,9 @@ ignore = [
 "examples/*" = [
   "S", # allow asserts
   "T", # allow prints
+]
+"performance/benchmark.py" = [
+  "PLR0917",  # allow many positional arguments
 ]
 "src/marshmallow/orderedset.py" = [
   "FBT002", # allow boolean positional argument
