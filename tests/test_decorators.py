@@ -619,6 +619,22 @@ class TestValidatesSchemaDecorator:
         errors = schema.validate([{"foo": 4, "bar": "42"}], many=True)
         assert errors["_schema"] == ["bar cannot be a string"]
 
+    def test_collection_pre_load_can_change_length_before_item_schema_validation(self):
+        class MySchema(Schema):
+            foo = fields.Int()
+
+            @pre_load(pass_collection=True)
+            def remove_items_without_foo(self, data, **kwargs):
+                return [item for item in data if item.get("foo") != ""]
+
+            @validates_schema
+            def validate_foo(self, data, **kwargs):
+                assert "foo" in data
+
+        schema = MySchema()
+
+        assert schema.load([{"foo": 24}, {"foo": ""}], many=True) == [{"foo": 24}]
+
     def test_allow_reporting_field_errors_in_schema_validator(self):
         class NestedSchema(Schema):
             baz = fields.Int(required=True)
