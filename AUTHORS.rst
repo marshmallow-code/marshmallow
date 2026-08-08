@@ -188,3 +188,4 @@ Contributors (chronological)
 - `@rstar327 <https://github.com/rstar327>`_
 - Kadir Can Ozden  `@bysiber  <https://github.com/bysiber>`_
 - Dhruvil Darji  `@dhruvildarji  <https://github.com/dhruvildarji>`_
+- Haïm Dimer `@hdimer  <https://github.com/hdimer>`_

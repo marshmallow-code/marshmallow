@@ -12,7 +12,7 @@ Features:
 Bug fixes:
 
 - `marshmallow.validate.URL` accepts a fragment that follows an empty path,
-  e.g. ``https://example.com#frag`` (:pr:`3016`).
+  e.g. ``https://example.com#frag`` (:pr:`3016`). Thanks :user:`hdimer` for the PR.
 
 4.3.0 (2026-04-03)
 ------------------
