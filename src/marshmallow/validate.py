@@ -157,7 +157,6 @@ class URL(Validator):
                     r"(?::\d+)?",
                 )
             )
-            # `#` may lead a fragment right after the host, e.g. `https://example.com#frag`.
             relative_part = r"(?:/?|[/?#]\S+)\Z"
 
             if relative:
