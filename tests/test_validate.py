@@ -32,6 +32,8 @@ from marshmallow import ValidationError, validate
         "http://:pass@example.com",
         "http://@example.com",
         "http://AZaz09-._~%2A!$&'()*+,;=:@example.com",
+        "http://example.org#fragment",
+        "http://user@example.com#fragment",
     ],
 )
 def test_url_absolute_valid(valid_url):
@@ -88,6 +90,7 @@ def test_url_absolute_invalid(invalid_url):
         "/foo/bar",
         "/foo?bar",
         "/foo?bar#baz",
+        "#frag",
     ],
 )
 def test_url_relative_valid(valid_url):
@@ -124,6 +127,7 @@ def test_url_relative_invalid(invalid_url):
         "/foo?bar",
         "?bar",
         "/foo?bar#baz",
+        "#frag",
     ],
 )
 def test_url_relative_only_valid(valid_url):

@@ -157,7 +157,7 @@ class URL(Validator):
                     r"(?::\d+)?",
                 )
             )
-            relative_part = r"(?:/?|[/?]\S+)\Z"
+            relative_part = r"(?:/?|[/?#]\S+)\Z"
 
             if relative:
                 if absolute:
