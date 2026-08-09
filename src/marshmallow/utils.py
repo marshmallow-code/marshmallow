@@ -118,14 +118,24 @@ def _get_value_for_keys(obj, keys, default):
     )
 
 
+def _getattr_or_default(obj, key, default):
+    # Attribute names are always strings, so a non-string key cannot name one:
+    # `getattr` would raise TypeError rather than simply miss and return the
+    # default. Such a key was only ever an index or a mapping key, and both
+    # have already been tried by the caller, so the default is the answer.
+    if not isinstance(key, str):
+        return default
+    return getattr(obj, key, default)
+
+
 def _get_value_for_key(obj, key, default):
     if not hasattr(obj, "__getitem__"):
-        return getattr(obj, key, default)
+        return _getattr_or_default(obj, key, default)
 
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        return _getattr_or_default(obj, key, default)
 
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):

@@ -79,6 +79,44 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+@pytest.mark.parametrize(
+    ("obj", "key"),
+    [
+        # Index past the end of a sequence.
+        ([0, 1, 2], 999),
+        # Negative index past the start.
+        ([0, 1, 2], -99),
+        # A mapping keyed by ints that does not have this one.
+        ({1: "a", 2: "b"}, 4),
+        # A nested sequence, the shape reported in the issue.
+        ([[0], [1]], 3),
+        # No __getitem__ at all, so the very first branch takes the int key.
+        (object(), 0),
+    ],
+)
+def test_get_value_with_out_of_range_int_key_returns_default(obj, key):
+    # An int key that misses used to reach `getattr(obj, key, default)`, which
+    # raises TypeError ("attribute name must be string") rather than returning
+    # the default -- so a miss was indistinguishable from a crash.
+    sentinel = object()
+    assert utils.get_value(obj, key, default=sentinel) is sentinel
+
+
+def test_get_value_with_missing_int_key_and_no_default_is_missing():
+    # The documented no-default behaviour is `missing_`, not an exception.
+    assert utils.get_value([0, 1, 2], 999) is utils.missing
+
+
+def test_get_value_int_key_does_not_shadow_a_real_attribute_lookup():
+    # Only the *fallback* changes: a string key must still reach getattr.
+    class Point:
+        x = 24
+
+    assert utils.get_value(Point(), "x") == 24
+    assert utils.get_value(Point(), "y", default=42) == 42
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
