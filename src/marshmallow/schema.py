@@ -970,14 +970,31 @@ class Schema(metaclass=SchemaMeta):
             nested_options[parent].append(nested_names)
         # Apply the nested field options.
         for key, options in iter(nested_options.items()):
+            if key not in self.declared_fields:
+                raise ValueError(f"Invalid fields for {self}: {{'{key}'}}.")
+            field_obj = self.declared_fields[key]
+            inner_obj = field_obj
+            while hasattr(inner_obj, "inner"):
+                inner_obj = inner_obj.inner
+            if not (
+                hasattr(type(inner_obj), "schema")
+                or hasattr(type(inner_obj), "nested")
+                or hasattr(type(inner_obj), "only")
+                or hasattr(type(inner_obj), "exclude")
+                or "only" in inner_obj.__dict__
+                or "exclude" in inner_obj.__dict__
+            ):
+                raise ValueError(
+                    f"Cannot apply nested option '{option_name}' to non-nested field '{key}'."
+                )
             new_options = self.set_class(options)
-            original_options = getattr(self.declared_fields[key], option_name, ())
+            original_options = getattr(field_obj, option_name, ())
             if original_options:
                 if set_operation == "union":
                     new_options |= self.set_class(original_options)
                 if set_operation == "intersection":
                     new_options &= self.set_class(original_options)
-            setattr(self.declared_fields[key], option_name, new_options)
+            setattr(field_obj, option_name, new_options)
 
     def _init_fields(self) -> None:
         """Update self.fields, self.load_fields, and self.dump_fields based on schema options.

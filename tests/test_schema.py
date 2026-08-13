@@ -2549,3 +2549,26 @@ def test_set_dict_class(dict_cls):
     result = MySchema().dump({"foo": "bar"})
     assert result == {"foo": "bar"}
     assert isinstance(result, dict_cls)
+
+
+def test_nested_options_on_non_nested_or_non_existent_fields():
+    class SimpleSchema(Schema):
+        foo = fields.String()
+
+    with pytest.raises(
+        ValueError,
+        match="Cannot apply nested option 'only' to non-nested field 'foo'.",
+    ):
+        SimpleSchema(only=["foo.bar"])
+
+    with pytest.raises(
+        ValueError,
+        match="Cannot apply nested option 'exclude' to non-nested field 'foo'.",
+    ):
+        SimpleSchema(exclude=["foo.bar"])
+
+    with pytest.raises(ValueError, match="Invalid fields for"):
+        SimpleSchema(only=["nonexistent.bar"])
+
+    with pytest.raises(ValueError, match="Invalid fields for"):
+        SimpleSchema(exclude=["nonexistent.bar"])
