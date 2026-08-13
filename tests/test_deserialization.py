@@ -569,8 +569,14 @@ class TestFieldDeserialization:
                 dt.datetime(2013, 11, 10, 0, 23, 45, 123456),
             ),
             ("timestamp", 1, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            # Negative timestamps (pre-1970-01-01 dates) are valid POSIX
+            # timestamps and must be accepted; see
+            # test_timestamp_field_deserialization_round_trip_negative below.
+            ("timestamp", -1, dt.datetime(1969, 12, 31, 23, 59, 59)),
+            ("timestamp", -86400, dt.datetime(1969, 12, 31, 0, 0, 0)),
             ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 0, 23, 45)),
             ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp_ms", -1000, dt.datetime(1969, 12, 31, 23, 59, 59)),
         ],
     )
     def test_timestamp_field_deserialization(self, fmt, value, expected):
@@ -590,6 +596,30 @@ class TestFieldDeserialization:
         expected_aware = expected.replace(tzinfo=central)
         assert field.deserialize(value) == expected_aware
 
+    # Regression test: serializing a datetime before 1970-01-01 with
+    # format="timestamp"/"timestamp_ms" legitimately produces a negative
+    # float (datetime.timestamp() handles pre-epoch dates fine), so
+    # from_timestamp() rejecting negative values broke the serialize/
+    # deserialize round trip for any date before the Unix epoch. This does
+    # not use mocks: it serializes a real pre-1970 datetime and asserts that
+    # deserializing the result reproduces the original value exactly.
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    @pytest.mark.parametrize(
+        "value",
+        [
+            dt.datetime(1969, 12, 31, 23, 59, 59, tzinfo=dt.timezone.utc),
+            dt.datetime(1950, 5, 3, 12, 0, 0, tzinfo=dt.timezone.utc),
+            dt.datetime(1900, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc),
+        ],
+    )
+    def test_timestamp_field_deserialization_round_trip_negative(self, fmt, value):
+        field = fields.DateTime(format=fmt)
+        serialized = field.serialize("value", {"value": value})
+        assert serialized < 0
+
+        roundtripped = field.deserialize(serialized)
+        assert roundtripped == value.replace(tzinfo=None)
+
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize("in_value", [True, False])
     def test_boolean_timestamp_field_deserialization(self, fmt, in_value):
@@ -600,7 +630,7 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "in_value",
-        ["", "!@#", -1],
+        ["", "!@#"],
     )
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
         field = fields.DateTime(format=fmt)

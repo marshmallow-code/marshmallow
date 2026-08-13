@@ -108,6 +108,11 @@ def test_is_collection():
     [
         (1676386740, dt.datetime(2023, 2, 14, 14, 59, 00)),
         (1676386740.58, dt.datetime(2023, 2, 14, 14, 59, 00, 580000)),
+        # Negative timestamps (dates before 1970-01-01) are valid POSIX
+        # timestamps and must round-trip correctly; see
+        # test_from_timestamp_with_negative_value below for the regression.
+        (-10, dt.datetime(1969, 12, 31, 23, 59, 50)),
+        (0, dt.datetime(1970, 1, 1, 0, 0, 0)),
     ],
 )
 def test_from_timestamp(value, expected):
@@ -117,9 +122,16 @@ def test_from_timestamp(value, expected):
 
 
 def test_from_timestamp_with_negative_value():
+    """Regression test: negative POSIX timestamps (dates before 1970-01-01)
+    are valid and must be accepted. Serializing an aware pre-1970 datetime
+    with `fields.DateTime(format="timestamp")` legitimately produces a
+    negative float (via `datetime.timestamp()`), so rejecting negative
+    values here breaks the serialize/deserialize round trip for any date
+    before the Unix epoch.
+    """
     value = -10
-    with pytest.raises(ValueError, match=r"Not a valid POSIX timestamp"):
-        utils.from_timestamp(value)
+    result = utils.from_timestamp(value)
+    assert result == dt.datetime(1969, 12, 31, 23, 59, 50)
 
 
 def test_from_timestamp_with_overflow_value():
