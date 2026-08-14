@@ -79,6 +79,18 @@ def test_get_value():
     assert utils.get_value(lst, MyInt(1)) == 2
 
 
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+def test_get_value_with_out_of_range_int_key_returns_default():
+    lst = [0, 1, 2, 3, 4, 5]
+    assert utils.get_value(lst, 999, default=3) == 3
+
+    dictionary = {1: "a", 2: "b", 3: "c"}
+    assert utils.get_value(dictionary, 4, default="z") == "z"
+
+    list_obj = [[PointClass(24, 42), {"x": 24, "y": 42}]]
+    assert utils.get_value(list_obj, 3, default=None) is None
+
+
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
