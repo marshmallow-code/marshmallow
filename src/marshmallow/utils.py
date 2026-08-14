@@ -94,7 +94,7 @@ def pluck(dictlist: list[dict[str, typing.Any]], key: str):
 # Various utilities for pulling keyed values from objects
 
 
-def get_value(obj, key: int | str, default=missing):
+def get_value(obj, key: str, default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -105,17 +105,12 @@ def get_value(obj, key: int | str, default=missing):
         `get_value` will never check the value `x.i`. Consider overriding
         `marshmallow.fields.Field.get_value` in this case.
     """
-    if not isinstance(key, int) and "." in key:
-        return _get_value_for_keys(obj, key.split("."), default)
-    return _get_value_for_key(obj, key, default)
-
-
-def _get_value_for_keys(obj, keys, default):
-    if len(keys) == 1:
-        return _get_value_for_key(obj, keys[0], default)
-    return _get_value_for_keys(
-        _get_value_for_key(obj, keys[0], default), keys[1:], default
-    )
+    if "." in key:
+        for k in key.split("."):
+            obj = _get_value_for_key(obj, k, default)
+    else:
+        obj = _get_value_for_key(obj, key, default)
+    return obj
 
 
 def _get_value_for_key(obj, key, default):
