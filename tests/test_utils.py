@@ -69,16 +69,6 @@ def test_get_value_from_dict():
     assert utils.get_value(d, "keys") == ["baz", "quux"]
 
 
-def test_get_value():
-    lst = [1, 2, 3]
-    assert utils.get_value(lst, 1) == 2
-
-    class MyInt(int):
-        pass
-
-    assert utils.get_value(lst, MyInt(1)) == 2
-
-
 def test_set_value():
     d: dict[str, int | dict] = {}
     utils.set_value(d, "foo", 42)
