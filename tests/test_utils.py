@@ -158,3 +158,13 @@ def test_function_field_using_type_annotation():
     data = {"friends": "Clark;Alfred;Robin"}
     result = MySchema().load(data)
     assert result == {"friends": ["Clark", "Alfred", "Robin"]}
+
+
+def test_get_value_with_non_string_key_returns_default():
+    assert utils.get_value([1, 2, 3], 10, "default") == "default"
+    assert utils.get_value({1: "one"}, 2, "default") == "default"
+
+    class Obj:
+        value = "test"
+
+    assert utils.get_value(Obj(), 123, "default") == "default"
