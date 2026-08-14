@@ -128,7 +128,6 @@ def _get_value_for_key(obj, key, default):
         return getattr(obj, key, default) if isinstance(key, str) else default
 
 
-
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
     """Set a value in a dict. If `key` contains a '.', it is assumed
     be a path (i.e. dot-delimited string) to the value's location.
