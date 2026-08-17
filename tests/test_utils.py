@@ -62,6 +62,17 @@ def test_get_value_for_nested_object():
     assert utils.get_value(tri, "p3.x") == 5
 
 
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/2893
+def test_get_value_with_out_of_range_int_index_returns_default():
+    # An out-of-range int index must return the default instead of raising
+    # TypeError from the getattr() fallback (which rejects non-string keys).
+    assert utils.get_value([0, 1, 2, 3, 4, 5], 999, default=3) == 3
+    assert utils.get_value({1: "a", 2: "b", 3: "c"}, 4, default="z") == "z"
+    assert utils.get_value([[PointClass(24, 42)]], 3, default=None) is None
+    # A valid int index still works.
+    assert utils.get_value([10, 20, 30], 1) == 20
+
+
 # regression test for https://github.com/marshmallow-code/marshmallow/issues/62
 def test_get_value_from_dict():
     d = dict(items=["foo", "bar"], keys=["baz", "quux"])
