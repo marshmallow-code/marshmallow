@@ -1,6 +1,7 @@
 """Tests for marshmallow.validate"""
 
 import re
+import warnings
 
 import pytest
 
@@ -759,15 +760,20 @@ def test_noneof_repr():
 
 def test_oneof():
     assert validate.OneOf([1, 2, 3])(2) == 2
-    assert validate.OneOf("abc")("b") == "b"
-    assert validate.OneOf("")("") == ""
+    # A string still works as choices, but now emits a warning (see below).
+    with pytest.warns(UserWarning, match="each character"):
+        assert validate.OneOf("abc")("b") == "b"
+    with pytest.warns(UserWarning, match="each character"):
+        assert validate.OneOf("")("") == ""
     assert validate.OneOf(dict(a=0, b=1))("a") == "a"
     assert validate.OneOf((1, 2, None))(None) is None
 
     with pytest.raises(ValidationError, match="Must be one of: 1, 2, 3."):
         validate.OneOf([1, 2, 3])(4)
+    with pytest.warns(UserWarning, match="each character"):
+        abc_validator = validate.OneOf("abc")
     with pytest.raises(ValidationError):
-        validate.OneOf("abc")("d")
+        abc_validator("d")
     with pytest.raises(ValidationError):
         validate.OneOf((1, 2, 3))(None)
     with pytest.raises(ValidationError):
@@ -776,8 +782,25 @@ def test_oneof():
         validate.OneOf(())(())
     with pytest.raises(ValidationError):
         validate.OneOf(dict(a=0, b=1))(0)
+    with pytest.warns(UserWarning, match="each character"):
+        digits_validator = validate.OneOf("123")
     with pytest.raises(ValidationError):
-        validate.OneOf("123")(1)
+        digits_validator(1)
+
+
+def test_oneof_string_choices_warns():
+    with pytest.warns(UserWarning, match="Passing a string as 'choices' to OneOf"):
+        validate.OneOf("abc")
+
+    # Wrapping the string in a list silences the warning.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        validate.OneOf(list("abc"))
+
+    # Subclasses that legitimately accept strings (ContainsOnly) do not warn.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        validate.ContainsOnly("abc")
 
 
 def test_oneof_options():
