@@ -1,6 +1,16 @@
 Changelog
 =========
 
+(unreleased)
+------------
+
+Features:
+
+- `marshmallow.validate.OneOf` now emits a warning when a string is passed as
+  ``choices``, since each character of the string is then treated as a separate
+  choice. Wrap the string in a list to silence the warning (:issue:`2074`).
+  Thanks :user:`lafrech` for the suggestion.
+
 4.3.1 (2026-08-08)
 ------------------
 

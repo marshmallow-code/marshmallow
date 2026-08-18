@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import typing
+import warnings
 from abc import ABC, abstractmethod
 from operator import attrgetter
 
@@ -604,6 +605,18 @@ class OneOf(Validator):
         *,
         error: str | None = None,
     ):
+        # A string is a valid iterable, but passing one as ``choices`` is
+        # almost always a mistake (e.g. ``OneOf("one", "two")`` where "one"
+        # ends up being the choices and "two" the labels). Each character is
+        # then treated as a separate choice. ``ContainsOnly`` deliberately
+        # accepts strings, so only warn for plain ``OneOf`` instances.
+        if type(self) is OneOf and isinstance(choices, str):
+            warnings.warn(
+                "Passing a string as 'choices' to OneOf is likely a mistake: "
+                "each character of the string is treated as a separate choice. "
+                "Wrap it in a list to silence this warning.",
+                stacklevel=2,
+            )
         self.choices = choices
         self.choices_text = ", ".join(str(choice) for choice in self.choices)
         self.labels = labels if labels is not None else []
