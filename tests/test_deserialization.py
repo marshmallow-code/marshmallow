@@ -569,8 +569,10 @@ class TestFieldDeserialization:
                 dt.datetime(2013, 11, 10, 0, 23, 45, 123456),
             ),
             ("timestamp", 1, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp", -1, dt.datetime(1969, 12, 31, 23, 59, 59)),
             ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 0, 23, 45)),
             ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp_ms", -1000, dt.datetime(1969, 12, 31, 23, 59, 59)),
         ],
     )
     def test_timestamp_field_deserialization(self, fmt, value, expected):
@@ -598,10 +600,7 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
-    @pytest.mark.parametrize(
-        "in_value",
-        ["", "!@#", -1],
-    )
+    @pytest.mark.parametrize("in_value", ["", "!@#"])
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
         field = fields.DateTime(format=fmt)
         with pytest.raises(ValidationError, match="Not a valid datetime."):
