@@ -11,7 +11,7 @@ from marshmallow.constants import missing
 
 
 def is_generator(obj) -> typing.TypeGuard[typing.Generator]:
-    """Return True if ``obj`` is a generator"""
+    """Return True if ``obj`` is a generator."""
     return inspect.isgeneratorfunction(obj) or inspect.isgenerator(obj)
 
 
@@ -26,7 +26,7 @@ def is_sequence_but_not_string(obj) -> typing.TypeGuard[Sequence]:
 
 
 def is_collection(obj) -> typing.TypeGuard[typing.Iterable]:
-    """Return True if ``obj`` is a collection type, e.g list, tuple, queryset."""
+    """Return True if ``obj`` is a collection type, e.g. list, tuple, queryset."""
     return is_iterable_but_not_string(obj) and not isinstance(obj, Mapping)
 
 
@@ -130,7 +130,7 @@ def _get_value_for_key(obj, key, default):
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
     """Set a value in a dict. If `key` contains a '.', it is assumed
-    be a path (i.e. dot-delimited string) to the value's location.
+    to be a path (i.e. dot-delimited string) to the value's location.
 
     ::
 
