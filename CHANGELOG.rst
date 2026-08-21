@@ -15,6 +15,9 @@ Bug fixes:
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
+- A value rejected by a `validates <marshmallow.decorators.validates>` hook is
+  removed from ``ValidationError.valid_data`` when the field sets ``attribute``
+  (:pr:`3091`). Thanks :user:`dylanpulver` for the PR.
 
 4.3.1 (2026-08-08)
 ------------------
