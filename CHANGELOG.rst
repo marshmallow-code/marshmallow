@@ -8,6 +8,13 @@ Features:
 
 - Simplify `get_value` to match actual usage (:pr:`3024`).
 
+Bug fixes:
+
+- Raise `ValidationError <marshmallow.exceptions.ValidationError>`
+  (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
+  (:pr:`3004`).
+  Thanks :user:`vidigoat` for the PR.
+
 4.3.1 (2026-08-08)
 ------------------
 
