@@ -1,6 +1,13 @@
 Changelog
 =========
 
+4.4.0 (unreleased)
+------------------
+
+Features:
+
+- Simplify `get_value` to match actual usage (:pr:`3024`).
+
 4.3.1 (2026-08-08)
 ------------------
 
