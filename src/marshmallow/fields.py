@@ -1581,7 +1581,9 @@ class TimeDelta(Field[dt.timedelta]):
 
         try:
             return dt.timedelta(**kwargs)
-        except OverflowError as error:
+        except (OverflowError, ValueError) as error:
+            # OverflowError: value out of timedelta's range (e.g. infinity).
+            # ValueError: value is NaN.
             raise self.make_error("invalid") from error
 
 

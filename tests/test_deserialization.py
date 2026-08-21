@@ -863,7 +863,9 @@ class TestFieldDeserialization:
         unit_value = dt.timedelta(weeks=1).total_seconds()
         assert math.isclose(result.total_seconds() / unit_value, total_weeks_value)
 
-    @pytest.mark.parametrize("in_value", ["", "badvalue", [], 9999999999])
+    @pytest.mark.parametrize(
+        "in_value", ["", "badvalue", [], 9999999999, "nan", "inf", "-inf"]
+    )
     def test_invalid_timedelta_field_deserialization(self, in_value):
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         with pytest.raises(ValidationError) as excinfo:
