@@ -1341,6 +1341,11 @@ class DateTime(_TemporalField[dt.datetime]):
         "timestamp_ms": utils.from_timestamp_ms,
     }
 
+    #: Deserialization formats that encode an instant rather than a wall time.
+    #: :func:`~marshmallow.utils.from_timestamp` returns the UTC wall time for
+    #: these, so the naive value it produces is known to be UTC.
+    UTC_FORMATS = frozenset({"timestamp", "timestamp_ms"})
+
     DEFAULT_FORMAT = "iso"
 
     OBJ_TYPE = "datetime"
@@ -1423,7 +1428,19 @@ class AwareDateTime(DateTime):
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
                 )
-            ret = ret.replace(tzinfo=self.default_timezone)
+            if (
+                self.format or self.DEFAULT_FORMAT
+            ) in self.UTC_FORMATS and not isinstance(value, dt.datetime):
+                # A POSIX timestamp denotes an instant in UTC, so the naive
+                # value parsed from one is UTC wall time, not an ambiguous
+                # local wall time. Convert it to ``default_timezone`` instead
+                # of relabelling it, which would move the instant by that
+                # zone's offset.
+                ret = ret.replace(tzinfo=dt.timezone.utc).astimezone(
+                    self.default_timezone
+                )
+            else:
+                ret = ret.replace(tzinfo=self.default_timezone)
         return ret
 
 

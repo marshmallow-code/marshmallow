@@ -585,10 +585,21 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError, match="Not a valid aware datetime."):
             field.deserialize(value)
 
-        # But it can be added by providing a default.
+        # But it can be added by providing a default. The timestamp denotes an
+        # instant, so it is converted to that timezone rather than relabelled.
         field = fields.AwareDateTime(format=fmt, default_timezone=central)
-        expected_aware = expected.replace(tzinfo=central)
-        assert field.deserialize(value) == expected_aware
+        result = field.deserialize(value)
+        assert result == expected.replace(tzinfo=dt.timezone.utc)
+        assert result.tzinfo is central
+
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    def test_aware_timestamp_deserialization_preserves_instant(self, fmt):
+        # A timestamp identifies an instant, so deserializing one must not
+        # move that instant, whichever timezone it is expressed in.
+        timestamp = 1384043025
+        value = timestamp * 1000 if fmt == "timestamp_ms" else timestamp
+        field = fields.AwareDateTime(format=fmt, default_timezone=central)
+        assert field.deserialize(value).timestamp() == timestamp
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize("in_value", [True, False])
