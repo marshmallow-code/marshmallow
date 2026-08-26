@@ -581,15 +581,35 @@ class Nested(Field):
                 self._schema = copy.copy(nested)
                 # Respect only and exclude and many passed from parent and re-initialize fields
                 set_class = typing.cast("type[set]", self._schema.set_class)
-                if self.only is not None:
-                    if self._schema.only is not None:
-                        original = self._schema.only
-                    else:  # only=None -> all fields
-                        original = self._schema.fields.keys()
-                    self._schema.only = set_class(self.only) & set_class(original)
-                if self.exclude:
-                    original = self._schema.exclude
-                    self._schema.exclude = set_class(self.exclude) | set_class(original)
+                if self.only is not None or self.exclude:
+                    if any("." in name for name in self.only or ()) or any(
+                        "." in name for name in self.exclude
+                    ):
+                        # Detach the declared fields from the original schema,
+                        # so that resolving child options does not mutate it.
+                        self._schema.declared_fields = {
+                            name: copy.copy(field)
+                            for name, field in self._schema.declared_fields.items()
+                        }
+                    instance_only = self._schema.only
+                    instance_exclude = self._schema.exclude
+                    # Resolve dot-qualified options against the copied schema,
+                    # like Schema.__init__ does with its arguments.
+                    self._schema.only = (
+                        set_class(self.only) if self.only is not None else None
+                    )
+                    self._schema.exclude = set_class(self.exclude)
+                    self._schema._normalize_nested_options()
+                    if self.only is not None:
+                        if instance_only is not None:
+                            original = instance_only
+                        else:  # only=None -> all fields
+                            original = self._schema.fields.keys()
+                        self._schema.only = set_class(
+                            self._schema.only or ()
+                        ) & set_class(original)
+                    if self.exclude:
+                        self._schema.exclude |= set_class(instance_exclude)
                 if self.many is not None:
                     self._schema.many = self.many
                 self._schema._init_fields()

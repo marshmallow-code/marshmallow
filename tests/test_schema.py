@@ -1090,6 +1090,78 @@ def test_nested_instance_exclude():
     assert schema.dump(full_album) == album
 
 
+# https://github.com/marshmallow-code/marshmallow/issues/2165
+def test_nested_instance_only_dot_notation():
+    class GrandChildSchema(Schema):
+        foo = fields.Raw()
+        bar = fields.Raw()
+
+    class ChildSchema(Schema):
+        blubb = fields.Nested(GrandChildSchema)
+
+    class ParentSchema(Schema):
+        bla = fields.Raw()
+        bli = fields.Raw()
+        blubb = fields.Nested(lambda: ChildSchema())
+
+    sch = ParentSchema(only=("bla", "blubb.blubb.foo"))
+    data = dict(bla=1, bli=2, blubb=dict(blubb=dict(foo=42, bar=24)))
+    result = sch.dump(data)
+    assert "bla" in result
+    assert "bli" not in result
+    child = result["blubb"]
+    assert "foo" in child["blubb"]
+    assert "bar" not in child["blubb"]
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/2165
+def test_nested_instance_only_param():
+    class GrandChildSchema(Schema):
+        foo = fields.Raw()
+        bar = fields.Raw()
+
+    class ChildSchema(Schema):
+        blubb = fields.Nested(GrandChildSchema)
+
+    class ParentSchema(Schema):
+        bla = fields.Raw()
+        bli = fields.Raw()
+        blubb = fields.Nested(lambda: ChildSchema(), only=("blubb.foo",))
+
+    sch = ParentSchema()
+    data = dict(bla=1, bli=2, blubb=dict(blubb=dict(foo=42, bar=24)))
+    result = sch.dump(data)
+    assert "bla" in result
+    assert "bli" in result
+    child = result["blubb"]
+    assert "foo" in child["blubb"]
+    assert "bar" not in child["blubb"]
+
+
+# https://github.com/marshmallow-code/marshmallow/issues/2165
+def test_nested_instance_exclude_param():
+    class GrandChildSchema(Schema):
+        foo = fields.Raw()
+        bar = fields.Raw()
+
+    class ChildSchema(Schema):
+        blubb = fields.Nested(GrandChildSchema)
+
+    class ParentSchema(Schema):
+        bla = fields.Raw()
+        bli = fields.Raw()
+        blubb = fields.Nested(lambda: ChildSchema(), exclude=("blubb.bar",))
+
+    sch = ParentSchema()
+    data = dict(bla=1, bli=2, blubb=dict(blubb=dict(foo=42, bar=24)))
+    result = sch.dump(data)
+    assert "bla" in result
+    assert "bli" in result
+    child = result["blubb"]
+    assert "foo" in child["blubb"]
+    assert "bar" not in child["blubb"]
+
+
 def test_meta_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Raw()
