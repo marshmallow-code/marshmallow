@@ -145,7 +145,7 @@ class SchemaMeta(ABCMeta):
         :param cls_fields: The fields declared on the class, including those added
             by the ``include`` `class Meta <marshmallow.Schema.Meta>` option.
         :param inherited_fields: Inherited fields.
-        :param dict_cls: dict-like class to use for dict output Default to ``dict``.
+        :param dict_cls: dict-like class to use for dict output. Defaults to ``dict``.
         """
         return dict_cls(inherited_fields + cls_fields)
 
@@ -855,13 +855,13 @@ class Schema(metaclass=SchemaMeta):
         :param many: Whether to deserialize `data` as a collection. If `None`, the
             value for `self.many` is used.
         :param partial: Whether to validate required fields. If its
-            value is an iterable, only fields listed in that iterable will be
-            ignored will be allowed missing. If `True`, all fields will be allowed missing.
+            value is an iterable, only fields listed in that iterable
+            will be allowed missing. If `True`, all fields will be allowed missing.
             If `None`, the value for `self.partial` is used.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
             If `None`, the value for `self.unknown` is used.
-        :param postprocess: Whether to run post_load methods..
+        :param postprocess: Whether to run post_load methods.
         :return: Deserialized data
         """
         error_store = ErrorStore()

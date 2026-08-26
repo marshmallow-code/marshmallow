@@ -162,7 +162,7 @@ class Field(typing.Generic[_InternalT]):
     :param metadata: Extra information to be stored as field metadata.
 
     .. versionchanged:: 3.0.0b8
-        Add ``data_key`` parameter for the specifying the key in the input and
+        Add ``data_key`` parameter for specifying the key in the input and
         output data. This parameter replaced both ``load_from`` and ``dump_to``.
     .. versionchanged:: 3.13.0
         Replace ``missing`` and ``default`` parameters with ``load_default`` and ``dump_default``.
@@ -402,7 +402,7 @@ class Field(typing.Generic[_InternalT]):
 
     def _bind_to_schema(self, field_name: str, parent: Schema | Field) -> None:
         """Update field with values from its parent schema. Called by
-                `Schema._bind_field <marshmallow.Schema._bind_field>`.
+        `Schema._bind_field <marshmallow.Schema._bind_field>`.
 
         :param field_name: Field name set in schema.
         :param parent: Parent object.
@@ -523,7 +523,7 @@ class Nested(Field):
     :param many: Whether the field is a collection of objects.
         If `None` (default), and nested `Schema` instance is provided, ``many`` is not overridden.
         If `None` (default), and `Schema` subclass is provided, schema instance sets ``many`` as False.
-        If `True | False` nested `[nested_field].schema.many` is overridden.
+        If `True | False`, nested `[nested_field].schema.many` is overridden.
     :param unknown: Whether to exclude, include, or raise an error for unknown
         fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
@@ -797,7 +797,7 @@ class List(Field[list[_InternalT | None]]):
 
 class Tuple(Field[tuple]):
     """A tuple field, composed of a fixed number of other `Field` classes or
-    instances
+    instances.
 
     Example: ::
 
@@ -1395,7 +1395,7 @@ class AwareDateTime(DateTime):
 
     :param format: See :class:`DateTime`.
     :param default_timezone: Used on deserialization. If `None`, naive
-        datetimes are rejected. If not `None`, naive datetimes are set this
+        datetimes are rejected. If not `None`, naive datetimes are set to this
         timezone.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
@@ -1505,7 +1505,7 @@ class TimeDelta(Field[dt.timedelta]):
     Float Caveats
     -------------
     Precision loss may occur when serializing a highly precise :class:`datetime.timedelta`
-    object using a big ``precision`` unit due to floating point arithmetics.
+    object using a big ``precision`` unit due to floating-point arithmetic.
 
     When necessary, the :class:`datetime.timedelta` constructor rounds `float` inputs
     to whole microseconds during initialization of the object. As a result, deserializing
@@ -1805,7 +1805,7 @@ class Email(String):
 
 
 class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
-    """A IP address field.
+    """An IP address field.
 
     :param exploded: If `True`, serialize ipv6 address in long form, ie. with groups
         consisting entirely of zeros included.
@@ -1840,7 +1840,7 @@ class IP(Field[ipaddress.IPv4Address | ipaddress.IPv6Address]):
 
 
 class IPv4(IP):
-    """A IPv4 address field.
+    """An IPv4 address field.
 
     .. versionadded:: 3.8.0
     """
@@ -1851,7 +1851,7 @@ class IPv4(IP):
 
 
 class IPv6(IP):
-    """A IPv6 address field.
+    """An IPv6 address field.
 
     .. versionadded:: 3.8.0
     """
@@ -1862,7 +1862,7 @@ class IPv6(IP):
 
 
 class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
-    """A IPInterface field.
+    """An IPInterface field.
 
     IP interface is the non-strict form of the IPNetwork type where arbitrary host
     addresses are always accepted.
@@ -1902,7 +1902,7 @@ class IPInterface(Field[ipaddress.IPv4Interface | ipaddress.IPv6Interface]):
 
 
 class IPv4Interface(IPInterface):
-    """A IPv4 Network Interface field."""
+    """An IPv4 Network Interface field."""
 
     default_error_messages = {"invalid_ip_interface": "Not a valid IPv4 interface."}
 
@@ -1910,7 +1910,7 @@ class IPv4Interface(IPInterface):
 
 
 class IPv6Interface(IPInterface):
-    """A IPv6 Network Interface field."""
+    """An IPv6 Network Interface field."""
 
     default_error_messages = {"invalid_ip_interface": "Not a valid IPv6 interface."}
 
@@ -2008,7 +2008,7 @@ class Method(Field):
         to retrieve the value. The method must take an argument ``obj``
         (in addition to self) that is the object to be serialized.
     :param deserialize: Optional name of the Schema method for deserializing
-        a value The method must take a single argument ``value``, which is the
+        a value. The method must take a single argument ``value``, which is the
         value to deserialize.
 
     .. versionchanged:: 3.0.0
@@ -2062,12 +2062,12 @@ class Function(Field):
     :param serialize: A callable from which to retrieve the value.
         The function must take a single argument ``obj`` which is the object
         to be serialized.
-        If no callable is provided then the ```load_only``` flag will be set
+        If no callable is provided then the ``load_only`` flag will be set
         to True.
     :param deserialize: A callable from which to retrieve the value.
         The function must take a single argument ``value`` which is the value
         to be deserialized.
-        If no callable is provided then ```value``` will be passed through
+        If no callable is provided then ``value`` will be passed through
         unchanged.
 
     .. versionchanged:: 3.0.0a1
