@@ -142,7 +142,7 @@ def pre_dump(
     argument passed to the `Schema <marshmallow.Schema>`'s :func:`~marshmallow.Schema.dump` call.
     If ``pass_collection=True``, the raw data (which may be a collection) is passed.
 
-    .. versionchanged:: 3.0.0 ``many`` is always passed as a keyword arguments to the decorated method.
+    .. versionchanged:: 3.0.0 ``many`` is always passed as a keyword argument to the decorated method.
     .. versionchanged:: 4.0.0 ``pass_many`` is renamed to ``pass_collection``.
     .. versionchanged:: 4.0.0 ``pass_collection`` is a keyword-only argument.
     """
@@ -165,7 +165,7 @@ def post_dump(
     If ``pass_original=True``, the original data (before serializing) will be passed as
     an additional argument to the method.
 
-    .. versionchanged:: 3.0.0 ``many`` is always passed as a keyword arguments to the decorated method.
+    .. versionchanged:: 3.0.0 ``many`` is always passed as a keyword argument to the decorated method.
     .. versionchanged:: 4.0.0 ``pass_many`` is renamed to ``pass_collection``.
     .. versionchanged:: 4.0.0 ``pass_collection`` and ``pass_original`` are keyword-only arguments.
     """

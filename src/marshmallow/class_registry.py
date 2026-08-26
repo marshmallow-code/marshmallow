@@ -1,6 +1,6 @@
 """A registry of :class:`Schema <marshmallow.Schema>` classes. This allows for string
 lookup of schemas, which may be used with
-class:`fields.Nested <marshmallow.fields.Nested>`.
+:class:`fields.Nested <marshmallow.fields.Nested>`.
 
 .. warning::
 
