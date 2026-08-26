@@ -648,8 +648,9 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
 Validation does not occur on serialization
 ******************************************
 
-`Schema.dump <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
-your data before serializing it.
+`Schema.dump <marshmallow.Schema.dump>` will no longer validate and collect error messages. It expects an
+already-valid object. To validate untrusted serialized input, pass it through
+`Schema.load <marshmallow.Schema.load>` before dumping the loaded value.
 
 .. code-block:: python
 
@@ -678,6 +679,24 @@ your data before serializing it.
         print("handle errors...")
     else:
         dumped = schema.dump(widget)
+
+Values passed to `Schema.load <marshmallow.Schema.load>` are serialized input, not objects that would be
+passed to ``dump``. They must use external field names (including ``data_key`` aliases) and serialized value
+types. For example:
+
+.. code-block:: python
+
+    class AliasedWidgetSchema(Schema):
+        created_at = fields.DateTime(data_key="createdAt")
+
+
+    schema = AliasedWidgetSchema()
+    widget = schema.load({"createdAt": "2020-01-01T00:00:00"})
+    dumped = schema.dump(widget)
+    # {'createdAt': '2020-01-01T00:00:00'}
+
+If you already have a Python object whose ``created_at`` value is a ``datetime``, ``dump`` assumes that value
+is valid and serializes it directly.
 
 
 Deserializing invalid types raises a ``ValidationError``
