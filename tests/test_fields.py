@@ -110,13 +110,21 @@ class TestField:
         assert result == {"_NaMe": "Monty"}
 
     def test_dump_getter_overrides_default_access(self):
-        field = fields.String(dump_getter=lambda obj, attr, default: obj[attr].upper())
-        assert field.get_value({"name": "monty"}, "name") == "MONTY"
+        class MySchema(Schema):
+            name = fields.String(
+                dump_getter=lambda obj, attr, default: obj[attr].upper()
+            )
+
+        assert MySchema().dump({"name": "monty"}) == {"name": "MONTY"}
 
     def test_dump_getter_takes_priority_over_accessor(self):
-        field = fields.String(dump_getter=lambda obj, attr, default: "from_getter")
-        accessor = lambda obj, attr, default: "from_accessor"  # noqa: E731
-        assert field.get_value({}, "name", accessor=accessor) == "from_getter"
+        class MySchema(Schema):
+            def get_attribute(self, obj, attr, default):
+                return "from_accessor"
+
+            name = fields.String(dump_getter=lambda obj, attr, default: "from_getter")
+
+        assert MySchema().dump({}) == {"name": "from_getter"}
 
     def test_dump_getter_used_in_schema_dump(self):
         class MySchema(Schema):

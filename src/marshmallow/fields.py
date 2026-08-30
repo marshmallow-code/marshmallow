@@ -260,26 +260,6 @@ class Field(typing.Generic[_InternalT]):
     def __deepcopy__(self, memo):
         return copy.copy(self)
 
-    def get_value(
-        self,
-        obj: typing.Any,
-        attr: str,
-        accessor: (
-            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-        ) = None,
-        default: typing.Any = missing_,
-    ) -> _InternalT:
-        """Return the value for a given key from an object.
-
-        :param obj: The object to get the value from.
-        :param attr: The attribute/key in `obj` to get the value from.
-        :param accessor: A callable used to retrieve the value of `attr` from
-            the object `obj`. Defaults to `marshmallow.utils.get_value`.
-        """
-        accessor_func = self.dump_getter or accessor or utils.get_value
-        check_key = attr if self.attribute is None else self.attribute
-        return accessor_func(obj, check_key, default)
-
     def _validate(self, value: typing.Any) -> None:
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
         does not succeed.
