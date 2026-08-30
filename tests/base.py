@@ -207,9 +207,7 @@ class UserSchema(Schema):
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Decimal()
-    is_old: fields.Field = fields.Boolean(
-        dump_only=True, dump_getter=get_is_old
-    )
+    is_old: fields.Field = fields.Boolean(dump_only=True, dump_getter=get_is_old)
     lowername = fields.String(dump_only=True, dump_getter=get_lowername)
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)

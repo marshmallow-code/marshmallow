@@ -102,12 +102,8 @@ class _BaseFieldKwargs(typing.TypedDict, total=False):
     dump_only: bool
     error_messages: types.ErrorMessages | None
     metadata: typing.Mapping[str, typing.Any] | None
-    dump_getter: (
-        typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-    )
-    load_getter: (
-        typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-    )
+    dump_getter: typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
+    load_getter: typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
 
 
 def _resolve_field_instance(cls_or_instance: Field | type[Field]) -> Field:
@@ -335,7 +331,6 @@ class Field(typing.Generic[_InternalT]):
 
     # If value is None, None may be returned
     @typing.overload
-
     def deserialize(self, value: None, **kwargs) -> _InternalT | None: ...
 
     # If value is not None, internal type is returned

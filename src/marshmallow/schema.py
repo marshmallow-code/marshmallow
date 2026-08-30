@@ -650,9 +650,7 @@ class Schema(metaclass=SchemaMeta):
                     field_obj.data_key if field_obj.data_key is not None else attr_name
                 )
                 if field_obj.load_getter is not None:
-                    raw_value = field_obj.load_getter(
-                        data, field_name, missing
-                    )
+                    raw_value = field_obj.load_getter(data, field_name, missing)
                 else:
                     raw_value = data.get(field_name, missing)
                 if raw_value is missing:

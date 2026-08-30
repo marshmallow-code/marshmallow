@@ -103,9 +103,7 @@ class TestContext:
         class InnerSchema(Schema):
             likes_bikes = fields.Boolean(
                 dump_only=True,
-                dump_getter=lambda obj, attr, default: (
-                    "bikes" in Context.get()["info"]
-                ),
+                dump_getter=lambda obj, attr, default: "bikes" in Context.get()["info"],
             )
 
         class CSchema(Schema):
