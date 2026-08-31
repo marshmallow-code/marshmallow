@@ -114,7 +114,15 @@ def test_from_timestamp_with_negative_value():
 
 def test_from_timestamp_with_overflow_value():
     value = 9223372036854775
-    with pytest.raises(ValueError, match=r"out of range|year must be in 1\.\.9999"):
+    # datetime.fromtimestamp() reports this overflow differently depending on
+    # the platform: CPython on Linux/macOS raises a bare ValueError with a
+    # message about the resulting year, while Windows raises an OSError,
+    # which from_timestamp() itself catches and re-raises with its own
+    # message.
+    with pytest.raises(
+        ValueError,
+        match=r"out of range|year must be in 1\.\.9999|Error converting value to datetime",
+    ):
         utils.from_timestamp(value)
 
 
