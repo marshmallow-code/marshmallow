@@ -648,8 +648,8 @@ and `validates_schema <marshmallow.decorators.validates_schema>` receive
 Validation does not occur on serialization
 ******************************************
 
-`Schema.dump <marshmallow.Schema.dump>` will no longer validate and collect error messages. You *must* validate
-your data before serializing it.
+`Schema.dump <marshmallow.Schema.dump>` will no longer validate and collect error messages.
+You *must* ensure your data is valid before serializing it.
 
 .. code-block:: python
 
@@ -669,15 +669,6 @@ your data before serializing it.
     # 3.x
     WidgetSchema().dump(invalid_data)
     # AttributeError: 'str' object has no attribute 'isoformat'
-
-    # Instead, validate before dumping
-    schema = WidgetSchema()
-    try:
-        widget = schema.load(invalid_data)
-    except ValidationError:
-        print("handle errors...")
-    else:
-        dumped = schema.dump(widget)
 
 
 Deserializing invalid types raises a ``ValidationError``
