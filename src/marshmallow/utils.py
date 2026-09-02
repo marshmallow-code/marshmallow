@@ -41,17 +41,21 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
     if value is True or value is False:
         raise ValueError("Not a valid POSIX timestamp")
     value = float(value)
-    if value < 0:
-        raise ValueError("Not a valid POSIX timestamp")
 
     # Load a timestamp with utc as timezone to prevent using system timezone.
-    # Then set timezone to None, to let the Field handle adding timezone info.
     try:
-        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
+        ret_dt = dt.datetime.fromtimestamp(value, tz=dt.timezone.utc)
     except OverflowError as exc:
         raise ValueError("Timestamp is too large") from exc
-    except OSError as exc:
-        raise ValueError("Error converting value to datetime") from exc
+    except OSError:
+        try:
+            ret_dt = dt.datetime(1970, 1, 1, tzinfo=dt.timezone.utc) + dt.timedelta(
+                seconds=value
+            )
+        except OverflowError as exc:
+            raise ValueError("Timestamp is too large") from exc
+    # Then set timezone to None, to let the Field handle adding timezone info.
+    return ret_dt.replace(tzinfo=None)
 
 
 def from_timestamp_ms(value: typing.Any) -> dt.datetime:
