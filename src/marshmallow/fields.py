@@ -259,10 +259,7 @@ class Field(typing.Generic[_InternalT]):
         self,
         obj: typing.Any,
         attr: str,
-        accessor: (
-            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-        ) = None,
-        default: typing.Any = missing_,
+        accessor: (typing.Callable[[typing.Any, str], typing.Any] | None) = None,
     ) -> _InternalT:
         """Return the value for a given key from an object.
 
@@ -273,7 +270,7 @@ class Field(typing.Generic[_InternalT]):
         """
         accessor_func = accessor or utils.get_value
         check_key = attr if self.attribute is None else self.attribute
-        return accessor_func(obj, check_key, default)
+        return accessor_func(obj, check_key)
 
     def _validate(self, value: typing.Any) -> None:
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
@@ -315,9 +312,7 @@ class Field(typing.Generic[_InternalT]):
         self,
         attr: str,
         obj: typing.Any,
-        accessor: (
-            typing.Callable[[typing.Any, str, typing.Any], typing.Any] | None
-        ) = None,
+        accessor: (typing.Callable[[typing.Any, str], typing.Any] | None) = None,
         **kwargs,
     ):
         """Pulls the value for the given key from the object, applies the
