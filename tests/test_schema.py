@@ -2216,6 +2216,32 @@ def test_serializer_can_specify_nested_object_as_attribute(blog):
     assert result["author_name"] == blog.user.name
 
 
+def test_dotted_attribute_is_a_path_on_load_too():
+    # A dot in `attribute` is a path separator on both sides, not just when
+    # dumping: `set_value` nests it on load exactly as `get_value` walks it on
+    # dump. Only the dump direction was pinned, so the load result -- the one
+    # that surprises people using `Schema.from_dict` with a dotted key -- could
+    # have changed without a test noticing.
+    class BlogUsernameSchema(Schema):
+        author_name = fields.String(attribute="user.name")
+
+    loaded = BlogUsernameSchema().load({"author_name": "Monty"})
+    assert loaded == {"user": {"name": "Monty"}}
+
+    # ... and it round-trips back to the flat external key.
+    assert BlogUsernameSchema().dump(loaded) == {"author_name": "Monty"}
+
+
+def test_from_dict_key_containing_a_dot_is_treated_as_a_path():
+    # `Schema.from_dict` uses each key as the field name, and an unset
+    # `attribute` defaults to that name, so a key with a dot in it becomes a
+    # path rather than a literal key. Documented on `attribute`; pinned here.
+    schema = Schema.from_dict({"some.thing": fields.String()})()
+
+    assert schema.load({"some.thing": "data"}) == {"some": {"thing": "data"}}
+    assert schema.dump({"some": {"thing": "data"}}) == {"some.thing": "data"}
+
+
 class TestFieldInheritance:
     def test_inherit_fields_from_schema_subclass(self):
         expected = {

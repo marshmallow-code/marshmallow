@@ -133,6 +133,10 @@ class Field(typing.Generic[_InternalT]):
     :param attribute: The name of the key/attribute in the internal representation, i.e.
         the output of `load` and the input of `dump`.
         If `None`, the key/attribute will match the name of the field.
+        A dot in the name is a path separator, not a literal character: ``"foo.bar"``
+        reads ``obj["foo"]["bar"]`` when dumping and produces
+        ``{"foo": {"bar": value}}`` when loading. There is no way to escape it, so a
+        key that genuinely contains a dot needs ``data_key`` and a plain ``attribute``.
         Note: This should only be used for very specific use cases such as
         outputting multiple fields for a single attribute, or using keys/attributes
         that are invalid variable names, unsuitable for field names. In most cases,
