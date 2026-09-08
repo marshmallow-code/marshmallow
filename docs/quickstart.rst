@@ -335,7 +335,7 @@ It is sometimes convenient to write validators as methods. Use the `validates <m
 Required fields
 ---------------
 
-Make a field required by passing ``required=True``. An error will be raised if the the value is missing from the input to `Schema.load <marshmallow.Schema.load>`.
+Make a field required by passing ``required=True``. An error will be raised if the value is missing from the input to `Schema.load <marshmallow.Schema.load>`.
 
 To customize the error message for required fields, pass a `dict` with a ``required`` key as the ``error_messages`` argument for the field.
 
