@@ -14,6 +14,9 @@ Bug fixes:
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
+- Fix regex match in `test_from_timestamp_with_overflow_value` to support
+  Windows error messages (:issue:`2999`).
+  Thanks :user:`eminsk` for the PR.
 
 4.3.1 (2026-08-08)
 ------------------

@@ -114,7 +114,10 @@ def test_from_timestamp_with_negative_value():
 
 def test_from_timestamp_with_overflow_value():
     value = 9223372036854775
-    with pytest.raises(ValueError, match=r"out of range|year must be in 1\.\.9999"):
+    with pytest.raises(
+        ValueError,
+        match=r"out of range|year must be in 1\.\.9999|Error converting value to datetime|Timestamp is too large",
+    ):
         utils.from_timestamp(value)
 
 
@@ -134,6 +137,15 @@ def test_from_timestamp_ms(value, expected):
 @pytest.mark.parametrize("value", [True, False])
 def test_from_timestamp_ms_rejects_booleans(value):
     with pytest.raises(ValueError, match=r"Not a valid POSIX timestamp"):
+        utils.from_timestamp_ms(value)
+
+
+def test_from_timestamp_ms_with_overflow_value():
+    value = 9223372036854775000
+    with pytest.raises(
+        ValueError,
+        match=r"out of range|year must be in 1\.\.9999|Error converting value to datetime|Timestamp is too large",
+    ):
         utils.from_timestamp_ms(value)
 
 
