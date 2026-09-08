@@ -531,7 +531,7 @@ class Schema(metaclass=SchemaMeta):
         """Serialize ``obj``.
 
         :param obj: The object(s) to serialize.
-        :param many: `True` if ``data`` should be serialized as a collection.
+        :param many: `True` if ``obj`` should be serialized as a collection.
         :return: A dictionary of the serialized data
         """
         if many and obj is not None:
@@ -615,8 +615,8 @@ class Schema(metaclass=SchemaMeta):
             will be ignored. Use dot delimiters to specify nested fields.
         :param unknown: Whether to exclude, include, or raise an error for unknown
             fields in the data. Use `EXCLUDE`, `INCLUDE` or `RAISE`.
-        :param index: Index of the item being serialized (for storing errors) if
-            serializing a collection, otherwise `None`.
+        :param index: Index of the item being deserialized (for storing errors) if
+            deserializing a collection, otherwise `None`.
         :return: The deserialized data as `dict_class` instance or list of `dict_class`
         instances if `many` is `True`.
         """
