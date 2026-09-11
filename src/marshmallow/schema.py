@@ -538,7 +538,9 @@ class Schema(metaclass=SchemaMeta):
             return [self._serialize(d, many=False) for d in obj]
         ret = self.dict_class()
         for attr_name, field_obj in self.dump_fields.items():
-            value = field_obj.serialize(attr_name, obj, accessor=self.get_attribute)
+            accessor = field_obj.dump_getter or self.get_attribute
+            obj_value = accessor(obj, field_obj.attribute or attr_name, missing)
+            value = field_obj.serialize(obj_value)
             if value is missing:
                 continue
             key = field_obj.data_key if field_obj.data_key is not None else attr_name
@@ -648,7 +650,10 @@ class Schema(metaclass=SchemaMeta):
                 field_name = (
                     field_obj.data_key if field_obj.data_key is not None else attr_name
                 )
-                raw_value = data.get(field_name, missing)
+                if field_obj.load_getter is not None:
+                    raw_value = field_obj.load_getter(data, field_name, missing)
+                else:
+                    raw_value = data.get(field_name, missing)
                 if raw_value is missing:
                     # Ignore missing field if we're allowed to.
                     if partial is True or (
@@ -667,15 +672,8 @@ class Schema(metaclass=SchemaMeta):
                 elif partial is not None:
                     d_kwargs["partial"] = partial
 
-                def getter(
-                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
-                ):
-                    return field_obj.deserialize(
-                        val,
-                        field_name,
-                        data,
-                        **d_kwargs,
-                    )
+                def getter(val, field_obj=field_obj, d_kwargs=d_kwargs):
+                    return field_obj.deserialize(val, **d_kwargs)
 
                 value = self._call_and_store(
                     getter_func=getter,
