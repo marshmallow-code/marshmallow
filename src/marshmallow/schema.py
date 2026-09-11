@@ -428,8 +428,16 @@ class Schema(metaclass=SchemaMeta):
         self.exclude: set[typing.Any] | typing.MutableSet[typing.Any] = set(
             self.opts.exclude
         ) | set(exclude)
-        self.load_only = set(load_only) or set(self.opts.load_only)
-        self.dump_only = set(dump_only) or set(self.opts.dump_only)
+        self.load_only = (set(load_only) or set(self.opts.load_only)) | {
+            name
+            for name, field_obj in self.declared_fields.items()
+            if field_obj.load_only
+        }
+        self.dump_only = (set(dump_only) or set(self.opts.dump_only)) | {
+            name
+            for name, field_obj in self.declared_fields.items()
+            if field_obj.dump_only
+        }
         self.partial = partial
         self.unknown: types.UnknownOption = (
             self.opts.unknown if unknown is None else unknown
