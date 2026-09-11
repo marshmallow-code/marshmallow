@@ -497,13 +497,13 @@ class Schema(metaclass=SchemaMeta):
             Receives `many` and `partial` (on deserialization) as keyword arguments.
         """
 
-    def get_attribute(self, obj: typing.Any, attr: str, default: typing.Any):
+    def get_attribute(self, obj: typing.Any, attr: str):
         """Defines how to pull values from an object to serialize.
 
         .. versionchanged:: 3.0.0a1
             Changed position of ``obj`` and ``attr``.
         """
-        return get_value(obj, attr, default)
+        return get_value(obj, attr)
 
     ##### Serialization/Deserialization API #####
 
