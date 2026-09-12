@@ -693,6 +693,26 @@ class TestValidatesSchemaDecorator:
         assert "bar" in errors[0]
         assert "_schema" not in errors
 
+    def test_field_validator_skip_on_field_errors(self):
+        class MySchema(Schema):
+            foo = fields.Int(required=True, validate=validate.Equal(3))
+            bar = fields.Int(required=True)
+
+            @validates("foo", skip_on_field_errors=True)
+            def validate_foo(self, value, **kwargs):
+                raise AssertionError("should not validate fields with errors")
+
+            @validates("bar", skip_on_field_errors=True)
+            def validate_bar(self, value, **kwargs):
+                raise ValidationError("from validates")
+
+        errors = MySchema().validate({"foo": 2, "bar": 2})
+
+        assert errors == {
+            "foo": ["Must be equal to 3."],
+            "bar": ["from validates"],
+        }
+
     # https://github.com/marshmallow-code/marshmallow/issues/2170
     def test_data_key_is_used_in_errors_dict(self):
         class MySchema(Schema):
