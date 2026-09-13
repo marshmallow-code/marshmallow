@@ -2067,8 +2067,8 @@ class Function(Field):
     :param deserialize: A callable from which to retrieve the value.
         The function must take a single argument ``value`` which is the value
         to be deserialized.
-        If no callable is provided then ``value`` will be passed through
-        unchanged.
+        If no callable is provided then the ``dump_only`` flag will be set
+        to True.
 
     .. versionchanged:: 3.0.0a1
         Removed ``func`` parameter.
