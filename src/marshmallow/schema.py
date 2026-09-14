@@ -220,6 +220,9 @@ class SchemaOpts:
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
+        self.partial = getattr(meta, "partial", False)
+        if not isinstance(self.partial, (bool, tuple, list, set)):
+            raise ValueError("`partial` option must be a bool, tuple, list, or set.")
 
 
 class Schema(metaclass=SchemaMeta):
@@ -375,6 +378,8 @@ class Schema(metaclass=SchemaMeta):
         """
         many: typing.ClassVar[bool]
         """Whether data should be (de)serialized as a collection by default."""
+        partial: typing.ClassVar[bool | types.StrSequenceOrSet]
+        """Whether to allow missing fields during deserialization by default."""
         dateformat: typing.ClassVar[str]
         """Default format for `Date <marshmallow.fields.Date>` fields."""
         datetimeformat: typing.ClassVar[str]
@@ -430,7 +435,7 @@ class Schema(metaclass=SchemaMeta):
         ) | set(exclude)
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
-        self.partial = partial
+        self.partial = partial if partial is not None else self.opts.partial
         self.unknown: types.UnknownOption = (
             self.opts.unknown if unknown is None else unknown
         )
@@ -655,7 +660,7 @@ class Schema(metaclass=SchemaMeta):
                         partial_is_collection and attr_name in partial
                     ):
                         continue
-                d_kwargs = {}
+                d_kwargs: dict[str, typing.Any] = {}
                 # Allow partial loading of nested schemas.
                 if partial_is_collection:
                     prefix = attr_name + "."
@@ -664,7 +669,7 @@ class Schema(metaclass=SchemaMeta):
                         f[len_prefix:] for f in partial if f.startswith(prefix)
                     ]
                     d_kwargs["partial"] = sub_partial
-                elif partial is not None:
+                elif partial is True:
                     d_kwargs["partial"] = partial
 
                 def getter(
