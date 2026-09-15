@@ -1457,7 +1457,7 @@ Other changes:
 
 Support:
 
-- Add `Code of Conduct <https://marshmallow.readthedocs.io/en/dev/code_of_conduct.html>`_.
+- Add `Code of Conduct <https://github.com/marshmallow-code/.github/blob/main/CODE_OF_CONDUCT.md>`_.
 
 
 3.0.0b6 (2018-01-02)
