@@ -2549,3 +2549,93 @@ def test_set_dict_class(dict_cls):
     result = MySchema().dump({"foo": "bar"})
     assert result == {"foo": "bar"}
     assert isinstance(result, dict_cls)
+
+
+class TestPartialMetaOption:
+    def test_partial_in_meta_true(self):
+        class MySchema(Schema):
+            field1 = fields.String(required=True)
+            field2 = fields.Integer(required=True)
+
+            class Meta:
+                partial = True
+
+        schema = MySchema()
+        assert schema.load({"field1": "foo"}) == {"field1": "foo"}
+        assert schema.load({}) == {}
+
+    def test_partial_in_meta_collection(self):
+        class MySchema(Schema):
+            field1 = fields.String(required=True)
+            field2 = fields.Integer(required=True)
+
+            class Meta:
+                partial = ("field1",)
+
+        schema = MySchema()
+        assert schema.load({"field2": 123}) == {"field2": 123}
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"field1": "foo"})
+        assert "field2" in excinfo.value.messages
+
+    def test_partial_in_meta_set(self):
+        class MySchema(Schema):
+            field1 = fields.String(required=True)
+            field2 = fields.Integer(required=True)
+
+            class Meta:
+                partial = {"field1"}
+
+        schema = MySchema()
+        assert schema.load({"field2": 123}) == {"field2": 123}
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"field1": "foo"})
+        assert "field2" in excinfo.value.messages
+
+    def test_passing_partial_false_overrides_meta_true(self):
+        class MySchema(Schema):
+            field1 = fields.String(required=True)
+            field2 = fields.Integer(required=True)
+
+            class Meta:
+                partial = True
+
+        schema = MySchema(partial=False)
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"field1": "foo"})
+        assert "field2" in excinfo.value.messages
+
+    def test_passing_partial_to_load_works_with_meta_partial(self):
+        class MySchema(Schema):
+            field1 = fields.String(required=True)
+            field2 = fields.Integer(required=True)
+
+            class Meta:
+                partial = True
+
+        schema = MySchema()
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"field1": "foo"}, partial=False)
+        assert "field2" in excinfo.value.messages
+
+        assert schema.load({"field2": 123}, partial=("field1",)) == {"field2": 123}
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"field1": "foo"}, partial=("field1",))
+        assert "field2" in excinfo.value.messages
+
+    def test_invalid_meta_partial_raises_value_error(self):
+        with pytest.raises(
+            ValueError, match="`partial` option must be a bool, tuple, list, or set."
+        ):
+
+            class InvalidSchema(Schema):
+                class Meta:
+                    partial = "invalid"
+
+        with pytest.raises(
+            ValueError, match="`partial` option must be a bool, tuple, list, or set."
+        ):
+
+            class InvalidSchema2(Schema):
+                class Meta:
+                    partial = 123
