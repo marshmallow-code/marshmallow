@@ -1119,6 +1119,11 @@ class Decimal(Number[decimal.Decimal]):
         as_string: bool = False,
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
+        # bool is a subclass of int; places=True would silently mean 1 place
+        if isinstance(places, bool):
+            raise TypeError(
+                f"places must be an int or None, not bool (got {places!r})."
+            )
         self.places = (
             decimal.Decimal((0, (1,), -places)) if places is not None else None
         )

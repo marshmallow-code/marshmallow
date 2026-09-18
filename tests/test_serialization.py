@@ -286,6 +286,12 @@ class TestFieldSerialization:
         assert field.serialize("m3", user) == decimal.Decimal(1)
         assert field.serialize("m4", user) is None
 
+    def test_decimal_places_rejects_bool(self):
+        with pytest.raises(TypeError, match="places"):
+            fields.Decimal(places=True)
+        with pytest.raises(TypeError, match="places"):
+            fields.Decimal(places=False)
+
     def test_decimal_field_string(self, user):
         user.m1 = 12
         user.m2 = "12.355"
