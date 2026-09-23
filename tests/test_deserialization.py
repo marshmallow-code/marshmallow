@@ -891,6 +891,31 @@ class TestFieldDeserialization:
         msg = "Not a valid date."
         assert excinfo.value.args[0] == msg
 
+    @pytest.mark.parametrize(
+        "in_value",
+        [
+            dt.datetime(2014, 8, 21, 10, 30, 45),
+            dt.datetime(2014, 8, 21, 10, 30, 45, tzinfo=dt.timezone.utc),
+        ],
+    )
+    def test_datetime_is_rejected_by_date_field(self, in_value):
+        # regression check: datetime is a dt.date subclass, and v4's
+        # isinstance shortcut made Date silently accept and pass through
+        # datetime instances instead of raising "Not a valid date."
+        field = fields.Date()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(in_value)
+        msg = "Not a valid date."
+        assert excinfo.value.args[0] == msg
+
+    def test_date_subclass_instance_is_accepted(self):
+        class MyDate(dt.date):
+            pass
+
+        field = fields.Date()
+        result = field.deserialize(MyDate(2014, 8, 21))
+        assert result == dt.date(2014, 8, 21)
+
     def test_dict_field_deserialization(self):
         data = {"foo": "bar"}
         field = fields.Dict()

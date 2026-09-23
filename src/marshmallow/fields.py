@@ -1488,6 +1488,14 @@ class Date(_TemporalField[dt.date]):
 
     SCHEMA_OPTS_VAR_NAME = "dateformat"
 
+    def _deserialize(self, value, attr, data, **kwargs) -> dt.date:
+        if isinstance(value, dt.datetime):
+            # dt.datetime is a dt.date subclass, so the isinstance shortcut
+            # in _TemporalField._deserialize would otherwise accept and pass
+            # through datetime instances
+            raise self.make_error("invalid", input=value, obj_type=self.OBJ_TYPE)
+        return super()._deserialize(value, attr, data, **kwargs)
+
     @staticmethod
     def _make_object_from_format(value, data_format):
         return dt.datetime.strptime(value, data_format).date()
