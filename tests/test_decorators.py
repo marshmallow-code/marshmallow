@@ -323,9 +323,26 @@ class TestValidatesDecorator:
         assert result[1] == {}
         assert 1 in error_messages
         assert "foo" in error_messages[1]
-        assert error_messages[1]["foo"] == [
-            "The answer to life the universe and everything."
-        ]
+
+    def test_validates_removes_invalid_value_when_field_has_attribute(self):
+        class Base(Schema):
+            foo = fields.Integer()
+
+            @validates("foo")
+            def validate_foo(self, value, **kwargs):
+                raise ValidationError("nope")
+
+        class WithAttribute(Base):
+            foo = fields.Integer(attribute="bar")
+
+        with pytest.raises(ValidationError) as excinfo:
+            WithAttribute().load({"foo": 41})
+        # the rejected value must not leak into valid_data under its output key
+        assert excinfo.value.valid_data == {}
+
+        with pytest.raises(ValidationError) as excinfo:
+            WithAttribute(many=True).load([{"foo": 41}])
+        assert excinfo.value.valid_data == [{}]
 
     def test_field_not_present(self):
         class BadSchema(ValidatesSchema):

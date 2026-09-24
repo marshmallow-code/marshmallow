@@ -1155,7 +1155,7 @@ class Schema(metaclass=SchemaMeta):
                                 index=(idx if self.opts.index_errors else None),
                             )
                             if validated_value is missing:
-                                item.pop(field_name, None)
+                                item.pop(field_obj.attribute or field_name, None)
                 else:
                     try:
                         value = data[field_obj.attribute or field_name]
@@ -1169,7 +1169,7 @@ class Schema(metaclass=SchemaMeta):
                             error_store=error_store,
                         )
                         if validated_value is missing:
-                            data.pop(field_name, None)
+                            data.pop(field_obj.attribute or field_name, None)
 
     def _invoke_schema_validators(
         self,
