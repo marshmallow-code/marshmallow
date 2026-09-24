@@ -549,9 +549,11 @@ class Nested(Field):
         **kwargs: Unpack[_BaseFieldKwargs],
     ):
         # Raise error if only or exclude is passed as string, not list of strings
-        if only is not None and not utils.is_sequence_but_not_string(only):
+        # Note: like Schema.__init__, sets are accepted (the declared type is
+        # StrSequenceOrSet); v3 accepted them here as well.
+        if only is not None and not utils.is_collection(only):
             raise StringNotCollectionError('"only" should be a collection of strings.')
-        if not utils.is_sequence_but_not_string(exclude):
+        if not utils.is_collection(exclude):
             raise StringNotCollectionError(
                 '"exclude" should be a collection of strings.'
             )

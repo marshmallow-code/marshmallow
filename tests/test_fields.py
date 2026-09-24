@@ -289,6 +289,24 @@ class TestNestedField:
         with pytest.raises(StringNotCollectionError):
             fields.Nested(Schema, **{param: "foo"})  # type: ignore[arg-type]
 
+    @pytest.mark.parametrize("param", ("only", "exclude"))
+    @pytest.mark.parametrize("value", ({"foo"}, frozenset({"foo"})))
+    def test_nested_only_and_exclude_accept_sets(self, param, value):
+        # The declared type is StrSequenceOrSet and Schema(only=...) accepts
+        # sets; v3 accepted them for Nested as well.
+        field = fields.Nested(Schema, **{param: value})
+        assert getattr(field, param) == value
+
+    def test_nested_only_as_set_dumps_selected_fields(self):
+        class Child(Schema):
+            id = fields.Int()
+            name = fields.String()
+
+        class Parent(Schema):
+            child = fields.Nested(Child, only={"id"})
+
+        assert Parent().dump({"child": {"id": 1, "name": "x"}}) == {"child": {"id": 1}}
+
     @pytest.mark.parametrize(
         "nested_value",
         [
