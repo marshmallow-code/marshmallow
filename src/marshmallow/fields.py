@@ -561,11 +561,21 @@ class Nested(Field):
         self.many = many
         self.unknown = unknown
         self._schema: Schema | None = None  # Cached Schema instance
+        self._schema_options: tuple[set[str] | None, set[str], bool | None] | None = (
+            None
+        )
         super().__init__(**kwargs)
 
     @property
     def schema(self) -> Schema:
         """The nested Schema object."""
+        schema_options = (
+            set(self.only) if self.only is not None else None,
+            set(self.exclude),
+            self.many,
+        )
+        if self._schema is not None and self._schema_options != schema_options:
+            self._schema = None
         if not self._schema:
             # defer the import of `marshmallow.schema` to avoid circular imports
             from marshmallow.schema import Schema, SchemaMeta  # noqa: PLC0415
@@ -579,17 +589,20 @@ class Nested(Field):
 
             if isinstance(nested, Schema):
                 self._schema = copy.copy(nested)
-                # Respect only and exclude and many passed from parent and re-initialize fields
+                self._schema.declared_fields = copy.deepcopy(nested.declared_fields)
                 set_class = typing.cast("type[set]", self._schema.set_class)
                 if self.only is not None:
-                    if self._schema.only is not None:
-                        original = self._schema.only
-                    else:  # only=None -> all fields
-                        original = self._schema.fields.keys()
-                    self._schema.only = set_class(self.only) & set_class(original)
+                    original_only = self._schema.only
+                    self._schema.only = set_class(self.only)
+                    self._schema._normalize_nested_options()
+                    if original_only is not None:
+                        self._schema.only &= set_class(original_only)
                 if self.exclude:
-                    original = self._schema.exclude
-                    self._schema.exclude = set_class(self.exclude) | set_class(original)
+                    original_exclude = self._schema.exclude
+                    self._schema.exclude = set_class(self.exclude) | set_class(
+                        original_exclude
+                    )
+                    self._schema._normalize_nested_options()
                 if self.many is not None:
                     self._schema.many = self.many
                 self._schema._init_fields()
@@ -610,6 +623,7 @@ class Nested(Field):
                     load_only=self._nested_normalized_option("load_only"),
                     dump_only=self._nested_normalized_option("dump_only"),
                 )
+            self._schema_options = schema_options
         return self._schema
 
     def _nested_normalized_option(self, option_name: str) -> list[str]:

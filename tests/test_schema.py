@@ -1,6 +1,7 @@
 import datetime as dt
 import math
 import random
+import threading
 from collections import OrderedDict
 from typing import NamedTuple, cast
 
@@ -1088,6 +1089,126 @@ def test_nested_instance_exclude():
     assert loaded == album
     full_album = {"title": "Hunky Dory", "artist": {"first": "David", "last": "Bowie"}}
     assert schema.dump(full_album) == album
+
+
+@pytest.mark.parametrize("operation", ("dump", "load"))
+@pytest.mark.parametrize(
+    ("option", "expected"),
+    (
+        ("only", {"d": {"c": {"b": {"a2": "A2"}}}}),
+        ("exclude", {"d": {"c": {"b": {"a2": "A2", "a3": "A3"}}}}),
+    ),
+)
+def test_nested_instance_dotted_options(operation, option, expected):
+    class ASchema(Schema):
+        a = fields.Str()
+        a2 = fields.Str()
+        a3 = fields.Str()
+
+    class BSchema(Schema):
+        b = fields.Nested(lambda: ASchema())
+
+    class CSchema(Schema):
+        c = fields.Nested(lambda: BSchema())
+
+    class DSchema(Schema):
+        d = fields.Nested(
+            lambda: CSchema(),
+            only=("c.b.a2",) if option == "only" else None,
+            exclude=("c.b.a",) if option == "exclude" else (),
+        )
+
+    data = {"d": {"c": {"b": {"a": "A", "a2": "A2", "a3": "A3"}}}}
+    if operation == "load":
+        data["d"]["c"]["b"] = (
+            {"a2": "A2"} if option == "only" else {"a2": "A2", "a3": "A3"}
+        )
+    assert getattr(DSchema(), operation)(data) == expected
+
+
+@pytest.mark.parametrize("operation", ("dump", "load"))
+def test_nested_instance_dotted_options_with_warmed_instance(operation):
+    class ASchema(Schema):
+        a = fields.Str()
+        a2 = fields.Str()
+
+    class BSchema(Schema):
+        b = fields.Nested(lambda: ASchema())
+
+    shared_bschema = BSchema()
+    data = {"b": {"a": "A", "a2": "A2"}}
+    assert getattr(shared_bschema, operation)(data) == data
+
+    class CSchema(Schema):
+        c = fields.Nested(lambda: shared_bschema)
+
+    class DSchema(Schema):
+        d = fields.Nested(lambda: CSchema())
+
+    nested_data = {"d": {"c": data}}
+    if operation == "load":
+        nested_data["d"]["c"]["b"] = {"a2": "A2"}
+    schema = DSchema(only=("d.c.b.a2",))
+    assert getattr(schema, operation)(nested_data) == {"d": {"c": {"b": {"a2": "A2"}}}}
+    assert getattr(shared_bschema, operation)(data) == data
+    shared_b_field = cast("fields.Nested", shared_bschema.declared_fields["b"])
+    assert shared_b_field.only is None
+
+
+@pytest.mark.parametrize("operation", ("dump", "load"))
+def test_nested_instance_dotted_options_respect_instance_only(operation):
+    class ASchema(Schema):
+        a = fields.Str()
+        a2 = fields.Str()
+
+    class BSchema(Schema):
+        b = fields.Nested(lambda: ASchema(), only=("a",))
+
+    shared_bschema = BSchema()
+    full_data = {"b": {"a": "A", "a2": "A2"}}
+    data = full_data if operation == "dump" else {"b": {"a": "A"}}
+    expected = {"b": {"a": "A"}}
+    assert getattr(shared_bschema, operation)(data) == expected
+
+    class CSchema(Schema):
+        c = fields.Nested(lambda: shared_bschema)
+
+    class DSchema(Schema):
+        d = fields.Nested(lambda: CSchema())
+
+    nested_data = {"d": {"c": full_data if operation == "dump" else {}}}
+    schema = DSchema(only=("d.c.b.a2",))
+    nested_expected: dict[str, dict[str, object]] = (
+        {"d": {"c": {"b": {}}}} if operation == "dump" else {"d": {"c": {}}}
+    )
+    assert getattr(schema, operation)(nested_data) == nested_expected
+    assert getattr(shared_bschema, operation)(data) == expected
+
+
+def test_nested_instance_does_not_copy_custom_schema_attributes():
+    class ASchema(Schema):
+        a = fields.Str()
+
+    lock = threading.Lock()
+
+    class BSchema(Schema):
+        a = fields.Str()
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.lock = lock
+
+    class CSchema(Schema):
+        c = fields.Nested(lambda: BSchema())
+
+    class DSchema(Schema):
+        d = fields.Nested(lambda: CSchema())
+
+    data = {"d": {"c": {"a": "A"}}}
+    assert DSchema().dump(data) == data
+    d_field = cast("fields.Nested", DSchema().fields["d"])
+    c_field = cast("fields.Nested", d_field.schema.fields["c"])
+    assert c_field.schema.__dict__["lock"] is lock
 
 
 def test_meta_nested_exclude():
