@@ -1564,7 +1564,7 @@ class TimeDelta(Field[dt.timedelta]):
         if value is None:
             return None
 
-        # limit float arithmetics to a single division to minimize precision loss
+        # limit float arithmetic to a single division to minimize precision loss
         microseconds: int = utils.timedelta_to_microseconds(value)
         microseconds_per_unit: int = self._unit_to_microseconds_mapping[self.precision]
         return microseconds / microseconds_per_unit
