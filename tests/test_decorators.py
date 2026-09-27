@@ -286,6 +286,25 @@ class TestValidatesDecorator:
         with pytest.raises(ValidationError):
             S1(many=True).load([{"s": "foo"}])
 
+    def test_validates_with_attribute_removes_value_from_valid_data(self):
+        class S1(Schema):
+            s = fields.String(attribute="string_name")
+            t = fields.String()
+
+            @validates("s")
+            def validate_string(self, data, **kwargs):
+                raise ValidationError("nope")
+
+        with pytest.raises(ValidationError) as excinfo:
+            S1().load({"s": "foo", "t": "bar"})
+        assert excinfo.value.messages == {"s": ["nope"]}
+        assert excinfo.value.valid_data == {"t": "bar"}
+
+        with pytest.raises(ValidationError) as excinfo:
+            S1(many=True).load([{"s": "foo", "t": "bar"}])
+        assert excinfo.value.messages == {0: {"s": ["nope"]}}
+        assert excinfo.value.valid_data == [{"t": "bar"}]
+
     def test_validates_decorator(self):
         schema = ValidatesSchema()
 
