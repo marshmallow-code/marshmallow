@@ -69,20 +69,23 @@ class And(Validator):
         return f"validators={self.validators!r}"
 
     def __call__(self, value: typing.Any) -> typing.Any:
-        errors: list[str | dict] = []
-        kwargs: dict[str, typing.Any] = {}
-        for validator in self.validators:
-            try:
-                validator(value)
-            except ValidationError as err:
-                kwargs.update(err.kwargs)
-                if isinstance(err.messages, dict):
-                    errors.append(err.messages)
-                else:
-                    errors.extend(err.messages)
-        if errors:
-            raise ValidationError(errors, **kwargs)
-        return value
+        return _validate_all(value, self.validators)
+
+def _validate_all(value: typing.Any, validators: typing.Iterable) -> typing.Any:
+    errors: list[str | dict] = []
+    kwargs: dict[str, typing.Any] = {}
+    for validator in validators:
+        try:
+            validator(value)
+        except ValidationError as err:
+            kwargs.update(err.kwargs)
+            if isinstance(err.messages, dict):
+                errors.append(err.messages)
+            else:
+                errors.extend(err.messages)
+    if errors:
+        raise ValidationError(errors, **kwargs)
+    return value
 
 
 class URL(Validator):

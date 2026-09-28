@@ -35,7 +35,7 @@ from marshmallow.exceptions import (
     ValidationError,
     _FieldInstanceResolutionError,
 )
-from marshmallow.validate import And, Length
+from marshmallow.validate import Length, _validate_all
 
 if typing.TYPE_CHECKING:
     from marshmallow.schema import Schema, SchemaMeta
@@ -279,11 +279,7 @@ class Field(typing.Generic[_InternalT]):
         """Perform validation on ``value``. Raise a :exc:`ValidationError` if validation
         does not succeed.
         """
-        self._validate_all(value)
-
-    @property
-    def _validate_all(self) -> typing.Callable[[typing.Any], None]:
-        return And(*self.validators)
+        _validate_all(value, self.validators)
 
     def make_error(self, key: str, **kwargs) -> ValidationError:
         """Helper method to make a `ValidationError` with an error message
