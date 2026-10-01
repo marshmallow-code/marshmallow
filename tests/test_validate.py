@@ -339,6 +339,8 @@ def test_url_idn_invalid(invalid_url):
         "niceandsimple@localhost",
         "josé@blah.com",
         "δοκ.ιμή@παράδειγμα.δοκιμή",
+        "test@a.a",
+        "user@x.com",
     ],
 )
 def test_email_valid(valid_email):
