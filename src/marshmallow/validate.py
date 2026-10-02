@@ -13,7 +13,7 @@ if typing.TYPE_CHECKING:
     from marshmallow import types
 
 _T = typing.TypeVar("_T")
-_UNICODE_LETTERS = "\u00a1-\uffff"
+_UNICODE_LETTERS = "\u00a1-\U0010ffff"
 
 
 class Validator(ABC):

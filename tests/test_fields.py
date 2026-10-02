@@ -753,3 +753,17 @@ class TestFieldPreAndPostLoad:
             match="The 'post_load' parameter must be a callable or an iterable of callables.",
         ):
             fields.Int(post_load="not_callable")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "valid_url",
+    [
+        "http://münchen.de/",
+        "http://www.kunstkontor-nürnberg.de",
+        "http://💩.la",
+        "https://তৌহিদুর.বাংলা",
+    ],
+)
+def test_url_field_accepts_idn(valid_url):
+    field = fields.Url()
+    assert field.deserialize(valid_url) == valid_url

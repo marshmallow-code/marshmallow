@@ -301,10 +301,13 @@ def test_url_rejects_invalid_relative_usage():
     [
         "https://তৌহিদুর.বাংলা",
         "https://münchen.de",
+        "http://münchen.de/",
         "https://例え.jp/path",
         "http://مثال.إختبار",
         "https://üñîçödé.com/path?q=1#frag",
         "http://www.اختبار.com:8080/path",
+        "http://www.kunstkontor-nürnberg.de",
+        "http://💩.la",
     ],
 )
 def test_url_idn_valid(valid_url):
@@ -382,6 +385,7 @@ def test_email_invalid(invalid_email):
         "user@üñîçödé.com",
         "δοκ.ιμή@παράδειγμα.δοκιμή",
         "user@sub.münchen.de",
+        "user@💩.la",
     ],
 )
 def test_email_idn_valid(valid_email):
