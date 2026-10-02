@@ -377,9 +377,7 @@ class TestNestedField:
                     name="TicketNotify",
                 )
             )
-            settings = fields.Nested(
-                {"enabled": fields.Boolean(load_default=True)}
-            )
+            settings = fields.Nested({"enabled": fields.Boolean(load_default=True)})
 
         schema = TicketSchema()
         assert schema.load({}) == {

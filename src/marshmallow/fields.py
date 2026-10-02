@@ -585,8 +585,7 @@ class Nested(Field):
         if schema.many:
             return missing_
         has_defaults = any(
-            field.load_default is not missing_
-            for field in schema.load_fields.values()
+            field.load_default is not missing_ for field in schema.load_fields.values()
         )
         if not has_defaults:
             return missing_
