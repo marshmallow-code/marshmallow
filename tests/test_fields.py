@@ -348,6 +348,70 @@ class TestNestedField:
             "nested": {"foo": "baz"}
         }
 
+    def test_nested_inherits_load_default_from_schema(self):
+        class NotifySchema(Schema):
+            reviewer = fields.Boolean(load_default=False)
+            requestor = fields.Boolean(load_default=False)
+            responsible = fields.Boolean(load_default=False)
+
+        class TicketSchema(Schema):
+            notify = fields.Nested(NotifySchema)
+
+        schema = TicketSchema()
+        expected = {"reviewer": False, "requestor": False, "responsible": False}
+        assert schema.fields["notify"].load_default == expected
+        assert schema.load({}) == {"notify": expected}
+        assert schema.load({"notify": {}}) == {"notify": expected}
+        assert schema.load({"notify": {"reviewer": True}}) == {
+            "notify": {"reviewer": True, "requestor": False, "responsible": False}
+        }
+
+    def test_nested_inherits_load_default_from_from_dict_and_dict(self):
+        class TicketSchema(Schema):
+            notify = fields.Nested(
+                Schema.from_dict(
+                    {
+                        "reviewer": fields.Boolean(load_default=False),
+                        "requestor": fields.Boolean(load_default=False),
+                    },
+                    name="TicketNotify",
+                )
+            )
+            settings = fields.Nested(
+                {"enabled": fields.Boolean(load_default=True)}
+            )
+
+        schema = TicketSchema()
+        assert schema.load({}) == {
+            "notify": {"reviewer": False, "requestor": False},
+            "settings": {"enabled": True},
+        }
+
+    def test_nested_explicit_load_default_overrides_schema_defaults(self):
+        class NotifySchema(Schema):
+            reviewer = fields.Boolean(load_default=False)
+
+        class TicketSchema(Schema):
+            notify_override = fields.Nested(
+                NotifySchema, load_default={"reviewer": True}
+            )
+            notify_none = fields.Nested(NotifySchema, load_default=None)
+
+        schema = TicketSchema()
+        assert schema.load({}) == {
+            "notify_override": {"reviewer": True},
+            "notify_none": None,
+        }
+
+    def test_nested_without_schema_defaults_remains_missing(self):
+        class ChildSchema(Schema):
+            name = fields.String()
+
+        class ParentSchema(Schema):
+            child = fields.Nested(ChildSchema)
+
+        assert ParentSchema().load({}) == {}
+
 
 class TestListNested:
     @pytest.mark.parametrize("param", ("only", "exclude", "dump_only", "load_only"))

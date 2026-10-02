@@ -31,6 +31,7 @@ else:
 from marshmallow import class_registry, types, utils, validate
 from marshmallow.constants import missing as missing_
 from marshmallow.exceptions import (
+    RegistryError,
     StringNotCollectionError,
     ValidationError,
     _FieldInstanceResolutionError,
@@ -561,7 +562,38 @@ class Nested(Field):
         self.many = many
         self.unknown = unknown
         self._schema: Schema | None = None  # Cached Schema instance
+        self._load_default: typing.Any = missing_
         super().__init__(**kwargs)
+
+    @property
+    def load_default(self) -> typing.Any:
+        if self._load_default is not missing_:
+            return self._load_default
+        return self._get_default_from_schema()
+
+    @load_default.setter
+    def load_default(self, value: typing.Any) -> None:
+        self._load_default = value
+
+    def _get_default_from_schema(self) -> typing.Any:
+        if self.many:
+            return missing_
+        try:
+            schema = self.schema
+        except (RegistryError, ValueError):
+            return missing_
+        if schema.many:
+            return missing_
+        has_defaults = any(
+            field.load_default is not missing_
+            for field in schema.load_fields.values()
+        )
+        if not has_defaults:
+            return missing_
+        try:
+            return self._load({})
+        except ValidationError:
+            return missing_
 
     @property
     def schema(self) -> Schema:
@@ -663,6 +695,10 @@ class Nested(Field):
         .. versionchanged:: 3.0.0
             Add ``partial`` parameter.
         """
+        if value is missing_:
+            default = self.load_default
+            if default is not missing_:
+                return default() if callable(default) else default
         self._test_collection(value)
         return self._load(value, partial=partial)
 
