@@ -569,8 +569,10 @@ class TestFieldDeserialization:
                 dt.datetime(2013, 11, 10, 0, 23, 45, 123456),
             ),
             ("timestamp", 1, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp", -1, dt.datetime(1969, 12, 31, 23, 59, 59)),
             ("timestamp_ms", 1384043025000, dt.datetime(2013, 11, 10, 0, 23, 45)),
             ("timestamp_ms", 1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+            ("timestamp_ms", -1000, dt.datetime(1969, 12, 31, 23, 59, 59)),
         ],
     )
     def test_timestamp_field_deserialization(self, fmt, value, expected):
@@ -598,16 +600,14 @@ class TestFieldDeserialization:
             field.deserialize(in_value)
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
-    @pytest.mark.parametrize(
-        "in_value",
-        ["", "!@#", -1],
-    )
+    @pytest.mark.parametrize("in_value", ["", "!@#"])
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
         field = fields.DateTime(format=fmt)
         with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/pull/2102
+    # fromtimestamp may raise OSError or OverflowError depending on the platform.
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "mock_fromtimestamp", [MockDateTimeOSError, MockDateTimeOverflowError]
@@ -617,6 +617,16 @@ class TestFieldDeserialization:
             field = fields.DateTime(format=fmt)
             with pytest.raises(ValidationError, match="Not a valid datetime."):
                 field.deserialize(99999999999999999)
+
+    @pytest.mark.parametrize(
+        ("fmt", "val"), (("timestamp", -1), ("timestamp_ms", -1000))
+    )
+    def test_negative_timestamp_field_deserialization(self, fmt, val):
+        # OSError is raised on Windows for negative timestamps.
+        # Force it with a mock to test on any platform.
+        with patch("datetime.datetime", MockDateTimeOSError):
+            field = fields.DateTime(format=fmt)
+            assert field.deserialize(val) == dt.datetime(1969, 12, 31, 23, 59, 59)
 
     @pytest.mark.parametrize(
         ("fmt", "timezone", "value", "expected"),
