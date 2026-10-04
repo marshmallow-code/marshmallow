@@ -60,6 +60,24 @@ def from_timestamp_ms(value: typing.Any) -> dt.datetime:
     return from_timestamp(value / 1000)
 
 
+def from_timestamp_naive(value: typing.Any) -> dt.datetime:
+    """Return a POSIX timestamp as a naive UTC datetime.
+
+    This compatibility helper preserves the behavior of DateTime and
+    NaiveDateTime in marshmallow 4. It can be removed in marshmallow 5.
+    """
+    return from_timestamp(value).replace(tzinfo=None)
+
+
+def from_timestamp_ms_naive(value: typing.Any) -> dt.datetime:
+    """Return a millisecond POSIX timestamp as a naive UTC datetime.
+
+    This compatibility helper preserves the behavior of DateTime and
+    NaiveDateTime in marshmallow 4. It can be removed in marshmallow 5.
+    """
+    return from_timestamp_ms(value).replace(tzinfo=None)
+
+
 def timestamp(
     value: dt.datetime,
 ) -> float:

@@ -1337,8 +1337,10 @@ class DateTime(_TemporalField[dt.datetime]):
         "iso8601": dt.datetime.fromisoformat,
         "rfc": email.utils.parsedate_to_datetime,
         "rfc822": email.utils.parsedate_to_datetime,
-        "timestamp": utils.from_timestamp,
-        "timestamp_ms": utils.from_timestamp_ms,
+        # Keep the pre-5.0 behavior for DateTime. The underlying utility now
+        # returns UTC-aware datetimes; remove these overrides in marshmallow 5.
+        "timestamp": utils.from_timestamp_naive,
+        "timestamp_ms": utils.from_timestamp_ms_naive,
     }
 
     #: Deserialization formats that encode an instant rather than a wall time.
@@ -1407,6 +1409,14 @@ class AwareDateTime(DateTime):
     """
 
     AWARENESS = "aware"
+
+    # Unlike DateTime in marshmallow 4, timestamp formats represent an aware
+    # instant. In marshmallow 5 this override can be removed.
+    DESERIALIZATION_FUNCS = {
+        **DateTime.DESERIALIZATION_FUNCS,
+        "timestamp": utils.from_timestamp,
+        "timestamp_ms": utils.from_timestamp_ms,
+    }
 
     def __init__(
         self,
