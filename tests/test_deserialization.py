@@ -575,20 +575,26 @@ class TestFieldDeserialization:
     )
     def test_timestamp_field_deserialization(self, fmt, value, expected):
         field = fields.DateTime(format=fmt)
-        assert field.deserialize(value) == expected
+        expected_utc = expected.replace(tzinfo=dt.timezone.utc)
+        assert field.deserialize(value) == expected_utc
 
-        # A naive field strips the timezone, as before.
+        # A naive field requires an explicit timezone to convert an instant
+        # into a wall time.
         field = fields.NaiveDateTime(format=fmt)
+        with pytest.raises(ValidationError, match="Not a valid naive datetime."):
+            field.deserialize(value)
+        field = fields.NaiveDateTime(format=fmt, timezone=dt.timezone.utc)
         assert field.deserialize(value) == expected
+        field = fields.NaiveDateTime(format=fmt, timezone=central)
+        assert field.deserialize(value) == expected_utc.astimezone(central).replace(
+            tzinfo=None
+        )
 
         # A timestamp denotes an instant in UTC, so an aware field gets UTC.
         field = fields.AwareDateTime(format=fmt)
-        assert field.deserialize(value) == expected.replace(tzinfo=dt.timezone.utc)
-
-        # There is no missing timezone for default_timezone to supply, so it
-        # does not apply and the instant is still UTC.
+        assert field.deserialize(value) == expected_utc
         field = fields.AwareDateTime(format=fmt, default_timezone=central)
-        assert field.deserialize(value) == expected.replace(tzinfo=dt.timezone.utc)
+        assert field.deserialize(value) == expected_utc
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     def test_aware_timestamp_deserialization_preserves_instant(self, fmt):

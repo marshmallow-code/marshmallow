@@ -45,9 +45,8 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
         raise ValueError("Not a valid POSIX timestamp")
 
     # Load a timestamp with utc as timezone to prevent using system timezone.
-    # Then set timezone to None, to let the Field handle adding timezone info.
     try:
-        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
+        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc)
     except OverflowError as exc:
         raise ValueError("Timestamp is too large") from exc
     except OSError as exc:

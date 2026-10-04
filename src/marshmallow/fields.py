@@ -1342,8 +1342,7 @@ class DateTime(_TemporalField[dt.datetime]):
     }
 
     #: Deserialization formats that encode an instant rather than a wall time.
-    #: :func:`~marshmallow.utils.from_timestamp` returns the UTC wall time for
-    #: these, so the naive value it produces is known to be UTC.
+    #: These formats return an aware datetime in UTC.
     UTC_FORMATS = frozenset({"timestamp", "timestamp_ms"})
 
     DEFAULT_FORMAT = "iso"
