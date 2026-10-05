@@ -222,8 +222,9 @@ class URL(Validator):
 
         # Check first if the scheme is valid
         scheme = None
-        if "://" in value:
-            scheme = value.split("://", maxsplit=1)[0].lower()
+        candidate, separator, _ = value.partition("://")
+        if separator and not any(char in candidate for char in "/?#"):
+            scheme = candidate.lower()
             if scheme not in self.schemes:
                 raise ValidationError(message)
 
