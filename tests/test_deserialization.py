@@ -882,7 +882,14 @@ class TestFieldDeserialization:
         assert_date_equal(result, d)
 
     @pytest.mark.parametrize(
-        "in_value", ["", 123, [], dt.date(2014, 8, 21).strftime("%d-%m-%Y")]
+        "in_value",
+        [
+            "",
+            123,
+            [],
+            dt.date(2014, 8, 21).strftime("%d-%m-%Y"),
+            dt.datetime(2014, 8, 21, 12, 30),
+        ],
     )
     def test_invalid_date_field_deserialization(self, in_value):
         field = fields.Date()
