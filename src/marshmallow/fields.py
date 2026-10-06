@@ -1289,7 +1289,12 @@ class _TemporalField(Field[_D], metaclass=abc.ABCMeta):
 
     def _deserialize(self, value, attr, data, **kwargs) -> _D:
         internal_type: type[_D] = getattr(dt, self.OBJ_TYPE)
-        if isinstance(value, internal_type):
+        # dt.datetime subclasses dt.date, but a datetime instance is not a
+        # valid value for a Date field and must not pass through unchanged
+        is_instance_of_internal_type = isinstance(value, internal_type) and not (
+            internal_type is dt.date and isinstance(value, dt.datetime)
+        )
+        if is_instance_of_internal_type:
             return value
         data_format = self.format or self.DEFAULT_FORMAT
         func = self.DESERIALIZATION_FUNCS.get(data_format)
