@@ -45,9 +45,8 @@ def from_timestamp(value: typing.Any) -> dt.datetime:
         raise ValueError("Not a valid POSIX timestamp")
 
     # Load a timestamp with utc as timezone to prevent using system timezone.
-    # Then set timezone to None, to let the Field handle adding timezone info.
     try:
-        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc).replace(tzinfo=None)
+        return dt.datetime.fromtimestamp(value, tz=dt.timezone.utc)
     except OverflowError as exc:
         raise ValueError("Timestamp is too large") from exc
     except OSError as exc:
@@ -59,6 +58,24 @@ def from_timestamp_ms(value: typing.Any) -> dt.datetime:
         raise ValueError("Not a valid POSIX timestamp")
     value = float(value)
     return from_timestamp(value / 1000)
+
+
+def from_timestamp_naive(value: typing.Any) -> dt.datetime:
+    """Return a POSIX timestamp as a naive UTC datetime.
+
+    This compatibility helper preserves the behavior of DateTime and
+    NaiveDateTime in marshmallow 4. It can be removed in marshmallow 5.
+    """
+    return from_timestamp(value).replace(tzinfo=None)
+
+
+def from_timestamp_ms_naive(value: typing.Any) -> dt.datetime:
+    """Return a millisecond POSIX timestamp as a naive UTC datetime.
+
+    This compatibility helper preserves the behavior of DateTime and
+    NaiveDateTime in marshmallow 4. It can be removed in marshmallow 5.
+    """
+    return from_timestamp_ms(value).replace(tzinfo=None)
 
 
 def timestamp(

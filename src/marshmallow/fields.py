@@ -1337,9 +1337,15 @@ class DateTime(_TemporalField[dt.datetime]):
         "iso8601": dt.datetime.fromisoformat,
         "rfc": email.utils.parsedate_to_datetime,
         "rfc822": email.utils.parsedate_to_datetime,
-        "timestamp": utils.from_timestamp,
-        "timestamp_ms": utils.from_timestamp_ms,
+        # Keep the pre-5.0 behavior for DateTime. The underlying utility now
+        # returns UTC-aware datetimes; remove these overrides in marshmallow 5.
+        "timestamp": utils.from_timestamp_naive,
+        "timestamp_ms": utils.from_timestamp_ms_naive,
     }
+
+    #: Deserialization formats that encode an instant rather than a wall time.
+    #: These formats return an aware datetime in UTC.
+    UTC_FORMATS = frozenset({"timestamp", "timestamp_ms"})
 
     DEFAULT_FORMAT = "iso"
 
@@ -1404,6 +1410,14 @@ class AwareDateTime(DateTime):
 
     AWARENESS = "aware"
 
+    # Unlike DateTime in marshmallow 4, timestamp formats represent an aware
+    # instant. In marshmallow 5 this override can be removed.
+    DESERIALIZATION_FUNCS = {
+        **DateTime.DESERIALIZATION_FUNCS,
+        "timestamp": utils.from_timestamp,
+        "timestamp_ms": utils.from_timestamp_ms,
+    }
+
     def __init__(
         self,
         format: str | None = None,  # noqa: A002
@@ -1417,13 +1431,21 @@ class AwareDateTime(DateTime):
     def _deserialize(self, value, attr, data, **kwargs) -> dt.datetime:
         ret = super()._deserialize(value, attr, data, **kwargs)
         if not utils.is_aware(ret):
-            if self.default_timezone is None:
+            if (
+                self.format or self.DEFAULT_FORMAT
+            ) in self.UTC_FORMATS and not isinstance(value, dt.datetime):
+                # A POSIX timestamp denotes an instant in UTC. There is no
+                # missing timezone for ``default_timezone`` to supply, so the
+                # value is returned as UTC.
+                ret = ret.replace(tzinfo=dt.timezone.utc)
+            elif self.default_timezone is None:
                 raise self.make_error(
                     "invalid_awareness",
                     awareness=self.AWARENESS,
                     obj_type=self.OBJ_TYPE,
                 )
-            ret = ret.replace(tzinfo=self.default_timezone)
+            else:
+                ret = ret.replace(tzinfo=self.default_timezone)
         return ret
 
 

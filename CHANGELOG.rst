@@ -10,6 +10,8 @@ Features:
 
 Bug fixes:
 
+- `AwareDateTime <marshmallow.fields.AwareDateTime>` with ``timestamp`` and
+  ``timestamp_ms`` formats now returns UTC-aware datetimes (:pr:`3032`).
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
