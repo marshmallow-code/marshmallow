@@ -264,7 +264,7 @@ class Email(Validator):
         r"(?:[A-Z0-9" + _UNICODE_LETTERS + r"]"
         r"(?:[A-Z0-9" + _UNICODE_LETTERS + r"-]{0,61}"
         r"[A-Z0-9" + _UNICODE_LETTERS + r"])?\.)+"
-        r"(?:[A-Z" + _UNICODE_LETTERS + r"]{2,6}"
+        r"(?:[A-Z" + _UNICODE_LETTERS + r"]{1,6}"
         r"|[A-Z0-9" + _UNICODE_LETTERS + r"-]{2,})\Z"
         # literal form, ipv4 address (SMTP 4.1.3)
         r"|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)"
