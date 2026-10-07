@@ -10,6 +10,10 @@ Features:
 
 Bug fixes:
 
+- `Email <marshmallow.validate.Email>` allows a one-letter alphabetic TLD,
+  such as ``test@a.a``. A numeric-only TLD such as ``user@example.1`` is still
+  rejected (:issue:`1844`).
+
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
