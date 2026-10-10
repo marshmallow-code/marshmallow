@@ -989,6 +989,13 @@ class TestFieldDeserialization:
         field2 = fields.URL(schemes={"http", "https", "ws"})
         assert field2.deserialize(url) == url
 
+    @pytest.mark.parametrize("schemes", [[], (), set()])
+    def test_url_field_empty_schemes_argument(self, schemes):
+        field = fields.URL(relative=True, schemes=schemes)
+        assert field.deserialize("/path") == "/path"
+        with pytest.raises(ValidationError, match="Not a valid URL."):
+            field.deserialize("https://example.com")
+
     def test_email_field_deserialization(self):
         field = fields.Email()
         assert field.deserialize("foo@bar.com") == "foo@bar.com"
