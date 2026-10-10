@@ -14,6 +14,9 @@ Bug fixes:
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
+- Fix `URL <marshmallow.validate.URL>` with ``relative=True`` rejecting a relative URL
+  that contains ``://`` in its path, query or fragment,
+  e.g. ``/redirect?to=http://example.com`` (:pr:`3067`).
 
 4.3.1 (2026-08-08)
 ------------------

@@ -91,6 +91,8 @@ def test_url_absolute_invalid(invalid_url):
         "/foo?bar",
         "/foo?bar#baz",
         "#frag",
+        "/redirect?to=http://example.com",
+        "/a#http://x.y",
     ],
 )
 def test_url_relative_valid(valid_url):
