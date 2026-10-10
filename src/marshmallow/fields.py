@@ -1751,7 +1751,8 @@ class Url(String):
     :param absolute: Whether to allow absolute URLs.
     :param require_tld: Whether to reject non-FQDN hostnames.
     :param schemes: Valid schemes. By default, ``http``, ``https``,
-        ``ftp``, and ``ftps`` are allowed.
+        ``ftp``, and ``ftps`` are allowed. An empty collection allows no
+        absolute URL schemes.
     :param kwargs: The same keyword arguments that :class:`String` receives.
     """
 
