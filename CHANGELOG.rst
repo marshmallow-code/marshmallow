@@ -14,6 +14,9 @@ Bug fixes:
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
+- `marshmallow.validate.Email` rejects a leading or trailing hyphen
+  in the last domain label, e.g. ``user@example.-com`` (:issue:`3072`).
+  Thanks :user:`lequangdung2005` for the report.
 
 4.3.1 (2026-08-08)
 ------------------
