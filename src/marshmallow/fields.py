@@ -1574,7 +1574,7 @@ class TimeDelta(Field[dt.timedelta]):
             return value
         try:
             value = float(value)
-        except (TypeError, ValueError) as error:
+        except (TypeError, ValueError, OverflowError) as error:
             raise self.make_error("invalid") from error
 
         kwargs = {self.precision: value}

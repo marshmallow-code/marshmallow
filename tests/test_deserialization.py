@@ -864,13 +864,23 @@ class TestFieldDeserialization:
         assert math.isclose(result.total_seconds() / unit_value, total_weeks_value)
 
     @pytest.mark.parametrize(
-        "in_value", ["", "badvalue", [], 9999999999, "nan", "inf", "-inf"]
+        "in_value",
+        ["", "badvalue", [], 9999999999, "nan", "inf", "-inf", 10**1000, -(10**1000)],
     )
     def test_invalid_timedelta_field_deserialization(self, in_value):
         field = fields.TimeDelta(fields.TimeDelta.DAYS)
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(in_value)
         assert excinfo.value.args[0] == "Not a valid period of time."
+
+    @pytest.mark.parametrize("value", [10**1000, -(10**1000)])
+    def test_timedelta_integer_overflow_in_schema(self, value):
+        class PeriodSchema(Schema):
+            period = fields.TimeDelta()
+
+        with pytest.raises(ValidationError) as excinfo:
+            PeriodSchema().load({"period": value})
+        assert excinfo.value.messages == {"period": ["Not a valid period of time."]}
 
     @pytest.mark.parametrize("format", (None, "%Y-%m-%d"))
     def test_date_field_deserialization(self, format):  # noqa: A002

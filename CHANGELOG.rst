@@ -10,6 +10,9 @@ Features:
 
 Bug fixes:
 
+- Raise `ValidationError <marshmallow.exceptions.ValidationError>` for
+  integer inputs too large to convert to float in `TimeDelta <marshmallow.fields.TimeDelta>`.
+
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
