@@ -10,6 +10,9 @@ Features:
 
 Bug fixes:
 
+- Preserve an empty ``data_key`` in `Pluck <marshmallow.fields.Pluck>`
+  when serializing and deserializing nested fields.
+
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).

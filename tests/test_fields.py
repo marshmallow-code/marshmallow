@@ -349,6 +349,22 @@ class TestNestedField:
         }
 
 
+class TestPluck:
+    @pytest.mark.parametrize("many", [False, True])
+    def test_empty_data_key(self, many):
+        class ChildSchema(Schema):
+            value = fields.Integer(data_key="")
+
+        class ParentSchema(Schema):
+            child = fields.Pluck(ChildSchema, "value", many=many)
+
+        schema = ParentSchema()
+        serialized = {"child": [2, 3] if many else 2}
+        deserialized = {"child": [{"value": 2}, {"value": 3}] if many else {"value": 2}}
+        assert schema.load(serialized) == deserialized
+        assert schema.dump(deserialized) == serialized
+
+
 class TestListNested:
     @pytest.mark.parametrize("param", ("only", "exclude", "dump_only", "load_only"))
     def test_list_nested_only_exclude_dump_only_load_only_propagated_to_nested(
