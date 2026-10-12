@@ -83,15 +83,24 @@ class MarshmallowHook:
     __marshmallow_hook__: dict[str, list[tuple[bool, typing.Any]]] | None = None
 
 
-def validates(*field_names: str) -> typing.Callable[..., typing.Any]:
+def validates(
+    *field_names: str, skip_on_field_errors: bool = False
+) -> typing.Callable[..., typing.Any]:
     """Register a validator method for field(s).
 
     :param field_names: Names of the fields that the method validates.
+    :param skip_on_field_errors: If ``True``, this validation method will be
+        skipped whenever validation errors have been detected for the field.
 
     .. versionchanged:: 4.0.0 Accepts multiple field names as positional arguments.
     .. versionchanged:: 4.0.0 Decorated methods receive ``data_key`` as a keyword argument.
     """
-    return set_hook(None, VALIDATES, field_names=field_names)
+    return set_hook(
+        None,
+        VALIDATES,
+        field_names=field_names,
+        skip_on_field_errors=skip_on_field_errors,
+    )
 
 
 def validates_schema(
