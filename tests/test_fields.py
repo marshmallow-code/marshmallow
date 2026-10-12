@@ -76,11 +76,9 @@ class TestField:
         ):
             fields.Raw(required=True, load_default=42)
 
-    def test_custom_field_receives_attr_and_obj(self):
+    def test_custom_field_deserialize(self):
         class MyField(fields.Field[str]):
-            def _deserialize(self, value, attr, data, **kwargs) -> str:
-                assert attr == "name"
-                assert data["foo"] == 42
+            def _deserialize(self, value, **kwargs) -> str:
                 return str(value)
 
         class MySchema(Schema):
@@ -89,11 +87,9 @@ class TestField:
         result = MySchema(unknown=EXCLUDE).load({"name": "Monty", "foo": 42})
         assert result == {"name": "Monty"}
 
-    def test_custom_field_receives_data_key_if_set(self):
+    def test_custom_field_deserialize_with_data_key(self):
         class MyField(fields.Field[str]):
-            def _deserialize(self, value, attr, data, **kwargs):
-                assert attr == "name"
-                assert data["foo"] == 42
+            def _deserialize(self, value, **kwargs):
                 return str(value)
 
         class MySchema(Schema):
@@ -104,9 +100,7 @@ class TestField:
 
     def test_custom_field_follows_data_key_if_set(self):
         class MyField(fields.Field[str]):
-            def _serialize(self, value, attr, obj, **kwargs) -> str:
-                assert attr == "name"
-                assert obj["foo"] == 42
+            def _serialize(self, value, **kwargs) -> str:
                 return str(value)
 
         class MySchema(Schema):
@@ -114,6 +108,58 @@ class TestField:
 
         result = MySchema().dump({"name": "Monty", "foo": 42})
         assert result == {"_NaMe": "Monty"}
+
+    def test_dump_getter_overrides_default_access(self):
+        class MySchema(Schema):
+            name = fields.String(
+                dump_getter=lambda obj, attr, default: obj[attr].upper()
+            )
+
+        assert MySchema().dump({"name": "monty"}) == {"name": "MONTY"}
+
+    def test_dump_getter_takes_priority_over_accessor(self):
+        class MySchema(Schema):
+            def get_attribute(self, obj, attr, default):
+                return "from_accessor"
+
+            name = fields.String(dump_getter=lambda obj, attr, default: "from_getter")
+
+        assert MySchema().dump({}) == {"name": "from_getter"}
+
+    def test_dump_getter_used_in_schema_dump(self):
+        class MySchema(Schema):
+            name = fields.String(
+                dump_getter=lambda obj, attr, default: obj[attr].upper()
+            )
+
+        result = MySchema().dump({"name": "monty"})
+        assert result == {"name": "MONTY"}
+
+    def test_load_getter_overrides_default_access(self):
+        class MySchema(Schema):
+            name = fields.String(
+                load_getter=lambda data, key, default: data[key].upper()
+            )
+
+        result = MySchema().load({"name": "monty"})
+        assert result == {"name": "MONTY"}
+
+    def test_load_getter_takes_priority_over_data_get(self):
+        class MySchema(Schema):
+            name = fields.String(load_getter=lambda data, key, default: "from_getter")
+
+        result = MySchema().load({"name": "monty"})
+        assert result == {"name": "from_getter"}
+
+    def test_load_getter_missing_value_uses_load_default(self):
+        class MySchema(Schema):
+            name = fields.String(
+                load_default="default_name",
+                load_getter=lambda data, key, default: default,
+            )
+
+        result = MySchema().load({})
+        assert result == {"name": "default_name"}
 
 
 class TestParentAndName:

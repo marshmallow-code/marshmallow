@@ -1296,8 +1296,8 @@ class TestFieldDeserialization:
         class MiniUserSchema(Schema):
             uppername = fields.Method("uppercase_name")
 
-            def uppercase_name(self, obj):
-                return obj.upper()
+            def uppercase_name(self, value):
+                return value.upper()
 
         s = MiniUserSchema()
         assert s.fields["uppername"].deserialize("steve") == "steve"
@@ -1306,8 +1306,8 @@ class TestFieldDeserialization:
         class MiniUserSchema(Schema):
             uppername = fields.Method("uppercase_name", deserialize="lowercase_name")
 
-            def uppercase_name(self, obj):
-                return obj.name.upper()
+            def uppercase_name(self, value):
+                return value.upper()
 
             def lowercase_name(self, value):
                 return value.lower()
@@ -2186,7 +2186,7 @@ class TestValidation:
 
     def test_function_validator(self):
         field = fields.Function(
-            lambda d: d.name.upper(), validate=validate.Length(equal=3)
+            lambda value: value.upper(), validate=validate.Length(equal=3)
         )
         assert field.deserialize("joe")
         with pytest.raises(ValidationError):
@@ -2196,20 +2196,20 @@ class TestValidation:
         "field",
         [
             fields.Function(
-                lambda d: d.name.upper(),
+                lambda value: value.upper(),
                 validate=[
                     validate.Length(equal=3),
                     predicate(lambda n: n[1].lower() == "o"),
                 ],
             ),
             fields.Function(
-                lambda d: d.name.upper(),
+                lambda value: value.upper(),
                 validate=(
                     predicate(lambda n: len(n) == 3),
                     predicate(lambda n: n[1].lower() == "o"),
                 ),
             ),
-            fields.Function(lambda d: d.name.upper(), validate=validators_gen_str),
+            fields.Function(lambda value: value.upper(), validate=validators_gen_str),
         ],
     )
     def test_function_validators(self, field):

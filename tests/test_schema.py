@@ -118,7 +118,7 @@ def test_load_resets_error_fields():
 def test_errored_fields_do_not_appear_in_output():
     class MyField(fields.Field[int]):
         # Make sure validation fails during serialization
-        def _serialize(self, value, attr, obj, **kwargs):
+        def _serialize(self, value, **kwargs):
             raise ValidationError("oops")
 
     def validator(val):
