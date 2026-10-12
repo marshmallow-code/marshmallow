@@ -15,6 +15,12 @@ Bug fixes:
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
 
+Other changes:
+
+- Document dotted path resolution for ``attribute`` parameter and
+  `Schema.from_dict <marshmallow.Schema.from_dict>` (:issue:`2194`).
+  Thanks :user:`paneendrakumar0` for the PR.
+
 4.3.1 (2026-08-08)
 ------------------
 
