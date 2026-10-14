@@ -1,0 +1,62 @@
+name: authors
+on:
+  # zizmor: ignore[dangerous-triggers] nothing from the PR is fetched or executed
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  add-author:
+    name: Add author to AUTHORS.rst
+    if: github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.AUTHORS_TOKEN }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BOT_NAME: "github-actions[bot]"
+          BOT_EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
+        run: |
+          set -euo pipefail
+
+          file="$(gh api "repos/${HEAD_REPO}/contents/AUTHORS.rst?ref=${HEAD_REF}")"
+          jq -r .content <<<"$file" | base64 -d > AUTHORS.rst
+
+          if grep -qiF "github.com/${AUTHOR}>" AUTHORS.rst; then
+            echo "@${AUTHOR} is already in AUTHORS.rst"
+            exit 0
+          fi
+
+          name="$(gh api "users/${AUTHOR}" --jq '.name // ""')"
+          entry="- ${name:+${name} }\`@${AUTHOR} <https://github.com/${AUTHOR}>\`_"
+
+          printf '%s\n' "$entry" >> AUTHORS.rst
+
+          if ! jq -n \
+            --arg message "Add @${AUTHOR} to AUTHORS" \
+            --arg content "$(base64 -w0 AUTHORS.rst)" \
+            --arg sha "$(jq -r .sha <<<"$file")" \
+            --arg branch "${HEAD_REF}" \
+            --arg name "${BOT_NAME}" \
+            --arg email "${BOT_EMAIL}" \
+            '{$message, $content, $sha, $branch,
+              author: {name: $name, email: $email},
+              committer: {name: $name, email: $email}}' \
+            | gh api -X PUT "repos/${HEAD_REPO}/contents/AUTHORS.rst" --input - --silent
+          then
+            echo "::warning::Could not commit to this branch. See the job summary for the line to add to AUTHORS.rst."
+            cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ### Please add yourself to \`AUTHORS.rst\`
+
+          This workflow could not push the change. Append this line to the
+          end of \`AUTHORS.rst\`:
+
+          \`\`\`rst
+          ${entry}
+          \`\`\`
+          EOF
+          fi
