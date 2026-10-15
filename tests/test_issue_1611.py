@@ -48,3 +48,36 @@ def test_meta_dump_only_rejects_string():
 
             class Meta:
                 dump_only = "name"
+
+
+def test_valid_meta_options_control_field_behaviour():
+    class EmployeeSchema(Schema):
+        name = fields.Str()
+        age = fields.Int()
+
+        class Meta:
+            load_only = ("age",)
+            dump_only = ("name",)
+
+    schema = EmployeeSchema()
+
+    assert schema.dump({"name": "Ama", "age": 21}) == {"name": "Ama"}
+    assert schema.load({"age": 21}) == {"age": 21}
+
+
+def test_meta_options_are_inherited():
+    class ParentSchema(Schema):
+        name = fields.Str()
+        age = fields.Int()
+
+        class Meta:
+            load_only = ("age",)
+            dump_only = ("name",)
+
+    class ChildSchema(ParentSchema):
+        pass
+
+    schema = ChildSchema()
+
+    assert schema.load_only == {"age"}
+    assert schema.dump_only == {"name"}
