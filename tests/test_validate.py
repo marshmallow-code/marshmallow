@@ -339,6 +339,8 @@ def test_url_idn_invalid(invalid_url):
         "niceandsimple@localhost",
         "josé@blah.com",
         "δοκ.ιμή@παράδειγμα.δοκιμή",
+        "user@example.xn--p1ai",
+        "user@example.a-b",
     ],
 )
 def test_email_valid(valid_email):
@@ -359,6 +361,10 @@ def test_email_valid(valid_email):
         '"very.(),:;<>[]".VERY."very@\\ "very".unusual"@strange.example.com',
         '" "@example.org',
         "user@example",
+        # a hyphen is only allowed inside a label, never at either edge
+        "user@example.-ab",
+        "user@example.ab-",
+        "user@example.com-",
         "@nouser.com",
         "example.com",
         "user",
