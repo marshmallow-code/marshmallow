@@ -10,6 +10,9 @@ Features:
 
 Bug fixes:
 
+- Accept general ``datetime.tzinfo`` instances in the ``timezone`` type annotation
+  of `NaiveDateTime <marshmallow.fields.NaiveDateTime>`.
+
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).

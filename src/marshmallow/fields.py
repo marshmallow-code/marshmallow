@@ -1371,7 +1371,7 @@ class NaiveDateTime(DateTime):
         self,
         format: str | None = None,  # noqa: A002
         *,
-        timezone: dt.timezone | None = None,
+        timezone: dt.tzinfo | None = None,
         **kwargs: Unpack[_BaseFieldKwargs],
     ) -> None:
         super().__init__(format=format, **kwargs)
