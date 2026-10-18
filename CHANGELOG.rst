@@ -15,6 +15,10 @@ Bug fixes:
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
+- Fix dotted names in ``only`` being dropped when intersected with the ``only``
+  of a `Nested <marshmallow.fields.Nested>` field, e.g.
+  ``only=("author.location.street",)`` with ``Nested(UserSchema, only=("location",))``
+  (:issue:`1747`). Thanks :user:`ananthasayana` for reporting.
 
 4.3.1 (2026-08-08)
 ------------------
