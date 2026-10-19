@@ -217,6 +217,20 @@ def test_url_custom_scheme_case_insensitive():
     assert validator("hTtP://example.com") == "hTtP://example.com"
 
 
+@pytest.mark.parametrize("schemes", [[], (), set()])
+@pytest.mark.parametrize("scheme", ["http", "https", "ftp", "ftps"])
+def test_url_empty_schemes_rejects_absolute_urls(schemes, scheme):
+    validator = validate.URL(schemes=schemes)
+    with pytest.raises(ValidationError, match="Not a valid URL."):
+        validator(f"{scheme}://example.com")
+
+
+@pytest.mark.parametrize("schemes", [[], (), set()])
+def test_url_empty_schemes_still_accepts_relative_urls(schemes):
+    validator = validate.URL(relative=True, schemes=schemes)
+    assert validator("/path") == "/path"
+
+
 @pytest.mark.parametrize(
     "valid_url",
     (
