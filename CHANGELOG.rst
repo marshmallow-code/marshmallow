@@ -14,6 +14,7 @@ Bug fixes:
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
+- Fix `Pluck` handling of empty data_key (:pr:`3082`).
 
 4.3.1 (2026-08-08)
 ------------------
