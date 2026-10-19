@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import typing
 from abc import ABC, abstractmethod
+from ipaddress import IPv6Address
 from operator import attrgetter
 
 from marshmallow.exceptions import ValidationError
@@ -128,6 +129,8 @@ class URL(Validator):
                 r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}",
                 # or IPv6
                 r"\[[A-F0-9]*:[A-F0-9:]+\]",
+                # or IPv6 with an embedded IPv4 address, validated below
+                r"\[(?P<ipv6_mixed>[A-F0-9:]+:[0-9.]+)\]",
             ]
             if not require_tld:
                 # allow dotless hostnames
@@ -240,6 +243,12 @@ class URL(Validator):
 
         if not matched:
             raise ValidationError(message)
+
+        if host := matched.groupdict().get("ipv6_mixed"):
+            try:
+                IPv6Address(host)
+            except ValueError as error:
+                raise ValidationError(message) from error
 
         return value
 
