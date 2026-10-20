@@ -884,8 +884,11 @@ class Tuple(Field[tuple]):
             try:
                 result.append(field.deserialize(each, **kwargs))
             except ValidationError as error:
-                if error.valid_data is not None:
-                    result.append(error.valid_data)
+                # Keep the position of the failed element so that valid_data
+                # stays aligned with the tuple's fields.
+                result.append(
+                    error.valid_data if error.valid_data is not None else missing_
+                )
                 errors.update({idx: error.messages})
         if errors:
             raise ValidationError(errors, valid_data=result)

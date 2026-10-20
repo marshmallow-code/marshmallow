@@ -15,6 +15,9 @@ Bug fixes:
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
+- `Tuple <marshmallow.fields.Tuple>` keeps `valid_data
+  <marshmallow.exceptions.ValidationError.valid_data>` aligned with its fields
+  when an item fails validation (:pr:`3085`).
 
 4.3.1 (2026-08-08)
 ------------------
