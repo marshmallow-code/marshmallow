@@ -190,3 +190,4 @@ Contributors (chronological)
 - Dhruvil Darji  `@dhruvildarji  <https://github.com/dhruvildarji>`_
 - Haïm Dimer `@hdimer  <https://github.com/hdimer>`_
 - `@vidigoat <https://github.com/vidigoat>`_
+- Syed Ahnaf Raza `@syahra712 <https://github.com/syahra712>`_

@@ -332,6 +332,7 @@ def test_url_idn_invalid(invalid_url):
         "NiCeAnDsImPlE@eXaMpLe.CoM",
         "very.common@example.com",
         "a.little.lengthy.but.fine@a.iana-servers.net",
+        "user@example.xn--p1ai",
         "disposable.style.email.with+symbol@example.com",
         '"very.unusual.@.unusual.com"@example.com',
         "!#$%&'*+-/=?^_`{}|~@example.org",
@@ -359,6 +360,8 @@ def test_email_valid(valid_email):
         '"very.(),:;<>[]".VERY."very@\\ "very".unusual"@strange.example.com',
         '" "@example.org',
         "user@example",
+        "user@example.-com",
+        "user@example.com-",
         "@nouser.com",
         "example.com",
         "user",
@@ -395,6 +398,8 @@ def test_email_idn_valid(valid_email):
         "user@-münchen.de",
         "user@münchen-.de",
         "user@münchen",
+        "user@例え.-テスト",
+        "user@例え.テスト-",
     ],
 )
 def test_email_idn_invalid(invalid_email):
