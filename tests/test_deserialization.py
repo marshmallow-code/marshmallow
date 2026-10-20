@@ -1395,6 +1395,32 @@ class TestFieldDeserialization:
             field.deserialize(["good", "bad"])
         assert excinfo.value.args[0] == {1: ["Not a valid integer."]}
 
+    @pytest.mark.parametrize(
+        ("value", "expected_valid_data"),
+        (
+            pytest.param(("bad", 2, 3), [missing, 2, 3], id="first-item-invalid"),
+            pytest.param((1, "bad", 3), [1, missing, 3], id="second-item-invalid"),
+            pytest.param((1, 2, "bad"), [1, 2, missing], id="third-item-invalid"),
+            pytest.param(
+                ("bad", "bad", 3), [missing, missing, 3], id="two-items-invalid"
+            ),
+            pytest.param(
+                ("bad", "bad", "bad"),
+                [missing, missing, missing],
+                id="all-items-invalid",
+            ),
+        ),
+    )
+    def test_tuple_field_valid_data_is_aligned_with_fields(
+        self, value, expected_valid_data
+    ):
+        # An item in valid_data sits at the index of the field it was
+        # deserialized with, so valid_data may be indexed like the tuple itself.
+        field = fields.Tuple((fields.Integer(), fields.Integer(), fields.Integer()))
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(value)
+        assert excinfo.value.valid_data == expected_valid_data
+
     def test_tuple_field_deserialize_multiple_invalid_items(self):
         validator = validate.Range(10, 20, error="Value {input} not in range")
         field = fields.Tuple(
