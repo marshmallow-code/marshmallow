@@ -2527,6 +2527,23 @@ class TestFromDict:
         dumped = OSchema().dump({"foo": 42, "bar": 24})
         assert "bar" not in dumped
 
+    def test_from_dict_with_dotted_field_name(self):
+        # By default, a dotted field name produces a nested structure on load
+        DottedSchema = Schema.from_dict({"foo.bar": fields.Str()})
+        schema = DottedSchema()
+        loaded = schema.load({"foo.bar": "baz"})
+        assert loaded == {"foo": {"bar": "baz"}}
+        dumped = schema.dump(loaded)
+        assert dumped == {"foo.bar": "baz"}
+
+        # Setting attribute explicitly without dots avoids nesting
+        FlatSchema = Schema.from_dict({"foo.bar": fields.Str(attribute="foo_bar")})
+        flat_schema = FlatSchema()
+        flat_loaded = flat_schema.load({"foo.bar": "baz"})
+        assert flat_loaded == {"foo_bar": "baz"}
+        flat_dumped = flat_schema.dump(flat_loaded)
+        assert flat_dumped == {"foo.bar": "baz"}
+
 
 def test_class_registry_returns_schema_type():
     class DefinitelyUniqueSchema(Schema):

@@ -133,10 +133,14 @@ class Field(typing.Generic[_InternalT]):
     :param attribute: The name of the key/attribute in the internal representation, i.e.
         the output of `load` and the input of `dump`.
         If `None`, the key/attribute will match the name of the field.
+        If the attribute contains a ``.``, it is treated as a path to a nested value:
+        during serialization (`dump`), the value is extracted by traversing nested
+        attributes/keys; during deserialization (`load`), the value is set into nested
+        dictionaries.
         Note: This should only be used for very specific use cases such as
-        outputting multiple fields for a single attribute, or using keys/attributes
-        that are invalid variable names, unsuitable for field names. In most cases,
-        you should use ``data_key`` instead.
+        outputting multiple fields for a single attribute, navigating or constructing
+        nested structures, or using keys/attributes that are invalid variable names,
+        unsuitable for field names. In most cases, you should use ``data_key`` instead.
     :param validate: Validator or collection of validators that are called
         during deserialization. Validator takes a field's input value as
         its only parameter and returns a boolean.
