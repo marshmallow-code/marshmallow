@@ -1500,6 +1500,10 @@ class TimeDelta(Field[dt.timedelta]):
 
     :param precision: The time unit used for (de)serialization. Must be one of 'weeks',
         'days', 'hours', 'minutes', 'seconds', 'milliseconds' or 'microseconds'.
+        This selects the time unit, not a rounding resolution. For example,
+        with the default ``"seconds"`` unit, a duration of 123 microseconds
+        serializes to ``0.000123`` rather than ``0``. As the output is a
+        floating-point number, some values can lose precision when converted.
     :param kwargs: The same keyword arguments that :class:`Field` receives.
 
     Float Caveats
