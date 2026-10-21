@@ -592,6 +592,15 @@ class Nested(Field):
                     self._schema.exclude = set_class(self.exclude) | set_class(original)
                 if self.many is not None:
                     self._schema.many = self.many
+                for option_name in ("load_only", "dump_only"):
+                    nested_option = self._nested_normalized_option(option_name)
+                    if nested_option:
+                        setattr(
+                            self._schema,
+                            option_name,
+                            set_class(getattr(self._schema, option_name))
+                            | set_class(nested_option),
+                        )
                 self._schema._init_fields()
             else:
                 if isinstance(nested, type) and issubclass(nested, Schema):
