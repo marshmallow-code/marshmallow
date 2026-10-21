@@ -1143,7 +1143,9 @@ class Schema(metaclass=SchemaMeta):
                 if many:
                     for idx, item in enumerate(data):
                         try:
-                            value = item[field_obj.attribute or field_name]
+                            value = _get_loaded_value(
+                                item, field_obj.attribute or field_name
+                            )
                         except KeyError:
                             pass
                         else:
@@ -1155,10 +1157,14 @@ class Schema(metaclass=SchemaMeta):
                                 index=(idx if self.opts.index_errors else None),
                             )
                             if validated_value is missing:
-                                item.pop(field_name, None)
+                                _pop_loaded_value(
+                                    item, field_obj.attribute or field_name
+                                )
                 else:
                     try:
-                        value = data[field_obj.attribute or field_name]
+                        value = _get_loaded_value(
+                            data, field_obj.attribute or field_name
+                        )
                     except KeyError:
                         pass
                     else:
@@ -1169,7 +1175,7 @@ class Schema(metaclass=SchemaMeta):
                             error_store=error_store,
                         )
                         if validated_value is missing:
-                            data.pop(field_name, None)
+                            _pop_loaded_value(data, field_obj.attribute or field_name)
 
     def _invoke_schema_validators(
         self,
@@ -1248,6 +1254,24 @@ class Schema(metaclass=SchemaMeta):
             else:
                 data = processor(data, many=many, **kwargs)
         return data
+
+
+def _get_loaded_value(data, key: str):
+    """Read the value stored under `key` (possibly a dotted path) in loaded data.
+
+    Raises `KeyError` when the path is absent, mirroring `set_value`.
+    """
+    return functools.reduce(operator.getitem, key.split("."), data)
+
+
+def _pop_loaded_value(data, key: str):
+    """Remove the value stored under `key` (possibly a dotted path) from loaded data."""
+    *parents, last = key.split(".")
+    try:
+        target = functools.reduce(operator.getitem, parents, data)
+    except KeyError:
+        return
+    target.pop(last, None)
 
 
 BaseSchema = Schema  # for backwards compatibility
