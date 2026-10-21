@@ -9,6 +9,8 @@ The guides below demonstrate how to extend schemas in various ways.
   pre_and_post_processing
   schema_validation
   using_original_input_data
+  custom_field_getters
+  using_context
   overriding_attribute_access
   custom_error_handling
   custom_options
