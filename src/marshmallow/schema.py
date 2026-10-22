@@ -685,19 +685,26 @@ class Schema(metaclass=SchemaMeta):
                     error_store=error_store,
                     index=index,
                 )
-                if value is not missing:
-                    key = field_obj.attribute or attr_name
-                    set_value(ret_d, key, value)
-                    # Run field-level validation
-                    validated_value = self._invoke_field_validators(
-                        field=field_obj,
-                        value=value,
+                if value is missing:
+                    continue
+                # Run field-level validation hooks
+                data_key = field_obj.data_key if field_obj.data_key is not None else field_obj.name
+                validated_value = None
+                for hook in self._validates_fields[field_obj.name]:
+                    validator = getattr(self, hook)
+                    do_validate = functools.partial(validator, data_key=data_key)
+                    validated_value = self._call_and_store(
+                        getter_func=do_validate,
+                        data=value,
+                        field_name=data_key,
                         error_store=error_store,
                         index=index,
                     )
                     if validated_value is missing:
-                        key = field_obj.attribute or attr_name
-                        ret_d.pop(key, None)
+                        break
+                if validated_value is not missing:
+                    key = field_obj.attribute or attr_name
+                    set_value(ret_d, key, value)
             if unknown != EXCLUDE:
                 fields = {
                     field_obj.data_key if field_obj.data_key is not None else field_name
@@ -1061,10 +1068,12 @@ class Schema(metaclass=SchemaMeta):
 
     def _validate_field_names(self):
         """Ensure the field names in validates hooks have matching fields."""
-        for _, _, validator_kwargs in self._hooks[VALIDATES]:
+        self._validates_fields = {name: [] for name in self.declared_fields}
+        for attr_name, _, validator_kwargs in self._hooks[VALIDATES]:
             for field_name in validator_kwargs["field_names"]:
                 if field_name not in self.declared_fields:
                     raise ValueError(f'"{field_name}" field does not exist.')
+                self._validates_fields[field_name].append(attr_name)
 
     def on_bind_field(self, field_name: str, field_obj: Field) -> None:
         """Hook to modify a field when it is bound to the `Schema <marshmallow.Schema>`.
@@ -1134,28 +1143,6 @@ class Schema(metaclass=SchemaMeta):
             partial=partial,
             unknown=unknown,
         )
-
-    def _invoke_field_validators(
-        self, *, field: Field, value, error_store: ErrorStore, index
-    ):
-        for attr_name, _, validator_kwargs in self._hooks[VALIDATES]:
-            validator = getattr(self, attr_name)
-
-            if field.name not in validator_kwargs["field_names"]:
-                continue
-
-            data_key = field.data_key if field.data_key is not None else field.name
-            do_validate = functools.partial(validator, data_key=data_key)
-            validated_value = self._call_and_store(
-                getter_func=do_validate,
-                data=value,
-                field_name=data_key,
-                error_store=error_store,
-                index=index,
-            )
-            if validated_value is missing:
-                return missing
-        return None
 
     def _invoke_schema_validators(
         self,
