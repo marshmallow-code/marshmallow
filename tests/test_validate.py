@@ -802,6 +802,16 @@ def test_oneof_options():
     assert list(oneof.options()) == []
 
 
+def test_oneof_options_custom_valuegetter():
+    oneof = validate.OneOf([1, 2], ["one", "two"])
+
+    assert list(oneof.options(valuegetter="real")) == [(1, "one"), (2, "two")]
+    assert list(oneof.options(valuegetter=lambda choice: choice * 10)) == [
+        (10, "one"),
+        (20, "two"),
+    ]
+
+
 def test_oneof_text():
     oneof = validate.OneOf([1, 2, 3], ["one", "two", "three"])
     assert oneof.choices_text == "1, 2, 3"
