@@ -271,9 +271,11 @@ class TestValidatesDecorator:
         assert excinfo.value.messages == {"s": ["nope"]}
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/issues/350
-    def test_validates_with_attribute(self):
+    # Regression test for https://github.com/marshmallow-code/marshmallow/issues/1256
+    @pytest.mark.parametrize("attribute", ["string_name", "a.b"])
+    def test_validates_with_attribute(self, attribute):
         class S1(Schema):
-            s = fields.String(attribute="string_name")
+            s = fields.String(attribute=attribute)
 
             @validates("s")
             def validate_string(self, data, **kwargs):
@@ -333,10 +335,8 @@ class TestValidatesDecorator:
             def validate_bar(self, value, **kwargs):
                 raise ValidationError("Never raised.")
 
-        schema = BadSchema()
-
         with pytest.raises(ValueError, match='"bar" field does not exist.'):
-            schema.validate({"foo": 42})
+            BadSchema()
 
     def test_precedence(self):
         class Schema2(ValidatesSchema):
