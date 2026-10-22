@@ -2101,6 +2101,26 @@ class TestSchemaDeserialization:
         data = MySchema(unknown=INCLUDE).load({"foo": "LOL"})
         assert data["foo"] == "LOL"
 
+    def test_unknown_field_colliding_with_a_loaded_field_raises(self):
+        class MySchema(Schema):
+            class Meta:
+                unknown = INCLUDE
+
+            foo = fields.Integer(data_key="Foo")
+            bar = fields.Integer(attribute="baz")
+
+        with pytest.raises(ValidationError) as excinfo:
+            MySchema().load({"Foo": "1", "foo": "x", "bar": "2", "baz": "y"})
+        assert excinfo.value.messages == {
+            "foo": ["Unknown field."],
+            "baz": ["Unknown field."],
+        }
+        assert MySchema().load({"Foo": "1", "bar": "2", "qux": "z"}) == {
+            "foo": 1,
+            "baz": 2,
+            "qux": "z",
+        }
+
     def test_unknown_fields_do_not_unpack_dotted_names(self):
         class MySchema(Schema):
             class Meta:
