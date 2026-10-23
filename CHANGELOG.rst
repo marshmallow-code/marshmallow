@@ -15,6 +15,9 @@ Bug fixes:
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
+- `Email <marshmallow.validate.Email>` rejects a leading or trailing hyphen
+  in the last domain label (:issue:`3072`).
+  Thanks :user:`eyurekli` for the PR.
 
 4.3.1 (2026-08-08)
 ------------------

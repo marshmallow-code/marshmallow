@@ -403,6 +403,34 @@ def test_email_idn_invalid(invalid_email):
         validator(invalid_email)
 
 
+@pytest.mark.parametrize(
+    "valid_email",
+    [
+        "user@example.com",
+        "user@example.c-m",
+        "user@xn--80ak6aa92e.xn--p1ai",
+    ],
+)
+def test_email_last_label_hyphen_valid(valid_email):
+    validator = validate.Email()
+    assert validator(valid_email) == valid_email
+
+
+@pytest.mark.parametrize(
+    "invalid_email",
+    [
+        "user@example.-com",
+        "user@example.com-",
+        "user@example.-c-",
+        "user@例え.-テスト",
+    ],
+)
+def test_email_last_label_hyphen_invalid(invalid_email):
+    validator = validate.Email()
+    with pytest.raises(ValidationError):
+        validator(invalid_email)
+
+
 def test_email_custom_message():
     validator = validate.Email(error="{input} is not an email addy.")
     with pytest.raises(ValidationError, match="invalid is not an email addy."):
