@@ -688,7 +688,11 @@ class Schema(metaclass=SchemaMeta):
                 if value is missing:
                     continue
                 # Run field-level validation hooks
-                data_key = field_obj.data_key if field_obj.data_key is not None else field_obj.name
+                data_key = (
+                    field_obj.data_key
+                    if field_obj.data_key is not None
+                    else field_obj.name
+                )
                 validated_value = None
                 for hook in self._validates_fields[field_obj.name]:
                     validator = getattr(self, hook)
