@@ -1297,6 +1297,17 @@ def test_attribute_collision(attribute):
             MySchema()
 
 
+def test_load_only_and_dump_only_include_declared_field_options():
+    class MySchema(Schema):
+        read_only = fields.String(dump_only=True)
+        write_only = fields.String(load_only=True)
+
+    schema = MySchema()
+
+    assert schema.dump_only == {"read_only"}
+    assert schema.load_only == {"write_only"}
+
+
 class TestDeeplyNestedLoadOnly:
     @pytest.fixture
     def schema(self):
