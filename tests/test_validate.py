@@ -362,6 +362,8 @@ def test_email_valid(valid_email):
         "@nouser.com",
         "example.com",
         "user",
+        "user@example.-com",
+        "user@example.com-",
         "",
         None,
     ],
@@ -395,6 +397,8 @@ def test_email_idn_valid(valid_email):
         "user@-münchen.de",
         "user@münchen-.de",
         "user@münchen",
+        "user@例え.-テスト",
+        "user@例え.テスト-",
     ],
 )
 def test_email_idn_invalid(invalid_email):
