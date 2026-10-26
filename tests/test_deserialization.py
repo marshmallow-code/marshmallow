@@ -577,18 +577,25 @@ class TestFieldDeserialization:
         field = fields.DateTime(format=fmt)
         assert field.deserialize(value) == expected
 
-        # By default, a datetime from a timestamp is never aware.
+        # Preserve the previous naive timestamp behavior in marshmallow 4.
         field = fields.NaiveDateTime(format=fmt)
         assert field.deserialize(value) == expected
 
+        # A timestamp denotes an instant in UTC, so an aware field gets UTC.
+        expected_utc = expected.replace(tzinfo=dt.timezone.utc)
         field = fields.AwareDateTime(format=fmt)
-        with pytest.raises(ValidationError, match="Not a valid aware datetime."):
-            field.deserialize(value)
-
-        # But it can be added by providing a default.
+        assert field.deserialize(value) == expected_utc
         field = fields.AwareDateTime(format=fmt, default_timezone=central)
-        expected_aware = expected.replace(tzinfo=central)
-        assert field.deserialize(value) == expected_aware
+        assert field.deserialize(value) == expected_utc
+
+    @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
+    def test_aware_timestamp_deserialization_preserves_instant(self, fmt):
+        # A timestamp identifies an instant, so deserializing one must not
+        # move that instant, whichever timezone it is expressed in.
+        timestamp = 1384043025
+        value = timestamp * 1000 if fmt == "timestamp_ms" else timestamp
+        field = fields.AwareDateTime(format=fmt, default_timezone=central)
+        assert field.deserialize(value).timestamp() == timestamp
 
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize("in_value", [True, False])

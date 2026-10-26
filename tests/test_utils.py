@@ -96,8 +96,11 @@ def test_is_collection():
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (1676386740, dt.datetime(2023, 2, 14, 14, 59, 00)),
-        (1676386740.58, dt.datetime(2023, 2, 14, 14, 59, 00, 580000)),
+        (1676386740, dt.datetime(2023, 2, 14, 14, 59, 00, tzinfo=dt.timezone.utc)),
+        (
+            1676386740.58,
+            dt.datetime(2023, 2, 14, 14, 59, 00, 580000, tzinfo=dt.timezone.utc),
+        ),
     ],
 )
 def test_from_timestamp(value, expected):
@@ -121,8 +124,8 @@ def test_from_timestamp_with_overflow_value():
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
-        (1676386740000, dt.datetime(2023, 2, 14, 14, 59, 00)),
-        (1000, dt.datetime(1970, 1, 1, 0, 0, 1)),
+        (1676386740000, dt.datetime(2023, 2, 14, 14, 59, 00, tzinfo=dt.timezone.utc)),
+        (1000, dt.datetime(1970, 1, 1, 0, 0, 1, tzinfo=dt.timezone.utc)),
     ],
 )
 def test_from_timestamp_ms(value, expected):
