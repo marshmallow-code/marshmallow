@@ -265,7 +265,11 @@ class Email(Validator):
         r"(?:[A-Z0-9" + _UNICODE_LETTERS + r"-]{0,61}"
         r"[A-Z0-9" + _UNICODE_LETTERS + r"])?\.)+"
         r"(?:[A-Z" + _UNICODE_LETTERS + r"]{2,6}"
-        r"|[A-Z0-9" + _UNICODE_LETTERS + r"-]{2,})\Z"
+        # A long TLD: "xn--p1ai" or "123". Hyphens may sit inside the label,
+        # never at either end, same as in the labels above.
+        r"|[A-Z0-9" + _UNICODE_LETTERS + r"]"
+        r"(?:[A-Z0-9" + _UNICODE_LETTERS + r"-]{0,61}"
+        r"[A-Z0-9" + _UNICODE_LETTERS + r"])?)\Z"
         # literal form, ipv4 address (SMTP 4.1.3)
         r"|^\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)"
         r"(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]\Z",

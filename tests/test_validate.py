@@ -395,6 +395,9 @@ def test_email_idn_valid(valid_email):
         "user@-münchen.de",
         "user@münchen-.de",
         "user@münchen",
+        "user@example.c-",
+        "user@example.-com",
+        "user@example.co-",
     ],
 )
 def test_email_idn_invalid(invalid_email):
