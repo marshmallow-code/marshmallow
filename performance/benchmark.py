@@ -6,7 +6,7 @@ Uses the `timeit` module to benchmark serializing an object through marshmallow.
 # ruff: noqa: A002, T201
 import argparse
 import cProfile
-import datetime
+import datetime as dt
 import gc
 import timeit
 
@@ -134,7 +134,7 @@ def main():
             i,
             Author(i, "Foo", "Bar", 42, 66, "123 Fake St"),
             "Hello World",
-            datetime.datetime(2019, 7, 4, tzinfo=datetime.timezone.utc),
+            dt.datetime(2019, 7, 4, tzinfo=dt.timezone.utc),
             "The World",
             34,
             3,
