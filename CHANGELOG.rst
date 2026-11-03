@@ -16,6 +16,11 @@ Bug fixes:
   Thanks :user:`vidigoat` for the PR.
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
 
+Other changes:
+
+- Drop support for Python 3.10.
+- Test against Python 3.15.
+
 4.3.1 (2026-08-08)
 ------------------
 

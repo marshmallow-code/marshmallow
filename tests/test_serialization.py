@@ -536,7 +536,7 @@ class TestFieldSerialization:
         [
             (dt.datetime(2013, 11, 10, 1, 23, 45), "Sun, 10 Nov 2013 01:23:45 -0000"),
             (
-                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.UTC),
                 "Sun, 10 Nov 2013 01:23:45 +0000",
             ),
             (
@@ -556,7 +556,7 @@ class TestFieldSerialization:
             ("timestamp", dt.datetime(2013, 11, 10, 0, 23, 45), 1384043025),
             (
                 "timestamp",
-                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.timezone.utc),
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.UTC),
                 1384043025,
             ),
             (
@@ -567,7 +567,7 @@ class TestFieldSerialization:
             ("timestamp_ms", dt.datetime(2013, 11, 10, 0, 23, 45), 1384043025000),
             (
                 "timestamp_ms",
-                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.timezone.utc),
+                dt.datetime(2013, 11, 10, 0, 23, 45, tzinfo=dt.UTC),
                 1384043025000,
             ),
             (
@@ -587,11 +587,11 @@ class TestFieldSerialization:
         [
             (dt.datetime(2013, 11, 10, 1, 23, 45), "2013-11-10T01:23:45"),
             (
-                dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.timezone.utc),
+                dt.datetime(2013, 11, 10, 1, 23, 45, 123456, tzinfo=dt.UTC),
                 "2013-11-10T01:23:45.123456+00:00",
             ),
             (
-                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.timezone.utc),
+                dt.datetime(2013, 11, 10, 1, 23, 45, tzinfo=dt.UTC),
                 "2013-11-10T01:23:45+00:00",
             ),
             (
@@ -791,7 +791,7 @@ class TestFieldSerialization:
         )
 
     def test_datetime_list_field(self):
-        obj = DateTimeList([dt.datetime.now(dt.timezone.utc), dt.datetime.now()])
+        obj = DateTimeList([dt.datetime.now(dt.UTC), dt.datetime.now()])
         field = fields.List(fields.DateTime)
         result = field.serialize("dtimes", obj)
         assert all(type(each) is str for each in result)
@@ -803,7 +803,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generator_single_value(self):
         def custom_generator():
-            yield dt.datetime.now(dt.timezone.utc)
+            yield dt.datetime.now(dt.UTC)
 
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)
@@ -812,7 +812,7 @@ class TestFieldSerialization:
 
     def test_list_field_work_with_generators_multiple_values(self):
         def custom_generator():
-            yield from [dt.datetime.now(dt.timezone.utc), dt.datetime.now()]
+            yield from [dt.datetime.now(dt.UTC), dt.datetime.now()]
 
         obj = DateTimeList(custom_generator())
         field = fields.List(fields.DateTime)
@@ -874,7 +874,7 @@ class TestFieldSerialization:
             fields.List(ASchema)  # type: ignore[arg-type]
 
     def test_datetime_integer_tuple_field(self):
-        obj = DateTimeIntegerTuple((dt.datetime.now(dt.timezone.utc), 42))
+        obj = DateTimeIntegerTuple((dt.datetime.now(dt.UTC), 42))
         field = fields.Tuple([fields.DateTime, fields.Integer])
         result = field.serialize("dtime_int", obj)
         assert type(result[0]) is str
