@@ -1090,6 +1090,23 @@ def test_nested_instance_exclude():
     assert schema.dump(full_album) == album
 
 
+def test_nested_instance_load_only_and_dump_only_from_parent():
+    class ArtistSchema(Schema):
+        first = fields.Str()
+        last = fields.Str()
+
+    class AlbumSchema(Schema):
+        title = fields.Str()
+        artist = fields.Nested(ArtistSchema())
+
+    album = {"title": "Hunky Dory", "artist": {"first": "David", "last": "Bowie"}}
+    dumped = AlbumSchema(load_only=("artist.first",)).dump(album)
+    assert dumped == {"title": "Hunky Dory", "artist": {"last": "Bowie"}}
+    with pytest.raises(ValidationError) as excinfo:
+        AlbumSchema(dump_only=("artist.first",)).load(album)
+    assert excinfo.value.messages == {"artist": {"first": ["Unknown field."]}}
+
+
 def test_meta_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Raw()
