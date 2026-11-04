@@ -1,6 +1,19 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Bug fixes:
+
+- Fix `Schema.dump` returning methods of the `dict` type (such as
+  ``dict.items``) as field values when a field's name matches a `dict`
+  attribute and the key is missing from the dumped mapping
+  (:issue:`648`). When a key is missing from a mapping,
+  `marshmallow.utils.get_value` now only falls back to attributes
+  stored on the instance itself, so attributes of `dict` subclasses
+  are still resolved, but attributes of the mapping type are not.
+
 4.4.0 (2026-11-03)
 ------------------
 
