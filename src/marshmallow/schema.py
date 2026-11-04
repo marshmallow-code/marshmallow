@@ -692,11 +692,19 @@ class Schema(metaclass=SchemaMeta):
                     field_obj.data_key if field_obj.data_key is not None else field_name
                     for field_name, field_obj in self.load_fields.items()
                 }
+                # Output keys written by declared fields (a dotted attribute
+                # writes under its first segment).
+                loaded_keys = {
+                    (field_obj.attribute or field_name).split(".")[0]
+                    for field_name, field_obj in self.load_fields.items()
+                }
                 for key in set(data) - fields:
                     value = data[key]
-                    if unknown == INCLUDE:
+                    # Under INCLUDE, an unknown key that collides with a
+                    # loaded field is an error rather than an overwrite.
+                    if unknown == INCLUDE and key not in loaded_keys:
                         ret_d[key] = value
-                    elif unknown == RAISE:
+                    else:
                         error_store.store_error(
                             [self.error_messages["unknown"]],
                             key,
