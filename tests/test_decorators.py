@@ -286,6 +286,36 @@ class TestValidatesDecorator:
         with pytest.raises(ValidationError):
             S1(many=True).load([{"s": "foo"}])
 
+    def test_validates_with_dotted_attribute(self):
+        class S(Schema):
+            name = fields.Str(attribute="a.b")
+
+            @validates("name")
+            def validate_name(self, value, **kwargs):
+                raise ValidationError("Invalid value.")
+
+        with pytest.raises(ValidationError) as excinfo:
+            S().load({"name": "x"})
+        assert excinfo.value.messages == {"name": ["Invalid value."]}
+
+        with pytest.raises(ValidationError) as excinfo:
+            S(many=True).load([{"name": "x"}])
+        assert excinfo.value.messages == {0: {"name": ["Invalid value."]}}
+
+    def test_validates_with_attribute_drops_rejected_value_from_valid_data(self):
+        class S(Schema):
+            name = fields.Str(attribute="n")
+            nested_name = fields.Str(attribute="a.b")
+            age = fields.Int()
+
+            @validates("name", "nested_name")
+            def validate_name(self, value, **kwargs):
+                raise ValidationError("Invalid value.")
+
+        with pytest.raises(ValidationError) as excinfo:
+            S().load({"name": "x", "nested_name": "y", "age": 1})
+        assert excinfo.value.valid_data == {"a": {}, "age": 1}
+
     def test_validates_decorator(self):
         schema = ValidatesSchema()
 
