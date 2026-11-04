@@ -1537,6 +1537,24 @@ def test_only_and_exclude_as_string(param):
         MySchema(**{param: "foo"})  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("param", ("only", "exclude"))
+def test_nested_only_and_exclude_on_non_nested_field(param):
+    class MySchema(Schema):
+        foo = fields.Raw()
+
+    with pytest.raises(ValueError, match="'foo.bar'"):
+        MySchema(**{param: ("foo.bar",)})
+
+
+@pytest.mark.parametrize("param", ("only", "exclude"))
+def test_nested_only_and_exclude_on_invalid_attribute(param):
+    class MySchema(Schema):
+        foo = fields.Raw()
+
+    with pytest.raises(ValueError, match="'bar.baz'"):
+        MySchema(**{param: ("bar.baz",)})
+
+
 def test_nested_with_sets():
     class Inner(Schema):
         foo = fields.Raw()
