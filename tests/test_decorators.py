@@ -282,9 +282,24 @@ class TestValidatesDecorator:
         with pytest.raises(ValidationError) as excinfo:
             S1().load({"s": "foo"})
         assert excinfo.value.messages == {"s": ["nope"]}
+        assert excinfo.value.valid_data == {}
 
-        with pytest.raises(ValidationError):
-            S1(many=True).load([{"s": "foo"}])
+        with pytest.raises(ValidationError) as excinfo:
+            S1(many=True).load([{"s": "foo"}, {"s": "bar"}])
+        assert excinfo.value.valid_data == [{}, {}]
+
+    def test_validates_with_attribute_keeps_valid_values(self):
+        class S1(Schema):
+            s = fields.String(attribute="string_name")
+
+            @validates("s")
+            def validate_string(self, data, **kwargs):
+                if data == "bad":
+                    raise ValidationError("nope")
+
+        with pytest.raises(ValidationError) as excinfo:
+            S1(many=True).load([{"s": "bad"}, {"s": "good"}])
+        assert excinfo.value.valid_data == [{}, {"string_name": "good"}]
 
     def test_validates_decorator(self):
         schema = ValidatesSchema()
