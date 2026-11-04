@@ -976,8 +976,26 @@ class Schema(metaclass=SchemaMeta):
                 if set_operation == "union":
                     new_options |= self.set_class(original_options)
                 if set_operation == "intersection":
-                    new_options &= self.set_class(original_options)
+                    new_options = self.__intersect_field_names(
+                        new_options, original_options
+                    )
             setattr(self.declared_fields[key], option_name, new_options)
+
+    def __intersect_field_names(self, field_names, other_field_names):
+        """Intersect two collections of possibly dot-delimited field names.
+
+        A name selects itself and all of its descendants, so when one name is
+        a prefix of the other (e.g. ``"a"`` and ``"a.b"``), the more specific
+        name is kept.
+        """
+        result = self.set_class()
+        for name in field_names:
+            for other in other_field_names:
+                if name == other or name.startswith(f"{other}."):
+                    result.add(name)
+                elif other.startswith(f"{name}."):
+                    result.add(other)
+        return result
 
     def _init_fields(self) -> None:
         """Update self.fields, self.load_fields, and self.dump_fields based on schema options.
