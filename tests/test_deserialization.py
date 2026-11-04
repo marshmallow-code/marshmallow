@@ -1394,6 +1394,13 @@ class TestFieldDeserialization:
         with pytest.raises(ValidationError) as excinfo:
             field.deserialize(["good", "bad"])
         assert excinfo.value.args[0] == {1: ["Not a valid integer."]}
+        assert excinfo.value.valid_data == ["good"]
+
+        field2 = fields.Tuple([fields.Integer(), fields.Str()])
+        with pytest.raises(ValidationError) as excinfo:
+            field2.deserialize(["bad", "good"])
+        assert excinfo.value.args[0] == {0: ["Not a valid integer."]}
+        assert excinfo.value.valid_data == ["good"]
 
     def test_tuple_field_deserialize_multiple_invalid_items(self):
         validator = validate.Range(10, 20, error="Value {input} not in range")
