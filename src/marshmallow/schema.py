@@ -220,6 +220,7 @@ class SchemaOpts:
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
+        self.partial = getattr(meta, "partial", None)
 
 
 class Schema(metaclass=SchemaMeta):
@@ -375,6 +376,8 @@ class Schema(metaclass=SchemaMeta):
         """
         many: typing.ClassVar[bool]
         """Whether data should be (de)serialized as a collection by default."""
+        partial: typing.ClassVar[bool | types.StrSequenceOrSet | None]
+        """Whether to allow missing fields during deserialization by default."""
         dateformat: typing.ClassVar[str]
         """Default format for `Date <marshmallow.fields.Date>` fields."""
         datetimeformat: typing.ClassVar[str]
@@ -430,7 +433,7 @@ class Schema(metaclass=SchemaMeta):
         ) | set(exclude)
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
-        self.partial = partial
+        self.partial = self.opts.partial if partial is None else partial
         self.unknown: types.UnknownOption = (
             self.opts.unknown if unknown is None else unknown
         )
