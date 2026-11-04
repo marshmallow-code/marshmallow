@@ -969,15 +969,24 @@ class Schema(metaclass=SchemaMeta):
         for parent, nested_names in nested_fields:
             nested_options[parent].append(nested_names)
         # Apply the nested field options.
+        invalid_fields = self.set_class()
         for key, options in iter(nested_options.items()):
+            field = self.declared_fields.get(key)
+            # Only fields that accept nested options (Nested, or List and Dict
+            # of Nested) define only and exclude.
+            if field is None or not hasattr(field, option_name):
+                invalid_fields |= self.set_class(f"{key}.{name}" for name in options)
+                continue
             new_options = self.set_class(options)
-            original_options = getattr(self.declared_fields[key], option_name, ())
+            original_options = getattr(field, option_name, ())
             if original_options:
                 if set_operation == "union":
                     new_options |= self.set_class(original_options)
                 if set_operation == "intersection":
                     new_options &= self.set_class(original_options)
-            setattr(self.declared_fields[key], option_name, new_options)
+            setattr(field, option_name, new_options)
+        if invalid_fields:
+            raise ValueError(f"Invalid fields for {self}: {invalid_fields}.")
 
     def _init_fields(self) -> None:
         """Update self.fields, self.load_fields, and self.dump_fields based on schema options.
