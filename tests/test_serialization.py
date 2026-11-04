@@ -1000,3 +1000,50 @@ def test_nested_field_many_serializing_generator():
     data = OtherSchema().dump(obj)
 
     assert data.get("objects") == [{"name": "foo"}, {"name": "bar"}]
+
+
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/648
+def test_dump_dict_with_fields_shadowing_dict_methods():
+    class ShadowSchema(Schema):
+        a = fields.Str()
+        items = fields.Str()
+        keys = fields.Str()
+        values = fields.Str()
+        get = fields.Str()
+
+    schema = ShadowSchema()
+    # Missing keys must not be filled with the dict's built-in methods
+    assert schema.dump({"a": "x"}) == {"a": "x"}
+    # Present keys serialize normally
+    assert schema.dump(
+        {"a": "x", "items": "i", "keys": "k", "values": "v", "get": "g"}
+    ) == {"a": "x", "items": "i", "keys": "k", "values": "v", "get": "g"}
+
+
+def test_dump_dict_missing_key_uses_dump_default():
+    class DefaultSchema(Schema):
+        items = fields.Str(dump_default="dflt")
+
+    assert DefaultSchema().dump({}) == {"items": "dflt"}
+
+
+def test_dump_dict_with_attribute_shadowing_dict_method():
+    class AttrSchema(Schema):
+        renamed = fields.Str(attribute="items")
+
+    assert AttrSchema().dump({"items": "i"}) == {"renamed": "i"}
+    # A missing key must not resolve to the dict.items method
+    assert AttrSchema().dump({}) == {}
+
+
+def test_dump_object_with_attributes_shadowing_dict_methods():
+    # Plain objects are unaffected: their attributes are still dumped
+    class Obj:
+        items = "obj-items"
+        keys = "obj-keys"
+
+    class ObjSchema(Schema):
+        items = fields.Str()
+        keys = fields.Str()
+
+    assert ObjSchema().dump(Obj()) == {"items": "obj-items", "keys": "obj-keys"}

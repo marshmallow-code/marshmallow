@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import datetime as dt
+from collections import OrderedDict
 from copy import copy, deepcopy
+from types import MappingProxyType
 from typing import NamedTuple
 
 import pytest
@@ -67,6 +69,67 @@ def test_get_value_from_dict():
     d = dict(items=["foo", "bar"], keys=["baz", "quux"])
     assert utils.get_value(d, "items") == ["foo", "bar"]
     assert utils.get_value(d, "keys") == ["baz", "quux"]
+
+
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/648
+@pytest.mark.parametrize("key", ["items", "keys", "values", "get"])
+def test_get_value_from_dict_missing_method_named_key(key):
+    # A key missing from a dict must not resolve to a method of the
+    # dict type.
+    assert utils.get_value({}, key) is utils.missing
+    assert utils.get_value({}, key, default=123) == 123
+    assert utils.get_value({"a": 1}, key, default=123) == 123
+
+
+# regression test for https://github.com/marshmallow-code/marshmallow/issues/648
+@pytest.mark.parametrize(
+    "obj",
+    [
+        OrderedDict(a=1),
+        MappingProxyType({"a": 1}),
+    ],
+)
+def test_get_value_from_mapping_missing_method_named_key(obj):
+    assert utils.get_value(obj, "a") == 1
+    assert utils.get_value(obj, "items", default=123) == 123
+    assert utils.get_value(obj, "get", default=123) == 123
+
+
+def test_get_value_from_dict_subclass():
+    class MyDict(dict):
+        pass
+
+    d = MyDict(a=1)
+    assert utils.get_value(d, "a") == 1
+    assert utils.get_value(d, "items", default=123) == 123
+
+
+def test_get_value_from_dict_subclass_instance_attribute():
+    # Attributes stored on the instance of a dict subclass are still
+    # resolved when the key is missing (see PointDict above)...
+    p = PointDict(24, 42)
+    assert utils.get_value(p, "y") == 42
+    # ...but methods of the dict type are not.
+    assert utils.get_value(p, "items", default=123) == 123
+
+
+def test_get_value_for_nested_dict_missing_key():
+    d = {"p": {"x": 5}}
+    assert utils.get_value(d, "p.x") == 5
+    assert utils.get_value(d, "p.items", default=123) == 123
+
+
+def test_get_value_key_error_from_non_mapping():
+    # Objects that are not mappings keep the attribute fallback even
+    # when __getitem__ raises KeyError.
+    class KeyErrorObject:
+        def __init__(self):
+            self.x = 24
+
+        def __getitem__(self, key):
+            raise KeyError(key)
+
+    assert utils.get_value(KeyErrorObject(), "x") == 24
 
 
 def test_set_value():

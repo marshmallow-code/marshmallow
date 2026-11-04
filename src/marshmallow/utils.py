@@ -98,7 +98,9 @@ def get_value(obj, key: str, default=missing):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
-    `x.i` if an exception is raised.
+    `x.i` if an exception is raised. When `x` is a mapping and `i` is not one of its
+    keys, the fallback only considers attributes stored on the instance itself, so
+    that methods of the mapping type (e.g. ``dict.items``) are not returned as values.
 
     .. warning::
         If an object `x` does not raise an exception when `x[i]` does not exist,
@@ -119,7 +121,18 @@ def _get_value_for_key(obj, key, default):
 
     try:
         return obj[key]
-    except (KeyError, IndexError, TypeError, AttributeError):
+    except KeyError:
+        if isinstance(obj, Mapping):
+            # The mapping does not contain `key`. Only fall back to
+            # attributes stored on the instance itself (e.g. attributes
+            # of a `dict` subclass), never to attributes of the mapping
+            # type, so that built-in methods such as `dict.items` are
+            # not returned as values for missing keys.
+            if key in getattr(obj, "__dict__", {}):
+                return getattr(obj, key, default)
+            return default
+        return getattr(obj, key, default)
+    except (IndexError, TypeError, AttributeError):
         return getattr(obj, key, default)
 
 
