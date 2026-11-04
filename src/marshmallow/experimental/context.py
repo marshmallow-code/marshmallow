@@ -34,10 +34,8 @@ import contextlib
 import contextvars
 import typing
 
-try:
+if typing.TYPE_CHECKING:
     from types import EllipsisType
-except ImportError:  # Python<3.10
-    EllipsisType = type(Ellipsis)  # type: ignore[misc]
 
 _ContextT = typing.TypeVar("_ContextT")
 _DefaultT = typing.TypeVar("_DefaultT")

@@ -134,7 +134,7 @@ def main():
             i,
             Author(i, "Foo", "Bar", 42, 66, "123 Fake St"),
             "Hello World",
-            dt.datetime(2019, 7, 4, tzinfo=dt.timezone.utc),
+            dt.datetime(2019, 7, 4, tzinfo=dt.UTC),
             "The World",
             34,
             3,

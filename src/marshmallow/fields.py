@@ -14,19 +14,7 @@ import typing
 import uuid
 from collections.abc import Mapping as _Mapping
 from enum import Enum as EnumType
-
-try:
-    from typing import Unpack
-except ImportError:  # Remove when dropping Python 3.10
-    from typing_extensions import Unpack
-
-# Remove when dropping Python 3.10
-try:
-    from backports.datetime_fromisoformat import MonkeyPatch
-except ImportError:
-    pass
-else:
-    MonkeyPatch.patch_fromisoformat()
+from typing import Unpack
 
 from marshmallow import class_registry, types, utils, validate
 from marshmallow.constants import missing as missing_

@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.11"
 # dependencies = [
 #     "flask",
 #     "flask-sqlalchemy>=3.1.1",
@@ -148,7 +148,7 @@ def new_quote():
     quote = Quote(
         content=data["content"],
         author=author,
-        posted_at=dt.datetime.now(dt.timezone.utc),
+        posted_at=dt.datetime.now(dt.UTC),
     )
     db.session.add(quote)
     db.session.commit()
