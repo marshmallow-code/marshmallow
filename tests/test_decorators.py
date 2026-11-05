@@ -619,6 +619,25 @@ class TestValidatesSchemaDecorator:
         errors = schema.validate([{"foo": 4, "bar": "42"}], many=True)
         assert errors["_schema"] == ["bar cannot be a string"]
 
+    def test_validator_many_after_pre_load_reshapes_collection(self):
+        seen = []
+
+        class MySchema(Schema):
+            n = fields.Int()
+
+            @pre_load(pass_collection=True)
+            def unwrap(self, data, many, **kwargs):
+                return data["items"]
+
+            @validates_schema
+            def check(self, data, **kwargs):
+                seen.append(data["n"])
+
+        schema = MySchema()
+        result = schema.load({"items": [{"n": 1}, {"n": 2}]}, many=True)
+        assert result == [{"n": 1}, {"n": 2}]
+        assert seen == [1, 2]
+
     def test_allow_reporting_field_errors_in_schema_validator(self):
         class NestedSchema(Schema):
             baz = fields.Int(required=True)
