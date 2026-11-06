@@ -190,3 +190,4 @@ Contributors (chronological)
 - Dhruvil Darji  `@dhruvildarji  <https://github.com/dhruvildarji>`_
 - Haïm Dimer `@hdimer  <https://github.com/hdimer>`_
 - `@vidigoat <https://github.com/vidigoat>`_
+- Keshav Tibrewal `@keshtib07-ghost <https://github.com/keshtib07-ghost>`_
