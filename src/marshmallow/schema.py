@@ -1143,7 +1143,9 @@ class Schema(metaclass=SchemaMeta):
                 if many:
                     for idx, item in enumerate(data):
                         try:
-                            value = item[field_obj.attribute or field_name]
+                            value = _get_loaded_value(
+                                item, field_obj.attribute or field_name
+                            )
                         except KeyError:
                             pass
                         else:
@@ -1158,7 +1160,9 @@ class Schema(metaclass=SchemaMeta):
                                 item.pop(field_name, None)
                 else:
                     try:
-                        value = data[field_obj.attribute or field_name]
+                        value = _get_loaded_value(
+                            data, field_obj.attribute or field_name
+                        )
                     except KeyError:
                         pass
                     else:
@@ -1248,6 +1252,14 @@ class Schema(metaclass=SchemaMeta):
             else:
                 data = processor(data, many=many, **kwargs)
         return data
+
+
+def _get_loaded_value(data, key: str):
+    """Read the value stored under `key` (possibly a dotted path) in loaded data.
+
+    Raises `KeyError` when the path is absent, mirroring `set_value`.
+    """
+    return functools.reduce(operator.getitem, key.split("."), data)
 
 
 BaseSchema = Schema  # for backwards compatibility
