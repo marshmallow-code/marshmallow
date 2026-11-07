@@ -42,6 +42,37 @@ def test_url_absolute_valid(valid_url):
 
 
 @pytest.mark.parametrize(
+    "host",
+    [
+        "::ffff:192.0.2.128",
+        "::192.0.2.128",
+        "2001:db8::192.0.2.1",
+        "1:2:3:4:5:6:192.0.2.1",
+    ],
+)
+@pytest.mark.parametrize("authority", ["[{host}]", "user:pass@[{host}]:8080"])
+def test_url_ipv6_with_embedded_ipv4(host, authority):
+    url = "http://" + authority.format(host=host) + "/path?query=value#fragment"
+    assert validate.URL()(url) == url
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        "::ffff:999.0.2.1",
+        "::ffff:192.0.2",
+        "::ffff:192.0.2.1.2",
+        "1::2::192.0.2.1",
+        "1:2:3:4:5:192.0.2.1",
+        "1.2.3.4",
+    ],
+)
+def test_url_rejects_invalid_embedded_ipv4(host):
+    with pytest.raises(ValidationError, match="Not a valid URL"):
+        validate.URL()(f"http://[{host}]/")
+
+
+@pytest.mark.parametrize(
     "invalid_url",
     [
         "http:///example.com/",

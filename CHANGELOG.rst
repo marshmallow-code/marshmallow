@@ -10,6 +10,10 @@ Features:
 
 Bug fixes:
 
+- `marshmallow.validate.URL` accepts IPv6 hosts with embedded IPv4 addresses,
+  such as ``http://[::ffff:192.0.2.128]/``, while rejecting malformed addresses.
+  Thanks :user:`DeviousCardi` for the PR.
+
 - Raise `ValidationError <marshmallow.exceptions.ValidationError>`
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
