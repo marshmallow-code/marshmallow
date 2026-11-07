@@ -217,6 +217,13 @@ class SchemaOpts:
         self.include = getattr(meta, "include", {})
         self.load_only = getattr(meta, "load_only", ())
         self.dump_only = getattr(meta, "dump_only", ())
+
+        if not is_collection(self.load_only):
+            raise ValueError("`load_only` must be a collection of strings.")
+
+        if not is_collection(self.dump_only):
+            raise ValueError("`dump_only` must be a collection of strings.")
+
         self.unknown = getattr(meta, "unknown", RAISE)
         self.register = getattr(meta, "register", True)
         self.many = getattr(meta, "many", False)
@@ -428,6 +435,11 @@ class Schema(metaclass=SchemaMeta):
         self.exclude: set[typing.Any] | typing.MutableSet[typing.Any] = set(
             self.opts.exclude
         ) | set(exclude)
+        if not is_collection(load_only):
+            raise StringNotCollectionError('"load_only" should be a list of strings')
+        if not is_collection(dump_only):
+            raise StringNotCollectionError('"dump_only" should be a list of strings')
+
         self.load_only = set(load_only) or set(self.opts.load_only)
         self.dump_only = set(dump_only) or set(self.opts.dump_only)
         self.partial = partial
