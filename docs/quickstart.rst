@@ -54,6 +54,10 @@ Create a schema by defining a class with variables mapping attribute names to :c
 
     `from_dict <marshmallow.Schema.from_dict>` is especially useful for generating schemas at runtime.
 
+    .. note::
+
+        Keys in the dictionary are used as field names. If a dictionary key contains a dot (e.g. ``"foo.bar"``), marshmallow treats it as a path by default and deserializes it into nested dictionaries (``{"foo": {"bar": value}}``). To prevent nesting and map to a flat key instead, explicitly specify the field's ``attribute`` parameter without dots (e.g. ``fields.Str(attribute="foo_bar")``).
+
 Serializing objects ("dumping")
 -------------------------------
 
@@ -551,6 +555,48 @@ If you are consuming and producing data that does not match your schema, you can
     result = s.load(data)
     # {'name': u'Mike',
     # 'email': 'foo@bar.com'}
+
+Specifying attribute names and dotted paths
+-------------------------------------------
+
+To specify the name of the key or attribute in the internal representation (the output of `load` and the input of `dump`), pass the `attribute` argument to the field.
+
+.. code-block:: python
+
+    class UserSchema(Schema):
+        name = fields.String()
+        email_address = fields.Email(attribute="email")
+
+
+    s = UserSchema()
+
+    data = {"name": "Mike", "email": "foo@bar.com"}
+    result = s.dump(data)
+    # {'name': 'Mike',
+    #  'email_address': 'foo@bar.com'}
+
+    data = {"name": "Mike", "email_address": "foo@bar.com"}
+    result = s.load(data)
+    # {'name': 'Mike',
+    #  'email': 'foo@bar.com'}
+
+If ``attribute`` contains a dot (``.``), it is treated as a path to a nested value. When dumping, marshmallow traverses nested objects or dictionaries to retrieve the value; when loading, marshmallow reconstructs the nested dictionary structure:
+
+.. code-block:: python
+
+    class PersonSchema(Schema):
+        city = fields.String(attribute="address.city")
+
+
+    s = PersonSchema()
+
+    # Dumping traverses nested keys/attributes
+    result = s.dump({"address": {"city": "Boston"}})
+    # {'city': 'Boston'}
+
+    # Loading produces nested dictionaries
+    result = s.load({"city": "Boston"})
+    # {'address': {'city': 'Boston'}}
 
 
 Next steps

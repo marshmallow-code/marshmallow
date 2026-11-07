@@ -21,6 +21,12 @@ Other changes:
 - Drop support for Python 3.10.
 - Test against Python 3.15.
 
+Other changes:
+
+- Document dotted path resolution for ``attribute`` parameter and
+  `Schema.from_dict <marshmallow.Schema.from_dict>` (:issue:`2194`).
+  Thanks :user:`paneendrakumar0` for the PR.
+
 4.3.1 (2026-08-08)
 ------------------
 
