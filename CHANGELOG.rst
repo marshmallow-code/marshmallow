@@ -1,6 +1,16 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Other changes:
+
+- Speed up `Schema.load <marshmallow.Schema.load>`, most noticeably with
+  ``many=True`` and nested schemas, by removing per-field overhead in
+  ``Schema._deserialize``.
+  Thanks :user:`deadstrobe5` for the PR.
+
 4.4.0 (2026-11-03)
 ------------------
 

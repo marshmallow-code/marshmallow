@@ -643,7 +643,9 @@ class Schema(metaclass=SchemaMeta):
         if not isinstance(data, Mapping):
             error_store.store_error([self.error_messages["type"]], index=index)
         else:
-            partial_is_collection = is_collection(partial)
+            # is_collection falls back to slow generator checks for non-iterables,
+            # so skip it for the default partial=None
+            partial_is_collection = partial is not None and is_collection(partial)
             for attr_name, field_obj in self.load_fields.items():
                 field_name = (
                     field_obj.data_key if field_obj.data_key is not None else attr_name
@@ -667,23 +669,15 @@ class Schema(metaclass=SchemaMeta):
                 elif partial is not None:
                     d_kwargs["partial"] = partial
 
-                def getter(
-                    val, field_obj=field_obj, field_name=field_name, d_kwargs=d_kwargs
-                ):
-                    return field_obj.deserialize(
-                        val,
-                        field_name,
-                        data,
-                        **d_kwargs,
+                try:
+                    value = field_obj.deserialize(
+                        raw_value, field_name, data, **d_kwargs
                     )
-
-                value = self._call_and_store(
-                    getter_func=getter,
-                    data=raw_value,
-                    field_name=field_name,
-                    error_store=error_store,
-                    index=index,
-                )
+                except ValidationError as error:
+                    error_store.store_error(error.messages, field_name, index=index)
+                    # When a Nested field fails validation, the marshalled data
+                    # is stored on the ValidationError's valid_data attribute
+                    value = error.valid_data or missing
                 if value is not missing:
                     key = field_obj.attribute or attr_name
                     set_value(ret_d, key, value)
