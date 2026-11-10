@@ -1,6 +1,16 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Other changes:
+
+- Speed up creating schema classes, including `Schema.from_dict
+  <marshmallow.Schema.from_dict>`, by not raising an exception for every
+  attribute that is not a hook.
+  Thanks :user:`deadstrobe5` for the PR.
+
 4.4.0 (2026-11-03)
 ------------------
 

@@ -170,11 +170,8 @@ class SchemaMeta(ABCMeta):
             # bound to the class. This needs to come from the __dict__ of the
             # declaring class.
             for parent in mro:
-                try:
+                if attr_name in parent.__dict__:
                     attr = parent.__dict__[attr_name]
-                except KeyError:
-                    continue
-                else:
                     break
             else:
                 # In case we didn't find the attribute and didn't break above.
@@ -182,13 +179,12 @@ class SchemaMeta(ABCMeta):
                 # to exclude the possibility of attr being undefined.
                 continue
 
-            try:
-                hook_config: dict[str, list[tuple[bool, dict]]] = (
-                    attr.__marshmallow_hook__
-                )
-            except AttributeError:
-                pass
-            else:
+            # Most attributes are not hooks, so avoid raising and catching
+            # an AttributeError for each of them
+            hook_config: dict[str, list[tuple[bool, dict]]] | None = getattr(
+                attr, "__marshmallow_hook__", None
+            )
+            if hook_config is not None:
                 for tag, config in hook_config.items():
                     # Use name here so we can get the bound method later, in
                     # case the processor was a descriptor or something.
