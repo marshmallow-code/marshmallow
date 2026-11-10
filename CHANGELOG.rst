@@ -8,7 +8,7 @@ Other changes:
 
 - Speed up creating schema classes, including `Schema.from_dict
   <marshmallow.Schema.from_dict>`, by not raising an exception for every
-  attribute that is not a hook.
+  attribute that is not a hook (:pr:`3111`).
   Thanks :user:`deadstrobe5` for the PR.
 
 4.4.0 (2026-11-03)
