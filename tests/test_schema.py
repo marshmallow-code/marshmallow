@@ -152,6 +152,29 @@ def test_load_many_stores_error_indices():
     assert "homepage" in errors[1]
 
 
+@pytest.mark.parametrize("partial", [None, True, ("inner.b",)])
+def test_load_many_keeps_valid_nested_data_on_error(partial):
+    class InnerSchema(Schema):
+        a = fields.Int()
+        b = fields.Int(required=True)
+
+    class OuterSchema(Schema):
+        name = fields.Str()
+        inner = fields.Nested(InnerSchema)
+
+    data = [
+        {"name": "ok", "inner": {"a": 1, "b": 2}},
+        {"name": "bad", "inner": {"a": 3, "b": "x"}},
+    ]
+    with pytest.raises(ValidationError) as excinfo:
+        OuterSchema().load(data, many=True, partial=partial)
+    assert excinfo.value.messages == {1: {"inner": {"b": ["Not a valid integer."]}}}
+    assert excinfo.value.valid_data == [
+        {"name": "ok", "inner": {"a": 1, "b": 2}},
+        {"name": "bad", "inner": {"a": 3}},
+    ]
+
+
 def test_dump_many():
     s = UserSchema()
     u1, u2 = User("Mick"), User("Keith")
