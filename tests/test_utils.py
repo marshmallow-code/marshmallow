@@ -39,12 +39,12 @@ def test_get_value_from_object(obj):
     assert utils.get_value(obj, "y") == 42
 
 
-def test_get_value_from_namedtuple_with_default():
+def test_get_value_from_namedtuple():
     p = PointNT(x=42, y=None)
-    # Default is only returned if key is not found
-    assert utils.get_value(p, "z", default=123) == 123
-    # since 'y' is an attribute, None is returned instead of the default
-    assert utils.get_value(p, "y", default=123) is None
+    # missing is only returned if key is not found
+    assert utils.get_value(p, "z") == utils.missing
+    # since 'y' is an attribute, None is returned instead of missing
+    assert utils.get_value(p, "y") is None
 
 
 class Triangle:
