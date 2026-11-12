@@ -1,6 +1,15 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Other changes:
+
+- Speed up `String <marshmallow.fields.String>` serialization and
+  deserialization of `str` values.
+  Thanks :user:`g4lb` for the PR.
+
 4.4.0 (2026-11-03)
 ------------------
 
