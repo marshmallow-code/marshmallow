@@ -1,6 +1,15 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Bug fixes:
+
+- `Email <marshmallow.validate.Email>`: Reject a last domain label that starts
+  or ends with a hyphen, e.g. ``user@example.-com`` (:issue:`3072`).
+  Thanks :user:`X6M-Work` for the PR.
+
 4.4.0 (2026-11-03)
 ------------------
 
