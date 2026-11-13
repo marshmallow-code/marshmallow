@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 
 from marshmallow import (
@@ -769,3 +771,26 @@ class TestFieldPreAndPostLoad:
             match="The 'post_load' parameter must be a callable or an iterable of callables.",
         ):
             fields.Int(post_load="not_callable")  # type: ignore[arg-type]
+
+
+class _PickleTestSchema(Schema):
+    x = fields.Integer(load_default=missing, dump_default=missing)
+    y = fields.String()
+
+
+def test_missing_singleton_pickle():
+    for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+        unpickled = pickle.loads(pickle.dumps(missing, protocol=proto))
+        assert unpickled is missing
+
+
+def test_schema_with_missing_defaults_pickle():
+    schema = _PickleTestSchema()
+    for proto in range(pickle.HIGHEST_PROTOCOL + 1):
+        unpickled = pickle.loads(pickle.dumps(schema, protocol=proto))
+        assert unpickled.fields["x"].load_default is missing
+        assert unpickled.fields["x"].dump_default is missing
+        assert unpickled.dump({}) == {}
+        assert unpickled.load({}) == {}
+        assert unpickled.dump({"x": 10, "y": "hello"}) == {"x": 10, "y": "hello"}
+        assert unpickled.load({"x": 10, "y": "hello"}) == {"x": 10, "y": "hello"}
