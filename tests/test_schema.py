@@ -843,6 +843,48 @@ def test_nested_only_empty_inheritance():
     assert "baz" not in child
 
 
+class TestDeeplyNestedOnlyInheritance:
+    """Dotted ``only`` names are intersected with a nested field's ``only``.
+
+    https://github.com/marshmallow-code/marshmallow/issues/1747
+    """
+
+    class GrandChildSchema(Schema):
+        foo = fields.Raw()
+        bar = fields.Raw()
+
+    class ChildSchema(Schema):
+        baz = fields.Raw()
+        grand_child = fields.Nested(
+            lambda: TestDeeplyNestedOnlyInheritance.GrandChildSchema
+        )
+
+    data = dict(bla=1, child=dict(baz=2, grand_child=dict(foo=3, bar=4)))
+
+    def test_dotted_only_narrows_nested_only(self):
+        class ParentSchema(Schema):
+            bla = fields.Raw()
+            child = fields.Nested(self.ChildSchema, only=("grand_child",))
+
+        sch = ParentSchema(only=("bla", "child.grand_child.foo"))
+        assert sch.dump(self.data) == {"bla": 1, "child": {"grand_child": {"foo": 3}}}
+
+    def test_only_keeps_dotted_nested_only(self):
+        class ParentSchema(Schema):
+            bla = fields.Raw()
+            child = fields.Nested(self.ChildSchema, only=("baz", "grand_child.foo"))
+
+        sch = ParentSchema(only=("child.grand_child",))
+        assert sch.dump(self.data) == {"child": {"grand_child": {"foo": 3}}}
+
+    def test_disjoint_dotted_only(self):
+        class ParentSchema(Schema):
+            child = fields.Nested(self.ChildSchema, only=("grand_child.bar",))
+
+        sch = ParentSchema(only=("child.grand_child.foo",))
+        assert sch.dump(self.data) == {"child": {}}
+
+
 def test_nested_exclude():
     class ChildSchema(Schema):
         foo = fields.Raw()
