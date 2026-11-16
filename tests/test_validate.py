@@ -882,6 +882,30 @@ def test_contains_only_unhashable_types():
         validate.ContainsOnly([])([1])
 
 
+def test_containsonly_set_choices_unhashable_input():
+    # Unhashable input elements cannot be looked up in set-based choices.
+    # The membership TypeError must be converted to a ValidationError,
+    # matching OneOf, with the collection-level error message preserved.
+    with pytest.raises(
+        ValidationError,
+        match="One or more of the choices you made was not in: ",
+    ):
+        validate.ContainsOnly({"read", "write"})([{}])
+    with pytest.raises(
+        ValidationError,
+        match="One or more of the choices you made was not in: ",
+    ):
+        validate.ContainsOnly({"read", "write"})([["read"]])
+    with pytest.raises(
+        ValidationError,
+        match="One or more of the choices you made was not in: ",
+    ):
+        validate.ContainsOnly(frozenset({"read", "write"}))([{}])
+    # Valid input is still accepted with set-based choices
+    assert validate.ContainsOnly({"read", "write"})(["read"]) == ["read"]
+    assert validate.ContainsOnly(frozenset({"read", "write"}))([]) == []
+
+
 def test_containsonly_in_tuple():
     assert validate.ContainsOnly(())(()) == ()
     assert validate.ContainsOnly((1, 2, 3))((1,)) == (1,)
