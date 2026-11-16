@@ -679,8 +679,11 @@ class ContainsOnly(OneOf):
     def __call__(self, value: typing.Sequence[_T]) -> typing.Sequence[_T]:
         # We can't use set.issubset because does not handle unhashable types
         for val in value:
-            if val not in self.choices:
-                raise ValidationError(self._format_error(value))
+            try:
+                if val not in self.choices:
+                    raise ValidationError(self._format_error(value))
+            except TypeError as error:
+                raise ValidationError(self._format_error(value)) from error
         return value
 
 

@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-from marshmallow import ValidationError, validate
+from marshmallow import Schema, ValidationError, fields, validate
 
 
 @pytest.mark.parametrize(
@@ -880,6 +880,32 @@ def test_contains_only_unhashable_types():
         validate.ContainsOnly([[1], [2], [3]])([[4]])
     with pytest.raises(ValidationError):
         validate.ContainsOnly([])([1])
+
+
+@pytest.mark.parametrize("choices", [{"read", "write"}, frozenset({"read", "write"})])
+@pytest.mark.parametrize("value", [["read"], {"permission": "read"}])
+def test_contains_only_unhashable_input_with_set_choices(choices, value):
+    validator = validate.ContainsOnly(choices, error="Invalid choices: {input}")
+    with pytest.raises(ValidationError) as excinfo:
+        validator(["read", value])
+    assert excinfo.value.messages == [f"Invalid choices: read, {value}"]
+    assert isinstance(excinfo.value.__cause__, TypeError)
+
+
+def test_contains_only_unhashable_input_schema_error():
+    class PermissionSchema(Schema):
+        permissions = fields.List(
+            fields.Raw(), validate=validate.ContainsOnly({"read", "write"})
+        )
+
+    schema = PermissionSchema()
+    assert schema.load({"permissions": ["read", "write"]}) == {
+        "permissions": ["read", "write"]
+    }
+    assert schema.load({"permissions": []}) == {"permissions": []}
+    errors = schema.validate({"permissions": [{}]})
+    assert "permissions" in errors
+    assert len(errors["permissions"]) == 1
 
 
 def test_containsonly_in_tuple():
