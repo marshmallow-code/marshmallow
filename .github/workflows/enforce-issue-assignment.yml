@@ -3,6 +3,7 @@
 name: Enforce issue assignment
 
 on:
+  # zizmor: ignore[dangerous-triggers] -- pull_request_target is safe without a downstream checkout
   pull_request_target:
     types: [opened, edited, reopened]
 
