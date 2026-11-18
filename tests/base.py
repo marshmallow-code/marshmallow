@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import simplejson
 
-from marshmallow import Schema, fields, missing, post_load, validate
+from marshmallow import Schema, fields, post_load, validate
 from marshmallow.exceptions import ValidationError
 
 central = ZoneInfo("America/Chicago")
@@ -173,18 +173,23 @@ class Blog:
 class Uppercased(fields.String):
     """Custom field formatting example."""
 
-    def _serialize(self, value, attr, obj, **kwargs):
+    def _serialize(self, value, **kwargs):
         if value:
             return value.upper()
         return None
 
 
-def get_lowername(obj):
+def get_is_old(obj, attr, default):
     if obj is None:
-        return missing
-    if isinstance(obj, dict):
-        return obj.get("name", "").lower()
-    return obj.name.lower()
+        return default
+    age = obj.get("age", 0) if isinstance(obj, dict) else obj.age
+    return age > 80
+
+
+def get_lowername(obj, attr, default):
+    if obj is None:
+        return default
+    return (obj.get("name", "") if isinstance(obj, dict) else obj.name).lower()
 
 
 class UserSchema(Schema):
@@ -202,8 +207,8 @@ class UserSchema(Schema):
     homepage = fields.Url()
     email = fields.Email()
     balance = fields.Decimal()
-    is_old: fields.Field = fields.Method("get_is_old")
-    lowername = fields.Function(get_lowername)
+    is_old: fields.Field = fields.Boolean(dump_only=True, dump_getter=get_is_old)
+    lowername = fields.String(dump_only=True, dump_getter=get_lowername)
     registered = fields.Boolean()
     hair_colors = fields.List(fields.Raw)
     sex_choices = fields.List(fields.Raw)
@@ -219,18 +224,6 @@ class UserSchema(Schema):
 
     class Meta:
         render_module = simplejson
-
-    def get_is_old(self, obj):
-        if obj is None:
-            return missing
-        if isinstance(obj, dict):
-            age = obj.get("age", 0)
-        else:
-            age = obj.age
-        try:
-            return age > 80
-        except TypeError as te:
-            raise ValidationError(str(te)) from te
 
     @post_load
     def make_user(self, data, **kwargs):
