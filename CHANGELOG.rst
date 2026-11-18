@@ -1,6 +1,15 @@
 Changelog
 =========
 
+4.4.1 (unreleased)
+------------------
+
+Bug fixes:
+
+- Raise `ValidationError <marshmallow.exceptions.ValidationError>` for
+  overflowing RFC date components and integer POSIX timestamps when loading
+  `DateTime <marshmallow.fields.DateTime>` fields.
+
 4.4.0 (2026-11-03)
 ------------------
 

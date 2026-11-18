@@ -1287,7 +1287,7 @@ class _TemporalField(Field[_D], metaclass=abc.ABCMeta):
             if func:
                 return func(value)
             return self._make_object_from_format(value, data_format)
-        except (TypeError, AttributeError, ValueError) as error:
+        except (TypeError, AttributeError, ValueError, OverflowError) as error:
             raise self.make_error(
                 "invalid", input=value, obj_type=self.OBJ_TYPE
             ) from error

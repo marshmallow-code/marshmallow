@@ -600,12 +600,51 @@ class TestFieldDeserialization:
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
     @pytest.mark.parametrize(
         "in_value",
-        ["", "!@#", -1],
+        [
+            "",
+            "!@#",
+            -1,
+            pytest.param(10**400, id="oversized-positive-integer"),
+            pytest.param(-(10**400), id="oversized-negative-integer"),
+        ],
     )
     def test_invalid_timestamp_field_deserialization(self, fmt, in_value):
         field = fields.DateTime(format=fmt)
         with pytest.raises(ValidationError, match="Not a valid datetime."):
             field.deserialize(in_value)
+
+    @pytest.mark.parametrize(
+        "field_class", [fields.DateTime, fields.NaiveDateTime, fields.AwareDateTime]
+    )
+    @pytest.mark.parametrize("fmt", ["rfc", "rfc822"])
+    @pytest.mark.parametrize(
+        "value",
+        [
+            "Fri, 31 Dec 999999999999999999 23:59:59 +0000",
+            "Thu, 31 Dec 2026 999999999999999999:59:59 +0000",
+        ],
+        ids=["oversized-year", "oversized-hour"],
+    )
+    def test_rfc_datetime_overflow_is_validation_error(self, field_class, fmt, value):
+        field = field_class(format=fmt)
+        with pytest.raises(ValidationError, match="Not a valid datetime."):
+            field.deserialize(value)
+
+    @pytest.mark.parametrize("method", ["load", "validate"])
+    def test_schema_reports_rfc_datetime_overflow(self, method):
+        class EventSchema(Schema):
+            when = fields.DateTime(format="rfc")
+
+        schema = EventSchema()
+        data = {"when": "Fri, 31 Dec 999999999999999999 23:59:59 +0000"}
+        expected = {"when": ["Not a valid datetime."]}
+
+        if method == "validate":
+            assert schema.validate(data) == expected
+        else:
+            with pytest.raises(ValidationError) as excinfo:
+                schema.load(data)
+            assert excinfo.value.messages == expected
 
     # Regression test for https://github.com/marshmallow-code/marshmallow/pull/2102
     @pytest.mark.parametrize("fmt", ["timestamp", "timestamp_ms"])
