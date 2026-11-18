@@ -1,6 +1,9 @@
 import datetime as dt
 
+import pytest
+
 from marshmallow import EXCLUDE, Schema, fields
+from marshmallow.exceptions import ValidationError
 
 
 class UserSchema(Schema):
@@ -163,3 +166,39 @@ class TestManyOption:
     def test_explicit_single(self):
         test = self.ManySchema(many=False)
         assert test.load({"foo": "bar"}) == {"foo": "bar"}
+
+
+class TestPartialOption:
+    class PartialSchema(Schema):
+        foo = fields.Str(required=True)
+        bar = fields.Str(required=True)
+
+        class Meta:
+            partial = True
+
+    class PartialFieldsSchema(Schema):
+        foo = fields.Str(required=True)
+        bar = fields.Str(required=True)
+
+        class Meta:
+            partial = ("foo",)
+
+    def test_partial_by_default(self):
+        schema = self.PartialSchema()
+        assert schema.load({"foo": "123"}) == {"foo": "123"}
+        assert schema.load({}) == {}
+
+    def test_explicit_non_partial(self):
+
+        schema = self.PartialSchema(partial=False)
+        with pytest.raises(ValidationError):
+            schema.load({"foo": "123"})
+
+    def test_partial_fields_by_default(self):
+
+        schema = self.PartialFieldsSchema()
+        # 'foo' can be missing
+        assert schema.load({"bar": "456"}) == {"bar": "456"}
+        # 'bar' is still required
+        with pytest.raises(ValidationError):
+            schema.load({"foo": "123"})
