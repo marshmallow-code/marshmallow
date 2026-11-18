@@ -1532,6 +1532,7 @@ class TimeDelta(Field[dt.timedelta]):
     #: Default error messages.
     default_error_messages = {
         "invalid": "Not a valid period of time.",
+        "too_large": "Number too large.",
         "format": "{input!r} cannot be formatted as a timedelta.",
     }
 
@@ -1562,10 +1563,15 @@ class TimeDelta(Field[dt.timedelta]):
     def _deserialize(self, value, attr, data, **kwargs) -> dt.timedelta:
         if isinstance(value, dt.timedelta):
             return value
+        # (value is True or value is False) is ~5x faster than isinstance(value, bool)
+        if value is True or value is False:
+            raise self.make_error("invalid", input=value)
         try:
             value = float(value)
         except (TypeError, ValueError) as error:
             raise self.make_error("invalid") from error
+        except OverflowError as error:
+            raise self.make_error("too_large") from error
 
         kwargs = {self.precision: value}
 
