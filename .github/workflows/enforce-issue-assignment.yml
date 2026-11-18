@@ -48,21 +48,17 @@ jobs:
             });
 
             const refs = result.repository.pullRequest.closingIssuesReferences.nodes;
-            if (refs.length === 0) {
-              core.info('No closing issue references; nothing to enforce.');
-              return;
-            }
-
             const unauthorized = refs.filter(
               issue => !issue.assignees.nodes.some(a => a.login === author)
             );
-            if (unauthorized.length === 0) {
+            if (refs.length > 0 && unauthorized.length === 0) {
               core.info(`Author ${author} is assigned to all referenced issues.`);
               return;
             }
 
-            const issueList = unauthorized.map(i => `#${i.number}`).join(', ');
-            const body =
+            const issueList = refs.length === 0
+              ? 'no closing issue referenced'
+              : unauthorized.map(i => `#${i.number}`).join(', ');
               `@${author} You do not have permission to open a PR without ` +
               `being assigned to the referenced issue (${issueList}).`;
 
