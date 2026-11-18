@@ -896,15 +896,24 @@ class String(Field[str]):
     def _serialize(self, value, attr, obj, **kwargs) -> str | None:
         if value is None:
             return None
-        return utils.ensure_text_type(value)
+        # An exact str needs no conversion. Subclasses of str are converted below.
+        if type(value) is str:
+            return value
+        if isinstance(value, bytes):
+            return value.decode("utf-8")
+        return str(value)
 
     def _deserialize(self, value, attr, data, **kwargs) -> str:
         if not isinstance(value, (str, bytes)):
             raise self.make_error("invalid")
-        try:
-            return utils.ensure_text_type(value)
-        except UnicodeDecodeError as error:
-            raise self.make_error("invalid_utf8") from error
+        if type(value) is str:
+            return value
+        if isinstance(value, bytes):
+            try:
+                return value.decode("utf-8")
+            except UnicodeDecodeError as error:
+                raise self.make_error("invalid_utf8") from error
+        return str(value)
 
 
 class UUID(Field[uuid.UUID]):
