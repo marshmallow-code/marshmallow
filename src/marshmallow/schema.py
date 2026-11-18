@@ -469,6 +469,13 @@ class Schema(metaclass=SchemaMeta):
         Generated schemas are not added to the class registry and therefore cannot
         be referred to by name in `Nested` fields.
 
+        .. note::
+
+            Keys in ``fields`` are used as field names. If a key contains a dot
+            (e.g. ``"foo.bar"``) and the field does not specify an explicit ``attribute``,
+            deserialization treats the dot as a path and produces nested dictionaries
+            (e.g. ``{"foo": {"bar": ...}}``). To keep deserialized data flat, provide
+            an explicit ``attribute`` without dots (e.g. ``fields.Str(attribute="foo_bar")``).
 
         :param fields: Dictionary mapping field names to field instances.
         :param name: Optional name for the class, which will appear in
