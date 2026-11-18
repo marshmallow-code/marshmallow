@@ -59,8 +59,19 @@ jobs:
             const issueList = refs.length === 0
               ? 'no closing issue referenced'
               : unauthorized.map(i => `#${i.number}`).join(', ');
+            let body =
               `@${author} You do not have permission to open a PR without ` +
               `being assigned to the referenced issue (${issueList}).`;
+
+            const policyResponse = await fetch(
+              'https://raw.githubusercontent.com/marshmallow-code/.github/refs/heads/main/AI_POLICY.md'
+            );
+            if (policyResponse.ok) {
+              const aiPolicy = await policyResponse.text();
+              body +=
+                `\n\n<details>\n<summary>AI Policy</summary>\n\n` +
+                `${aiPolicy}\n\n</details>`;
+            }
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
