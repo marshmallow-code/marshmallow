@@ -93,7 +93,8 @@ class URL(Validator):
     :param error: Error message to raise in case of a validation error.
         Can be interpolated with `{input}`.
     :param schemes: Valid schemes. By default, ``http``, ``https``,
-        ``ftp``, and ``ftps`` are allowed.
+        ``ftp``, and ``ftps`` are allowed. An empty collection allows no
+        absolute URL schemes.
     :param require_tld: Whether to reject non-FQDN hostnames.
     """
 
@@ -206,7 +207,11 @@ class URL(Validator):
         self.relative = relative
         self.absolute = absolute
         self.error: str = error or self.default_message
-        self.schemes = {s.lower() for s in schemes} if schemes else self.default_schemes
+        self.schemes = (
+            {s.lower() for s in schemes}
+            if schemes is not None
+            else self.default_schemes
+        )
         self.require_tld = require_tld
 
     def _repr_args(self) -> str:
