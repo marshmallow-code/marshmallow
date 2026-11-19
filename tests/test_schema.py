@@ -14,6 +14,7 @@ from marshmallow import (
     Schema,
     class_registry,
     fields,
+    post_load,
     validate,
     validates,
     validates_schema,
@@ -1990,6 +1991,48 @@ class TestNestedSchema:
         errors = excinfo.value.messages
         assert "inner" in errors
         assert "_schema" in errors["inner"]
+
+    # regression test for https://github.com/marshmallow-code/marshmallow/issues/2961
+    def test_nested_field_validator_can_skip_field_errors(self):
+        class ChildModel:
+            def __init__(self, uuid, name):
+                self.uuid = uuid
+                self.name = name
+
+        class Inner(Schema):
+            uuid = fields.UUID(required=True)
+            name = fields.String(required=True)
+
+            @post_load
+            def make_child(self, data, **kwargs):
+                return ChildModel(**data)
+
+        validated_values = []
+
+        class Outer(Schema):
+            inner = fields.Nested(Inner)
+
+            @validates("inner", skip_on_field_errors=True)
+            def validates_inner(self, value, **kwargs):
+                assert isinstance(value, ChildModel)
+                validated_values.append(value)
+
+        schema = Outer()
+
+        schema.load(
+            {
+                "inner": {
+                    "uuid": "c81505b4-258b-4912-b8bc-8ac913d56736",
+                    "name": "test",
+                }
+            }
+        )
+
+        with pytest.raises(ValidationError) as excinfo:
+            schema.load({"inner": {"uuid": "invalid-uuid", "name": "test"}})
+
+        assert excinfo.value.messages == {"inner": {"uuid": ["Not a valid UUID."]}}
+        assert len(validated_values) == 1
 
     @pytest.mark.parametrize("unknown", (None, RAISE, INCLUDE, EXCLUDE))
     def test_nested_unknown_validation(self, unknown):
