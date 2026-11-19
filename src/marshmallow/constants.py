@@ -21,5 +21,8 @@ class _Missing:
     def __len__(self):
         return 0
 
+    def __reduce__(self):
+        return "missing"
+
 
 missing: typing.Final = _Missing()
