@@ -1138,12 +1138,14 @@ class Schema(metaclass=SchemaMeta):
                 data_key = (
                     field_obj.data_key if field_obj.data_key is not None else field_name
                 )
+                # Key under which the deserialized value is stored (see _deserialize)
+                attr_key = field_obj.attribute or field_name
                 do_validate = functools.partial(validator, data_key=data_key)
 
                 if many:
                     for idx, item in enumerate(data):
                         try:
-                            value = item[field_obj.attribute or field_name]
+                            value = item[attr_key]
                         except KeyError:
                             pass
                         else:
@@ -1155,10 +1157,10 @@ class Schema(metaclass=SchemaMeta):
                                 index=(idx if self.opts.index_errors else None),
                             )
                             if validated_value is missing:
-                                item.pop(field_name, None)
+                                item.pop(attr_key, None)
                 else:
                     try:
-                        value = data[field_obj.attribute or field_name]
+                        value = data[attr_key]
                     except KeyError:
                         pass
                     else:
@@ -1169,7 +1171,7 @@ class Schema(metaclass=SchemaMeta):
                             error_store=error_store,
                         )
                         if validated_value is missing:
-                            data.pop(field_name, None)
+                            data.pop(attr_key, None)
 
     def _invoke_schema_validators(
         self,
