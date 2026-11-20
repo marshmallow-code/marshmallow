@@ -1192,9 +1192,13 @@ class Schema(metaclass=SchemaMeta):
             pass_original = validator_kwargs.get("pass_original", False)
 
             if many and not pass_collection:
-                for idx, (item, orig) in enumerate(
-                    zip(data, original_data, strict=True)
-                ):
+                # A pre_load hook may reshape the input (e.g. unwrap an envelope),
+                # so original_data is only paired with data when the lengths agree.
+                if pass_original and len(original_data) == len(data):
+                    originals = original_data
+                else:
+                    originals = [None] * len(data)
+                for idx, (item, orig) in enumerate(zip(data, originals, strict=True)):
                     self._run_validator(
                         validator,
                         item,
