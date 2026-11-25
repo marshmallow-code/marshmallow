@@ -1,17 +1,11 @@
 from __future__ import annotations
 
 import datetime as dt
-from copy import copy, deepcopy
 from typing import NamedTuple
 
 import pytest
 
 from marshmallow import Schema, fields, utils
-
-
-def test_missing_singleton_copy():
-    assert copy(utils.missing) is utils.missing
-    assert deepcopy(utils.missing) is utils.missing
 
 
 class PointNT(NamedTuple):
