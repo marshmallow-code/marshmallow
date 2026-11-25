@@ -188,6 +188,7 @@ class URL(Validator):
     _regex = RegexMemoizer()
 
     default_message = "Not a valid URL."
+    default_tld_message = "Not a valid FQDN."
     default_schemes = {"http", "https", "ftp", "ftps"}
 
     def __init__(
@@ -206,6 +207,7 @@ class URL(Validator):
         self.relative = relative
         self.absolute = absolute
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
         self.schemes = {s.lower() for s in schemes} if schemes else self.default_schemes
         self.require_tld = require_tld
 
@@ -239,6 +241,12 @@ class URL(Validator):
             matched = regex.search(value)
 
         if not matched:
+            if self.require_tld and not self._has_custom_error and scheme != "file":
+                regex_without_tld = self._regex(
+                    relative=self.relative, absolute=self.absolute, require_tld=False
+                )
+                if regex_without_tld.search(value):
+                    raise ValidationError(self.default_tld_message)
             raise ValidationError(message)
 
         return value
@@ -278,6 +286,7 @@ class Email(Validator):
 
     def __init__(self, *, error: str | None = None):
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
 
     def _format_error(self, value: str) -> str:
         return self.error.format(input=value)
@@ -460,6 +469,7 @@ class Equal(Validator):
     def __init__(self, comparable, *, error: str | None = None):
         self.comparable = comparable
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
 
     def _repr_args(self) -> str:
         return f"comparable={self.comparable!r}"
@@ -501,6 +511,7 @@ class Regexp(Validator):
             re.compile(regex, flags) if isinstance(regex, (str, bytes)) else regex
         )
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
 
     def _repr_args(self) -> str:
         return f"regex={self.regex!r}"
@@ -538,6 +549,7 @@ class Predicate(Validator):
     def __init__(self, method: str, *, error: str | None = None, **kwargs):
         self.method = method
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
         self.kwargs = kwargs
 
     def _repr_args(self) -> str:
@@ -569,6 +581,7 @@ class NoneOf(Validator):
         self.iterable = iterable
         self.values_text = ", ".join(str(each) for each in self.iterable)
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
 
     def _repr_args(self) -> str:
         return f"iterable={self.iterable!r}"
@@ -609,6 +622,7 @@ class OneOf(Validator):
         self.labels = labels if labels is not None else []
         self.labels_text = ", ".join(str(label) for label in self.labels)
         self.error: str = error or self.default_message
+        self._has_custom_error = error is not None
 
     def _repr_args(self) -> str:
         return f"choices={self.choices!r}, labels={self.labels!r}"

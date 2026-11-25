@@ -198,6 +198,21 @@ def test_url_dont_require_tld_invalid(invalid_url):
         validator(invalid_url)
 
 
+def test_url_require_tld_error_message():
+    validator = validate.URL()
+    with pytest.raises(ValidationError, match="Not a valid FQDN."):
+        validator("http://test-url")
+
+    with pytest.raises(ValidationError, match="Not a valid URL."):
+        validator("derp")
+
+
+def test_url_require_tld_custom_error_message():
+    validator = validate.URL(error="Custom URL error.")
+    with pytest.raises(ValidationError, match="Custom URL error."):
+        validator("http://test-url")
+
+
 def test_url_custom_scheme():
     validator = validate.URL()
     # By default, ws not allowed
