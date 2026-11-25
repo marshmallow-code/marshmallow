@@ -94,7 +94,7 @@ def pluck(dictlist: list[dict[str, typing.Any]], key: str):
 # Various utilities for pulling keyed values from objects
 
 
-def get_value(obj, key: str, default=missing):
+def get_value(obj, key: str):
     """Helper for pulling a keyed value off various types of objects. Fields use
     this method by default to access attributes of the source object. For object `x`
     and attribute `i`, this method first tries to access `x[i]`, and then falls back to
@@ -107,20 +107,20 @@ def get_value(obj, key: str, default=missing):
     """
     if "." in key:
         for k in key.split("."):
-            obj = _get_value_for_key(obj, k, default)
+            obj = _get_value_for_key(obj, k)
     else:
-        obj = _get_value_for_key(obj, key, default)
+        obj = _get_value_for_key(obj, key)
     return obj
 
 
-def _get_value_for_key(obj, key, default):
+def _get_value_for_key(obj, key):
     if not hasattr(obj, "__getitem__"):
-        return getattr(obj, key, default)
+        return getattr(obj, key, missing)
 
     try:
         return obj[key]
     except (KeyError, IndexError, TypeError, AttributeError):
-        return getattr(obj, key, default)
+        return getattr(obj, key, missing)
 
 
 def set_value(dct: dict[str, typing.Any], key: str, value: typing.Any):
