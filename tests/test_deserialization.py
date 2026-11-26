@@ -891,6 +891,17 @@ class TestFieldDeserialization:
         msg = "Not a valid date."
         assert excinfo.value.args[0] == msg
 
+    def test_date_field_deserialization_rejects_datetime(self):
+        field = fields.Date()
+        with pytest.raises(ValidationError) as excinfo:
+            field.deserialize(dt.datetime(2014, 8, 21, 12, 30))
+        assert excinfo.value.args[0] == "Not a valid date."
+
+    def test_date_field_deserialization_passes_date_through(self):
+        field = fields.Date()
+        d = dt.date(2014, 8, 21)
+        assert field.deserialize(d) is d
+
     def test_dict_field_deserialization(self):
         data = {"foo": "bar"}
         field = fields.Dict()
