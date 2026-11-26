@@ -91,6 +91,22 @@ class TestFieldSerialization:
         field = fields.Function(deserialize=lambda obj: None)
         assert field.load_only
 
+    def test_function_field_with_no_serialize_or_deserialize_is_load_only(self):
+        field = fields.Function()
+        assert field.load_only is True
+
+    def test_function_field_with_no_serialize_is_missing(self):
+        f = fields.Function()
+        f.parent = Schema()
+
+        assert f.serialize("", "", None) is missing_
+
+    def test_function_field_with_no_serialize_is_omitted_on_dump(self):
+        class FunctionNoSerializeSchema(Schema):
+            a = fields.Function()
+
+        assert FunctionNoSerializeSchema().dump({"a": 1}) == {}
+
     def test_function_field_passed_uncallable_object(self):
         with pytest.raises(TypeError):
             fields.Function("uncallable")  # type: ignore[arg-type]

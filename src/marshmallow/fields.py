@@ -2085,12 +2085,15 @@ class Function(Field):
     ):
         # Set dump_only and load_only based on arguments
         kwargs["dump_only"] = bool(serialize) and not bool(deserialize)
-        kwargs["load_only"] = bool(deserialize) and not bool(serialize)
+        # If no serialize callable is provided, the field is load-only
+        kwargs["load_only"] = not bool(serialize)
         super().__init__(**kwargs)
         self.serialize_func = serialize and utils.callable_or_raise(serialize)
         self.deserialize_func = deserialize and utils.callable_or_raise(deserialize)
 
     def _serialize(self, value, attr, obj, **kwargs):
+        if self.serialize_func is None:
+            return missing_
         return self.serialize_func(obj)
 
     def _deserialize(self, value, attr, data, **kwargs):
