@@ -190,3 +190,4 @@ Contributors (chronological)
 - Dhruvil Darji  `@dhruvildarji  <https://github.com/dhruvildarji>`_
 - Haïm Dimer `@hdimer  <https://github.com/hdimer>`_
 - `@vidigoat <https://github.com/vidigoat>`_
+- Afonso Ribeiro `@deadstrobe5 <https://github.com/deadstrobe5>`_
