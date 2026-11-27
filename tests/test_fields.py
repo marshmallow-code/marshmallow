@@ -276,6 +276,13 @@ class TestErrorMessages:
         error = field.make_error(key)
         assert error.args[0] == message
 
+    def test_make_error_with_formatting_kwargs(self):
+        field = self.MyField(
+            error_messages={"formatted": "Field {field_name} must be >= {min_val}."}
+        )
+        error = field.make_error("formatted", field_name="age", min_val=18)
+        assert error.args[0] == "Field age must be >= 18."
+
     def test_make_error_key_doesnt_exist(self):
         with pytest.raises(AssertionError) as excinfo:
             self.MyField().make_error("doesntexist")
