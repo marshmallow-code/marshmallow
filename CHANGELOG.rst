@@ -14,6 +14,8 @@ Bug fixes:
   (not `ValueError`) for NaN in `TimeDelta <marshmallow.fields.TimeDelta>`
   (:pr:`3004`).
   Thanks :user:`vidigoat` for the PR.
+- Improve handling of booleans and oversized values in
+  `TimeDelta <marshmallow.fields.TimeDelta>` (:pr:`3084`).
 - Fix `Pluck` handling of empty data_key (:pr:`3082`).
 
 Other changes:
